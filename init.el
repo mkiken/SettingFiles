@@ -30,18 +30,18 @@
 (setq indent-tabs-mode t)
 ;; tab ではなく space を使う
 ;(setq-default indent-tabs-mode nil)
-;; tab 幅を 4 に設定
-;(setq-default tab-width 2)
 ;;インデント幅
 ;(setq c-basic-offset 1)
 ;;タブ幅
-;(setq default-tab-width 1)
-;(setq tab-width 1)
+(setq-default tab-width 4)
+(setq default-tab-width 4)
+(setq tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44 48 52 56 60
+                      64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
 
 ;;リージョンをハイライトする
 (setq-default transient-mark-mode t)
 
-;; from http://macemacsjp.sourceforge.jp/index.php?CocoaEmacs#lb3a4046
+ 
 ;; (set-default-font
 ;;"-*-Osaka-normal-normal-normal-*-12-*-*-*-m-0-iso10646-1") 
  (when (>= emacs-major-version 23)
@@ -95,3 +95,7 @@
 (set-language-environment 'Japanese)
 ; 極力UTF-8とする
 (prefer-coding-system 'utf-8)
+
+; [*.pegjs]ファイルをJavaScriptモードで開く
+(setq auto-mode-alist
+      (cons (cons "\\.pegjs$" 'js-mode) auto-mode-alist))
