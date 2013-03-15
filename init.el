@@ -140,6 +140,12 @@
 (autoload 'haskell-mode "haskell-mode-2.8.0/haskell-mode" nil t)
 (add-to-list 'auto-mode-alist '("\\.hs$" . haskell-mode))
 
+;;for Scala
+(add-to-list 'load-path "~/.emacs.d/elisp/scala-mode2")
+(require 'scala-mode2)
+;;(autoload 'scala-mode2 "scala-mode2/scala-mode2" nil t)
+;;(add-to-list 'auto-mode-alist '("\\.scala$" . scala-mode2))
+
 ;;for MiniMap(Sublime Text)
 ;; from http://www.emacswiki.org/emacs/MiniMap
 (require 'minimap)
