@@ -124,7 +124,7 @@ zstyle ':completion:*:*:-subscript-:*' tag-order indexes parameters
 
 
 #cdは親ディレクトリからカレントディレクトリを選択しないので表示させないようにする (例: cd ../<TAB>):
-zstyle ':completion:*:cd:*' ignore-parents parent pwd
+#zstyle ':completion:*:cd:*' ignore-parents parent pwd
 
 # オブジェクトファイルとか中間ファイルとかはfileとして補完させない
 zstyle ':completion:*:*files' ignored-patterns '*?.o' '*?~' '*\#'
@@ -164,6 +164,7 @@ function google () {
 #bindkey '\C-xI' incremental-complete-word
 
 
+#: << '#_comment_out'
 
 # Incremental completion for zsh
 # by y.fujii <y-fujii at mimosa-pudica.net>, public domain
@@ -297,3 +298,5 @@ function expand-or-complete-prefix-incr
 		zle expand-or-complete-prefix
 	fi
 }
+
+#_comment_out
