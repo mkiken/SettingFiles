@@ -34,8 +34,6 @@
 (setq indent-tabs-mode t)
 ;; tab ではなく space を使う
 ;(setq-default indent-tabs-mode nil)
-;;インデント幅
-;(setq c-basic-offset 1)
 ;;タブ幅
 (setq-default tab-width 4)
 (setq default-tab-width 4)
@@ -108,9 +106,6 @@
 (require 'wdired)
 (define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
 
-;;from http://www.bookshelf.jp/soft/meadow_28.html#SEC370
-(iswitchb-mode 1)
-
 ;;from http://d.hatena.ne.jp/ama-ch/20090114/1231918903
 ;; カーソル位置から行頭まで削除する
 (defun backward-kill-line (arg)
@@ -119,6 +114,9 @@
   (kill-line 0))
 ;; C-S-kに設定
 (global-set-key (kbd "C-S-k") 'backward-kill-line)
+
+;; Eclipseみたいに行全体の削除。本来はCtrl + Shift + Del
+(define-key global-map (kbd "s-d") 'kill-whole-line)
 
 ;; http://d.hatena.ne.jp/gifnksm/20100131/1264956220
 (defun beginning-of-visual-indented-line (current-point)
@@ -144,10 +142,13 @@
 (global-set-key "\C-a" 'beginning-of-visual-indented-line)
 (global-set-key "\C-e" 'end-of-visual-line)
 
-;; C-kで行全体を削除
-(setq kill-whole-line t)
+;; M-<up>, M-<down>を使う
+;; http://stackoverflow.com/questions/4351044/binding-m-up-m-down-in-emacs-23-1-1
+(global-set-key [M-up] 'beginning-of-buffer)
+(global-set-key [M-down] 'end-of-buffer)
 
 ;;http://www.bookshelf.jp/soft/meadow_23.html#SEC231
+;; ファイルやURLをクリック出来るようにする
 (ffap-bindings)
 
 ;; ツールバーを非表示
@@ -179,5 +180,86 @@
 (global-set-key "\M-m" 'minimap-create)
 (global-set-key "\C-\M-m" 'minimap-kill)
 
+;; for auto-install
+;; http://d.hatena.ne.jp/rubikitch/20091221/autoinstall
+;; 実行時だけ有効にする
+;; (require 'auto-install)
+;; (setq auto-install-directory "~/.emacs.d/elisp/temp")
+;; (auto-install-update-emacswiki-package-name t)
+;; (auto-install-compatibility-setup)             ; 互換性確保
+
+;; http://d.hatena.ne.jp/supermassiveblackhole/20100705/1278320568
+;; auto-complete
+;; 補完候補を自動ポップアップ
+(add-to-list 'load-path "~/.emacs.d/elisp/auto-complete")
+(require 'auto-complete)
+(global-auto-complete-mode t)
+;;(require 'auto-complete-config nil t)
+;; (setq ac-dictionary-directories "~/.emacs.d/elisp/ac-dict") ;; 辞書ファイルのディレクトリ
+
+;; http://emacs.tsutomuonoda.com/emacs-anything-el-helm-mode-install/
 ;; for Helm(Anything)
-;(require './helm/helm-config)
+(add-to-list 'load-path "~/.emacs.d/elisp/helm")
+(require 'helm-config)
+(global-set-key (kbd "C-c h") 'helm-mini)
+;; コマンド補完
+(helm-mode 1)
+
+
+;; http://shnya.jp/blog/?p=477
+;; http://emacswiki.org/cgi-bin/emacs/FlyMake
+;; flymakeパッケージを読み込み
+(require 'flymake)
+;; 全てのファイルでflymakeを有効化
+(add-hook 'find-file-hook 'flymake-find-file-hook)
+
+;;http://emacswiki.org/cgi-bin/emacs/FlyMake
+;; automatically displays the flymake error for the current line in the minibuffer
+(require 'flymake-cursor)
+
+;; jump to next error
+;; http://www.emacswiki.org/emacs/FlyMake
+  (defun my-flymake-show-next-error()
+    (interactive)
+    (flymake-goto-next-error)
+    (flymake-display-err-menu-for-current-line)
+    )
+(global-set-key "\M-n" 'my-flymake-show-next-error)
+
+;;for C++, C
+;; Makefile が無くてもC/C++のチェック
+(defun flymake-simple-generic-init (cmd &optional opts)
+  (let* ((temp-file  (flymake-init-create-temp-buffer-copy
+                      'flymake-create-temp-inplace))
+         (local-file (file-relative-name
+                      temp-file
+                      (file-name-directory buffer-file-name))))
+    (list cmd (append opts (list local-file)))))
+ 
+(defun flymake-simple-make-or-generic-init (cmd &optional opts)
+  (if (file-exists-p "Makefile")
+      (flymake-simple-make-init)
+    (flymake-simple-generic-init cmd opts)))
+ 
+(defun flymake-c-init ()
+  (flymake-simple-make-or-generic-init
+   "gcc"))
+(defun flymake-cc-init ()
+  (flymake-simple-make-or-generic-init
+   "g++"))
+(push '("\\.c\\'" flymake-c-init) flymake-allowed-file-name-masks)
+(push '("\\.\\(cc\\|cpp\\|C\\|CPP\\|hpp\\)\\'" flymake-cc-init)
+      flymake-allowed-file-name-masks)
+
+;; http://www.info.kochi-tech.ac.jp/y-takata/index.php?%A5%E1%A5%F3%A5%D0%A1%BC%2Fy-takata%2FFlymake
+;;for Java
+(defun flymake-java-init ()
+  (flymake-simple-make-init-impl
+   'flymake-create-temp-with-folder-structure nil nil
+   buffer-file-name
+   'flymake-get-java-cmdline))
+(defun flymake-get-java-cmdline (source base-dir)
+  (list "javac" (list "-J-Dfile.encoding=utf-8" "-encoding" "utf-8"
+              source)))
+(push '("\\.java$" flymake-java-init) flymake-allowed-file-name-masks)
+(add-hook 'java-mode-hook '(lambda () (flymake-mode t)))
