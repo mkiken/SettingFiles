@@ -118,6 +118,24 @@
 ;; Eclipseみたいに行全体の削除。本来はCtrl + Shift + Del
 (define-key global-map (kbd "s-d") 'kill-whole-line)
 
+;; 一行コピー
+;; http://emacswiki.org/emacs/CopyingWholeLines
+(defun copy-line (arg)
+      "Copy lines (as many as prefix argument) in the kill ring"
+      (interactive "p")
+      (kill-ring-save (line-beginning-position)
+                      (line-beginning-position (+ 1 arg)))
+      (message "%d line%s copied" arg (if (= 1 arg) "" "s")))
+(define-key global-map (kbd "s-b") 'copy-line)
+
+;;; リージョンを削除できるように
+;; http://d.hatena.ne.jp/speg03/20091003/1254571961
+(delete-selection-mode t)
+
+;; カーソル位置の保存
+;; http://www.bookshelf.jp/soft/meadow_31.html
+(setq scroll-preserve-screen-position t)
+
 ;; http://d.hatena.ne.jp/gifnksm/20100131/1264956220
 (defun beginning-of-visual-indented-line (current-point)
   "インデント文字を飛ばした行頭に戻る。ただし、ポイントから行頭までの間にインデント文 字しかない場合は、行頭に戻る。"
@@ -142,10 +160,12 @@
 (global-set-key "\C-a" 'beginning-of-visual-indented-line)
 (global-set-key "\C-e" 'end-of-visual-line)
 
-;; M-<up>, M-<down>を使う
+;; MacのCommand + 十字キーを有効にする
 ;; http://stackoverflow.com/questions/4351044/binding-m-up-m-down-in-emacs-23-1-1
-(global-set-key [M-up] 'beginning-of-buffer)
-(global-set-key [M-down] 'end-of-buffer)
+(global-set-key [s-up] 'beginning-of-buffer)
+(global-set-key [s-down] 'end-of-buffer)
+(global-set-key [s-left] 'beginning-of-visual-indented-line)
+(global-set-key [s-right] 'end-of-visual-line)
 
 ;;http://www.bookshelf.jp/soft/meadow_23.html#SEC231
 ;; ファイルやURLをクリック出来るようにする
@@ -158,6 +178,28 @@
 
 ;;import
 (add-to-list 'load-path "~/.emacs.d/elisp")
+
+;; for tab mode
+;; http://ser1zw.hatenablog.com/entry/2012/12/31/022359
+;; http://christina04.blog.fc2.com/blog-entry-170.html
+(add-to-list 'load-path "~/.emacs.d/elisp/tabbar")
+(require 'tabbar)
+(tabbar-mode 1)
+;; Firefoxライクなキーバインドに
+(global-set-key [(control tab)] 'tabbar-forward)
+(global-set-key [(control shift iso-lefttab)] 'tabbar-backward)
+;; タブ上でマウスホイールを使わない
+;; (tabbar-mwheel-mode nil)
+;; グループを使わない
+(setq tabbar-buffer-groups-function nil)
+;; 左側のボタンを消す
+(dolist (btn '(tabbar-buffer-home-button
+               tabbar-scroll-left-button
+               tabbar-scroll-right-button))
+  (set btn (cons (cons "" nil)
+                 (cons "" nil))))
+;; M-4 で タブ表示、非表示
+(global-set-key "\M-4" 'tabbar-mode)
 
 ;;for JavaScript & pegjs
 ;;js2-mode requires Emacs 24.0 or higher.
