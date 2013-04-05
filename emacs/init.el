@@ -175,6 +175,12 @@
 ;; M-x tool-bar-mode で表示非表示を切り替えられる
 (tool-bar-mode -1)
 
+; server start for emacs-client
+; http://d.hatena.ne.jp/syohex/20101224/1293206906
+(require 'server)
+(unless (server-running-p)
+  (server-start))
+
 
 ;;import
 (add-to-list 'load-path "~/.emacs.d/elisp")
