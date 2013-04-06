@@ -26,9 +26,15 @@
 
 (setq indent-line-function 'indent-relative-maybe)
 ;;Returnキーで改行＋オートインデント
-(global-set-key "\C-m" 'newline-and-indent)
+ (global-set-key "\C-m" 'newline-and-indent)
 ;; Returnキーで改行＋オートインデント＋コメント行
 ;(global-set-key "\C-m" 'indent-new-comment-line)
+;; どこからでも改行できるようにする
+(defun newline-from-anywhere()
+    (interactive)
+    (end-of-visual-line)
+    (newline-and-indent) )
+(global-set-key (kbd "C-S-m") 'newline-from-anywhere)
 
 ;;インデントはタブにする
 (setq indent-tabs-mode t)
@@ -193,7 +199,7 @@
 (tabbar-mode 1)
 ;; Firefoxライクなキーバインドに
 (global-set-key [(control tab)] 'tabbar-forward)
-(global-set-key [(control shift iso-lefttab)] 'tabbar-backward)
+(global-set-key [(control shift tab)] 'tabbar-backward)
 ;; タブ上でマウスホイールを使わない
 ;; (tabbar-mwheel-mode nil)
 ;; グループを使わない
