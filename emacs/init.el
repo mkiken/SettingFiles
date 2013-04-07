@@ -191,6 +191,10 @@
 ;;import
 (add-to-list 'load-path "~/.emacs.d/elisp")
 
+;; for wc mode
+;; http://www.emacswiki.org/emacs/WordCountMode
+(require 'wc-mode)
+
 ;; for tab mode
 ;; http://ser1zw.hatenablog.com/entry/2012/12/31/022359
 ;; http://christina04.blog.fc2.com/blog-entry-170.html
@@ -289,12 +293,12 @@
                       temp-file
                       (file-name-directory buffer-file-name))))
     (list cmd (append opts (list local-file)))))
- 
+
 (defun flymake-simple-make-or-generic-init (cmd &optional opts)
   (if (file-exists-p "Makefile")
       (flymake-simple-make-init)
     (flymake-simple-generic-init cmd opts)))
- 
+
 (defun flymake-c-init ()
   (flymake-simple-make-or-generic-init
    "gcc"))
