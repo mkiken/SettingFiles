@@ -154,6 +154,12 @@ function google () {
   web_search "https://www.google.co.jp/search?&q=" "+" "" $*
 }
 
+#zmv
+#http://mollifier.hatenablog.com/entry/20101227/p1
+autoload -Uz zmv
+alias zmv='noglob zmv -W'
+alias zcp='zmv -C'
+
 #http://qiita.com/items/156464de9caf64338b17
 #bindkey "^[u" undo
 #bindkey "^[r" redo
