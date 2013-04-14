@@ -29,12 +29,12 @@
  (global-set-key "\C-m" 'newline-and-indent)
 ;; Returnキーで改行＋オートインデント＋コメント行
 ;(global-set-key "\C-m" 'indent-new-comment-line)
-;; どこからでも改行できるようにする
+;; Ctrl + jで文のどこからでも改行できるようにする
 (defun newline-from-anywhere()
     (interactive)
     (end-of-visual-line)
     (newline-and-indent) )
-(global-set-key (kbd "C-S-m") 'newline-from-anywhere)
+(global-set-key (kbd "C-j") 'newline-from-anywhere)
 
 ;;インデントはタブにする
 (setq indent-tabs-mode t)
@@ -112,6 +112,36 @@
 (require 'wdired)
 (define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
 
+;; http://d.hatena.ne.jp/sandai/20120304/p2
+;; スタートアップ非表示
+(setq inhibit-startup-screen t)
+;; scratchの初期メッセージ消去
+;; (setq initial-scratch-message "")
+
+;; タイトルバーにファイルのフルパス表示
+;;(setq frame-title-format
+;;      (format "%%f - Emacs@%s" (system-name)))
+(setq frame-title-format
+      (format "%%f - Emacs"))
+      
+;; yes or noをy or n
+(fset 'yes-or-no-p 'y-or-n-p)
+
+;; GUIで直接ファイルを開いた場合フレームを作成しない
+(add-hook 'before-make-frame-hook
+          (lambda ()
+            (when (eq tabbar-mode t)
+              (switch-to-buffer (buffer-name))
+              (delete-this-frame))))
+
+;; scroll settings.
+;; http://marigold.sakura.ne.jp/devel/emacs/scroll/index.html
+(setq scroll-conservatively 1)
+(setq next-screen-context-lines 20)
+;; カーソル位置の保存
+;; http://www.bookshelf.jp/soft/meadow_31.html
+(setq scroll-preserve-screen-position t)
+
 ;;from http://d.hatena.ne.jp/ama-ch/20090114/1231918903
 ;; カーソル位置から行頭まで削除する
 (defun backward-kill-line (arg)
@@ -137,10 +167,6 @@
 ;;; リージョンを削除できるように
 ;; http://d.hatena.ne.jp/speg03/20091003/1254571961
 (delete-selection-mode t)
-
-;; カーソル位置の保存
-;; http://www.bookshelf.jp/soft/meadow_31.html
-(setq scroll-preserve-screen-position t)
 
 ;; http://d.hatena.ne.jp/gifnksm/20100131/1264956220
 (defun beginning-of-visual-indented-line (current-point)
