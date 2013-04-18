@@ -1,3 +1,109 @@
+;;http://d.hatena.ne.jp/tomoya/20090807/1249601308
+;;MacとWindowsで場合分け
+(defun x->bool (elt) (not (not elt)))
+
+;; emacs-version predicates
+;; (setq emacs22-p (string-match "^22" emacs-version)
+;; 	  emacs23-p (string-match "^23" emacs-version)
+;; 	  emacs23.0-p (string-match "^23\.0" emacs-version)
+;; 	  emacs23.1-p (string-match "^23\.1" emacs-version)
+;; 	  emacs23.2-p (string-match "^23\.2" emacs-version))
+
+;; system-type predicates
+(setq darwin-p  (eq system-type 'darwin)
+      ns-p      (eq window-system 'ns)
+      carbon-p  (eq window-system 'mac)
+      ;; linux-p   (eq system-type 'gnu/linux)
+      ;; colinux-p (when linux-p
+      ;;             (let ((file "/proc/modules"))
+      ;;               (and
+      ;;                (file-readable-p file)
+      ;;                (x->bool
+      ;;                 (with-temp-buffer
+      ;;                   (insert-file-contents file)
+      ;;                   (goto-char (point-min))
+      ;;                   (re-search-forward "^cofuse\.+" nil t))))))
+      cygwin-p  (eq system-type 'cygwin)
+      nt-p      (eq system-type 'windows-nt)
+      meadow-p  (featurep 'meadow)
+      windows-p (or cygwin-p nt-p meadow-p))
+
+;; Settings for Mac OS X
+(when darwin-p
+  ;; key bindings
+  ;; Eclipseみたいに行全体の削除。本来はCtrl + Shift + Del
+  (define-key global-map (kbd "s-d") 'kill-whole-line)
+  (define-key global-map (kbd "s-b") 'copy-line)
+  ;; MacのCommand + 十字キーを有効にする
+  ;; http://stackoverflow.com/questions/4351044/binding-m-up-m-down-in-emacs-23-1-1
+  (global-set-key [s-up] 'beginning-of-buffer)
+  (global-set-key [s-down] 'end-of-buffer)
+  (global-set-key [s-left] 'beginning-of-visual-indented-line)
+  (global-set-key [s-right] 'end-of-visual-line)
+
+  ;; font settings
+  (when (>= emacs-major-version 23)
+	(setq fixed-width-use-QuickDraw-for-ascii t)
+	(setq mac-allow-anti-aliasing t)
+	(set-face-attribute 'default nil
+						:family "monaco"
+						:height 140)
+	(set-fontset-font
+	 (frame-parameter nil 'font)
+	 'japanese-jisx0208
+	 '("Hiragino Maru Gothic Pro" . "iso10646-1"))
+	(set-fontset-font
+	 (frame-parameter nil 'font)
+	 'japanese-jisx0212
+	 '("Hiragino Maru Gothic Pro" . "iso10646-1"))
+	(set-fontset-font
+	 (frame-parameter nil 'font)
+	 'katakana-jisx0201
+	 '("Hiragino Maru Gothic Pro" . "iso10646-1"))
+	;; Unicode フォント
+	(set-fontset-font
+	 (frame-parameter nil 'font)
+	 'mule-unicode-0100-24ff
+	 '("monaco" . "iso10646-1"))
+	;; キリル，ギリシア文字設定
+	;; 注意： この設定だけでは古代ギリシア文字、コプト文字は表示できない
+	;; http://socrates.berkeley.edu/~pinax/greekkeys/NAUdownload.html が必要
+	;; キリル文字
+	(set-fontset-font
+	 (frame-parameter nil 'font)
+	 'cyrillic-iso8859-5
+	 '("monaco" . "iso10646-1"))
+	;; ギリシア文字
+	(set-fontset-font
+	 (frame-parameter nil 'font)
+	 'greek-iso8859-7
+	 '("monaco" . "iso10646-1"))
+	(setq face-font-rescale-alist
+		  '(("^-apple-hiragino.*" . 1.2)
+			(".*osaka-bold.*" . 1.2)
+			(".*osaka-medium.*" . 1.2)
+			(".*courier-bold-.*-mac-roman" . 1.0)
+			(".*monaco cy-bold-.*-mac-cyrillic" . 0.9)
+			(".*monaco-bold-.*-mac-roman" . 0.9)
+			("-cdac$" . 1.3))))
+  )
+
+
+;; Settings for Windows
+(when windows-p
+  (set-face-font 'default "Meiryo UI-13")
+										;(set-face-attribute 'default nil :family "Consolas" :height 104)
+										;(set-fontset-font nil 'japanese-jisx0208 (font-spec :family "MeiryoKe_Console"))
+										;(setq face-font-rescale-alist '(("MeiryoKe_Console" . 1.08)))
+										;(global-set-key [M-kanji] 'ignore)
+										;(global-set-key [kanji] 'ignore)
+  ;;; IME の設定
+  ;; http://bmonkey.cocolog-nifty.com/blog/2012/07/gnu-emacs-241wi.html
+  ;;(setq default-input-method "W32-IME)
+  )
+
+
+
 ;; 現在行を目立たせる
 (global-hl-line-mode)
 
@@ -26,82 +132,38 @@
 
 (setq indent-line-function 'indent-relative-maybe)
 ;;Returnキーで改行＋オートインデント
- (global-set-key "\C-m" 'newline-and-indent)
+(global-set-key "\C-m" 'newline-and-indent)
 ;; Returnキーで改行＋オートインデント＋コメント行
-;(global-set-key "\C-m" 'indent-new-comment-line)
+										;(global-set-key "\C-m" 'indent-new-comment-line)
 ;; Ctrl + jで文のどこからでも改行できるようにする
 (defun newline-from-anywhere()
-    (interactive)
-    (end-of-visual-line)
-    (newline-and-indent) )
+  (interactive)
+  (end-of-visual-line)
+  (newline-and-indent) )
 (global-set-key (kbd "C-j") 'newline-from-anywhere)
 
 ;;インデントはタブにする
 (setq indent-tabs-mode t)
 ;; tab ではなく space を使う
-;(setq-default indent-tabs-mode nil)
+										;(setq-default indent-tabs-mode nil)
 ;;タブ幅
 (setq-default tab-width 4)
 (setq default-tab-width 4)
 (setq tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44 48 52 56 60
-                      64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
+						64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
 
 ;;リージョンをハイライトする
 (setq-default transient-mark-mode t)
 
- (when (>= emacs-major-version 23)
- (setq fixed-width-use-QuickDraw-for-ascii t)
- (setq mac-allow-anti-aliasing t)
- (set-face-attribute 'default nil
-                     :family "monaco"
-                     :height 140)
- (set-fontset-font
-  (frame-parameter nil 'font)
-  'japanese-jisx0208
-  '("Hiragino Maru Gothic Pro" . "iso10646-1"))
- (set-fontset-font
-  (frame-parameter nil 'font)
-  'japanese-jisx0212
-  '("Hiragino Maru Gothic Pro" . "iso10646-1"))
- (set-fontset-font
-  (frame-parameter nil 'font)
-  'katakana-jisx0201
-  '("Hiragino Maru Gothic Pro" . "iso10646-1"))
- ;; Unicode フォント
- (set-fontset-font
-  (frame-parameter nil 'font)
-  'mule-unicode-0100-24ff
-  '("monaco" . "iso10646-1"))
-;; キリル，ギリシア文字設定
-;; 注意： この設定だけでは古代ギリシア文字、コプト文字は表示できない
-;; http://socrates.berkeley.edu/~pinax/greekkeys/NAUdownload.html が必要
-;; キリル文字
- (set-fontset-font
-  (frame-parameter nil 'font)
-  'cyrillic-iso8859-5
-  '("monaco" . "iso10646-1"))
-;; ギリシア文字
- (set-fontset-font
-  (frame-parameter nil 'font)
-  'greek-iso8859-7
-  '("monaco" . "iso10646-1"))
- (setq face-font-rescale-alist
-       '(("^-apple-hiragino.*" . 1.2)
-         (".*osaka-bold.*" . 1.2)
-         (".*osaka-medium.*" . 1.2)
-         (".*courier-bold-.*-mac-roman" . 1.0)
-         (".*monaco cy-bold-.*-mac-cyrillic" . 0.9)
-         (".*monaco-bold-.*-mac-roman" . 0.9)
-         ("-cdac$" . 1.3))))
-;(set-background-color "#98bc98") ;; background color
-;(set-background-color "black") ;; background colo
-;(set-foreground-color "black")   ;; font color
+
+										;(set-background-color "#98bc98") ;; background color
+										;(set-background-color "black") ;; background colo
+										;(set-foreground-color "black")   ;; font color
 
 ;; 言語を日本語にする
 (set-language-environment 'Japanese)
 ;; 極力UTF-8とする
 (prefer-coding-system 'utf-8)
-
 
 
 ;;保存時に行末の空白を全て削除
@@ -123,7 +185,7 @@
 ;;      (format "%%f - Emacs@%s" (system-name)))
 (setq frame-title-format
       (format "%%f - Emacs"))
-      
+
 ;; yes or noをy or n
 (fset 'yes-or-no-p 'y-or-n-p)
 
@@ -151,18 +213,16 @@
 ;; C-S-kに設定
 (global-set-key (kbd "C-S-k") 'backward-kill-line)
 
-;; Eclipseみたいに行全体の削除。本来はCtrl + Shift + Del
-(define-key global-map (kbd "s-d") 'kill-whole-line)
 
 ;; 一行コピー
 ;; http://emacswiki.org/emacs/CopyingWholeLines
 (defun copy-line (arg)
-      "Copy lines (as many as prefix argument) in the kill ring"
-      (interactive "p")
-      (kill-ring-save (line-beginning-position)
-                      (line-beginning-position (+ 1 arg)))
-      (message "%d line%s copied" arg (if (= 1 arg) "" "s")))
-(define-key global-map (kbd "s-b") 'copy-line)
+  "Copy lines (as many as prefix argument) in the kill ring"
+  (interactive "p")
+  (kill-ring-save (line-beginning-position)
+				  (line-beginning-position (+ 1 arg)))
+  (message "%d line%s copied" arg (if (= 1 arg) "" "s")))
+
 
 ;;; リージョンを削除できるように
 ;; http://d.hatena.ne.jp/speg03/20091003/1254571961
@@ -192,12 +252,6 @@
 (global-set-key "\C-a" 'beginning-of-visual-indented-line)
 (global-set-key "\C-e" 'end-of-visual-line)
 
-;; MacのCommand + 十字キーを有効にする
-;; http://stackoverflow.com/questions/4351044/binding-m-up-m-down-in-emacs-23-1-1
-(global-set-key [s-up] 'beginning-of-buffer)
-(global-set-key [s-down] 'end-of-buffer)
-(global-set-key [s-left] 'beginning-of-visual-indented-line)
-(global-set-key [s-right] 'end-of-visual-line)
 
 ;;http://www.bookshelf.jp/soft/meadow_23.html#SEC231
 ;; ファイルやURLをクリック出来るようにする
@@ -207,8 +261,8 @@
 ;; M-x tool-bar-mode で表示非表示を切り替えられる
 (tool-bar-mode -1)
 
-; server start for emacs-client
-; http://d.hatena.ne.jp/syohex/20101224/1293206906
+										; server start for emacs-client
+										; http://d.hatena.ne.jp/syohex/20101224/1293206906
 (require 'server)
 (unless (server-running-p)
   (server-start))
@@ -303,11 +357,11 @@
 
 ;; jump to next error
 ;; http://www.emacswiki.org/emacs/FlyMake
-  (defun my-flymake-show-next-error()
-    (interactive)
-    (flymake-goto-next-error)
-    (flymake-display-err-menu-for-current-line)
-    )
+(defun my-flymake-show-next-error()
+  (interactive)
+  (flymake-goto-next-error)
+  (flymake-display-err-menu-for-current-line)
+  )
 (global-set-key "\M-n" 'my-flymake-show-next-error)
 
 ;;for C++, C
@@ -344,6 +398,6 @@
    'flymake-get-java-cmdline))
 (defun flymake-get-java-cmdline (source base-dir)
   (list "javac" (list "-J-Dfile.encoding=utf-8" "-encoding" "utf-8"
-              source)))
+					  source)))
 (push '("\\.java$" flymake-java-init) flymake-allowed-file-name-masks)
 (add-hook 'java-mode-hook '(lambda () (flymake-mode t)))
