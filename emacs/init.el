@@ -34,6 +34,7 @@
   ;; Eclipseみたいに行全体の削除。本来はCtrl + Shift + Del
   (define-key global-map (kbd "s-d") 'kill-whole-line)
   (define-key global-map (kbd "s-b") 'copy-line)
+  (define-key global-map (kbd "s-v") 'my-yank)
   ;; MacのCommand + 十字キーを有効にする
   ;; http://stackoverflow.com/questions/4351044/binding-m-up-m-down-in-emacs-23-1-1
   (global-set-key [s-up] 'beginning-of-buffer)
@@ -102,10 +103,8 @@
   ;;(setq default-input-method "W32-IME)
   )
 
-
-
 ;; 現在行を目立たせる
-(global-hl-line-mode)
+ (global-hl-line-mode)
 
 ;; カーソルの位置が何文字目かを表示する
 (column-number-mode t)
@@ -119,9 +118,9 @@
 (show-paren-mode 1)
 (setq show-paren-delay 0)
 (setq show-paren-style 'expression)
-(set-face-attribute 'show-paren-match-face nil
-                    :background nil :foreground nil
-                    :underline "#ffff00" :weight 'extra-bold)
+;(set-face-attribute 'show-paren-match-face nil
+;                    :background nil :foreground nil
+;                    :underline "#ffff00" :weight 'extra-bold)
 
 ;; バックアップファイルを作らない
 (setq make-backup-files nil)
@@ -142,6 +141,15 @@
   (newline-and-indent) )
 (global-set-key (kbd "C-j") 'newline-from-anywhere)
 
+;; ペースト後に整形
+(defun my-yank()
+  (interactive)
+  (yank)
+  (backward-char)
+  (indent-for-tab-command)
+  (forward-char)
+  )
+
 ;;インデントはタブにする
 (setq indent-tabs-mode t)
 ;; tab ではなく space を使う
@@ -153,12 +161,10 @@
 						64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
 
 ;;リージョンをハイライトする
-(setq-default transient-mark-mode t)
-
-
-										;(set-background-color "#98bc98") ;; background color
-										;(set-background-color "black") ;; background colo
-										;(set-foreground-color "black")   ;; font color
+;(setq-default transient-mark-mode t)
+;(set-background-color "#98bc98") ;; background color
+;(set-background-color "black") ;; background colo
+;(set-foreground-color "black")   ;; font color
 
 ;; 言語を日本語にする
 (set-language-environment 'Japanese)
@@ -181,10 +187,8 @@
 ;; (setq initial-scratch-message "")
 
 ;; タイトルバーにファイルのフルパス表示
-;;(setq frame-title-format
-;;      (format "%%f - Emacs@%s" (system-name)))
 (setq frame-title-format
-      (format "%%f - Emacs"))
+      (format "%%f - Emacs@%s" (system-name)))
 
 ;; yes or noをy or n
 (fset 'yes-or-no-p 'y-or-n-p)
@@ -252,6 +256,10 @@
 (global-set-key "\C-a" 'beginning-of-visual-indented-line)
 (global-set-key "\C-e" 'end-of-visual-line)
 
+;; http://uch-x40.seesaa.net/article/43401352.html
+;; 指定した行番号にジャンプ
+(global-set-key "\C-x\C-g" 'goto-line)
+
 
 ;;http://www.bookshelf.jp/soft/meadow_23.html#SEC231
 ;; ファイルやURLをクリック出来るようにする
@@ -261,8 +269,8 @@
 ;; M-x tool-bar-mode で表示非表示を切り替えられる
 (tool-bar-mode -1)
 
-										; server start for emacs-client
-										; http://d.hatena.ne.jp/syohex/20101224/1293206906
+; server start for emacs-client
+; http://d.hatena.ne.jp/syohex/20101224/1293206906
 (require 'server)
 (unless (server-running-p)
   (server-start))
@@ -270,6 +278,23 @@
 
 ;;import
 (add-to-list 'load-path "~/.emacs.d/elisp")
+
+;; Color Scheme
+(add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
+ (load-theme 'monokai t)
+;; (load-theme 'molokai t)
+;; (load-theme 'monokai-dark-soda t)
+;; (load-theme 'zenburn t)
+;; (load-theme 'solarized-light t)
+;; (load-theme 'solarized-dark t)
+;; (load-theme 'tomorrow-night-paradise t)
+;; (load-theme 'tomorrow-night-blue t)
+;; (load-theme 'tomorrow-night-bright t)
+;; (load-theme 'tomorrow-night-eighties t)
+;; (load-theme 'tomorrow-night t)
+;; (load-theme 'tomorrow t)
+;; (load-theme 'twilight-anti-bright t)
+;; (load-theme 'twilight-bright t)
 
 ;; for wc mode
 ;; http://www.emacswiki.org/emacs/WordCountMode
