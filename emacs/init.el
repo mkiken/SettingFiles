@@ -256,10 +256,10 @@
 (global-set-key "\C-a" 'beginning-of-visual-indented-line)
 (global-set-key "\C-e" 'end-of-visual-line)
 
-;; http://uch-x40.seesaa.net/article/43401352.html
-;; 指定した行番号にジャンプ
-(global-set-key "\C-x\C-g" 'goto-line)
-
+;; Window間の移動をM-...でやる
+;; http://www.emacswiki.org/emacs/WindMove
+(windmove-default-keybindings 'meta)
+;; (global-set-key (kbd "M-<left>")  'windmove-left)
 
 ;;http://www.bookshelf.jp/soft/meadow_23.html#SEC231
 ;; ファイルやURLをクリック出来るようにする
@@ -281,13 +281,16 @@
 
 ;; Color Scheme
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
- (load-theme 'monokai t)
+;; (load-theme 'monokai t)
 ;; (load-theme 'molokai t)
 ;; (load-theme 'monokai-dark-soda t)
 ;; (load-theme 'zenburn t)
 ;; (load-theme 'solarized-light t)
 ;; (load-theme 'solarized-dark t)
-;; (load-theme 'tomorrow-night-paradise t)
+
+(load-theme 'twilight-anti-bright t)
+(load-theme 'tomorrow-night-paradise t)
+
 ;; (load-theme 'tomorrow-night-blue t)
 ;; (load-theme 'tomorrow-night-bright t)
 ;; (load-theme 'tomorrow-night-eighties t)
@@ -342,6 +345,14 @@
 (require 'minimap)
 (global-set-key "\M-m" 'minimap-create)
 (global-set-key "\C-\M-m" 'minimap-kill)
+
+;; bookmark like Visual Studio
+;; http://www.emacswiki.org/emacs/VisibleBookmarks
+;; f2はMacで標準で使われてるので、とりあえずf5
+(require 'bm)
+(global-set-key (kbd "<C-f5>") 'bm-toggle)
+(global-set-key (kbd "<f5>")   'bm-next)
+(global-set-key (kbd "<S-f5>") 'bm-previous)
 
 ;; for auto-install
 ;; http://d.hatena.ne.jp/rubikitch/20091221/autoinstall
