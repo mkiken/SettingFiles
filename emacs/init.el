@@ -325,10 +325,33 @@
 ;; M-4 で タブ表示、非表示
 (global-set-key "\M-4" 'tabbar-mode)
 
+;; HideShow Mode
+;; http://www.emacswiki.org/emacs/HideShow
+;(defvar hs-special-modes-alist
+;  (mapcar 'purecopy
+;  '(
+;    (js2-mode "{" "}" "/[*/]" nil))))
+(define-key global-map (kbd "C-c /") 'hs-toggle-hiding)
+
+;;for C/C++
+(add-hook 'c-mode-common-hook   'hs-minor-mode)
+
+;; for Java
+(add-hook 'java-mode-hook       'hs-minor-mode)
+
+;; for Lisp
+; (add-hook 'lisp-mode-hook       'hs-minor-mode)
+
+;; for sh
+(add-hook 'sh-mode-hook         'hs-minor-mode)
+
 ;;for JavaScript & pegjs
 ;;js2-mode requires Emacs 24.0 or higher.
 (autoload 'js2-mode "js2-mode" nil t)
 (add-to-list 'auto-mode-alist '("\\.\\(peg\\)?js$" . js2-mode))
+(add-hook 'js2-mode-hook
+          '(lambda ()
+            (local-set-key "\C-c/" 'js2-mode-toggle-element)))
 
 ;;for Haskell
 (autoload 'haskell-mode "haskell-mode-2.8.0/haskell-mode" nil t)
@@ -370,6 +393,10 @@
 (global-auto-complete-mode t)
 ;;(require 'auto-complete-config nil t)
 ;; (setq ac-dictionary-directories "~/.emacs.d/elisp/ac-dict") ;; 辞書ファイルのディレクトリ
+(ac-set-trigger-key "TAB")
+;; for c/c++
+;; http://cx4a.org/software/auto-complete/manual.html
+; (add-hook 'c++-mode (lambda () (add-to-list 'ac-sources 'ac-source-semantic)))
 
 ;; http://emacs.tsutomuonoda.com/emacs-anything-el-helm-mode-install/
 ;; for Helm(Anything)
@@ -378,6 +405,16 @@
 (global-set-key (kbd "C-c h") 'helm-mini)
 ;; コマンド補完
 (helm-mode 1)
+
+;; Ace-Jump(vim's EasyMotion)
+;; https://github.com/winterTTr/ace-jump-mode
+(autoload
+  'ace-jump-mode
+  "ace-jump-mode"
+  "Emacs quick move minor mode"
+  t)
+;; you can select the key you prefer to
+(define-key global-map (kbd "C-c SPC") 'ace-jump-mode)
 
 
 ;; http://shnya.jp/blog/?p=477
