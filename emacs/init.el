@@ -258,8 +258,34 @@
 
 ;; Window間の移動をM-...でやる
 ;; http://www.emacswiki.org/emacs/WindMove
-(windmove-default-keybindings 'meta)
+(windmove-default-keybindings 'control)
 ;; (global-set-key (kbd "M-<left>")  'windmove-left)
+(global-set-key (kbd "M-<up>")  'backward-paragraph)
+(global-set-key (kbd "M-<down>")  'forward-paragraph)
+
+
+;; 対応するカッコにジャンプ
+;; http://d.hatena.ne.jp/takehikom/20121120/1353358800
+(defun match-paren-japanese (arg)
+  "Go to the matching parenthesis."
+  (interactive "p")
+  (cond ((looking-at "[([{（｛［「『《〔【〈]") (forward-sexp 1) (backward-char))
+        ((looking-at "[])}）｛］」』》〕】〉]") (forward-char) (backward-sexp 1))
+        (t (message "match-paren-japanese ignored"))))
+(global-set-key (kbd "C-]") 'match-paren-japanese)
+
+;; 対応するカッコまでをコピー
+(defun match-paren-kill-ring-save ()
+  "Copy region from here to the matching parenthesis to kill ring and save."
+  (interactive)
+  (set-mark-command nil)
+  (match-paren-japanese nil)
+  (forward-char)
+  (exchange-point-and-mark)
+  (clipboard-kill-ring-save (mark) (point))
+  (let ((c (abs (- (mark) (point)))))
+    (message "match-paren-kill-ring-save: %d characters saved" c)))
+(global-set-key (kbd "C-M-]") 'match-paren-kill-ring-save)
 
 ;;http://www.bookshelf.jp/soft/meadow_23.html#SEC231
 ;; ファイルやURLをクリック出来るようにする
