@@ -5,9 +5,7 @@
 ;; emacs-version predicates
 ;; (setq emacs22-p (string-match "^22" emacs-version)
 ;; 	  emacs23-p (string-match "^23" emacs-version)
-;; 	  emacs23.0-p (string-match "^23\.0" emacs-version)
-;; 	  emacs23.1-p (string-match "^23\.1" emacs-version)
-;; 	  emacs23.2-p (string-match "^23\.2" emacs-version))
+;; 	  emacs23.0-p (string-match "^23\.0" emacs-version))
 
 ;; system-type predicates
 (setq darwin-p  (eq system-type 'darwin)
@@ -37,10 +35,14 @@
   (define-key global-map (kbd "s-v") 'my-yank)
   ;; MacのCommand + 十字キーを有効にする
   ;; http://stackoverflow.com/questions/4351044/binding-m-up-m-down-in-emacs-23-1-1
-  (global-set-key [s-up] 'beginning-of-buffer)
-  (global-set-key [s-down] 'end-of-buffer)
-  (global-set-key [s-left] 'beginning-of-visual-indented-line)
-  (global-set-key [s-right] 'end-of-visual-line)
+  ;; (global-set-key [s-up] 'beginning-of-buffer)
+  ;; (global-set-key [s-down] 'end-of-buffer)
+  ;; (global-set-key [s-left] 'beginning-of-visual-indented-line)
+  ;; (global-set-key [s-right] 'end-of-visual-line)
+  ;; Window間の移動をM-...でやる
+  ;; http://www.emacswiki.org/emacs/WindMove
+  (windmove-default-keybindings 'super)
+  ;; (global-set-key (kbd "M-<left>")  'windmove-left)
 
   ;; font settings
   (when (>= emacs-major-version 23)
@@ -93,18 +95,13 @@
 ;; Settings for Windows
 (when windows-p
   (set-face-font 'default "Meiryo UI-13")
-										;(set-face-attribute 'default nil :family "Consolas" :height 104)
-										;(set-fontset-font nil 'japanese-jisx0208 (font-spec :family "MeiryoKe_Console"))
-										;(setq face-font-rescale-alist '(("MeiryoKe_Console" . 1.08)))
-										;(global-set-key [M-kanji] 'ignore)
-										;(global-set-key [kanji] 'ignore)
   ;;; IME の設定
   ;; http://bmonkey.cocolog-nifty.com/blog/2012/07/gnu-emacs-241wi.html
   ;;(setq default-input-method "W32-IME)
   )
 
 ;; 現在行を目立たせる
- (global-hl-line-mode)
+(global-hl-line-mode)
 
 ;; カーソルの位置が何文字目かを表示する
 (column-number-mode t)
@@ -118,9 +115,6 @@
 (show-paren-mode 1)
 (setq show-paren-delay 0)
 (setq show-paren-style 'expression)
-;(set-face-attribute 'show-paren-match-face nil
-;                    :background nil :foreground nil
-;                    :underline "#ffff00" :weight 'extra-bold)
 
 ;; バックアップファイルを作らない
 (setq make-backup-files nil)
@@ -132,8 +126,6 @@
 (setq indent-line-function 'indent-relative-maybe)
 ;;Returnキーで改行＋オートインデント
 (global-set-key "\C-m" 'newline-and-indent)
-;; Returnキーで改行＋オートインデント＋コメント行
-										;(global-set-key "\C-m" 'indent-new-comment-line)
 ;; Ctrl + jで文のどこからでも改行できるようにする
 (defun newline-from-anywhere()
   (interactive)
@@ -159,12 +151,6 @@
 (setq default-tab-width 4)
 (setq tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44 48 52 56 60
 						64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
-
-;;リージョンをハイライトする
-;(setq-default transient-mark-mode t)
-;(set-background-color "#98bc98") ;; background color
-;(set-background-color "black") ;; background colo
-;(set-foreground-color "black")   ;; font color
 
 ;; 言語を日本語にする
 (set-language-environment 'Japanese)
@@ -256,25 +242,21 @@
 (global-set-key "\C-a" 'beginning-of-visual-indented-line)
 (global-set-key "\C-e" 'end-of-visual-line)
 
-;; Window間の移動をM-...でやる
-;; http://www.emacswiki.org/emacs/WindMove
-(windmove-default-keybindings 'control)
-;; (global-set-key (kbd "M-<left>")  'windmove-left)
 (global-set-key (kbd "M-<up>")  'backward-paragraph)
 (global-set-key (kbd "M-<down>")  'forward-paragraph)
 
-
-;; 対応するカッコにジャンプ
-;; http://d.hatena.ne.jp/takehikom/20121120/1353358800
-(defun match-paren-japanese (arg)
-  "Go to the matching parenthesis."
+;;http://flex.ee.uec.ac.jp/texi/faq-jp/faq-jp_130.html
+;; By an unknown contributor
+(defun match-paren (arg)
+  "Go to the matching parenthesis if on parenthesis otherwise insert %."
   (interactive "p")
-  (cond ((looking-at "[([{（｛［「『《〔【〈]") (forward-sexp 1) (backward-char))
-        ((looking-at "[])}）｛］」』》〕】〉]") (forward-char) (backward-sexp 1))
-        (t (message "match-paren-japanese ignored"))))
-(global-set-key (kbd "C-]") 'match-paren-japanese)
+  (cond ((looking-at "\\s\(") (forward-list 1) (backward-char 1))
+		((looking-at "\\s\)") (forward-char 1) (backward-list 1))
+		(t (self-insert-command (or arg 1)))))
+(global-set-key (kbd "C-]") 'match-paren)
 
 ;; 対応するカッコまでをコピー
+;; http://d.hatena.ne.jp/takehikom/20121120/1353358800
 (defun match-paren-kill-ring-save ()
   "Copy region from here to the matching parenthesis to kill ring and save."
   (interactive)
@@ -287,6 +269,46 @@
     (message "match-paren-kill-ring-save: %d characters saved" c)))
 (global-set-key (kbd "C-M-]") 'match-paren-kill-ring-save)
 
+;; http://d.hatena.ne.jp/mooz/20100119/p1
+(defun window-resizer ()
+  "Control window size and position."
+  (interactive)
+  (let ((window-obj (selected-window))
+        (current-width (window-width))
+        (current-height (window-height))
+        (dx (if (= (nth 0 (window-edges)) 0) 1
+              -1))
+        (dy (if (= (nth 1 (window-edges)) 0) 1
+              -1))
+        c)
+    (catch 'end-flag
+      (while t
+        (message "size[%dx%d]"
+                 (window-width) (window-height))
+        (setq c (read-char))
+        (cond ((= c ?l)
+               (enlarge-window-horizontally dx))
+              ((= c ?h)
+               (shrink-window-horizontally dx))
+              ((= c ?j)
+               (enlarge-window dy))
+              ((= c ?k)
+               (shrink-window dy))
+              ;; otherwise
+              (t
+               (message "Quit")
+               (throw 'end-flag t)))))))
+(global-set-key "\C-c\C-r" 'window-resizer)
+
+;;起動時のフレームサイズを設定する
+(setq initial-frame-alist
+      (append (list
+        '(width . 130)
+        '(height . 40)
+        )
+        initial-frame-alist))
+(setq default-frame-alist initial-frame-alist)
+
 ;;http://www.bookshelf.jp/soft/meadow_23.html#SEC231
 ;; ファイルやURLをクリック出来るようにする
 (ffap-bindings)
@@ -295,8 +317,8 @@
 ;; M-x tool-bar-mode で表示非表示を切り替えられる
 (tool-bar-mode -1)
 
-; server start for emacs-client
-; http://d.hatena.ne.jp/syohex/20101224/1293206906
+										; server start for emacs-client
+										; http://d.hatena.ne.jp/syohex/20101224/1293206906
 (require 'server)
 (unless (server-running-p)
   (server-start))
@@ -313,16 +335,13 @@
 ;; (load-theme 'zenburn t)
 ;; (load-theme 'solarized-light t)
 ;; (load-theme 'solarized-dark t)
-
 (load-theme 'twilight-anti-bright t)
 (load-theme 'tomorrow-night-paradise t)
-
 ;; (load-theme 'tomorrow-night-blue t)
 ;; (load-theme 'tomorrow-night-bright t)
 ;; (load-theme 'tomorrow-night-eighties t)
 ;; (load-theme 'tomorrow-night t)
 ;; (load-theme 'tomorrow t)
-;; (load-theme 'twilight-anti-bright t)
 ;; (load-theme 'twilight-bright t)
 
 ;; for wc mode
@@ -339,7 +358,7 @@
 (global-set-key [(control tab)] 'tabbar-forward)
 (global-set-key [(control shift tab)] 'tabbar-backward)
 ;; タブ上でマウスホイールを使わない
-;; (tabbar-mwheel-mode nil)
+(tabbar-mwheel-mode nil)
 ;; グループを使わない
 (setq tabbar-buffer-groups-function nil)
 ;; 左側のボタンを消す
@@ -353,10 +372,6 @@
 
 ;; HideShow Mode
 ;; http://www.emacswiki.org/emacs/HideShow
-;(defvar hs-special-modes-alist
-;  (mapcar 'purecopy
-;  '(
-;    (js2-mode "{" "}" "/[*/]" nil))))
 (define-key global-map (kbd "C-c /") 'hs-toggle-hiding)
 
 ;;for C/C++
@@ -366,7 +381,7 @@
 (add-hook 'java-mode-hook       'hs-minor-mode)
 
 ;; for Lisp
-; (add-hook 'lisp-mode-hook       'hs-minor-mode)
+;; (add-hook 'lisp-mode-hook       'hs-minor-mode)
 
 ;; for sh
 (add-hook 'sh-mode-hook         'hs-minor-mode)
@@ -377,7 +392,7 @@
 (add-to-list 'auto-mode-alist '("\\.\\(peg\\)?js$" . js2-mode))
 (add-hook 'js2-mode-hook
           '(lambda ()
-            (local-set-key "\C-c/" 'js2-mode-toggle-element)))
+			 (local-set-key "\C-c/" 'js2-mode-toggle-element)))
 
 ;;for Haskell
 (autoload 'haskell-mode "haskell-mode-2.8.0/haskell-mode" nil t)
@@ -422,7 +437,7 @@
 (ac-set-trigger-key "TAB")
 ;; for c/c++
 ;; http://cx4a.org/software/auto-complete/manual.html
-; (add-hook 'c++-mode (lambda () (add-to-list 'ac-sources 'ac-source-semantic)))
+;; (add-hook 'c++-mode (lambda () (add-to-list 'ac-sources 'ac-source-semantic)))
 
 ;; http://emacs.tsutomuonoda.com/emacs-anything-el-helm-mode-install/
 ;; for Helm(Anything)

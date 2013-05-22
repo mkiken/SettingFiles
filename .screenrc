@@ -1,0 +1,13 @@
+# http://rdt17.blogspot.jp/2010/07/screen.htm	l
+startup_message off
+#hardstatus alwayslastline "%{= wg} %-w%{=bu dr}%n %t%{-}%+w %= %{=b kw} %Y/%m/%d %0c"
+#sorendition "+rb .G"
+vbell off
+
+# http://www.tees.ne.jp/~sin-x/200406a.html#0102c
+caption always "%{= wg} %-w%{=bu dr}%n %t%{-}%+w %= %{=b wb}%y/%m/%d(%D) %{=b wm}%c"
+
+# http://d.hatena.ne.jp/edvakf/20110311/1299793959
+altscreen on
+termcapinfo xterm* ti@:te@
+defscrollback 500
