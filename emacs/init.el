@@ -245,6 +245,9 @@
 (global-set-key (kbd "M-<up>")  'backward-paragraph)
 (global-set-key (kbd "M-<down>")  'forward-paragraph)
 
+;; MacのC-f4対策
+(global-set-key (kbd "<C-f4>") 'ns-do-hide-emacs)
+
 ;;http://flex.ee.uec.ac.jp/texi/faq-jp/faq-jp_130.html
 ;; By an unknown contributor
 (defun match-paren (arg)
@@ -412,11 +415,11 @@
 
 ;; bookmark like Visual Studio
 ;; http://www.emacswiki.org/emacs/VisibleBookmarks
-;; f2はMacで標準で使われてるので、とりあえずf5
+;; Visual Studioみたいにf2を使う
 (require 'bm)
-(global-set-key (kbd "<C-f5>") 'bm-toggle)
-(global-set-key (kbd "<f5>")   'bm-next)
-(global-set-key (kbd "<S-f5>") 'bm-previous)
+(global-set-key (kbd "<C-f2>") 'bm-toggle)
+(global-set-key (kbd "<f2>")   'bm-next)
+(global-set-key (kbd "<S-f2>") 'bm-previous)
 
 ;; for auto-install
 ;; http://d.hatena.ne.jp/rubikitch/20091221/autoinstall
