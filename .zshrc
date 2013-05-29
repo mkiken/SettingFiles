@@ -1,6 +1,9 @@
 #read Aliases
 source ~/.aliases
 
+autoload -U colors
+colors
+
 #from http://news.mynavi.jp/column/zsh/index.html
 case ${UID} in
 	0) #for super user
@@ -8,9 +11,13 @@ case ${UID} in
 		PROMPT=$'%B%m%b:%?:%# '
 		;;
 	*)
-		RPROMPT='(%~)'
-		PROMPT=$'%m: %n %D{%T} %{%F{cyan}%}%#%{%f%} '
+		RPROMPT='(%F{cyan}%~%f)'
+		#PROMPT=$'%m: %n %D{%T} %{%}%#%{%} '
+		PROMPT="%{$fg[green]%}%m: %n %D{%T} %{%}%#%{%}%{$reset_color%} "
 esac
+precmd () {
+	PROMPT="%{%(?.$fg[green].$fg[red])%}%m: %n %D{%T} %{%}%#%{%}%{$reset_color%} "
+}
 
 #SPROMPT="%r is correct? [n,y,a,e]:] "
 
