@@ -126,12 +126,45 @@
 (setq indent-line-function 'indent-relative-maybe)
 ;;Returnキーで改行＋オートインデント
 (global-set-key "\C-m" 'newline-and-indent)
-;; Ctrl + jで文のどこからでも改行できるようにする
+;; C-jで文のどこからでも改行できるようにする
 (defun newline-from-anywhere()
   (interactive)
   (end-of-visual-line)
   (newline-and-indent) )
 (global-set-key (kbd "C-j") 'newline-from-anywhere)
+
+;; http://dev.ariel-networks.com/wp/documents/aritcles/emacs/part16
+;;範囲指定していないとき、C-wで前の単語を削除
+(defadvice kill-region (around kill-word-or-kill-region activate)
+  (if (and (interactive-p) transient-mark-mode (not mark-active))
+      (backward-kill-word 1)
+    ad-do-it))
+;; minibuffer用
+(define-key minibuffer-local-completion-map "\C-w" 'backward-kill-word)
+;; カーソル位置の単語を削除
+(defun kill-word-at-point ()
+  (interactive)
+  (let ((char (char-to-string (char-after (point)))))
+    (cond
+     ((string= " " char) (delete-horizontal-space))
+     ((string-match "[\t\n -@\[-`{-~]" char) (kill-word 1))
+     (t (forward-char) (backward-word) (kill-word 1)))))
+(global-set-key "\M-d" 'kill-word-at-point)
+
+;; kill-lineで行が連結したときにインデントを減らす
+(defadvice kill-line (before kill-line-and-fixup activate)
+  (when (and (not (bolp)) (eolp))
+    (forward-char)
+    (fixup-whitespace)
+    (backward-char)))
+
+;; M-dで単語のどこからでも削除できるようにする
+;(defun kill-word-from-anywhere()
+;  (interactive)
+;  (forward-char)
+;  (backward-word)
+;  (kill-word 1) )
+;(global-set-key (kbd "M-d") 'kill-word-from-anywhere)
 
 ;; ペースト後に整形
 (defun my-yank()
@@ -162,9 +195,34 @@
 ;;from http://d.hatena.ne.jp/tototoshi/20101202/1291289625
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
-;; from http://piro.hatenablog.com/entry/20101216/1292506110
+;; http://d.hatena.ne.jp/kakurasan/20070702/p1
+
+(add-hook 'dired-load-hook
+  '(lambda ()
+    ;; ディレクトリを再帰的にコピー可能にする
+    (setq dired-recursive-copies 'always)
+    ;; ディレクトリを再帰的に削除可能にする(使用する場合は注意)
+    ;(setq dired-recursive-deletes 'always)
+    ;; lsのオプション 「l」(小文字のエル)は必須
+    (setq dired-listing-switches "-Flha") ; 「.」と「..」が必要な場合
+    ;(setq dired-listing-switches "-GFlhA") ; グループ表示が不要な場合
+    ;(setq dired-listing-switches "-FlhA")
+    ;; find-dired/find-grep-diredで、条件に合ったファイルをリストする形式
+    ;(setq find-ls-option '("-print0 | xargs -0 ls -Flhatd"))
+    ;; 無効コマンドdired-find-alternate-fileを有効にする
+    (put 'dired-find-alternate-file 'disabled nil)
+  )
+)
+;; ファイル・ディレクトリ名のリストを編集することで、まとめてリネーム可能にする
 (require 'wdired)
+;; wdiredモードに入るキー(下の例では「r」)
 (define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
+;; 新規バッファを作らずにディレクトリを開く(デフォルトは「a」)
+(define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file)
+;; 「a」を押したときに新規バッファを作って開くようにする
+(define-key dired-mode-map "a" 'dired-advertised-find-file)
+;; 「^」が押しにくい場合「c」でも上の階層に移動できるようにする
+(define-key dired-mode-map "c" 'dired-up-directory)
 
 ;; http://d.hatena.ne.jp/sandai/20120304/p2
 ;; スタートアップ非表示
@@ -322,13 +380,13 @@
 (global-set-key "\C-c\C-r" 'window-resizer)
 
 ;;起動時のフレームサイズを設定する
-(setq initial-frame-alist
-      (append (list
-        '(width . 130)
-        '(height . 35)
-        )
-        initial-frame-alist))
-(setq default-frame-alist initial-frame-alist)
+;(setq initial-frame-alist
+;      (append (list
+;        '(width . 130)
+;        '(height . 35)
+;        )
+;        initial-frame-alist))
+;(setq default-frame-alist initial-frame-alist)
 
 ;;http://www.bookshelf.jp/soft/meadow_23.html#SEC231
 ;; ファイルやURLをクリック出来るようにする
@@ -338,8 +396,8 @@
 ;; M-x tool-bar-mode で表示非表示を切り替えられる
 (tool-bar-mode -1)
 
-										; server start for emacs-client
-										; http://d.hatena.ne.jp/syohex/20101224/1293206906
+;; server start for emacs-client
+;; http://d.hatena.ne.jp/syohex/20101224/1293206906
 (require 'server)
 (unless (server-running-p)
   (server-start))
@@ -467,6 +525,7 @@
 (global-set-key (kbd "C-c h") 'helm-mini)
 ;; コマンド補完
 (helm-mode 1)
+;(helm-dired-bindings 1)
 
 ;; Ace-Jump(vim's EasyMotion)
 ;; https://github.com/winterTTr/ace-jump-mode
@@ -498,6 +557,13 @@
   (flymake-display-err-menu-for-current-line)
   )
 (global-set-key "\M-n" 'my-flymake-show-next-error)
+
+(defun my-flymake-show-prev-error()
+  (interactive)
+  (flymake-goto-prev-error)
+  (flymake-display-err-menu-for-current-line)
+  )
+(global-set-key "\M-p" 'my-flymake-show-prev-error)
 
 ;;for C++, C
 ;; Makefile が無くてもC/C++のチェック
