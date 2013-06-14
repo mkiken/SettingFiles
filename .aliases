@@ -1,3 +1,6 @@
+#alias fot TSUBAME
+alias tsubame='ssh -Y login-t2-1.g.gsic.titech.ac.jp -l 12M37280'
+
 #expanded command
 alias ls='ls -G'
 
@@ -28,22 +31,11 @@ alias aq='aquamacs'
 alias ccp='noglob ccp'
 
 #MacVim on CUI
-#alias cmvim='/Applications/MacVim-7_3-53/MacVim.app/Contents/MacOS/Vim'
-alias gvim='env LANG=ja_JP.UTF-8 /Applications/MacVim-7_3-53/mvim  --remote-tab-silent "$@"'
+alias vi='env LANG=ja_JP.UTF-8 /Applications/MacVim/MacVim.app/Contents/MacOS/mvim  --remote-tab-silent "$@"'
+alias vimdiff='env LANG=ja_JP.UTF-8 /Applications/MacVim/MacVim.app/Contents/MacOS/mvimdiff  "$@"'
 
 #display all files,End with true or false
 alias allfile='defaults write com.apple.finder AppleShowAllFiles'
 
-
-
-#Emacs(not work)
-#alias es1='/Applications/Emacs.app/Contents/MacOS/Emacs "$@" & '
-#alias ec1='/Applications/Emacs.app/Contents/MacOS/bin/emacsclient -n "$1" --alternate-editor /Applications/Emacs.app/Contents/MacOS/Emacs &'
-
-#for Python
-#export #PATH="/System/Library/Frameworks/Python.framework/Versions/3.3/bin/:$PATH";
-#alias python='python3.3'
-
-#for JavaScript
-#alias rhino='rlwrap java -jar /Applications/rhino1_7R2/js.jar'
-#alias d8='rlwrap d8 '
+#alias for pegjs
+alias pegjs='/usr/local/share/npm/lib/node_modules/pegjs/bin/pegjs'
