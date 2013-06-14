@@ -380,13 +380,14 @@
 (global-set-key "\C-c\C-r" 'window-resizer)
 
 ;;起動時のフレームサイズを設定する
-;(setq initial-frame-alist
-;      (append (list
+(setq initial-frame-alist
+      (append (list
 ;        '(width . 130)
 ;        '(height . 35)
-;        )
-;        initial-frame-alist))
-;(setq default-frame-alist initial-frame-alist)
+		'(alpha . (95 70)) ;; 透明度。(アクティブ時, 非アクティブ時)
+        )
+        initial-frame-alist))
+(setq default-frame-alist initial-frame-alist)
 
 ;;http://www.bookshelf.jp/soft/meadow_23.html#SEC231
 ;; ファイルやURLをクリック出来るようにする
@@ -448,10 +449,37 @@
                  (cons "" nil))))
 ;; M-4 で タブ表示、非表示
 (global-set-key "\M-4" 'tabbar-mode)
+;; http://www.emacswiki.org/emacs/TabBarMode
+;; *tabbar-display-buffers*以外の*がつくバッファは表示しない
+(setq *tabbar-display-buffers* '("*scratch*" "*Messages*"))
+(setq tabbar-buffer-list-function
+       (lambda ()
+         (remove-if
+          (lambda(buffer)
+            (and (not 
+                (loop for name in *tabbar-display-buffers*
+                       thereis (string-equal (buffer-name buffer) name))
+			) (find (aref (buffer-name buffer) 0) " *")))
+          (buffer-list))))
 
 ;; HideShow Mode
 ;; http://www.emacswiki.org/emacs/HideShow
 (define-key global-map (kbd "C-c /") 'hs-toggle-hiding)
+
+;; https://github.com/m2ym/popwin-el
+(require 'popwin)
+(popwin-mode 1)
+;; Settings for Helm
+(setq display-buffer-function 'popwin:display-buffer)
+(push '("^\*helm .+\*$" :regexp t) popwin:special-display-config)
+
+;; ファイラをつける
+;; https://github.com/m2ym/direx-el
+(require 'direx)
+(push '(direx:direx-mode :position left :width 25 :dedicated t)
+      popwin:special-display-config)
+(global-set-key (kbd "C-c f") 'direx:jump-to-directory-other-window)
+
 
 ;;for C/C++
 (add-hook 'c-mode-common-hook   'hs-minor-mode)
