@@ -64,3 +64,7 @@ vmap ,, <Plug>NERDCommenterToggle
 
 map <Esc>f :NERDTreeToggle<CR>
 
+
+autocmd BufNewFile,BufReadPost *.pegjs set filetype=pegjs
+autocmd BufNewFile,BufReadPost *.language set filetype=pegjs
+autocmd BufNewFile,BufReadPost *.grm set filetype=pegjs

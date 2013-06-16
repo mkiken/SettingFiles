@@ -384,7 +384,7 @@
       (append (list
 ;        '(width . 130)
 ;        '(height . 35)
-		'(alpha . (95 70)) ;; 透明度。(アクティブ時, 非アクティブ時)
+		'(alpha . (98 70)) ;; 透明度。(アクティブ時, 非アクティブ時)
         )
         initial-frame-alist))
 (setq default-frame-alist initial-frame-alist)
@@ -409,14 +409,14 @@
 
 ;; Color Scheme
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
-;; (load-theme 'monokai t)
+ (load-theme 'monokai t)
 ;; (load-theme 'molokai t)
 ;; (load-theme 'monokai-dark-soda t)
 ;; (load-theme 'zenburn t)
 ;; (load-theme 'solarized-light t)
 ;; (load-theme 'solarized-dark t)
-(load-theme 'twilight-anti-bright t)
-(load-theme 'tomorrow-night-paradise t)
+;; (load-theme 'twilight-anti-bright t)
+;; (load-theme 'tomorrow-night-paradise t)
 ;; (load-theme 'tomorrow-night-blue t)
 ;; (load-theme 'tomorrow-night-bright t)
 ;; (load-theme 'tomorrow-night-eighties t)
