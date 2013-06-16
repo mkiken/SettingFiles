@@ -21,7 +21,7 @@
 (unless (>= 24 emacs-major-version)
   (error "monokai-theme requires Emacs 24 or later."))
 
-(deftheme monokai
+(deftheme my-monokai
   "Monokai color theme")
 
 (let ((monokai-blue-light "#89BDFF")
@@ -38,17 +38,20 @@
       (monokai-purple-light "#FD5FF1")
       (monokai-yellow "#E6DB74")
       (monokai-yellow-dark "#75715E")
-      (monokai-yellow-light "#F8F8F2"))
+      (monokai-yellow-light "#F8F8F2")
+	  (molokai-hl "#293739")
+	  (molokai-bg "#1B1D1E")
+	  )
   (custom-theme-set-faces
-   'monokai
+   'my-monokai
    ;; Frame
-   `(default ((t (:foreground ,monokai-yellow-light :background ,monokai-grey-dark))))
+   `(default ((t (:foreground ,monokai-yellow-light :background ,molokai-bg))))
    `(cursor ((t (:foreground ,monokai-magenta))))
-   `(hl-line ((t (:background ,monokai-gray-darkest))))
+   `(hl-line ((t (:background ,molokai-hl))))
    `(minibuffer-prompt ((t (:foreground ,monokai-yellow-dark))))
    `(modeline ((t (:background ,monokai-gray-lightest :foreground ,monokai-gray-light))))
    `(region ((t (:background ,monokai-gray-darker))))
-   `(show-paren-match-face ((t (:background ,monokai-gray-darker))))
+   `(show-paren-match-face ((t (:background ,monokai-gray-darkest))))
    ;; Main
    `(font-lock-builtin-face ((t (:foreground ,monokai-green))))
    `(font-lock-comment-face ((t (:foreground ,monokai-yellow-dark))))
@@ -78,7 +81,7 @@
   (when (not window-system)
     (custom-set-faces '(default ((t (:background "nil")))))))
 
-(provide-theme 'monokai)
+(provide-theme 'my-monokai)
 
 ;; Local Variables:
 ;; no-byte-compile: t

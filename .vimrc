@@ -5,6 +5,7 @@ syntax on
 set hlsearch " 検索結果文字列のハイライトを有効にする
 
 set cursorline " カーソル行をハイライト
+"set cursorcolumn
 set background=dark
 
 set laststatus=2 "ステータスラインを常に表示する
@@ -51,6 +52,19 @@ set incsearch
 set smartcase " 検索文字列に大文字が含まれている場合は区別して検索する
 
 set autoread " ファイル内容が変更されると自動読み込みする
+
+" タブ文字を自動削除しない
+" http://vim-users.jp/2010/04/hack137/
+nnoremap o oX<C-h>
+nnoremap O OX<C-h>
+inoremap <CR> <CR>X<C-h>
+
+" http://vim-users.jp/2009/08/hack57/
+nnoremap O :<C-u>call append(expand('.'), '')<Cr>j
+
+" タブラインを常に表示
+set showtabline=2
+
 
 " for pathogen
 execute pathogen#infect()

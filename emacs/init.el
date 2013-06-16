@@ -409,7 +409,8 @@
 
 ;; Color Scheme
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
- (load-theme 'monokai t)
+(load-theme 'my-monokai t)
+;; (load-theme 'monokai t)
 ;; (load-theme 'molokai t)
 ;; (load-theme 'monokai-dark-soda t)
 ;; (load-theme 'zenburn t)
