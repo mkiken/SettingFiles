@@ -14,6 +14,11 @@ set title "編集中のファイル名を表示する
 set showcmd "入力中のコマンドを表示する
 set laststatus=2 "ステータスラインを常に表示する
 
+"スワップファイルを生成しない
+set noswapfile
+"バックアップファイルを生成しない
+set nobackup
+
 " 行番号の表示
 set number
 " カーソルが何行目の何列目に置かれているかを表示する
@@ -65,6 +70,13 @@ nnoremap O :<C-u>call append(expand('.'), '')<Cr>j
 " タブラインを常に表示
 set showtabline=2
 
+nnoremap <C-Tab> gt
+nnoremap <C-S-Tab> gT
+
+" forlding
+" http://www.ksknet.net/vi/post_183.html
+set foldmethod=syntax
+set foldlevel=100 "Don't autofold anything
 
 " for pathogen
 execute pathogen#infect()
