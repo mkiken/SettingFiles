@@ -463,6 +463,27 @@
 			) (find (aref (buffer-name buffer) 0) " *")))
           (buffer-list))))
 
+;; タブ同士の間隔
+;; http://cloverrose.hateblo.jp/entry/2013/04/15/183839
+(setq tabbar-separator '(0.5))
+;; 外観変更
+(set-face-attribute
+ 'tabbar-default nil
+ :family (face-attribute 'default :family)
+ :background (face-attribute 'mode-line-inactive :background)
+ :height 0.9)
+(set-face-attribute
+ 'tabbar-unselected nil
+ :background (face-attribute 'mode-line-inactive :background)
+ :foreground (face-attribute 'mode-line-inactive :foreground)
+ :box nil)
+(set-face-attribute
+ 'tabbar-selected nil
+ :background "#cccccc" ;;(face-attribute 'mode-line :background)
+ :foreground "black" ;; (face-attribute 'mode-line :foreground)
+ :box nil)
+
+
 ;; HideShow Mode
 ;; http://www.emacswiki.org/emacs/HideShow
 (define-key global-map (kbd "C-c /") 'hs-toggle-hiding)
