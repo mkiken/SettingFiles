@@ -78,7 +78,7 @@ nnoremap <C-S-Tab> gT
 set foldmethod=syntax
 set foldlevel=100 "Don't autofold anything
 
-;; http://d.hatena.ne.jp/tyru/20130430/vim_resident
+" http://d.hatena.ne.jp/tyru/20130430/vim_resident
 call singleton#enable()
 
 
