@@ -25,6 +25,12 @@ set number
 set ruler
 set title "編集中のファイル名を表示する
 
+" http://d.hatena.ne.jp/thata/20100606/1275796513
+"カーソルを表示行で移動する。物理行移動は<C-n>,<C-p>
+nnoremap j gj
+nnoremap k gk
+nnoremap <Down> gj
+nnoremap <Up>   gk
 
 " オートインデントを有効にする（新しい行のインデントを現在の行と同じにする）
 set autoindent
@@ -79,7 +85,7 @@ set foldmethod=syntax
 set foldlevel=100 "Don't autofold anything
 
 " http://d.hatena.ne.jp/tyru/20130430/vim_resident
-call singleton#enable()
+"call singleton#enable()
 
 
 " for pathogen
@@ -93,7 +99,8 @@ nmap ,, <Plug>NERDCommenterToggle
 vmap ,, <Plug>NERDCommenterToggle
 
 map <Esc>f :NERDTreeToggle<CR>
-
+"NERDtreeで隠しファイルを表示する
+	let NERDTreeShowHidden=1
 
 autocmd BufNewFile,BufReadPost *.pegjs set filetype=pegjs
 autocmd BufNewFile,BufReadPost *.language set filetype=pegjs

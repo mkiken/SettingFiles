@@ -31,8 +31,8 @@ alias aq='aquamacs'
 alias ccp='noglob ccp'
 
 #MacVim on CUI
-alias vi='env LANG=ja_JP.UTF-8 /Applications/MacVim/mvim "$@"'
-#alias vimdiff='env LANG=ja_JP.UTF-8 /Applications/MacVim/MacVim.app/Contents/MacOS/mvimdiff  "$@"'
+alias vi='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/mvim "$@" --remote-tab-silent'
+alias vimdiff='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/mvimdiff  "$@"'
 
 #display all files,End with true or false
 alias allfile='defaults write com.apple.finder AppleShowAllFiles'

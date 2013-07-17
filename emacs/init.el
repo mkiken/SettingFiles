@@ -509,6 +509,11 @@
 ;; for Java
 (add-hook 'java-mode-hook       'hs-minor-mode)
 
+;; for TeX
+(add-hook 'tex-mode-hook
+          '(lambda ()
+			 (local-set-key "\C-j" 'newline-from-anywhere)))
+
 ;; for Lisp
 ;; (add-hook 'lisp-mode-hook       'hs-minor-mode)
 
@@ -593,7 +598,7 @@
 ;; flymakeパッケージを読み込み
 (require 'flymake)
 ;; 全てのファイルでflymakeを有効化
-(add-hook 'find-file-hook 'flymake-find-file-hook)
+;;(add-hook 'find-file-hook 'flymake-find-file-hook)
 
 ;;http://emacswiki.org/cgi-bin/emacs/FlyMake
 ;; automatically displays the flymake error for the current line in the minibuffer
@@ -616,6 +621,11 @@
 (global-set-key "\M-p" 'my-flymake-show-prev-error)
 
 ;;for C++, C
+; C++モードでは flymakeを有効にする
+(add-hook 'c++-mode-hook
+                  '(lambda ()
+                         (flymake-mode t)))
+
 ;; Makefile が無くてもC/C++のチェック
 (defun flymake-simple-generic-init (cmd &optional opts)
   (let* ((temp-file  (flymake-init-create-temp-buffer-copy
@@ -640,8 +650,9 @@
 (push '("\\.\\(cc\\|cpp\\|C\\|CPP\\|hpp\\)\\'" flymake-cc-init)
       flymake-allowed-file-name-masks)
 
-;; http://www.info.kochi-tech.ac.jp/y-takata/index.php?%A5%E1%A5%F3%A5%D0%A1%BC%2Fy-takata%2FFlymake
 ;;for Java
+;; http://www.info.kochi-tech.ac.jp/y-takata/index.php?%A5%E1%A5%F3%A5%D0%A1%BC%2Fy-takata%2FFlymake
+(add-hook 'java-mode-hook 'flymake-mode-on)
 (defun flymake-java-init ()
   (flymake-simple-make-init-impl
    'flymake-create-temp-with-folder-structure nil nil
