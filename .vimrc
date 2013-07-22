@@ -84,9 +84,22 @@ nnoremap <C-S-Tab> gT
 set foldmethod=syntax
 set foldlevel=100 "Don't autofold anything
 
+" http://d.hatena.ne.jp/pinoyuki/20120425/p1
+nnoremap gy "0P
+
 " http://d.hatena.ne.jp/tyru/20130430/vim_resident
 "call singleton#enable()
 
+" ホームポジションに近いキーを使う
+" http://blog.remora.cx/2012/08/vim-easymotion.html
+"let g:EasyMotion_keys='hjklasdfgyuiopqwertnmzxcvbHJKLASDFGYUIOPQWERTNMZXCVB'
+" 「'」 + 何かにマッピング
+let g:EasyMotion_leader_key=";"
+" 1 ストローク選択を優先する
+let g:EasyMotion_grouping=1
+" カラー設定変更
+"hi EasyMotionTarget ctermbg=none ctermfg=red
+"hi EasyMotionShade  ctermbg=none ctermfg=blue
 
 " for pathogen
 execute pathogen#infect()
