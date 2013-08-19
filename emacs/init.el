@@ -384,7 +384,7 @@
       (append (list
 ;        '(width . 130)
 ;        '(height . 35)
-		'(alpha . (98 70)) ;; 透明度。(アクティブ時, 非アクティブ時)
+		'(alpha . (98 95)) ;; 透明度。(アクティブ時, 非アクティブ時)
         )
         initial-frame-alist))
 (setq default-frame-alist initial-frame-alist)
