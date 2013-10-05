@@ -50,7 +50,7 @@
 	(setq mac-allow-anti-aliasing t)
 	(set-face-attribute 'default nil
 						:family "monaco"
-						:height 140)
+						:height 125)
 	(set-fontset-font
 	 (frame-parameter nil 'font)
 	 'japanese-jisx0208
@@ -82,13 +82,13 @@
 	 'greek-iso8859-7
 	 '("monaco" . "iso10646-1"))
 	(setq face-font-rescale-alist
-		  '(("^-apple-hiragino.*" . 1.2)
-			(".*osaka-bold.*" . 1.2)
-			(".*osaka-medium.*" . 1.2)
-			(".*courier-bold-.*-mac-roman" . 1.0)
-			(".*monaco cy-bold-.*-mac-cyrillic" . 0.9)
-			(".*monaco-bold-.*-mac-roman" . 0.9)
-			("-cdac$" . 1.3))))
+		  '(("^-apple-hiragino.*" . 1.1)
+			(".*osaka-bold.*" . 1.1)
+			(".*osaka-medium.*" . 1.1)
+			(".*courier-bold-.*-mac-roman" . 0.9)
+			(".*monaco cy-bold-.*-mac-cyrillic" . 0.8)
+			(".*monaco-bold-.*-mac-roman" . 0.8)
+			("-cdac$" . 1.2))))
   )
 
 
@@ -270,6 +270,17 @@
   (kill-ring-save (line-beginning-position)
 				  (line-beginning-position (+ 1 arg)))
   (message "%d line%s copied" arg (if (= 1 arg) "" "s")))
+(global-set-key (kbd "C-,") 'copy-line)
+(global-set-key (kbd "C-.") 'kill-whole-line)
+
+;; viのpのように改行してヤンク 
+(defun vi-p ()
+  (interactive)
+  (end-of-visual-line)
+  (newline-and-indent)
+  (my-yank)
+  ())
+(global-set-key (kbd "C-;") 'vi-p)
 
 
 ;;; リージョンを削除できるように
@@ -397,6 +408,11 @@
 ;; M-x tool-bar-mode で表示非表示を切り替えられる
 (tool-bar-mode -1)
 
+;; 矩形選択
+;; http://dev.ariel-networks.com/articles/emacs/part5/
+(cua-mode t)
+(setq cua-enable-cua-keys nil)
+
 ;; server start for emacs-client
 ;; http://d.hatena.ne.jp/syohex/20101224/1293206906
 (require 'server)
@@ -465,7 +481,7 @@
 
 ;; タブ同士の間隔
 ;; http://cloverrose.hateblo.jp/entry/2013/04/15/183839
-(setq tabbar-separator '(0.5))
+(setq tabbar-separator '(0.7))
 ;; 外観変更
 (set-face-attribute
  'tabbar-default nil
@@ -475,12 +491,12 @@
 (set-face-attribute
  'tabbar-unselected nil
  :background (face-attribute 'mode-line-inactive :background)
- :foreground (face-attribute 'mode-line-inactive :foreground)
+ :foreground "black" ;; (face-attribute 'mode-line-inactive :foreground)
  :box nil)
 (set-face-attribute
  'tabbar-selected nil
- :background "#cccccc" ;;(face-attribute 'mode-line :background)
- :foreground "black" ;; (face-attribute 'mode-line :foreground)
+ :background (face-attribute 'mode-line :background)
+ :foreground (face-attribute 'mode-line :foreground)
  :box nil)
 
 

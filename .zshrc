@@ -1,5 +1,7 @@
 #read Aliases
 source ~/.aliases
+PATH="/usr/texbin:${PATH}"
+alias ruby='/usr/local/bin/ruby'
 
 autoload -U colors
 colors
@@ -13,10 +15,10 @@ case ${UID} in
 	*)
 		RPROMPT='(%F{cyan}%~%f)'
 		#PROMPT=$'%m: %n %D{%T} %{%}%#%{%} '
-		PROMPT="%{$fg[green]%}%m: %n %D{%T} %{%}%#%{%}%{$reset_color%} "
+		PROMPT="%{$fg[green]%} %n: %D{%T} %{%}%#%{%}%{$reset_color%} "
 esac
 precmd () {
-	PROMPT="%{%(?.$fg[green].$fg[red])%}%m: %n %D{%T} %{%}%#%{%}%{$reset_color%} "
+	PROMPT="%{%(?.$fg[green].$fg[red])%}%n: %D{%T} %{%}%#%{%}%{$reset_color%} "
 }
 
 #SPROMPT="%r is correct? [n,y,a,e]:] "
@@ -24,6 +26,8 @@ precmd () {
 
 # auto change directory
 setopt auto_cd
+# http://qiita.com/puriketu99/items/e3c85fbe0fc4b939d0e2
+function chpwd() { ls }
 
 # auto directory pushd that you can get dirs list by cd -[tab]
 setopt auto_pushd

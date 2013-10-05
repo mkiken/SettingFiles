@@ -19,10 +19,10 @@ alias cdr='cd ~/Desktop/repository/Research/PEG_Packrat'
 #shortcut for setting files
 alias bashrc='ec ~/.bashrc'
 alias zshrc='ec ~/.zshrc'
-alias aliases='cot ~/.aliases'
-alias einit='cot ~/.emacs.d/init.el'
-alias vimrc='cot ~/.vimrc'
-alias gvimrc='cot ~/.gvimrc'
+alias aliases='vi ~/.aliases'
+alias einit='vi ~/.emacs.d/init.el'
+alias vimrc='ec ~/.vimrc'
+alias gvimrc='ec ~/.gvimrc'
 
 #shortcut for Application
 alias e='./a.out'

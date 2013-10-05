@@ -41,17 +41,18 @@
       (monokai-yellow-light "#F8F8F2")
 	  (molokai-hl "#293739")
 	  (molokai-bg "#1B1D1E")
+	  (molokai-gray "#333333")
 	  )
   (custom-theme-set-faces
    'my-monokai
    ;; Frame
-   `(default ((t (:foreground ,monokai-yellow-light :background ,molokai-bg))))
+   `(default ((t (:foreground ,monokai-yellow-light :background ,monokai-gray-darkest))))
    `(cursor ((t (:foreground ,monokai-magenta))))
    `(hl-line ((t (:background ,molokai-hl))))
    `(minibuffer-prompt ((t (:foreground ,monokai-yellow-dark))))
    `(modeline ((t (:background ,monokai-gray-lightest :foreground ,monokai-gray-light))))
-   `(region ((t (:background ,monokai-gray-darker))))
-   `(show-paren-match-face ((t (:background ,monokai-gray-darkest))))
+   `(region ((t (:background ,molokai-gray))))
+   `(show-paren-match-face ((t (:background ,molokai-bg))))
    ;; Main
    `(font-lock-builtin-face ((t (:foreground ,monokai-green))))
    `(font-lock-comment-face ((t (:foreground ,monokai-yellow-dark))))
