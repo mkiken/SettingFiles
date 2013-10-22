@@ -318,7 +318,8 @@
 (global-set-key (kbd "<C-f4>") 'ns-do-hide-emacs)
 
 ;; 範囲置換
-(global-set-key (kbd "C-c r") 'replace-regexp)
+;;(global-set-key (kbd "C-c r") 'replace-regexp)
+(global-set-key (kbd "C-c r") 'replace-string)
 
 ;; VC++のC-f3(FindNextSelected)みたいなiSearch
 ;; http://dev.ariel-networks.com/articles/emacs/part5/

@@ -1,7 +1,5 @@
 #read Aliases
 source ~/.aliases
-PATH="/usr/texbin:${PATH}"
-alias ruby='/usr/local/bin/ruby'
 
 autoload -U colors
 colors
@@ -93,6 +91,10 @@ zstyle ':completion:*' group-name ''
 # セパレータを設定する
 zstyle ':completion:*' list-separator '-->'
 zstyle ':completion:*:manuals' separate-sections true
+
+# 補完機能で大文字小文字を区別しないよう(case insensitive)にする
+#http://nukesaq88.hatenablog.com/entry/2013/04/18/183335
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 
 # 名前で色を付けるようにする
 autoload colors

@@ -79,6 +79,11 @@ set showtabline=2
 nnoremap <C-Tab> gt
 nnoremap <C-S-Tab> gT
 
+" Gはファイルの終端に移動
+nnoremap G G<End>
+" ちょっと微妙かもだけど、9で行末に移動
+nnoremap 9 <End>
+
 " forlding
 " http://www.ksknet.net/vi/post_183.html
 set foldmethod=syntax

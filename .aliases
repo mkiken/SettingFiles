@@ -1,6 +1,3 @@
-#alias fot TSUBAME
-alias tsubame='ssh -Y login-t2-1.g.gsic.titech.ac.jp -l 12M37280'
-
 #expanded command
 alias ls='ls -G'
 
@@ -36,6 +33,3 @@ alias vimdiff='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/mvim
 
 #display all files,End with true or false
 alias allfile='defaults write com.apple.finder AppleShowAllFiles'
-
-#alias for pegjs
-alias pegjs='/usr/local/share/npm/lib/node_modules/pegjs/bin/pegjs'
