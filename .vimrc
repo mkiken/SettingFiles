@@ -25,6 +25,9 @@ set number
 set ruler
 set title "編集中のファイル名を表示する
 
+" http://d.hatena.ne.jp/ruicc/20090615/1245086039
+set nocompatible               " be iMproved
+
 " http://d.hatena.ne.jp/thata/20100606/1275796513
 "カーソルを表示行で移動する。物理行移動は<C-n>,<C-p>
 nnoremap j gj
@@ -92,8 +95,56 @@ set foldlevel=100 "Don't autofold anything
 " http://d.hatena.ne.jp/pinoyuki/20120425/p1
 nnoremap gy "0P
 
+" for WordCOunt
+" https://github.com/fuenor/vim-wordcount/blob/master/wordcount.vim
+set statusline+=[wc:%{WordCount()}]
+set updatetime=500
+
+" http://blog.remora.cx/2011/08/display-invisible-characters-on-vim.html
+set list
+set listchars=tab:»-,trail:-,extends:»,precedes:«,nbsp:%
+"set listchars=tab:»-,trail:-,eol:↲,extends:»,precedes:«,nbsp:%
+
+" 全角スペース・行末のスペース・タブの可視化
+if has("syntax")
+    syntax on
+
+    " PODバグ対策
+    syn sync fromstart
+
+    function! ActivateInvisibleIndicator()
+        " 下の行の"　"は全角スペース
+        syntax match InvisibleJISX0208Space "　" display containedin=ALL
+        highlight InvisibleJISX0208Space term=underline ctermbg=Blue guibg=darkgray gui=underline
+        "syntax match InvisibleTrailedSpace "[ \t]\+$" display containedin=ALL
+        "highlight InvisibleTrailedSpace term=underline ctermbg=Red guibg=NONE gui=undercurl guisp=darkorange
+        "syntax match InvisibleTab "\t" display containedin=ALL
+        "highlight InvisibleTab term=underline ctermbg=white gui=undercurl guisp=darkslategray
+    endfunction
+
+    augroup invisible
+        autocmd! invisible
+        autocmd BufNew,BufRead * call ActivateInvisibleIndicator()
+    augroup END
+endif
+
+" http://qiita.com/katton/items/bc9720826120f5f61fc1
+function! s:remove_dust()
+    let cursor = getpos(".")
+    " 保存時に行末の空白を除去する
+    %s/\s\+$//ge
+	" 保存時に行末のタブ文字を除去する
+    %s/\t\+$//ge
+
+    " 保存時にtabを2スペースに変換する
+    "%s/\t/  /ge
+    call setpos(".", cursor)
+    unlet cursor
+endfunction
+autocmd BufWritePre * call <SID>remove_dust()
+
 " http://www.daisaru11.jp/blog/2011/08/vim%E3%81%A7%E6%8C%BF%E5%85%A5%E3%83%A2%E3%83%BC%E3%83%89%E3%81%AB%E3%81%AA%E3%82%89%E3%81%9A%E3%81%AB%E6%94%B9%E8%A1%8C%E3%82%92%E5%85%A5%E3%82%8C%E3%82%8B/
-noremap <CR> o<ESC>
+"noremap <CR> o<ESC>
 
 " http://d.hatena.ne.jp/tyru/20130430/vim_resident
 "call singleton#enable()
@@ -108,6 +159,20 @@ let g:EasyMotion_grouping=1
 " カラー設定変更
 "hi EasyMotionTarget ctermbg=none ctermfg=red
 "hi EasyMotionShade  ctermbg=none ctermfg=blue
+
+" for Vundle
+" https://github.com/gmarik/vundle
+ filetype off                   " required!
+
+ set rtp+=~/.vim/bundle/vundle/
+ call vundle#rc()
+
+ " let Vundle manage Vundle
+ " required!
+ Bundle 'gmarik/vundle'
+
+ " My Bundles here:
+ Bundle 'derekwyatt/vim-scala'
 
 " for pathogen
 execute pathogen#infect()
@@ -198,3 +263,5 @@ set wildignore+=*/tmp/*,*.so,*.swp,*.zip     " MacOSX/Linux
 set wildignore+=*\\tmp\\*,*.swp,*.zip,*.exe  " Windows
 let g:ctrlp_custom_ignore = '\v[\/]\.(git|hg|svn)$'
 " let g:ctrlp_user_command = 'find %s -type f'        " MacOSX/Linux
+
+

@@ -194,11 +194,11 @@ function! s:InitVMarkVariables()
     endif
     " Foreground color for the bookmarked line in GVIM
     if !exists("b:vm_guifg")
-        let b:vm_guifg = 'white'
+        let b:vm_guifg = 'yellow'
     endif
     " Background color for the bookmarked line in GVIM
     if !exists("b:vm_guibg")
-        let b:vm_guibg = 'red'
+        let b:vm_guibg = 'blue'
     endif
     " Foreground color for the bookmarked line in VIM
     if !exists("b:vm_ctermfg")

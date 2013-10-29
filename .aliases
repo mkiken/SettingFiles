@@ -11,15 +11,15 @@ alias cdw2='cd ~/Documents/workspace2'
 alias cdh='cd ~/Documents/Haskell_Workspace'
 alias cdp='cd ~/Program/ProCon'
 alias cdd='cd ~/Desktop'
-alias cdr='cd ~/Desktop/repository/Research/PEG_Packrat'
+alias cdr='cd ~/Desktop/repository/Research/PEG_Scala'
 
 #shortcut for setting files
 alias bashrc='ec ~/.bashrc'
 alias zshrc='ec ~/.zshrc'
 alias aliases='vi ~/.aliases'
 alias einit='vi ~/.emacs.d/init.el'
-alias vimrc='ec ~/.vimrc'
-alias gvimrc='ec ~/.gvimrc'
+alias vimrc='vi ~/.vimrc'
+alias gvimrc='vi ~/.gvimrc'
 
 #shortcut for Application
 alias e='./a.out'
@@ -33,3 +33,6 @@ alias vimdiff='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/mvim
 
 #display all files,End with true or false
 alias allfile='defaults write com.apple.finder AppleShowAllFiles'
+
+REP="${HOME}/Desktop/repository/"
+
