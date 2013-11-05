@@ -95,6 +95,9 @@ set foldlevel=100 "Don't autofold anything
 " http://d.hatena.ne.jp/pinoyuki/20120425/p1
 nnoremap gy "0P
 
+" :map <C-U> <C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y>
+" :map <C-D> <C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E>
+
 " for WordCOunt
 " https://github.com/fuenor/vim-wordcount/blob/master/wordcount.vim
 set statusline+=[wc:%{WordCount()}]
@@ -173,6 +176,7 @@ let g:EasyMotion_grouping=1
 
  " My Bundles here:
  Bundle 'derekwyatt/vim-scala'
+ Bundle 'yonchu/accelerated-smooth-scroll'
 
 " for pathogen
 execute pathogen#infect()

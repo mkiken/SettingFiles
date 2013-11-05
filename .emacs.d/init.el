@@ -336,7 +336,8 @@
   (end-of-visual-line)
   (newline-and-indent)
   (my-yank)
-  ())
+  (delete-backward-char 1)
+  )
 (global-set-key (kbd "C-:") 'vi-p)
 
 ;; 一行コメント
