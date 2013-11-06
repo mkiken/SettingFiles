@@ -326,8 +326,16 @@
   (interactive "p")
   (kill-ring-save (line-beginning-position)
 				  (line-beginning-position (+ 1 arg)))
-  (message "%d line%s copied" arg (if (= 1 arg) "" "s")))
-(global-set-key (kbd "C-,") 'copy-line)
+  (message "%d line%s copied." arg (if (= 1 arg) "" "s")))
+
+ (defun copy-oneline (arg)
+  "Copy line"
+  (interactive "p")
+  (kill-ring-save (line-beginning-position)
+				  (line-end-position))
+  (message "1 line copied."))
+
+(global-set-key (kbd "C-,") 'copy-oneline)
 (global-set-key (kbd "C-.") 'kill-whole-line)
 
 ;; viのpのように改行してヤンク
@@ -336,7 +344,8 @@
   (end-of-visual-line)
   (newline-and-indent)
   (my-yank)
-  (delete-backward-char 1)
+  ; (delete-backward-char 1)
+  ; (previous-line)
   )
 (global-set-key (kbd "C-:") 'vi-p)
 

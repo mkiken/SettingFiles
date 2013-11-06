@@ -13,6 +13,7 @@ alias cdp='cd ~/Program/ProCon'
 alias cdd='cd ~/Desktop'
 alias cdr='cd ~/Desktop/repository/Research/PEG_Scala'
 alias cdrepo='cd ~/Desktop/repository'
+alias cds='cd ~/Desktop/repository/SettingFiles'
 
 #shortcut for setting files
 alias bashrc='vi ~/.bashrc'
