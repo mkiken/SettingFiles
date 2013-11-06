@@ -98,6 +98,9 @@ nnoremap gy "0P
 " :map <C-U> <C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y>
 " :map <C-D> <C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E>
 
+" http://win-to-mac.blogspot.jp/2012/08/vim.html
+set statusline=%<%f\ %m%r%h%w%{'['.(&fenc!=''?&fenc:&enc).']['.&ff.']'}%=%l,%c%V%8P
+
 " for WordCOunt
 " https://github.com/fuenor/vim-wordcount/blob/master/wordcount.vim
 set statusline+=[wc:%{WordCount()}]
@@ -147,7 +150,7 @@ endfunction
 autocmd BufWritePre * call <SID>remove_dust()
 
 " http://www.daisaru11.jp/blog/2011/08/vim%E3%81%A7%E6%8C%BF%E5%85%A5%E3%83%A2%E3%83%BC%E3%83%89%E3%81%AB%E3%81%AA%E3%82%89%E3%81%9A%E3%81%AB%E6%94%B9%E8%A1%8C%E3%82%92%E5%85%A5%E3%82%8C%E3%82%8B/
-"noremap <CR> o<ESC>
+noremap <CR> o<ESC>
 
 " http://d.hatena.ne.jp/tyru/20130430/vim_resident
 "call singleton#enable()
