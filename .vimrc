@@ -93,7 +93,17 @@ set foldmethod=syntax
 set foldlevel=100 "Don't autofold anything
 
 " http://d.hatena.ne.jp/pinoyuki/20120425/p1
-nnoremap gy "0P
+" nnoremap gy "0P
+
+" 他のアプリケーションとのコピー&ペースト
+" https://sites.google.com/site/hymd3a/vim/vim-copy-paste
+" :set clipboard=unnamed
+"*x  切り取り
+vnoremap gx "+x
+"*y  コピー
+vnoremap gy "+y
+"*p  ペースト
+nnoremap gp "+p
 
 " :map <C-U> <C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y>
 " :map <C-D> <C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E>

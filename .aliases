@@ -1,5 +1,37 @@
 #expanded command
+case "${OSTYPE}" in
+# Mac(Unix)
+darwin*)
+# ここに設定
 alias ls='ls -G'
+#MacVim on CUI
+alias vi='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/mvim --remote-tab-silent'
+alias vimdiff='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/mvimdiff'
+function es(){
+	/Applications/Emacs.app/Contents/MacOS/Emacs "$@" &
+}
+function ec(){
+	/Applications/Emacs.app/Contents/MacOS/bin/emacsclient -n "$@" --alternate-editor /Applications/Emacs.app/Contents/MacOS/Emacs &
+}
+;;
+# Linux
+linux*)
+# ここに設定
+alias ls='ls --color=auto'
+function vi(){
+	gvim -f --remote-tab-silent $@ &
+}
+# function vi(){
+# gvim -f --remote-tab $1 &
+# }
+function es(){
+	emacs $@ &
+}
+function ec(){
+	emacsclient $@ --alternate-editor emacs &
+}
+;;
+esac
 
 #make new alias
 #alias refresh='source ~/.bashrc'
@@ -32,9 +64,6 @@ alias ccp='noglob ccp'
 #rlwrap
 alias ocaml='rlwrap ocaml'
 
-#MacVim on CUI
-alias vi='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/mvim "$@" --remote-tab-silent'
-alias vimdiff='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/mvimdiff  "$@"'
 
 #display all files,End with true or false
 alias allfile='defaults write com.apple.finder AppleShowAllFiles'
