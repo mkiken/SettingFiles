@@ -87,7 +87,12 @@ nnoremap G G<End>
 " ちょっと微妙かもだけど、9で行末に移動
 nnoremap 9 <End>
 
-" forlding
+
+" http://shoken.hatenablog.com/entry/20120617/p
+set splitbelow "新しいウィンドウを下に開く
+set splitright "新しいウィンドウを右に開く
+
+" folding
 " http://www.ksknet.net/vi/post_183.html
 set foldmethod=syntax
 set foldlevel=100 "Don't autofold anything

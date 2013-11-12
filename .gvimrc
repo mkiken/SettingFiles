@@ -37,7 +37,7 @@ elseif OSTYPE == "Linux\n"
 endif
 
 
-set lines=35 columns=100
+set lines=50 columns=150
 
 "## IME状態に応じたカーソル色を設定
 " http://mba-hack.blogspot.jp/2012/09/vim.html
