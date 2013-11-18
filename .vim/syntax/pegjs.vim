@@ -31,8 +31,8 @@ syn match initialize "[a-zA-Z$_][a-zA-Z$_0-9]*[\n\t ]*\".*\"[\n\t ]*=" contains=
 syn match initialize "[a-zA-Z$_][a-zA-Z$_0-9]*[\n\t ]*'.*'[\n\t ]*=" contains=ruleDef,equals,innerLiteral
 syn match initialize "[a-zA-Z$_][a-zA-Z$_0-9]*[\n\t ]*=" contains=ruleDef,equals
 syn match exprLabel "[a-zA-Z$_][a-zA-Z$_0-9]*:"he=e-1
-syn region literal start="'" end="'" 
-syn region literal start="\"" end="\"" 
+syn region literal start="'" end="'"
+syn region literal start="\"" end="\""
 syn region innerLiteral start="'" end="'" contained
 syn region innerLiteral start="\"" end="\"" contained
 syn region comment start="/[*]" end="[*]/"
@@ -97,9 +97,9 @@ syn keyword javaScriptLabel		case default
 syn keyword javaScriptException		try catch finally throw
 syn keyword javaScriptMessage		alert confirm prompt status
 syn keyword javaScriptGlobal		self window top parent
-syn keyword javaScriptMember		document event location 
+syn keyword javaScriptMember		document event location
 syn keyword javaScriptDeprecated	escape unescape
-syn keyword javaScriptReserved		abstract boolean byte char class const debugger double enum export extends final float goto implements import int interface long native package private protected public short static super synchronized throws transient volatile 
+syn keyword javaScriptReserved		abstract boolean byte char class const debugger double enum export extends final float goto implements import int interface long native package private protected public short static super synchronized throws transient volatile
 
 if exists("javaScript_fold")
     syn match	javaScriptFunction	"\<function\>"
@@ -118,7 +118,9 @@ else
     syn match	javaScriptParens	   "[()]"
 endif
 
-syn sync fromstart
+
+" indent from begenning.
+" syn sync fromstart
 syn sync maxlines=100
 
 if main_syntax == "javascript"
@@ -163,7 +165,7 @@ if version >= 508 || !exists("did_javascript_syn_inits")
   HiLink javaScriptMessage		Keyword
   HiLink javaScriptGlobal		Keyword
   HiLink javaScriptMember		Keyword
-  HiLink javaScriptDeprecated		Exception 
+  HiLink javaScriptDeprecated		Exception
   HiLink javaScriptReserved		Keyword
   HiLink javaScriptDebug		Debug
   HiLink javaScriptConstant		Label

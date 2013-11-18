@@ -33,11 +33,12 @@ elseif OSTYPE == "Linux\n"
 	""ここにLinux向けの設定
 	set guifont=DejaVu\ Sans\ Mono\ 10
 	" set guifontwide=Monospace:h13
+	set lines=50 columns=150
 
 endif
 
 
-set lines=50 columns=150
+" set lines=50 columns=150
 
 "## IME状態に応じたカーソル色を設定
 " http://mba-hack.blogspot.jp/2012/09/vim.html
