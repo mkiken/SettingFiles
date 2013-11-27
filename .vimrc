@@ -132,6 +132,10 @@ set list
 set listchars=tab:»-,trail:-,extends:»,precedes:«,nbsp:%
 "set listchars=tab:»-,trail:-,eol:↲,extends:»,precedes:«,nbsp:%
 
+"_でも単語区切り
+" https://sites.google.com/site/vimdocja/usr_05-html
+set iskeyword-=_
+
 " 全角スペース・行末のスペース・タブの可視化
 if has("syntax")
     syntax on
@@ -214,11 +218,15 @@ vmap ,, <Plug>NERDCommenterToggle
 
 map <Esc>f :NERDTreeToggle<CR>
 "NERDtreeで隠しファイルを表示する
-	let NERDTreeShowHidden=1
+let NERDTreeShowHidden=1
 
-autocmd BufNewFile,BufReadPost *.pegjs set filetype=pegjs
-autocmd BufNewFile,BufReadPost *.language set filetype=pegjs
-autocmd BufNewFile,BufReadPost *.grm set filetype=pegjs
+if has("autocmd")
+	" http://docs.racket-lang.org/guide/Vim.html
+	autocmd BufNewFile,BufReadPost *.rkt,*.rktl set filetype=scheme
+
+	autocmd BufNewFile,BufReadPost *.pegjs,*.language,*.grm  set filetype=pegjs
+endif
+
 
 " neocomplcache
 " https://github.com/Shougo/neocomplcache.vim

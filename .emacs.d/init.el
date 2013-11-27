@@ -489,6 +489,9 @@
 (cua-mode t)
 (setq cua-enable-cua-keys nil)
 
+;;; ediffを1ウィンドウで実行
+(setq ediff-window-setup-function 'ediff-setup-windows-plain)
+
 
 ;; server start for emacs-client
 ;; http://d.hatena.ne.jp/syohex/20101224/1293206906
@@ -693,6 +696,7 @@
 ;; for c/c++
 ;; http://cx4a.org/software/auto-complete/manual.html
 ;; (add-hook 'c++-mode (lambda () (add-to-list 'ac-sources 'ac-source-semantic)))
+; (icomplete-mode 1)
 
 ;; http://emacs.tsutomuonoda.com/emacs-anything-el-helm-mode-install/
 ;; for Helm(Anything)

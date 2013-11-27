@@ -1,8 +1,5 @@
-#ignore .DS_Store
 .DS_Store
-
-*.dat
-
-.CFUserTextEncoding
-
+a.out
+*.class
 .org-id-locations
+ac-comphist.dat

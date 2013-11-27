@@ -4,6 +4,48 @@ source ~/.aliases
 autoload -U colors
 colors
 
+# http://qiita.com/Cside_/items/13f85c11d3d0aa35d7ef
+setopt prompt_subst
+autoload -Uz VCS_INFO_get_data_git; VCS_INFO_get_data_git 2> /dev/null
+
+# git stash count
+function git_prompt_stash_count {
+  local COUNT=$(git stash list 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$COUNT" -gt 0 ]; then
+    echo "($COUNT)"
+  fi
+}
+
+function rprompt-git-current-branch {
+  local name st color gitdir action
+  if [[ "$PWD" =~ '/¥.git(/.*)?$' ]]; then
+    return
+  fi
+  name=$(basename "`git symbolic-ref HEAD 2> /dev/null`")
+  if [[ -z $name ]]; then
+    return
+  fi
+
+  gitdir=`git rev-parse --git-dir 2> /dev/null`
+  action=`VCS_INFO_git_getaction "$gitdir"` && action="($action)"
+
+  st=`git status 2> /dev/null`
+  if [[ -n `echo "$st" | grep "^nothing to"` ]]; then
+    color=%F{green}
+  elif [[ -n `echo "$st" | grep "^nothing added"` ]]; then
+    color=%F{yellow}
+  elif [[ -n `echo "$st" | grep "^# Untracked"` ]]; then
+    color=%B%F{red}
+  else
+     color=%F{red}
+  fi
+  echo "::$color$name`git_prompt_stash_count`$action%f%b"
+}
+
+# -------------- 使い方 ---------------- #
+# RPROMPT=''
+
+
 #from http://news.mynavi.jp/column/zsh/index.html
 case ${UID} in
 	0) #for super user
@@ -11,22 +53,61 @@ case ${UID} in
 		PROMPT=$'%B%m%b:%?:%# '
 		;;
 	*)
-		RPROMPT='(%F{cyan}%~%f)'
+		RPROMPT='(%F{cyan}%(5~,%-2~/../%2~,%~)%f)`rprompt-git-current-branch`'
 		#PROMPT=$'%m: %n %D{%T} %{%}%#%{%} '
 		PROMPT="%{$fg[green]%} %n: %D{%T} %{%}%#%{%}%{$reset_color%} "
 esac
 precmd () {
-	PROMPT="%{%(?.$fg[green].$fg[red])%}%n: %D{%T} %{%}%#%{%}%{$reset_color%} "
+	PROMPT="%{%(?.$fg[green].$fg[red])%}%n[%D{%T}] %{%}%#%{%}%{$reset_color%} "
 }
 
 #SPROMPT="%r is correct? [n,y,a,e]:] "
+#http://0xcc.net/blog/archives/000032.html
+# PROMPT='%n@%m:%(5~,%-2~/../%2~,%~)%# '
+
 
 
 # auto change directory
 setopt auto_cd
-# http://qiita.com/puriketu99/items/e3c85fbe0fc4b939d0e2
-function chpwd() { ls }
 
+# http://qiita.com/yuyuchu3333/items/b10542db482c3ac8b059
+function chpwd() { ls_abbrev }
+
+ls_abbrev() {
+    if [[ ! -r $PWD ]]; then
+        return
+    fi
+    # -a : Do not ignore entries starting with ..
+    # -C : Force multi-column output.
+    # -F : Append indicator (one of */=>@|) to entries.
+    local cmd_ls='ls'
+    local -a opt_ls
+    opt_ls=('-aCF' '--color=always')
+    case "${OSTYPE}" in
+        freebsd*|darwin*)
+            if type gls > /dev/null 2>&1; then
+                cmd_ls='gls'
+            else
+                # -G : Enable colorized output.
+                opt_ls=('-aCFG')
+            fi
+            ;;
+    esac
+
+    local ls_result
+    ls_result=$(CLICOLOR_FORCE=1 COLUMNS=$COLUMNS command $cmd_ls ${opt_ls[@]} | sed $'/^\e\[[0-9;]*m$/d')
+
+    local ls_lines=$(echo "$ls_result" | wc -l | tr -d ' ')
+
+    if [ $ls_lines -gt 10 ]; then
+        echo "$ls_result" | head -n 5
+        echo '...'
+        echo "$ls_result" | tail -n 5
+        echo "$(command ls -1 -A | wc -l | tr -d ' ') files exist"
+    else
+        echo "$ls_result"
+    fi
+}
 # auto directory pushd that you can get dirs list by cd -[tab]
 setopt auto_pushd
 
@@ -106,6 +187,10 @@ export LS_COLORS='di=34:ln=35:so=32:pi=33:ex=31:bd=46;34:cd=43;34:su=41;30:sg=46
 # ファイル補完候補に色を付ける
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 
+#grepの結果に色を付ける
+#http://d.hatena.ne.jp/bubbles/20081210/1228918665
+export GREP_OPTIONS='--color=always'
+
 # 補完に関するオプション
 # http://voidy21.hatenablog.jp/entry/20090902/1251918174
 setopt auto_param_slash      # ディレクトリ名の補完で末尾の / を自動的に付加し、次の補完に備える
@@ -142,6 +227,19 @@ zstyle ':completion:*:*:-subscript-:*' tag-order indexes parameters
 # オブジェクトファイルとか中間ファイルとかはfileとして補完させない
 zstyle ':completion:*:*files' ignored-patterns '*?.o' '*?~' '*\#'
 
+## 辞書順ではなく数字順に並べる
+setopt numeric_glob_sort
+
+## 実行したプロセスの消費時間が5秒以上かかったら
+## 自動的に消費時間の統計情報を表示する
+REPORTTIME=5
+
+## ^Dでログアウトしないようにする
+setopt ignore_eof
+
+## 「/」も単語区切りとみなす
+# WORDCHARS=${WORDCHARS:s,/,,}
+WORDCHARS='*?[]~&!#$%^(){}<>'
 
 # http://qiita.com/items/55651f44f91123f1881c
 # url: $1, delimiter: $2, prefix: $3, words: $4..
@@ -214,7 +312,8 @@ function limit-completion
 		zle -M ""
 	elif ((compstate[list_lines] > 6)); then
 		compstate[list]=""
-		zle -M "too many matches."
+		zle -M "$compstate[nmatches] matches($compstate[list_lines] lines). expand?"
+		# zle -M "$compstate[nmatches]"
 	fi
 }
 
