@@ -525,6 +525,18 @@
 ;; http://www.emacswiki.org/emacs/WordCountMode
 (require 'wc-mode)
 
+; http://stackoverflow.com/questions/12904043/change-forward-word-backward-word-kill-word-for-camelcase-words-in-emacs
+;; M-fとM-dでCamelCase移動。M-left, M-rightには効かない
+(global-subword-mode t)
+
+	; http://qiita.com/syohex/items/56cf3b7f7d9943f7a7ba
+(require 'anzu)
+(global-anzu-mode +1)
+(set-face-attribute 'anzu-mode-line nil
+                    :foreground "Blue" :weight 'normal)
+(global-set-key (kbd "M-%") 'anzu-query-replace)
+(global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp)
+
 ;; for tab mode
 ;; http://ser1zw.hatenablog.com/entry/2012/12/31/022359
 ;; http://christina04.blog.fc2.com/blog-entry-170.html

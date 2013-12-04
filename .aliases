@@ -54,6 +54,10 @@ alias aliases='vi ~/.aliases'
 alias einit='vi ~/.emacs.d/init.el'
 alias vimrc='vi ~/.vimrc'
 alias gvimrc='vi ~/.gvimrc'
+alias gitconfig='vi ~/.gitconfig'
+
+#shortc cut for git
+alias gst='git st'
 
 #shortcut for Application
 alias e='./a.out'

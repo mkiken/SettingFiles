@@ -174,6 +174,25 @@ function! s:remove_dust()
 endfunction
 autocmd BufWritePre * call <SID>remove_dust()
 
+" anzu.vim
+" mapping
+nmap n <Plug>(anzu-n-with-echo)
+nmap N <Plug>(anzu-N-with-echo)
+nmap * <Plug>(anzu-star-with-echo)
+nmap # <Plug>(anzu-sharp-with-echo)
+
+" clear status
+nmap <Esc><Esc> <Plug>(anzu-clear-search-status)
+
+" https://github.com/bkad/CamelCaseMotion
+map <silent> w <Plug>CamelCaseMotion_w
+map <silent> b <Plug>CamelCaseMotion_b
+map <silent> e <Plug>CamelCaseMotion_e
+sunmap w
+sunmap b
+sunmap e
+" statusline
+" set statusline=%{anzu#search_status()}
 " http://www.daisaru11.jp/blog/2011/08/vim%E3%81%A7%E6%8C%BF%E5%85%A5%E3%83%A2%E3%83%BC%E3%83%89%E3%81%AB%E3%81%AA%E3%82%89%E3%81%9A%E3%81%AB%E6%94%B9%E8%A1%8C%E3%82%92%E5%85%A5%E3%82%8C%E3%82%8B/
 " noremap <CR> o<ESC>
 
@@ -184,9 +203,14 @@ autocmd BufWritePre * call <SID>remove_dust()
 " http://blog.remora.cx/2012/08/vim-easymotion.html
 "let g:EasyMotion_keys='hjklasdfgyuiopqwertnmzxcvbHJKLASDFGYUIOPQWERTNMZXCVB'
 " 「'」 + 何かにマッピング
+"http://haya14busa.com/vim-lazymotion-on-speed/
 let g:EasyMotion_leader_key=";"
 " 1 ストローク選択を優先する
 let g:EasyMotion_grouping=1
+" smartcase
+let g:EasyMotion_smartcase = 1
+let g:EasyMotion_use_migemo = 1
+let g:EasyMotion_startofline=0
 " カラー設定変更
 "hi EasyMotionTarget ctermbg=none ctermfg=red
 "hi EasyMotionShade  ctermbg=none ctermfg=blue
@@ -205,6 +229,7 @@ let g:EasyMotion_grouping=1
  " My Bundles here:
  Bundle 'derekwyatt/vim-scala'
  Bundle 'yonchu/accelerated-smooth-scroll'
+ Bundle 'haya14busa/vim-easymotion'
 
 " for pathogen
 execute pathogen#infect()

@@ -2,7 +2,7 @@
 
 [user]
 	name = mkiken
-	email = MAIL_ADDRESS
+	email = mori9@is.titech.ac.jp
 [push]
 	default = matching
 
@@ -11,8 +11,17 @@
 # assumes git.git clone at ~/src/git
 ; diff-highlight = /usr/local/Cellar/git/1.8.4.3/share/git-core/contrib/diff-highlight/diff-highlight
 	co = checkout
-	ci = commit
-	st = status
+	ci = commit -m
+	st = status -bs
+	# http://qiita.com/hash/items/1f01aa09ccf148542f21
+	lg = log --stat --pretty=format:'%Cblue%h %Cgreen%ar %Cred%an %Creset%s %Cred%d'
+	gr = log --graph --date-order --pretty=format:'%Cblue%h %Cgreen%ci %Cred%an %Cblue%m %Creset%s %Cred%d'
+	; http://qiita.com/peccul/items/90dd469e2f72babbc106
+	today = log --oneline --since='12 hour ago'
+	cancel = reset --soft HEAD^
+	zip = archive --format=zip --prefix=archive/ HEAD^ -o archive.zip
+	; http://qiita.com/usamik26/items/bfc2196f510d68b3c2cc
+	modified = diff --diff-filter=M
 ; diff-highlight = "!f() { git diff \"$@\" | /usr/local/Cellar/git/contrib/diff-highlight/diff-highlight; }; f"
 
 ; http://motemen.hatenablog.com/entry/2013/11/26/Git_%E3%81%AE_diff_%E3%82%92%E7%BE%8E%E3%81%97%E3%81%8F%E8%A1%A8%E7%A4%BA%E3%81%99%E3%82%8B%E3%81%9F%E3%82%81%E3%81%AB%E5%BF%85%E8%A6%81%E3%81%AA%E3%81%9F%E3%81%A3%E3%81%9F_1_%E3%81%A4%E3%81%AE%E8%A8%AD
@@ -29,3 +38,6 @@
 	excludesfile = ~/.gitignore
 [merge]
 	tool = vimdiff
+	; http://qiita.com/yaotti/items/2361768b6ed781e87780
+[interactive]
+	singlekey = true
