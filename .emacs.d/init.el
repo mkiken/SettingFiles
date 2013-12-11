@@ -26,6 +26,11 @@
       meadow-p  (featurep 'meadow)
       windows-p (or cygwin-p nt-p meadow-p))
 
+;; 言語を日本語にする（IME設定より上に置かなければならない）
+(set-language-environment 'Japanese)
+;; 極力UTF-8とする
+(prefer-coding-system 'utf-8)
+
 ;; Settings for Mac OS X
 (when darwin-p
   ;; key bindings
@@ -33,6 +38,37 @@
   (define-key global-map (kbd "s-d") 'kill-whole-line)
   (define-key global-map (kbd "s-b") 'copy-line)
   (define-key global-map (kbd "s-v") 'my-yank)
+  ; http://blog.n-z.jp/blog/2013-11-12-cocoa-emacs-ime.html
+  (when (boundp 'mac-input-method-parameters)
+    ;; ime inline patch
+		(setq default-input-method "MacOSX")
+		; (mapc
+       ; (lambda (param)
+         ; (let ((name (car param)))
+           ; (cond
+            ; ((string-match "Japanese\\(\\.base\\)?\\'" name) ;; ひらがなの日本語入力
+              ; (mac-set-input-method-parameter name 'cursor-color "blue"))
+            ; ((string-match "Japanese" name) ;; カナなどの日本語入力
+              ; (mac-set-input-method-parameter name 'cursor-color "red"))
+            ; ((string-match "Roman" name) ;; 英字
+              ; (mac-set-input-method-parameter name 'cursor-color "black"))
+            ; (t ;; その他
+               ; (mac-set-input-method-parameter name 'cursor-color "yellow"))
+            ; )
+           ; ))
+       ; mac-input-method-parameters)
+    ; (mac-set-input-method-parameter "com.apple.keylayout.US" 'cursor-color "black")
+		;; IMの状態で色を分ける
+		(mac-set-input-method-parameter "com.apple.inputmethod.Kotoeri.Roman" 'cursor-color "blue")     ; ことえり ローマ字
+		; (mac-set-input-method-parameter "com.apple.inputmethod.Kotoeri.Roman" 'title "A")     ; ことえり ローマ字
+		(mac-set-input-method-parameter "com.apple.inputmethod.Kotoeri.Japanese" 'cursor-color "magenta") ; ことえり 日本語
+		(mac-set-input-method-parameter "com.apple.inputmethod.Kotoeri.Japanese.Katakana" 'cursor-color "yellow") ; ことえり 日本語
+		; (mac-set-input-method-parameter "com.google.inputmethod.Japanese.Roman" 'cursor-color "yellow")   ; Google ローマ字
+		; (mac-set-input-method-parameter "com.google.inputmethod.Japanese.base" 'cursor-color "magenta")   ; Google 日本語
+  	;; backslash を優先
+		(mac-translate-from-yen-to-backslash)
+		)
+
   ;; MacのCommand + 十字キーを有効にする
   ;; http://stackoverflow.com/questions/4351044/binding-m-up-m-down-in-emacs-23-1-1
   ;; (global-set-key [s-up] 'beginning-of-buffer)
@@ -116,6 +152,10 @@
 (setq show-paren-delay 0)
 (setq show-paren-style 'expression)
 
+; http://qiita.com/catatsuy/items/55d50d13ebc965e5f31e
+(require 'uniquify)
+(setq uniquify-buffer-name-style 'post-forward)
+
 ;; バックアップファイルを作らない
 (setq make-backup-files nil)
 (setq auto-save-default nil)
@@ -186,12 +226,6 @@
 (setq default-tab-width 4)
 (setq tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44 48 52 56 60
 						64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
-
-;; 言語を日本語にする
-(set-language-environment 'Japanese)
-;; 極力UTF-8とする
-(prefer-coding-system 'utf-8)
-
 ;; http://reiare.net/blog/2010/12/16/emacs-space-tab/
 ;; 最後に改行を入れる。
 (setq require-final-newline t)

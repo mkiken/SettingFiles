@@ -67,9 +67,6 @@ precmd () {
 
 
 
-# auto change directory
-setopt auto_cd
-
 # http://qiita.com/yuyuchu3333/items/b10542db482c3ac8b059
 function chpwd() { ls_abbrev }
 
@@ -108,8 +105,11 @@ ls_abbrev() {
         echo "$ls_result"
     fi
 }
+
 # auto directory pushd that you can get dirs list by cd -[tab]
+setopt auto_cd # ディレクトリ名と一致した場合 cd
 setopt auto_pushd
+setopt pushd_ignore_dups # 同じディレクトリは追加しない
 
 # command correct edition before each completion attempt
 setopt correct
@@ -271,6 +271,9 @@ autoload -Uz zmv
 alias zmv='noglob zmv -W'
 alias zcp='zmv -C'
 
+# http://qiita.com/mollifier/items/9258c8fd8b59894b1bcd
+bindkey '^J' self-insert
+
 #http://qiita.com/items/156464de9caf64338b17
 #bindkey "^[u" undo
 #bindkey "^[r" redo
@@ -418,3 +421,4 @@ function expand-or-complete-prefix-incr
 }
 
 #_comment_out
+

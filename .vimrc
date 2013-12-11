@@ -8,8 +8,6 @@ set cursorline " カーソル行をハイライト
 "set cursorcolumn
 set background=dark
 
-set laststatus=2 "ステータスラインを常に表示する
-
 set title "編集中のファイル名を表示する
 set showcmd "入力中のコマンドを表示する
 set laststatus=2 "ステータスラインを常に表示する
@@ -42,11 +40,11 @@ set autoindent
 "C言語スタイルのインデント機能が有効
 set cindent
 " タブが対応する空白の数
-set tabstop=4
+set tabstop=2
 " タブやバックスペースの使用等の編集操作をするときに、タブが対応する空白の数
-set softtabstop=4
+set softtabstop=2
 " インデントの各段階に使われる空白の数
-set shiftwidth=4
+set shiftwidth=2
 " 新しい行を作ったときに高度な自動インデントを行う
 set smartindent
 
@@ -69,11 +67,14 @@ set smartcase " 検索文字列に大文字が含まれている場合は区別�
 
 set autoread " ファイル内容が変更されると自動読み込みする
 
-" タブ文字を自動削除しない
+" タブ文字を自動削除しない（効かない・・・）
 " http://vim-users.jp/2010/04/hack137/
-nnoremap o oX<C-h>
-nnoremap O OX<C-h>
-inoremap <CR> <CR>X<C-h>
+" nnoremap o oX<C-h>
+" nnoremap O OX<C-h>
+" inoremap <CR> <CR>X<C-h>
+
+set copyindent
+set preserveindent
 
 " http://vim-users.jp/2009/08/hack57/
 nnoremap O :<C-u>call append(expand('.'), '')<Cr>j
@@ -118,6 +119,10 @@ nnoremap gp "+p
 
 " :map <C-U> <C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y>
 " :map <C-D> <C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E>
+
+" オムニ補完
+" http://d.hatena.ne.jp/arerreee/20120726/1343316762
+imap <C-Space> <C-x><C-o>
 
 " http://win-to-mac.blogspot.jp/2012/08/vim.html
 set statusline=%<%f\ %m%r%h%w%{'['.(&fenc!=''?&fenc:&enc).']['.&ff.']'}%=%l,%c%V%8P
@@ -268,7 +273,24 @@ let g:neocomplcache_lock_buffer_name_pattern = '\*ku\*'
 " Use camel case completion.
 "let g:neocomplcache_enable_camel_case_completion = 1
 " Use underbar completion.
-"let g:neocomplcache_enable_underbar_completion = 1
+let g:neocomplcache_enable_underbar_completion = 1
+" let g:NeoComplCache_SkipInputTime = '1.5'
+"方向キーによる自動展開を防止
+"https://github.com/Shougo/neocomplcache.vim/issues/369
+"日本語が途中で補完されて上手く打ち込めない
+" let g:neocomplcache_enable_insert_char_pre = 1
+" let g:neocomplcache_enable_cursor_hold_i = 1
+" For cursor moving in insert mode(Not recommended)
+" inoremap <expr><Left>  neocomplcache#close_popup() . "\<Left>"
+" inoremap <expr><Right> neocomplcache#close_popup() . "\<Right>"
+" inoremap <expr><Up>    neocomplcache#close_popup() . "\<Up>"
+" inoremap <expr><Down>  neocomplcache#close_popup() . "\<Down>"
+
+" Shell like behavior(not recommended).
+set completeopt+=longest
+let g:neocomplcache_enable_auto_select = 1
+let g:neocomplcache_disable_auto_complete = 1
+inoremap <expr><TAB>  pumvisible() ? "\<Down>" : "\<C-x>\<C-u>"
 
 " Define dictionary.
 let g:neocomplcache_dictionary_filetype_lists = {
@@ -276,17 +298,16 @@ let g:neocomplcache_dictionary_filetype_lists = {
     \ 'vimshell' : $HOME.'/.vimshell_hist',
     \ 'scheme' : $HOME.'/.gosh_completions'
         \ }
-
+inoremap <expr><Up> pumvisible() ? neocomplcache#close_popup()."\<Up>" : "\<Up>"
+inoremap <expr><Down> pumvisible() ? neocomplcache#close_popup()."\<Down>" : "\<Down>"
 " Define keyword.
 if !exists('g:neocomplcache_keyword_patterns')
     let g:neocomplcache_keyword_patterns = {}
 endif
 let g:neocomplcache_keyword_patterns['default'] = '\h\w*'
-
 " Plugin key-mappings.
 inoremap <expr><C-g>     neocomplcache#undo_completion()
 inoremap <expr><C-l>     neocomplcache#complete_common_string()
-
 " Recommended key-mappings.
 " <CR>: close popup and save indent.
 inoremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>

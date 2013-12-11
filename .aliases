@@ -46,6 +46,7 @@ alias cdd='cd ~/Desktop'
 alias cdr='cd ~/Desktop/repository/Research/PEG_Scala'
 alias cdrepo='cd ~/Desktop/repository'
 alias cds='cd ~/Desktop/repository/SettingFiles'
+alias cdphp='cd /Library/WebServer/Documents/'
 
 #shortcut for setting files
 alias bashrc='vi ~/.bashrc'
@@ -58,6 +59,7 @@ alias gitconfig='vi ~/.gitconfig'
 
 #shortc cut for git
 alias gst='git st'
+alias gcm='git commit -m'
 
 #shortcut for Application
 alias e='./a.out'
