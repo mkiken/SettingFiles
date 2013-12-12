@@ -26,13 +26,6 @@ set title "編集中のファイル名を表示する
 " http://d.hatena.ne.jp/ruicc/20090615/1245086039
 set nocompatible               " be iMproved
 
-" http://d.hatena.ne.jp/thata/20100606/1275796513
-"カーソルを表示行で移動する。物理行移動は<C-n>,<C-p>
-nnoremap j gj
-nnoremap k gk
-nnoremap <Down> gj
-nnoremap <Up>   gk
-
 
 
 " オートインデントを有効にする（新しい行のインデントを現在の行と同じにする）
@@ -76,19 +69,9 @@ set autoread " ファイル内容が変更されると自動読み込みする
 set copyindent
 set preserveindent
 
-" http://vim-users.jp/2009/08/hack57/
-nnoremap O :<C-u>call append(expand('.'), '')<Cr>j
 
 " タブラインを常に表示
 set showtabline=2
-
-nnoremap <C-Tab> gt
-nnoremap <C-S-Tab> gT
-
-" Gはファイルの終端に移動
-nnoremap G G<End>
-" ちょっと微妙かもだけど、9で行末に移動
-nnoremap 9 <End>
 
 
 " http://shoken.hatenablog.com/entry/20120617/p
@@ -101,28 +84,7 @@ set splitright "新しいウィンドウを右に開く
 " set foldmethod=indent
 set foldmethod=manual
 set foldlevel=100 "Don't autofold anything
-" {}括弧をfoldする
-nnoremap z/ zf%
 
-" http://d.hatena.ne.jp/pinoyuki/20120425/p1
-" nnoremap gy "0P
-
-" 他のアプリケーションとのコピー&ペースト
-" https://sites.google.com/site/hymd3a/vim/vim-copy-paste
-" :set clipboard=unnamed
-"*x  切り取り
-vnoremap gx "+x
-"*y  コピー
-vnoremap gy "+y
-"*p  ペースト
-nnoremap gp "+p
-
-" :map <C-U> <C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y>
-" :map <C-D> <C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E>
-
-" オムニ補完
-" http://d.hatena.ne.jp/arerreee/20120726/1343316762
-imap <C-Space> <C-x><C-o>
 
 " http://win-to-mac.blogspot.jp/2012/08/vim.html
 set statusline=%<%f\ %m%r%h%w%{'['.(&fenc!=''?&fenc:&enc).']['.&ff.']'}%=%l,%c%V%8P
@@ -178,6 +140,58 @@ function! s:remove_dust()
     unlet cursor
 endfunction
 autocmd BufWritePre * call <SID>remove_dust()
+
+" http://d.hatena.ne.jp/thata/20100606/1275796513
+"カーソルを表示行で移動する。物理行移動は<C-n>,<C-p>
+nnoremap j gj
+nnoremap k gk
+nnoremap <Down> gj
+nnoremap <Up>   gk
+
+" http://vim-users.jp/2009/08/hack57/
+nnoremap O :<C-u>call append(expand('.'), '')<Cr>j
+nnoremap <C-Tab> gt
+nnoremap <C-S-Tab> gT
+
+" Gはファイルの終端に移動
+nnoremap G G<End>
+vnoremap G G<End>
+onoremap G G<End>
+" ちょっと微妙かもだけど、9で行末に移動
+nnoremap 9 <End>
+vnoremap 9 <End>
+onoremap 9 <End>
+
+" 1つ前の検索ワードを表示
+nnoremap g/ /<C-P>
+" {}括弧をfoldする
+nnoremap z/ zf%
+
+" super keyでWindow移動（MacVimのみ）
+" http://qiita.com/ukitazume/items/e5df95feab1c2412cb3a
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+nnoremap <C-h> <C-w>h
+nnoremap <C-l> <C-w>l
+nnoremap <C-Left> <C-w><Left>
+nnoremap <C-Up> <C-w><Up>
+nnoremap <C-Down> <C-w><Down>
+nnoremap <C-Right> <C-w><Right>
+
+" 他のアプリケーションとのコピー&ペースト
+" https://sites.google.com/site/hymd3a/vim/vim-copy-paste
+" :set clipboard=unnamed
+"*x  切り取り
+vnoremap gx "+x
+"*y  コピー
+vnoremap gy "+y
+"*p  ペースト
+nnoremap gp "+p
+
+" オムニ補完
+" http://d.hatena.ne.jp/arerreee/20120726/1343316762
+imap <C-Space> <C-x><C-o>
+
 
 " anzu.vim
 " mapping

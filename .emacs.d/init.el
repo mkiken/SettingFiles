@@ -500,14 +500,15 @@
                (throw 'end-flag t)))))))
 (global-set-key "\C-c\C-r" 'window-resizer)
 
-;;起動時のフレームサイズを設定する
+
+;起動時のフレームサイズを設定する
 (setq initial-frame-alist
-      (append (list
+			(append (list
 ;        '(width . 130)
 ;        '(height . 35)
 		'(alpha . (98 95)) ;; 透明度。(アクティブ時, 非アクティブ時)
-        )
-        initial-frame-alist))
+				)
+				initial-frame-alist))
 (setq default-frame-alist initial-frame-alist)
 
 ;;http://www.bookshelf.jp/soft/meadow_23.html#SEC231
@@ -558,6 +559,9 @@
 ;; for wc mode
 ;; http://www.emacswiki.org/emacs/WordCountMode
 (require 'wc-mode)
+
+; https://github.com/nishikawasasaki/save-frame-posize.el/blob/master/save-frame-posize.el
+(require 'save-frame-posize)
 
 ; http://stackoverflow.com/questions/12904043/change-forward-word-backward-word-kill-word-for-camelcase-words-in-emacs
 ;; M-fとM-dでCamelCase移動。M-left, M-rightには効かない

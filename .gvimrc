@@ -21,6 +21,7 @@ if OSTYPE == "Darwin\n"
 	if has('mac')
 		autocmd FocusGained * set transparency=2
 		autocmd FocusLost * set transparency=5
+		" set lines=50 columns=150
 	endif
 	"augroup END
 
@@ -33,7 +34,7 @@ elseif OSTYPE == "Linux\n"
 	""ここにLinux向けの設定
 	set guifont=DejaVu\ Sans\ Mono\ 10
 	" set guifontwide=Monospace:h13
-	set lines=50 columns=150
+	" set lines=50 columns=150
 
 endif
 
@@ -77,3 +78,25 @@ function! s:GetHighlight(hi)
 	let hl = substitute(hl, 'xxx', '', '')
 	return hl
 endfunction
+
+" Window sizeの保存
+" http://vim-users.jp/2010/01/hack120/
+let g:save_window_file = expand('~/.vim/.vimwinpos')
+augroup SaveWindow
+  autocmd!
+  autocmd VimLeavePre * call s:save_window()
+  function! s:save_window()
+    let options = [
+      \ 'set columns=' . &columns,
+      \ 'set lines=' . &lines,
+      \ 'winpos ' . getwinposx() . ' ' . getwinposy(),
+      \ ]
+    call writefile(options, g:save_window_file)
+  endfunction
+augroup END
+
+if filereadable(g:save_window_file)
+  execute 'source' g:save_window_file
+else
+	set lines=50 columns=150
+endif
