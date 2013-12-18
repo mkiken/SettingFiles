@@ -106,6 +106,21 @@ ls_abbrev() {
     fi
 }
 
+# http://qiita.com/takc923/items/be459e2962aa11e33d12
+function command_not_found_handler() {
+    if [ $# != 1 ]; then
+        return 127
+    # elif [ -d $0 ]; then
+        # ls -la $0
+        # return 0
+    elif  [ -f $0 ]; then
+        less $0
+        return 0
+    else
+        return 127
+    fi
+}
+
 # auto directory pushd that you can get dirs list by cd -[tab]
 setopt auto_cd # ディレクトリ名と一致した場合 cd
 setopt auto_pushd
@@ -241,28 +256,29 @@ setopt ignore_eof
 # WORDCHARS=${WORDCHARS:s,/,,}
 WORDCHARS='*?[]~&!#$%^(){}<>'
 
+
 # http://qiita.com/items/55651f44f91123f1881c
 # url: $1, delimiter: $2, prefix: $3, words: $4..
 function web_search {
-  local url=$1       && shift
-  local delimiter=$1 && shift
-  local prefix=$1    && shift
-  local query
+	local url=$1       && shift
+	local delimiter=$1 && shift
+	local prefix=$1    && shift
+	local query
 
-  while [ -n "$1" ]; do
-    if [ -n "$query" ]; then
-      query="${query}${delimiter}${prefix}$1"
-    else
-      query="${prefix}$1"
-    fi
-    shift
-  done
+	while [ -n "$1" ]; do
+		if [ -n "$query" ]; then
+			query="${query}${delimiter}${prefix}$1"
+		else
+			query="${prefix}$1"
+		fi
+		shift
+	done
 
-  open "${url}${query}"
+	open "${url}${query}"
 }
 
 function google () {
-  web_search "https://www.google.co.jp/search?&q=" "+" "" $*
+	web_search "https://www.google.co.jp/search?&q=" "+" "" $*
 }
 
 #zmv

@@ -26,3 +26,6 @@
 [submodule ".vim/bundle/vundle"]
 	path = .vim/bundle/vundle
 	url = git@github.com:gmarik/vundle
+[submodule ".emacs.d/elisp/multiple-cursors.git"]
+	path = .emacs.d/elisp/multiple-cursors.git
+	url = https://github.com/magnars/multiple-cursors.el.git

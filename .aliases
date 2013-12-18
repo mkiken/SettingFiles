@@ -6,6 +6,7 @@ darwin*)
 alias ls='ls -G'
 #MacVim on CUI
 alias vi='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/mvim --remote-tab-silent'
+alias vs='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/mvim'
 alias vimdiff='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/mvimdiff'
 function es(){
 	/Applications/Emacs.app/Contents/MacOS/Emacs "$@" &

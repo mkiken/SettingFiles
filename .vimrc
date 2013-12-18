@@ -188,9 +188,44 @@ vnoremap gy "+y
 "*p  ペースト
 nnoremap gp "+p
 
+
+" ESCを2回入力で検索時のハイライトを解除
+" nnoremap <Esc><Esc> :nohlsearch<CR>
+
 " オムニ補完
 " http://d.hatena.ne.jp/arerreee/20120726/1343316762
 imap <C-Space> <C-x><C-o>
+
+" インサートモードで改行
+" http://cohalz.com/2013/06/14/vim-easier-enter-keymap/
+inoremap <C-j> <ESC>$a<CR>
+nnoremap <C-j> $a<CR>
+
+" http://notachi.hatenadiary.jp/entry/2012/11/13/181810
+" カーソル移動
+" inoremap <C-p> <Up>
+" inoremap <C-n> <Down>
+inoremap <C-b> <Left>
+inoremap <C-f> <Right>
+inoremap <C-e> <End>
+inoremap <C-a> <Home>
+inoremap <C-d> <Del>
+" カーソルのある行を画面中央に
+inoremap <C-l> <C-o>zz
+" カーソルより前の文字を削除
+inoremap <C-u> <C-o>d0
+" カーソルより後の文字を削除
+inoremap <C-k> <c-o>D
+" アンドゥ
+inoremap <C-x>u <C-o>u
+inoremap <C-]> <C-o>u
+" 貼りつけ
+inoremap <C-y> <C-o>P
+
+" vimrcをリロード
+" http://whileimautomaton.net/2008/07/20150335
+" nnoremap <Space>s  :<C-u>source $VIMRC<Return>
+nnoremap <Space>s  :<C-u>source ~/.vimrc <Return>
 
 
 " anzu.vim
@@ -201,7 +236,7 @@ nmap * <Plug>(anzu-star-with-echo)
 nmap # <Plug>(anzu-sharp-with-echo)
 
 " clear status
-nmap <Esc><Esc> <Plug>(anzu-clear-search-status)
+nmap <Esc><Esc> :nohl<CR> <Plug>(anzu-clear-search-status)
 
 " https://github.com/bkad/CamelCaseMotion
 map <silent> w <Plug>CamelCaseMotion_w
@@ -249,6 +284,15 @@ let g:EasyMotion_startofline=0
  Bundle 'derekwyatt/vim-scala'
  Bundle 'yonchu/accelerated-smooth-scroll'
  Bundle 'haya14busa/vim-easymotion'
+ " Bundle 'kana/vim-smartinput'
+ " Bundle 'mhinz/vim-startify'
+ " Bundle 'osyo-manga/vim-over'
+ Bundle 'AndrewRadev/switch.vim'
+ Bundle 'terryma/vim-multiple-cursors'
+
+" <Space>mに、switch.vimをマッピング
+" nnoremap <Space>m  <Plug>(switch-next)
+nnoremap ^ :Switch<cr>
 
 " for pathogen
 execute pathogen#infect()
@@ -270,6 +314,10 @@ if has("autocmd")
 
 	autocmd BufNewFile,BufReadPost *.pegjs,*.language,*.grm  set filetype=pegjs
 endif
+
+" call smartinput#map_to_trigger('i', '<Plug>(smartinput_BS)','<BS>','<BS>')
+" call smartinput#map_to_trigger('i', '<Plug>(smartinput_C-h)', '<BS>', '<C-h>')
+" call smartinput#map_to_trigger('i', '<Plug>(smartinput_CR)','<Enter>','<Enter>')
 
 
 " neocomplcache
@@ -324,15 +372,20 @@ inoremap <expr><C-g>     neocomplcache#undo_completion()
 inoremap <expr><C-l>     neocomplcache#complete_common_string()
 " Recommended key-mappings.
 " <CR>: close popup and save indent.
+" imap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
 inoremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
+" inoremap <expr> <CR> neocomplcache#close_popup() . eval(smartinput#sid().'_trigger_or_fallback("\<Enter>", "\<Enter>")')
 function! s:my_cr_function()
-  return pumvisible() ? neocomplcache#close_popup() : "\<CR>"
+	return pumvisible() ? neocomplcache#close_popup() : "\<CR>"
+	" return pumvisible() ? neocomplcache#close_popup() : "\<Plug>(smartinput_CR)"
 endfunction
+
 " <TAB>: completion.
 inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
 " <C-h>, <BS>: close popup and delete backword char.
 inoremap <expr><C-h> neocomplcache#smart_close_popup()."\<C-h>"
 inoremap <expr><BS> neocomplcache#smart_close_popup()."\<C-h>"
+" inoremap <expr> <BS> neocomplcache#smart_close_popup() . eval(smartinput#sid().'_trigger_or_fallback("\<BS>", "\<BS>")')
 inoremap <expr><C-y>  neocomplcache#close_popup()
 inoremap <expr><C-e>  neocomplcache#cancel_popup()
 " Enable omni completion.

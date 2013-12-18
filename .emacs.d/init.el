@@ -71,13 +71,13 @@
 
   ;; MacのCommand + 十字キーを有効にする
   ;; http://stackoverflow.com/questions/4351044/binding-m-up-m-down-in-emacs-23-1-1
-  ;; (global-set-key [s-up] 'beginning-of-buffer)
-  ;; (global-set-key [s-down] 'end-of-buffer)
-  ;; (global-set-key [s-left] 'beginning-of-visual-indented-line)
-  ;; (global-set-key [s-right] 'end-of-visual-line)
+	(global-set-key [s-up] 'beginning-of-buffer)
+	(global-set-key [s-down] 'end-of-buffer)
+	(global-set-key [s-left] 'beginning-of-visual-indented-line)
+	(global-set-key [s-right] 'end-of-visual-line)
   ;; Window間の移動をM-...でやる
   ;; http://www.emacswiki.org/emacs/WindMove
-  (windmove-default-keybindings 'super)
+  ; (windmove-default-keybindings 'super)
   ;; (global-set-key (kbd "M-<left>")  'windmove-left)
 
   ;; font settings
@@ -174,6 +174,12 @@
   (end-of-visual-line)
   (newline-and-indent) )
 (global-set-key (kbd "C-j") 'newline-from-anywhere)
+
+
+	(global-set-key (kbd "C-<left>")  'windmove-left)
+	(global-set-key (kbd "C-<left>")  'windmove-left)
+	(global-set-key (kbd "C-<left>")  'windmove-left)
+	(global-set-key (kbd "C-<left>")  'windmove-left)
 
 ;; http://dev.ariel-networks.com/wp/documents/aritcles/emacs/part16
 ;;範囲指定していないとき、C-wで前の単語を削除
@@ -500,6 +506,13 @@
                (throw 'end-flag t)))))))
 (global-set-key "\C-c\C-r" 'window-resizer)
 
+; http://metalphaeton.blogspot.jp/2011/04/emacs.html
+(global-set-key (kbd "(") 'skeleton-pair-insert-maybe)
+(global-set-key (kbd "{") 'skeleton-pair-insert-maybe)
+(global-set-key (kbd "[") 'skeleton-pair-insert-maybe)
+(global-set-key (kbd "\"") 'skeleton-pair-insert-maybe)
+(setq skeleton-pair 1)
+
 
 ;起動時のフレームサイズを設定する
 (setq initial-frame-alist
@@ -711,8 +724,8 @@
 ;;for MiniMap(Sublime Text)
 ;; from http://www.emacswiki.org/emacs/MiniMap
 (require 'minimap)
-(global-set-key "\M-m" 'minimap-create)
-(global-set-key "\C-\M-m" 'minimap-kill)
+(global-set-key "\C-cm" 'minimap-create)
+(global-set-key "\C-c\M-m" 'minimap-kill)
 
 ;; bookmark like Visual Studio
 ;; http://www.emacswiki.org/emacs/VisibleBookmarks
@@ -725,10 +738,29 @@
 ;; for auto-install
 ;; http://d.hatena.ne.jp/rubikitch/20091221/autoinstall
 ;; 実行時だけ有効にする
-;; (require 'auto-install)
-;; (setq auto-install-directory "~/.emacs.d/elisp/temp")
-;; (auto-install-update-emacswiki-package-name t)
-;; (auto-install-compatibility-setup)             ; 互換性確保
+; (require 'auto-install)
+; (setq auto-install-directory "~/.emacs.d/elisp/temp")
+; (auto-install-update-emacswiki-package-name t)
+; (auto-install-compatibility-setup)             ; 互換性確保
+
+
+; for package.el
+; Emacs24
+; http://ongaeshi.hatenablog.com/entry/20120613/1339607400
+;; 実行時だけ有効にする
+; (progn
+  ; (switch-to-buffer
+   ; (url-retrieve-synchronously
+    ; "https://raw.github.com/milkypostman/melpa/master/melpa.el"))
+  ; (package-install-from-buffer  (package-buffer-info) 'single))
+; (require 'package)
+; ; Add package-archives
+; (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/") t)
+; (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
+; ; Initialize
+; (package-initialize)
+; ; melpa.el
+; (require 'melpa)
 
 ;; http://d.hatena.ne.jp/supermassiveblackhole/20100705/1278320568
 ;; auto-complete
@@ -765,7 +797,35 @@
   "Emacs quick move minor mode"
   t)
 ;; you can select the key you prefer to
-(define-key global-map (kbd "C-c SPC") 'ace-jump-mode)
+(define-key global-map (kbd "C-c ;") 'ace-jump-mode)
+
+; Settings for multiple cursors
+; http://qiita.com/ongaeshi/items/3521b814aa4bf162181d
+(add-to-list 'load-path "~/.emacs.d/elisp/multiple-cursors.el")
+(require 'multiple-cursors)
+(require 'smartrep)
+
+(declare-function smartrep-define-key "smartrep")
+
+; (global-set-key (kbd "C-M-c") 'mc/edit-lines)
+; (global-set-key (kbd "C-M-r") 'mc/mark-all-in-region)
+
+(global-unset-key "\C-c n")
+
+(smartrep-define-key global-map "C-c n"
+	'(("C-t"      . 'mc/mark-next-like-this)
+		("n"        . 'mc/mark-next-like-this)
+		("p"        . 'mc/mark-previous-like-this)
+		("m"        . 'mc/mark-more-like-this-extended)
+		("u"        . 'mc/unmark-next-like-this)
+		("U"        . 'mc/unmark-previous-like-this)
+		("s"        . 'mc/skip-to-next-like-this)
+		("S"        . 'mc/skip-to-previous-like-this)
+		("*"        . 'mc/mark-all-like-this)
+		("d"        . 'mc/mark-all-like-this-dwim)
+		("i"        . 'mc/insert-numbers)
+		("o"        . 'mc/sort-regions)
+		("O"        . 'mc/reverse-regions)))
 
 
 ;; http://shnya.jp/blog/?p=477
