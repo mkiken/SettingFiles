@@ -71,13 +71,11 @@
 
   ;; MacのCommand + 十字キーを有効にする
   ;; http://stackoverflow.com/questions/4351044/binding-m-up-m-down-in-emacs-23-1-1
-	(global-set-key [s-up] 'beginning-of-buffer)
-	(global-set-key [s-down] 'end-of-buffer)
-	(global-set-key [s-left] 'beginning-of-visual-indented-line)
-	(global-set-key [s-right] 'end-of-visual-line)
-  ;; Window間の移動をM-...でやる
-  ;; http://www.emacswiki.org/emacs/WindMove
-  ; (windmove-default-keybindings 'super)
+	; (global-set-key [s-up] 'beginning-of-buffer)
+	; (global-set-key [s-down] 'end-of-buffer)
+	; (global-set-key [s-left] 'beginning-of-visual-indented-line)
+	; (global-set-key [s-right] 'end-of-visual-line)
+
   ;; (global-set-key (kbd "M-<left>")  'windmove-left)
 
   ;; font settings
@@ -213,6 +211,10 @@
 ;  (backward-word)
 ;  (kill-word 1) )
 ;(global-set-key (kbd "M-d") 'kill-word-from-anywhere)
+
+;; Window間の移動をM-...でやる
+;; http://www.emacswiki.org/emacs/WindMove
+(windmove-default-keybindings 'super)
 
 ;; ペースト後に整形
 (defun my-yank()
@@ -513,6 +515,22 @@
 (global-set-key (kbd "\"") 'skeleton-pair-insert-maybe)
 (setq skeleton-pair 1)
 
+; ; http://www.emacswiki.org/emacs/InsertPair
+; (global-set-key "\M-'" 'insert-quotations)
+; (global-set-key (kbd "C-'") 'insert-backquote)
+
+; (defun insert-quotations (&optional arg)
+  ; "Enclose following ARG sexps in quotation marks.
+; Leave point after open-paren."
+  ; (interactive "*P")
+  ; (insert-pair arg ?\' ?\'))
+
+
+; (defun insert-backquote (&optional arg)
+  ; "Enclose following ARG sexps in quotations with backquote.
+; Leave point after open-quotation."
+  ; (interactive "*P")
+  ; (insert-pair arg ?\` ?\'))
 
 ;起動時のフレームサイズを設定する
 (setq initial-frame-alist
@@ -539,7 +557,8 @@
 
 ;;; ediffを1ウィンドウで実行
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
-
+;; diffのバッファを上下ではなく左右に並べる
+(setq ediff-split-window-function 'split-window-horizontally)
 
 ;; server start for emacs-client
 ;; http://d.hatena.ne.jp/syohex/20101224/1293206906
@@ -597,6 +616,9 @@
 ;; Firefoxライクなキーバインドに
 (global-set-key [(control tab)] 'tabbar-forward)
 (global-set-key [(control shift tab)] 'tabbar-backward)
+
+(global-set-key [C-left] 'tabbar-forward)
+(global-set-key [C-right] 'tabbar-backward)
 ;; タブ上でマウスホイールを使わない
 (tabbar-mwheel-mode nil)
 ;; グループを使わない
@@ -801,7 +823,7 @@
 
 ; Settings for multiple cursors
 ; http://qiita.com/ongaeshi/items/3521b814aa4bf162181d
-(add-to-list 'load-path "~/.emacs.d/elisp/multiple-cursors.el")
+(add-to-list 'load-path "~/.emacs.d/elisp/multiple-cursors")
 (require 'multiple-cursors)
 (require 'smartrep)
 

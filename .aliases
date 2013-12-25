@@ -14,6 +14,10 @@ function es(){
 function ec(){
 	/Applications/Emacs.app/Contents/MacOS/bin/emacsclient -n "$@" --alternate-editor /Applications/Emacs.app/Contents/MacOS/Emacs &
 }
+
+# http://tukaikta.blog135.fc2.com/blog-entry-214.html
+alias rm='rmtrash'
+
 ;;
 # Linux
 linux*)
@@ -61,8 +65,10 @@ alias gitconfig='vi ~/.gitconfig'
 #shortc cut for git
 alias gst='git st'
 alias gaa='git add .'
+# alias gra='git rmall'
 alias gcm='git commit -m'
 alias gps='git push'
+alias gpl='git pull'
 
 #shortcut for Application
 alias e='./a.out'

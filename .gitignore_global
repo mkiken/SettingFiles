@@ -1,0 +1,5 @@
+.DS_Store
+a.out
+*.class
+.org-id-locations
+ac-comphist.dat

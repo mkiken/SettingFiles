@@ -141,6 +141,36 @@ function! s:remove_dust()
 endfunction
 autocmd BufWritePre * call <SID>remove_dust()
 
+" http://vim-users.jp/2009/09/hack69/
+set autochdir
+" command! -nargs=? -complete=dir -bang CD  call s:ChangeCurrentDir('<args>', '<bang>')
+" function! s:ChangeCurrentDir(directory, bang)
+    " if a:directory == ''
+        " lcd %:p:h
+    " else
+        " execute 'lcd' . a:directory
+    " endif
+
+    " if a:bang == ''
+        " pwd
+    " endif
+" endfunction
+
+" " Change current directory.
+" nnoremap <silent> <Space>cd :<C-u>CD<CR>
+
+" http://d.hatena.ne.jp/spiritloose/20061113/1163401194
+inoremap { {}<LEFT>
+inoremap [ []<LEFT>
+inoremap ( ()<LEFT>
+inoremap " ""<LEFT>
+inoremap ' ''<LEFT>
+vnoremap { "zdi{<C-R>z}<ESC>
+vnoremap [ "zdi[<C-R>z]<ESC>
+vnoremap ( "zdi(<C-R>z)<ESC>
+vnoremap " "zdi"<C-R>z"<ESC>
+vnoremap ' "zdi'<C-R>z'<ESC>
+
 " http://d.hatena.ne.jp/thata/20100606/1275796513
 "カーソルを表示行で移動する。物理行移動は<C-n>,<C-p>
 nnoremap j gj
@@ -152,6 +182,7 @@ nnoremap <Up>   gk
 nnoremap O :<C-u>call append(expand('.'), '')<Cr>j
 nnoremap <C-Tab> gt
 nnoremap <C-S-Tab> gT
+" nnoremap <C-S-Tab> gT
 
 " Gはファイルの終端に移動
 nnoremap G G<End>
@@ -173,10 +204,40 @@ nnoremap <C-j> <C-w>j
 nnoremap <C-k> <C-w>k
 nnoremap <C-h> <C-w>h
 nnoremap <C-l> <C-w>l
-nnoremap <C-Left> <C-w><Left>
-nnoremap <C-Up> <C-w><Up>
-nnoremap <C-Down> <C-w><Down>
-nnoremap <C-Right> <C-w><Right>
+nnoremap <C-M-Left> <C-w><Left>
+nnoremap <C-M-Up> <C-w><Up>
+nnoremap <C-M-Down> <C-w><Down>
+nnoremap <C-M-Right> <C-w><Right>
+
+nnoremap <C-Left> gT
+nnoremap <C-Right> gt
+
+" http://stackoverflow.com/questions/2005214/switching-to-a-particular-tab-in-vim
+" Jump to particular tab directly
+"NORMAL mode bindings for gvim
+noremap <unique> <D-1> 1gt
+noremap <unique> <D-2> 2gt
+noremap <unique> <D-3> 3gt
+noremap <unique> <D-4> 4gt
+noremap <unique> <D-5> 5gt
+noremap <unique> <D-6> 6gt
+noremap <unique> <D-7> 7gt
+noremap <unique> <D-8> 8gt
+noremap <unique> <D-9> 9gt
+noremap <unique> <D-0> 10gt
+"INSERT mode bindings for gvim
+inoremap <unique> <D-1> <C-O>1gt
+inoremap <unique> <D-2> <C-O>2gt
+inoremap <unique> <D-3> <C-O>3gt
+inoremap <unique> <D-4> <C-O>4gt
+inoremap <unique> <D-5> <C-O>5gt
+inoremap <unique> <D-6> <C-O>6gt
+inoremap <unique> <D-7> <C-O>7gt
+inoremap <unique> <D-8> <C-O>8gt
+inoremap <unique> <D-9> <C-O>9gt
+inoremap <unique> <D-0> <C-O>10gt
+
+
 
 " 他のアプリケーションとのコピー&ペースト
 " https://sites.google.com/site/hymd3a/vim/vim-copy-paste
@@ -205,8 +266,8 @@ nnoremap <C-j> $a<CR>
 " カーソル移動
 " inoremap <C-p> <Up>
 " inoremap <C-n> <Down>
-inoremap <C-b> <Left>
-inoremap <C-f> <Right>
+" inoremap <C-b> <Left>
+" inoremap <C-f> <Right>
 inoremap <C-e> <End>
 inoremap <C-a> <Home>
 inoremap <C-d> <Del>
@@ -289,7 +350,7 @@ let g:EasyMotion_startofline=0
  " Bundle 'osyo-manga/vim-over'
  Bundle 'AndrewRadev/switch.vim'
  Bundle 'terryma/vim-multiple-cursors'
-
+ Bundle 'tyru/open-browser.vim'
 " <Space>mに、switch.vimをマッピング
 " nnoremap <Space>m  <Plug>(switch-next)
 nnoremap ^ :Switch<cr>
@@ -413,4 +474,13 @@ set wildignore+=*\\tmp\\*,*.swp,*.zip,*.exe  " Windows
 let g:ctrlp_custom_ignore = '\v[\/]\.(git|hg|svn)$'
 " let g:ctrlp_user_command = 'find %s -type f'        " MacOSX/Linux
 
+" http://vim-users.jp/2011/08/hack225/
+let g:netrw_nogx = 1 " disable netrw's gx mapping.
+nmap gx <Plug>(openbrowser-smart-search)
+vmap gx <Plug>(openbrowser-smart-search)
 
+" http://blog.thomasupton.com/2012/05/syntastic/
+" On by default, turn it off for html
+let g:syntastic_mode_map = { 'mode': 'active',
+	\ 'active_filetypes': [],
+	\ 'passive_filetypes': ['scala'] }

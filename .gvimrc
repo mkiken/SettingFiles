@@ -7,12 +7,51 @@ colorscheme molokai
 " ツールバー非表示
 set guioptions-=T
 
+" http://doruby.kbmj.com/aisi/20091218/Vim__
+" 個別のタブの表示設定をします
+function! GuiTabLabel()
+  " タブで表示する文字列の初期化をします
+  let l:label = ''
+
+  " タブに含まれるバッファ(ウィンドウ)についての情報をとっておきます。
+  let l:bufnrlist = tabpagebuflist(v:lnum)
+
+  " 表示文字列にバッファ名を追加します
+  " パスを全部表示させると長いのでファイル名だけを使います 詳しくは help fnamemodify()
+  let l:bufname = fnamemodify(bufname(l:bufnrlist[tabpagewinnr(v:lnum) - 1]), ':t')
+  " バッファ名がなければ No title としておきます。ここではマルチバイト文字を使わないほうが無難です
+  let l:label .= l:bufname == '' ? 'No title' : l:bufname
+
+  " タブ内にウィンドウが複数あるときにはその数を追加します(デフォルトで一応あるので)
+  let l:wincount = tabpagewinnr(v:lnum, '$')
+  if l:wincount > 1
+    let l:label .= '[' . l:wincount . ']'
+  endif
+
+  " このタブページに変更のあるバッファがるときには '[+]' を追加します(デフォルトで一応あるので)
+  for bufnr in l:bufnrlist
+    if getbufvar(bufnr, "&modified")
+      let l:label .= ' +'
+      break
+    endif
+  endfor
+
+  " 表示文字列を返します
+  return l:label
+endfunction
+
+" guitablabel に上の関数を設定します
+" その表示の前に %N というところでタブ番号を表示させています
+set guitablabel=%N:\ %{GuiTabLabel()}
+
+
 let OSTYPE = system('uname')
 if OSTYPE == "Darwin\n"
 	""ここにMac向けの設定
 	set transparency=2 " (不透明 0〜100 透明)
-	set guifont=Monaco:h13
-	set guifontwide=Monaco:h13
+	set guifont=Monaco:h12
+	set guifontwide=Monaco:h12
+
 " set guifont=Courier:h14
 " set guifontwide=Courier:h14
 	" http://vim-users.jp/2011/10/hack234/
