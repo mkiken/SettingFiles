@@ -33,3 +33,16 @@ echo "ln -si ${Repo}.emacs.d ~/.emacs.d"
 ln -si "${Repo}.emacs.d" ~/.emacs.d
 
 echo 'copy done.'
+
+
+# mkdir -p ~/.backup
+mkdir -p ~/.backup/emacs/backup
+mkdir -p ~/.backup/emacs/autosave
+mkdir -p ~/.backup/vim/backup
+mkdir -p ~/.backup/vim/swap
+
+echo 'backup directory for emacs and vim made.'
+
+
+git submodule update --init
+echo 'submodule update.'

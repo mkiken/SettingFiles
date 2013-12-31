@@ -4,6 +4,9 @@ source ~/.aliases
 autoload -U colors
 colors
 
+# 重複するパスの削除
+typeset -U path
+
 # http://qiita.com/Cside_/items/13f85c11d3d0aa35d7ef
 setopt prompt_subst
 autoload -Uz VCS_INFO_get_data_git; VCS_INFO_get_data_git 2> /dev/null
@@ -240,7 +243,7 @@ zstyle ':completion:*:*:-subscript-:*' tag-order indexes parameters
 #zstyle ':completion:*:cd:*' ignore-parents parent pwd
 
 # オブジェクトファイルとか中間ファイルとかはfileとして補完させない
-zstyle ':completion:*:*files' ignored-patterns '*?.o' '*?~' '*\#'
+# zstyle ':completion:*:*files' ignored-patterns '*?.o' '*?~' '*\#'
 
 ## 辞書順ではなく数字順に並べる
 setopt numeric_glob_sort

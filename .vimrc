@@ -13,9 +13,16 @@ set showcmd "入力中のコマンドを表示する
 set laststatus=2 "ステータスラインを常に表示する
 
 "スワップファイルを生成しない
-set noswapfile
+" set noswapfile
 "バックアップファイルを生成しない
-set nobackup
+" set nobackup
+
+" http://nanasi.jp/articles/howto/file/seemingly-unneeded-file.html
+set swapfile
+set directory=~/.backup/vim/swap
+
+set backup
+set backupdir=~/.backup/vim/backup
 
 " 行番号の表示
 set number

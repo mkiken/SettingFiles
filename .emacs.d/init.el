@@ -2,11 +2,6 @@
 ;;MacとWindowsで場合分け
 (defun x->bool (elt) (not (not elt)))
 
-;; emacs-version predicates
-;; (setq emacs22-p (string-match "^22" emacs-version)
-;; 	  emacs23-p (string-match "^23" emacs-version)
-;; 	  emacs23.0-p (string-match "^23\.0" emacs-version))
-
 ;; system-type predicates
 (setq darwin-p  (eq system-type 'darwin)
       ns-p      (eq window-system 'ns)
@@ -38,31 +33,21 @@
   (define-key global-map (kbd "s-d") 'kill-whole-line)
   (define-key global-map (kbd "s-b") 'copy-line)
   (define-key global-map (kbd "s-v") 'my-yank)
+
+; システムへ修飾キーを渡さない設定
+(setq mac-pass-control-to-system nil)
+; (setq mac-pass-command-to-system nil)
+; (setq mac-pass-option-to-system nil)
+
   ; http://blog.n-z.jp/blog/2013-11-12-cocoa-emacs-ime.html
   (when (boundp 'mac-input-method-parameters)
     ;; ime inline patch
 		(setq default-input-method "MacOSX")
-		; (mapc
-       ; (lambda (param)
-         ; (let ((name (car param)))
-           ; (cond
-            ; ((string-match "Japanese\\(\\.base\\)?\\'" name) ;; ひらがなの日本語入力
-              ; (mac-set-input-method-parameter name 'cursor-color "blue"))
-            ; ((string-match "Japanese" name) ;; カナなどの日本語入力
-              ; (mac-set-input-method-parameter name 'cursor-color "red"))
-            ; ((string-match "Roman" name) ;; 英字
-              ; (mac-set-input-method-parameter name 'cursor-color "black"))
-            ; (t ;; その他
-               ; (mac-set-input-method-parameter name 'cursor-color "yellow"))
-            ; )
-           ; ))
-       ; mac-input-method-parameters)
-    ; (mac-set-input-method-parameter "com.apple.keylayout.US" 'cursor-color "black")
 		;; IMの状態で色を分ける
-		(mac-set-input-method-parameter "com.apple.inputmethod.Kotoeri.Roman" 'cursor-color "blue")     ; ことえり ローマ字
+		(mac-set-input-method-parameter "com.apple.inputmethod.Kotoeri.Roman" 'cursor-color "OliveDrab4")     ; ことえり ローマ字
 		; (mac-set-input-method-parameter "com.apple.inputmethod.Kotoeri.Roman" 'title "A")     ; ことえり ローマ字
-		(mac-set-input-method-parameter "com.apple.inputmethod.Kotoeri.Japanese" 'cursor-color "magenta") ; ことえり 日本語
-		(mac-set-input-method-parameter "com.apple.inputmethod.Kotoeri.Japanese.Katakana" 'cursor-color "yellow") ; ことえり 日本語
+		(mac-set-input-method-parameter "com.apple.inputmethod.Kotoeri.Japanese" 'cursor-color "LightPink1") ; ことえり 日本語
+		(mac-set-input-method-parameter "com.apple.inputmethod.Kotoeri.Japanese.Katakana" 'cursor-color "LightSkyBlue1") ; ことえり 日本語
 		; (mac-set-input-method-parameter "com.google.inputmethod.Japanese.Roman" 'cursor-color "yellow")   ; Google ローマ字
 		; (mac-set-input-method-parameter "com.google.inputmethod.Japanese.base" 'cursor-color "magenta")   ; Google 日本語
   	;; backslash を優先
@@ -82,49 +67,51 @@
   (when (>= emacs-major-version 23)
 	(setq fixed-width-use-QuickDraw-for-ascii t)
 	(setq mac-allow-anti-aliasing t)
-	(set-face-attribute 'default nil
-						:family "monaco"
-						:height 125)
-	(set-fontset-font
-	 (frame-parameter nil 'font)
-	 'japanese-jisx0208
-	 '("Hiragino Maru Gothic Pro" . "iso10646-1"))
-	(set-fontset-font
-	 (frame-parameter nil 'font)
-	 'japanese-jisx0212
-	 '("Hiragino Maru Gothic Pro" . "iso10646-1"))
-	(set-fontset-font
-	 (frame-parameter nil 'font)
-	 'katakana-jisx0201
-	 '("Hiragino Maru Gothic Pro" . "iso10646-1"))
-	;; Unicode フォント
-	(set-fontset-font
-	 (frame-parameter nil 'font)
-	 'mule-unicode-0100-24ff
-	 '("monaco" . "iso10646-1"))
-	;; キリル，ギリシア文字設定
-	;; 注意： この設定だけでは古代ギリシア文字、コプト文字は表示できない
-	;; http://socrates.berkeley.edu/~pinax/greekkeys/NAUdownload.html が必要
-	;; キリル文字
-	(set-fontset-font
-	 (frame-parameter nil 'font)
-	 'cyrillic-iso8859-5
-	 '("monaco" . "iso10646-1"))
-	;; ギリシア文字
-	(set-fontset-font
-	 (frame-parameter nil 'font)
-	 'greek-iso8859-7
-	 '("monaco" . "iso10646-1"))
-	(setq face-font-rescale-alist
-		  '(("^-apple-hiragino.*" . 1.1)
-			(".*osaka-bold.*" . 1.1)
-			(".*osaka-medium.*" . 1.1)
-			(".*courier-bold-.*-mac-roman" . 0.9)
-			(".*monaco cy-bold-.*-mac-cyrillic" . 0.8)
-			(".*monaco-bold-.*-mac-roman" . 0.8)
-			("-cdac$" . 1.2))))
+	(when (display-graphic-p)
+		(set-face-attribute 'default nil
+												:family "monaco"
+												:height 120)
+		(set-fontset-font
+	 		(frame-parameter nil 'font)
+	 		'japanese-jisx0208
+	 		'("Hiragino Maru Gothic Pro" . "iso10646-1"))
+		(set-fontset-font
+	 		(frame-parameter nil 'font)
+	 		'japanese-jisx0212
+	 		'("Hiragino Maru Gothic Pro" . "iso10646-1"))
+		(set-fontset-font
+	 		(frame-parameter nil 'font)
+	 		'katakana-jisx0201
+	 		'("Hiragino Maru Gothic Pro" . "iso10646-1"))
+	 	;; Unicode フォント
+		(set-fontset-font
+	 		(frame-parameter nil 'font)
+	 		'mule-unicode-0100-24ff
+	 		'("monaco" . "iso10646-1"))
+		;; キリル，ギリシア文字設定
+		;; 注意： この設定だけでは古代ギリシア文字、コプト文字は表示できない
+		;; http://socrates.berkeley.edu/~pinax/greekkeys/NAUdownload.html が必要
+		;; キリル文字
+		(set-fontset-font
+	 		(frame-parameter nil 'font)
+	 		'cyrillic-iso8859-5
+	 		'("monaco" . "iso10646-1"))
+		;; ギリシア文字
+		(set-fontset-font
+	 		(frame-parameter nil 'font)
+	 		'greek-iso8859-7
+	 		'("monaco" . "iso10646-1"))
+		(setq face-font-rescale-alist
+		  		'(("^-apple-hiragino.*" . 1.1)
+						(".*osaka-bold.*" . 1.1)
+						(".*osaka-medium.*" . 1.1)
+						(".*courier-bold-.*-mac-roman" . 0.9)
+						(".*monaco cy-bold-.*-mac-cyrillic" . 0.8)
+						(".*monaco-bold-.*-mac-roman" . 0.8)
+						("-cdac$" . 1.2)))
+	 	)
+	)
   )
-
 
 ;; Settings for Windows
 (when windows-p
@@ -155,8 +142,24 @@
 (setq uniquify-buffer-name-style 'post-forward)
 
 ;; バックアップファイルを作らない
-(setq make-backup-files nil)
-(setq auto-save-default nil)
+; (setq make-backup-files nil)
+; (setq auto-save-default nil)
+(setq make-backup-files t)
+
+(setq
+	 backup-by-copying t      ; don't clobber symlinks
+	 backup-directory-alist
+		'(("." . "~/.backup/emacs/backup/"))    ; don't litter my fs tree
+	 delete-old-versions t
+	 kept-new-versions 3
+	 kept-old-versions 2
+	 version-control t)       ; use versioned backups
+
+(setq auto-save-file-name-transforms
+	`((".*", (expand-file-name "~/.backup/emacs/autosave/") t)))
+
+; http://stackoverflow.com/questions/5738170/why-does-emacs-create-temporary-symbolic-links-for-modified-files
+(setq create-lockfiles nil)
 
 ;; 終了時にオートセーブファイルを消す
 (setq delete-auto-save-files t)
@@ -204,6 +207,23 @@
     (fixup-whitespace)
     (backward-char)))
 
+; http://macemacsjp.sourceforge.jp/index.php?CocoaEmacs#fc72ad9e
+; フォントサイズ変更
+(global-set-key [(control ?+)] (lambda () (interactive) (text-scale-increase 1)))
+(global-set-key [(control ?-)] (lambda () (interactive) (text-scale-decrease 1)))
+(global-set-key [(control ?0)] (lambda () (interactive) (text-scale-increase 0)))
+
+
+; 削除ファイルをゴミ箱に入れる
+(setq delete-by-moving-to-trash t)
+(setq trash-directory "~/.Trash")
+
+; ファイル名補完機能で大文字と小文字の区別をなくす
+(setq read-buffer-completion-ignore-case t)
+(setq read-file-name-completion-ignore-case t)
+;;; 補完時に大文字小文字を区別しない
+(setq completion-ignore-case t)
+
 ;; M-dで単語のどこからでも削除できるようにする
 ;(defun kill-word-from-anywhere()
 ;  (interactive)
@@ -228,12 +248,11 @@
 ;;インデントはタブにする
 (setq indent-tabs-mode t)
 ;; tab ではなく space を使う
-										;(setq-default indent-tabs-mode nil)
+;(setq-default indent-tabs-mode nil)
 ;;タブ幅
 (setq-default tab-width 4)
 (setq default-tab-width 4)
-(setq tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44 48 52 56 60
-						64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
+(setq tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
 ;; http://reiare.net/blog/2010/12/16/emacs-space-tab/
 ;; 最後に改行を入れる。
 (setq require-final-newline t)
@@ -515,23 +534,6 @@
 (global-set-key (kbd "\"") 'skeleton-pair-insert-maybe)
 (setq skeleton-pair 1)
 
-; ; http://www.emacswiki.org/emacs/InsertPair
-; (global-set-key "\M-'" 'insert-quotations)
-; (global-set-key (kbd "C-'") 'insert-backquote)
-
-; (defun insert-quotations (&optional arg)
-  ; "Enclose following ARG sexps in quotation marks.
-; Leave point after open-paren."
-  ; (interactive "*P")
-  ; (insert-pair arg ?\' ?\'))
-
-
-; (defun insert-backquote (&optional arg)
-  ; "Enclose following ARG sexps in quotations with backquote.
-; Leave point after open-quotation."
-  ; (interactive "*P")
-  ; (insert-pair arg ?\` ?\'))
-
 ;起動時のフレームサイズを設定する
 (setq initial-frame-alist
 			(append (list
@@ -549,6 +551,10 @@
 ;; ツールバーを非表示
 ;; M-x tool-bar-mode で表示非表示を切り替えられる
 (tool-bar-mode -1)
+;;; emacs -nw で起動した時にメニューバーを消す
+(if window-system (menu-bar-mode 1) (menu-bar-mode -1))
+;;; 現在の関数名をモードラインに表示
+(which-function-mode 1)
 
 ;; 矩形選択
 ;; http://dev.ariel-networks.com/articles/emacs/part5/
@@ -617,8 +623,8 @@
 (global-set-key [(control tab)] 'tabbar-forward)
 (global-set-key [(control shift tab)] 'tabbar-backward)
 
-(global-set-key [C-left] 'tabbar-forward)
-(global-set-key [C-right] 'tabbar-backward)
+(global-set-key [C-right] 'tabbar-forward)
+(global-set-key [C-left] 'tabbar-backward)
 ;; タブ上でマウスホイールを使わない
 (tabbar-mwheel-mode nil)
 ;; グループを使わない
@@ -930,3 +936,33 @@
 					  source)))
 (push '("\\.java$" flymake-java-init) flymake-allowed-file-name-masks)
 (add-hook 'java-mode-hook '(lambda () (flymake-mode t)))
+
+; migemoのあるパスを追加
+(setenv "PATH" (concat (getenv "PATH") ":/usr/local/bin"))
+(setq exec-path (append exec-path '("/usr/local/bin")))
+; (message "%s" (executable-find "cmigemo"))
+
+; migemoの設定
+; http://qiita.com/catatsuy/items/c5fa34ead92d496b8a51
+(when (and (executable-find "cmigemo")
+					 (require 'migemo nil t))
+; (when (executable-find "cmigemo")
+	; (require 'migemo)
+	; (message "bbb")
+	(setq migemo-options '("-q" "--emacs"))
+	; Mac の場合は以下のようになります
+	(setq migemo-command "/usr/local/bin/cmigemo")
+	(setq migemo-dictionary "/usr/local/share/migemo/utf-8/migemo-dict")
+
+  (setq migemo-user-dictionary nil)
+  (setq migemo-regex-dictionary nil)
+  (setq migemo-coding-system 'utf-8-unix)
+  (load-library "migemo")
+  (migemo-init)
+	;; emacs 起動時は英数モードから始める
+	(add-hook 'after-init-hook 'mac-change-language-to-us)
+	;; minibuffer 内は英数モードにする
+	(add-hook 'minibuffer-setup-hook 'mac-change-language-to-us)
+	;; [migemo]isearch のとき IME を英数モードにする
+	(add-hook 'isearch-mode-hook 'mac-change-language-to-us)
+)
