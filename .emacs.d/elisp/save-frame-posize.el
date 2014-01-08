@@ -37,7 +37,7 @@
 ; http://ck.kennt-wayne.de/2011/jul/emacs-restore-last-frame-size-on-startup
 
 ;; var ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defvar sfps-save-file "~/.emacs.d/.frameposize")
+(defvar sfps-save-file "~/.backup/emacs/.frameposize")
 (defvar sfps-delimiter ",")
 
 

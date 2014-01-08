@@ -32,6 +32,9 @@ ln -si "${Repo}.zshrc" ~/.zshrc
 echo "ln -si ${Repo}.emacs.d ~/.emacs.d"
 ln -si "${Repo}.emacs.d" ~/.emacs.d
 
+echo "ln -si ${Repo}.vim ~/.vim"
+ln -si "${Repo}.vim" ~/.vim
+
 echo 'copy done.'
 
 
@@ -43,6 +46,8 @@ mkdir -p ~/.backup/vim/swap
 
 echo 'backup directory for emacs and vim made.'
 
-
+git submodule sync
+# http://rochefort.hatenablog.com/entry/20110410/p1
+# git submodule foreach 'git pull origin master'
 git submodule update --init
 echo 'submodule update.'

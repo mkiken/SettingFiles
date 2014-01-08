@@ -578,19 +578,19 @@
 
 ;; Color Scheme
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
-(load-theme 'my-monokai t)
+; (load-theme 'my-monokai t)
 ;; (load-theme 'monokai t)
 ;; (load-theme 'molokai t)
-;; (load-theme 'monokai-dark-soda t)
+; (load-theme 'monokai-dark-soda t)
 ;; (load-theme 'zenburn t)
 ;; (load-theme 'solarized-light t)
-;; (load-theme 'solarized-dark t)
-;; (load-theme 'twilight-anti-bright t)
-;; (load-theme 'tomorrow-night-paradise t)
+; (load-theme 'solarized-dark t)
+; (load-theme 'twilight-anti-bright t)
+; (load-theme 'tomorrow-night-paradise t)
 ;; (load-theme 'tomorrow-night-blue t)
 ;; (load-theme 'tomorrow-night-bright t)
-;; (load-theme 'tomorrow-night-eighties t)
-;; (load-theme 'tomorrow-night t)
+; (load-theme 'tomorrow-night-eighties t)
+(load-theme 'tomorrow-night t)
 ;; (load-theme 'tomorrow t)
 ;; (load-theme 'twilight-bright t)
 
@@ -609,7 +609,15 @@
 (require 'anzu)
 (global-anzu-mode +1)
 (set-face-attribute 'anzu-mode-line nil
-                    :foreground "Blue" :weight 'normal)
+										; :foreground "black" :weight 'normal)
+										:foreground "RoyalBlue1" :weight 'normal)
+										; :foreground "selectedKnobColor" :weight 'normal)
+                    ; :foreground "snow1" :weight 'normal)
+(custom-set-variables
+ '(anzu-mode-lighter "")
+ '(anzu-deactivate-region t)
+ '(anzu-search-threshold 1000)
+ '(anzu-replace-to-string-separator " => "))
 (global-set-key (kbd "M-%") 'anzu-query-replace)
 (global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp)
 
@@ -749,6 +757,22 @@
 ;;(autoload 'scala-mode2 "scala-mode2/scala-mode2" nil t)
 ;;(add-to-list 'auto-mode-alist '("\\.scala$" . scala-mode2))
 
+;;for vimrc
+;;http://stackoverflow.com/questions/4236808/syntax-highlight-a-vimrc-file-in-emacs
+(define-generic-mode 'vimrc-generic-mode
+    '("\"")
+    '("if" "endif" "let" "set" "autocmd")
+    '(("^[\t ]*:?\\(!\\|ab\\|map\\|unmap\\)[^\r\n\"]*\"[^\r\n\"]*\\(\"[^\r\n\"]*\"[^\r\n\"]*\\)*$"
+       (0 font-lock-warning-face))
+      ("\\(^\\|[\t ]\\)\\(\".*\\)$"
+      (2 font-lock-comment-face))
+      ("\"\\([^\n\r\"\\]\\|\\.\\)*\""
+       (0 font-lock-string-face)))
+    '("/vimrc\\'" "\\.vim\\(rc\\)?\\'")
+    '((lambda ()
+        (modify-syntax-entry ?\" ".")))
+    "Generic mode for Vim configuration files.")
+
 ;;for MiniMap(Sublime Text)
 ;; from http://www.emacswiki.org/emacs/MiniMap
 (require 'minimap)
@@ -798,7 +822,12 @@
 (require 'auto-complete-config)
 (ac-config-default)
 (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
-; ;;(require 'auto-complete)
+(require 'auto-complete)
+; http://stackoverflow.com/questions/8095715/emacs-auto-complete-mode-at-startup
+(defun auto-complete-mode-maybe ()
+  "No maybe for you. Only AC!"
+  (unless (minibufferp (current-buffer))
+    (auto-complete-mode 1)))
 ; (global-auto-complete-mode t)
 ;;(require 'auto-complete-config nil t)
 ;; (setq ac-dictionary-directories "~/.emacs.d/elisp/ac-dict") ;; 辞書ファイルのディレクトリ

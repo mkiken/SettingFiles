@@ -1,7 +1,15 @@
 " Vim Settings for GUI
 
 " カラースキーマを設定
-colorscheme molokai
+" colorscheme molokai
+" colorscheme Tomorrow
+" colorscheme Tomorrow-Night
+" colorscheme Tomorrow-Night-Blue
+" colorscheme Tomorrow-Night-Eighties
+" colorscheme solarized
+" colorscheme wombat
+" colorscheme hybrid
+colorscheme iceberg
 
 
 " ツールバー非表示
@@ -120,7 +128,7 @@ endfunction
 
 " Window sizeの保存
 " http://vim-users.jp/2010/01/hack120/
-let g:save_window_file = expand('~/.vim/.vimwinpos')
+let g:save_window_file = expand('~/.backup/vim/.vimwinpos')
 augroup SaveWindow
   autocmd!
   autocmd VimLeavePre * call s:save_window()

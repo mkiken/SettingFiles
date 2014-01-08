@@ -96,8 +96,8 @@ set foldlevel=100 "Don't autofold anything
 " http://win-to-mac.blogspot.jp/2012/08/vim.html
 set statusline=%<%f\ %m%r%h%w%{'['.(&fenc!=''?&fenc:&enc).']['.&ff.']'}%=%l,%c%V%8P
 
-" for WordCOunt
-" https://github.com/fuenor/vim-wordcount/blob/master/wordcount.vim
+" for WordCount
+" https://github.com/fuenor/vim-wordcount
 set statusline+=[wc:%{WordCount()}]
 set updatetime=500
 
@@ -165,6 +165,17 @@ set autochdir
 
 " " Change current directory.
 " nnoremap <silent> <Space>cd :<C-u>CD<CR>
+
+" let OSTYPE = system('uname')
+" if OSTYPE == "Darwin\n"
+	" "
+	" " MacVim?-KaoriYa?固有の設定
+	" "
+	" let $PATH = simplify($VIM . '/../../MacOS') . ':' . $PATH
+	" set migemodict=$VIMRUNTIME/dict/migemo-dict
+	" set migemo
+" endif
+
 
 " http://d.hatena.ne.jp/spiritloose/20061113/1163401194
 inoremap { {}<LEFT>
@@ -358,6 +369,8 @@ let g:EasyMotion_startofline=0
  Bundle 'AndrewRadev/switch.vim'
  Bundle 'terryma/vim-multiple-cursors'
  Bundle 'tyru/open-browser.vim'
+" filetype plugin indent on     " required!
+
 " <Space>mに、switch.vimをマッピング
 " nnoremap <Space>m  <Plug>(switch-next)
 nnoremap ^ :Switch<cr>
@@ -483,8 +496,8 @@ let g:ctrlp_custom_ignore = '\v[\/]\.(git|hg|svn)$'
 
 " http://vim-users.jp/2011/08/hack225/
 let g:netrw_nogx = 1 " disable netrw's gx mapping.
-nmap gx <Plug>(openbrowser-smart-search)
-vmap gx <Plug>(openbrowser-smart-search)
+nmap gb <Plug>(openbrowser-smart-search)
+vmap gb <Plug>(openbrowser-smart-search)
 
 " http://blog.thomasupton.com/2012/05/syntastic/
 " On by default, turn it off for html

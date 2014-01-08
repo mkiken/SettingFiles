@@ -1,6 +1,9 @@
 #read Aliases
 source ~/.aliases
 
+# パスの設定
+PATH=/usr/local/bin:$PATH
+
 autoload -U colors
 colors
 
@@ -52,8 +55,11 @@ function rprompt-git-current-branch {
 #from http://news.mynavi.jp/column/zsh/index.html
 case ${UID} in
 	0) #for super user
-		RPROMPT='(%~)'
-		PROMPT=$'%B%m%b:%?:%# '
+		# RPROMPT='(%~)'
+		# PROMPT=$'%B%m%b:%?:%# '
+		RPROMPT='(%F{yellow}%(5~,%-2~/../%2~,%~)%f)`rprompt-git-current-branch`'
+		#PROMPT=$'%m: %n %D{%T} %{%}%#%{%} '
+		PROMPT="%{$fg[green]%} %n: %D{%T} %{%}%#%{%}%{$reset_color%} "
 		;;
 	*)
 		RPROMPT='(%F{cyan}%(5~,%-2~/../%2~,%~)%f)`rprompt-git-current-branch`'

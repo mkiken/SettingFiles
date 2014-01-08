@@ -37,9 +37,9 @@
 [pager]
 	; log = diff-highlight | less
 	; show = diff-highlight | less
-	log = /usr/local/Cellar/git/1.8.4.3/share/git-core/contrib/diff-highlight/diff-highlight | less
-	show = /usr/local/Cellar/git/1.8.4.3/share/git-core/contrib/diff-highlight/diff-highlight | less
-	diff = /usr/local/Cellar/git/1.8.4.3/share/git-core/contrib/diff-highlight/diff-highlight | less
+	log = /usr/local/Cellar/git/1.8.5.2/share/git-core/contrib/diff-highlight/diff-highlight | less
+	show = /usr/local/Cellar/git/1.8.5.2/share/git-core/contrib/diff-highlight/diff-highlight | less
+	diff = /usr/local/Cellar/git/1.8.5.2/share/git-core/contrib/diff-highlight/diff-highlight | less
 
 [color]
 	ui = auto
