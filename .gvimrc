@@ -52,6 +52,10 @@ endfunction
 " その表示の前に %N というところでタブ番号を表示させています
 set guitablabel=%N:\ %{GuiTabLabel()}
 
+" http://d.hatena.ne.jp/Minamo/20081124/1227553857
+" hi NonText guibg=NONE guifg=DarkGreen
+" hi SpecialKey guibg=NONE guifg=Gray40
+
 
 let OSTYPE = system('uname')
 if OSTYPE == "Darwin\n"

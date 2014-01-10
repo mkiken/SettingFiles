@@ -250,7 +250,7 @@
 ;; tab ではなく space を使う
 ;(setq-default indent-tabs-mode nil)
 ;;タブ幅
-(setq-default tab-width 4)
+; (setq-default tab-width 4)
 (setq default-tab-width 4)
 (setq tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
 ;; http://reiare.net/blog/2010/12/16/emacs-space-tab/
@@ -289,21 +289,32 @@
 
 (global-whitespace-mode 1)
 
-(defvar my/bg-color "#232323")
+; (defvar my/bg-color "#232323")
+; 背景に合わせる
+(defvar my/bg-color nil)
 (set-face-attribute 'whitespace-trailing nil
                     :background my/bg-color
-                    :foreground "DeepPink"
-                    :underline t)
+                    ; :foreground "DeepPink"
+                    :foreground "gray22"
+                    ; :underline t
+                    )
 (set-face-attribute 'whitespace-tab nil
-                    :background my/bg-color
-                    :foreground "LightSkyBlue"
-                    :underline t)
+										:background my/bg-color
+										; :background nil
+                    ; :foreground "LightSkyBlue"
+                    :foreground "gray21"
+                    ; :underline t
+                    )
 (set-face-attribute 'whitespace-space nil
                     :background my/bg-color
-                    :foreground "GreenYellow"
-                    :weight 'bold)
+                    ; :foreground "GreenYellow"
+                    :foreground "gray20"
+                    ; :weight 'bold
+                    )
 (set-face-attribute 'whitespace-empty nil
-                    :background my/bg-color)
+                    :background my/bg-color
+                    :foreground "gray19"
+                    )
 
 
 ;;保存時に行末の空白を全て削除
@@ -362,10 +373,97 @@
               (switch-to-buffer (buffer-name))
               (delete-this-frame))))
 
+; http://www.emacswiki.org/emacs/RotateText
+(defvar rotate-text-rotations
+  '(("true" "false")
+    ("yes" "no"))
+  "List of text rotation sets.")
+(defun rotate-region (beg end)
+  "Rotate all matches in `rotate-text-rotations' between point and mark."
+  (interactive "r")
+  (let ((regexp (rotate-convert-rotations-to-regexp
+		 rotate-text-rotations))
+	(end-mark (copy-marker end)))
+    (save-excursion
+      (goto-char beg)
+      (while (re-search-forward regexp (marker-position end-mark) t)
+	(let* ((found (match-string 0))
+	       (replace (rotate-next found)))
+	  (replace-match replace))))))
+(defun rotate-string (string &optional rotations)
+  "Rotate all matches in STRING using associations in ROTATIONS.
+If ROTATIONS are not given it defaults to `rotate-text-rotations'."
+  (let ((regexp (rotate-convert-rotations-to-regexp
+		 (or rotations rotate-text-rotations)))
+	(start 0))
+    (while (string-match regexp string start)
+      (let* ((found (match-string 0 string))
+	     (replace (rotate-next
+		       found
+		       (or rotations rotate-text-rotations))))
+	(setq start (+ (match-end 0)
+		       (- (length replace) (length found))))
+	(setq string (replace-match replace nil t string))))
+    string))
+(defun rotate-next (string &optional rotations)
+  "Return the next element after STRING in ROTATIONS."
+  (let ((rots (rotate-get-rotations-for
+	       string
+	       (or rotations rotate-text-rotations))))
+    (if (> (length rots) 1)
+	(error (format "Ambiguous rotation for %s" string))
+      (if (< (length rots) 1)
+	  ;; If we get this far, this should not occur:
+	  (error (format "Unknown rotation for %s" string))
+	(let ((occurs-in-rots (member string (car rots))))
+	  (if (null occurs-in-rots)
+	      ;; If we get this far, this should *never* occur:
+	      (error (format "Unknown rotation for %s" string))
+	  (if (null (cdr occurs-in-rots))
+	      (caar rots)
+	    (cadr occurs-in-rots))))))))
+(defun rotate-get-rotations-for (string &optional rotations)
+  "Return the string rotations for STRING in ROTATIONS."
+  (remq nil (mapcar (lambda (rot) (if (member string rot) rot))
+		    (or rotations rotate-text-rotations))))
+(defun rotate-convert-rotations-to-regexp (rotations)
+  (regexp-opt (rotate-flatten-list rotations)))
+(defun rotate-flatten-list (list-of-lists)
+  "Flatten LIST-OF-LISTS to a single list.
+Example:
+  (rotate-flatten-list '((a b c) (1 ((2 3)))))
+    => (a b c 1 2 3)"
+  (if (null list-of-lists)
+      list-of-lists
+    (if (listp list-of-lists)
+	(append (rotate-flatten-list (car list-of-lists))
+		(rotate-flatten-list (cdr list-of-lists)))
+      (list list-of-lists))))
+(defun rotate-word-at-point ()
+  "Rotate word at point based on sets in `rotate-text-rotations'."
+  (interactive)
+  (let ((bounds (bounds-of-thing-at-point 'word))
+        (opoint (point)))
+    (when (consp bounds)
+      (let ((beg (car bounds))
+            (end (copy-marker (cdr bounds))))
+        (rotate-region beg end)
+        (goto-char (if (> opoint end) end opoint))))))
+(global-set-key "\C-c^" 'rotate-word-at-point)
+; (defun indent-or-rotate ()
+  ; "If point is at end of a word, then else indent the line."
+  ; (interactive)
+  ; (if (looking-at "\\>")
+      ; (rotate-region (save-excursion (forward-word -1) (point))
+				 ; (point))
+    ; (indent-for-tab-command)))
+; (local-set-key [tab] 'indent-or-rotate)
+; (local-set-key [(tab)] 'indent-or-rotate)
+
 ;; scroll settings.
 ;; http://marigold.sakura.ne.jp/devel/emacs/scroll/index.html
 (setq scroll-conservatively 1)
-(setq next-screen-context-lines 20)
+(setq next-screen-context-lines 25)
 ;; カーソル位置の保存
 ;; http://www.bookshelf.jp/soft/meadow_31.html
 (setq scroll-preserve-screen-position t)
@@ -604,6 +702,11 @@
 ; http://stackoverflow.com/questions/12904043/change-forward-word-backward-word-kill-word-for-camelcase-words-in-emacs
 ;; M-fとM-dでCamelCase移動。M-left, M-rightには効かない
 (global-subword-mode t)
+
+; http://qiita.com/takc923/items/172d754d9298ce103390
+(require 'evil-numbers)
+(global-set-key (kbd "C-c +") 'evil-numbers/inc-at-pt)
+(global-set-key (kbd "C-c -") 'evil-numbers/dec-at-pt)
 
 	; http://qiita.com/syohex/items/56cf3b7f7d9943f7a7ba
 (require 'anzu)
