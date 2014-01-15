@@ -173,9 +173,20 @@ set autochdir
 	" "
 	" let $PATH = simplify($VIM . '/../../MacOS') . ':' . $PATH
 	" set migemodict=$VIMRUNTIME/dict/migemo-dict
+	" set migemodict=/usr/local/share/migemo/utf-8/migemo-dict
 	" set migemo
+
+" migemo割り当て
+" noremap  // :<C-u>Migemo<CR>
 " endif
 
+"----------------------------------------------------
+" Migemo
+"----------------------------------------------------
+if has ('migemo')
+set migemo
+set migemodict=/usr/local/share/migemo/utf-8/migemo-dict
+endif
 
 " http://d.hatena.ne.jp/spiritloose/20061113/1163401194
 inoremap { {}<LEFT>
@@ -212,7 +223,7 @@ vnoremap 9 <End>
 onoremap 9 <End>
 
 " 1つ前の検索ワードを表示
-nnoremap g/ /<C-P>
+nnoremap // /<C-P>
 " {}括弧をfoldする
 nnoremap z/ zf%
 
@@ -367,8 +378,10 @@ let g:EasyMotion_startofline=0
  " Bundle 'mhinz/vim-startify'
  " Bundle 'osyo-manga/vim-over'
  Bundle 'AndrewRadev/switch.vim'
+ " https://github.com/terryma/vim-multiple-cursors
  Bundle 'terryma/vim-multiple-cursors'
  Bundle 'tyru/open-browser.vim'
+ " Bundle 'haya14busa/vim-migemo'
 " filetype plugin indent on     " required!
 
 " <Space>mに、switch.vimをマッピング
@@ -467,8 +480,8 @@ inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
 inoremap <expr><C-h> neocomplcache#smart_close_popup()."\<C-h>"
 inoremap <expr><BS> neocomplcache#smart_close_popup()."\<C-h>"
 " inoremap <expr> <BS> neocomplcache#smart_close_popup() . eval(smartinput#sid().'_trigger_or_fallback("\<BS>", "\<BS>")')
-inoremap <expr><C-y>  neocomplcache#close_popup()
-inoremap <expr><C-e>  neocomplcache#cancel_popup()
+" inoremap <expr><C-y>  neocomplcache#close_popup()
+" inoremap <expr><C-e>  neocomplcache#cancel_popup()
 " Enable omni completion.
 autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
 autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags

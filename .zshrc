@@ -146,7 +146,22 @@ setopt noautoremoveslash
 
 # no beep sound when complete list displayed
 #
-#setopt nolistbeep
+setopt nolistbeep
+
+# # stop the beep
+# #
+# set bell-style none
+
+# # never beep when complete
+# #
+# set matchbeep=never
+
+# # stop the beep
+# #
+# set nobeep
+
+# ビープ音を鳴らさないようにする
+setopt NO_beep
 
 ## Keybind configuration
 # emacs like keybind (e.x. Ctrl-a goes to head of a line and Ctrl-e goes
@@ -299,9 +314,21 @@ alias zcp='zmv -C'
 # http://qiita.com/mollifier/items/9258c8fd8b59894b1bcd
 bindkey '^J' self-insert
 
+# http://mollifier.hatenablog.com/entry/20081210/1228917616
+# http://mollifier.hatenablog.com/entry/20090414/1239634907
+autoload smart-insert-last-word
+zle -N insert-last-word smart-insert-last-word
+bindkey '^O' insert-last-word
+
 #http://qiita.com/items/156464de9caf64338b17
-#bindkey "^[u" undo
-#bindkey "^[r" redo
+bindkey "^[u" undo
+bindkey "^[r" redo
+# bindkey "^?" redo
+
+# altで単語移動
+# http://superuser.com/questions/301029/problem-with-ctrl-left-right-bindings-in-oh-my-zsh
+bindkey "[C" emacs-forward-word   #control left
+bindkey "[D" emacs-backward-word        #control right
 
 #incremental-complete
 #autoload incremental-complete-word
@@ -333,6 +360,7 @@ bindkey -M emacs '^i' expand-or-complete-prefix-incr
 setopt automenu
 
 now_predict=0
+glob_context=0
 
 function limit-completion
 {
@@ -365,7 +393,19 @@ function remove-prediction
 function show-prediction
 {
 	# assert(now_predict == 0)
+	# *, ^のときは補完ではなく，list-expandしてほしい
 	if
+		((PENDING == 0)) &&
+		((CURSOR > 1)) &&
+		[[ "$PREBUFFER" == "" ]] &&
+		(
+		[[ "$BUFFER[CURSOR]" == "*" ]] ||
+			[[ "$BUFFER[CURSOR]" == "^" ]]
+		)
+	then
+		glob_context=1
+		zle list-expand
+	elif
 		((PENDING == 0)) &&
 		((CURSOR > 1)) &&
 		[[ "$PREBUFFER" == "" ]] &&
@@ -374,7 +414,14 @@ function show-prediction
 		cursor_org="$CURSOR"
 		buffer_org="$BUFFER"
 		comppostfuncs=(limit-completion)
-		zle complete-word
+		if ((glob_context == 0))
+		then
+			zle complete-word
+		else
+			# glob文脈だったらcomplete-wordでなく，list-expandを呼ぶ
+			zle list-expand
+		fi
+		# zle complete-word
 		cursor_prd="$CURSOR"
 		buffer_prd="$BUFFER"
 		if [[ "$buffer_org[1,cursor_org]" == "$buffer_prd[1,cursor_org]" ]]; then
@@ -388,6 +435,7 @@ function show-prediction
 		fi
 		echo -n "\e[32m"
 	else
+		glob_context=0
 		zle -M ""
 	fi
 }

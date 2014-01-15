@@ -373,93 +373,6 @@
               (switch-to-buffer (buffer-name))
               (delete-this-frame))))
 
-; http://www.emacswiki.org/emacs/RotateText
-(defvar rotate-text-rotations
-  '(("true" "false")
-    ("yes" "no"))
-  "List of text rotation sets.")
-(defun rotate-region (beg end)
-  "Rotate all matches in `rotate-text-rotations' between point and mark."
-  (interactive "r")
-  (let ((regexp (rotate-convert-rotations-to-regexp
-		 rotate-text-rotations))
-	(end-mark (copy-marker end)))
-    (save-excursion
-      (goto-char beg)
-      (while (re-search-forward regexp (marker-position end-mark) t)
-	(let* ((found (match-string 0))
-	       (replace (rotate-next found)))
-	  (replace-match replace))))))
-(defun rotate-string (string &optional rotations)
-  "Rotate all matches in STRING using associations in ROTATIONS.
-If ROTATIONS are not given it defaults to `rotate-text-rotations'."
-  (let ((regexp (rotate-convert-rotations-to-regexp
-		 (or rotations rotate-text-rotations)))
-	(start 0))
-    (while (string-match regexp string start)
-      (let* ((found (match-string 0 string))
-	     (replace (rotate-next
-		       found
-		       (or rotations rotate-text-rotations))))
-	(setq start (+ (match-end 0)
-		       (- (length replace) (length found))))
-	(setq string (replace-match replace nil t string))))
-    string))
-(defun rotate-next (string &optional rotations)
-  "Return the next element after STRING in ROTATIONS."
-  (let ((rots (rotate-get-rotations-for
-	       string
-	       (or rotations rotate-text-rotations))))
-    (if (> (length rots) 1)
-	(error (format "Ambiguous rotation for %s" string))
-      (if (< (length rots) 1)
-	  ;; If we get this far, this should not occur:
-	  (error (format "Unknown rotation for %s" string))
-	(let ((occurs-in-rots (member string (car rots))))
-	  (if (null occurs-in-rots)
-	      ;; If we get this far, this should *never* occur:
-	      (error (format "Unknown rotation for %s" string))
-	  (if (null (cdr occurs-in-rots))
-	      (caar rots)
-	    (cadr occurs-in-rots))))))))
-(defun rotate-get-rotations-for (string &optional rotations)
-  "Return the string rotations for STRING in ROTATIONS."
-  (remq nil (mapcar (lambda (rot) (if (member string rot) rot))
-		    (or rotations rotate-text-rotations))))
-(defun rotate-convert-rotations-to-regexp (rotations)
-  (regexp-opt (rotate-flatten-list rotations)))
-(defun rotate-flatten-list (list-of-lists)
-  "Flatten LIST-OF-LISTS to a single list.
-Example:
-  (rotate-flatten-list '((a b c) (1 ((2 3)))))
-    => (a b c 1 2 3)"
-  (if (null list-of-lists)
-      list-of-lists
-    (if (listp list-of-lists)
-	(append (rotate-flatten-list (car list-of-lists))
-		(rotate-flatten-list (cdr list-of-lists)))
-      (list list-of-lists))))
-(defun rotate-word-at-point ()
-  "Rotate word at point based on sets in `rotate-text-rotations'."
-  (interactive)
-  (let ((bounds (bounds-of-thing-at-point 'word))
-        (opoint (point)))
-    (when (consp bounds)
-      (let ((beg (car bounds))
-            (end (copy-marker (cdr bounds))))
-        (rotate-region beg end)
-        (goto-char (if (> opoint end) end opoint))))))
-(global-set-key "\C-c^" 'rotate-word-at-point)
-; (defun indent-or-rotate ()
-  ; "If point is at end of a word, then else indent the line."
-  ; (interactive)
-  ; (if (looking-at "\\>")
-      ; (rotate-region (save-excursion (forward-word -1) (point))
-				 ; (point))
-    ; (indent-for-tab-command)))
-; (local-set-key [tab] 'indent-or-rotate)
-; (local-set-key [(tab)] 'indent-or-rotate)
-
 ;; scroll settings.
 ;; http://marigold.sakura.ne.jp/devel/emacs/scroll/index.html
 (setq scroll-conservatively 1)
@@ -555,6 +468,10 @@ Example:
 ;;(global-set-key (kbd "C-c r") 'replace-regexp)
 (global-set-key (kbd "C-c r") 'replace-string)
 
+;; 行に飛ぶ
+;;(global-set-key (kbd "C-c r") 'replace-regexp)
+(global-set-key (kbd "C-c l") 'goto-line)
+
 ;; VC++のC-f3(FindNextSelected)みたいなiSearch
 ;; http://dev.ariel-networks.com/articles/emacs/part5/
 (defadvice isearch-mode (around isearch-mode-default-string (forward &optional regexp op-fun recursive-edit word-p) activate)
@@ -572,16 +489,24 @@ Example:
 
 ;;http://flex.ee.uec.ac.jp/texi/faq-jp/faq-jp_130.html
 ;; By an unknown contributor
-(defun match-paren (arg)
-  "Go to the matching parenthesis if on parenthesis otherwise insert %."
-  (interactive "p")
-  (cond ((looking-at "\\s\(") (forward-list 1) (backward-char 1))
-		((looking-at "\\s\)") (forward-char 1) (backward-list 1))
-		(t (self-insert-command (or arg 1)))))
-(global-set-key (kbd "C-]") 'match-paren)
+; (defun match-paren (arg)
+  ; "Go to the matching parenthesis if on parenthesis otherwise insert %."
+  ; (interactive "p")
+  ; (cond ((looking-at "\\s\(") (forward-list 1) (backward-char 1))
+		; ((looking-at "\\s\)") (forward-char 1) (backward-list 1))
+		; (t (self-insert-command (or arg 1)))))
+; (global-set-key C-](kbd "C-]") 'match-paren)
 
+; https://gist.github.com/takehiko/4107554
+;; 対応するカッコにジャンプ
+(defun match-paren-japanese (arg)
+  "Go to the matching parenthesis."
+  (interactive "p")
+  (cond ((looking-at "[([{（｛［「『《〔【〈]") (forward-sexp 1) (backward-char))
+        ((looking-at "[])}）｛］」』》〕】〉]") (forward-char) (backward-sexp 1))
+        (t (message "match-paren-japanese ignored"))))
+(global-set-key (kbd "C-]") 'match-paren-japanese)
 ;; 対応するカッコまでをコピー
-;; http://d.hatena.ne.jp/takehikom/20121120/1353358800
 (defun match-paren-kill-ring-save ()
   "Copy region from here to the matching parenthesis to kill ring and save."
   (interactive)
@@ -703,10 +628,11 @@ Example:
 ;; M-fとM-dでCamelCase移動。M-left, M-rightには効かない
 (global-subword-mode t)
 
+; 数字の増減．代わりにrotateを使う
 ; http://qiita.com/takc923/items/172d754d9298ce103390
-(require 'evil-numbers)
-(global-set-key (kbd "C-c +") 'evil-numbers/inc-at-pt)
-(global-set-key (kbd "C-c -") 'evil-numbers/dec-at-pt)
+; (require 'evil-numbers)
+; (global-set-key (kbd "C-c +") 'evil-numbers/inc-at-pt)
+; (global-set-key (kbd "C-c -") 'evil-numbers/dec-at-pt)
 
 	; http://qiita.com/syohex/items/56cf3b7f7d9943f7a7ba
 (require 'anzu)
@@ -1069,6 +995,16 @@ Example:
 (push '("\\.java$" flymake-java-init) flymake-allowed-file-name-masks)
 (add-hook 'java-mode-hook '(lambda () (flymake-mode t)))
 
+; http://d.hatena.ne.jp/CortYuming/20121226/p1
+  ;; クラッシュするキーバインドを無効に
+  ;; パッチを当てたhomebrew版なら大丈夫
+	; http://blog.n-z.jp/blog/2013-11-12-cocoa-emacs-ime.html
+  ; (global-set-key (kbd "s-p") nil) ; ns-print-buffer
+  ; (global-set-key (kbd "s-S") nil) ; ns-write-file-using-panel
+  ; (global-set-key (kbd "s-o") nil) ; ns-open-file-using-panel
+  ; (setq use-dialog-box nil)
+  ; (setq flymake-gui-warnings-enabled nil)
+
 ; migemoのあるパスを追加
 (setenv "PATH" (concat (getenv "PATH") ":/usr/local/bin"))
 (setq exec-path (append exec-path '("/usr/local/bin")))
@@ -1098,3 +1034,19 @@ Example:
 	;; [migemo]isearch のとき IME を英数モードにする
 	(add-hook 'isearch-mode-hook 'mac-change-language-to-us)
 )
+
+; for rotate text
+; http://lists.gnu.org/archive/html/gnu-emacs-sources/2009-04/msg00017.html
+(autoload 'rotate-text "rotate-text" nil t)
+(autoload 'rotate-text-backward "rotate-text" nil t)
+; (global-set-key "\C-^" 'rotate-text)
+; (global-set-key "C-S-^" 'rotate-text-backward)
+  (define-key global-map (kbd "C-^") 'rotate-text)
+	(define-key global-map (kbd "C-~") 'rotate-text-backward)
+; (add-to-list 'rotate-text-symbols '("and" "or"))
+
+; http://qiita.com/takc923/items/c3d64b55fc4f3a3b0838
+(add-to-list 'load-path "~/.emacs.d/elpa/undo-tree-0.6.5")
+(require 'undo-tree)
+(global-undo-tree-mode t)
+(global-set-key (kbd "C-?") 'undo-tree-redo)

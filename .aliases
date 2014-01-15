@@ -19,6 +19,8 @@ function ec(){
 # http://tukaikta.blog135.fc2.com/blog-entry-214.html
 alias rm='rmtrash'
 
+alias pv='popd'
+
 ;;
 # Linux
 linux*)
