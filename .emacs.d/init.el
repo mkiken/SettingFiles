@@ -472,6 +472,11 @@
 ;;(global-set-key (kbd "C-c r") 'replace-regexp)
 (global-set-key (kbd "C-c l") 'goto-line)
 
+; http://shibayu36.hatenablog.com/entry/2012/12/04/111221
+;;; 複数行移動
+(global-set-key "\M-n" (kbd "C-u 5 C-n"))
+(global-set-key "\M-p" (kbd "C-u 5 C-p"))
+
 ;; VC++のC-f3(FindNextSelected)みたいなiSearch
 ;; http://dev.ariel-networks.com/articles/emacs/part5/
 (defadvice isearch-mode (around isearch-mode-default-string (forward &optional regexp op-fun recursive-edit word-p) activate)
@@ -852,6 +857,11 @@
 (ac-config-default)
 (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
 (require 'auto-complete)
+; http://d.hatena.ne.jp/IMAKADO/20090813/1250130343
+(defadvice ac-candidate-words-in-buffer (after remove-word-contain-japanese activate)
+  (let ((contain-japanese (lambda (s) (string-match (rx (category japanese)) s))))
+    (setq ad-return-value
+          (remove-if contain-japanese ad-return-value))))
 ; http://stackoverflow.com/questions/8095715/emacs-auto-complete-mode-at-startup
 (defun auto-complete-mode-maybe ()
   "No maybe for you. Only AC!"
@@ -932,14 +942,14 @@
   (flymake-goto-next-error)
   (flymake-display-err-menu-for-current-line)
   )
-(global-set-key "\M-n" 'my-flymake-show-next-error)
+(global-set-key (kbd "C-S-n") 'my-flymake-show-next-error)
 
 (defun my-flymake-show-prev-error()
   (interactive)
   (flymake-goto-prev-error)
   (flymake-display-err-menu-for-current-line)
   )
-(global-set-key "\M-p" 'my-flymake-show-prev-error)
+(global-set-key (kbd "C-S-p") 'my-flymake-show-prev-error)
 
 ;; http://www.gnu.org/software/emacs/manual/html_mono/flymake.html
 ;; http://www.emacswiki.org/emacs/FlyMake

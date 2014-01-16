@@ -34,9 +34,11 @@ set title "編集中のファイル名を表示する
 set nocompatible               " be iMproved
 
 
-
+" http://vim-users.jp/2010/04/hack137/
 " オートインデントを有効にする（新しい行のインデントを現在の行と同じにする）
 set autoindent
+" set copyindent
+" set preserveindent
 "C言語スタイルのインデント機能が有効
 set cindent
 " タブが対応する空白の数
@@ -47,6 +49,8 @@ set softtabstop=2
 set shiftwidth=2
 " 新しい行を作ったときに高度な自動インデントを行う
 set smartindent
+"行頭の余白内で Tab を打ち込むと、'shiftwidth' の数だけインデントする
+" set smarttab
 
 " 閉じ括弧が入力されたとき、対応する括弧を表示する
 set showmatch
@@ -229,17 +233,25 @@ nnoremap z/ zf%
 
 " super keyでWindow移動（MacVimのみ）
 " http://qiita.com/ukitazume/items/e5df95feab1c2412cb3a
-nnoremap <C-j> <C-w>j
-nnoremap <C-k> <C-w>k
-nnoremap <C-h> <C-w>h
-nnoremap <C-l> <C-w>l
+" nnoremap <C-j> <C-w>j
+" nnoremap <C-k> <C-w>k
+" nnoremap <C-h> <C-w>h
+" nnoremap <C-l> <C-w>l
+
 nnoremap <C-M-Left> <C-w><Left>
 nnoremap <C-M-Up> <C-w><Up>
 nnoremap <C-M-Down> <C-w><Down>
 nnoremap <C-M-Right> <C-w><Right>
 
+" 挿入モードでもタブ移動したい！
 nnoremap <C-Left> gT
 nnoremap <C-Right> gt
+
+" Ctrlでjkhlをパワーアップ
+nnoremap <C-j> 5j
+nnoremap <C-k> 5k
+nnoremap <C-h> 5h
+nnoremap <C-l> 5l
 
 " http://stackoverflow.com/questions/2005214/switching-to-a-particular-tab-in-vim
 " Jump to particular tab directly
@@ -278,6 +290,12 @@ vnoremap gy "+y
 "*p  ペースト
 nnoremap gp "+p
 
+" http://cohama.hateblo.jp/entry/2013/10/07/020453
+nnoremap <F4> :<C-u>setlocal relativenumber!<CR>
+
+" nnoremap <M-j> j
+inoremap <C-Left> <Esc>gT
+inoremap <C-Right> <Esc>gt
 
 " ESCを2回入力で検索時のハイライトを解除
 " nnoremap <Esc><Esc> :nohlsearch<CR>
@@ -289,7 +307,7 @@ imap <C-Space> <C-x><C-o>
 " インサートモードで改行
 " http://cohalz.com/2013/06/14/vim-easier-enter-keymap/
 inoremap <C-j> <ESC>$a<CR>
-nnoremap <C-j> $a<CR>
+" nnoremap <C-j> $a<CR>
 
 " http://notachi.hatenadiary.jp/entry/2012/11/13/181810
 " カーソル移動
