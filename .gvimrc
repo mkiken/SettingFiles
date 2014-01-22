@@ -9,8 +9,18 @@
 " colorscheme solarized
 " colorscheme wombat
 " colorscheme hybrid
-colorscheme iceberg
+" colorscheme iceberg
 
+" http://vim.1045645.n5.nabble.com/Random-color-scheme-at-start-td1165585.html
+function! Load_random_colors()
+	let mycolors = split(globpath(&rtp,"**/colors/*.vim"),"\n")
+  exe 'so ' . mycolors[localtime() % len(mycolors)]
+  unlet mycolors
+endfunction
+call Load_random_colors()
+
+" command! Load_random_colors call Load_random_colors()
+command! LoadRandomColors call Load_random_colors()
 
 " ツールバー非表示
 set guioptions-=T

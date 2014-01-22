@@ -289,33 +289,6 @@
 
 (global-whitespace-mode 1)
 
-; (defvar my/bg-color "#232323")
-; 背景に合わせる
-(defvar my/bg-color nil)
-(set-face-attribute 'whitespace-trailing nil
-                    :background my/bg-color
-                    ; :foreground "DeepPink"
-                    :foreground "gray22"
-                    ; :underline t
-                    )
-(set-face-attribute 'whitespace-tab nil
-										:background my/bg-color
-										; :background nil
-                    ; :foreground "LightSkyBlue"
-                    :foreground "gray21"
-                    ; :underline t
-                    )
-(set-face-attribute 'whitespace-space nil
-                    :background my/bg-color
-                    ; :foreground "GreenYellow"
-                    :foreground "gray20"
-                    ; :weight 'bold
-                    )
-(set-face-attribute 'whitespace-empty nil
-                    :background my/bg-color
-                    :foreground "gray19"
-                    )
-
 
 ;;保存時に行末の空白を全て削除
 ;;from http://d.hatena.ne.jp/tototoshi/20101202/1291289625
@@ -472,6 +445,8 @@
 ;;(global-set-key (kbd "C-c r") 'replace-regexp)
 (global-set-key (kbd "C-c l") 'goto-line)
 
+(global-set-key (kbd "C-c o") 'occur)
+
 ; http://shibayu36.hatenablog.com/entry/2012/12/04/111221
 ;;; 複数行移動
 (global-set-key "\M-n" (kbd "C-u 5 C-n"))
@@ -604,7 +579,13 @@
 ;;import
 (add-to-list 'load-path "~/.emacs.d/elisp")
 
-;; Color Scheme
+; http://www.emacswiki.org/emacs/ColorThemeQuestions
+; 端末だと色が足りなくてthemeがきれいに動かない
+; 一応export TERM=xterm-256colorでいけるけど・・・？
+; (when window-system
+(when 1
+ ; (load "~/.emacs.d/conf/window-system")
+ ;; Color Scheme
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
 ; (load-theme 'my-monokai t)
 ;; (load-theme 'monokai t)
@@ -618,9 +599,59 @@
 ;; (load-theme 'tomorrow-night-blue t)
 ;; (load-theme 'tomorrow-night-bright t)
 ; (load-theme 'tomorrow-night-eighties t)
-(load-theme 'tomorrow-night t)
+; (load-theme 'tomorrow-night t)
 ;; (load-theme 'tomorrow t)
 ;; (load-theme 'twilight-bright t)
+
+; http://www.tech-thoughts-blog.com/2013/08/make-emacs-load-random-theme-at-startup.html
+(defun load-random-theme ()
+  "Load any random theme from the available ones."
+  (interactive)
+
+  ;; disable any previously set theme
+  (if (boundp 'theme-of-the-day)
+      (progn
+          (disable-theme theme-of-the-day)
+	  (makunbound 'theme-of-the-day)))
+
+  (defvar themes-list (custom-available-themes))
+  (defvar theme-of-the-day (nth (random (length themes-list))
+				themes-list))
+  (load-theme (princ theme-of-the-day) t))
+
+(load-random-theme)
+
+; (defvar my/bg-color "#232323")
+; 背景に合わせる
+(defvar my/bg-color nil)
+(set-face-attribute 'whitespace-trailing nil
+                    :background my/bg-color
+                    ; :foreground "DeepPink"
+                    ; :foreground "gray22"
+                    ; :foreground "gray22"
+                    ; :underline t
+                    )
+(set-face-attribute 'whitespace-tab nil
+										:background my/bg-color
+										; :background nil
+                    ; :foreground "LightSkyBlue"
+                    ; :foreground "gray21"
+                    ; :underline t
+                    )
+(set-face-attribute 'whitespace-space nil
+                    :background my/bg-color
+                    ; :foreground "GreenYellow"
+                    ; :foreground "gray20"
+                    ; :weight 'bold
+                    )
+(set-face-attribute 'whitespace-empty nil
+                    :background my/bg-color
+                    ; :foreground "gray19"
+                    )
+
+
+
+ )
 
 ;; for wc mode
 ;; http://www.emacswiki.org/emacs/WordCountMode
@@ -704,7 +735,8 @@
 (set-face-attribute
  'tabbar-unselected nil
  :background (face-attribute 'mode-line-inactive :background)
- :foreground "black" ;; (face-attribute 'mode-line-inactive :foreground)
+ ; :foreground "black"
+ :foreground (face-attribute 'mode-line-inactive :foreground)
  :box nil)
 (set-face-attribute
  'tabbar-selected nil
@@ -752,7 +784,13 @@
 ;; for TeX
 (add-hook 'tex-mode-hook
           '(lambda ()
-			 (local-set-key "\C-j" 'newline-from-anywhere)))
+			 			 (local-set-key "\C-j" 'newline-from-anywhere)
+						 (local-set-key (kbd "$") 'skeleton-pair-insert-maybe)
+						 (setq ac-auto-start nil) ;Texモードでは自動補完OFF
+						 ; (hs-minor-mode)
+						 ; (local-set-key "\C-c/" 'hs-toggle-hiding)
+						 )
+					)
 
 ;; for Lisp
 ;; (add-hook 'lisp-mode-hook       'hs-minor-mode)
@@ -820,6 +858,12 @@
 (global-set-key (kbd "<C-f2>") 'bm-toggle)
 (global-set-key (kbd "<f2>")   'bm-next)
 (global-set-key (kbd "<S-f2>") 'bm-previous)
+(global-set-key (kbd "<M-f2>") 'bm-show-all)
+; http://yasuwagon.blogspot.jp/2011/09/bmel.html
+; (set-face-background 'bm-face "LightGreen")
+; (set-face-background 'bm-fringe-face "LightGreen")
+; http://emacsworld.blogspot.jp/2008/09/visual-bookmarks-package-for-emacs.html
+(setq bm-highlight-style 'bm-highlight-only-fringe)
 
 ;; for auto-install
 ;; http://d.hatena.ne.jp/rubikitch/20091221/autoinstall
@@ -1016,34 +1060,34 @@
   ; (setq flymake-gui-warnings-enabled nil)
 
 ; migemoのあるパスを追加
-(setenv "PATH" (concat (getenv "PATH") ":/usr/local/bin"))
-(setq exec-path (append exec-path '("/usr/local/bin")))
-; (message "%s" (executable-find "cmigemo"))
+; (setenv "PATH" (concat (getenv "PATH") ":/usr/local/bin"))
+; (setq exec-path (append exec-path '("/usr/local/bin")))
+; ; (message "%s" (executable-find "cmigemo"))
 
-; migemoの設定
-; http://qiita.com/catatsuy/items/c5fa34ead92d496b8a51
-(when (and (executable-find "cmigemo")
-					 (require 'migemo nil t))
-; (when (executable-find "cmigemo")
-	; (require 'migemo)
-	; (message "bbb")
-	(setq migemo-options '("-q" "--emacs"))
-	; Mac の場合は以下のようになります
-	(setq migemo-command "/usr/local/bin/cmigemo")
-	(setq migemo-dictionary "/usr/local/share/migemo/utf-8/migemo-dict")
+; ; migemoの設定
+; ; http://qiita.com/catatsuy/items/c5fa34ead92d496b8a51
+; (when (and (executable-find "cmigemo")
+					 ; (require 'migemo nil t))
+; ; (when (executable-find "cmigemo")
+	; ; (require 'migemo)
+	; ; (message "bbb")
+	; (setq migemo-options '("-q" "--emacs"))
+	; ; Mac の場合は以下のようになります
+	; (setq migemo-command "/usr/local/bin/cmigemo")
+	; (setq migemo-dictionary "/usr/local/share/migemo/utf-8/migemo-dict")
 
-  (setq migemo-user-dictionary nil)
-  (setq migemo-regex-dictionary nil)
-  (setq migemo-coding-system 'utf-8-unix)
-  (load-library "migemo")
-  (migemo-init)
-	;; emacs 起動時は英数モードから始める
-	(add-hook 'after-init-hook 'mac-change-language-to-us)
-	;; minibuffer 内は英数モードにする
-	(add-hook 'minibuffer-setup-hook 'mac-change-language-to-us)
-	;; [migemo]isearch のとき IME を英数モードにする
-	(add-hook 'isearch-mode-hook 'mac-change-language-to-us)
-)
+  ; (setq migemo-user-dictionary nil)
+  ; (setq migemo-regex-dictionary nil)
+  ; (setq migemo-coding-system 'utf-8-unix)
+  ; (load-library "migemo")
+  ; (migemo-init)
+	; ;; emacs 起動時は英数モードから始める
+	; (add-hook 'after-init-hook 'mac-change-language-to-us)
+	; ;; minibuffer 内は英数モードにする
+	; (add-hook 'minibuffer-setup-hook 'mac-change-language-to-us)
+	; ;; [migemo]isearch のとき IME を英数モードにする
+	; (add-hook 'isearch-mode-hook 'mac-change-language-to-us)
+; )
 
 ; for rotate text
 ; http://lists.gnu.org/archive/html/gnu-emacs-sources/2009-04/msg00017.html
@@ -1060,3 +1104,5 @@
 (require 'undo-tree)
 (global-undo-tree-mode t)
 (global-set-key (kbd "C-?") 'undo-tree-redo)
+
+

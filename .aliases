@@ -19,6 +19,8 @@ function ec(){
 # http://tukaikta.blog135.fc2.com/blog-entry-214.html
 alias rm='rmtrash'
 
+alias cp='cp -i'
+
 alias pv='popd'
 
 ;;
@@ -69,7 +71,8 @@ alias gitconfig='vi ~/.gitconfig'
 alias gst='git st'
 alias gaa='git add .'
 # alias gra='git rmall'
-alias gcm='git commit -m'
+alias gcm='git commit'
+alias gcmm='git commit -m'
 alias gps='git push'
 alias gpl='git pull'
 

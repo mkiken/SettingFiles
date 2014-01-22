@@ -10,6 +10,10 @@ colors
 # 重複するパスの削除
 typeset -U path
 
+# emacsのthemeが読み込める
+# http://www.emacswiki.org/emacs/ColorThemeQuestions
+export TERM=xterm-256color
+
 # http://qiita.com/Cside_/items/13f85c11d3d0aa35d7ef
 setopt prompt_subst
 autoload -Uz VCS_INFO_get_data_git; VCS_INFO_get_data_git 2> /dev/null

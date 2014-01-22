@@ -1,7 +1,5 @@
-(require 'solarized)
+(require 'solarized-definitions
+         (locate-file "solarized-definitions.el" custom-theme-load-path
+                      '("c" "")))
 
-(deftheme solarized-light "The light variant of the Solarized colour theme")
-
-(create-solarized-theme 'light 'solarized-light)
-
-(provide-theme 'solarized-light)
+(create-solarized-theme light)

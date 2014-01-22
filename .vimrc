@@ -114,6 +114,9 @@ set listchars=tab:»-,trail:-,extends:»,precedes:«,nbsp:%
 " https://sites.google.com/site/vimdocja/usr_05-html
 set iskeyword-=_
 
+" http://tech-tec.com/archives/934
+let mapleader=" "
+
 " 全角スペース・行末のスペース・タブの可視化
 if has("syntax")
     syntax on
@@ -187,10 +190,10 @@ set autochdir
 "----------------------------------------------------
 " Migemo
 "----------------------------------------------------
-if has ('migemo')
-set migemo
-set migemodict=/usr/local/share/migemo/utf-8/migemo-dict
-endif
+" if has ('migemo')
+" set migemo
+" set migemodict=/usr/local/share/migemo/utf-8/migemo-dict
+" endif
 
 " http://d.hatena.ne.jp/spiritloose/20061113/1163401194
 inoremap { {}<LEFT>
@@ -208,6 +211,8 @@ vnoremap ' "zdi'<C-R>z'<ESC>
 "カーソルを表示行で移動する。物理行移動は<C-n>,<C-p>
 nnoremap j gj
 nnoremap k gk
+nnoremap gj j
+nnoremap gk k
 nnoremap <Down> gj
 nnoremap <Up>   gk
 
@@ -256,27 +261,27 @@ nnoremap <C-l> 5l
 " http://stackoverflow.com/questions/2005214/switching-to-a-particular-tab-in-vim
 " Jump to particular tab directly
 "NORMAL mode bindings for gvim
-noremap <unique> <D-1> 1gt
-noremap <unique> <D-2> 2gt
-noremap <unique> <D-3> 3gt
-noremap <unique> <D-4> 4gt
-noremap <unique> <D-5> 5gt
-noremap <unique> <D-6> 6gt
-noremap <unique> <D-7> 7gt
-noremap <unique> <D-8> 8gt
-noremap <unique> <D-9> 9gt
-noremap <unique> <D-0> 10gt
+noremap <D-1> 1gt
+noremap <D-2> 2gt
+noremap <D-3> 3gt
+noremap <D-4> 4gt
+noremap <D-5> 5gt
+noremap <D-6> 6gt
+noremap <D-7> 7gt
+noremap <D-8> 8gt
+noremap <D-9> 9gt
+noremap <D-0> 10gt
 "INSERT mode bindings for gvim
-inoremap <unique> <D-1> <C-O>1gt
-inoremap <unique> <D-2> <C-O>2gt
-inoremap <unique> <D-3> <C-O>3gt
-inoremap <unique> <D-4> <C-O>4gt
-inoremap <unique> <D-5> <C-O>5gt
-inoremap <unique> <D-6> <C-O>6gt
-inoremap <unique> <D-7> <C-O>7gt
-inoremap <unique> <D-8> <C-O>8gt
-inoremap <unique> <D-9> <C-O>9gt
-inoremap <unique> <D-0> <C-O>10gt
+inoremap <D-1> <C-O>1gt
+inoremap <D-2> <C-O>2gt
+inoremap <D-3> <C-O>3gt
+inoremap <D-4> <C-O>4gt
+inoremap <D-5> <C-O>5gt
+inoremap <D-6> <C-O>6gt
+inoremap <D-7> <C-O>7gt
+inoremap <D-8> <C-O>8gt
+inoremap <D-9> <C-O>9gt
+inoremap <D-0> <C-O>10gt
 
 
 
@@ -334,7 +339,10 @@ inoremap <C-y> <C-o>P
 " http://whileimautomaton.net/2008/07/20150335
 " nnoremap <Space>s  :<C-u>source $VIMRC<Return>
 nnoremap <Space>s  :<C-u>source ~/.vimrc <Return>
+command! ReloadVimrc  :source ~/.vimrc
 
+"コピーしながら括弧移動
+" nnoremap <C-%> y%%
 
 " anzu.vim
 " mapping
@@ -400,9 +408,8 @@ let g:EasyMotion_startofline=0
  Bundle 'terryma/vim-multiple-cursors'
  Bundle 'tyru/open-browser.vim'
  " Bundle 'haya14busa/vim-migemo'
-" filetype plugin indent on     " required!
-
-" <Space>mに、switch.vimをマッピング
+ Bundle 'Shougo/unite.vim'
+ " <Space>mに、switch.vimをマッピング
 " nnoremap <Space>m  <Plug>(switch-next)
 nnoremap ^ :Switch<cr>
 
@@ -535,3 +542,68 @@ vmap gb <Plug>(openbrowser-smart-search)
 let g:syntastic_mode_map = { 'mode': 'active',
 	\ 'active_filetypes': [],
 	\ 'passive_filetypes': ['scala'] }
+
+" http://mba-hack.blogspot.jp/2013/03/unitevim.html
+"" unite.vim {{{
+" The prefix key.
+nnoremap    [unite]   <Nop>
+nmap    <Leader>f [unite]
+
+" unite.vim keymap
+" <a href="https://github.com/alwei/dotfiles/blob/3760650625663f3b08f24bc75762ec843ca7e112/.vimrc" target="_blank" rel="noreferrer" style="cursor:help;display:inline !important;">https://github.com/alwei/dotfiles/blob/3760650625663f3b08f24bc75762ec843ca7e112/.vimrc</a>
+nnoremap [unite]u  :<C-u>Unite -no-split<Space>
+nnoremap <silent> [unite]t :<C-u>Unite<Space>buffer<CR>
+nnoremap <silent> [unite]b :<C-u>Unite<Space>bookmark<CR>
+nnoremap <silent> [unite]r :<C-u>Unite<Space>file_mru<CR>
+nnoremap <silent> [unite]d :<C-u>UniteWithBufferDir file<CR>
+nnoremap <silent> [unite]a :<C-u>Unite<Space>file_rec<CR>
+nnoremap <silent> [unite]f :<C-u>UniteWithBufferDir -buffer-name=files file<CR>
+" vimprocがいるらしい http://mba-hack.blogspot.jp/2013/03/unitevim.html
+" nnoremap <silent> [unite]g :<C-u>Unite grep:. -buffer-name=search-buffer<CR>
+nnoremap <silent> ,vr :UniteResume<CR>
+
+" vinarise
+let g:vinarise_enable_auto_detect = 1
+
+" unite-build map
+nnoremap <silent> ,vb :Unite build<CR>
+nnoremap <silent> ,vcb :Unite build:!<CR>
+nnoremap <silent> ,vch :UniteBuildClearHighlight<CR>
+"" }}}
+
+" ESCキーを2回押すと終了する
+au FileType unite nnoremap <silent> <buffer> <ESC><ESC> :q<CR>
+au FileType unite inoremap <silent> <buffer> <ESC><ESC> <ESC>:q<CR>
+
+"インサートモードで開始
+let g:unite_enable_start_insert = 1
+"最近開いたファイル履歴の保存数
+let g:unite_source_file_mru_limit = 50
+"file_mruの表示フォーマットを指定。空にすると表示スピードが高速化される
+let g:unite_source_file_mru_filename_format = ''
+
+"uniteを開いている間のキーマッピング
+autocmd FileType unite call s:unite_my_settings()
+function! s:unite_my_settings()"{{{
+	"ESCでuniteを終了
+	" nmap <buffer> <ESC> <Plug>(unite_exit)
+	"入力モードのときjjでノーマルモードに移動
+	" imap <buffer> jj <Plug>(unite_insert_leave)
+	"入力モードのときctrl+wでバックスラッシュも削除
+	" imap <buffer> <C-w> <Plug>(unite_delete_backward_path)
+	"ctrl+jで縦に分割して開く
+	nnoremap <silent> <buffer> <expr> s unite#do_action('split')
+	inoremap <silent> <buffer> <expr> <C-s> unite#do_action('split')
+	"ctrl+jで横に分割して開く
+	nnoremap <silent> <buffer> <expr> v unite#do_action('vsplit')
+	inoremap <silent> <buffer> <expr> <C-v> unite#do_action('vsplit')
+	"ctrl+oでその場所に開く
+	nnoremap <silent> <buffer> <expr> o unite#do_action('open')
+	inoremap <silent> <buffer> <expr> <C-o> unite#do_action('open')
+	"ctrl+tでタブで開く
+	nnoremap <silent> <buffer> <expr> t unite#do_action('tabopen')
+	inoremap <silent> <buffer> <expr> <C-t> unite#do_action('tabopen')
+	"ctrl+bでブックマーク
+	nnoremap <silent> <buffer> <expr> b unite#do_action('bookmark')
+	inoremap <silent> <buffer> <expr> <C-b> unite#do_action('bookmark')
+endfunction"}}}

@@ -45,6 +45,7 @@
 	ui = auto
 [core]
 	excludesfile = ~/.gitignore
+	editor = emacs
 [merge]
 	tool = vimdiff
 	; http://qiita.com/yaotti/items/2361768b6ed781e87780

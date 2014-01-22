@@ -21,7 +21,7 @@
 (unless (>= 24 emacs-major-version)
   (error "monokai-theme requires Emacs 24 or later."))
 
-(deftheme monokai
+(deftheme org-monokai
   "Monokai color theme")
 
 (let ((monokai-blue-light "#89BDFF")
@@ -43,7 +43,7 @@
 	  (molokai-bg "#1B1D1E")
 	  )
   (custom-theme-set-faces
-   'monokai
+   'org-monokai
    ;; Frame
    `(default ((t (:foreground ,monokai-yellow-light :background ,molokai-bg))))
    `(cursor ((t (:foreground ,monokai-magenta))))
@@ -81,7 +81,7 @@
   (when (not window-system)
     (custom-set-faces '(default ((t (:background "nil")))))))
 
-(provide-theme 'monokai)
+(provide-theme 'org-monokai)
 
 ;; Local Variables:
 ;; no-byte-compile: t
