@@ -19,7 +19,9 @@ function ec(){
 # http://tukaikta.blog135.fc2.com/blog-entry-214.html
 alias rm='rmtrash'
 
+# 事故死予防
 alias cp='cp -i'
+alias mv='mv -i'
 
 alias pv='popd'
 

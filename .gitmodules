@@ -29,3 +29,12 @@
 [submodule ".emacs.d/elisp/multiple-cursors"]
 	path = .emacs.d/elisp/multiple-cursors
 	url = https://github.com/magnars/multiple-cursors.el.git
+[submodule ".vim/bundle/open-browser.vim"]
+	path = .vim/bundle/open-browser.vim
+	url = https://github.com/tyru/open-browser.vim.git
+[submodule ".vim/bundle/vim-multiple-cursors"]
+	path = .vim/bundle/vim-multiple-cursors
+	url = https://github.com/terryma/vim-multiple-cursors.git
+[submodule ".vim/bundle/switch.vim"]
+	path = .vim/bundle/switch.vim
+	url = https://github.com/AndrewRadev/switch.vim.git

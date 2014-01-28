@@ -117,6 +117,9 @@ set iskeyword-=_
 " http://tech-tec.com/archives/934
 let mapleader=" "
 
+" % で移動する括弧の構成に <> を追加する
+set matchpairs+=<:>
+
 " 全角スペース・行末のスペース・タブの可視化
 if has("syntax")
     syntax on
@@ -227,9 +230,14 @@ nnoremap G G<End>
 vnoremap G G<End>
 onoremap G G<End>
 " ちょっと微妙かもだけど、9で行末に移動
-nnoremap 9 <End>
-vnoremap 9 <End>
-onoremap 9 <End>
+" nnoremap 9 <End>
+" vnoremap 9 <End>
+" onoremap 9 <End>
+
+" ヴィジュアルモードでdeleteで削除
+" MacのdeleteはBackSpaceらしい
+" vnoremap <DEL> d
+vnoremap <BS> d
 
 " 1つ前の検索ワードを表示
 nnoremap // /<C-P>
