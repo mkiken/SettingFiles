@@ -246,9 +246,9 @@
   )
 
 ;;インデントはタブにする
-(setq indent-tabs-mode t)
+; (setq indent-tabs-mode t)
 ;; tab ではなく space を使う
-;(setq-default indent-tabs-mode nil)
+(setq-default indent-tabs-mode nil)
 ;;タブ幅
 ; (setq-default tab-width 4)
 (setq default-tab-width 4)
@@ -354,6 +354,30 @@
 ;; http://www.bookshelf.jp/soft/meadow_31.html
 (setq scroll-preserve-screen-position t)
 
+; settings for org-mode.
+; ファイルを開いた時は畳んだ状態で表示
+(setq org-startup-folded nil)
+; 長い行を折り返し
+; http://d.hatena.ne.jp/stakizawa/20091025/t1
+(setq org-startup-truncated nil)
+; font-lock を有効化
+; (add-hook 'org-mode-hook 'turn-on-font-lock)
+
+;; avoid "Symbolic link to SVN-controlled source file; follow link? (yes or no)"
+; http://openlab.dino.co.jp/2008/10/30/212934368.html
+(setq vc-follow-symlinks t)
+
+; http://stackoverflow.com/questions/4096580/how-to-make-emacs-reload-the-tags-file-automatically
+(defalias 'yes-or-no-p 'y-or-n-p)
+
+; http://www.masteringemacs.org/articles/2010/11/14/disabling-prompts-emacs/
+(setq confirm-nonexistent-file-or-buffer nil)
+(setq kill-buffer-query-functions
+  (remq 'process-kill-buffer-query-function
+         kill-buffer-query-functions))
+
+(setq revert-without-query '(".*"))
+
 ;;from http://d.hatena.ne.jp/ama-ch/20090114/1231918903
 ;; カーソル位置から行頭まで削除する
 (defun backward-kill-line (arg)
@@ -442,10 +466,9 @@
 (global-set-key (kbd "C-c r") 'replace-string)
 
 ;; 行に飛ぶ
-;;(global-set-key (kbd "C-c r") 'replace-regexp)
 (global-set-key (kbd "C-c l") 'goto-line)
-
 (global-set-key (kbd "C-c o") 'occur)
+(global-set-key (kbd "C-c v") 'revert-buffer)
 
 ; http://shibayu36.hatenablog.com/entry/2012/12/04/111221
 ;;; 複数行移動
@@ -530,12 +553,29 @@
                (throw 'end-flag t)))))))
 (global-set-key "\C-c\C-r" 'window-resizer)
 
-; http://metalphaeton.blogspot.jp/2011/04/emacs.html
-(global-set-key (kbd "(") 'skeleton-pair-insert-maybe)
-(global-set-key (kbd "{") 'skeleton-pair-insert-maybe)
-(global-set-key (kbd "[") 'skeleton-pair-insert-maybe)
-(global-set-key (kbd "\"") 'skeleton-pair-insert-maybe)
-(setq skeleton-pair 1)
+; http://d.hatena.ne.jp/a_bicky/20131221/1387623058
+(if (>= emacs-major-version 24)
+  (progn
+   (electric-pair-mode t)
+   (defadvice electric-pair-post-self-insert-function
+              (around electric-pair-post-self-insert-function-around activate)
+              "Don't insert the closing pair in comments or strings"
+              (unless (nth 8 (save-excursion (syntax-ppss (1- (point)))))
+                ad-do-it))
+
+   )
+  ;; Setup the alternative manually.
+  (progn
+   ; http://metalphaeton.blogspot.jp/2011/04/emacs.html
+   (global-set-key (kbd "(") 'skeleton-pair-insert-maybe)
+   (global-set-key (kbd "{") 'skeleton-pair-insert-maybe)
+   (global-set-key (kbd "[") 'skeleton-pair-insert-maybe)
+   (global-set-key (kbd "\"") 'skeleton-pair-insert-maybe)
+   (setq skeleton-pair 1)
+   )
+  )
+
+; http://www.emacswiki.org/emacs/AutoPairs
 
 ;起動時のフレームサイズを設定する
 (setq initial-frame-alist
@@ -550,6 +590,16 @@
 ;;http://www.bookshelf.jp/soft/meadow_23.html#SEC231
 ;; ファイルやURLをクリック出来るようにする
 (ffap-bindings)
+
+;; ffap を使っていて find-file-at-point を起動した場合に、カーソル位置の UNC が正しく
+;; 取り込まれないことの対策
+; (defadvice helm-completing-read-default-1 (around ad-helm-completing-read-default-1 activate)
+  ; (if (listp (ad-get-arg 4))
+      ; (ad-set-arg 4 (car (ad-get-arg 4))))
+  ; ;; (cl-letf (((symbol-function 'regexp-quote)
+  ; (letf (((symbol-function 'regexp-quote)
+          ; (symbol-function 'identity)))
+    ; ad-do-it))
 
 ;; ツールバーを非表示
 ;; M-x tool-bar-mode で表示非表示を切り替えられる
@@ -812,6 +862,13 @@
 (add-hook 'haskell-mode-hook
           '(lambda ()
 			 (local-set-key "\C-c/" 'toggle-selective-display)))
+;; for org
+(add-hook 'org-mode-hook
+          '(lambda ()
+			 			 (local-set-key "\C-c e" 'org-show-block-all)
+						 )
+					)
+
 
 ; http://www.haskell.org/haskellwiki/Emacs/Code_folding
 ;; folding for all rows, starting on the current column
@@ -924,10 +981,42 @@
 ;; for Helm(Anything)
 (add-to-list 'load-path "~/.emacs.d/elisp/helm")
 (require 'helm-config)
-(global-set-key (kbd "C-c h") 'helm-mini)
 ;; コマンド補完
 (helm-mode 1)
+;; 自動補完を無効にする
+; (setq helm-ff-auto-update-initial-value nil)
+; http://www49.atwiki.jp/ntemacs/m/pages/32.html
+;; キーバインドを設定する。コマンド起動後は、以下のキーが利用可能となる
+;;  ・M-n     ：カーソル位置の単語を検索パターンに追加
+;;  ・C-z     ：チラ見
+;;  ・C-c C-f ：helm-follow-mode の ON/OFF
+(global-set-key (kbd "C-x C-b") 'helm-for-files)
+; (global-set-key (kbd "C-x C-;") 'helm-for-files)
+(define-key helm-command-map (kbd "C-;") 'helm-resume)
+(define-key helm-command-map (kbd "y")   'helm-show-kill-ring)
+(define-key helm-command-map (kbd "o")   'helm-occur)
+(define-key helm-command-map (kbd "C-s") 'helm-occur-from-isearch)
+(define-key helm-command-map (kbd "g")   'helm-do-grep) ; C-u 付で起動すると、recursive となる
+(define-key helm-command-map (kbd "t")   'helm-gtags-find-tag)
+(global-set-key (kbd "C-c h") 'helm-mini)
+; find-file-at-pointよりもfind^file
+; (global-set-key (kbd "C-x C-f") 'find-file)
+(global-set-key (kbd "C-x C-f") 'helm-find-files)
+;; 候補を作って描写するまでのタイムラグを設定する（デフォルトは 0.1）
+(setq helm-idle-delay 0.2)
+;; TAB で補完する
+(define-key helm-read-file-map (kbd "<tab>") 'helm-execute-persistent-action)
+(define-key helm-find-files-map (kbd "<tab>") 'helm-execute-persistent-action)
+;; 文字列を入力してから検索するまでのタイムラグを設定する（デフォルトは 0.1）
+(setq helm-input-idle-delay 0.2)
+;; ミニバッファで C-k 入力時にカーソル以降を削除する（C-u C-k でも同様の動きをする）
+(setq helm-delete-minibuffer-contents-from-point t)
 ;(helm-dired-bindings 1)
+; http://hitode909.hatenablog.com/entry/2013/08/04/114845
+; (setq helm-ff-transformer-show-only-basename nil)
+; http://qiita.com/akisute3@github/items/7c8ea3970e4cbb7baa97
+;;; 処理を変更したいコマンドをリストに登録していく
+; (add-to-list 'helm-completing-read-handlers-alist '(find-file . nil))
 
 ;; Ace-Jump(vim's EasyMotion)
 ;; https://github.com/winterTTr/ace-jump-mode
@@ -1105,4 +1194,8 @@
 (global-undo-tree-mode t)
 (global-set-key (kbd "C-?") 'undo-tree-redo)
 
+; https://github.com/zk-phi/indent-guide
+(require 'indent-guide)
+(indent-guide-global-mode)
+(setq indent-guide-char "¦")
 

@@ -41,19 +41,24 @@ set autoindent
 " set preserveindent
 "C言語スタイルのインデント機能が有効
 set cindent
+" タブに展開
+set expandtab
 " タブが対応する空白の数
-set tabstop=2
+set tabstop=4
 " タブやバックスペースの使用等の編集操作をするときに、タブが対応する空白の数
-set softtabstop=2
+set softtabstop=4
 " インデントの各段階に使われる空白の数
-set shiftwidth=2
+set shiftwidth=4
 " 新しい行を作ったときに高度な自動インデントを行う
 set smartindent
 "行頭の余白内で Tab を打ち込むと、'shiftwidth' の数だけインデントする
-" set smarttab
+set smarttab
 
 " 閉じ括弧が入力されたとき、対応する括弧を表示する
 set showmatch
+
+" % で移動する括弧の構成に <> を追加する
+set matchpairs+=<:>
 
 " カーソルを行頭、行末で止まらないようにする
 set whichwrap=b,s,h,l,<,>,[,]
@@ -117,8 +122,6 @@ set iskeyword-=_
 " http://tech-tec.com/archives/934
 let mapleader=" "
 
-" % で移動する括弧の構成に <> を追加する
-set matchpairs+=<:>
 
 " 全角スペース・行末のスペース・タブの可視化
 if has("syntax")
@@ -352,6 +355,16 @@ command! ReloadVimrc  :source ~/.vimrc
 "コピーしながら括弧移動
 " nnoremap <C-%> y%%
 
+" 検索をバッファローカルに
+" http://d.hatena.ne.jp/tyru/20140129/localize_search_options
+" Localize search options.
+autocmd WinLeave *
+\     let b:vimrc_pattern = @/
+\   | let b:vimrc_hlsearch = &hlsearch
+autocmd WinEnter *
+\     let @/ = get(b:, 'vimrc_pattern', @/)
+\   | let &l:hlsearch = get(b:, 'vimrc_hlsearch', &l:hlsearch)
+
 " anzu.vim
 " mapping
 nmap n <Plug>(anzu-n-with-echo)
@@ -417,6 +430,7 @@ let g:EasyMotion_startofline=0
  Bundle 'tyru/open-browser.vim'
  " Bundle 'haya14busa/vim-migemo'
  Bundle 'Shougo/unite.vim'
+ Bundle 'Yggdroot/indentLine'
  " <Space>mに、switch.vimをマッピング
 " nnoremap <Space>m  <Plug>(switch-next)
 nnoremap ^ :Switch<cr>
@@ -615,3 +629,21 @@ function! s:unite_my_settings()"{{{
 	nnoremap <silent> <buffer> <expr> b unite#do_action('bookmark')
 	inoremap <silent> <buffer> <expr> <C-b> unite#do_action('bookmark')
 endfunction"}}}
+
+
+" let g:indent_guides_enable_on_vim_startup = 1
+" let g:indent_guides_auto_colors = 0
+" " set list lcs=tab:┊\
+" " indent guides
+" augroup indentguides
+" 	autocmd!
+" 	autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd  guibg=blue   ctermbg=3
+" 	autocmd VimEnter,Colorscheme * :hi IndentGuidesEven guibg=yellow ctermbg=4
+" 	let g:indent_guides_start_level = 2
+" 	let g:indent_guides_guide_size = 1
+" augroup END
+
+" https://github.com/Yggdroot/indentLine
+let g:indentLine_color_term = 111
+let g:indentLine_color_gui = '#708090'
+let g:indentLine_char = '¦' "use ¦, ┆ or │
