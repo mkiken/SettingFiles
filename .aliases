@@ -10,11 +10,15 @@ alias vi='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/mvim --re
 alias vs='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/mvim'
 alias vimdiff='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/mvimdiff'
 function es(){
-	/Applications/Emacs.app/Contents/MacOS/Emacs "$@" &
+	open -a /Applications/Emacs.app "$@"
 }
-function ec(){
-	/Applications/Emacs.app/Contents/MacOS/bin/emacsclient -n "$@" --alternate-editor /Applications/Emacs.app/Contents/MacOS/Emacs &
-}
+
+# function es(){
+	# /Applications/Emacs.app/Contents/MacOS/Emacs "$@" &
+# }
+# function ec(){
+	# /Applications/Emacs.app/Contents/MacOS/bin/emacsclient -n "$@" --alternate-editor /Applications/Emacs.app/Contents/MacOS/Emacs &
+# }
 
 # http://tukaikta.blog135.fc2.com/blog-entry-214.html
 alias rm='rmtrash'
@@ -24,6 +28,7 @@ alias cp='cp -i'
 alias mv='mv -i'
 
 alias pv='popd'
+alias up='cd ../'
 
 ;;
 # Linux
@@ -66,7 +71,7 @@ alias zshrc='vi ~/.zshrc'
 alias aliases='vi ~/.aliases'
 alias einit='vi ~/.emacs.d/init.el'
 # alias vimrc='vi ~/.vimrc'
-alias vimrc='ec ~/.vimrc'
+alias vimrc='es ~/.vimrc'
 alias gvimrc='vi ~/.gvimrc'
 alias gitconfig='vi ~/.gitconfig'
 
