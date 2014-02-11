@@ -287,15 +287,12 @@
 ;; 保存前に自動でクリーンアップ
 (setq whitespace-action '(auto-cleanup))
 
-(global-whitespace-mode 1)
-
-
 ;;保存時に行末の空白を全て削除
 ;;from http://d.hatena.ne.jp/tototoshi/20101202/1291289625
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
 ;;http://masutaka.net/chalow/2011-10-12-1.html
-;;(global-whitespace-mode 1)
+(global-whitespace-mode 1)
 
 ;; http://d.hatena.ne.jp/kakurasan/20070702/p1
 
@@ -556,6 +553,7 @@
 ; http://d.hatena.ne.jp/a_bicky/20131221/1387623058
 (if (>= emacs-major-version 24)
   (progn
+   ; 括弧の対応
    (electric-pair-mode t)
    (defadvice electric-pair-post-self-insert-function
               (around electric-pair-post-self-insert-function-around activate)
@@ -976,6 +974,11 @@
 ;; http://cx4a.org/software/auto-complete/manual.html
 ;; (add-hook 'c++-mode (lambda () (add-to-list 'ac-sources 'ac-source-semantic)))
 ; (icomplete-mode 1)
+
+; (define-key ac-completing-map "\C-m" nil)
+; (setq ac-use-menu-map t)
+; ; (define-key ac-menu-map "\C-m" 'ac-complete)
+; (define-key ac-menu-map "\C-m" 'ac-stop)
 
 ;; http://emacs.tsutomuonoda.com/emacs-anything-el-helm-mode-install/
 ;; for Helm(Anything)

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<dict>
+		<key>phrase</key>
+		<string>＼(^o^)／</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+		<key>timestamp</key>
+		<integer>1390383349</integer>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(・_・)</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+		<key>timestamp</key>
+		<integer>1390739356</integer>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(´・ω・｀)</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+		<key>timestamp</key>
+		<integer>1392128386</integer>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(´･_･`)</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+		<key>timestamp</key>
+		<integer>1392128449</integer>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(ﾟДﾟ )</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+		<key>timestamp</key>
+		<integer>1392128409</integer>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>m(_ _)m</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+		<key>timestamp</key>
+		<integer>1392128398</integer>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>よろしくお願い申し上げます。</string>
+		<key>shortcut</key>
+		<string>よろ</string>
+		<key>timestamp</key>
+		<integer>1376314426</integer>
+	</dict>
+</array>
+</plist>

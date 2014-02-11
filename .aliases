@@ -3,22 +3,23 @@ case "${OSTYPE}" in
 # Mac(Unix)
 darwin*)
 # ここに設定
-alias ls='ls -G'
-alias la='ls -a'
+alias ls='ls -AG'
+alias la='ls -Aa'
+alias ll='ls -FThl'
 #MacVim on CUI
 alias vi='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/mvim --remote-tab-silent'
 alias vs='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/mvim'
 alias vimdiff='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/mvimdiff'
-function es(){
+function em(){
 	open -a /Applications/Emacs.app "$@"
 }
 
-# function es(){
-	# /Applications/Emacs.app/Contents/MacOS/Emacs "$@" &
-# }
-# function ec(){
-	# /Applications/Emacs.app/Contents/MacOS/bin/emacsclient -n "$@" --alternate-editor /Applications/Emacs.app/Contents/MacOS/Emacs &
-# }
+function es(){
+    /Applications/Emacs.app/Contents/MacOS/Emacs "$@" &
+}
+function ec(){
+    /Applications/Emacs.app/Contents/MacOS/bin/emacsclient -n "$@" --alternate-editor /Applications/Emacs.app/Contents/MacOS/Emacs &
+}
 
 # http://tukaikta.blog135.fc2.com/blog-entry-214.html
 alias rm='rmtrash'
@@ -55,12 +56,8 @@ esac
 alias refresh='source ~/.zshrc'
 
 #cd
-alias cdw='cd ~/Documents/workspace'
-alias cdw2='cd ~/Documents/workspace2'
-alias cdh='cd ~/Documents/Haskell_Workspace'
 alias cdp='cd ~/Program/ProCon'
 alias cdd='cd ~/Desktop'
-alias cdr='cd ~/Desktop/repository/Research/PEG_Scala'
 alias cdrepo='cd ~/Desktop/repository'
 alias cds='cd ~/Desktop/repository/SettingFiles'
 alias cdphp='cd /Library/WebServer/Documents/'
@@ -71,9 +68,10 @@ alias zshrc='vi ~/.zshrc'
 alias aliases='vi ~/.aliases'
 alias einit='vi ~/.emacs.d/init.el'
 # alias vimrc='vi ~/.vimrc'
-alias vimrc='es ~/.vimrc'
+alias vimrc='em ~/.vimrc'
 alias gvimrc='vi ~/.gvimrc'
 alias gitconfig='vi ~/.gitconfig'
+alias zshenv='vi ~/.zshenv'
 
 #shortc cut for git
 alias gst='git st'

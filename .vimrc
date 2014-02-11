@@ -202,11 +202,11 @@ set autochdir
 " endif
 
 " http://d.hatena.ne.jp/spiritloose/20061113/1163401194
-inoremap { {}<LEFT>
-inoremap [ []<LEFT>
-inoremap ( ()<LEFT>
-inoremap " ""<LEFT>
-inoremap ' ''<LEFT>
+" inoremap { {}<LEFT>
+" inoremap [ []<LEFT>
+" inoremap ( ()<LEFT>
+" inoremap " ""<LEFT>
+" inoremap ' ''<LEFT>
 vnoremap { "zdi{<C-R>z}<ESC>
 vnoremap [ "zdi[<C-R>z]<ESC>
 vnoremap ( "zdi(<C-R>z)<ESC>
@@ -421,7 +421,7 @@ let g:EasyMotion_startofline=0
  Bundle 'derekwyatt/vim-scala'
  Bundle 'yonchu/accelerated-smooth-scroll'
  Bundle 'haya14busa/vim-easymotion'
- " Bundle 'kana/vim-smartinput'
+ Bundle 'kana/vim-smartinput'
  " Bundle 'mhinz/vim-startify'
  " Bundle 'osyo-manga/vim-over'
  Bundle 'AndrewRadev/switch.vim'
@@ -431,6 +431,7 @@ let g:EasyMotion_startofline=0
  " Bundle 'haya14busa/vim-migemo'
  Bundle 'Shougo/unite.vim'
  Bundle 'Yggdroot/indentLine'
+ " Bundle 'Shougo/vimshell.vim'
  " <Space>mに、switch.vimをマッピング
 " nnoremap <Space>m  <Plug>(switch-next)
 nnoremap ^ :Switch<cr>
@@ -456,10 +457,14 @@ if has("autocmd")
 	autocmd BufNewFile,BufReadPost *.pegjs,*.language,*.grm  set filetype=pegjs
 endif
 
-" call smartinput#map_to_trigger('i', '<Plug>(smartinput_BS)','<BS>','<BS>')
-" call smartinput#map_to_trigger('i', '<Plug>(smartinput_C-h)', '<BS>', '<C-h>')
-" call smartinput#map_to_trigger('i', '<Plug>(smartinput_CR)','<Enter>','<Enter>')
-
+call smartinput#map_to_trigger('i', '<Plug>(smartinput_BS)','<BS>','<BS>')
+call smartinput#map_to_trigger('i', '<Plug>(smartinput_C-h)', '<BS>', '<C-h>')
+call smartinput#map_to_trigger('i', '<Plug>(smartinput_CR)','<Enter>','<Enter>')
+call smartinput#define_rule({
+\   'at': '({\%#})',
+\   'char': '<CR>',
+\   'input': '<CR>\ <Esc>O\ ',
+\ } )
 
 " neocomplcache
 " https://github.com/Shougo/neocomplcache.vim
@@ -513,20 +518,25 @@ inoremap <expr><C-g>     neocomplcache#undo_completion()
 inoremap <expr><C-l>     neocomplcache#complete_common_string()
 " Recommended key-mappings.
 " <CR>: close popup and save indent.
-" imap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
-inoremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
-" inoremap <expr> <CR> neocomplcache#close_popup() . eval(smartinput#sid().'_trigger_or_fallback("\<Enter>", "\<Enter>")')
-function! s:my_cr_function()
-	return pumvisible() ? neocomplcache#close_popup() : "\<CR>"
-	" return pumvisible() ? neocomplcache#close_popup() : "\<Plug>(smartinput_CR)"
-endfunction
+inoremap <expr> <CR>
+      \ neocomplcache#close_popup()
+      \ . eval(smartinput#sid().'_trigger_or_fallback("\<Enter>", "\<Enter>")')
+" function! s:my_cr_function()
+" 	return pumvisible() ? neocomplcache#close_popup() : "\<Plug>(smartinput_CR)"
+" endfunction
 
 " <TAB>: completion.
 inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
 " <C-h>, <BS>: close popup and delete backword char.
-inoremap <expr><C-h> neocomplcache#smart_close_popup()."\<C-h>"
-inoremap <expr><BS> neocomplcache#smart_close_popup()."\<C-h>"
-" inoremap <expr> <BS> neocomplcache#smart_close_popup() . eval(smartinput#sid().'_trigger_or_fallback("\<BS>", "\<BS>")')
+" inoremap <expr><C-h> neocomplcache#smart_close_popup()."\<C-h>"
+" http://qiita.com/todashuta@github/items/958ef3b4c32b4f992e0e
+inoremap <expr> <C-h>
+      \ neocomplcache#close_popup()
+      \ . eval(smartinput#sid().'_trigger_or_fallback("\<BS>", "\<C-h>")')
+inoremap <expr> <BS>
+      \ neocomplcache#close_popup()
+      \ . eval(smartinput#sid().'_trigger_or_fallback("\<BS>", "\<BS>")')
+
 " inoremap <expr><C-y>  neocomplcache#close_popup()
 " inoremap <expr><C-e>  neocomplcache#cancel_popup()
 " Enable omni completion.
