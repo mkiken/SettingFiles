@@ -69,7 +69,7 @@ alias aliases='vi ~/.aliases'
 alias einit='vi ~/.emacs.d/init.el'
 # alias vimrc='vi ~/.vimrc'
 alias vimrc='em ~/.vimrc'
-alias gvimrc='vi ~/.gvimrc'
+alias gvimrc='em ~/.gvimrc'
 alias gitconfig='vi ~/.gitconfig'
 alias zshenv='vi ~/.zshenv'
 

@@ -970,6 +970,8 @@
 ;;(require 'auto-complete-config nil t)
 ;; (setq ac-dictionary-directories "~/.emacs.d/elisp/ac-dict") ;; 辞書ファイルのディレクトリ
 (ac-set-trigger-key "TAB")
+; たまに終了できないので切る
+(setq ac-use-comphist nil)
 ;; for c/c++
 ;; http://cx4a.org/software/auto-complete/manual.html
 ;; (add-hook 'c++-mode (lambda () (add-to-list 'ac-sources 'ac-source-semantic)))
@@ -1202,3 +1204,22 @@
 (indent-guide-global-mode)
 (setq indent-guide-char "¦")
 
+(add-to-list 'load-path "~/.emacs.d/elisp/expand-region.el")
+(require 'expand-region)
+(global-set-key (kbd "C-=") 'er/expand-region)
+(global-set-key (kbd "C-M-=") 'contract-region)
+
+(defun contract-region ()
+  (interactive)
+  (er/expand-region -1))
+
+(require 'rainbow-delimiters)
+(global-rainbow-delimiters-mode)
+
+(require 'hlinum)
+(hlinum-activate)
+
+; http://d.hatena.ne.jp/rubikitch/20081230/pointundo
+(require 'point-undo)
+(define-key global-map [f7] 'point-undo)
+(define-key global-map [S-f7] 'point-redo)

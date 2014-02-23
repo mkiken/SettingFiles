@@ -50,7 +50,7 @@ set softtabstop=4
 " インデントの各段階に使われる空白の数
 set shiftwidth=4
 " 新しい行を作ったときに高度な自動インデントを行う
-set smartindent
+" set smartindent
 "行頭の余白内で Tab を打ち込むと、'shiftwidth' の数だけインデントする
 set smarttab
 
@@ -432,6 +432,8 @@ let g:EasyMotion_startofline=0
  Bundle 'Shougo/unite.vim'
  Bundle 'Yggdroot/indentLine'
  " Bundle 'Shougo/vimshell.vim'
+ Bundle 'Shougo/vimfiler.vim'
+ Bundle 'terryma/vim-expand-region'
  " <Space>mに、switch.vimをマッピング
 " nnoremap <Space>m  <Plug>(switch-next)
 nnoremap ^ :Switch<cr>
@@ -446,9 +448,9 @@ let NERDSpaceDelims = 1
 nmap ,, <Plug>NERDCommenterToggle
 vmap ,, <Plug>NERDCommenterToggle
 
-map <Esc>f :NERDTreeToggle<CR>
+map <Leader>n :NERDTreeToggle<CR>
 "NERDtreeで隠しファイルを表示する
-let NERDTreeShowHidden=1
+" let NERDTreeShowHidden=1
 
 if has("autocmd")
 	" http://docs.racket-lang.org/guide/Vim.html
@@ -657,3 +659,41 @@ endfunction"}}}
 let g:indentLine_color_term = 111
 let g:indentLine_color_gui = '#708090'
 let g:indentLine_char = '¦' "use ¦, ┆ or │
+
+" https://github.com/Shougo/vimfiler.vim
+" vimfiler behaves as default explorer like netrw.
+let g:vimfiler_as_default_explorer = 1
+" nnoremap <Esc>f :VimFilerExplorer<Cr>
+" nnoremap <Esc>f :VimFiler<Cr>
+
+" http://hrsh7th.hatenablog.com/entry/20120229/1330525683
+nnoremap <Leader>e :VimFiler -buffer-name=explorer -split -winwidth=45 -toggle -no-quit<Cr>
+" nnoremap <Leader>e :VimFilerExplorer -buffer-name=explorer -split -winwidth=45 -toggle -no-quit<Cr>
+autocmd! FileType vimfiler call g:my_vimfiler_settings()
+function! g:my_vimfiler_settings()
+  nmap     <buffer><expr><Cr> vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
+  nnoremap <buffer>t          :call vimfiler#mappings#do_action('my_tabe')<Cr>
+  nnoremap <buffer>s          :call vimfiler#mappings#do_action('my_split')<Cr>
+  nnoremap <buffer>v          :call vimfiler#mappings#do_action('my_vsplit')<Cr>
+endfunction
+
+let s:my_action = { 'is_selectable' : 1 }
+function! s:my_action.func(candidates)
+  wincmd p
+  exec 'tabe '. a:candidates[0].action__path
+endfunction
+call unite#custom_action('file', 'my_tabe', s:my_action)
+
+let s:my_action = { 'is_selectable' : 1 }
+function! s:my_action.func(candidates)
+  wincmd p
+  exec 'split '. a:candidates[0].action__path
+endfunction
+call unite#custom_action('file', 'my_split', s:my_action)
+
+let s:my_action = { 'is_selectable' : 1 }
+function! s:my_action.func(candidates)
+  wincmd p
+  exec 'vsplit '. a:candidates[0].action__path
+endfunction
+call unite#custom_action('file', 'my_vsplit', s:my_action)
