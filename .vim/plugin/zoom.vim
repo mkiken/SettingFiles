@@ -16,8 +16,9 @@ command! -narg=0 ZoomOut   :call s:ZoomOut()
 command! -narg=0 ZoomReset :call s:ZoomReset()
 
 " map
-nmap + :ZoomIn<CR>
-nmap - :ZoomOut<CR>
+nmap <Leader>+ :ZoomIn<CR>
+nmap <Leader>- :ZoomOut<CR>
+nmap <Leader>0 :ZoomReset<CR>
 
 " guifont size + 1
 function! s:ZoomIn()

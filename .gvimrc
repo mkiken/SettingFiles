@@ -4,6 +4,7 @@
 " colorscheme molokai
 " colorscheme Tomorrow
 " colorscheme Tomorrow-Night
+colorscheme Tomorrow-Night-Bright
 " colorscheme Tomorrow-Night-Blue
 " colorscheme Tomorrow-Night-Eighties
 " colorscheme solarized
@@ -17,7 +18,7 @@ function! Load_random_colors()
   exe 'so ' . mycolors[localtime() % len(mycolors)]
   unlet mycolors
 endfunction
-call Load_random_colors()
+" call Load_random_colors()
 
 " command! Load_random_colors call Load_random_colors()
 command! LoadRandomColors call Load_random_colors()
@@ -161,4 +162,3 @@ if filereadable(g:save_window_file)
 else
 	set lines=50 columns=150
 endif
-

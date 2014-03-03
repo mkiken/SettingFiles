@@ -28,3 +28,33 @@
 [submodule ".emacs.d/elisp/expand-region.el"]
 	path = .emacs.d/elisp/expand-region.el
 	url = https://github.com/magnars/expand-region.el
+[submodule ".vim/bundle/accelerated-smooth-scroll"]
+	path = .vim/bundle/accelerated-smooth-scroll
+	url = https://github.com/yonchu/accelerated-smooth-scroll
+[submodule ".vim/bundle/indentLine"]
+	path = .vim/bundle/indentLine
+	url = https://github.com/Yggdroot/indentLine
+[submodule ".vim/bundle/open-browser.vim"]
+	path = .vim/bundle/open-browser.vim
+	url = https://github.com/tyru/open-browser.vim
+[submodule ".vim/bundle/switch.vim"]
+	path = .vim/bundle/switch.vim
+	url = https://github.com/AndrewRadev/switch.vim
+[submodule ".vim/bundle/unite.vim"]
+    path = .vim/bundle/unite.vim
+    url = https://github.com/Shougo/unite.vim
+[submodule ".vim/bundle/vim-easymotion"]
+    path = .vim/bundle/vim-easymotion
+    url = https://github.com/haya14busa/vim-easymotion
+[submodule ".vim/bundle/vim-expand-region"]
+    path = .vim/bundle/vim-expand-region
+    url = https://github.com/terryma/vim-expand-region
+[submodule ".vim/bundle/vim-multiple-cursors"]
+    path = .vim/bundle/vim-multiple-cursors
+    url = https://github.com/terryma/vim-multiple-cursors
+[submodule ".vim/bundle/vim-scala"]
+    path = .vim/bundle/vim-scala
+    url = https://github.com/derekwyatt/vim-scala
+[submodule ".vim/bundle/vimfiler.vim"]
+    path = .vim/bundle/vimfiler.vim
+    url = https://github.com/Shougo/vimfiler.vim

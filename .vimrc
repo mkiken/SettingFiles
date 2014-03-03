@@ -496,20 +496,23 @@ let g:neocomplcache_enable_underbar_completion = 1
 " inoremap <expr><Up>    neocomplcache#close_popup() . "\<Up>"
 " inoremap <expr><Down>  neocomplcache#close_popup() . "\<Down>"
 
+" inoremap <expr><Up> pumvisible() ? neocomplcache#close_popup()."\<Up>" : "\<Up>"
+" inoremap <expr><Down> pumvisible() ? neocomplcache#close_popup()."\<Down>" : "\<Down>"
+
 " Shell like behavior(not recommended).
 set completeopt+=longest
-let g:neocomplcache_enable_auto_select = 1
+" let g:neocomplcache_enable_auto_select = 1
 let g:neocomplcache_disable_auto_complete = 1
 inoremap <expr><TAB>  pumvisible() ? "\<Down>" : "\<C-x>\<C-u>"
 
 " Define dictionary.
-let g:neocomplcache_dictionary_filetype_lists = {
-    \ 'default' : '',
-    \ 'vimshell' : $HOME.'/.vimshell_hist',
-    \ 'scheme' : $HOME.'/.gosh_completions'
-        \ }
-inoremap <expr><Up> pumvisible() ? neocomplcache#close_popup()."\<Up>" : "\<Up>"
-inoremap <expr><Down> pumvisible() ? neocomplcache#close_popup()."\<Down>" : "\<Down>"
+" let g:neocomplcache_dictionary_filetype_lists = {
+"     \ 'default' : '',
+"     \ 'vimshell' : $HOME.'/.vimshell_hist',
+"     \ 'scheme' : $HOME.'/.gosh_completions'
+"         \ }
+" inoremap <expr><Up> pumvisible() ? neocomplcache#close_popup()."\<Up>" : "\<Up>"
+" inoremap <expr><Down> pumvisible() ? neocomplcache#close_popup()."\<Down>" : "\<Down>"
 " Define keyword.
 if !exists('g:neocomplcache_keyword_patterns')
     let g:neocomplcache_keyword_patterns = {}
@@ -520,12 +523,18 @@ inoremap <expr><C-g>     neocomplcache#undo_completion()
 inoremap <expr><C-l>     neocomplcache#complete_common_string()
 " Recommended key-mappings.
 " <CR>: close popup and save indent.
-inoremap <expr> <CR>
-      \ neocomplcache#close_popup()
+
+" inoremap <expr> <CR>
+      " \ neocomplcache#close_popup()
+            " \ . eval(smartinput#sid().'_trigger_or_fallback("\<Enter>", "\<Enter>")')
+inoremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
+function! s:my_cr_function()
+	" return pumvisible() ? neocomplcache#close_popup() : "\<Plug>(smartinput_CR)"
+    	return pumvisible() ? neocomplcache#close_popup() :
+        \ neocomplcache#close_popup()
       \ . eval(smartinput#sid().'_trigger_or_fallback("\<Enter>", "\<Enter>")')
-" function! s:my_cr_function()
-" 	return pumvisible() ? neocomplcache#close_popup() : "\<Plug>(smartinput_CR)"
-" endfunction
+
+endfunction
 
 " <TAB>: completion.
 inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
@@ -697,3 +706,7 @@ function! s:my_action.func(candidates)
   exec 'vsplit '. a:candidates[0].action__path
 endfunction
 call unite#custom_action('file', 'my_vsplit', s:my_action)
+
+
+map + <Plug>(expand_region_expand)
+map - <Plug>(expand_region_shrink)

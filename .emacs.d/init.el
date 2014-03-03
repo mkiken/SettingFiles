@@ -209,9 +209,9 @@
 
 ; http://macemacsjp.sourceforge.jp/index.php?CocoaEmacs#fc72ad9e
 ; フォントサイズ変更
-(global-set-key [(control ?+)] (lambda () (interactive) (text-scale-increase 1)))
-(global-set-key [(control ?-)] (lambda () (interactive) (text-scale-decrease 1)))
-(global-set-key [(control ?0)] (lambda () (interactive) (text-scale-increase 0)))
+(global-set-key (kbd "C-c +") (lambda () (interactive) (text-scale-increase 1)))
+(global-set-key (kbd "C-c -") (lambda () (interactive) (text-scale-decrease 1)))
+(global-set-key (kbd "C-c 0") (lambda () (interactive) (text-scale-increase 0)))
 
 
 ; 削除ファイルをゴミ箱に入れる
@@ -645,7 +645,7 @@
 ; (load-theme 'twilight-anti-bright t)
 ; (load-theme 'tomorrow-night-paradise t)
 ;; (load-theme 'tomorrow-night-blue t)
-;; (load-theme 'tomorrow-night-bright t)
+(load-theme 'tomorrow-night-bright t)
 ; (load-theme 'tomorrow-night-eighties t)
 ; (load-theme 'tomorrow-night t)
 ;; (load-theme 'tomorrow t)
@@ -667,7 +667,7 @@
 				themes-list))
   (load-theme (princ theme-of-the-day) t))
 
-(load-random-theme)
+; (load-random-theme)
 
 ; (defvar my/bg-color "#232323")
 ; 背景に合わせる
@@ -884,6 +884,13 @@
 ;;(autoload 'scala-mode2 "scala-mode2/scala-mode2" nil t)
 ;;(add-to-list 'auto-mode-alist '("\\.scala$" . scala-mode2))
 
+; http://lists.gnu.org/archive/html/help-gnu-emacs/2005-04/msg00767.html
+(defadvice save-place-alist-to-file
+  (around save-place-alist-to-file-force-print-length activate)
+  (let ((print-level nil)
+        (print-length nil))
+    ad-do-it))
+
 ;;for vimrc
 ;;http://stackoverflow.com/questions/4236808/syntax-highlight-a-vimrc-file-in-emacs
 (define-generic-mode 'vimrc-generic-mode
@@ -899,6 +906,8 @@
     '((lambda ()
         (modify-syntax-entry ?\" ".")))
     "Generic mode for Vim configuration files.")
+
+
 
 ;;for MiniMap(Sublime Text)
 ;; from http://www.emacswiki.org/emacs/MiniMap
@@ -1081,6 +1090,7 @@
   (flymake-display-err-menu-for-current-line)
   )
 (global-set-key (kbd "C-S-n") 'my-flymake-show-next-error)
+(global-set-key (kbd "C-c e") 'my-flymake-show-next-error)
 
 (defun my-flymake-show-prev-error()
   (interactive)
@@ -1221,5 +1231,5 @@
 
 ; http://d.hatena.ne.jp/rubikitch/20081230/pointundo
 (require 'point-undo)
-(define-key global-map [f7] 'point-undo)
-(define-key global-map [S-f7] 'point-redo)
+(define-key global-map (kbd "C--") 'point-undo)
+(define-key global-map (kbd "C-+") 'point-redo)
