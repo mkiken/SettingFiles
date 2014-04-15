@@ -2,7 +2,7 @@
 
 [user]
 	name = mkiken
-	email = mori9@is.titech.ac.jp
+	email = mkiken0@gmail.com
 [push]
 	default = matching
 
@@ -37,9 +37,9 @@
 [pager]
 	; log = diff-highlight | less
 	; show = diff-highlight | less
-	log = /usr/local/Cellar/git/1.8.5.2/share/git-core/contrib/diff-highlight/diff-highlight | less
-	show = /usr/local/Cellar/git/1.8.5.2/share/git-core/contrib/diff-highlight/diff-highlight | less
-	diff = /usr/local/Cellar/git/1.8.5.2/share/git-core/contrib/diff-highlight/diff-highlight | less
+	log = /usr/local/Cellar/git/1.9.1/share/git-core/contrib/diff-highlight/diff-highlight | less
+	show = /usr/local/Cellar/git/1.9.1/share/git-core/contrib/diff-highlight/diff-highlight | less
+	diff = /usr/local/Cellar/git/1.9.1/share/git-core/contrib/diff-highlight/diff-highlight | less
 
 [color]
 	ui = auto

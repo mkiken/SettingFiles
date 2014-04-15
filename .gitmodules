@@ -58,3 +58,6 @@
 [submodule ".vim/bundle/vimfiler.vim"]
     path = .vim/bundle/vimfiler.vim
     url = https://github.com/Shougo/vimfiler.vim
+[submodule ".emacs.d/elisp/yasnippet"]
+    path = .emacs.d/elisp/yasnippet
+    url = https://github.com/capitaomorte/yasnippet

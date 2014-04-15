@@ -34,82 +34,85 @@
   (define-key global-map (kbd "s-b") 'copy-line)
   (define-key global-map (kbd "s-v") 'my-yank)
 
-; システムへ修飾キーを渡さない設定
-(setq mac-pass-control-to-system nil)
-; (setq mac-pass-command-to-system nil)
-; (setq mac-pass-option-to-system nil)
+  ; システムへ修飾キーを渡さない設定
+  (setq mac-pass-control-to-system nil)
+  ; (setq mac-pass-command-to-system nil)
+  ; (setq mac-pass-option-to-system nil)
 
   ; http://blog.n-z.jp/blog/2013-11-12-cocoa-emacs-ime.html
   (when (boundp 'mac-input-method-parameters)
     ;; ime inline patch
-		(setq default-input-method "MacOSX")
-		;; IMの状態で色を分ける
-		(mac-set-input-method-parameter "com.apple.inputmethod.Kotoeri.Roman" 'cursor-color "OliveDrab4")     ; ことえり ローマ字
-		; (mac-set-input-method-parameter "com.apple.inputmethod.Kotoeri.Roman" 'title "A")     ; ことえり ローマ字
-		(mac-set-input-method-parameter "com.apple.inputmethod.Kotoeri.Japanese" 'cursor-color "LightPink1") ; ことえり 日本語
-		(mac-set-input-method-parameter "com.apple.inputmethod.Kotoeri.Japanese.Katakana" 'cursor-color "LightSkyBlue1") ; ことえり 日本語
-		; (mac-set-input-method-parameter "com.google.inputmethod.Japanese.Roman" 'cursor-color "yellow")   ; Google ローマ字
-		; (mac-set-input-method-parameter "com.google.inputmethod.Japanese.base" 'cursor-color "magenta")   ; Google 日本語
+	(setq default-input-method "MacOSX")
+	;; IMの状態で色を分ける
+	(mac-set-input-method-parameter "com.apple.inputmethod.Kotoeri.Roman" 'cursor-color "OliveDrab4")     ; ことえり ローマ字
+	; (mac-set-input-method-parameter "com.apple.inputmethod.Kotoeri.Roman" 'title "A")     ; ことえり ローマ字
+	(mac-set-input-method-parameter "com.apple.inputmethod.Kotoeri.Japanese" 'cursor-color "LightPink1") ; ことえり 日本語
+	(mac-set-input-method-parameter "com.apple.inputmethod.Kotoeri.Japanese.Katakana" 'cursor-color "LightSkyBlue1") ; ことえり 日本語
+	; (mac-set-input-method-parameter "com.google.inputmethod.Japanese.Roman" 'cursor-color "yellow")   ; Google ローマ字
+	; (mac-set-input-method-parameter "com.google.inputmethod.Japanese.base" 'cursor-color "magenta")   ; Google 日本語
   	;; backslash を優先
-		(mac-translate-from-yen-to-backslash)
-		)
+	(mac-translate-from-yen-to-backslash)
+	)
 
   ;; MacのCommand + 十字キーを有効にする
   ;; http://stackoverflow.com/questions/4351044/binding-m-up-m-down-in-emacs-23-1-1
-	; (global-set-key [s-up] 'beginning-of-buffer)
-	; (global-set-key [s-down] 'end-of-buffer)
-	; (global-set-key [s-left] 'beginning-of-visual-indented-line)
-	; (global-set-key [s-right] 'end-of-visual-line)
+  ; (global-set-key [s-up] 'beginning-of-buffer)
+  ; (global-set-key [s-down] 'end-of-buffer)
+  ; (global-set-key [s-left] 'beginning-of-visual-indented-line)
+  ; (global-set-key [s-right] 'end-of-visual-line)
 
   ;; (global-set-key (kbd "M-<left>")  'windmove-left)
+
+  ; http://insideflag.blogspot.jp/2012/10/homebrewcocoa-emacs-242.html
+  (setq ns-pop-up-frames nil) ;; 新しいウィンドウでファイルを開かない
 
   ;; font settings
   (when (>= emacs-major-version 23)
 	(setq fixed-width-use-QuickDraw-for-ascii t)
 	(setq mac-allow-anti-aliasing t)
 	(when (display-graphic-p)
-		(set-face-attribute 'default nil
-												:family "monaco"
-												:height 120)
-		(set-fontset-font
-	 		(frame-parameter nil 'font)
-	 		'japanese-jisx0208
-	 		'("Hiragino Maru Gothic Pro" . "iso10646-1"))
-		(set-fontset-font
-	 		(frame-parameter nil 'font)
-	 		'japanese-jisx0212
-	 		'("Hiragino Maru Gothic Pro" . "iso10646-1"))
-		(set-fontset-font
-	 		(frame-parameter nil 'font)
-	 		'katakana-jisx0201
-	 		'("Hiragino Maru Gothic Pro" . "iso10646-1"))
-	 	;; Unicode フォント
-		(set-fontset-font
-	 		(frame-parameter nil 'font)
-	 		'mule-unicode-0100-24ff
-	 		'("monaco" . "iso10646-1"))
-		;; キリル，ギリシア文字設定
-		;; 注意： この設定だけでは古代ギリシア文字、コプト文字は表示できない
-		;; http://socrates.berkeley.edu/~pinax/greekkeys/NAUdownload.html が必要
-		;; キリル文字
-		(set-fontset-font
-	 		(frame-parameter nil 'font)
-	 		'cyrillic-iso8859-5
-	 		'("monaco" . "iso10646-1"))
-		;; ギリシア文字
-		(set-fontset-font
-	 		(frame-parameter nil 'font)
-	 		'greek-iso8859-7
-	 		'("monaco" . "iso10646-1"))
-		(setq face-font-rescale-alist
-		  		'(("^-apple-hiragino.*" . 1.1)
-						(".*osaka-bold.*" . 1.1)
-						(".*osaka-medium.*" . 1.1)
-						(".*courier-bold-.*-mac-roman" . 0.9)
-						(".*monaco cy-bold-.*-mac-cyrillic" . 0.8)
-						(".*monaco-bold-.*-mac-roman" . 0.8)
-						("-cdac$" . 1.2)))
-	 	)
+	  (set-face-attribute 'default nil
+						  :family "monaco"
+						  :height 120)
+	  (set-fontset-font
+	 	(frame-parameter nil 'font)
+	 	'japanese-jisx0208
+	 	'("Hiragino Maru Gothic Pro" . "iso10646-1"))
+	  (set-fontset-font
+	 	(frame-parameter nil 'font)
+	 	'japanese-jisx0212
+	 	'("Hiragino Maru Gothic Pro" . "iso10646-1"))
+	  (set-fontset-font
+	 	(frame-parameter nil 'font)
+	 	'katakana-jisx0201
+	 	'("Hiragino Maru Gothic Pro" . "iso10646-1"))
+	  ;; Unicode フォント
+	  (set-fontset-font
+	 	(frame-parameter nil 'font)
+	 	'mule-unicode-0100-24ff
+	 	'("monaco" . "iso10646-1"))
+	  ;; キリル，ギリシア文字設定
+	  ;; 注意： この設定だけでは古代ギリシア文字、コプト文字は表示できない
+	  ;; http://socrates.berkeley.edu/~pinax/greekkeys/NAUdownload.html が必要
+	  ;; キリル文字
+	  (set-fontset-font
+	 	(frame-parameter nil 'font)
+	 	'cyrillic-iso8859-5
+	 	'("monaco" . "iso10646-1"))
+	  ;; ギリシア文字
+	  (set-fontset-font
+	 	(frame-parameter nil 'font)
+	 	'greek-iso8859-7
+	 	'("monaco" . "iso10646-1"))
+	  (setq face-font-rescale-alist
+		  	'(("^-apple-hiragino.*" . 1.1)
+			  (".*osaka-bold.*" . 1.1)
+			  (".*osaka-medium.*" . 1.1)
+			  (".*courier-bold-.*-mac-roman" . 0.9)
+			  (".*monaco cy-bold-.*-mac-cyrillic" . 0.8)
+			  (".*monaco-bold-.*-mac-roman" . 0.8)
+			  ("-cdac$" . 1.2)))
+	  )
 	)
   )
 
@@ -147,16 +150,16 @@
 (setq make-backup-files t)
 
 (setq
-	 backup-by-copying t      ; don't clobber symlinks
-	 backup-directory-alist
-		'(("." . "~/.backup/emacs/backup/"))    ; don't litter my fs tree
-	 delete-old-versions t
-	 kept-new-versions 3
-	 kept-old-versions 2
-	 version-control t)       ; use versioned backups
+  backup-by-copying t      ; don't clobber symlinks
+  backup-directory-alist
+  '(("." . "~/.backup/emacs/backup/"))    ; don't litter my fs tree
+  delete-old-versions t
+  kept-new-versions 3
+  kept-old-versions 2
+  version-control t)       ; use versioned backups
 
 (setq auto-save-file-name-transforms
-	`((".*", (expand-file-name "~/.backup/emacs/autosave/") t)))
+	  `((".*", (expand-file-name "~/.backup/emacs/autosave/") t)))
 
 ; http://stackoverflow.com/questions/5738170/why-does-emacs-create-temporary-symbolic-links-for-modified-files
 (setq create-lockfiles nil)
@@ -177,17 +180,17 @@
 (global-set-key (kbd "C-j") 'newline-from-anywhere)
 
 
-	(global-set-key (kbd "C-<left>")  'windmove-left)
-	(global-set-key (kbd "C-<left>")  'windmove-left)
-	(global-set-key (kbd "C-<left>")  'windmove-left)
-	(global-set-key (kbd "C-<left>")  'windmove-left)
+(global-set-key (kbd "C-<left>")  'windmove-left)
+(global-set-key (kbd "C-<left>")  'windmove-left)
+(global-set-key (kbd "C-<left>")  'windmove-left)
+(global-set-key (kbd "C-<left>")  'windmove-left)
 
 ;; http://dev.ariel-networks.com/wp/documents/aritcles/emacs/part16
 ;;範囲指定していないとき、C-wで前の単語を削除
 (defadvice kill-region (around kill-word-or-kill-region activate)
-  (if (and (interactive-p) transient-mark-mode (not mark-active))
-      (backward-kill-word 1)
-    ad-do-it))
+           (if (and (interactive-p) transient-mark-mode (not mark-active))
+             (backward-kill-word 1)
+             ad-do-it))
 ;; minibuffer用
 (define-key minibuffer-local-completion-map "\C-w" 'backward-kill-word)
 ;; カーソル位置の単語を削除
@@ -195,17 +198,17 @@
   (interactive)
   (let ((char (char-to-string (char-after (point)))))
     (cond
-     ((string= " " char) (delete-horizontal-space))
-     ((string-match "[\t\n -@\[-`{-~]" char) (kill-word 1))
-     (t (forward-char) (backward-word) (kill-word 1)))))
+      ((string= " " char) (delete-horizontal-space))
+      ((string-match "[\t\n -@\[-`{-~]" char) (kill-word 1))
+      (t (forward-char) (backward-word) (kill-word 1)))))
 (global-set-key "\M-d" 'kill-word-at-point)
 
 ;; kill-lineで行が連結したときにインデントを減らす
 (defadvice kill-line (before kill-line-and-fixup activate)
-  (when (and (not (bolp)) (eolp))
-    (forward-char)
-    (fixup-whitespace)
-    (backward-char)))
+           (when (and (not (bolp)) (eolp))
+             (forward-char)
+             (fixup-whitespace)
+             (backward-char)))
 
 ; http://macemacsjp.sourceforge.jp/index.php?CocoaEmacs#fc72ad9e
 ; フォントサイズ変更
@@ -264,13 +267,13 @@
 ; http://qiita.com/itiut@github/items/4d74da2412a29ef59c3a
 (require 'whitespace)
 (setq whitespace-style '(face           ; faceで可視化
-                         trailing       ; 行末
-                         tabs           ; タブ
-                         spaces         ; スペース
-                         empty          ; 先頭/末尾の空行
-                         space-mark     ; 表示のマッピング
-                         tab-mark
-                         ))
+                          trailing       ; 行末
+                          tabs           ; タブ
+                          spaces         ; スペース
+                          empty          ; 先頭/末尾の空行
+                          space-mark     ; 表示のマッピング
+                          tab-mark
+                          ))
 
 (setq whitespace-display-mappings
       '((space-mark ?\u3000 [?\u25a1])
@@ -297,21 +300,21 @@
 ;; http://d.hatena.ne.jp/kakurasan/20070702/p1
 
 (add-hook 'dired-load-hook
-  '(lambda ()
-    ;; ディレクトリを再帰的にコピー可能にする
-    (setq dired-recursive-copies 'always)
-    ;; ディレクトリを再帰的に削除可能にする(使用する場合は注意)
-    ;(setq dired-recursive-deletes 'always)
-    ;; lsのオプション 「l」(小文字のエル)は必須
-    (setq dired-listing-switches "-Flha") ; 「.」と「..」が必要な場合
-    ;(setq dired-listing-switches "-GFlhA") ; グループ表示が不要な場合
-    ;(setq dired-listing-switches "-FlhA")
-    ;; find-dired/find-grep-diredで、条件に合ったファイルをリストする形式
-    ;(setq find-ls-option '("-print0 | xargs -0 ls -Flhatd"))
-    ;; 無効コマンドdired-find-alternate-fileを有効にする
-    (put 'dired-find-alternate-file 'disabled nil)
-  )
-)
+          '(lambda ()
+             ;; ディレクトリを再帰的にコピー可能にする
+             (setq dired-recursive-copies 'always)
+             ;; ディレクトリを再帰的に削除可能にする(使用する場合は注意)
+             ;(setq dired-recursive-deletes 'always)
+             ;; lsのオプション 「l」(小文字のエル)は必須
+             (setq dired-listing-switches "-Flha") ; 「.」と「..」が必要な場合
+             ;(setq dired-listing-switches "-GFlhA") ; グループ表示が不要な場合
+             ;(setq dired-listing-switches "-FlhA")
+             ;; find-dired/find-grep-diredで、条件に合ったファイルをリストする形式
+             ;(setq find-ls-option '("-print0 | xargs -0 ls -Flhatd"))
+             ;; 無効コマンドdired-find-alternate-fileを有効にする
+             (put 'dired-find-alternate-file 'disabled nil)
+             )
+          )
 ;; ファイル・ディレクトリ名のリストを編集することで、まとめてリネーム可能にする
 (require 'wdired)
 ;; wdiredモードに入るキー(下の例では「r」)
@@ -337,11 +340,12 @@
 (fset 'yes-or-no-p 'y-or-n-p)
 
 ;; GUIで直接ファイルを開いた場合フレームを作成しない
-(add-hook 'before-make-frame-hook
-          (lambda ()
-            (when (eq tabbar-mode t)
-              (switch-to-buffer (buffer-name))
-              (delete-this-frame))))
+; (add-hook 'before-make-frame-hook
+; (lambda ()
+; (when (eq tabbar-mode t)
+; (switch-to-buffer (buffer-name))
+; (delete-this-frame))))
+
 
 ;; scroll settings.
 ;; http://marigold.sakura.ne.jp/devel/emacs/scroll/index.html
@@ -370,8 +374,8 @@
 ; http://www.masteringemacs.org/articles/2010/11/14/disabling-prompts-emacs/
 (setq confirm-nonexistent-file-or-buffer nil)
 (setq kill-buffer-query-functions
-  (remq 'process-kill-buffer-query-function
-         kill-buffer-query-functions))
+      (remq 'process-kill-buffer-query-function
+            kill-buffer-query-functions))
 
 (setq revert-without-query '(".*"))
 
@@ -394,7 +398,7 @@
 				  (line-beginning-position (+ 1 arg)))
   (message "%d line%s copied." arg (if (= 1 arg) "" "s")))
 
- (defun copy-oneline (arg)
+(defun copy-oneline (arg)
   "Copy line"
   (interactive "p")
   (kill-ring-save (line-beginning-position)
@@ -435,19 +439,19 @@
   (let ((vhead-pos (save-excursion (progn (beginning-of-visual-line) (point))))
         (head-pos (save-excursion (progn (beginning-of-line) (point)))))
     (cond
-     ;; 物理行の1行目にいる場合
-     ((eq vhead-pos head-pos)
-      (if (string-match
-           "^[ \t]+$"
-           (buffer-substring-no-properties vhead-pos current-point))
-          (beginning-of-visual-line)
-        (back-to-indentation)))
-     ;; 物理行の2行目以降の先頭にいる場合
-     ((eq vhead-pos current-point)
-      (backward-char)
-      (beginning-of-visual-indented-line (point)))
-     ;; 物理行の2行目以降の途中にいる場合
-     (t (beginning-of-visual-line)))))
+      ;; 物理行の1行目にいる場合
+      ((eq vhead-pos head-pos)
+       (if (string-match
+             "^[ \t]+$"
+             (buffer-substring-no-properties vhead-pos current-point))
+         (beginning-of-visual-line)
+         (back-to-indentation)))
+      ;; 物理行の2行目以降の先頭にいる場合
+      ((eq vhead-pos current-point)
+       (backward-char)
+       (beginning-of-visual-indented-line (point)))
+      ;; 物理行の2行目以降の途中にいる場合
+      (t (beginning-of-visual-line)))))
 
 (global-set-key "\C-a" 'beginning-of-visual-indented-line)
 (global-set-key "\C-e" 'end-of-visual-line)
@@ -475,26 +479,26 @@
 ;; VC++のC-f3(FindNextSelected)みたいなiSearch
 ;; http://dev.ariel-networks.com/articles/emacs/part5/
 (defadvice isearch-mode (around isearch-mode-default-string (forward &optional regexp op-fun recursive-edit word-p) activate)
-  (if (and transient-mark-mode mark-active (not (eq (mark) (point))))
-      (progn
-        (isearch-update-ring (buffer-substring-no-properties (mark) (point)))
-        (deactivate-mark)
-        ad-do-it
-        (if (not forward)
-            (isearch-repeat-backward)
-          (goto-char (mark))
-          (isearch-repeat-forward)))
-    ad-do-it))
+           (if (and transient-mark-mode mark-active (not (eq (mark) (point))))
+             (progn
+               (isearch-update-ring (buffer-substring-no-properties (mark) (point)))
+               (deactivate-mark)
+               ad-do-it
+               (if (not forward)
+                 (isearch-repeat-backward)
+                 (goto-char (mark))
+                 (isearch-repeat-forward)))
+             ad-do-it))
 
 
 ;;http://flex.ee.uec.ac.jp/texi/faq-jp/faq-jp_130.html
 ;; By an unknown contributor
 ; (defun match-paren (arg)
-  ; "Go to the matching parenthesis if on parenthesis otherwise insert %."
-  ; (interactive "p")
-  ; (cond ((looking-at "\\s\(") (forward-list 1) (backward-char 1))
-		; ((looking-at "\\s\)") (forward-char 1) (backward-list 1))
-		; (t (self-insert-command (or arg 1)))))
+; "Go to the matching parenthesis if on parenthesis otherwise insert %."
+; (interactive "p")
+; (cond ((looking-at "\\s\(") (forward-list 1) (backward-char 1))
+; ((looking-at "\\s\)") (forward-char 1) (backward-list 1))
+; (t (self-insert-command (or arg 1)))))
 ; (global-set-key C-](kbd "C-]") 'match-paren)
 
 ; https://gist.github.com/takehiko/4107554
@@ -532,57 +536,57 @@
               -1))
         c)
     (catch 'end-flag
-      (while t
-        (message "size[%dx%d]"
-                 (window-width) (window-height))
-        (setq c (read-char))
-        (cond ((= c ?l)
-               (enlarge-window-horizontally dx))
-              ((= c ?h)
-               (shrink-window-horizontally dx))
-              ((= c ?j)
-               (enlarge-window dy))
-              ((= c ?k)
-               (shrink-window dy))
-              ;; otherwise
-              (t
-               (message "Quit")
-               (throw 'end-flag t)))))))
+           (while t
+                  (message "size[%dx%d]"
+                           (window-width) (window-height))
+                  (setq c (read-char))
+                  (cond ((= c ?l)
+                         (enlarge-window-horizontally dx))
+                        ((= c ?h)
+                         (shrink-window-horizontally dx))
+                        ((= c ?j)
+                         (enlarge-window dy))
+                        ((= c ?k)
+                         (shrink-window dy))
+                        ;; otherwise
+                        (t
+                          (message "Quit")
+                          (throw 'end-flag t)))))))
 (global-set-key "\C-c\C-r" 'window-resizer)
 
 ; http://d.hatena.ne.jp/a_bicky/20131221/1387623058
 (if (>= emacs-major-version 24)
   (progn
-   ; 括弧の対応
-   (electric-pair-mode t)
-   (defadvice electric-pair-post-self-insert-function
-              (around electric-pair-post-self-insert-function-around activate)
-              "Don't insert the closing pair in comments or strings"
-              (unless (nth 8 (save-excursion (syntax-ppss (1- (point)))))
-                ad-do-it))
+    ; 括弧の対応
+    (electric-pair-mode t)
+    (defadvice electric-pair-post-self-insert-function
+               (around electric-pair-post-self-insert-function-around activate)
+               "Don't insert the closing pair in comments or strings"
+               (unless (nth 8 (save-excursion (syntax-ppss (1- (point)))))
+                 ad-do-it))
 
-   )
+    )
   ;; Setup the alternative manually.
   (progn
-   ; http://metalphaeton.blogspot.jp/2011/04/emacs.html
-   (global-set-key (kbd "(") 'skeleton-pair-insert-maybe)
-   (global-set-key (kbd "{") 'skeleton-pair-insert-maybe)
-   (global-set-key (kbd "[") 'skeleton-pair-insert-maybe)
-   (global-set-key (kbd "\"") 'skeleton-pair-insert-maybe)
-   (setq skeleton-pair 1)
-   )
+    ; http://metalphaeton.blogspot.jp/2011/04/emacs.html
+    (global-set-key (kbd "(") 'skeleton-pair-insert-maybe)
+    (global-set-key (kbd "{") 'skeleton-pair-insert-maybe)
+    (global-set-key (kbd "[") 'skeleton-pair-insert-maybe)
+    (global-set-key (kbd "\"") 'skeleton-pair-insert-maybe)
+    (setq skeleton-pair 1)
+    )
   )
 
 ; http://www.emacswiki.org/emacs/AutoPairs
 
 ;起動時のフレームサイズを設定する
 (setq initial-frame-alist
-			(append (list
-;        '(width . 130)
-;        '(height . 35)
-		'(alpha . (98 95)) ;; 透明度。(アクティブ時, 非アクティブ時)
+	  (append (list
+                ;        '(width . 130)
+                ;        '(height . 35)
+		        '(alpha . (98 95)) ;; 透明度。(アクティブ時, 非アクティブ時)
 				)
-				initial-frame-alist))
+			  initial-frame-alist))
 (setq default-frame-alist initial-frame-alist)
 
 ;;http://www.bookshelf.jp/soft/meadow_23.html#SEC231
@@ -592,12 +596,12 @@
 ;; ffap を使っていて find-file-at-point を起動した場合に、カーソル位置の UNC が正しく
 ;; 取り込まれないことの対策
 ; (defadvice helm-completing-read-default-1 (around ad-helm-completing-read-default-1 activate)
-  ; (if (listp (ad-get-arg 4))
-      ; (ad-set-arg 4 (car (ad-get-arg 4))))
-  ; ;; (cl-letf (((symbol-function 'regexp-quote)
-  ; (letf (((symbol-function 'regexp-quote)
-          ; (symbol-function 'identity)))
-    ; ad-do-it))
+; (if (listp (ad-get-arg 4))
+; (ad-set-arg 4 (car (ad-get-arg 4))))
+; ;; (cl-letf (((symbol-function 'regexp-quote)
+; (letf (((symbol-function 'regexp-quote)
+; (symbol-function 'identity)))
+; ad-do-it))
 
 ;; ツールバーを非表示
 ;; M-x tool-bar-mode で表示非表示を切り替えられる
@@ -632,74 +636,70 @@
 ; 一応export TERM=xterm-256colorでいけるけど・・・？
 ; (when window-system
 (when 1
- ; (load "~/.emacs.d/conf/window-system")
- ;; Color Scheme
-(add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
-; (load-theme 'my-monokai t)
-;; (load-theme 'monokai t)
-;; (load-theme 'molokai t)
-; (load-theme 'monokai-dark-soda t)
-;; (load-theme 'zenburn t)
-;; (load-theme 'solarized-light t)
-; (load-theme 'solarized-dark t)
-; (load-theme 'twilight-anti-bright t)
-; (load-theme 'tomorrow-night-paradise t)
-;; (load-theme 'tomorrow-night-blue t)
-(load-theme 'tomorrow-night-bright t)
-; (load-theme 'tomorrow-night-eighties t)
-; (load-theme 'tomorrow-night t)
-;; (load-theme 'tomorrow t)
-;; (load-theme 'twilight-bright t)
+  ; (load "~/.emacs.d/conf/window-system")
+  ;; Color Scheme
+  (add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
+  ; (load-theme 'my-monokai t)
+  ;; (load-theme 'monokai t)
+  ;; (load-theme 'molokai t)
+  ; (load-theme 'monokai-dark-soda t)
+  ;; (load-theme 'zenburn t)
+  ;; (load-theme 'solarized-light t)
+  ; (load-theme 'solarized-dark t)
+  ; (load-theme 'twilight-anti-bright t)
+  ; (load-theme 'tomorrow-night-paradise t)
+  ;; (load-theme 'tomorrow-night-blue t)
+  (load-theme 'tomorrow-night-bright t)
+  ; (load-theme 'tomorrow-night-eighties t)
+  ; (load-theme 'tomorrow-night t)
+  ;; (load-theme 'tomorrow t)
+  ;; (load-theme 'twilight-bright t)
 
-; http://www.tech-thoughts-blog.com/2013/08/make-emacs-load-random-theme-at-startup.html
-(defun load-random-theme ()
-  "Load any random theme from the available ones."
-  (interactive)
+  ; http://www.tech-thoughts-blog.com/2013/08/make-emacs-load-random-theme-at-startup.html
+  (defun load-random-theme ()
+    "Load any random theme from the available ones."
+    (interactive)
 
-  ;; disable any previously set theme
-  (if (boundp 'theme-of-the-day)
+    ;; disable any previously set theme
+    (if (boundp 'theme-of-the-day)
       (progn
-          (disable-theme theme-of-the-day)
-	  (makunbound 'theme-of-the-day)))
+        (disable-theme theme-of-the-day)
+	    (makunbound 'theme-of-the-day)))
+    (defvar themes-list (custom-available-themes))
+    (defvar theme-of-the-day (nth (random (length themes-list))
+				                  themes-list))
+    (load-theme (princ theme-of-the-day) t))
 
-  (defvar themes-list (custom-available-themes))
-  (defvar theme-of-the-day (nth (random (length themes-list))
-				themes-list))
-  (load-theme (princ theme-of-the-day) t))
+  ; (load-random-theme)
 
-; (load-random-theme)
-
-; (defvar my/bg-color "#232323")
-; 背景に合わせる
-(defvar my/bg-color nil)
-(set-face-attribute 'whitespace-trailing nil
-                    :background my/bg-color
-                    ; :foreground "DeepPink"
-                    ; :foreground "gray22"
-                    ; :foreground "gray22"
-                    ; :underline t
-                    )
-(set-face-attribute 'whitespace-tab nil
-										:background my/bg-color
-										; :background nil
-                    ; :foreground "LightSkyBlue"
-                    ; :foreground "gray21"
-                    ; :underline t
-                    )
-(set-face-attribute 'whitespace-space nil
-                    :background my/bg-color
-                    ; :foreground "GreenYellow"
-                    ; :foreground "gray20"
-                    ; :weight 'bold
-                    )
-(set-face-attribute 'whitespace-empty nil
-                    :background my/bg-color
-                    ; :foreground "gray19"
-                    )
-
-
-
- )
+  ; (defvar my/bg-color "#232323")
+  ; 背景に合わせる
+  (defvar my/bg-color nil)
+  (set-face-attribute 'whitespace-trailing nil
+                      :background my/bg-color
+                      ; :foreground "DeepPink"
+                      ; :foreground "gray22"
+                      ; :foreground "gray22"
+                      ; :underline t
+                      )
+  (set-face-attribute 'whitespace-tab nil
+					  :background my/bg-color
+					  ; :background nil
+                      ; :foreground "LightSkyBlue"
+                      ; :foreground "gray21"
+                      ; :underline t
+                      )
+  (set-face-attribute 'whitespace-space nil
+                      :background my/bg-color
+                      ; :foreground "GreenYellow"
+                      ; :foreground "gray20"
+                      ; :weight 'bold
+                      )
+  (set-face-attribute 'whitespace-empty nil
+                      :background my/bg-color
+                      ; :foreground "gray19"
+                      )
+  )
 
 ;; for wc mode
 ;; http://www.emacswiki.org/emacs/WordCountMode
@@ -718,19 +718,19 @@
 ; (global-set-key (kbd "C-c +") 'evil-numbers/inc-at-pt)
 ; (global-set-key (kbd "C-c -") 'evil-numbers/dec-at-pt)
 
-	; http://qiita.com/syohex/items/56cf3b7f7d9943f7a7ba
+; http://qiita.com/syohex/items/56cf3b7f7d9943f7a7ba
 (require 'anzu)
 (global-anzu-mode +1)
 (set-face-attribute 'anzu-mode-line nil
-										; :foreground "black" :weight 'normal)
-										:foreground "RoyalBlue1" :weight 'normal)
-										; :foreground "selectedKnobColor" :weight 'normal)
-                    ; :foreground "snow1" :weight 'normal)
+					; :foreground "black" :weight 'normal)
+					:foreground "RoyalBlue1" :weight 'normal)
+; :foreground "selectedKnobColor" :weight 'normal)
+; :foreground "snow1" :weight 'normal)
 (custom-set-variables
- '(anzu-mode-lighter "")
- '(anzu-deactivate-region t)
- '(anzu-search-threshold 1000)
- '(anzu-replace-to-string-separator " => "))
+  '(anzu-mode-lighter "")
+  '(anzu-deactivate-region t)
+  '(anzu-search-threshold 1000)
+  '(anzu-replace-to-string-separator " => "))
 (global-set-key (kbd "M-%") 'anzu-query-replace)
 (global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp)
 
@@ -752,8 +752,8 @@
 (setq tabbar-buffer-groups-function nil)
 ;; 左側のボタンを消す
 (dolist (btn '(tabbar-buffer-home-button
-               tabbar-scroll-left-button
-               tabbar-scroll-right-button))
+                tabbar-scroll-left-button
+                tabbar-scroll-right-button))
   (set btn (cons (cons "" nil)
                  (cons "" nil))))
 ;; M-4 で タブ表示、非表示
@@ -762,13 +762,13 @@
 ;; *tabbar-display-buffers*以外の*がつくバッファは表示しない
 (setq *tabbar-display-buffers* '("*scratch*" "*Messages*"))
 (setq tabbar-buffer-list-function
-       (lambda ()
-         (remove-if
+      (lambda ()
+        (remove-if
           (lambda(buffer)
             (and (not
-                (loop for name in *tabbar-display-buffers*
-                       thereis (string-equal (buffer-name buffer) name))
-			) (find (aref (buffer-name buffer) 0) " *")))
+                   (loop for name in *tabbar-display-buffers*
+                         thereis (string-equal (buffer-name buffer) name))
+			       ) (find (aref (buffer-name buffer) 0) " *")))
           (buffer-list))))
 
 ;; タブ同士の間隔
@@ -776,21 +776,21 @@
 (setq tabbar-separator '(0.7))
 ;; 外観変更
 (set-face-attribute
- 'tabbar-default nil
- :family (face-attribute 'default :family)
- :background (face-attribute 'mode-line-inactive :background)
- :height 0.9)
+  'tabbar-default nil
+  :family (face-attribute 'default :family)
+  :background (face-attribute 'mode-line-inactive :background)
+  :height 0.9)
 (set-face-attribute
- 'tabbar-unselected nil
- :background (face-attribute 'mode-line-inactive :background)
- ; :foreground "black"
- :foreground (face-attribute 'mode-line-inactive :foreground)
- :box nil)
+  'tabbar-unselected nil
+  :background (face-attribute 'mode-line-inactive :background)
+  ; :foreground "black"
+  :foreground (face-attribute 'mode-line-inactive :foreground)
+  :box nil)
 (set-face-attribute
- 'tabbar-selected nil
- :background (face-attribute 'mode-line :background)
- :foreground (face-attribute 'mode-line :foreground)
- :box nil)
+  'tabbar-selected nil
+  :background (face-attribute 'mode-line :background)
+  :foreground (face-attribute 'mode-line :foreground)
+  :box nil)
 
 
 ;; HideShow Mode
@@ -808,7 +808,7 @@
 ;; https://github.com/m2ym/direx-el
 ; (require 'direx)
 ; (push '(direx:direx-mode :position left :width 25 :dedicated t)
-      ; popwin:special-display-config)
+; popwin:special-display-config)
 ; (global-set-key (kbd "C-c f") 'direx:jump-to-directory-other-window)
 
 ;; emacs-nav
@@ -832,13 +832,13 @@
 ;; for TeX
 (add-hook 'tex-mode-hook
           '(lambda ()
-			 			 (local-set-key "\C-j" 'newline-from-anywhere)
-						 (local-set-key (kbd "$") 'skeleton-pair-insert-maybe)
-						 (setq ac-auto-start nil) ;Texモードでは自動補完OFF
-						 ; (hs-minor-mode)
-						 ; (local-set-key "\C-c/" 'hs-toggle-hiding)
-						 )
-					)
+			 (local-set-key "\C-j" 'newline-from-anywhere)
+			 (local-set-key (kbd "$") 'skeleton-pair-insert-maybe)
+			 (setq ac-auto-start nil) ;Texモードでは自動補完OFF
+			 ; (hs-minor-mode)
+			 ; (local-set-key "\C-c/" 'hs-toggle-hiding)
+			 )
+		  )
 
 ;; for Lisp
 ;; (add-hook 'lisp-mode-hook       'hs-minor-mode)
@@ -863,19 +863,19 @@
 ;; for org
 (add-hook 'org-mode-hook
           '(lambda ()
-			 			 (local-set-key "\C-c e" 'org-show-block-all)
-						 )
-					)
+			 (local-set-key "\C-c e" 'org-show-block-all)
+			 )
+		  )
 
 
 ; http://www.haskell.org/haskellwiki/Emacs/Code_folding
 ;; folding for all rows, starting on the current column
-   (defun toggle-selective-display (column)
-     (interactive "P")
-     (set-selective-display
-      (or column
-          (unless selective-display
-            (1+ (current-column))))))
+(defun toggle-selective-display (column)
+  (interactive "P")
+  (set-selective-display
+    (or column
+        (unless selective-display
+          (1+ (current-column))))))
 
 ;;for Scala
 (add-to-list 'load-path "~/.emacs.d/elisp/scala-mode2")
@@ -886,26 +886,26 @@
 
 ; http://lists.gnu.org/archive/html/help-gnu-emacs/2005-04/msg00767.html
 (defadvice save-place-alist-to-file
-  (around save-place-alist-to-file-force-print-length activate)
-  (let ((print-level nil)
-        (print-length nil))
-    ad-do-it))
+           (around save-place-alist-to-file-force-print-length activate)
+           (let ((print-level nil)
+                 (print-length nil))
+             ad-do-it))
 
 ;;for vimrc
 ;;http://stackoverflow.com/questions/4236808/syntax-highlight-a-vimrc-file-in-emacs
 (define-generic-mode 'vimrc-generic-mode
-    '("\"")
-    '("if" "endif" "let" "set" "autocmd")
-    '(("^[\t ]*:?\\(!\\|ab\\|map\\|unmap\\)[^\r\n\"]*\"[^\r\n\"]*\\(\"[^\r\n\"]*\"[^\r\n\"]*\\)*$"
-       (0 font-lock-warning-face))
-      ("\\(^\\|[\t ]\\)\\(\".*\\)$"
-      (2 font-lock-comment-face))
-      ("\"\\([^\n\r\"\\]\\|\\.\\)*\""
-       (0 font-lock-string-face)))
-    '("/vimrc\\'" "\\.vim\\(rc\\)?\\'")
-    '((lambda ()
-        (modify-syntax-entry ?\" ".")))
-    "Generic mode for Vim configuration files.")
+                     '("\"")
+                     '("if" "endif" "let" "set" "autocmd")
+                     '(("^[\t ]*:?\\(!\\|ab\\|map\\|unmap\\)[^\r\n\"]*\"[^\r\n\"]*\\(\"[^\r\n\"]*\"[^\r\n\"]*\\)*$"
+                        (0 font-lock-warning-face))
+                       ("\\(^\\|[\t ]\\)\\(\".*\\)$"
+                        (2 font-lock-comment-face))
+                       ("\"\\([^\n\r\"\\]\\|\\.\\)*\""
+                        (0 font-lock-string-face)))
+                     '("/vimrc\\'" "\\.vim\\(rc\\)?\\'")
+                     '((lambda ()
+                         (modify-syntax-entry ?\" ".")))
+                     "Generic mode for Vim configuration files.")
 
 
 
@@ -937,16 +937,15 @@
 ; (auto-install-update-emacswiki-package-name t)
 ; (auto-install-compatibility-setup)             ; 互換性確保
 
-
 ; for package.el
 ; Emacs24
 ; http://ongaeshi.hatenablog.com/entry/20120613/1339607400
 ;; 実行時だけ有効にする
 ; (progn
-  ; (switch-to-buffer
-   ; (url-retrieve-synchronously
-    ; "https://raw.github.com/milkypostman/melpa/master/melpa.el"))
-  ; (package-install-from-buffer  (package-buffer-info) 'single))
+; (switch-to-buffer
+; (url-retrieve-synchronously
+; "https://raw.github.com/milkypostman/melpa/master/melpa.el"))
+; (package-install-from-buffer  (package-buffer-info) 'single))
 ; (require 'package)
 ; ; Add package-archives
 ; (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/") t)
@@ -967,9 +966,9 @@
 (require 'auto-complete)
 ; http://d.hatena.ne.jp/IMAKADO/20090813/1250130343
 (defadvice ac-candidate-words-in-buffer (after remove-word-contain-japanese activate)
-  (let ((contain-japanese (lambda (s) (string-match (rx (category japanese)) s))))
-    (setq ad-return-value
-          (remove-if contain-japanese ad-return-value))))
+           (let ((contain-japanese (lambda (s) (string-match (rx (category japanese)) s))))
+             (setq ad-return-value
+                   (remove-if contain-japanese ad-return-value))))
 ; http://stackoverflow.com/questions/8095715/emacs-auto-complete-mode-at-startup
 (defun auto-complete-mode-maybe ()
   "No maybe for you. Only AC!"
@@ -1056,19 +1055,19 @@
 (global-unset-key "\C-c n")
 
 (smartrep-define-key global-map "C-c n"
-	'(("C-t"      . 'mc/mark-next-like-this)
-		("n"        . 'mc/mark-next-like-this)
-		("p"        . 'mc/mark-previous-like-this)
-		("m"        . 'mc/mark-more-like-this-extended)
-		("u"        . 'mc/unmark-next-like-this)
-		("U"        . 'mc/unmark-previous-like-this)
-		("s"        . 'mc/skip-to-next-like-this)
-		("S"        . 'mc/skip-to-previous-like-this)
-		("*"        . 'mc/mark-all-like-this)
-		("d"        . 'mc/mark-all-like-this-dwim)
-		("i"        . 'mc/insert-numbers)
-		("o"        . 'mc/sort-regions)
-		("O"        . 'mc/reverse-regions)))
+	                 '(("C-t"      . 'mc/mark-next-like-this)
+		               ("n"        . 'mc/mark-next-like-this)
+		               ("p"        . 'mc/mark-previous-like-this)
+		               ("m"        . 'mc/mark-more-like-this-extended)
+		               ("u"        . 'mc/unmark-next-like-this)
+		               ("U"        . 'mc/unmark-previous-like-this)
+		               ("s"        . 'mc/skip-to-next-like-this)
+		               ("S"        . 'mc/skip-to-previous-like-this)
+		               ("*"        . 'mc/mark-all-like-this)
+		               ("d"        . 'mc/mark-all-like-this-dwim)
+		               ("i"        . 'mc/insert-numbers)
+		               ("o"        . 'mc/sort-regions)
+		               ("O"        . 'mc/reverse-regions)))
 
 
 ;; http://shnya.jp/blog/?p=477
@@ -1102,8 +1101,8 @@
 ;; http://www.gnu.org/software/emacs/manual/html_mono/flymake.html
 ;; http://www.emacswiki.org/emacs/FlyMake
 (custom-set-faces
- '(flymake-errline ((((class color)) (:underline "red"))))
- '(flymake-warnline ((((class color)) (:underline "blue")))))
+  '(flymake-errline ((((class color)) (:underline "red"))))
+  '(flymake-warnline ((((class color)) (:underline "blue")))))
 
 (setq flymake-no-changes-timeout 5)
 ;;(setq flymake-start-syntax-check-on-newline nil)
@@ -1112,29 +1111,29 @@
 ;;for C++, C
 ; C++モードでは flymakeを有効にする
 (add-hook 'c++-mode-hook
-                  '(lambda ()
-                         (flymake-mode t)))
+          '(lambda ()
+             (flymake-mode t)))
 
 ;; Makefile が無くてもC/C++のチェック
 (defun flymake-simple-generic-init (cmd &optional opts)
   (let* ((temp-file  (flymake-init-create-temp-buffer-copy
-                      'flymake-create-temp-inplace))
+                       'flymake-create-temp-inplace))
          (local-file (file-relative-name
-                      temp-file
-                      (file-name-directory buffer-file-name))))
+                       temp-file
+                       (file-name-directory buffer-file-name))))
     (list cmd (append opts (list local-file)))))
 
 (defun flymake-simple-make-or-generic-init (cmd &optional opts)
   (if (file-exists-p "Makefile")
-      (flymake-simple-make-init)
+    (flymake-simple-make-init)
     (flymake-simple-generic-init cmd opts)))
 
 (defun flymake-c-init ()
   (flymake-simple-make-or-generic-init
-   "gcc"))
+    "gcc"))
 (defun flymake-cc-init ()
   (flymake-simple-make-or-generic-init
-   "g++"))
+    "g++"))
 (push '("\\.c\\'" flymake-c-init) flymake-allowed-file-name-masks)
 (push '("\\.\\(cc\\|cpp\\|C\\|CPP\\|hpp\\)\\'" flymake-cc-init)
       flymake-allowed-file-name-masks)
@@ -1144,9 +1143,9 @@
 (add-hook 'java-mode-hook 'flymake-mode-on)
 (defun flymake-java-init ()
   (flymake-simple-make-init-impl
-   'flymake-create-temp-with-folder-structure nil nil
-   buffer-file-name
-   'flymake-get-java-cmdline))
+    'flymake-create-temp-with-folder-structure nil nil
+    buffer-file-name
+    'flymake-get-java-cmdline))
 (defun flymake-get-java-cmdline (source base-dir)
   (list "javac" (list "-J-Dfile.encoding=utf-8" "-encoding" "utf-8"
 					  source)))
@@ -1154,14 +1153,28 @@
 (add-hook 'java-mode-hook '(lambda () (flymake-mode t)))
 
 ; http://d.hatena.ne.jp/CortYuming/20121226/p1
-  ;; クラッシュするキーバインドを無効に
-  ;; パッチを当てたhomebrew版なら大丈夫
-	; http://blog.n-z.jp/blog/2013-11-12-cocoa-emacs-ime.html
-  ; (global-set-key (kbd "s-p") nil) ; ns-print-buffer
-  ; (global-set-key (kbd "s-S") nil) ; ns-write-file-using-panel
-  ; (global-set-key (kbd "s-o") nil) ; ns-open-file-using-panel
-  ; (setq use-dialog-box nil)
-  ; (setq flymake-gui-warnings-enabled nil)
+;; クラッシュするキーバインドを無効に
+;; パッチを当てたhomebrew版なら大丈夫
+; http://blog.n-z.jp/blog/2013-11-12-cocoa-emacs-ime.html
+; (global-set-key (kbd "s-p") nil) ; ns-print-buffer
+; (global-set-key (kbd "s-S") nil) ; ns-write-file-using-panel
+; (global-set-key (kbd "s-o") nil) ; ns-open-file-using-panel
+(setq use-dialog-box nil)
+; (setq flymake-gui-warnings-enabled nil)
+
+; http://stackoverflow.com/questions/2571436/emacs-annoying-flymake-dialog-box
+;; Overwrite flymake-display-warning so that no annoying dialog box is
+;; used.
+;; This version uses lwarn instead of message-box in the original version.
+;; lwarn will open another window, and display the warning in there.
+; (defun flymake-display-warning (warning)
+  ; "Display a warning to the user, using lwarn"
+  ; (lwarn 'flymake :warning warning))
+;; Using lwarn might be kind of annoying on its own, popping up windows and
+;; what not. If you prefer to recieve the warnings in the mini-buffer, use:
+(defun flymake-display-warning (warning)
+  "Display a warning to the user, using lwarn"
+  (message warning))
 
 ; migemoのあるパスを追加
 ; (setenv "PATH" (concat (getenv "PATH") ":/usr/local/bin"))
@@ -1171,26 +1184,26 @@
 ; ; migemoの設定
 ; ; http://qiita.com/catatsuy/items/c5fa34ead92d496b8a51
 ; (when (and (executable-find "cmigemo")
-					 ; (require 'migemo nil t))
+; (require 'migemo nil t))
 ; ; (when (executable-find "cmigemo")
-	; ; (require 'migemo)
-	; ; (message "bbb")
-	; (setq migemo-options '("-q" "--emacs"))
-	; ; Mac の場合は以下のようになります
-	; (setq migemo-command "/usr/local/bin/cmigemo")
-	; (setq migemo-dictionary "/usr/local/share/migemo/utf-8/migemo-dict")
+; ; (require 'migemo)
+; ; (message "bbb")
+; (setq migemo-options '("-q" "--emacs"))
+; ; Mac の場合は以下のようになります
+; (setq migemo-command "/usr/local/bin/cmigemo")
+; (setq migemo-dictionary "/usr/local/share/migemo/utf-8/migemo-dict")
 
-  ; (setq migemo-user-dictionary nil)
-  ; (setq migemo-regex-dictionary nil)
-  ; (setq migemo-coding-system 'utf-8-unix)
-  ; (load-library "migemo")
-  ; (migemo-init)
-	; ;; emacs 起動時は英数モードから始める
-	; (add-hook 'after-init-hook 'mac-change-language-to-us)
-	; ;; minibuffer 内は英数モードにする
-	; (add-hook 'minibuffer-setup-hook 'mac-change-language-to-us)
-	; ;; [migemo]isearch のとき IME を英数モードにする
-	; (add-hook 'isearch-mode-hook 'mac-change-language-to-us)
+; (setq migemo-user-dictionary nil)
+; (setq migemo-regex-dictionary nil)
+; (setq migemo-coding-system 'utf-8-unix)
+; (load-library "migemo")
+; (migemo-init)
+; ;; emacs 起動時は英数モードから始める
+; (add-hook 'after-init-hook 'mac-change-language-to-us)
+; ;; minibuffer 内は英数モードにする
+; (add-hook 'minibuffer-setup-hook 'mac-change-language-to-us)
+; ;; [migemo]isearch のとき IME を英数モードにする
+; (add-hook 'isearch-mode-hook 'mac-change-language-to-us)
 ; )
 
 ; for rotate text
@@ -1199,8 +1212,8 @@
 (autoload 'rotate-text-backward "rotate-text" nil t)
 ; (global-set-key "\C-^" 'rotate-text)
 ; (global-set-key "C-S-^" 'rotate-text-backward)
-  (define-key global-map (kbd "C-^") 'rotate-text)
-	(define-key global-map (kbd "C-~") 'rotate-text-backward)
+(define-key global-map (kbd "C-^") 'rotate-text)
+(define-key global-map (kbd "C-~") 'rotate-text-backward)
 ; (add-to-list 'rotate-text-symbols '("and" "or"))
 
 ; http://qiita.com/takc923/items/c3d64b55fc4f3a3b0838
@@ -1233,3 +1246,16 @@
 (require 'point-undo)
 (define-key global-map (kbd "C--") 'point-undo)
 (define-key global-map (kbd "C-+") 'point-redo)
+
+(add-to-list 'load-path "~/.emacs.d/elisp/yasnippet")
+(require 'yasnippet)
+(setq yas-snippet-dirs
+      '(
+          ;"~/.emacs.d/snippets"                 ;; personal snippets
+        ; "~/.emacs.d/elisp/some/collection/"           ;; foo-mode and bar-mode snippet collection
+        "~/.emacs.d/elisp/yasnippet/yasmate/snippets" ;; the yasmate collection
+        "~/.emacs.d/elisp/yasnippet/snippets"         ;; the default collection
+        ))
+(yas-global-mode 1)  ;; or M-x yas-reload-all if you've started YASnippet already.
+
+(custom-set-variables '(yas-trigger-key "TAB"))

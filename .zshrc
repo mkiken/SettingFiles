@@ -26,11 +26,17 @@ function git_prompt_stash_count {
   fi
 }
 
+# export LC_CTYPE=ja_JP.UTF-8
+# export LANG=ja_JP.UTF-8
+
+# export LC_CTYPE=UTF-8
+# export LANG=UTF-8
+
 function rprompt-git-current-branch {
   local name st color gitdir action
-  if [[ "$PWD" =~ '/¥.git(/.*)?$' ]]; then
-    return
-  fi
+  # if [[ "$PWD" =~ '/¥.git(/.*)?$' ]]; then
+    # return
+  # fi
   name=$(basename "`git symbolic-ref HEAD 2> /dev/null`")
   if [[ -z $name ]]; then
     return
@@ -52,6 +58,27 @@ function rprompt-git-current-branch {
   echo "::$color$name`git_prompt_stash_count`$action%f%b"
 }
 
+# http://smokycat.info/zsh/262
+function prompt-git-current-branch {
+        local name st color
+        name=`git symbolic-ref HEAD 2> /dev/null`
+        if [[ -z $name ]]
+        then
+                return
+        fi
+        name=`basename $name`
+
+        st=`git status`
+        if [[ -n `echo $st | grep "^nothing to"` ]]
+        then
+                color="green"
+        else
+                color="red"
+        fi
+
+        echo "%F{$color}[$name]%f"
+}
+
 # -------------- 使い方 ---------------- #
 # RPROMPT=''
 
@@ -66,7 +93,9 @@ case ${UID} in
 		PROMPT="%{$fg[green]%} %n: %D{%T} %{%}%#%{%}%{$reset_color%} "
 		;;
 	*)
-		RPROMPT='(%F{cyan}%(5~,%-2~/../%2~,%~)%f)`rprompt-git-current-branch`'
+        RPROMPT='(%F{cyan}%(5~,%-2~/../%2~,%~)%f)`rprompt-git-current-branch`'
+        # RPROMPT='(%F{cyan}%(5~,%-2~/../%2~,%~)%f)`prompt-git-current-branch`'
+		# RPROMPT='(%F{cyan}%(5~,%-2~/../%2~,%~)%f)'
 		#PROMPT=$'%m: %n %D{%T} %{%}%#%{%} '
 		PROMPT="%{$fg[green]%} %n: %D{%T} %{%}%#%{%}%{$reset_color%} "
 esac
