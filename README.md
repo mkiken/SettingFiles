@@ -1,5 +1,5 @@
 <!-- サブモジュールのダウンロード -->
-git submodule update --init
+git submodule update --init --recursive
 
 <!-- シンボリックリンク作成 -->
 ./dl.sh

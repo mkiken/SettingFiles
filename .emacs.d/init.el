@@ -178,6 +178,12 @@
   (end-of-visual-line)
   (newline-and-indent) )
 (global-set-key (kbd "C-j") 'newline-from-anywhere)
+(defun newline-from-anywhere-prev()
+  (interactive)
+  (beginning-of-line)
+  (newline-and-indent)
+  (previous-line))
+(global-set-key (kbd "C-J") 'newline-from-anywhere-prev)
 
 
 (global-set-key (kbd "C-<left>")  'windmove-left)
@@ -522,6 +528,19 @@
   (let ((c (abs (- (mark) (point)))))
     (message "match-paren-kill-ring-save: %d characters saved" c)))
 (global-set-key (kbd "C-M-]") 'match-paren-kill-ring-save)
+
+; http://qiita.com/ShingoFukuyama/items/fc51a32e84fd84261565
+(defun move-line (arg)
+  (let ((col (current-column)))
+    (save-excursion
+      (forward-line)
+      (transpose-lines arg))
+    (when (> arg 0)
+      (forward-line arg))
+    (move-to-column col)))
+
+; (global-set-key (kbd "M-N") (lambda () (interactive) (move-line 3)))
+(global-set-key (kbd "C-T") (lambda () (interactive) (move-line -1)))
 
 ;; http://d.hatena.ne.jp/mooz/20100119/p1
 (defun window-resizer ()
@@ -1244,8 +1263,10 @@
 
 ; http://d.hatena.ne.jp/rubikitch/20081230/pointundo
 (require 'point-undo)
-(define-key global-map (kbd "C--") 'point-undo)
-(define-key global-map (kbd "C-+") 'point-redo)
+; (define-key global-map (kbd "C--") 'point-undo)
+; (define-key global-map (kbd "C-+") 'point-redo)
+(define-key global-map (kbd "M-[") 'point-undo)
+(define-key global-map (kbd "M-]") 'point-redo)
 
 (add-to-list 'load-path "~/.emacs.d/elisp/yasnippet")
 (require 'yasnippet)
