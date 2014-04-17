@@ -434,6 +434,8 @@ let g:EasyMotion_startofline=0
  " Bundle 'Shougo/vimshell.vim'
  Bundle 'Shougo/vimfiler.vim'
  Bundle 'terryma/vim-expand-region'
+ Bundle 'Shougo/neosnippet'
+ Bundle 'Shougo/neosnippet-snippets'
  " <Space>mに、switch.vimをマッピング
 " nnoremap <Space>m  <Plug>(switch-next)
 nnoremap ^ :Switch<cr>
@@ -710,3 +712,22 @@ call unite#custom_action('file', 'my_vsplit', s:my_action)
 
 map + <Plug>(expand_region_expand)
 map - <Plug>(expand_region_shrink)
+
+" https://github.com/Shougo/neosnippet.vim
+" Plugin key-mappings.
+imap <C-s>     <Plug>(neosnippet_expand_or_jump)
+smap <C-s>     <Plug>(neosnippet_expand_or_jump)
+xmap <C-s>     <Plug>(neosnippet_expand_target)
+
+" SuperTab like snippets behavior.
+imap <expr><TAB> neosnippet#expandable_or_jumpable() ?
+\ "\<Plug>(neosnippet_expand_or_jump)"
+\: pumvisible() ? "\<C-n>" : "\<TAB>"
+smap <expr><TAB> neosnippet#expandable_or_jumpable() ?
+\ "\<Plug>(neosnippet_expand_or_jump)"
+\: "\<TAB>"
+
+" For snippet_complete marker.
+if has('conceal')
+  set conceallevel=2 concealcursor=i
+endif

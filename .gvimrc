@@ -73,7 +73,11 @@ if OSTYPE == "Darwin\n"
 	""ここにMac向けの設定
 	set transparency=2 " (不透明 0〜100 透明)
 	set guifont=Monaco:h12
-	set guifontwide=Monaco:h12
+    " set guifont=Osaka-Mono:h14
+	" set guifontwide=Monaco:h12
+    " set guifontwide=ヒラギノ角ゴ\ StdN\ W8:h14
+    " set guifontwide=Osaka:h12
+    set guifontwide=Osaka-Mono:h13
 
 " set guifont=Courier:h14
 " set guifontwide=Courier:h14

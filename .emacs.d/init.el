@@ -183,13 +183,9 @@
   (beginning-of-line)
   (newline-and-indent)
   (previous-line))
-(global-set-key (kbd "C-J") 'newline-from-anywhere-prev)
+(global-set-key (kbd "C-S-j") 'newline-from-anywhere-prev)
 
-
-(global-set-key (kbd "C-<left>")  'windmove-left)
-(global-set-key (kbd "C-<left>")  'windmove-left)
-(global-set-key (kbd "C-<left>")  'windmove-left)
-(global-set-key (kbd "C-<left>")  'windmove-left)
+; (global-set-key (kbd "C-<left>")  'windmove-left)
 
 ;; http://dev.ariel-networks.com/wp/documents/aritcles/emacs/part16
 ;;範囲指定していないとき、C-wで前の単語を削除
@@ -572,6 +568,11 @@
                           (message "Quit")
                           (throw 'end-flag t)))))))
 (global-set-key "\C-c\C-r" 'window-resizer)
+
+; http://stackoverflow.com/questions/2706527/make-emacs-stop-asking-active-processes-exist-kill-them-and-exit-anyway
+(defadvice save-buffers-kill-emacs (around no-query-kill-emacs activate)
+  "Prevent annoying \"Active processes exist\" query when you quit Emacs."
+  (flet ((process-list ())) ad-do-it))
 
 ; http://d.hatena.ne.jp/a_bicky/20131221/1387623058
 (if (>= emacs-major-version 24)
