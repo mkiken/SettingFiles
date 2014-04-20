@@ -1,4 +1,4 @@
-#Thu Apr 17 16:28:51 JST 2014
+#Mon Apr 21 00:44:20 JST 2014
 /instance/ccw.core/ccw.preferences.editor_color.callableJAVA_STATIC_METHOD.bold=false
 @org.eclipse.ui.editors=3.8.100.v20130513-1637
 /instance/ccw.core/ccw.preferences.editor_color.comment.enabled=true
@@ -8,6 +8,7 @@
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.classpathVariable.JUNIT_HOME=/Applications/eclipseEE/plugins/org.junit_4.11.0.v201303080030/
 /instance/de.walware.statet.r.ui/text_Rd_rdSectionTag.bold=false
 @org.eclipse.wst.jsdt.ui=1.1.401.v201401171657
+@org.eclipse.egit.core=3.2.0.201312181205-r
 /instance/ccw.core/ccw.preferences.editor_color.literalSymbol.italic=false
 /instance/org.eclipse.ui.workbench//org.eclipse.ui.commands/state/org.eclipse.wst.xml.views.XPathView.processor.xpathprocessor/org.eclipse.ui.commands.radioState=xpath10
 /instance/ccw.core/ccw.preferences.editor_color.FUNCTION.bold=false
@@ -18,9 +19,11 @@
 /instance/ccw.core/ccw.preferences.editor_color.MACRO.italic=false
 @org.eclipse.mylyn.monitor.ui=3.9.2.v20140211-0100
 /instance/ccw.core/ccw.preferences.editor_color.int.bold=false
+@org.eclipse.jst.j2ee.webservice.ui=1.1.500.v201105122000
 /instance/org.eclipse.ui.editors/lineNumberRuler=true
 /instance/org.eclipse.rse.core/org.eclipse.rse.systemtype.local.systemType.defaultUserId=a13596
 /instance/org.eclipse.jdt.ui/org.eclipse.jdt.ui.overrideannotation=true
+/instance/org.eclipse.wst.sse.ui/content_assist_number_of_computers=18
 /configuration/org.eclipse.ui.ide/SHOW_WORKSPACE_SELECTION_DIALOG=false
 /instance/org.eclipse.ui.ide/quickStart=false
 /instance/org.erlide.ui/editor/colors/comment/color=205,139,0
@@ -28,10 +31,12 @@
 /instance/org.eclipse.jdt.ui/org.eclipse.jface.textfont=1|Monaco|11.0|0|COCOA|1|;
 /instance/org.erlide.ui/editor/colors/float/color=255,205,139
 /instance/ccw.core/ccw.preferences.editor_color.GLOBAL_VAR.bold=false
+/instance/org.eclipse.wst.sse.ui/useQuickDiffPrefPage=true
 /instance/ccw.core/ccw.preferences.editor_color.JAVA_CLASS.bold=false
 /instance/ccw.core/ccw.preferences.editor_color.string.italic=false
 /instance/org.eclipse.core.resources/version=1
 /instance/de.walware.statet.base.ui/editors/options/Parameters.foreground=207,191,173
+/instance/org.eclipse.wst.sse.ui/useAnnotationsPrefPage=true
 @org.eclipse.ui=3.105.0.v20130522-1122
 /instance/ccw.core/ccw.preferences.editor_color.callableJAVA_CLASS.italic=false
 /instance/ccw.core/ccw.preferences.editor_color.float.bold=false
@@ -47,7 +52,7 @@
 /instance/org.codehaus.groovy.eclipse.ui/groovy.editor.groovyDoc.keyword.enabled=true
 /instance/com.powerflasher.fdt.ui/AS_INTERNAL_color_bold=false
 /instance/org.epic.perleditor/AbstractTextEditor.Color.Foreground.SystemDefault=false
-/instance/com.xored.glance.ui/searchHistory=
+/instance/com.xored.glance.ui/searchHistory=element_
 /instance/org.python.pydev/DECORATOR_STYLE=0
 /instance/org.eclipse.debug.ui/preferredTargets=default\:default|
 /instance/org.erlide.ui/editor/colors/char/style=0
@@ -70,7 +75,7 @@
 /instance/org.eclipse.jdt.ui/org.eclipse.jdt.ui.gettersetter.use.is=true
 /instance/org.eclipse.dltk.tcl.ui/DLTK_base_class_bold=false
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.codeComplete.staticFinalFieldSuffixes=
-/instance/org.eclipse.rse.ui/org.eclipse.rse.preferences.order.connections=PC-8311.Local
+/instance/org.eclipse.rse.ui/org.eclipse.rse.preferences.order.connections=morikensuke-no-MacBook-Pro.Local
 /instance/ccw.core/ccw.preferences.editor_color.regex.enabled=true
 /instance/org.eclipse.dltk.ruby.ui/variable.instance_strikethrough=false
 @org.eclipse.rse.ui=3.3.100.201306211706
@@ -78,25 +83,28 @@
 /instance/de.walware.statet.r.ui/text_Rd_rdSectionTag.strikethrough=false
 /instance/org.eclipse.dltk.tcl.ui/DLTK_base_class_strikethrough=false
 /instance/org.eclipse.e4.CSS/org.eclipse.e4.CSS.syntaxColorer.tokenStyles.comment.color=205,139,0
-/configuration/org.eclipse.ui.ide/RECENT_WORKSPACES=/Users/a13596/Documents/workspace
+/configuration/org.eclipse.ui.ide/RECENT_WORKSPACES=/Users/kensuke/Documents/workspace\n/Users/a13596/Documents/workspace
 /instance/org.python.pydev/STRING_STYLE=0
 /instance/org.eclipse.e4.CSS/org.eclipse.e4.CSS.syntaxColorer.tokenStyles.Element.bgColor=
 /instance/ccw.core/ccw.preferences.editor_color.whitespace.enabled=true
 /instance/com.powerflasher.fdt.ui/AS_CORE_color_strikethrough=false
 /instance/ccw.core/ccw.preferences.editor_color.callableJAVA_CLASS.enabled=true
 /instance/ccw.core/ccw.preferences.editor_color.GLOBAL_VAR.italic=false
-/instance/org.eclipse.ui.workbench/org.eclipse.ui.commands=<?xml version\="1.0" encoding\="UTF-8"?>\n<org.eclipse.ui.commands>\n<activeKeyConfiguration keyConfigurationId\="com.mulgasoft.emacsplusConfiguration"/>\n<keyBinding commandId\="org.eclipse.ui.edit.redo" contextId\="org.eclipse.ui.contexts.window" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="CTRL+SHIFT+?"/>\n<keyBinding commandId\="org.eclipse.ui.edit.text.delete.line" contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="CTRL+."/>\n<keyBinding commandId\="org.eclipse.jdt.ui.edit.text.java.toggle.comment" contextId\="org.eclipse.jdt.ui.javaEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="CTRL+;"/>\n<keyBinding commandId\="org.eclipse.ui.window.maximizePart" contextId\="org.eclipse.ui.contexts.window" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="COMMAND+CR"/>\n<keyBinding contextId\="org.eclipse.ui.contexts.window" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="CTRL+M"/>\n<keyBinding contextId\="org.eclipse.ui.contexts.window" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="CTRL+M"/>\n<keyBinding contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="ALT+ARROW_DOWN"/>\n<keyBinding contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="ALT+ARROW_DOWN"/>\n<keyBinding commandId\="org.eclipse.ui.edit.text.moveLineDown" contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="ALT+CTRL+ARROW_DOWN"/>\n<keyBinding contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="ALT+ARROW_UP"/>\n<keyBinding contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="ALT+ARROW_UP"/>\n<keyBinding commandId\="org.eclipse.ui.edit.text.moveLineUp" contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="ALT+CTRL+ARROW_UP"/>\n<keyBinding contextId\="org.eclipse.wst.jsdt.ui.javaEditorScope" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="ALT+CTRL+ARROW_DOWN"/>\n<keyBinding commandId\="org.eclipse.wst.jsdt.ui.edit.text.java.goto.next.member" contextId\="org.eclipse.wst.jsdt.ui.javaEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="ALT+ARROW_DOWN"/>\n<keyBinding contextId\="org.eclipse.jdt.ui.javaEditorScope" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="ALT+CTRL+ARROW_DOWN"/>\n<keyBinding contextId\="org.eclipse.jdt.ui.javaEditorScope" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="ALT+CTRL+ARROW_DOWN"/>\n<keyBinding commandId\="org.eclipse.jdt.ui.edit.text.java.goto.next.member" contextId\="org.eclipse.jdt.ui.javaEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="ALT+ARROW_DOWN"/>\n<keyBinding contextId\="org.eclipse.wst.jsdt.ui.javaEditorScope" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="ALT+CTRL+ARROW_UP"/>\n<keyBinding contextId\="org.eclipse.wst.jsdt.ui.javaEditorScope" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="ALT+CTRL+ARROW_UP"/>\n<keyBinding commandId\="org.eclipse.wst.jsdt.ui.edit.text.java.goto.previous.member" contextId\="org.eclipse.wst.jsdt.ui.javaEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="ALT+ARROW_UP"/>\n<keyBinding contextId\="org.eclipse.jdt.ui.javaEditorScope" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="ALT+CTRL+ARROW_UP"/>\n<keyBinding contextId\="org.eclipse.jdt.ui.javaEditorScope" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="ALT+CTRL+ARROW_UP"/>\n<keyBinding commandId\="org.eclipse.jdt.ui.edit.text.java.goto.previous.member" contextId\="org.eclipse.jdt.ui.javaEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="ALT+ARROW_UP"/>\n<keyBinding contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="org.eclipse.ui.emacsAcceleratorConfiguration" keySequence\="CTRL+S"/>\n<keyBinding contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="org.eclipse.ui.emacsAcceleratorConfiguration" keySequence\="CTRL+S"/>\n<keyBinding contextId\="org.eclipse.ui.contexts.dialogAndWindow" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="COMMAND+CTRL+F"/>\n<keyBinding contextId\="org.eclipse.ui.contexts.dialogAndWindow" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="COMMAND+CTRL+F"/>\n<keyBinding commandId\="com.xored.glance.commands.open" contextId\="org.eclipse.ui.contexts.dialogAndWindow" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="CTRL+S"/>\n<keyBinding commandId\="org.eclipse.ui.edit.text.smartEnterInverse" contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="CTRL+SHIFT+J"/>\n<keyBinding commandId\="org.eclipse.ui.edit.text.smartEnter" contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="CTRL+J"/>\n<keyBinding commandId\="org.eclipse.ui.navigate.nextTab" contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="CTRL+ARROW_RIGHT"/>\n<keyBinding commandId\="org.eclipse.ui.navigate.previousTab" contextId\="org.eclipse.jdt.ui.javaEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="CTRL+ARROW_LEFT"/>\n</org.eclipse.ui.commands>
+/instance/org.eclipse.ui.workbench/org.eclipse.ui.commands=<?xml version\="1.0" encoding\="UTF-8"?>\n<org.eclipse.ui.commands>\n<activeKeyConfiguration keyConfigurationId\="com.mulgasoft.emacsplusConfiguration"/>\n<keyBinding commandId\="org.eclipse.ui.navigate.previousTab" contextId\="org.eclipse.jdt.ui.javaEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="CTRL+ARROW_LEFT"/>\n<keyBinding commandId\="org.eclipse.ui.navigate.nextTab" contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="CTRL+ARROW_RIGHT"/>\n<keyBinding commandId\="org.eclipse.ui.edit.text.smartEnter" contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="CTRL+J"/>\n<keyBinding commandId\="org.eclipse.ui.edit.text.smartEnterInverse" contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="CTRL+SHIFT+J"/>\n<keyBinding commandId\="com.xored.glance.commands.open" contextId\="org.eclipse.ui.contexts.dialogAndWindow" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="CTRL+S"/>\n<keyBinding contextId\="org.eclipse.ui.contexts.dialogAndWindow" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="COMMAND+CTRL+F"/>\n<keyBinding contextId\="org.eclipse.ui.contexts.dialogAndWindow" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="COMMAND+CTRL+F"/>\n<keyBinding contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="org.eclipse.ui.emacsAcceleratorConfiguration" keySequence\="CTRL+S"/>\n<keyBinding contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="org.eclipse.ui.emacsAcceleratorConfiguration" keySequence\="CTRL+S"/>\n<keyBinding commandId\="org.eclipse.jdt.ui.edit.text.java.goto.previous.member" contextId\="org.eclipse.jdt.ui.javaEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="ALT+ARROW_UP"/>\n<keyBinding contextId\="org.eclipse.jdt.ui.javaEditorScope" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="ALT+CTRL+ARROW_UP"/>\n<keyBinding contextId\="org.eclipse.jdt.ui.javaEditorScope" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="ALT+CTRL+ARROW_UP"/>\n<keyBinding commandId\="org.eclipse.wst.jsdt.ui.edit.text.java.goto.previous.member" contextId\="org.eclipse.wst.jsdt.ui.javaEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="ALT+ARROW_UP"/>\n<keyBinding contextId\="org.eclipse.wst.jsdt.ui.javaEditorScope" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="ALT+CTRL+ARROW_UP"/>\n<keyBinding contextId\="org.eclipse.wst.jsdt.ui.javaEditorScope" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="ALT+CTRL+ARROW_UP"/>\n<keyBinding commandId\="org.eclipse.jdt.ui.edit.text.java.goto.next.member" contextId\="org.eclipse.jdt.ui.javaEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="ALT+ARROW_DOWN"/>\n<keyBinding contextId\="org.eclipse.jdt.ui.javaEditorScope" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="ALT+CTRL+ARROW_DOWN"/>\n<keyBinding contextId\="org.eclipse.jdt.ui.javaEditorScope" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="ALT+CTRL+ARROW_DOWN"/>\n<keyBinding commandId\="org.eclipse.wst.jsdt.ui.edit.text.java.goto.next.member" contextId\="org.eclipse.wst.jsdt.ui.javaEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="ALT+ARROW_DOWN"/>\n<keyBinding contextId\="org.eclipse.wst.jsdt.ui.javaEditorScope" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="ALT+CTRL+ARROW_DOWN"/>\n<keyBinding commandId\="org.eclipse.ui.edit.text.moveLineUp" contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="ALT+CTRL+ARROW_UP"/>\n<keyBinding contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="ALT+ARROW_UP"/>\n<keyBinding contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="ALT+ARROW_UP"/>\n<keyBinding commandId\="org.eclipse.ui.edit.text.moveLineDown" contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="ALT+CTRL+ARROW_DOWN"/>\n<keyBinding contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="ALT+ARROW_DOWN"/>\n<keyBinding contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="ALT+ARROW_DOWN"/>\n<keyBinding contextId\="org.eclipse.ui.contexts.window" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="CTRL+M"/>\n<keyBinding contextId\="org.eclipse.ui.contexts.window" keyConfigurationId\="org.eclipse.ui.defaultAcceleratorConfiguration" keySequence\="CTRL+M"/>\n<keyBinding commandId\="org.eclipse.ui.window.maximizePart" contextId\="org.eclipse.ui.contexts.window" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="COMMAND+CR"/>\n<keyBinding commandId\="org.eclipse.ui.edit.text.delete.line" contextId\="org.eclipse.ui.textEditorScope" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="CTRL+."/>\n<keyBinding commandId\="org.eclipse.ui.edit.redo" contextId\="org.eclipse.ui.contexts.window" keyConfigurationId\="com.mulgasoft.emacsplusConfiguration" keySequence\="CTRL+SHIFT+?"/>\n</org.eclipse.ui.commands>
 /instance/ccw.core/ccw.preferences.editor_color.char.enabled=true
 @org.eclipse.pde.api.tools=1.0.501.v20130807-1634
 /instance/org.eclipse.dltk.ruby.ui/variable.instance_underline=false
 /instance/org.erlide.ui/editor/colors/variable/style=0
 /instance/org.eclipse.jdt.ui/content_assist_autoactivation_triggers_java=.abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_
 /instance/ccw.core/ccw.preferences.editor_color.callableFUNCTION.bold=false
+/instance/org.eclipse.jdt.ui/breadcrumb.org.eclipse.jdt.ui.JavaPerspective=true
 /instance/org.eclipse.e4.CSS/org.eclipse.e4.CSS.syntaxColorer.tokenStyles.keyword.color=128,139,237
 /instance/org.erlide.ui/editor/colors/atom/style=0
 @org.eclipse.epp.mpc.ui=1.2.1.v20140219-1000
 /instance/com.powerflasher.fdt.ui/AS_TYPE_color_bold=false
 /instance/de.walware.statet.base.ui/editors/options/Parameters.background=31,31,39
+/instance/org.eclipse.debug.ui/org.eclipse.debug.ui.switch_perspective_on_suspend=never
+/instance/org.eclipse.jdt.ui/org.eclipse.jdt.internal.ui.navigator.layout=2
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.enumIdentifier=error
 /instance/ccw.core/ccw.preferences.editor_color.int.enabled=true
 @org.eclipse.team.cvs.ui=3.3.600.v20130514-1224
@@ -116,7 +124,7 @@
 /instance/ccw.core/ccw.preferences.editor_color.MACRO.enabled=true
 /instance/org.python.pydev/EDITOR_MATCHING_BRACKETS_STYLE=0
 /instance/org.eclipse.dltk.ruby.ui/variable.class_underline=false
-/instance/org.eclipse.ui.ide/platformState=1397541254670
+/instance/org.eclipse.ui.ide/platformState=1397879035840
 /instance/com.adobe.flexide.as.core/asClassStrikethrough=false
 /instance/org.eclipse.dltk.tcl.ui/DLTK_base_class_underline=false
 /instance/ccw.core/ccw.preferences.editor_color.float.enabled=true
@@ -138,13 +146,14 @@
 @org.eclipse.jdt.core=3.9.2.v20140114-1555
 /instance/org.python.pydev/BACKQUOTES_STYLE=0
 /instance/ccw.core/ccw.preferences.editor_color.FUNCTION.italic=false
-@org.eclipse.pde.core=3.9.1.v20130628-1111
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.assertIdentifier=error
 /instance/org.eclipse.e4.ui.css.swt.theme/themeid=org.eclipse.e4.ui.css.theme.e4_default
+/instance/org.eclipse.ui.ide/BOOKMARKS_FILTERS_MIGRATE=true
 /instance/ccw.core/ccw.preferences.editor_color.callableJAVA_STATIC_METHOD.enabled=true
 /instance/org.eclipse.mylyn.tasks.ui/org.eclipse.mylyn.tasks.ui.filters.nonmatching.encouraged=true
 /instance/ccw.core/ccw.preferences.editor_color.GLOBAL_VAR.enabled=true
 /instance/com.adobe.flexide.css.core/cssFontFaceBold=false
+/instance/org.eclipse.jst.j2ee.webservice.ui/areThereWebServices=false
 /instance/ccw.core/ccw.preferences.editor_color.callableRAW_SYMBOL.bold=false
 /instance/ccw.core/ccw.preferences.editor_color.other-literals.italic=false
 /instance/org.eclipse.ui/showIntro=false
@@ -157,11 +166,12 @@
 @org.eclipse.core.resources=3.8.101.v20130717-0806
 /instance/org.eclipse.dltk.ruby.ui/variable.class_bold=false
 /instance/com.powerflasher.fdt.ui/AS_CORE_color_underline=false
+/instance/org.eclipse.egit.core/GitRepositoriesView.GitDirectories=/Users/kensuke/Desktop/repository/Small_Programs/.git\:
 /instance/org.eclipse.ui.workbench/PLUGINS_NOT_ACTIVATED_ON_STARTUP=org.eclipse.m2e.discovery;
 /instance/org.python.pydev/OPERATORS_STYLE=0
 /instance/org.eclipse.jdt.debug/org.eclipse.jdt.debug.suspend_for_breakpoints_during_evaluation=true
-/instance/org.eclipse.jdt.launching/org.eclipse.jdt.launching.PREF_VM_XML=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?>\n<vmSettings defaultVM\="52,org.eclipse.jdt.internal.launching.macosx.MacOSXType24,com.oracle.java.7u51.jdk" defaultVMConnector\="">\n<vmType id\="org.eclipse.jdt.internal.launching.macosx.MacOSXType">\n<vm id\="com.oracle.java.7u51.jdk" name\="Java SE 7 [1.7.0_51]" path\="/Library/Java/JavaVirtualMachines/jdk1.7.0_51.jdk/Contents/Home"/>\n<vm id\="com.apple.javajdk16" name\="Java SE 6 [1.6.0_65-b14-462]" path\="/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home"/>\n</vmType>\n</vmSettings>\n
-/instance/org.eclipse.rse.core/activeuserprofiles=PC-8311;Team
+/instance/org.eclipse.jdt.launching/org.eclipse.jdt.launching.PREF_VM_XML=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?>\n<vmSettings defaultVM\="52,org.eclipse.jdt.internal.launching.macosx.MacOSXType24,com.oracle.java.7u45.jdk" defaultVMConnector\="">\n<vmType id\="org.eclipse.jdt.internal.launching.macosx.MacOSXType">\n<vm id\="com.oracle.java.7u45.jdk" name\="Java SE 7 [1.7.0_45]" path\="/Library/Java/JavaVirtualMachines/jdk1.7.0_45.jdk/Contents/Home"/>\n</vmType>\n</vmSettings>\n
+/instance/org.eclipse.rse.core/activeuserprofiles=PC-8311;Team;morikensuke-no-MacBook-Pro
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.codeComplete.staticFieldSuffixes=
 /instance/ccw.core/ccw.preferences.editor_color.other-literals.enabled=true
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.codeComplete.staticFinalFieldPrefixes=
@@ -234,8 +244,6 @@
 /instance/org.eclipse.core.resources/description.autobuilding=false
 /instance/org.eclipse.e4.CSS/org.eclipse.e4.CSS.syntaxColorer.tokenStyles.number.bgColor=
 /instance/ccw.core/ccw.preferences.editor_color.callableJAVA_INSTANCE_METHOD.bold=false
-/instance/org.eclipse.pde.core/platform_path=/Applications/eclipseEE
-@com.github.eclipsecolortheme=0.13.0.201311210852
 /instance/ccw.core/ccw.preferences.editor_color.keyword.italic=false
 /instance/org.eclipse.jdt.ui/content_assist_disabled_computers=org.eclipse.jdt.ui.javaAllProposalCategory\u0000org.eclipse.jdt.ui.javaNoTypeProposalCategory\u0000org.eclipse.jdt.ui.textProposalCategory\u0000org.eclipse.jdt.ui.javaTypeProposalCategory\u0000
 /instance/org.eclipse.wst.jsdt.ui/useAnnotationsPrefPage=true
@@ -246,7 +254,7 @@
 /instance/ccw.core/ccw.preferences.editor_color.string.bold=false
 /instance/org.eclipse.e4.CSS/org.eclipse.e4.CSS.syntaxColorer.tokenStyles.ClassID.bgColor=
 /instance/org.eclipse.jdt.ui/org.eclipse.jdt.ui.text.templates_migrated=true
-/instance/org.eclipse.rse.core/useridperkey=PC-8311.Local\=a13596;
+/instance/org.eclipse.rse.core/useridperkey=morikensuke-no-MacBook-Pro.Local\=a13596;PC-8311.Local\=a13596;
 /instance/org.eclipse.dltk.tcl.ui/DLTK_class_definition_underline=false
 /instance/org.eclipse.e4.CSS/org.eclipse.e4.CSS.syntaxColorer.tokenStyles.error.color=255,139,255
 /instance/org.eclipse.jdt.ui/content_assist_proposals_foreground=0,0,0
@@ -262,6 +270,7 @@
 /instance/org.eclipse.jdt.ui/content_assist_lru_history=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?><history maxLHS\="100" maxRHS\="10"><lhs name\="intermediate.Deck"><rhs name\="intermediate.Deck"/></lhs><lhs name\="java.lang.CharSequence"><rhs name\="java.lang.String"/></lhs></history>
 /instance/org.erlide.ui/editor/colors/variable/color=207,191,173
 /instance/com.adobe.flexide.as.core/asClassUnderline=false
+/instance/org.eclipse.debug.ui/preferredDetailPanes=DefaultDetailPane\:DefaultDetailPane|
 @org.eclipse.ui.workbench=3.105.2.v20140211-1711
 /instance/com.adobe.flexide.css.core/cssMediaBold=false
 /instance/org.erlide.ui/editor/colors/macro/style=0
@@ -299,6 +308,7 @@ file_export_version=3.0
 /instance/org.eclipse.jdt.debug/org.eclipse.jdt.debug.default_breakpoint_suspend_policy=2
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.codeComplete.localPrefixes=
 /instance/org.eclipse.ui.editors/AbstractTextEditor.Color.Background.SystemDefault=false
+@org.eclipse.wst.sse.ui=1.3.201.v201401132128
 /instance/org.python.pydev/NUMBER_STYLE=0
 /instance/ccw.core/ccw.preferences.editor_color.callableMACRO.enabled=true
 /instance/de.walware.statet.r.ui/text_R_rUndefined.underline=false
@@ -306,6 +316,7 @@ file_export_version=3.0
 /instance/org.erlide.ui/editor/colors/default/style=0
 /instance/org.eclipse.jdt.ui/content_assist_proposals_background=255,255,255
 /instance/org.eclipse.wst.jsdt.ui/org.eclipse.jface.textfont=1|Monaco|11.0|0|COCOA|1|;
+/instance/org.eclipse.debug.ui/pref_state_memento.org.eclipse.debug.ui.DebugVieworg.eclipse.debug.ui.DebugView=<?xml version\="1.0" encoding\="UTF-8"?>\n<DebugViewMemento org.eclipse.debug.ui.BREADCRUMB_DROPDOWN_AUTO_EXPAND\="false"/>
 /instance/org.eclipse.ui.ide/tipsAndTricks=true
 /instance/ccw.core/ccw.preferences.editor_color.callableJAVA_STATIC_METHOD.italic=false
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.codeComplete.localSuffixes=

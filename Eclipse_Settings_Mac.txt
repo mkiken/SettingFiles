@@ -1,0 +1,18 @@
+1.
+
+Help → Install New Software... → http://www.mulgasoft.com/emacsplus/update-site
+以下の2つをインストール。
+Emacs+
+Emacs+ Options
+
+http://log.kz-soft.com/2011/02/eclipseemacs.html
+
+2.
+
+Help -> Eclipse Marketplace
+Glanceを検索してインストール
+
+http://did2memo.net/2012/11/06/eclipse-iterative-search-plugin-glance/
+
+3.
+File -> Import -> [Eclipse_Setting_Mac.epf]

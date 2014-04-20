@@ -405,6 +405,12 @@ let g:EasyMotion_startofline=0
 " カラー設定変更
 "hi EasyMotionTarget ctermbg=none ctermfg=red
 "hi EasyMotionShade  ctermbg=none ctermfg=blue
+" map f <Plug>(easymotion-fl)
+map f ;f
+map t ;t
+map F ;F
+map T ;T
+" nmap s <Plug>(easymotion-s)
 
 " for Vundle
 " https://github.com/gmarik/vundle

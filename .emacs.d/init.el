@@ -353,6 +353,10 @@
 ;; http://marigold.sakura.ne.jp/devel/emacs/scroll/index.html
 (setq scroll-conservatively 1)
 (setq next-screen-context-lines 25)
+; (setq scroll-step 1)
+
+(global-set-key (kbd "C-S-v") 'scroll-up-1)
+(global-set-key (kbd "M-V") 'scroll-down-1)
 ;; カーソル位置の保存
 ;; http://www.bookshelf.jp/soft/meadow_31.html
 (setq scroll-preserve-screen-position t)

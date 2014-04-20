@@ -20,6 +20,22 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>(・ω・)b</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+		<key>timestamp</key>
+		<integer>1397922258</integer>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(((ﾟДﾟ)))</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+		<key>timestamp</key>
+		<integer>1393986630</integer>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(´・ω・｀)</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
@@ -41,6 +57,22 @@
 		<string>かおもじ</string>
 		<key>timestamp</key>
 		<integer>1392128409</integer>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>╭( ･ㅂ･)و ̑̑</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+		<key>timestamp</key>
+		<integer>1397922240</integer>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>▂▅▇█▓▒░(’ω’)░▒▓█▇▅▂</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+		<key>timestamp</key>
+		<integer>1395423089</integer>
 	</dict>
 	<dict>
 		<key>phrase</key>

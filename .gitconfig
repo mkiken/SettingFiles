@@ -11,6 +11,7 @@
 # assumes git.git clone at ~/src/git
 ; diff-highlight = /usr/local/Cellar/git/1.8.4.3/share/git-core/contrib/diff-highlight/diff-highlight
 	co = checkout
+	br = branch
 	ci = commit -m
 	st = status -bs
 	# http://qiita.com/hash/items/1f01aa09ccf148542f21
