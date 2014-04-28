@@ -182,7 +182,8 @@
   (interactive)
   (beginning-of-line)
   (newline-and-indent)
-  (previous-line))
+  (previous-line)
+  (c-indent-command))
 (global-set-key (kbd "C-S-j") 'newline-from-anywhere-prev)
 
 ; (global-set-key (kbd "C-<left>")  'windmove-left)
@@ -588,16 +589,21 @@
                "Don't insert the closing pair in comments or strings"
                (unless (nth 8 (save-excursion (syntax-ppss (1- (point)))))
                  ad-do-it))
-
+    ; http://stackoverflow.com/questions/2951797/wrapping-selecting-text-in-enclosing-characters-in-emacs
+    (global-set-key (kbd "M-{") 'insert-pair)
+    (global-set-key (kbd "M-\"") 'insert-pair)
+    (global-set-key (kbd "M-}") 'delete-pair)
     )
   ;; Setup the alternative manually.
   (progn
     ; http://metalphaeton.blogspot.jp/2011/04/emacs.html
+    ; http://ggorjan.blogspot.jp/2007/05/skeleton-pair-mode-in-emacs.html
     (global-set-key (kbd "(") 'skeleton-pair-insert-maybe)
     (global-set-key (kbd "{") 'skeleton-pair-insert-maybe)
     (global-set-key (kbd "[") 'skeleton-pair-insert-maybe)
     (global-set-key (kbd "\"") 'skeleton-pair-insert-maybe)
     (setq skeleton-pair 1)
+    (setq skeleton-pair-on-word t) ; apply skeleton trick even in front of a word.
     )
   )
 
@@ -957,7 +963,7 @@
 ;; http://d.hatena.ne.jp/rubikitch/20091221/autoinstall
 ;; 実行時だけ有効にする
 ; (require 'auto-install)
-; (setq auto-install-directory "~/.emacs.d/elisp/temp")
+; (setq auto-install-directory "~/.emacs.d/elisp")
 ; (auto-install-update-emacswiki-package-name t)
 ; (auto-install-compatibility-setup)             ; 互換性確保
 
@@ -1129,7 +1135,7 @@
   '(flymake-warnline ((((class color)) (:underline "blue")))))
 
 (setq flymake-no-changes-timeout 5)
-;;(setq flymake-start-syntax-check-on-newline nil)
+(setq flymake-start-syntax-check-on-newline nil)
 (setq flymake-compilation-prevents-syntax-check t)
 
 ;;for C++, C
@@ -1285,3 +1291,12 @@
 (yas-global-mode 1)  ;; or M-x yas-reload-all if you've started YASnippet already.
 
 (custom-set-variables '(yas-trigger-key "TAB"))
+
+; http://hiroki.jp/2011/01/25/1561/
+(require 'auto-highlight-symbol)
+(global-auto-highlight-symbol-mode t)
+; バッファ全体をハイライトの対象として、変数の一括変更
+(custom-set-variables '(ahs-default-range (quote ahs-range-whole-buffer)))
+
+; (require 'wrap-region)
+

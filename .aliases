@@ -10,6 +10,7 @@ alias ll='ls -FThl'
 alias vi='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/mvim --remote-tab-silent'
 alias vs='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/mvim'
 alias vimdiff='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/mvimdiff'
+
 function em(){
 	open -a /Applications/Emacs.app "$@"
 }
@@ -17,9 +18,44 @@ function em(){
 function es(){
     /Applications/Emacs.app/Contents/MacOS/Emacs "$@" &
 }
+
 function ec(){
     /Applications/Emacs.app/Contents/MacOS/bin/emacsclient -n "$@" --alternate-editor /Applications/Emacs.app/Contents/MacOS/Emacs &
 }
+
+# 現在のディレクトリ以下の当てはまるファイルを全て削除する
+# http://www.omnioo.com/omnioolab/2012/07/find.php
+function recrm(){
+    find . -name "$1" -exec rmtrash {} \;
+    echo "$1 removed recursively."
+}
+
+# 現在のディレクトリ以下から引数の文字列を含むファイル名を列挙
+function recfind(){
+    find . -name "*${1}*"
+}
+
+# 現在のディレクトリ以下から引数の文字列を列挙
+function recgrep(){
+    grep -r "${1}" *
+}
+
+
+
+# Haskellのファイルをa.outでコンパイルする
+# その際、オブジェクトファイル(.o)とインターフェースファイル(.hi)を削除
+function ghca(){
+    ghc $1 -o a.out
+        ret=$?
+        if test ${ret} -eq 0
+            then
+                fname=`echo $1 | sed -e "s/\.[^.]*$//"`
+                rm ${fname}.hi
+                rm ${fname}.o
+# echo "rm ${fname}.hi & ${fname}.o"
+                fi
+}
+
 
 # http://tukaikta.blog135.fc2.com/blog-entry-214.html
 alias rm='rmtrash'
