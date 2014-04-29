@@ -197,14 +197,14 @@
 ;; minibuffer用
 (define-key minibuffer-local-completion-map "\C-w" 'backward-kill-word)
 ;; カーソル位置の単語を削除
-(defun kill-word-at-point ()
-  (interactive)
-  (let ((char (char-to-string (char-after (point)))))
-    (cond
-      ((string= " " char) (delete-horizontal-space))
-      ((string-match "[\t\n -@\[-`{-~]" char) (kill-word 1))
-      (t (forward-char) (backward-word) (kill-word 1)))))
-(global-set-key "\M-d" 'kill-word-at-point)
+; (defun kill-word-at-point ()
+  ; (interactive)
+  ; (let ((char (char-to-string (char-after (point)))))
+    ; (cond
+      ; ((string= " " char) (delete-horizontal-space))
+      ; ((string-match "[\t\n -@\[-`{-~]" char) (kill-word 1))
+      ; (t (forward-char) (backward-word) (kill-word 1)))))
+; (global-set-key "\M-d" 'kill-word-at-point)
 
 ;; kill-lineで行が連結したときにインデントを減らす
 (defadvice kill-line (before kill-line-and-fixup activate)
@@ -589,10 +589,14 @@
                "Don't insert the closing pair in comments or strings"
                (unless (nth 8 (save-excursion (syntax-ppss (1- (point)))))
                  ad-do-it))
+
     ; http://stackoverflow.com/questions/2951797/wrapping-selecting-text-in-enclosing-characters-in-emacs
-    (global-set-key (kbd "M-{") 'insert-pair)
-    (global-set-key (kbd "M-\"") 'insert-pair)
-    (global-set-key (kbd "M-}") 'delete-pair)
+    (global-set-key (kbd "(") 'insert-pair)
+    (global-set-key (kbd "{") 'insert-pair)
+    (global-set-key (kbd "[") 'insert-pair)
+    (global-set-key (kbd "\"") 'insert-pair)
+    (global-set-key (kbd "'") 'insert-pair)
+    (global-set-key (kbd "M-(") 'delete-pair)
     )
   ;; Setup the alternative manually.
   (progn
@@ -739,7 +743,7 @@
 (require 'save-frame-posize)
 
 ; http://stackoverflow.com/questions/12904043/change-forward-word-backward-word-kill-word-for-camelcase-words-in-emacs
-;; M-fとM-dでCamelCase移動。M-left, M-rightには効かない
+;; M-fとM-bでCamelCase移動。M-left, M-rightには効かない
 (global-subword-mode t)
 
 ; 数字の増減．代わりにrotateを使う
@@ -854,7 +858,14 @@
 
 
 ;;for C/C++
-(add-hook 'c-mode-common-hook   'hs-minor-mode)
+; http://d.hatena.ne.jp/yascentur/touch/searchdiary?word=*%5BEmacs%5D&of=5
+(add-hook 'c-mode-common-hook
+          (lambda ()
+            (local-unset-key "(")
+            (local-unset-key "{")
+            ; (local-unset-key "<")
+            (hs-minor-mode)))
+; (add-hook 'c-mode-common-hook   'hs-minor-mode)
 
 ;; for Java
 (add-hook 'java-mode-hook       'hs-minor-mode)
