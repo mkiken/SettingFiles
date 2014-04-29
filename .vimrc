@@ -54,6 +54,10 @@ set shiftwidth=4
 "行頭の余白内で Tab を打ち込むと、'shiftwidth' の数だけインデントする
 set smarttab
 
+" 自動改行しない
+" http://kaworu.jpn.org/kaworu/2007-07-29-1.php
+set textwidth=0
+
 " 閉じ括弧が入力されたとき、対応する括弧を表示する
 set showmatch
 
@@ -435,22 +439,27 @@ map T ;T
  " Bundle 'mhinz/vim-startify'
  " Bundle 'osyo-manga/vim-over'
  Bundle 'AndrewRadev/switch.vim'
- " https://github.com/terryma/vim-multiple-cursors
- Bundle 'terryma/vim-multiple-cursors'
+ Bundle 'kana/vim-multiple-cursors'
  Bundle 'tyru/open-browser.vim'
+ Bundle 'AndrewRadev/switch.vim'
  " Bundle 'haya14busa/vim-migemo'
  Bundle 'Shougo/unite.vim'
  Bundle 'Yggdroot/indentLine'
  " Bundle 'Shougo/vimshell.vim'
  Bundle 'Shougo/vimfiler.vim'
  Bundle 'terryma/vim-expand-region'
- Bundle 'Shougo/neosnippet'
- Bundle 'Shougo/neosnippet-snippets'
+ " Bundle 'Shougo/neosnippet'
+ " Bundle 'Shougo/neosnippet-snippets'
  " Bundle 'Shougo/neocomplete.vim'
  Bundle 'kien/ctrlp.vim'
  Bundle 'scrooloose/nerdcommenter'
  Bundle 'scrooloose/nerdtree'
  Bundle 'scrooloose/syntastic'
+ Bundle 'Valloric/YouCompleteMe'
+ Bundle 'SirVer/ultisnips'
+ Bundle 'honza/vim-snippets'
+
+
  " <Space>mに、switch.vimをマッピング
  " nnoremap <Space>m  <Plug>(switch-next)
  nnoremap ^ :Switch<cr>
@@ -571,19 +580,7 @@ call smartinput#define_rule({
 
 " " inoremap <expr><C-y>  neocomplcache#close_popup()
 " " inoremap <expr><C-e>  neocomplcache#cancel_popup()
-" " Enable omni completion.
-" autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
-" autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
-" autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
-" autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
-" autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
-" " Enable heavy omni completion.
-" if !exists('g:neocomplcache_omni_patterns')
-"   let g:neocomplcache_omni_patterns = {}
-" endif
-" let g:neocomplcache_omni_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
-" let g:neocomplcache_omni_patterns.c = '[^.[:digit:] *\t]\%(\.\|->\)'
-" let g:neocomplcache_omni_patterns.cpp = '[^.[:digit:] *\t]\%(\.\|->\)\|\h\w*::'
+
 
 " ctrlp
 " https://github.com/kien/ctrlp.vim
@@ -732,21 +729,38 @@ call unite#custom_action('file', 'my_vsplit', s:my_action)
 map + <Plug>(expand_region_expand)
 map - <Plug>(expand_region_shrink)
 
-" https://github.com/Shougo/neosnippet.vim
-" Plugin key-mappings.
-imap <C-s>     <Plug>(neosnippet_expand_or_jump)
-smap <C-s>     <Plug>(neosnippet_expand_or_jump)
-xmap <C-s>     <Plug>(neosnippet_expand_target)
+" https://github.com/SirVer/ultisnips
 
-" SuperTab like snippets behavior.
-imap <expr><TAB> neosnippet#expandable_or_jumpable() ?
-\ "\<Plug>(neosnippet_expand_or_jump)"
-\: pumvisible() ? "\<C-n>" : "\<TAB>"
-smap <expr><TAB> neosnippet#expandable_or_jumpable() ?
-\ "\<Plug>(neosnippet_expand_or_jump)"
-\: "\<TAB>"
+" Trigger configuration. Do not use <tab> if you use https://github.com/Valloric/YouCompleteMe.
+" let g:UltiSnipsExpandTrigger="<cr>"
+" let g:UltiSnipsExpandTrigger="<>"
+" let g:UltiSnipsJumpForwardTrigger="<c-b>"
+" let g:UltiSnipsJumpBackwardTrigger="<c-z>"
 
-" For snippet_complete marker.
-if has('conceal')
-  set conceallevel=2 concealcursor=i
-endif
+" If you want :UltiSnipsEdit to split your window.
+let g:UltiSnipsEditSplit="vertical"
+let g:ycm_key_select_completion = "<CR>"
+
+
+" https://github.com/Valloric/YouCompleteMe/issues/36#issuecomment-15451411
+let g:UltiSnipsExpandTrigger       = "<tab>"
+let g:UltiSnipsJumpForwardTrigger  = "<tab>"
+let g:UltiSnipsJumpBackwardTrigger = "<s-tab>"
+let g:UltiSnipsSnippetDirectories  = ["snips"]
+
+function! g:UltiSnips_Complete()
+    call UltiSnips#ExpandSnippet()
+    if g:ulti_expand_res == 0
+        if pumvisible()
+            return "\<C-n>"
+        else
+            call UltiSnips#JumpForwards()
+            if g:ulti_jump_forwards_res == 0
+               return "\<TAB>"
+            endif
+        endif
+    endif
+    return ""
+endfunction
+
+au InsertEnter * exec "inoremap <silent> " . g:UltiSnipsExpandTrigger . " <C-R>=g:UltiSnips_Complete()<cr>"

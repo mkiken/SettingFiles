@@ -591,12 +591,12 @@
                  ad-do-it))
 
     ; http://stackoverflow.com/questions/2951797/wrapping-selecting-text-in-enclosing-characters-in-emacs
-    (global-set-key (kbd "(") 'insert-pair)
-    (global-set-key (kbd "{") 'insert-pair)
-    (global-set-key (kbd "[") 'insert-pair)
-    (global-set-key (kbd "\"") 'insert-pair)
-    (global-set-key (kbd "'") 'insert-pair)
-    (global-set-key (kbd "M-(") 'delete-pair)
+    ; (global-set-key (kbd "(") 'insert-pair)
+    ; (global-set-key (kbd "{") 'insert-pair)
+    ; (global-set-key (kbd "[") 'insert-pair)
+    ; (global-set-key (kbd "\"") 'insert-pair)
+    ; (global-set-key (kbd "'") 'insert-pair)
+    ; (global-set-key (kbd "M-(") 'delete-pair)
     )
   ;; Setup the alternative manually.
   (progn
@@ -610,6 +610,61 @@
     (setq skeleton-pair-on-word t) ; apply skeleton trick even in front of a word.
     )
   )
+
+  ; http://ergoemacs.org/emacs/emacs_insert_brackets_by_pair.html
+(defun insert-bracket-pair (leftBracket rightBracket)
+  "Insert a matching bracket.
+  If region is not active, place the cursor between them.
+  If region is active, insert around the region, place the cursor after the right bracket.
+
+  The argument leftBracket rightBracket are strings."
+  (if (region-active-p)
+    (let (
+          (p1 (region-beginning))
+          (p2 (region-end))
+          )
+      (goto-char p2)
+      (insert rightBracket)
+      (goto-char p1)
+      (insert leftBracket)
+      (goto-char (+ p2 2))
+      )
+    (progn
+      (insert leftBracket rightBracket)
+      (backward-char 1) ) )
+  )
+(defun insert-pair-paren () (interactive) (insert-bracket-pair "(" ")") )
+(global-set-key "(" 'insert-pair-paren)
+(defun insert-pair-bracket () (interactive) (insert-bracket-pair "[" "]") )
+(global-set-key "[" 'insert-pair-bracket)
+(defun insert-pair-brace () (interactive) (insert-bracket-pair "{" "}") )
+(global-set-key "{" 'insert-pair-brace)
+(defun insert-pair-double-straight-quote () (interactive) (insert-bracket-pair "\"" "\"") )
+(global-set-key "\"" 'insert-pair-double-straight-quote)
+(defun insert-pair-single-straight-quote () (interactive) (insert-bracket-pair "'" "'") )
+(global-set-key "'" 'insert-pair-single-straight-quote)
+(defun insert-pair-single-angle-quote () (interactive) (insert-bracket-pair "‹" "›") )
+(global-set-key "‹" 'insert-pair-single-angle-quote)
+(defun insert-pair-double-angle-quote () (interactive) (insert-bracket-pair "«" "»") )
+(global-set-key "«" 'insert-pair-double-angle-quote)
+(defun insert-pair-double-curly-quote () (interactive) (insert-bracket-pair "“" "”") )
+(global-set-key "“" 'insert-pair-double-curly-quote)
+(defun insert-pair-single-curly-quote () (interactive) (insert-bracket-pair "‘" "’") )
+(global-set-key "‘" 'insert-pair-single-curly-quote)
+(defun insert-pair-corner-bracket () (interactive) (insert-bracket-pair "「" "」") )
+(global-set-key "「" 'insert-pair-corner-bracket)
+(defun insert-pair-white-corner-bracket () (interactive) (insert-bracket-pair "『" "』") )
+(global-set-key "『" 'insert-pair-white-corner-bracket)
+(defun insert-pair-angle-bracket () (interactive) (insert-bracket-pair "〈" "〉") )
+(global-set-key "〈" 'insert-pair-angle-bracket)
+(defun insert-pair-double-angle-bracket () (interactive) (insert-bracket-pair "《" "》") )
+(global-set-key "《" 'insert-pair-double-angle-bracket)
+(defun insert-pair-white-lenticular-bracket () (interactive) (insert-bracket-pair "〖" "〗") )
+(global-set-key "〖" 'insert-pair-white-lenticular-bracket)
+(defun insert-pair-black-lenticular-bracket () (interactive) (insert-bracket-pair "【" "】") )
+(global-set-key "【" 'insert-pair-black-lenticular-bracket)
+(defun insert-pair-tortoise-shell-bracket () (interactive) (insert-bracket-pair "〔" "〕") )
+(global-set-key "〔" 'insert-pair-black-tortoise-shell-bracket)
 
 ; http://www.emacswiki.org/emacs/AutoPairs
 
@@ -856,19 +911,177 @@
 (smooth-scroll-mode t)
 
 
+; {}の中でEnterした場合のみ展開する
+(defun expand-bracket ()
+  (interactive)
+  (if (and (and (< (point-min) (point)) (equal "{" (char-to-string (char-before (point)))))
+           (and (< (point) (point-max)) (equal "}" (char-to-string (char-after (point)))))
+           )
+    (progn
+      ; (delete-backward-char 1)
+      ; (insert-latex-brackets opening closing)
+      ; (newline)
+      ; (insert "\n\n")
+      (newline-and-indent)
+      ; (newline-and-indent)
+      ; (indent-relative)
+      (previous-line)
+      (end-of-visual-line)
+      (newline-and-indent)
+      ; (indent-relative)
+      )
+    ; (insert "\n")
+      (newline-and-indent)
+    )
+  )
 
+; (global-set-key (kbd "C-m") 'expand-bracket)
+; (local-set-key (kbd "}") 'check-char-and-insert)
 ;;for C/C++
-; http://d.hatena.ne.jp/yascentur/touch/searchdiary?word=*%5BEmacs%5D&of=5
-(add-hook 'c-mode-common-hook
-          (lambda ()
-            (local-unset-key "(")
-            (local-unset-key "{")
-            ; (local-unset-key "<")
-            (hs-minor-mode)))
-; (add-hook 'c-mode-common-hook   'hs-minor-mode)
 
-;; for Java
-(add-hook 'java-mode-hook       'hs-minor-mode)
+; http://www.cozmixng.org/webdav/kensuke/site-lisp/mode/my-c.el
+;;; C-mode,C++-modeの設定
+(defconst my-c-style
+  '(
+    ;; 基本オフセット量の設定
+    ; (c-basic-offset             . 4)
+    ;; tab キーでインデントを実行
+    ; (c-tab-always-indent        . t)
+    ;; コメント行のオフセット量の設定
+    ; (c-comment-only-line-offset . 0)
+    ;; カッコ前後の自動改行処理の設定
+    (c-hanging-braces-alist
+     . (
+        (class-open before after)       ; クラス宣言の'{'の前後
+        (class-close after)             ; クラス宣言の'}'の後
+        (defun-open before after)       ; 関数宣言の'{'の前後
+        (defun-close after)             ; 関数宣言の'}'の後
+        (inline-open after)             ; クラス内のインライン
+                                        ; 関数宣言の'{'の後
+        (inline-close after)            ; クラス内のインライン
+                                        ; 関数宣言の'}'の後
+        (brace-list-open after)         ; 列挙型、配列宣言の'{'の後
+        (brace-list-close before after) ; 列挙型、配列宣言の'}'の前後
+        (block-open after)              ; ステートメントの'{'の後
+        (block-close after)             ; ステートメントの'}'前後
+        (substatement-open after)       ; サブステートメント
+                                        ; (if 文等)の'{'の後
+        (statement-case-open after)     ; case 文の'{'の後
+        (extern-lang-open before after) ; 他言語へのリンケージ宣言の
+                                        ; '{'の前後
+        (extern-lang-close before)      ; 他言語へのリンケージ宣言の
+                                        ; '}'の前
+        ))
+    ;; コロン前後の自動改行処理の設定
+    ; (c-hanging-colons-alist
+     ; . (
+        ; (case-label after)              ; case ラベルの':'の後
+        ; (label after)                   ; ラベルの':'の後
+        ; (access-label after)            ; アクセスラベル(public等)の':'の後
+        ; (member-init-intro)             ; コンストラクタでのメンバー初期化
+                                        ; ; リストの先頭の':'では改行しない
+        ; (inher-intro before)            ; クラス宣言での継承リストの先頭の
+                                        ; ; ':'では改行しない
+        ; ))
+    ;; 挿入された余計な空白文字のキャンセル条件の設定
+    ;; 下記の*を削除する
+    ; (c-cleanup-list
+     ; . (
+	; brace-else-brace                ; else の直前
+                                        ; ; "} * else {"  ->  "} else {"
+        ; brace-elseif-brace              ; else if の直前
+                                        ; ; "} * else if (.*) {"
+                                        ; ; ->  } "else if (.*) {"
+        ; empty-defun-braces              ; 空のクラス・関数定義の'}' の直前
+                                        ; ;；"{ * }"  ->  "{}"
+        ; defun-close-semi                ; クラス・関数定義後の';' の直前
+                                        ; ; "} * ;"  ->  "};"
+        ; list-close-comma                ; 配列初期化時の'},'の直前
+                                        ; ; "} * ,"  ->  "},"
+        ; scope-operator                  ; スコープ演算子'::' の間
+                                        ; ; ": * :"  ->  "::"
+        ; ))
+    ;; オフセット量の設定
+    ;; 必要部分のみ抜粋(他の設定に付いては info 参照)
+    ;; オフセット量は下記で指定
+    ;; +  c-basic-offsetの 1倍, ++ c-basic-offsetの 2倍
+    ;; -  c-basic-offsetの-1倍, -- c-basic-offsetの-2倍
+    ; (c-offsets-alist
+     ; . (
+        ; (arglist-intro          . ++)   ; 引数リストの開始行
+        ; (arglist-close          . c-lineup-arglist) ; 引数リストの終了行
+        ; (substatement-open      . 0)    ; サブステートメントの開始行
+        ; (statement-cont         . ++)   ; ステートメントの継続行
+        ; (case-label             . 0)    ; case 文のラベル行
+        ; (label                  . 0)    ; ラベル行
+        ; (block-open             . 0)    ; ブロックの開始行
+        ; (member-init-intro      . ++)   ; メンバオブジェクトの初期化リスト
+        ; ))
+    ;; インデント時に構文解析情報を表示する
+    (c-echo-syntactic-information-p . t)
+    )
+  "My C Programming Style")
+
+;; hook 用の関数の定義
+(defun my-c-mode-common-hook ()
+  ;; my-c-stye を登録して有効にする
+  (c-add-style "My C Programming Style" my-c-style t)
+
+  ;; 次のスタイルがデフォルトで用意されているので選択してもよい
+  ; (c-set-style "gnu")
+  ;; (c-set-style "k&r")
+  ;; (c-set-style "bsd")
+  ;; (c-set-style "linux")
+  ;; (c-set-style "cc-mode")
+  ;; (c-set-style "stroustrup")
+  ;; (c-set-style "ellemtel")
+  ;; (c-set-style "whitesmith")
+  ;; (c-set-style "python")
+
+  ;; 既存のスタイルを変更する場合は次のようにする
+  ;; (c-set-offset 'member-init-intro '++)
+
+  ;; auto-fill-mode を有効にする
+  ; (auto-fill-mode t)
+  ;; タブ長の設定
+  ; (make-variable-buffer-local 'tab-width)
+  ; (setq tab-width 2)
+  ;; タブの代わりにスペースを使う
+  ; (setq indent-tabs-mode nil)
+  ;; 自動改行(auto-newline)を有効にする
+  (setq c-auto-newline t);
+  ;; 連続する空白の一括削除(hungry-delete)を有効にする
+  (c-toggle-auto-hungry-state t)
+  ;; セミコロンで自動改行しない
+  ; (setq c-hanging-semi&comma-criteria nil)
+
+  ;; キーバインドの追加
+  ;; ------------------
+  ;; C-m        改行＋インデント
+  ;; C-c c      コンパイルコマンドの起動
+  ;; C-h        空白の一括削除
+  (define-key c-mode-base-map "\C-m" 'newline-and-indent)
+  (define-key c-mode-base-map "\C-cc" 'compile)
+  ; (define-key c-mode-base-map "\C-h" 'c-electric-backspace)
+  (define-key c-mode-base-map "\C-m" 'expand-bracket)
+
+  ;; コンパイルコマンドの設定
+  ;; (setq compile-command "gcc ")
+  ; (setq compile-command "make -k ")
+  ;; (setq compile-command "gmake -k ")
+
+  ;; 自動スペルチェック
+  (flyspell-mode t)
+
+  ;;HideShow Mode
+  (hs-minor-mode)
+    ; (unset-local-key "{")
+)
+
+;; for C, C++, Java...
+;; モードに入るときに呼び出す hook の設定
+(add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
+
 
 ;; for TeX
 (add-hook 'tex-mode-hook
