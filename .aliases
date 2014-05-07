@@ -34,11 +34,20 @@ function recrm(){
 function recfind(){
     find . -name "*${1}*"
 }
+#case-insensitive version
+function recfindi(){
+    find . -iname "*${1}*"
+}
 
 # 現在のディレクトリ以下から引数の文字列を列挙
 function recgrep(){
     grep -r "${1}" *
 }
+#case-insensitive version
+function recgrepi(){
+    grep -ri "${1}" *
+}
+
 
 
 

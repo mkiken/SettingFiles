@@ -17,6 +17,9 @@ set laststatus=2 "ステータスラインを常に表示する
 "バックアップファイルを生成しない
 " set nobackup
 
+" http://stackoverflow.com/questions/15660669/what-is-a-un-file-or-or-why-does-vim-in-the-terminal-make-the-un-file
+set noundofile
+
 " http://nanasi.jp/articles/howto/file/seemingly-unneeded-file.html
 set swapfile
 set directory=~/.backup/vim/swap
@@ -331,13 +334,14 @@ inoremap <C-j> <ESC>$a<CR>
 
 " http://notachi.hatenadiary.jp/entry/2012/11/13/181810
 " カーソル移動
-" inoremap <C-p> <Up>
-" inoremap <C-n> <Down>
-" inoremap <C-b> <Left>
-" inoremap <C-f> <Right>
+inoremap <C-p> <Up>
+inoremap <C-n> <Down>
+inoremap <C-b> <Left>
+inoremap <C-f> <Right>
 inoremap <C-e> <End>
 inoremap <C-a> <Home>
 inoremap <C-d> <Del>
+inoremap <M-b> <M-left>
 " カーソルのある行を画面中央に
 inoremap <C-l> <C-o>zz
 " カーソルより前の文字を削除
@@ -593,6 +597,7 @@ set wildignore+=*\\tmp\\*,*.swp,*.zip,*.exe  " Windows
 let g:ctrlp_custom_ignore = '\v[\/]\.(git|hg|svn)$'
 " let g:ctrlp_user_command = 'find %s -type f'        " MacOSX/Linux
 
+" URLを開けるようにする
 " http://vim-users.jp/2011/08/hack225/
 let g:netrw_nogx = 1 " disable netrw's gx mapping.
 nmap gb <Plug>(openbrowser-smart-search)

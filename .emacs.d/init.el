@@ -219,6 +219,9 @@
 (global-set-key (kbd "C-c -") (lambda () (interactive) (text-scale-decrease 1)))
 (global-set-key (kbd "C-c 0") (lambda () (interactive) (text-scale-increase 0)))
 
+; C-hをbackspaceとして使用する
+; http://akisute3.hatenablog.com/entry/20120318/1332059326
+(keyboard-translate ?\C-h ?\C-?)
 
 ; 削除ファイルをゴミ箱に入れる
 (setq delete-by-moving-to-trash t)
@@ -950,28 +953,28 @@
     ;; コメント行のオフセット量の設定
     ; (c-comment-only-line-offset . 0)
     ;; カッコ前後の自動改行処理の設定
-    (c-hanging-braces-alist
-     . (
-        (class-open before after)       ; クラス宣言の'{'の前後
-        (class-close after)             ; クラス宣言の'}'の後
-        (defun-open before after)       ; 関数宣言の'{'の前後
-        (defun-close after)             ; 関数宣言の'}'の後
-        (inline-open after)             ; クラス内のインライン
-                                        ; 関数宣言の'{'の後
-        (inline-close after)            ; クラス内のインライン
-                                        ; 関数宣言の'}'の後
-        (brace-list-open after)         ; 列挙型、配列宣言の'{'の後
-        (brace-list-close before after) ; 列挙型、配列宣言の'}'の前後
-        (block-open after)              ; ステートメントの'{'の後
-        (block-close after)             ; ステートメントの'}'前後
-        (substatement-open after)       ; サブステートメント
-                                        ; (if 文等)の'{'の後
-        (statement-case-open after)     ; case 文の'{'の後
-        (extern-lang-open before after) ; 他言語へのリンケージ宣言の
-                                        ; '{'の前後
-        (extern-lang-close before)      ; 他言語へのリンケージ宣言の
-                                        ; '}'の前
-        ))
+    ; (c-hanging-braces-alist
+     ; . (
+        ; (class-open before after)       ; クラス宣言の'{'の前後
+        ; (class-close after)             ; クラス宣言の'}'の後
+        ; (defun-open before after)       ; 関数宣言の'{'の前後
+        ; (defun-close after)             ; 関数宣言の'}'の後
+        ; (inline-open after)             ; クラス内のインライン
+                                        ; ; 関数宣言の'{'の後
+        ; (inline-close after)            ; クラス内のインライン
+                                        ; ; 関数宣言の'}'の後
+        ; (brace-list-open after)         ; 列挙型、配列宣言の'{'の後
+        ; (brace-list-close before after) ; 列挙型、配列宣言の'}'の前後
+        ; (block-open after)              ; ステートメントの'{'の後
+        ; (block-close after)             ; ステートメントの'}'前後
+        ; (substatement-open after)       ; サブステートメント
+                                        ; ; (if 文等)の'{'の後
+        ; (statement-case-open after)     ; case 文の'{'の後
+        ; (extern-lang-open before after) ; 他言語へのリンケージ宣言の
+                                        ; ; '{'の前後
+        ; (extern-lang-close before)      ; 他言語へのリンケージ宣言の
+                                        ; ; '}'の前
+        ; ))
     ;; コロン前後の自動改行処理の設定
     ; (c-hanging-colons-alist
      ; . (
@@ -1049,11 +1052,11 @@
   ;; タブの代わりにスペースを使う
   ; (setq indent-tabs-mode nil)
   ;; 自動改行(auto-newline)を有効にする
-  (setq c-auto-newline t);
+  ; (setq c-auto-newline t);
   ;; 連続する空白の一括削除(hungry-delete)を有効にする
   (c-toggle-auto-hungry-state t)
   ;; セミコロンで自動改行しない
-  ; (setq c-hanging-semi&comma-criteria nil)
+  (setq c-hanging-semi&comma-criteria nil)
 
   ;; キーバインドの追加
   ;; ------------------
@@ -1071,7 +1074,7 @@
   ;; (setq compile-command "gmake -k ")
 
   ;; 自動スペルチェック
-  (flyspell-mode t)
+  ; (flyspell-mode t)
 
   ;;HideShow Mode
   (hs-minor-mode)
@@ -1161,6 +1164,12 @@
                          (modify-syntax-entry ?\" ".")))
                      "Generic mode for Vim configuration files.")
 
+;; for CSS
+(add-hook 'css-mode-hook
+          '(lambda ()
+             (local-set-key "\C-m" 'expand-bracket)
+             )
+		  )
 
 
 ;;for MiniMap(Sublime Text)
@@ -1358,7 +1367,7 @@
   '(flymake-errline ((((class color)) (:underline "red"))))
   '(flymake-warnline ((((class color)) (:underline "blue")))))
 
-(setq flymake-no-changes-timeout 5)
+(setq flymake-no-changes-timeout 30)
 (setq flymake-start-syntax-check-on-newline nil)
 (setq flymake-compilation-prevents-syntax-check t)
 
