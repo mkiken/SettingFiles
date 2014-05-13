@@ -21,10 +21,10 @@ echo "ln -si ${Repo}.gitignore_global ~/.gitignore"
 ln -si "${Repo}.gitignore_global" ~/.gitignore
 
 echo "ln -si ${Repo}.gvimrc ~/.gvimrc"
-ln -si "${Repo}.gvimrc" ~/.gvimrc
+ln -si "${Repo}vimfiles/.gvimrc" ~/.gvimrc
 
 echo "ln -si ${Repo}.vimrc ~/.vimrc"
-ln -si "${Repo}.vimrc" ~/.vimrc
+ln -si "${Repo}vimfiles/.vimrc" ~/.vimrc
 
 echo "ln -si ${Repo}.zshrc ~/.zshrc"
 ln -si "${Repo}.zshrc" ~/.zshrc
@@ -33,7 +33,13 @@ echo "ln -si ${Repo}.emacs.d ~/.emacs.d"
 ln -si "${Repo}.emacs.d" ~/.emacs.d
 
 echo "ln -si ${Repo}.vim ~/.vim"
-ln -si "${Repo}.vim" ~/.vim
+ln -si "${Repo}vimfiles/.vim" ~/.vim
+
+echo "ln -si ${Repo}/SublimeTextFiles/Default\ \(OSX\).sublime-keymap"
+ln -si "${Repo}SublimeTextFiles/Default\ \(OSX\).sublime-keymap" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/User/
+
+echo "ln -si ${Repo}/SublimeTextFiles/Preferences.sublime-settings"
+ln -si "${Repo}SublimeTextFiles/Preferences.sublime-settings" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/User/
 
 echo 'copy done.'
 

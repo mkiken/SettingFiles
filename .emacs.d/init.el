@@ -222,6 +222,7 @@
 ; C-hをbackspaceとして使用する
 ; http://akisute3.hatenablog.com/entry/20120318/1332059326
 (keyboard-translate ?\C-h ?\C-?)
+(define-key global-map (kbd "C-c h") 'help-command)
 
 ; 削除ファイルをゴミ箱に入れる
 (setq delete-by-moving-to-trash t)
@@ -1274,7 +1275,7 @@
 (define-key helm-command-map (kbd "C-s") 'helm-occur-from-isearch)
 (define-key helm-command-map (kbd "g")   'helm-do-grep) ; C-u 付で起動すると、recursive となる
 (define-key helm-command-map (kbd "t")   'helm-gtags-find-tag)
-(global-set-key (kbd "C-c h") 'helm-mini)
+(global-set-key (kbd "C-c x") 'helm-mini)
 ; find-file-at-pointよりもfind^file
 ; (global-set-key (kbd "C-x C-f") 'find-file)
 (global-set-key (kbd "C-x C-f") 'helm-find-files)

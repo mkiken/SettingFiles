@@ -1,0 +1,66 @@
+[
+{ "keys": ["ctrl+."], "command": "run_macro_file", "args": {"file": "Packages/Default/Delete Line.sublime-macro"} },
+{ "keys": ["ctrl+,"], "command": "copy" },
+{ "keys": ["ctrl+/"], "command": "undo" },
+{ "keys": ["ctrl+shift+/"], "command": "redo" },
+{ "keys": ["ctrl+right"], "command": "next_view" },
+{ "keys": ["ctrl+left"], "command": "prev_view" },
+{ "keys": ["ctrl+s"], "command": "show_panel", "args": {"panel": "incremental_find", "reverse":false} },
+{ "keys": ["ctrl+r"], "command": "show_panel", "args": {"panel": "incremental_find", "reverse":true} },
+// http://log.deconcepter.jp/2013/09/sublime_text_indent/
+{ "keys": ["super+i"], "command": "reindent" , "args": { "single_line": false } },
+{ "keys": ["ctrl+;"], "command": "toggle_comment", "args": { "block": false } },
+{ "keys": ["alt+;"], "command": "toggle_comment", "args": { "block": true } },
+{ "keys": ["alt+["], "command": "soft_undo" },
+{ "keys": ["alt+]"], "command": "soft_redo" },
+{ "keys": ["ctrl+shift+5"], "command": "move_to", "args": {"to": "brackets"} },
+{ "keys": ["ctrl+]"], "command": "move_to", "args": {"to": "brackets"} },
+{ "keys": ["ctrl+c", "l"], "command": "show_overlay", "args": {"overlay": "goto", "text": ":"} },
+
+//Settings for override Ctrl-e from Emmet
+// http://blog.morizotter.com/2013/09/22/sublimetext2-and-ctrle/
+{
+        "keys": [
+            "ctrl+d"
+        ],
+        "command": "right_delete"
+    },
+    {
+        "keys": [
+            "ctrl+e"
+        ],
+        "command": "move_to",
+        "args": {
+            "to": "hardeol"
+        }
+    },
+    {
+        "keys": [
+            "shift+super+x"
+        ],
+        "args": {
+            "action": "match_pair_outward"
+        },
+        "command": "run_emmet_action",
+        "context": [
+            {
+                "key": "emmet_action_enabled.match_pair_outward"
+            }
+        ]
+    },
+    {
+        "keys": [
+            "super+e"
+        ],
+        "args": {
+            "action": "expand_abbreviation"
+        },
+        "command": "run_emmet_action",
+        "context": [
+            {
+                "key": "emmet_action_enabled.expand_abbreviation"
+            }
+        ]
+    },
+    { "keys": ["ctrl+y"], "command": "paste" }
+]

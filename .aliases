@@ -25,31 +25,49 @@ function ec(){
 
 # 現在のディレクトリ以下の当てはまるファイルを全て削除する
 # http://www.omnioo.com/omnioolab/2012/07/find.php
-function recrm(){
-    find . -name "$1" -exec rmtrash {} \;
-    echo "$1 removed recursively."
+alias recrm='noglob _recrm'
+function _recrm(){
+    find . -name "$1"
+    echo "remove all above? [y/n]"
+    read ANSWER
+
+    case $ANSWER in
+        "Y" | "y" | "yes" | "Yes" | "YES" )
+            find . -name "$1" -exec rmtrash {} \;;
+            echo "$1 removed recursively.";;
+        * ) echo "recrm canceled.";;
+    esac
 }
 
+alias recrmi='noglob _recrmi'
+function _recrmi(){
+    find . -name "$1"
+    find . -name "$1" -exec rm -i {} \;
+    echo "recrmi $1 executed."
+}
+
+alias recfind='noglob _recfind'
 # 現在のディレクトリ以下から引数の文字列を含むファイル名を列挙
-function recfind(){
+function _recfind(){
     find . -name "*${1}*"
 }
+alias recfindi='noglob _recfindi'
 #case-insensitive version
-function recfindi(){
+function _recfindi(){
     find . -iname "*${1}*"
 }
 
 # 現在のディレクトリ以下から引数の文字列を列挙
-function recgrep(){
+
+alias recgrep='noglob _recgrep'
+function _recgrep(){
     grep -r "${1}" *
 }
+alias recgrepi='noglob _recgrepi'
 #case-insensitive version
-function recgrepi(){
+function _recgrepi(){
     grep -ri "${1}" *
 }
-
-
-
 
 # Haskellのファイルをa.outでコンパイルする
 # その際、オブジェクトファイル(.o)とインターフェースファイル(.hi)を削除
@@ -64,7 +82,6 @@ function ghca(){
 # echo "rm ${fname}.hi & ${fname}.o"
                 fi
 }
-
 
 # http://tukaikta.blog135.fc2.com/blog-entry-214.html
 alias rm='rmtrash'
@@ -123,6 +140,7 @@ alias gst='git st'
 alias gaa='git add .'
 # alias gra='git rmall'
 alias gcm='git commit'
+alias gcma='git commit -a'
 alias gcmm='git commit -m'
 alias gps='git push'
 alias gpl='git pull'
@@ -140,7 +158,7 @@ alias ocaml='rlwrap ocaml'
 #display all files,End with true or false
 alias allfile='defaults write com.apple.finder AppleShowAllFiles'
 
-REP="${HOME}/Desktop/repository/"
+REPO="${HOME}/Desktop/repository/"
 SET="${HOME}/Desktop/repository/SettingFiles/"
 EIN="${HOME}/.emacs.d/init.el"
 

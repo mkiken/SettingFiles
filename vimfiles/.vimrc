@@ -744,7 +744,6 @@ map - <Plug>(expand_region_shrink)
 
 " If you want :UltiSnipsEdit to split your window.
 let g:UltiSnipsEditSplit="vertical"
-let g:ycm_key_select_completion = "<CR>"
 
 
 " https://github.com/Valloric/YouCompleteMe/issues/36#issuecomment-15451411
@@ -769,3 +768,11 @@ function! g:UltiSnips_Complete()
 endfunction
 
 au InsertEnter * exec "inoremap <silent> " . g:UltiSnipsExpandTrigger . " <C-R>=g:UltiSnips_Complete()<cr>"
+
+
+" Settings for YouCompleteMe
+" https://github.com/Valloric/YouCompleteMe
+let g:ycm_complete_in_comments = 1    " コメント内でも補完
+let g:ycm_seed_identifiers_with_syntax = 1    "ファイルに合ったシンタックスで補完
+" let g:ycm_cache_omnifunc = 0
+" let g:ycm_key_select_completion = "<CR>"
