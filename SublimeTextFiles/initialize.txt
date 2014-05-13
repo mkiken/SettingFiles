@@ -9,5 +9,5 @@ Cmd + Shift + P
 「Package Control:Install Package」
 Emmet
 
-sudo ln -s /Applications/Sublime Text 2.app/Contents/SharedSupport/bin/subl /usr/bin/subl
+sudo ln -s /Applications/Sublime\ Text\ 2.app/Contents/SharedSupport/bin/subl /usr/bin/subl
       ￼
