@@ -1,1 +1,1 @@
-/Users/a13596/Desktop/repository/SettingFiles/.emacs.d
+/Users/kensuke/Desktop/repository/SettingFiles/.emacs.d

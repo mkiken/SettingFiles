@@ -62,5 +62,7 @@
             }
         ]
     },
-    { "keys": ["ctrl+y"], "command": "paste" }
+    { "keys": ["ctrl+y"], "command": "paste" },
+    { "keys": ["ctrl+j"], "command": "run_macro_file", "args": {"file": "Packages/Default/Add Line.sublime-macro"} },
+	{ "keys": ["ctrl+shift+j"], "command": "run_macro_file", "args": {"file": "Packages/Default/Add Line Before.sublime-macro"} }
 ]

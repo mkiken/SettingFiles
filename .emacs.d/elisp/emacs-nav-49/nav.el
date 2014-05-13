@@ -72,7 +72,8 @@ other windows.
   :group 'nav)
 
 (defcustom nav-boring-file-regexps
-  (list "^[.][^.].*$"        ; hidden files such as .foo
+  (list
+   ;; "^[.][^.].*$"        ; hidden files such as .foo
 	"^[.]$"              ; current directory
 	"~$"
 	"[.]elc$"
@@ -223,7 +224,7 @@ w\t Shrink-wrap Nav's window to fit the longest filename in the current director
 ")
   (nav-goto-line 1)
   (view-mode -1)
-  (toggle-read-only 1))
+  (read-only-mode 1))
 
 (defvar nav-mode-map
   (nav-make-mode-map)

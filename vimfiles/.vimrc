@@ -428,12 +428,12 @@ map T ;T
 " https://github.com/gmarik/vundle
  filetype off                   " required!
 
- set rtp+=~/.vim/bundle/vundle/
+ set rtp+=~/.vim/bundle/Vundle.vim/
  call vundle#rc()
 
  " let Vundle manage Vundle
  " required!
- Bundle 'gmarik/vundle'
+ Bundle 'gmarik/Vundle.vim'
 
  " My Bundles here:
  Bundle 'derekwyatt/vim-scala'
@@ -443,7 +443,7 @@ map T ;T
  " Bundle 'mhinz/vim-startify'
  " Bundle 'osyo-manga/vim-over'
  Bundle 'AndrewRadev/switch.vim'
- Bundle 'kana/vim-multiple-cursors'
+ Bundle 'terryma/vim-multiple-cursors'
  Bundle 'tyru/open-browser.vim'
  Bundle 'AndrewRadev/switch.vim'
  " Bundle 'haya14busa/vim-migemo'
@@ -480,7 +480,7 @@ vmap ,, <Plug>NERDCommenterToggle
 
 map <Leader>n :NERDTreeToggle<CR>
 "NERDtreeで隠しファイルを表示する
-" let NERDTreeShowHidden=1
+let NERDTreeShowHidden=1
 
 if has("autocmd")
 	" http://docs.racket-lang.org/guide/Vim.html

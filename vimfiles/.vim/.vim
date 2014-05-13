@@ -1,1 +1,1 @@
-/Users/a13596/Desktop/repository/SettingFiles/vimfiles/.vim
+/Users/kensuke/Desktop/repository/SettingFiles/vimfiles/.vim

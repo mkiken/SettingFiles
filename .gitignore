@@ -2,4 +2,4 @@
 .mc-lists.el
 auto-save-list
 .vimwinpos
-.vim/bundle/
+vimfiles/.vim/bundle/

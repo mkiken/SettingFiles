@@ -397,6 +397,7 @@ glob_context=0
 
 function limit-completion
 {
+    # echo "limit-completetion"
 	if ((compstate[nmatches] <= 1)); then
 		zle -M ""
 	elif ((compstate[list_lines] > 6)); then
@@ -408,6 +409,7 @@ function limit-completion
 
 function correct-prediction
 {
+    # echo "correct-prediction"
 	if ((now_predict == 1)); then
 		if [[ "$BUFFER" != "$buffer_prd" ]] || ((CURSOR != cursor_org)); then
 			now_predict=0
@@ -417,6 +419,7 @@ function correct-prediction
 
 function remove-prediction
 {
+    # echo "remove-prediction"
 	if ((now_predict == 1)); then
 		BUFFER="$buffer_org"
 		now_predict=0
@@ -425,6 +428,7 @@ function remove-prediction
 
 function show-prediction
 {
+    # echo "show-prediction"
 	# assert(now_predict == 0)
 	# *, ^のときは補完ではなく，list-expandしてほしい
 	if
@@ -444,6 +448,7 @@ function show-prediction
 		[[ "$PREBUFFER" == "" ]] &&
 		[[ "$BUFFER[CURSOR]" != " " ]]
 	then
+    # echo "show-prediction3"
 		cursor_org="$CURSOR"
 		buffer_org="$BUFFER"
 		comppostfuncs=(limit-completion)
@@ -455,16 +460,20 @@ function show-prediction
 			zle list-expand
 		fi
 		# zle complete-word
+    # echo "show-prediction2"
 		cursor_prd="$CURSOR"
 		buffer_prd="$BUFFER"
 		if [[ "$buffer_org[1,cursor_org]" == "$buffer_prd[1,cursor_org]" ]]; then
+    # echo "show-prediction4"
 			CURSOR="$cursor_org"
 			if [[ "$buffer_org" != "$buffer_prd" ]] || ((cursor_org != cursor_prd)); then
 				now_predict=1
 			fi
 		else
-			BUFFER="$buffer_org"
-			CURSOR="$cursor_org"
+    # echo "show-prediction5"
+            BUFFER="$buffer_org"
+            # BUFFER="$buffer_prd"
+            CURSOR="$cursor_org"
 		fi
 		echo -n "\e[32m"
 	else
