@@ -1,10 +1,10 @@
 " Vim Settings for GUI
 
 " カラースキーマを設定
-" colorscheme molokai
+colorscheme molokai
 " colorscheme Tomorrow
 " colorscheme Tomorrow-Night
-colorscheme Tomorrow-Night-Bright
+" colorscheme Tomorrow-Night-Bright
 " colorscheme Tomorrow-Night-Blue
 " colorscheme Tomorrow-Night-Eighties
 " colorscheme solarized

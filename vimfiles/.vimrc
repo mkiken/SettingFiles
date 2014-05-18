@@ -101,6 +101,8 @@ set showtabline=2
 set splitbelow "新しいウィンドウを下に開く
 set splitright "新しいウィンドウを右に開く
 
+" set paste
+
 " folding
 " http://www.ksknet.net/vi/post_183.html
 " set foldmethod=syntax
@@ -445,7 +447,6 @@ map T ;T
  Bundle 'AndrewRadev/switch.vim'
  Bundle 'terryma/vim-multiple-cursors'
  Bundle 'tyru/open-browser.vim'
- Bundle 'AndrewRadev/switch.vim'
  " Bundle 'haya14busa/vim-migemo'
  Bundle 'Shougo/unite.vim'
  Bundle 'Yggdroot/indentLine'

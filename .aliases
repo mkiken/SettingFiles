@@ -28,7 +28,7 @@ function ec(){
 alias recrm='noglob _recrm'
 function _recrm(){
     find . -name "$1"
-    echo "remove all above? [y/n]"
+    echo "remove all above? [y/N]"
     read ANSWER
 
     case $ANSWER in

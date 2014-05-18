@@ -32,7 +32,6 @@
   ;; Eclipseみたいに行全体の削除。本来はCtrl + Shift + Del
   (define-key global-map (kbd "s-d") 'kill-whole-line)
   (define-key global-map (kbd "s-b") 'copy-line)
-  (define-key global-map (kbd "s-v") 'my-yank)
 
   ; システムへ修飾キーを渡さない設定
   (setq mac-pass-control-to-system nil)
@@ -175,7 +174,7 @@
 ;; C-jで文のどこからでも改行できるようにする
 (defun newline-from-anywhere()
   (interactive)
-  (end-of-visual-line)
+  (end-of-line)
   (newline-and-indent) )
 (global-set-key (kbd "C-j") 'newline-from-anywhere)
 (defun newline-from-anywhere-prev()
@@ -185,6 +184,22 @@
   (previous-line)
   (c-indent-command))
 (global-set-key (kbd "C-S-j") 'newline-from-anywhere-prev)
+
+; http://www.emacswiki.org/emacs/AutoIndentation
+(electric-indent-mode 1)
+
+(dolist (command '(yank yank-pop))
+   (eval `(defadvice ,command (after indent-region activate)
+            (and (not current-prefix-arg)
+                 (member major-mode '(emacs-lisp-mode lisp-mode
+                                                      clojure-mode    scheme-mode
+                                                      haskell-mode    ruby-mode
+                                                      rspec-mode      python-mode
+                                                      c-mode          c++-mode
+                                                      objc-mode       latex-mode
+                                                      plain-tex-mode))
+                 (let ((mark-even-if-inactive transient-mark-mode))
+                   (indent-region (region-beginning) (region-end) nil))))))
 
 ; (global-set-key (kbd "C-<left>")  'windmove-left)
 
@@ -245,15 +260,6 @@
 ;; Window間の移動をM-...でやる
 ;; http://www.emacswiki.org/emacs/WindMove
 (windmove-default-keybindings 'super)
-
-;; ペースト後に整形
-(defun my-yank()
-  (interactive)
-  (yank)
-  (backward-char)
-  (indent-for-tab-command)
-  (forward-char)
-  )
 
 ;;インデントはタブにする
 ; (setq indent-tabs-mode t)
@@ -416,17 +422,15 @@
 				  (line-end-position))
   (message "1 line copied."))
 
-(global-set-key (kbd "C-,") 'copy-oneline)
+(global-set-key (kbd "C-,") 'copy-line)
 (global-set-key (kbd "C-.") 'kill-whole-line)
 
 ;; viのpのように改行してヤンク
 (defun vi-p ()
   (interactive)
-  (end-of-visual-line)
+  (end-of-line)
   (newline-and-indent)
-  (my-yank)
-  ; (delete-backward-char 1)
-  ; (previous-line)
+  (yank)
   )
 (global-set-key (kbd "C-:") 'vi-p)
 
@@ -545,7 +549,8 @@
     (move-to-column col)))
 
 ; (global-set-key (kbd "M-N") (lambda () (interactive) (move-line 3)))
-(global-set-key (kbd "C-T") (lambda () (interactive) (move-line -1)))
+(global-set-key (kbd "C-S-t") (lambda () (interactive) (move-line -1)))
+(global-set-key (kbd "M-T") (lambda () (interactive) (move-line 1)))
 
 ;; http://d.hatena.ne.jp/mooz/20100119/p1
 (defun window-resizer ()
@@ -739,11 +744,11 @@
   ;; (load-theme 'zenburn t)
   ;; (load-theme 'solarized-light t)
   ; (load-theme 'solarized-dark t)
-  ; (load-theme 'twilight-anti-bright t)
+  (load-theme 'twilight-anti-bright t)
   ; (load-theme 'tomorrow-night-paradise t)
   ;; (load-theme 'tomorrow-night-blue t)
-  (load-theme 'tomorrow-night-bright t)
-  ; (load-theme 'tomorrow-night-eighties t)
+  ; (load-theme 'tomorrow-night-bright t)
+  (load-theme 'tomorrow-night-eighties t)
   ; (load-theme 'tomorrow-night t)
   ;; (load-theme 'tomorrow t)
   ;; (load-theme 'twilight-bright t)
@@ -794,6 +799,8 @@
                       )
   )
 
+; (set-face-italic-p 'font-lock-comment-face t)
+
 ;; for wc mode
 ;; http://www.emacswiki.org/emacs/WordCountMode
 (require 'wc-mode)
@@ -827,12 +834,26 @@
 (global-set-key (kbd "M-%") 'anzu-query-replace)
 (global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp)
 
+
+
 ;; for tab mode
 ;; http://ser1zw.hatenablog.com/entry/2012/12/31/022359
 ;; http://christina04.blog.fc2.com/blog-entry-170.html
 (add-to-list 'load-path "~/.emacs.d/elisp/tabbar")
 (require 'tabbar)
 (tabbar-mode 1)
+
+(require 'tabbar-ruler)
+(setq tabbar-ruler-global-tabbar t) ; If you want tabbar
+; (setq tabbar-ruler-global-ruler t) ; if you want a global ruler
+(setq tabbar-ruler-popup-menu t) ; If you want a popup menu.
+; (setq tabbar-ruler-popup-toolbar t) ; If you want a popup toolbar
+; (setq tabbar-ruler-popup-scrollbar t) ; If you want to only show the
+                                      ; scroll bar when your mouse is moving.
+; (tabbar-ruler-group-buffer-groups)
+; (setq tabbar-buffer-groups-function 'tabbar-buffer-groups)
+
+
 ;; Firefoxライクなキーバインドに
 (global-set-key [(control tab)] 'tabbar-forward)
 (global-set-key [(control shift tab)] 'tabbar-backward)
@@ -864,15 +885,15 @@
 			       ) (find (aref (buffer-name buffer) 0) " *")))
           (buffer-list))))
 
+; http://cloverrose.hateblo.jp/entry/2013/04/15/183839
 ;; タブ同士の間隔
-;; http://cloverrose.hateblo.jp/entry/2013/04/15/183839
 (setq tabbar-separator '(0.7))
 ;; 外観変更
 (set-face-attribute
   'tabbar-default nil
   :family (face-attribute 'default :family)
   :background (face-attribute 'mode-line-inactive :background)
-  :height 0.9)
+  :height 0.8)
 (set-face-attribute
   'tabbar-unselected nil
   :background (face-attribute 'mode-line-inactive :background)
@@ -884,7 +905,6 @@
   :background (face-attribute 'mode-line :background)
   :foreground (face-attribute 'mode-line :foreground)
   :box nil)
-
 
 ;; HideShow Mode
 ;; http://www.emacswiki.org/emacs/HideShow
@@ -930,7 +950,7 @@
       ; (newline-and-indent)
       ; (indent-relative)
       (previous-line)
-      (end-of-visual-line)
+      (end-of-line)
       (newline-and-indent)
       ; (indent-relative)
       )
@@ -1160,7 +1180,7 @@
                         (2 font-lock-comment-face))
                        ("\"\\([^\n\r\"\\]\\|\\.\\)*\""
                         (0 font-lock-string-face)))
-                     '("/vimrc\\'" "\\.vim\\(rc\\)?\\'")
+                     '("/vimrc\\'" "\\.vim\\(rc\\)?\\'" "\\.gvim\\(rc\\)?\\'")
                      '((lambda ()
                          (modify-syntax-entry ?\" ".")))
                      "Generic mode for Vim configuration files.")
@@ -1533,4 +1553,5 @@
 (custom-set-variables '(ahs-default-range (quote ahs-range-whole-buffer)))
 
 ; (require 'wrap-region)
+
 

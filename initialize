@@ -2,14 +2,7 @@
 
 # Repo="${HOME}/Desktop/repository/SettingFiles/"
 Repo="`pwd`/"
-# cp .aliases ~/.aliases
-# cp .gitconfig ~/.gitconfig
-# cp .gitignore ~/.gitignore
-# cp .gitmodules ~/.gitmodules
-# cp .gvimrc ~/.gvimrc
-# cp .vimrc ~/.vimrc
-# cp .zshrc ~/.zshrc
-# cp .emacs.d/init.el ~/.emacs.d/init.el
+
 
 echo "ln -si ${Repo}.aliases ~/.aliases"
 ln -si "${Repo}.aliases" ~/.aliases
@@ -35,13 +28,16 @@ ln -si "${Repo}.emacs.d" ~/.emacs.d
 echo "ln -si ${Repo}vimfiles/.vim ~/.vim"
 ln -si "${Repo}vimfiles/.vim" ~/.vim
 
-echo "ln -si ${Repo}/SublimeTextFiles/Default (OSX).sublime-keymap"
-ln -si "${Repo}SublimeTextFiles/Default (OSX).sublime-keymap" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/User/
+echo "ln -si ${Repo}/SublimeTextFiles/user_OSX.sublime-keymap"
+ln -si "${Repo}SublimeTextFiles/user_OSX.sublime-keymap" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/User/Default\ \(OSX\).sublime-keymap
+
+echo "ln -si ${Repo}/SublimeTextFiles/default_OSX.sublime-keymap"
+ln -si "${Repo}SublimeTextFiles/default_OSX.sublime-keymap" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/Default/Default\ \(OSX\).sublime-keymap
 
 echo "ln -si ${Repo}/SublimeTextFiles/Preferences.sublime-settings"
-ln -si "${Repo}SublimeTextFiles/Preferences.sublime-settings" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/User/
+ln -si "${Repo}SublimeTextFiles/Preferences.sublime-settings" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/User/Preferences.sublime-settings
 
-echo 'copy done.'
+echo 'symbolic links created.'
 
 
 # mkdir -p ~/.backup
@@ -51,6 +47,13 @@ mkdir -p ~/.backup/vim/backup
 mkdir -p ~/.backup/vim/swap
 
 echo 'backup directory for emacs and vim made.'
+
+
+# install commands
+
+ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"
+brew install git
+brew install rmtrash
 
 git submodule sync
 # http://rochefort.hatenablog.com/entry/20110410/p1

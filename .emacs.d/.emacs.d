@@ -1,1 +1,0 @@
-/Users/kensuke/Desktop/repository/SettingFiles/.emacs.d
