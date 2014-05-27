@@ -4,11 +4,19 @@
 <array>
 	<dict>
 		<key>phrase</key>
+		<string>:;(∩´﹏`∩);:</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+		<key>timestamp</key>
+		<integer>1400809041</integer>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>＼(^o^)／</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
 		<key>timestamp</key>
-		<integer>1390383349</integer>
+		<integer>1400805944</integer>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -16,7 +24,7 @@
 		<key>shortcut</key>
 		<string>かおもじ</string>
 		<key>timestamp</key>
-		<integer>1390739356</integer>
+		<integer>1400805944</integer>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -24,7 +32,7 @@
 		<key>shortcut</key>
 		<string>かおもじ</string>
 		<key>timestamp</key>
-		<integer>1397922258</integer>
+		<integer>1400805944</integer>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -32,7 +40,7 @@
 		<key>shortcut</key>
 		<string>かおもじ</string>
 		<key>timestamp</key>
-		<integer>1393986630</integer>
+		<integer>1400805944</integer>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -40,7 +48,7 @@
 		<key>shortcut</key>
 		<string>かおもじ</string>
 		<key>timestamp</key>
-		<integer>1392128386</integer>
+		<integer>1400805944</integer>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -48,7 +56,7 @@
 		<key>shortcut</key>
 		<string>かおもじ</string>
 		<key>timestamp</key>
-		<integer>1392128449</integer>
+		<integer>1400805944</integer>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -56,7 +64,7 @@
 		<key>shortcut</key>
 		<string>かおもじ</string>
 		<key>timestamp</key>
-		<integer>1392128409</integer>
+		<integer>1400805944</integer>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -64,7 +72,7 @@
 		<key>shortcut</key>
 		<string>かおもじ</string>
 		<key>timestamp</key>
-		<integer>1397922240</integer>
+		<integer>1400805944</integer>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -72,7 +80,7 @@
 		<key>shortcut</key>
 		<string>かおもじ</string>
 		<key>timestamp</key>
-		<integer>1395423089</integer>
+		<integer>1400805944</integer>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -80,7 +88,7 @@
 		<key>shortcut</key>
 		<string>かおもじ</string>
 		<key>timestamp</key>
-		<integer>1392128398</integer>
+		<integer>1400805944</integer>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -88,7 +96,7 @@
 		<key>shortcut</key>
 		<string>よろ</string>
 		<key>timestamp</key>
-		<integer>1376314426</integer>
+		<integer>1400805944</integer>
 	</dict>
 </array>
 </plist>

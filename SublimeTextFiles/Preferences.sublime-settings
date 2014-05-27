@@ -32,12 +32,14 @@
 	"bold_folder_labels": true,
 	"caret_style": "smooth",
 	"close_windows_when_empty": true,
-	"color_scheme": "Packages/Color Scheme - Default/Amy.tmTheme",
+	"color_scheme": "Packages/Color Scheme - Default/Zenburnesque.tmTheme",
 	"create_window_at_startup": true,
 	"default_encoding": "UTF-8",
 	"default_line_ending": "system",
 	"detect_indentation": true,
 	"dictionary": "Packages/Language - English/en_US.dic",
+	"disable_formatted_linebreak": true,
+	"disable_tab_abbreviations": true,
 	"drag_text": true,
 	"draw_indent_guides": true,
 	"draw_minimap_border": false,
@@ -52,7 +54,7 @@
 	"folder_exclude_patterns":
 	[
 	],
-	"font_size": 12,
+	"font_size": 12.0,
 	"gutter": true,
 	"highlight_line": true,
 	"highlight_modified_tabs": true,
@@ -85,9 +87,9 @@
 	"remember_open_files": true,
 	"rulers":
 	[
+		40,
 		80,
-		100,
-		118
+		120
 	],
 	"save_on_focus_lost": false,
 	"scroll_past_end": true,
@@ -107,11 +109,5 @@
 	"use_tab_stops": true,
 	"word_separators": "./\\()\"'-:,.;<>~!@#$%^&*|+=[]{}`~?_",
 	"word_wrap": true,
-	"wrap_width": 120,
-	//Emmet有効で日本語変換確定後に文字が消えるのを回避
-    "disable_formatted_linebreak": true,
-    //Emmet有効でHTMLでのphp展開を正しくする
-    "disable_tab_abbreviations": true,
-    //Emmet有効で日本語キーボードを使っている場合はfalse
-    "enable_emmet_keymap": false
+	"wrap_width": 120
 }
