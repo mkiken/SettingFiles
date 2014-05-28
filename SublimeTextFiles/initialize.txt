@@ -11,6 +11,7 @@ Cmd + Shift + P
 Emmet
 BracketHighlighter
 AdvancedNewFile
+EditorConfig
 
 sudo ln -s /Applications/Sublime\ Text\ 2.app/Contents/SharedSupport/bin/subl /usr/bin/subl
       ￼

@@ -47,11 +47,11 @@ set cindent
 " タブに展開
 set expandtab
 " タブが対応する空白の数
-set tabstop=4
+set tabstop=2
 " タブやバックスペースの使用等の編集操作をするときに、タブが対応する空白の数
-set softtabstop=4
+set softtabstop=2
 " インデントの各段階に使われる空白の数
-set shiftwidth=4
+set shiftwidth=2
 " 新しい行を作ったときに高度な自動インデントを行う
 " set smartindent
 "行頭の余白内で Tab を打ち込むと、'shiftwidth' の数だけインデントする
@@ -612,6 +612,12 @@ vmap gb <Plug>(openbrowser-smart-search)
 let g:syntastic_mode_map = { 'mode': 'active',
 	\ 'active_filetypes': [],
 	\ 'passive_filetypes': ['scala'] }
+
+" for jshint
+let g:syntastic_mode_map = {
+\ "mode" : "active",
+\ "active_filetypes" : ["javascript", "json"],
+\}
 
 " http://mba-hack.blogspot.jp/2013/03/unitevim.html
 "" unite.vim {{{
