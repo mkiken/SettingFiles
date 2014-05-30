@@ -28,14 +28,17 @@ ln -si "${Repo}.emacs.d" ~/.emacs.d
 echo "ln -si ${Repo}vimfiles/.vim ~/.vim"
 ln -si "${Repo}vimfiles/.vim" ~/.vim
 
-echo "ln -si ${Repo}/SublimeTextFiles/user_OSX.sublime-keymap"
-ln -si "${Repo}SublimeTextFiles/user_OSX.sublime-keymap" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/User/Default\ \(OSX\).sublime-keymap
+echo "ln -si ${Repo}SublimeTextFiles/2/user_OSX.sublime-keymap"
+ln -si "${Repo}SublimeTextFiles/2/user_OSX.sublime-keymap" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/User/Default\ \(OSX\).sublime-keymap
 
-echo "ln -si ${Repo}/SublimeTextFiles/default_OSX.sublime-keymap"
-ln -si "${Repo}SublimeTextFiles/default_OSX.sublime-keymap" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/Default/Default\ \(OSX\).sublime-keymap
+echo "ln -si ${Repo}SublimeTextFiles/2/default_OSX.sublime-keymap"
+ln -si "${Repo}SublimeTextFiles/2/default_OSX.sublime-keymap" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/Default/Default\ \(OSX\).sublime-keymap
 
-echo "ln -si ${Repo}/SublimeTextFiles/Preferences.sublime-settings"
-ln -si "${Repo}SublimeTextFiles/Preferences.sublime-settings" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/User/Preferences.sublime-settings
+echo "ln -si ${Repo}SublimeTextFiles/2/Preferences.sublime-settings"
+ln -si "${Repo}SublimeTextFiles/2/Preferences.sublime-settings" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/User/Preferences.sublime-settings
+
+echo "ln -si ${Repo}.jshintrc"
+ln -si "${Repo}.jshintrc" ~/.jshintrc
 
 echo 'symbolic links created.'
 
@@ -54,6 +57,10 @@ echo 'backup directory for emacs and vim made.'
 ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"
 brew install git
 brew install rmtrash
+brew install node
+# brew install tree
+# brew install --cocoa --srgb --with-gnutls --japanese emacs -v
+brew install --cocoa --srgb --japanese emacs -v
 
 git submodule sync
 # http://rochefort.hatenablog.com/entry/20110410/p1

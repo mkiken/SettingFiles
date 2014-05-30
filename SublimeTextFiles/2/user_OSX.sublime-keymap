@@ -77,5 +77,6 @@
     { "keys": ["ctrl+shift+tab"], "command": "prev_view" },
     { "keys": ["ctrl+pagedown"], "command": "next_view_in_stack" },
     { "keys": ["ctrl+pageup"], "command": "prev_view_in_stack" },
-    { "keys": ["alt+^"], "command": "join_lines" }
+    { "keys": ["alt+^"], "command": "join_lines" },
+    { "keys": ["alt+d"], "command": "delete_word", "args": { "forward": true, "sub_words": true } }
 ]

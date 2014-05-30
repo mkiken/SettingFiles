@@ -728,6 +728,12 @@
 
 ;;import
 (add-to-list 'load-path "~/.emacs.d/elisp")
+; (add-to-list 'load-path "~/.emacs.d/elpa")
+
+; package.elの設定
+(require 'package)
+(add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/"))
+(package-initialize)
 
 ; http://www.emacswiki.org/emacs/ColorThemeQuestions
 ; 端末だと色が足りなくてthemeがきれいに動かない
@@ -746,9 +752,9 @@
   ; (load-theme 'solarized-dark t)
   (load-theme 'twilight-anti-bright t)
   ; (load-theme 'tomorrow-night-paradise t)
-  ;; (load-theme 'tomorrow-night-blue t)
+  ; (load-theme 'tomorrow-night-blue t)
   ; (load-theme 'tomorrow-night-bright t)
-  (load-theme 'tomorrow-night-eighties t)
+  ; (load-theme 'tomorrow-night-eighties t)
   ; (load-theme 'tomorrow-night t)
   ;; (load-theme 'tomorrow t)
   ;; (load-theme 'twilight-bright t)
@@ -1221,24 +1227,6 @@
 ; (auto-install-update-emacswiki-package-name t)
 ; (auto-install-compatibility-setup)             ; 互換性確保
 
-; for package.el
-; Emacs24
-; http://ongaeshi.hatenablog.com/entry/20120613/1339607400
-;; 実行時だけ有効にする
-; (progn
-; (switch-to-buffer
-; (url-retrieve-synchronously
-; "https://raw.github.com/milkypostman/melpa/master/melpa.el"))
-; (package-install-from-buffer  (package-buffer-info) 'single))
-; (require 'package)
-; ; Add package-archives
-; (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/") t)
-; (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
-; ; Initialize
-; (package-initialize)
-; ; melpa.el
-; (require 'melpa)
-
 ;; http://d.hatena.ne.jp/supermassiveblackhole/20100705/1278320568
 ;; auto-complete
 ;; 補完候補を自動ポップアップ
@@ -1501,9 +1489,11 @@
 ; (add-to-list 'rotate-text-symbols '("and" "or"))
 
 ; http://qiita.com/takc923/items/c3d64b55fc4f3a3b0838
-(add-to-list 'load-path "~/.emacs.d/elpa/undo-tree-0.6.5")
-(require 'undo-tree)
-(global-undo-tree-mode t)
+; (add-to-list 'load-path "~/.emacs.d/elpa/undo-tree-0.6.5")
+; (require 'undo-tree-autoloads)
+; (require 'undo-tree)
+; (global-undo-tree-mode t)
+; (undo-tree-mode)
 (global-set-key (kbd "C-?") 'undo-tree-redo)
 
 ; https://github.com/zk-phi/indent-guide

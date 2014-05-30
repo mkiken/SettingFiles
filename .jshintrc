@@ -62,7 +62,7 @@
 
   "nomen": false,
   "onevar": false,
-  "white": false,
+  "white": true,
 
   "es3":true
 }
