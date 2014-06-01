@@ -466,6 +466,7 @@ map T ;T
  " Bundle 'Valloric/YouCompleteMe'
  " Bundle 'SirVer/ultisnips'
  " Bundle 'honza/vim-snippets'
+ Bundle 'mattn/emmet-vim'
 
 
  " <Space>mに、switch.vimをマッピング
@@ -609,8 +610,9 @@ vmap gb <Plug>(openbrowser-smart-search)
 
 " http://blog.thomasupton.com/2012/05/syntastic/
 " On by default, turn it off for html
-let g:syntastic_mode_map = { 'mode': 'active',
-	\ 'active_filetypes': [],
+let g:syntastic_mode_map = {
+  \ 'mode': 'active',
+	\ 'active_filetypes': ['javascript', 'json'],
 	\ 'passive_filetypes': ['scala'] }
 
 " for jshint
@@ -618,6 +620,8 @@ let g:syntastic_mode_map = {
 \ "mode" : "active",
 \ "active_filetypes" : ["javascript", "json"],
 \}
+
+let g:syntastic_javascript_checker = 'jshint'
 
 " http://mba-hack.blogspot.jp/2013/03/unitevim.html
 "" unite.vim {{{
@@ -905,3 +909,7 @@ endif
 
 " Tell Neosnippet about the other snippets
 let g:neosnippet#snippets_directory='~/.vim/bundle/vim-snippets/snippets'
+
+
+" let g:user_emmet_leader_key='<C-Z>'
+let g:user_emmet_leader_key='<c-x>'

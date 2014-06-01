@@ -1,6 +1,8 @@
 (require 'package)
 ;; MELPAのみ追加
 (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/"))
+;; Marmaladeを追加
+(add-to-list 'package-archives  '("marmalade" . "http://marmalade-repo.org/packages/"))
 (package-initialize)
 
 ;; パッケージ情報の更新
@@ -9,28 +11,42 @@
 ;; インストールするパッケージ
 (defvar my/favorite-packages
   '(
-    ;;;; for auto-complete
-    ; auto-complete fuzzy popup pos-tip
-
-    ;;;; buffer utils
-    ; popwin elscreen yascroll buffer-move
-
     ;;;; flymake
     ; flycheck flymake-jslint
 
-    ;;;; go
-    ; go-mode
-
-    ;;;; python
-    ; jedi
-
-    ;;;; helm
+    ;;;; don't  use!
     ; helm
-
-    ;;;; git
-    ; magit git-gutter
+    ; popwin
+    ; indent-guide
+    ; scala-mode2
+    ; tabbar-ruler
+    ; wc-mode
+    ; yasnippet
 
   undo-tree
+  buffer-move
+  auto-complete
+  fuzzy
+  ace-jump-mode
+  anzu
+  bm
+  nav
+  expand-region
+  haskell-mode
+  hlinum
+  multiple-cursors
+  point-undo
+  rainbow-delimiters
+  smartrep
+  smooth-scroll
+  tabbar
+  flycheck
+  flycheck-pos-tip
+  flymake-cursol
+  yasnippet
+  web-mode
+  ; js2-mode
+  emmet-mode
     ))
 
 ;; my/favorite-packagesからインストールしていないパッケージをインストール

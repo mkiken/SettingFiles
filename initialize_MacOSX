@@ -22,11 +22,11 @@ ln -si "${Repo}vimfiles/.vimrc" ~/.vimrc
 echo "ln -si ${Repo}.zshrc ~/.zshrc"
 ln -si "${Repo}.zshrc" ~/.zshrc
 
-echo "ln -si ${Repo}.emacs.d ~/.emacs.d"
-ln -si "${Repo}.emacs.d" ~/.emacs.d
+echo "ln -si ${Repo}.emacs.d ~"
+ln -si "${Repo}.emacs.d" ~
 
-echo "ln -si ${Repo}vimfiles/.vim ~/.vim"
-ln -si "${Repo}vimfiles/.vim" ~/.vim
+echo "ln -si ${Repo}vimfiles/.vim ~"
+ln -si "${Repo}vimfiles/.vim" ~
 
 echo "ln -si ${Repo}SublimeTextFiles/2/user_OSX.sublime-keymap"
 ln -si "${Repo}SublimeTextFiles/2/user_OSX.sublime-keymap" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/User/Default\ \(OSX\).sublime-keymap
@@ -39,6 +39,12 @@ ln -si "${Repo}SublimeTextFiles/2/Preferences.sublime-settings" ~/Library/Applic
 
 echo "ln -si ${Repo}.jshintrc"
 ln -si "${Repo}.jshintrc" ~/.jshintrc
+
+echo "ln -si ${Repo}.atom/config.cson"
+ln -si "${Repo}.atom/config.cson" ~/.atom/config.cson
+
+echo "ln -si ${Repo}.atom/keymap.cson"
+ln -si "${Repo}.atom/keymap.cson" ~/.atom/keymap.cson
 
 echo 'symbolic links created.'
 

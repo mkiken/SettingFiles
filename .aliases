@@ -3,9 +3,9 @@ case "${OSTYPE}" in
 # Mac(Unix)
 darwin*)
 # ここに設定
-alias ls='ls -AG'
-alias la='ls -Aa'
-alias ll='ls -FThl'
+alias ls='ls -G'
+alias la='ls -A'
+alias ll='ls -AFThl'
 #MacVim on CUI
 alias vi='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/mvim --remote-tab-silent'
 alias vs='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/mvim'

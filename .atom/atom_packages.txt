@@ -1,0 +1,5 @@
+atom-lint
+autocomplete-plus
+emmet
+highlight-line
+script

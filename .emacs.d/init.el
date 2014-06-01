@@ -185,6 +185,10 @@
   (c-indent-command))
 (global-set-key (kbd "C-S-j") 'newline-from-anywhere-prev)
 
+
+; ダイアログを出さない
+(setq use-dialog-box nil)
+
 ; http://www.emacswiki.org/emacs/AutoIndentation
 (electric-indent-mode 1)
 
@@ -268,7 +272,7 @@
 ;;タブ幅
 ; (setq-default tab-width 4)
 (setq default-tab-width 2)
-(setq tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
+(setq tab-stop-list '(2 4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
 ;; http://reiare.net/blog/2010/12/16/emacs-space-tab/
 ;; 最後に改行を入れる。
 (setq require-final-newline t)
@@ -733,6 +737,8 @@
 ; package.elの設定
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/"))
+;; Marmaladeを追加
+(add-to-list 'package-archives  '("marmalade" . "http://marmalade-repo.org/packages/"))
 (package-initialize)
 
 ; http://www.emacswiki.org/emacs/ColorThemeQuestions
@@ -810,6 +816,7 @@
 ;; for wc mode
 ;; http://www.emacswiki.org/emacs/WordCountMode
 (require 'wc-mode)
+(wc-mode)
 
 ; https://github.com/nishikawasasaki/save-frame-posize.el/blob/master/save-frame-posize.el
 (require 'save-frame-posize)
@@ -818,14 +825,8 @@
 ;; M-fとM-bでCamelCase移動。M-left, M-rightには効かない
 (global-subword-mode t)
 
-; 数字の増減．代わりにrotateを使う
-; http://qiita.com/takc923/items/172d754d9298ce103390
-; (require 'evil-numbers)
-; (global-set-key (kbd "C-c +") 'evil-numbers/inc-at-pt)
-; (global-set-key (kbd "C-c -") 'evil-numbers/dec-at-pt)
-
 ; http://qiita.com/syohex/items/56cf3b7f7d9943f7a7ba
-(require 'anzu)
+; (require 'anzu)
 (global-anzu-mode +1)
 (set-face-attribute 'anzu-mode-line nil
 					; :foreground "black" :weight 'normal)
@@ -845,9 +846,6 @@
 ;; for tab mode
 ;; http://ser1zw.hatenablog.com/entry/2012/12/31/022359
 ;; http://christina04.blog.fc2.com/blog-entry-170.html
-(add-to-list 'load-path "~/.emacs.d/elisp/tabbar")
-(require 'tabbar)
-(tabbar-mode 1)
 
 (require 'tabbar-ruler)
 (setq tabbar-ruler-global-tabbar t) ; If you want tabbar
@@ -931,7 +929,7 @@
 ; (global-set-key (kbd "C-c f") 'direx:jump-to-directory-other-window)
 
 ;; emacs-nav
-(add-to-list 'load-path "~/.emacs.d/elisp/emacs-nav-49")
+; (add-to-list 'load-path "~/.emacs.d/elisp/emacs-nav-49")
 (require 'nav)
 (global-set-key (kbd "C-c f") 'nav-toggle) ;; C-x C-d で nav をトグル
 (setq nav-split-window-direction 'vertical) ;; 分割したフレームを垂直に並べる
@@ -974,7 +972,7 @@
 (defconst my-c-style
   '(
     ;; 基本オフセット量の設定
-    ; (c-basic-offset             . 4)
+    (c-basic-offset             . 2)
     ;; tab キーでインデントを実行
     ; (c-tab-always-indent        . t)
     ;; コメント行のオフセット量の設定
@@ -1074,8 +1072,8 @@
   ;; auto-fill-mode を有効にする
   ; (auto-fill-mode t)
   ;; タブ長の設定
-  ; (make-variable-buffer-local 'tab-width)
-  ; (setq tab-width 2)
+  (make-variable-buffer-local 'tab-width)
+  (setq tab-width 2)
   ;; タブの代わりにスペースを使う
   ; (setq indent-tabs-mode nil)
   ;; 自動改行(auto-newline)を有効にする
@@ -1131,23 +1129,59 @@
 (add-hook 'sh-mode-hook         'hs-minor-mode)
 
 ;;for JavaScript & pegjs
+
 ;;js2-mode requires Emacs 24.0 or higher.
 (autoload 'js2-mode "js2-mode" nil t)
+; (require 'js2-mode)
 (add-to-list 'auto-mode-alist '("\\.\\(peg\\)?js$" . js2-mode))
 (add-hook 'js2-mode-hook
           '(lambda ()
-			 (local-set-key "\C-c/" 'js2-mode-toggle-element)))
+             (setq js2-basic-offset 2)))
+; (defconst my-js2-jslint-option-alist
+  ; '(
+    ; ; (browser
+     ; ; "clearInterval" "clearTimeout" "document" "event" "FormData"
+     ; ; "frames" "history" "Image" "localStorage" "location" "name"
+     ; ; "navigator" "Option" "parent" "screen" "sessionStorage"
+     ; ; "setInterval" "setTimeout" "Storage" "window" "XMLHttpRequest"
+     ; ; )
+    ; ; (devel
+     ; ; "alert" "confirm" "console" "Debug" "opera" "prompt" "WSH")
+    ; ; (node
+     ; "Buffer" "clearInterval" "clearTimeout" "console" "exports"
+     ; "global" "module" "process" "querystring" "require"
+     ; "setInterval" "setTimeout" "__dirname" "__filenamei"
+     ; ; )
+    ; ; (rhino
+     ; ; "defineClass" "deserialize" "gc" "help" "load" "loadClass"
+     ; ; "print" "quit" "readFile" "readUrl" "runCommand" "seal"
+     ; ; "serialize" "spawn" "sync" "toint32" "version")
+    ; ; (windows
+     ; ; "ActiveXObject" "CScript" "Debug" "Enumerator" "System"
+     ; ; "VBArray" "WScript" "WSH")
+    ; ))
+
+; (add-hook 'js2-mode-hook
+          ; '(lambda ()
+						 ; (local-set-key "\C-c/" 'js2-mode-toggle-element)
+             ; (setq js2-additional-externs
+              ; '("console")
+                   ; ; (append
+                    ; ; ; 'my-js2-jslint-option-alist
+                    ; ; '("console")
+                    ; ; 'js2-additional-externs)
+                   ; )
+
+						 ; ))
 
 ;;for Haskell
-(autoload 'haskell-mode "haskell-mode-2.8.0/haskell-mode" nil t)
-(add-to-list 'auto-mode-alist '("\\.hs$" . haskell-mode))
 (add-hook 'haskell-mode-hook
           '(lambda ()
 			 (local-set-key "\C-c/" 'toggle-selective-display)))
 ;; for org
 (add-hook 'org-mode-hook
           '(lambda ()
-			 (local-set-key "\C-c e" 'org-show-block-all)
+			 (local-set-key "\C-c C-e" 'org-show-block-all)
 			 )
 		  )
 
@@ -1189,8 +1223,7 @@
                      '("/vimrc\\'" "\\.vim\\(rc\\)?\\'" "\\.gvim\\(rc\\)?\\'")
                      '((lambda ()
                          (modify-syntax-entry ?\" ".")))
-                     "Generic mode for Vim configuration files.")
-
+                     "Generic mode for Vim configuration files.") ;"
 ;; for CSS
 (add-hook 'css-mode-hook
           '(lambda ()
@@ -1199,16 +1232,10 @@
 		  )
 
 
-;;for MiniMap(Sublime Text)
-;; from http://www.emacswiki.org/emacs/MiniMap
-(require 'minimap)
-(global-set-key "\C-cm" 'minimap-create)
-(global-set-key "\C-c\M-m" 'minimap-kill)
-
 ;; bookmark like Visual Studio
 ;; http://www.emacswiki.org/emacs/VisibleBookmarks
 ;; Visual Studioみたいにf2を使う
-(require 'bm)
+; (require 'bm)
 (global-set-key (kbd "<C-f2>") 'bm-toggle)
 (global-set-key (kbd "<f2>")   'bm-next)
 (global-set-key (kbd "<S-f2>") 'bm-previous)
@@ -1219,23 +1246,11 @@
 ; http://emacsworld.blogspot.jp/2008/09/visual-bookmarks-package-for-emacs.html
 (setq bm-highlight-style 'bm-highlight-only-fringe)
 
-;; for auto-install
-;; http://d.hatena.ne.jp/rubikitch/20091221/autoinstall
-;; 実行時だけ有効にする
-; (require 'auto-install)
-; (setq auto-install-directory "~/.emacs.d/elisp")
-; (auto-install-update-emacswiki-package-name t)
-; (auto-install-compatibility-setup)             ; 互換性確保
-
 ;; http://d.hatena.ne.jp/supermassiveblackhole/20100705/1278320568
 ;; auto-complete
 ;; 補完候補を自動ポップアップ
-(add-to-list 'load-path "~/.emacs.d/elisp/auto-complete")
-; ;;(add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
-(require 'auto-complete-config)
 (ac-config-default)
 (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
-(require 'auto-complete)
 ; http://d.hatena.ne.jp/IMAKADO/20090813/1250130343
 (defadvice ac-candidate-words-in-buffer (after remove-word-contain-japanese activate)
            (let ((contain-japanese (lambda (s) (string-match (rx (category japanese)) s))))
@@ -1252,15 +1267,6 @@
 (ac-set-trigger-key "TAB")
 ; たまに終了できないので切る
 (setq ac-use-comphist nil)
-;; for c/c++
-;; http://cx4a.org/software/auto-complete/manual.html
-;; (add-hook 'c++-mode (lambda () (add-to-list 'ac-sources 'ac-source-semantic)))
-; (icomplete-mode 1)
-
-; (define-key ac-completing-map "\C-m" nil)
-; (setq ac-use-menu-map t)
-; ; (define-key ac-menu-map "\C-m" 'ac-complete)
-; (define-key ac-menu-map "\C-m" 'ac-stop)
 
 ;; http://emacs.tsutomuonoda.com/emacs-anything-el-helm-mode-install/
 ;; for Helm(Anything)
@@ -1305,20 +1311,17 @@
 
 ;; Ace-Jump(vim's EasyMotion)
 ;; https://github.com/winterTTr/ace-jump-mode
-(autoload
-  'ace-jump-mode
-  "ace-jump-mode"
-  "Emacs quick move minor mode"
-  t)
+
 ;; you can select the key you prefer to
 (define-key global-map (kbd "C-c ;") 'ace-jump-mode)
 
 ; Settings for multiple cursors
 ; http://qiita.com/ongaeshi/items/3521b814aa4bf162181d
-(add-to-list 'load-path "~/.emacs.d/elisp/multiple-cursors")
+; (add-to-list 'load-path "~/.emacs.d/elisp/multiple-cursors")
 (require 'multiple-cursors)
-(require 'smartrep)
+(multiple-cursors-mode)
 
+(require 'smartrep)
 (declare-function smartrep-define-key "smartrep")
 
 ; (global-set-key (kbd "C-M-c") 'mc/edit-lines)
@@ -1341,17 +1344,58 @@
 		               ("o"        . 'mc/sort-regions)
 		               ("O"        . 'mc/reverse-regions)))
 
+(require 'flycheck)
+(add-hook 'after-init-hook #'global-flycheck-mode)
+(setq flycheck-display-errors-delay 30.0)
+(setq flycheck-idle-change-delay
+        (if flycheck-current-errors 0.5 30.0))
+(setq flycheck-check-syntax-automatically '(save
+                                            idle-change
+                                            mode-enabled))
 
+; http://qiita.com/akisute3@github/items/6fb94c30f92dae2a24ee
+; (flycheck-define-checker c/c++
+  ; "A C/C++ checker using g++."
+  ; :command ("g++" "-Wall" "-Wextra" source)
+  ; :error-patterns  ((error line-start
+                           ; (file-name) ":" line ":" column ":" " エラー: " (message)
+                           ; line-end)
+                    ; (warning line-start
+                           ; (file-name) ":" line ":" column ":" " 警告: " (message)
+                           ; line-end))
+  ; :modes (c-mode c++-mode))
+
+(add-hook 'c-mode-hook (lambda ()
+                          (flycheck-select-checker
+                           'c/c++-clang)
+                          (flycheck-mode)))
+
+(add-hook 'c++-mode-hook (lambda ()
+                          (flycheck-select-checker
+                           'c/c++-clang
+                           ; 'c/c++-cppcheck
+                           )
+                          (flycheck-mode)))
+
+; (add-hook 'java-mode-hook (lambda ()
+                          ; (flycheck-select-checker 'java-syntax-checker)
+                          ; (flycheck-mode)))
+
+  ; http://qiita.com/senda-akiha/items/cddb02cfdbc0c8c7bc2b
+(eval-after-load 'flycheck
+  '(custom-set-variables
+   '(flycheck-display-errors-function #'flycheck-pos-tip-error-messages)
+; '(flycheck-add-next-checker
+                            ; 'javascript-jshint
+                           ; 'javascript-gjslint
+                           ; )
+   ))
 ;; http://shnya.jp/blog/?p=477
 ;; http://emacswiki.org/cgi-bin/emacs/FlyMake
 ;; flymakeパッケージを読み込み
 (require 'flymake)
 ;; 全てのファイルでflymakeを有効化
 ;;(add-hook 'find-file-hook 'flymake-find-file-hook)
-
-;;http://emacswiki.org/cgi-bin/emacs/FlyMake
-;; automatically displays the flymake error for the current line in the minibuffer
-(require 'flymake-cursor)
 
 ;; jump to next error
 ;; http://www.emacswiki.org/emacs/FlyMake
@@ -1361,7 +1405,7 @@
   (flymake-display-err-menu-for-current-line)
   )
 (global-set-key (kbd "C-S-n") 'my-flymake-show-next-error)
-(global-set-key (kbd "C-c e") 'my-flymake-show-next-error)
+(global-set-key (kbd "C-c C-e") 'my-flymake-show-next-error)
 
 (defun my-flymake-show-prev-error()
   (interactive)
@@ -1382,33 +1426,33 @@
 
 ;;for C++, C
 ; C++モードでは flymakeを有効にする
-(add-hook 'c++-mode-hook
-          '(lambda ()
-             (flymake-mode t)))
+; (add-hook 'c++-mode-hook
+          ; '(lambda ()
+             ; (flymake-mode t)))
 
 ;; Makefile が無くてもC/C++のチェック
-(defun flymake-simple-generic-init (cmd &optional opts)
-  (let* ((temp-file  (flymake-init-create-temp-buffer-copy
-                       'flymake-create-temp-inplace))
-         (local-file (file-relative-name
-                       temp-file
-                       (file-name-directory buffer-file-name))))
-    (list cmd (append opts (list local-file)))))
+; (defun flymake-simple-generic-init (cmd &optional opts)
+  ; (let* ((temp-file  (flymake-init-create-temp-buffer-copy
+                       ; 'flymake-create-temp-inplace))
+         ; (local-file (file-relative-name
+                       ; temp-file
+                       ; (file-name-directory buffer-file-name))))
+    ; (list cmd (append opts (list local-file)))))
 
-(defun flymake-simple-make-or-generic-init (cmd &optional opts)
-  (if (file-exists-p "Makefile")
-    (flymake-simple-make-init)
-    (flymake-simple-generic-init cmd opts)))
+; (defun flymake-simple-make-or-generic-init (cmd &optional opts)
+  ; (if (file-exists-p "Makefile")
+    ; (flymake-simple-make-init)
+    ; (flymake-simple-generic-init cmd opts)))
 
-(defun flymake-c-init ()
-  (flymake-simple-make-or-generic-init
-    "gcc"))
-(defun flymake-cc-init ()
-  (flymake-simple-make-or-generic-init
-    "g++"))
-(push '("\\.c\\'" flymake-c-init) flymake-allowed-file-name-masks)
-(push '("\\.\\(cc\\|cpp\\|C\\|CPP\\|hpp\\)\\'" flymake-cc-init)
-      flymake-allowed-file-name-masks)
+; (defun flymake-c-init ()
+  ; (flymake-simple-make-or-generic-init
+    ; "gcc"))
+; (defun flymake-cc-init ()
+  ; (flymake-simple-make-or-generic-init
+    ; "g++"))
+; (push '("\\.c\\'" flymake-c-init) flymake-allowed-file-name-masks)
+; (push '("\\.\\(cc\\|cpp\\|C\\|CPP\\|hpp\\)\\'" flymake-cc-init)
+      ; flymake-allowed-file-name-masks)
 
 ;;for Java
 ;; http://www.info.kochi-tech.ac.jp/y-takata/index.php?%A5%E1%A5%F3%A5%D0%A1%BC%2Fy-takata%2FFlymake
@@ -1420,7 +1464,7 @@
     'flymake-get-java-cmdline))
 (defun flymake-get-java-cmdline (source base-dir)
   (list "javac" (list "-J-Dfile.encoding=utf-8" "-encoding" "utf-8"
-					  source)))
+            source)))
 (push '("\\.java$" flymake-java-init) flymake-allowed-file-name-masks)
 (add-hook 'java-mode-hook '(lambda () (flymake-mode t)))
 
@@ -1431,8 +1475,7 @@
 ; (global-set-key (kbd "s-p") nil) ; ns-print-buffer
 ; (global-set-key (kbd "s-S") nil) ; ns-write-file-using-panel
 ; (global-set-key (kbd "s-o") nil) ; ns-open-file-using-panel
-(setq use-dialog-box nil)
-; (setq flymake-gui-warnings-enabled nil)
+(setq flymake-gui-warnings-enabled nil)
 
 ; http://stackoverflow.com/questions/2571436/emacs-annoying-flymake-dialog-box
 ;; Overwrite flymake-display-warning so that no annoying dialog box is
@@ -1442,41 +1485,11 @@
 ; (defun flymake-display-warning (warning)
   ; "Display a warning to the user, using lwarn"
   ; (lwarn 'flymake :warning warning))
-;; Using lwarn might be kind of annoying on its own, popping up windows and
-;; what not. If you prefer to recieve the warnings in the mini-buffer, use:
+; Using lwarn might be kind of annoying on its own, popping up windows and
+; what not. If you prefer to recieve the warnings in the mini-buffer, use:
 (defun flymake-display-warning (warning)
   "Display a warning to the user, using lwarn"
   (message warning))
-
-; migemoのあるパスを追加
-; (setenv "PATH" (concat (getenv "PATH") ":/usr/local/bin"))
-; (setq exec-path (append exec-path '("/usr/local/bin")))
-; ; (message "%s" (executable-find "cmigemo"))
-
-; ; migemoの設定
-; ; http://qiita.com/catatsuy/items/c5fa34ead92d496b8a51
-; (when (and (executable-find "cmigemo")
-; (require 'migemo nil t))
-; ; (when (executable-find "cmigemo")
-; ; (require 'migemo)
-; ; (message "bbb")
-; (setq migemo-options '("-q" "--emacs"))
-; ; Mac の場合は以下のようになります
-; (setq migemo-command "/usr/local/bin/cmigemo")
-; (setq migemo-dictionary "/usr/local/share/migemo/utf-8/migemo-dict")
-
-; (setq migemo-user-dictionary nil)
-; (setq migemo-regex-dictionary nil)
-; (setq migemo-coding-system 'utf-8-unix)
-; (load-library "migemo")
-; (migemo-init)
-; ;; emacs 起動時は英数モードから始める
-; (add-hook 'after-init-hook 'mac-change-language-to-us)
-; ;; minibuffer 内は英数モードにする
-; (add-hook 'minibuffer-setup-hook 'mac-change-language-to-us)
-; ;; [migemo]isearch のとき IME を英数モードにする
-; (add-hook 'isearch-mode-hook 'mac-change-language-to-us)
-; )
 
 ; for rotate text
 ; http://lists.gnu.org/archive/html/gnu-emacs-sources/2009-04/msg00017.html
@@ -1489,20 +1502,15 @@
 ; (add-to-list 'rotate-text-symbols '("and" "or"))
 
 ; http://qiita.com/takc923/items/c3d64b55fc4f3a3b0838
-; (add-to-list 'load-path "~/.emacs.d/elpa/undo-tree-0.6.5")
-; (require 'undo-tree-autoloads)
-; (require 'undo-tree)
-; (global-undo-tree-mode t)
-; (undo-tree-mode)
+(require 'undo-tree)
 (global-set-key (kbd "C-?") 'undo-tree-redo)
+(global-set-key (kbd "C-/") 'undo-tree-undo)
 
 ; https://github.com/zk-phi/indent-guide
 (require 'indent-guide)
 (indent-guide-global-mode)
 (setq indent-guide-char "¦")
 
-(add-to-list 'load-path "~/.emacs.d/elisp/expand-region.el")
-(require 'expand-region)
 (global-set-key (kbd "C-=") 'er/expand-region)
 (global-set-key (kbd "C-M-=") 'contract-region)
 
@@ -1510,10 +1518,8 @@
   (interactive)
   (er/expand-region -1))
 
-(require 'rainbow-delimiters)
 (global-rainbow-delimiters-mode)
 
-(require 'hlinum)
 (hlinum-activate)
 
 ; http://d.hatena.ne.jp/rubikitch/20081230/pointundo
@@ -1544,4 +1550,35 @@
 
 ; (require 'wrap-region)
 
+;;; buffer-move
+; http://d.hatena.ne.jp/syohex/20130904/1378307029
+(global-set-key (kbd "M-g h") 'buf-move-left)
+(global-set-key (kbd "M-g j") 'buf-move-down)
+(global-set-key (kbd "M-g k") 'buf-move-up)
+(global-set-key (kbd "M-g l") 'buf-move-right)
+
+
+(require 'web-mode)
+(add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.[gj]sp\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+
+; (require 'emmet-mode)
+(add-hook 'sgml-mode-hook 'emmet-mode) ;; マークアップ言語全部で使う
+(add-hook 'web-mode-hook 'emmet-mode) ;; マークアップ言語全部で使う
+(add-hook 'css-mode-hook  'emmet-mode) ;; CSSにも使う
+(add-hook 'emmet-mode-hook (lambda ()
+                             (setq emmet-indentation 2);; indent はスペース2個
+                             (define-key emmet-mode-keymap (kbd "C-c e") 'emmet-expand-line)
+                             ))
+(eval-after-load "emmet-mode"
+                 (lambda ()
+                   '(define-key emmet-mode-keymap (kbd "C-j") nil) ;; C-j は newline のままにしておく
+                   )
+                 )
 

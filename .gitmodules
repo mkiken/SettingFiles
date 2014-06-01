@@ -1,18 +1,9 @@
 [submodule ".emacs.d/elisp/helm"]
 	path = .emacs.d/elisp/helm
 	url = https://github.com/emacs-helm/helm.git
-[submodule ".emacs.d/elisp/tabbar"]
-	path = .emacs.d/elisp/tabbar
-	url = https://github.com/dholm/tabbar.git
 [submodule "vimfiles/.vim/bundle/Vundle.vim"]
 	path = vimfiles/.vim/bundle/Vundle.vim
 	url = https://github.com/gmarik/Vundle.vim
-[submodule ".emacs.d/elisp/multiple-cursors"]
-	path = .emacs.d/elisp/multiple-cursors
-	url = https://github.com/magnars/multiple-cursors.el.git
-[submodule ".emacs.d/elisp/expand-region.el"]
-	path = .emacs.d/elisp/expand-region.el
-	url = https://github.com/magnars/expand-region.el
 [submodule ".emacs.d/elisp/yasnippet"]
     path = .emacs.d/elisp/yasnippet
     url = https://github.com/capitaomorte/yasnippet
