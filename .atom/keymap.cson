@@ -18,4 +18,28 @@
 #
 
 '.editor:not(.mini)':
+  'ctrl-.': 'editor:delete-line'
+  'ctrl-j': 'editor:newline-below'
+  'ctrl-shift-j': 'editor:newline-above'
+  'ctrl-w': 'editor:delete-to-beginning-of-word'
+  'alt-^': 'editor:join-lines'
+  'ctrl-^': 'emmet:increment-number-by-1'
+  'ctrl-~': 'emmet:decrement-number-by-1'
+  'alt-down': 'vim-mode:move-to-next-paragraph'
+  'alt-up': 'vim-mode:move-to-previous-paragraph'
+  'ctrl-?': 'core:redo'
+  'alt-d': 'editor:delete-to-end-of-word'
+
+'.platform-darwin, .platform-darwin .command-palette .editor .vim-mode':
+  'alt-x': 'command-palette:toggle'
+  'ctrl-c f': 'tree-view:toggle'
   'cmd-i': 'editor:auto-indent'
+  'ctrl-right': 'pane:show-next-item'
+  'ctrl-left': 'pane:show-previous-item'
+  'ctrl-;': 'editor:toggle-line-comments'
+  'alt-;': 'editor:toggle-line-comments'
+
+'.vim-mode':
+  'ctrl-a': 'emmet:increment-number-by-1'
+  'ctrl-x': 'emmet:decrement-number-by-1'
+  # ',': 'editor:toggle-line-comments'

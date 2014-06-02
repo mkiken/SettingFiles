@@ -1,5 +1,15 @@
+-----packages-----
+
 atom-lint
 autocomplete-plus
 emmet
 highlight-line
 script
+vim-mode
+emacs-mode
+file-icons
+
+
+-----theme-----
+
+monokai

@@ -1,0 +1,47 @@
+/*
+ * Your Stylesheet
+ *
+ * This stylesheet is loaded when Atom starts up and is reloaded automatically
+ * when it is changed.
+ *
+ * If you are unfamiliar with LESS, you can read more about it here:
+ * http://www.lesscss.org
+ */
+
+
+.tree-view {
+  ol.entries.list-tree li {
+    // ファイルツリーのフォントサイズが大きすぎるので変更
+    font-size: 8pt;
+
+    span.icon:before {
+      // フォルダ・ファイルアイコンは8ptだとつぶれるので 10pt に
+      font-size: 10pt;
+    }
+  }
+}
+
+.editor {
+
+}
+
+.editor .cursor {
+
+}
+
+.vertical {
+  // パネルを分割するとアクティブになっているパネルがわかりにくいので、非アクティブのパネルは透過
+  .pane {
+    opacity:0.70;
+
+    &.active {
+      opacity: 1.0;
+    }
+  }
+
+  // パネルの境界がわかりにくいのでborderの色を変更
+  // .panes .pane-row > *,
+  // .panes .pane-column > * {
+  //   border-right: 1px solid rgba(150, 150, 150, 0.2);
+  // }
+}

@@ -46,6 +46,12 @@ ln -si "${Repo}.atom/config.cson" ~/.atom/config.cson
 echo "ln -si ${Repo}.atom/keymap.cson"
 ln -si "${Repo}.atom/keymap.cson" ~/.atom/keymap.cson
 
+echo "ln -si ${Repo}.atom/init.coffee"
+ln -si "${Repo}.atom/init.coffee" ~/.atom/init.coffee
+
+echo "ln -si ${Repo}.atom/styles.less"
+ln -si "${Repo}.atom/styles.less" ~/.atom/styles.less
+
 echo 'symbolic links created.'
 
 
