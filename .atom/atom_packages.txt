@@ -1,13 +1,15 @@
 -----packages-----
 
 atom-lint
-autocomplete-plus
+autocomplete-plus   // タイプ中に補完
 emmet
 highlight-line
-script
+script              // プログラムの実行
 vim-mode
 emacs-mode
-file-icons
+file-icons          // tree viewの見た目をきれいに
+scroll-past-end     // 行が無くても下までスクロールを可能にする
+cut-line            // 一行コピー、削除
 
 
 -----theme-----

@@ -29,11 +29,14 @@
   'alt-up': 'vim-mode:move-to-previous-paragraph'
   'ctrl-?': 'core:redo'
   'alt-d': 'editor:delete-to-end-of-word'
+  'ctrl-,': 'cut-line:copy-line'
+  'ctrl-.': 'cut-line:cut-line'
+  'ctrl-:': 'cut-line:paste-line'
 
 '.platform-darwin, .platform-darwin .command-palette .editor .vim-mode':
   'alt-x': 'command-palette:toggle'
   'ctrl-c f': 'tree-view:toggle'
-  'cmd-i': 'editor:auto-indent'
+  'ctrl-i': 'editor:auto-indent'
   'ctrl-right': 'pane:show-next-item'
   'ctrl-left': 'pane:show-previous-item'
   'ctrl-;': 'editor:toggle-line-comments'
