@@ -42,7 +42,7 @@
   tabbar
   flycheck
   flycheck-pos-tip
-  flymake-cursol
+  flymake-cursor
   yasnippet
   web-mode
   ; js2-mode

@@ -1,4 +1,4 @@
-;;http://d.hatena.ne.jp/tomoya/20090807/1249601308
+;; http://d.hatena.ne.jp/tomoya/20090807/1249601308
 ;;MacとWindowsで場合分け
 (defun x->bool (elt) (not (not elt)))
 
@@ -117,7 +117,7 @@
 
 ;; Settings for Windows
 (when windows-p
-  (set-face-font 'default "Meiryo UI-13")
+  (set-face-font 'default "Meiryo UI-11")
   ;;; IME の設定
   ;; http://bmonkey.cocolog-nifty.com/blog/2012/07/gnu-emacs-241wi.html
   ;;(setq default-input-method "W32-IME)
@@ -149,16 +149,29 @@
 (setq make-backup-files t)
 
 (setq
-  backup-by-copying t      ; don't clobber symlinks
-  backup-directory-alist
-  '(("." . "~/.backup/emacs/backup/"))    ; don't litter my fs tree
-  delete-old-versions t
-  kept-new-versions 3
-  kept-old-versions 2
-  version-control t)       ; use versioned backups
+ backup-by-copying t      ; don't clobber symlinks
+ delete-old-versions t
+ kept-new-versions 3
+ kept-old-versions 2
+ version-control t)       ; use versioned backups
 
-(setq auto-save-file-name-transforms
-	  `((".*", (expand-file-name "~/.backup/emacs/autosave/") t)))
+(when darwin-p
+  (setq
+   backup-directory-alist
+   '(("." . "~/.backup/emacs/backup/"))    ; don't litter my fs tree
+  )
+  (setq auto-save-file-name-transforms
+        `((".*", (expand-file-name "~/.backup/emacs/autosave/") t)))
+  )
+(when windows-p
+  (setq
+   backup-directory-alist
+   '(("." . "~/.backup/emacs/backup"))    ; don't litter my fs tree
+   )
+  (setq auto-save-file-name-transforms
+        `((".*", (expand-file-name "~/.backup/emacs/autosave") t)))
+  )
+
 
 ; http://stackoverflow.com/questions/5738170/why-does-emacs-create-temporary-symbolic-links-for-modified-files
 (setq create-lockfiles nil)
@@ -367,7 +380,7 @@
 ;; scroll settings.
 ;; http://marigold.sakura.ne.jp/devel/emacs/scroll/index.html
 (setq scroll-conservatively 1)
-(setq next-screen-context-lines 25)
+;; (setq next-screen-context-lines 25)
 ; (setq scroll-step 1)
 
 (global-set-key (kbd "C-S-v") 'scroll-up-1)
@@ -850,7 +863,7 @@
 (require 'tabbar-ruler)
 (setq tabbar-ruler-global-tabbar t) ; If you want tabbar
 ; (setq tabbar-ruler-global-ruler t) ; if you want a global ruler
-(setq tabbar-ruler-popup-menu t) ; If you want a popup menu.
+(setq tabbar-ruler-popup-menu nil) ; If you want a popup menu.
 ; (setq tabbar-ruler-popup-toolbar t) ; If you want a popup toolbar
 ; (setq tabbar-ruler-popup-scrollbar t) ; If you want to only show the
                                       ; scroll bar when your mouse is moving.
@@ -1558,15 +1571,18 @@
 (global-set-key (kbd "M-g l") 'buf-move-right)
 
 
-(require 'web-mode)
-(add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.[gj]sp\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+(when (not windows-p)
+  (require 'web-mode)
+  (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.[gj]sp\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+  )
+
 
 ; (require 'emmet-mode)
 (add-hook 'sgml-mode-hook 'emmet-mode) ;; マークアップ言語全部で使う
@@ -1581,4 +1597,3 @@
                    '(define-key emmet-mode-keymap (kbd "C-j") nil) ;; C-j は newline のままにしておく
                    )
                  )
-
