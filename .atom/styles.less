@@ -25,14 +25,50 @@
 
 }
 
-.editor .cursor {
+// .vim-mode.command-mode .cursor {
+//   margin-left: -1px;
+//   border-radius: 2px;
+//   padding: 0 1px;
+//   border-left: none;
+//   background: rgba(255,255,255,.3);
+//   -webkit-transition: -webkit-transform, .06s;
+// }
+// .vim-mode.command-mode .is-focused .cursor.blink-off {
+//   visibility: visible;
+// }
+
+.vim-mode.command-mode, .vim-mode.operator-pending-mode, .vim-mode.visual-mode {
+
+  &.editor.is-focused {
+    .cursor {
+      // background-color: #F00;
+      // width: 7px !important;
+      visibility: visible;
+      margin-left: -1px;
+      border-radius: 2px;
+      padding: 0 1px;
+      border-left: none;
+      background: rgba(255,255,255,.3);
+      -webkit-transition: -webkit-transform, .06s;
+    }
+    .cursor.blink-off editor.is-focused {
+      visibility: hidden;
+      // width: 7px !important;
+    }
+
+  }
 
 }
+
+// .vim-mode.command-mode .cursor.blink-off editor.is-focused {
+//   visibility: hidden;
+//   // width: 7px !important;
+// }
 
 .vertical {
   // パネルを分割するとアクティブになっているパネルがわかりにくいので、非アクティブのパネルは透過
   .pane {
-    opacity:0.70;
+    opacity:0.80;
 
     &.active {
       opacity: 1.0;

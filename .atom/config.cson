@@ -2,10 +2,13 @@
   'fontSize': 12
   'showIndentGuide': true
   'showInvisibles': true
+  'softWrapAtPreferredLineLength': true
+  'softWrap': true
+  'preferredLineLength': 120
 'core':
   'themes': [
     'atom-dark-ui'
-    'monokai'
+    'solarized-dark-syntax'
   ]
 'exception-reporting':
   'userId': '0a7c8ad7-7803-a619-cd7e-9c76b0560ed6'

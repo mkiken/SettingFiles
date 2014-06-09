@@ -32,17 +32,35 @@
   'ctrl-,': 'cut-line:copy-line'
   'ctrl-.': 'cut-line:cut-line'
   'ctrl-:': 'cut-line:paste-line'
+  'ctrl-d': 'core:delete'
+  'ctrl-[': 'bracket-matcher:go-to-matching-bracket'
 
 '.platform-darwin, .platform-darwin .command-palette .editor .vim-mode':
   'alt-x': 'command-palette:toggle'
   'ctrl-c f': 'tree-view:toggle'
+  'ctrl-c l': 'go-to-line:toggle'
   'ctrl-i': 'editor:auto-indent'
   'ctrl-right': 'pane:show-next-item'
   'ctrl-left': 'pane:show-previous-item'
   'ctrl-;': 'editor:toggle-line-comments'
   'alt-;': 'editor:toggle-line-comments'
 
-'.vim-mode':
+'.vim-mode.command-mode':
   'ctrl-a': 'emmet:increment-number-by-1'
   'ctrl-x': 'emmet:decrement-number-by-1'
-  # ',': 'editor:toggle-line-comments'
+  # 'ctrl-d': 'core:page-down'
+  # 'ctrl-u': 'core:page-up'
+  # '=': 'core:auto-indent'
+  ',': 'editor:toggle-line-comments'
+  '%': 'bracket-matcher:go-to-matching-bracket'
+  'O': 'editor:newline-below'
+
+
+
+'.autocomplete-plus input.hidden-input':
+  'enter': 'autocomplete-plus:confirm'
+  'ctrl-n': 'autocomplete-plus:select-next'
+  'ctrl-p': 'autocomplete-plus:select-previous'
+  # 'tab': 'autocomplete-plus:select-next'
+  # 'shift-tab': 'autocomplete-plus:select-previous'
+  'enter': 'autocomplete-plus:confirm'

@@ -623,3 +623,5 @@ fi
     # unset _nodejs_use_version
   # fi
 # fi
+#
+export PATH=$HOME/.nodebrew/current/bin:$PATH

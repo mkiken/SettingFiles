@@ -1,8 +1,8 @@
 ; http://transitive.info/article/git/command/config/
 
 [user]
-	name = mkiken
-	email = mkiken0@gmail.com
+	; name = mkiken
+	; email = mkiken0@gmail.com
 [push]
 	default = matching
 
@@ -12,7 +12,7 @@
 ; diff-highlight = /usr/local/Cellar/git/1.8.4.3/share/git-core/contrib/diff-highlight/diff-highlight
 	co = checkout
 	br = branch
-	ci = commit -m
+	ci = commit
 	st = status -bs
 	# http://qiita.com/hash/items/1f01aa09ccf148542f21
 	lg = log --stat --pretty=format:'%Cblue%h %Cgreen%ar %Cred%an %Creset%s %Cred%d'
@@ -33,6 +33,8 @@
 	; http://qiita.com/yuyuchu3333/items/a30387bdd6a0afc1185c
 	rso  = remote show origin
 ; diff-highlight = "!f() { git diff \"$@\" | /usr/local/Cellar/git/contrib/diff-highlight/diff-highlight; }; f"
+  smUpgrade = submodule foreach 'git pull origin master'
+  smUpdate = submodule update --init --recursive
 
 ; http://motemen.hatenablog.com/entry/2013/11/26/Git_%E3%81%AE_diff_%E3%82%92%E7%BE%8E%E3%81%97%E3%81%8F%E8%A1%A8%E7%A4%BA%E3%81%99%E3%82%8B%E3%81%9F%E3%82%81%E3%81%AB%E5%BF%85%E8%A6%81%E3%81%AA%E3%81%9F%E3%81%A3%E3%81%9F_1_%E3%81%A4%E3%81%AE%E8%A8%AD
 [pager]

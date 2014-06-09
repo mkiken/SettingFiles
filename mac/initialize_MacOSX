@@ -78,4 +78,5 @@ git submodule sync
 # http://rochefort.hatenablog.com/entry/20110410/p1
 # git submodule foreach 'git pull origin master'
 git submodule update --init --recursive
+git submodule foreach 'git pull origin master'
 echo 'submodule update.'
