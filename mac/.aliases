@@ -162,3 +162,5 @@ REPO="${HOME}/Desktop/repository/"
 SET="${HOME}/Desktop/repository/SettingFiles/"
 EIN="${HOME}/.emacs.d/init.el"
 
+# util
+sz='du -ch -d 1'

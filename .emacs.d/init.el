@@ -379,8 +379,8 @@
 
 ;; scroll settings.
 ;; http://marigold.sakura.ne.jp/devel/emacs/scroll/index.html
-(setq scroll-conservatively 1)
-;; (setq next-screen-context-lines 25)
+(setq scroll-conservatively 1) ;画面の下端で↓向きに1行移動したり，上端で↑向きに1行移動したりしたときのスクロール量を1に設定する．
+(setq next-screen-context-lines 20) ;1画面スクロールしたときに以前の画面を何行分残すかを設定する． 0だとまったく残さない．
 ; (setq scroll-step 1)
 
 (global-set-key (kbd "C-S-v") 'scroll-up-1)

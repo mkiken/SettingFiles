@@ -34,6 +34,7 @@
   'ctrl-:': 'cut-line:paste-line'
   'ctrl-d': 'core:delete'
   'ctrl-[': 'bracket-matcher:go-to-matching-bracket'
+  'ctrl-alt-[': 'bracket-matcher:select-inside-brackets'
 
 '.platform-darwin, .platform-darwin .command-palette .editor .vim-mode':
   'alt-x': 'command-palette:toggle'
@@ -54,6 +55,7 @@
   ',': 'editor:toggle-line-comments'
   '%': 'bracket-matcher:go-to-matching-bracket'
   'O': 'editor:newline-below'
+  'ctrl-d': 'core:page-down'
 
 
 

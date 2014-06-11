@@ -13,11 +13,17 @@ cut-line            // 一行コピー、削除
 Swap Panes
 Numbers on a Pane
 Atom Beautify
+Atom Beautifier
 autocomplete-paths
 autocomplete-snippets
 highlight-selected
-
+jslint
+javascript snippet
+Woah There Mousewheel //スクロールをゆっくりに
 
 -----theme-----
 
 monokai
+tomorrow-night
+tomorrow-night-eighties
+dracula-theme

@@ -440,7 +440,7 @@ map T ;T
 
  " My Bundles here:
  Bundle 'derekwyatt/vim-scala'
- Bundle 'yonchu/accelerated-smooth-scroll'
+ " Bundle 'yonchu/accelerated-smooth-scroll'
  Bundle 'haya14busa/vim-easymotion'
  Bundle 'kana/vim-smartinput'
  " Bundle 'mhinz/vim-startify'
@@ -715,8 +715,8 @@ let g:vimfiler_as_default_explorer = 1
 " http://hrsh7th.hatenablog.com/entry/20120229/1330525683
 nnoremap <Leader>e :VimFiler -buffer-name=explorer -split -winwidth=45 -toggle -no-quit<Cr>
 " nnoremap <Leader>e :VimFilerExplorer -buffer-name=explorer -split -winwidth=45 -toggle -no-quit<Cr>
-autocmd! FileType vimfiler call g:my_vimfiler_settings()
-function! g:my_vimfiler_settings()
+autocmd! FileType vimfiler call g:My_vimfiler_settings()
+function! g:My_vimfiler_settings()
   nmap     <buffer><expr><Cr> vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
   nnoremap <buffer>t          :call vimfiler#mappings#do_action('my_tabe')<Cr>
   nnoremap <buffer>s          :call vimfiler#mappings#do_action('my_split')<Cr>

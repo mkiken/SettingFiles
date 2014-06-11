@@ -1,11 +1,11 @@
 #!/bin/sh
 
 # Repo="${HOME}/Desktop/repository/SettingFiles/"
-Repo="`pwd`/"
+Repo="`pwd | sed -e \"s/.\{3\}$//\"`"
 
 
-echo "ln -si ${Repo}.aliases ~/.aliases"
-ln -si "${Repo}.aliases" ~/.aliases
+echo "ln -si ${Repo}mac/.aliases ~/.aliases"
+ln -si "${Repo}mac/.aliases" ~/.aliases
 
 echo "ln -si ${Repo}gitfiles/.gitconfig ~/.gitconfig"
 ln -si "${Repo}gitfiles/.gitconfig" ~/.gitconfig
@@ -69,10 +69,15 @@ echo 'backup directory for emacs and vim made.'
 ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"
 brew install git
 brew install rmtrash
-brew install node
+# brew install node
 # brew install tree
 # brew install --cocoa --srgb --with-gnutls --japanese emacs -v
 brew install --cocoa --srgb --japanese emacs -v
+brew install vim --devel --with-lua
+
+#あればvimをMacVimバージョンにしたい
+echo "ln -si /Applications/MacVim.app/Contents/MacOS/Vim"
+ln -si "/Applications/MacVim.app/Contents/MacOS/Vim" /usr/local/bin/vim
 
 git submodule sync
 # http://rochefort.hatenablog.com/entry/20110410/p1
