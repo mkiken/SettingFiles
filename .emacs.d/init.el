@@ -768,8 +768,8 @@
   ; (load-theme 'monokai-dark-soda t)
   ;; (load-theme 'zenburn t)
   ;; (load-theme 'solarized-light t)
-  ; (load-theme 'solarized-dark t)
-  (load-theme 'twilight-anti-bright t)
+  (load-theme 'solarized-dark t)
+  ; (load-theme 'twilight-anti-bright t)
   ; (load-theme 'tomorrow-night-paradise t)
   ; (load-theme 'tomorrow-night-blue t)
   ; (load-theme 'tomorrow-night-bright t)
@@ -777,6 +777,17 @@
   ; (load-theme 'tomorrow-night t)
   ;; (load-theme 'tomorrow t)
   ;; (load-theme 'twilight-bright t)
+  ; (load-theme 'espresso t)
+; https://github.com/emacs-jp/replace-colorthemes/blob/master/subdued-theme.el
+ ; (load-theme 'aliceblue t)
+ ; (load-theme 'charcoal-black t)
+ ; (load-theme 'dark-gnus t)
+ ; (load-theme 'ramangalahy t)
+ ; (load-theme 'subdued t)
+
+
+
+
 
   ; http://www.tech-thoughts-blog.com/2013/08/make-emacs-load-random-theme-at-startup.html
   (defun load-random-theme ()
@@ -945,7 +956,16 @@
 ; (add-to-list 'load-path "~/.emacs.d/elisp/emacs-nav-49")
 (require 'nav)
 (global-set-key (kbd "C-c f") 'nav-toggle) ;; C-x C-d で nav をトグル
+
+; https://github.com/ancane/emacs-nav
 (setq nav-split-window-direction 'vertical) ;; 分割したフレームを垂直に並べる
+(defun nav-mode-hl-hook ()
+  (local-set-key (kbd "<right>") 'nav-open-file-under-cursor)
+  (local-set-key (kbd "<left>")  'nav-go-up-one-dir))
+
+(add-hook 'nav-mode-hook 'nav-mode-hl-hook)
+
+
 
 ;;; smooth-scroll
 (require 'smooth-scroll)

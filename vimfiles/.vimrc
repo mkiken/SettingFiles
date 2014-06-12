@@ -252,7 +252,7 @@ onoremap G G<End>
 vnoremap <BS> d
 
 " 1つ前の検索ワードを表示
-nnoremap // /<C-P>
+" nnoremap // /<C-P>
 " {}括弧をfoldする
 nnoremap z/ zf%
 

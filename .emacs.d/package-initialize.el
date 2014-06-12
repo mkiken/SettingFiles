@@ -22,6 +22,7 @@
     ; tabbar-ruler
     ; wc-mode
     ; yasnippet
+    ;; nav
 
   undo-tree
   buffer-move
@@ -30,7 +31,6 @@
   ace-jump-mode
   anzu
   bm
-  nav
   expand-region
   haskell-mode
   hlinum

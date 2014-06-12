@@ -93,6 +93,8 @@ alias mv='mv -i'
 alias pv='popd'
 alias up='cd ../'
 
+alias ng='noglob'
+
 ;;
 # Linux
 linux*)
