@@ -1,3 +1,7 @@
+REPO="${HOME}/Desktop/repository/"
+SET="${HOME}/Desktop/repository/SettingFiles/"
+EIN="${HOME}/.emacs.d/init.el"
+
 #expanded command
 case "${OSTYPE}" in
 # Mac(Unix)
@@ -122,8 +126,8 @@ alias refresh='source ~/.zshrc'
 #cd
 alias cdp='cd ~/Program/ProCon'
 alias cdd='cd ~/Desktop'
-alias cdrepo='cd ~/Desktop/repository'
-alias cds='cd ~/Desktop/repository/SettingFiles'
+alias cdrepo='cd ${REPO}'
+alias cds='cd ${SET}'
 alias cdphp='cd /Library/WebServer/Documents/'
 
 #shortcut for setting files
@@ -138,6 +142,7 @@ alias gitconfig='vi ~/.gitconfig'
 alias zshenv='vi ~/.zshenv'
 
 #shortc cut for git
+alias g='git'
 alias gst='git st'
 alias gaa='git add .'
 # alias gra='git rmall'
@@ -160,9 +165,9 @@ alias ocaml='rlwrap ocaml'
 #display all files,End with true or false
 alias allfile='defaults write com.apple.finder AppleShowAllFiles'
 
-REPO="${HOME}/Desktop/repository/"
-SET="${HOME}/Desktop/repository/SettingFiles/"
-EIN="${HOME}/.emacs.d/init.el"
+
 
 # util
-sz='du -ch -d 1'
+alias sz='du -ch -d 1'
+
+alias kr4mbsave='/Applications/KeyRemap4MacBook.app/Contents/Applications/KeyRemap4MacBook_cli.app/Contents/MacOS/KeyRemap4MacBook_cli export > ${SET}mac/kr4mb-import.sh'

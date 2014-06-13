@@ -7,8 +7,8 @@ Repo="`pwd | sed -e \"s/.\{3\}$//\"`"
 echo "ln -si ${Repo}mac/.aliases ~/.aliases"
 ln -si "${Repo}mac/.aliases" ~/.aliases
 
-echo "ln -si ${Repo}gitfiles/.gitconfig ~/.gitconfig"
-ln -si "${Repo}gitfiles/.gitconfig" ~/.gitconfig
+# echo "ln -si ${Repo}gitfiles/.gitconfig ~/.gitconfig"
+# ln -si "${Repo}gitfiles/.gitconfig" ~/.gitconfig
 
 echo "ln -si ${Repo}gitfiles/.gitignore_global ~/.gitignore"
 ln -si "${Repo}gitfiles/.gitignore_global" ~/.gitignore
@@ -74,10 +74,6 @@ brew install rmtrash
 # brew install --cocoa --srgb --with-gnutls --japanese emacs -v
 brew install --cocoa --srgb --japanese emacs -v
 brew install vim --devel --with-lua
-
-#あればvimをMacVimバージョンにしたい
-echo "ln -si /Applications/MacVim.app/Contents/MacOS/Vim"
-ln -si "/Applications/MacVim.app/Contents/MacOS/Vim" /usr/local/bin/vim
 
 git submodule sync
 # http://rochefort.hatenablog.com/entry/20110410/p1
