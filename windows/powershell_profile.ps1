@@ -1,9 +1,18 @@
 $REPO = "${HOME}\Desktop\repository"
 $SET = "${REPO}\SettingFiles"
 
-Set-Alias ec "C:\Program Files\emacs-24.3\bin\emacsclient"
+Set-Alias ec "C:\Program Files\emacs-24.3\bin\emacsclientw"
 Set-Alias em "C:\Program Files\emacs-24.3\bin\runemacs"
 Set-Alias e "./a"
+# Set-Alias grep "findstr"
+Set-Alias ex "explorer"
+
+
+Set-Alias g "git"
+
+Set-Alias grunt "grunt.cmd"
+
+
 
 # lsは簡易表示に
 remove-item alias:ls -force
@@ -20,12 +29,24 @@ function cd($arg){
   }
 }
 
+function grep($arg1, $arg2){
+  findstr  /I $arg1 $arg2
+}
+
 function cdd(){cd ${HOME}\Desktop}
 function cdh(){cd ${HOME}}
 function cdrepo(){cd ${REPO}}
 function cds(){cd ${SET}}
 function up(){cd ..}
 function gst(){git status}
+function gps(){git push}
+# function gpl(){git pull}
+# function gci(){git commit}
+function gaa(){git add .}
+function winset(){em ${SET}\windows\powershell_profile.ps1}
+function wininit() {em ${SET}\windows\initialize.ps1}
+
+
 function la($arg){
  if($arg -eq $null){
      Get-ChildItem -force

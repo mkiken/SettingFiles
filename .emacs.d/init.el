@@ -117,7 +117,7 @@
 
 ;; Settings for Windows
 (when windows-p
-  (set-face-font 'default "Meiryo UI-11")
+  (set-face-font 'default "Meiryo UI-10")
   ;;; IME の設定
   ;; http://bmonkey.cocolog-nifty.com/blog/2012/07/gnu-emacs-241wi.html
   ;;(setq default-input-method "W32-IME)
