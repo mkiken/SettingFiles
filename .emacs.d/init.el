@@ -55,12 +55,11 @@
 
   ;; MacのCommand + 十字キーを有効にする
   ;; http://stackoverflow.com/questions/4351044/binding-m-up-m-down-in-emacs-23-1-1
-  ; (global-set-key [s-up] 'beginning-of-buffer)
-  ; (global-set-key [s-down] 'end-of-buffer)
-  ; (global-set-key [s-left] 'beginning-of-visual-indented-line)
-  ; (global-set-key [s-right] 'end-of-visual-line)
+  (global-set-key [s-up] 'beginning-of-buffer)
+  (global-set-key [s-down] 'end-of-buffer)
+  (global-set-key [s-left] 'beginning-of-visual-indented-line)
+  (global-set-key [s-right] 'end-of-visual-line)
 
-  ;; (global-set-key (kbd "M-<left>")  'windmove-left)
 
   ; http://insideflag.blogspot.jp/2012/10/homebrewcocoa-emacs-242.html
   (setq ns-pop-up-frames nil) ;; 新しいウィンドウでファイルを開かない
@@ -276,7 +275,13 @@
 
 ;; Window間の移動をM-...でやる
 ;; http://www.emacswiki.org/emacs/WindMove
-(windmove-default-keybindings 'super)
+; (windmove-default-keybindings 'super)
+
+(global-set-key (kbd "C-x <left>")  'windmove-left)
+(global-set-key (kbd "C-x <right>")  'windmove-right)
+(global-set-key (kbd "C-x <up>")  'windmove-up)
+(global-set-key (kbd "C-x <down>")  'windmove-down)
+
 
 ;;インデントはタブにする
 ; (setq indent-tabs-mode t)
@@ -550,10 +555,11 @@
   (match-paren-japanese nil)
   (forward-char)
   (exchange-point-and-mark)
-  (clipboard-kill-ring-save (mark) (point))
-  (let ((c (abs (- (mark) (point)))))
-    (message "match-paren-kill-ring-save: %d characters saved" c)))
-(global-set-key (kbd "C-M-]") 'match-paren-kill-ring-save)
+  ; (clipboard-kill-ring-save (mark) (point))
+  ; (let ((c (abs (- (mark) (point)))))
+    ; (message "match-paren-kill-ring-save: %d characters saved" c))
+  )
+(global-set-key (kbd "C-}") 'match-paren-kill-ring-save)
 
 ; http://qiita.com/ShingoFukuyama/items/fc51a32e84fd84261565
 (defun move-line (arg)
@@ -742,6 +748,15 @@
 (unless (server-running-p)
   (server-start))
 
+;;; リージョンの大文字小文字変換を有効にする。
+;; C-x C-u -> upcase
+;; C-x C-l -> downcase
+(put 'upcase-region 'disabled nil)
+(put 'downcase-region 'disabled nil)
+
+; (setq-default flyspell-mode t)
+; (setq ispell-dictionary "american")
+
 
 ;;import
 (add-to-list 'load-path "~/.emacs.d/elisp")
@@ -766,9 +781,9 @@
   ;; (load-theme 'monokai t)
   ;; (load-theme 'molokai t)
   ; (load-theme 'monokai-dark-soda t)
-  ;; (load-theme 'zenburn t)
+  (load-theme 'zenburn t)
   ;; (load-theme 'solarized-light t)
-  (load-theme 'solarized-dark t)
+  ; (load-theme 'solarized-dark t)
   ; (load-theme 'twilight-anti-bright t)
   ; (load-theme 'tomorrow-night-paradise t)
   ; (load-theme 'tomorrow-night-blue t)
@@ -944,6 +959,8 @@
 ;; Settings for Helm
 (setq display-buffer-function 'popwin:display-buffer)
 (push '("^\*helm .+\*$" :regexp t) popwin:special-display-config)
+
+(global-set-key (kbd "C-c p") popwin:keymap)
 
 ;; ファイラをつける
 ;; https://github.com/m2ym/direx-el
@@ -1121,7 +1138,7 @@
   ;; C-m        改行＋インデント
   ;; C-c c      コンパイルコマンドの起動
   ;; C-h        空白の一括削除
-  (define-key c-mode-base-map "\C-m" 'newline-and-indent)
+  ; (define-key c-mode-base-map "\C-m" 'newline-and-indent)
   (define-key c-mode-base-map "\C-cc" 'compile)
   ; (define-key c-mode-base-map "\C-h" 'c-electric-backspace)
   (define-key c-mode-base-map "\C-m" 'expand-bracket)
@@ -1131,8 +1148,7 @@
   ; (setq compile-command "make -k ")
   ;; (setq compile-command "gmake -k ")
 
-  ;; 自動スペルチェック
-  ; (flyspell-mode t)
+
 
   ;;HideShow Mode
   (hs-minor-mode)
@@ -1169,10 +1185,13 @@
 (add-to-list 'auto-mode-alist '("\\.\\(peg\\)?js$" . js2-mode))
 (add-hook 'js2-mode-hook
           '(lambda ()
-             (setq js2-basic-offset 2)))
+             (setq js2-basic-offset 2)
+             (define-key js2-mode-map "\C-m" 'expand-bracket)
+             (define-key js2-mode-map (kbd "C-c b") 'web-beautify-js)
+             ))
 ; (defconst my-js2-jslint-option-alist
-  ; '(
-    ; ; (browser
+; '(
+; ; (browser
      ; ; "clearInterval" "clearTimeout" "document" "event" "FormData"
      ; ; "frames" "history" "Image" "localStorage" "location" "name"
      ; ; "navigator" "Option" "parent" "screen" "sessionStorage"
@@ -1217,6 +1236,13 @@
 			 (local-set-key "\C-c C-e" 'org-show-block-all)
 			 )
 		  )
+
+; for grep mode
+(add-hook
+  'grep-mode-hook
+  (lambda ()
+		(local-set-key "o" 'next-error-follow-minor-mode)
+    ))
 
 
 ; http://www.haskell.org/haskellwiki/Emacs/Code_folding

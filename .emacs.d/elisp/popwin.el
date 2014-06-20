@@ -683,9 +683,9 @@ be closed by `popwin:close-popup-window'."
     help-mode
     (completion-list-mode :noselect t)
     (compilation-mode :noselect t)
-    (grep-mode :noselect t)
+    (grep-mode :stick t :noselect nil)
     ;; (occur-mode :noselect t)
-	(occur-mode :stick t)
+    (occur-mode :stick t :noselect nil)
     ("*Pp Macroexpand Output*" :noselect t)
     "*Shell Command Output*"
     ;; VC

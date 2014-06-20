@@ -40,6 +40,10 @@ ln -si "${Repo}SublimeTextFiles/2/Preferences.sublime-settings" ~/Library/Applic
 echo "ln -si ${Repo}.jshintrc"
 ln -si "${Repo}.jshintrc" ~/.jshintrc
 
+echo "ln -si ${Repo}.jsbeautifyrc"
+ln -si "${Repo}.jsbeautifyrc" ~/.jsbeautifyrc
+
+
 echo "ln -si ${Repo}.atom/config.cson"
 ln -si "${Repo}.atom/config.cson" ~/.atom/config.cson
 

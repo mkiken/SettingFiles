@@ -47,6 +47,7 @@
   web-mode
   ; js2-mode
   emmet-mode
+  web-beautify
     ))
 
 ;; my/favorite-packagesからインストールしていないパッケージをインストール
