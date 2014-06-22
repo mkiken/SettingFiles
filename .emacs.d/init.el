@@ -1229,7 +1229,26 @@
 ;;for Haskell
 (add-hook 'haskell-mode-hook
           '(lambda ()
-			 (local-set-key "\C-c/" 'toggle-selective-display)))
+             ; (local-set-key "\C-c" 'toggle-selective-display)
+             ; (turn-on-haskell-simple-indent) ;Simple indentation.
+             (turn-on-haskell-indentation) ;Intelligent semi-automatic indentation Mk2.
+             (turn-on-haskell-decl-scan) ;Scans top-level declarations, and places them in a menu.
+             (turn-on-haskell-doc) ;Echoes types of functions or syntax of keywords when the cursor is idle.
+             (define-key haskell-mode-map "\C-j" 'haskell-newline-from-anywhere)
+             (define-key haskell-mode-map (kbd "C-S-j") 'haskell-newline-from-anywhere-prev)
+             ))
+; (add-hook 'haskell-mode-hook 'turn-on-haskell-simple-indent)
+(defun haskell-newline-from-anywhere()
+  (interactive)
+  (end-of-line)
+  (haskell-newline-and-indent) )
+(defun haskell-newline-from-anywhere-prev()
+  (interactive)
+  (beginning-of-line)
+  (haskell-newline-and-indent)
+  (previous-line)
+  (indent-for-tab-command))
+
 ;; for org
 (add-hook 'org-mode-hook
           '(lambda ()

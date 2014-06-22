@@ -78,6 +78,8 @@ brew install rmtrash
 # brew install --cocoa --srgb --with-gnutls --japanese emacs -v
 brew install --cocoa --srgb --japanese emacs -v
 brew install vim --devel --with-lua
+brew install rlwrap
+# brew install ghc
 
 git submodule sync
 # http://rochefort.hatenablog.com/entry/20110410/p1
