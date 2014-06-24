@@ -32,6 +32,7 @@
   ;; Eclipseみたいに行全体の削除。本来はCtrl + Shift + Del
   (define-key global-map (kbd "s-d") 'kill-whole-line)
   (define-key global-map (kbd "s-b") 'copy-line)
+  (global-set-key (kbd "s-r") 'revert-buffer)
 
   ; システムへ修飾キーを渡さない設定
   (setq mac-pass-control-to-system nil)
@@ -417,6 +418,7 @@
             kill-buffer-query-functions))
 
 (setq revert-without-query '(".*"))
+(global-auto-revert-mode 1)
 
 ;;from http://d.hatena.ne.jp/ama-ch/20090114/1231918903
 ;; カーソル位置から行頭まで削除する
@@ -1662,3 +1664,45 @@
                    '(define-key emmet-mode-keymap (kbd "C-j") nil) ;; C-j は newline のままにしておく
                    )
                  )
+
+ (require 'sr-speedbar)
+; https://gist.github.com/josh/776856
+(setq speedbar-frame-parameters
+      '((minibuffer)
+	(width . 40)
+	(border-width . 0)
+	(menu-bar-lines . 0)
+	(tool-bar-lines . 0)
+	(unsplittable . t)
+	(left-fringe . 0)))
+(setq speedbar-hide-button-brackets-flag t)
+(setq speedbar-show-unknown-files t)
+(setq speedbar-smart-directory-expand-flag t)
+(setq speedbar-use-images nil)
+(setq sr-speedbar-auto-refresh t)
+(setq sr-speedbar-max-width 70)
+(setq sr-speedbar-right-side nil)
+(setq sr-speedbar-width-console 40)
+(when window-system
+  (defadvice sr-speedbar-open (after sr-speedbar-open-resize-frame activate)
+    (set-frame-width (selected-frame)
+                     (+ (frame-width) sr-speedbar-width)))
+  (ad-enable-advice 'sr-speedbar-open 'after 'sr-speedbar-open-resize-frame)
+
+  (defadvice sr-speedbar-close (after sr-speedbar-close-resize-frame activate)
+    (sr-speedbar-recalculate-width)
+    (set-frame-width (selected-frame)
+                     (- (frame-width) sr-speedbar-width)))
+  (ad-enable-advice 'sr-speedbar-close 'after 'sr-speedbar-close-resize-frame))
+(make-face 'speedbar-face)
+(set-face-font 'speedbar-face "Inconsolata-11")
+(setq speedbar-mode-hook '(lambda ()
+                           (buffer-face-set 'speedbar-face)
+                           (define-key speedbar-mode-map "o" 'speedbar-edit-line)
+                           (define-key speedbar-mode-map (kbd "<left>") 'speedbar-up-directory)
+                           (define-key speedbar-mode-map (kbd "<right>") 'speedbar-edit-line)
+
+                           ))
+
+(global-set-key (kbd "C-c s") 'sr-speedbar-toggle)
+
