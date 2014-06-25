@@ -35,7 +35,7 @@
   (global-set-key (kbd "s-r") 'revert-buffer)
 
   ; システムへ修飾キーを渡さない設定
-  (setq mac-pass-control-to-system nil)
+  ; (setq mac-pass-control-to-system nil)
   ; (setq mac-pass-command-to-system nil)
   ; (setq mac-pass-option-to-system nil)
 
@@ -256,6 +256,8 @@
 (keyboard-translate ?\C-h ?\C-?)
 (define-key global-map (kbd "C-c h") 'help-command)
 
+(define-key global-map (kbd "C-c g") 'grep-find)
+
 ; 削除ファイルをゴミ箱に入れる
 (setq delete-by-moving-to-trash t)
 (setq trash-directory "~/.Trash")
@@ -391,6 +393,8 @@
 
 (global-set-key (kbd "C-S-v") 'scroll-up-1)
 (global-set-key (kbd "M-V") 'scroll-down-1)
+(global-set-key (kbd "C-<down>") 'scroll-up-1)
+(global-set-key (kbd "C-<up>") 'scroll-down-1)
 ;; カーソル位置の保存
 ;; http://www.bookshelf.jp/soft/meadow_31.html
 (setq scroll-preserve-screen-position t)
@@ -985,7 +989,6 @@
 (add-hook 'nav-mode-hook 'nav-mode-hl-hook)
 
 
-
 ;;; smooth-scroll
 (require 'smooth-scroll)
 (smooth-scroll-mode t)
@@ -1190,43 +1193,10 @@
              (setq js2-basic-offset 2)
              (define-key js2-mode-map "\C-m" 'expand-bracket)
              (define-key js2-mode-map (kbd "C-c b") 'web-beautify-js)
+             (define-key js2-mode-map (kbd "C-c C-/") 'js2-mode-toggle-element)
+             (hs-minor-mode)
              ))
-; (defconst my-js2-jslint-option-alist
-; '(
-; ; (browser
-     ; ; "clearInterval" "clearTimeout" "document" "event" "FormData"
-     ; ; "frames" "history" "Image" "localStorage" "location" "name"
-     ; ; "navigator" "Option" "parent" "screen" "sessionStorage"
-     ; ; "setInterval" "setTimeout" "Storage" "window" "XMLHttpRequest"
-     ; ; )
-    ; ; (devel
-     ; ; "alert" "confirm" "console" "Debug" "opera" "prompt" "WSH")
-    ; ; (node
-     ; "Buffer" "clearInterval" "clearTimeout" "console" "exports"
-     ; "global" "module" "process" "querystring" "require"
-     ; "setInterval" "setTimeout" "__dirname" "__filenamei"
-     ; ; )
-    ; ; (rhino
-     ; ; "defineClass" "deserialize" "gc" "help" "load" "loadClass"
-     ; ; "print" "quit" "readFile" "readUrl" "runCommand" "seal"
-     ; ; "serialize" "spawn" "sync" "toint32" "version")
-    ; ; (windows
-     ; ; "ActiveXObject" "CScript" "Debug" "Enumerator" "System"
-     ; ; "VBArray" "WScript" "WSH")
-    ; ))
 
-; (add-hook 'js2-mode-hook
-          ; '(lambda ()
-						 ; (local-set-key "\C-c/" 'js2-mode-toggle-element)
-             ; (setq js2-additional-externs
-              ; '("console")
-                   ; ; (append
-                    ; ; ; 'my-js2-jslint-option-alist
-                    ; ; '("console")
-                    ; ; 'js2-additional-externs)
-                   ; )
-
-						 ; ))
 
 ;;for Haskell
 (add-hook 'haskell-mode-hook
@@ -1394,6 +1364,7 @@
 
 ;; you can select the key you prefer to
 (define-key global-map (kbd "C-c ;") 'ace-jump-mode)
+(setq ace-jump-mode-case-fold t) ; case insensitive
 
 ; Settings for multiple cursors
 ; http://qiita.com/ongaeshi/items/3521b814aa4bf162181d
@@ -1683,30 +1654,25 @@
 (setq sr-speedbar-max-width 70)
 (setq sr-speedbar-right-side nil)
 (setq sr-speedbar-width-console 40)
-(when window-system
-  (defadvice sr-speedbar-open (after sr-speedbar-open-resize-frame activate)
-    (set-frame-width (selected-frame)
-                     (+ (frame-width) sr-speedbar-width)))
-  (ad-enable-advice 'sr-speedbar-open 'after 'sr-speedbar-open-resize-frame)
 
-  (defadvice sr-speedbar-close (after sr-speedbar-close-resize-frame activate)
-    (sr-speedbar-recalculate-width)
-    (set-frame-width (selected-frame)
-                     (- (frame-width) sr-speedbar-width)))
-  (ad-enable-advice 'sr-speedbar-close 'after 'sr-speedbar-close-resize-frame))
 (make-face 'speedbar-face)
 (setq speedbar-mode-hook '(lambda ()
                            (buffer-face-set 'speedbar-face)
                            (define-key speedbar-mode-map "o" 'speedbar-edit-line)
                            (define-key speedbar-mode-map (kbd "<left>") 'speedbar-up-directory)
                            (define-key speedbar-mode-map (kbd "<right>") 'speedbar-edit-line)
+                           (define-key speedbar-mode-map (kbd "g") 'grep-find)
+                           (define-key speedbar-mode-map (kbd "r") 'speedbar-refresh)
+                           (define-key speedbar-mode-map (kbd "f") 'ace-jump-mode)
 
                            ))
 
 (global-set-key (kbd "C-c s") 'sr-speedbar-toggle)
 
 (when darwin-p
-  (set-face-font 'speedbar-face "Inconsolata-11")
+  (when carbon-p
+    (set-face-font 'speedbar-face "Inconsolata-11")
+    )
   )
 
 (when windows-p

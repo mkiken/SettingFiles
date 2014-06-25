@@ -1,0 +1,12 @@
+#!/bin/sh
+
+git submodule sync
+git submodule update --recursive
+git submodule foreach 'git pull origin master'
+
+brew update
+brew upgrade git
+brew upgrade rmtrash
+brew upgrade emacs
+brew upgrade vim
+brew upgrade rlwrap

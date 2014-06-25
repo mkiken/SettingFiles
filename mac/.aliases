@@ -140,9 +140,11 @@ alias vimrc='em ~/.vimrc'
 alias gvimrc='em ~/.gvimrc'
 alias gitconfig='vi ~/.gitconfig'
 alias zshenv='vi ~/.zshenv'
+alias jshintrc='vi ~/.jshintrc'
+alias jsbeautifyrc='vi ~/.jsbeautifyrc'
 
 #shortc cut for git
-alias g='git'
+alias g='noglob git'
 alias gst='git st'
 alias gaa='git add .'
 # alias gra='git rmall'
@@ -151,6 +153,7 @@ alias gcma='git commit -a'
 alias gcmm='git commit -m'
 alias gps='git push'
 alias gpl='git pull'
+alias gdf='git diff'
 
 #shortcut for Application
 alias e='./a.out'
