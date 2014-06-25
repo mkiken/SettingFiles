@@ -1695,7 +1695,6 @@
                      (- (frame-width) sr-speedbar-width)))
   (ad-enable-advice 'sr-speedbar-close 'after 'sr-speedbar-close-resize-frame))
 (make-face 'speedbar-face)
-(set-face-font 'speedbar-face "Inconsolata-11")
 (setq speedbar-mode-hook '(lambda ()
                            (buffer-face-set 'speedbar-face)
                            (define-key speedbar-mode-map "o" 'speedbar-edit-line)
@@ -1706,3 +1705,10 @@
 
 (global-set-key (kbd "C-c s") 'sr-speedbar-toggle)
 
+(when darwin-p
+  (set-face-font 'speedbar-face "Inconsolata-11")
+  )
+
+(when windows-p
+  (set-face-font 'speedbar-face "Meiryo UI-9")
+  )

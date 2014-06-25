@@ -43,8 +43,10 @@ function gps(){git push}
 # function gpl(){git pull}
 # function gci(){git commit}
 function gaa(){git add .}
-function winset(){em ${SET}\windows\powershell_profile.ps1}
-function wininit() {em ${SET}\windows\initialize.ps1}
+function winset(){ec ${SET}\windows\powershell_profile.ps1}
+function wininit() {ec ${SET}\windows\initialize.ps1}
+function einit() {ec ${SET}\.emacs.d\init.el}
+
 
 
 function la($arg){
