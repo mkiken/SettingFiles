@@ -48,6 +48,7 @@
   ; js2-mode
   emmet-mode
   web-beautify
+  js-doc
     ))
 
 ;; my/favorite-packagesからインストールしていないパッケージをインストール

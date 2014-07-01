@@ -1,8 +1,8 @@
 ; http://transitive.info/article/git/command/config/
 
-[user]
-  name = mkiken
-  email = mkiken0@gmail.com
+; [user]
+  ; name = mkiken
+  ; email = mkiken0@gmail.com
 [push]
 	default = matching
 
@@ -10,6 +10,7 @@
 [alias]
 # assumes git.git clone at ~/src/git
 ; diff-highlight = /usr/local/Cellar/git/1.8.4.3/share/git-core/contrib/diff-highlight/diff-highlight
+  ad = add
 	co = checkout
 	br = branch
 	ci = commit
@@ -22,6 +23,8 @@
 	# http://qiita.com/hash/items/1f01aa09ccf148542f21
 	lg = log --stat --pretty=format:'%Cblue%h %Cgreen%ar %Cred%an %Creset%s %Cred%d'
 	gr = log --graph --date-order --pretty=format:'%Cblue%h %Cgreen%ci %Cred%an %Cblue%m %Creset%s %Cred%d'
+	rb = rebase
+
 	; http://qiita.com/peccul/items/90dd469e2f72babbc106
 	today = log --oneline --since='12 hour ago'
 	cancel = reset --soft HEAD^
@@ -38,13 +41,27 @@
 	; http://qiita.com/yuyuchu3333/items/a30387bdd6a0afc1185c
 	rso  = remote show origin
 ; diff-highlight = "!f() { git diff \"$@\" | /usr/local/Cellar/git/contrib/diff-highlight/diff-highlight; }; f"
-  smupgrade = submodule foreach 'git pull origin master'
+  smpull = submodule foreach 'git pull origin master'
   smupdate = submodule update --init --recursive
 
   ; http://d.hatena.ne.jp/sugyan/20111103/1320247493
   tr = log --graph --pretty='format:%C(yellow)%h%Creset %s %Cgreen(%an)%Creset %Cred%d%Creset'
 ; http://xr0038tech.hatenadiary.jp/entry/2014/01/23/202116
-  tree = log --graph --branches --pretty=format:"%d [%h] \"%s\""
+  ; tree = log --graph --branches --pretty=format:"%d [%h] \"%s\""
+  tree = log --graph --decorate --oneline --abbrev-commit
+
+  d0 = diff HEAD             # HEADとdiff
+  d1 = diff HEAD~            # HEADから1つ前とdiff
+  d2 = diff HEAD~~           # HEADから2つ前とdiff
+  d3 = diff HEAD~~~          # HEADから3つ前とdiff
+  d4 = diff HEAD~~~~         # HEADから4つ前とdiff
+  d5 = diff HEAD~~~~~        # HEADから5つ前とdiff
+  d10 = diff HEAD~~~~~~~~~~  # HEADから10前とdiff
+
+  rollback = git reset --hard
+
+  sdf = diff —name-status
+  wdf = diff --word-diff=color
 
 ; http://motemen.hatenablog.com/entry/2013/11/26/Git_%E3%81%AE_diff_%E3%82%92%E7%BE%8E%E3%81%97%E3%81%8F%E8%A1%A8%E7%A4%BA%E3%81%99%E3%82%8B%E3%81%9F%E3%82%81%E3%81%AB%E5%BF%85%E8%A6%81%E3%81%AA%E3%81%9F%E3%81%A3%E3%81%9F_1_%E3%81%A4%E3%81%AE%E8%A8%AD
 [pager]
@@ -58,9 +75,12 @@
 	ui = auto
 [core]
 	excludesfile = ~/.gitignore
-	editor = emacs
+	autocrlf = input # CRLFを自動変換
+	; editor = emacs
+	editor = vim -c \"set fenc=utf-8\"
 [merge]
 	tool = vimdiff
 	; http://qiita.com/yaotti/items/2361768b6ed781e87780
 [interactive]
+# git add/checkout -p時に，エンターでの決定を省略する
 	singlekey = true

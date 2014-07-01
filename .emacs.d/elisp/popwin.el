@@ -680,7 +680,6 @@ be closed by `popwin:close-popup-window'."
 
 (defcustom popwin:special-display-config
   '(;; Emacs
-    help-mode
     (completion-list-mode :noselect t)
     (compilation-mode :noselect t)
     (grep-mode :stick t :noselect nil)

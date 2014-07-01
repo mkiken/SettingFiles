@@ -123,6 +123,8 @@ esac
 #alias refresh='source ~/.bashrc'
 alias refresh='source ~/.zshrc'
 
+alias pyserv='python -m SimpleHTTPServer'
+
 #cd
 alias cdp='cd ~/Program/ProCon'
 alias cdd='cd ~/Desktop'
@@ -149,11 +151,19 @@ alias gst='git st'
 alias gaa='git add .'
 # alias gra='git rmall'
 alias gcm='git commit'
+alias gci='git commit'
 alias gcma='git commit -a'
 alias gcmm='git commit -m'
 alias gps='git push'
 alias gpl='git pull'
 alias gdf='git diff'
+alias gmd='git modified'
+alias gpdr='git pull-dry-run'
+alias gcb='git current-branch'
+alias grb='git rb'
+alias gsdf='git sdf'
+alias gwdf='git wdf'
+alias gtr='git tree'
 
 #shortcut for Application
 alias e='./a.out'

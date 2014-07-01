@@ -1,6 +1,7 @@
 #read Aliases
 source ~/.aliases
 
+
 # パスの設定
 PATH=/usr/local/bin:$PATH
 
@@ -537,6 +538,10 @@ function expand-or-complete-prefix-incr
 
 # npmの補完は重すぎるので無効
 compdef -d npm
+compdef -d python #-mが重すぎるので無効
 
+# http://qiita.com/syui/items/82b080920a4241e96aed
+# http://stackoverflow.com/questions/4221239/zsh-use-completions-for-command-x-when-i-type-command-y
+compdef '_dispatch git git' g
 
 export PATH=$HOME/.nodebrew/current/bin:$PATH

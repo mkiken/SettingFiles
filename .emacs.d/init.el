@@ -257,6 +257,7 @@
 (define-key global-map (kbd "C-c h") 'help-command)
 
 (define-key global-map (kbd "C-c g") 'grep-find)
+(define-key global-map (kbd "C-c t") 'sr-speedbar-select-window)
 
 ; 削除ファイルをゴミ箱に入れる
 (setq delete-by-moving-to-trash t)
@@ -432,6 +433,7 @@
   (kill-line 0))
 ;; C-S-kに設定
 (global-set-key (kbd "C-S-k") 'backward-kill-line)
+(global-set-key (kbd "M-S-k") 'backward-kill-sentence)
 
 
 ;; 一行コピー
@@ -886,6 +888,7 @@
 (global-set-key (kbd "M-%") 'anzu-query-replace)
 (global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp)
 
+(global-set-key (kbd "C-c q") 'anzu-query-replace)
 
 
 ;; for tab mode
@@ -1001,19 +1004,11 @@
            (and (< (point) (point-max)) (equal "}" (char-to-string (char-after (point)))))
            )
     (progn
-      ; (delete-backward-char 1)
-      ; (insert-latex-brackets opening closing)
-      ; (newline)
-      ; (insert "\n\n")
       (newline-and-indent)
-      ; (newline-and-indent)
-      ; (indent-relative)
       (previous-line)
       (end-of-line)
       (newline-and-indent)
-      ; (indent-relative)
       )
-    ; (insert "\n")
       (newline-and-indent)
     )
   )
@@ -1187,15 +1182,54 @@
 ;;js2-mode requires Emacs 24.0 or higher.
 (autoload 'js2-mode "js2-mode" nil t)
 ; (require 'js2-mode)
+(defun expand-bracket-for-js2 ()
+  (interactive)
+  (if (and (and (< (point-min) (point)) (equal "{" (char-to-string (char-before (point)))))
+           (and (< (point) (point-max)) (equal "}" (char-to-string (char-after (point)))))
+           )
+    (progn
+      (js2-line-break)
+      (previous-line)
+      (end-of-line)
+      (js2-line-break)
+      )
+      (js2-line-break)
+    )
+  )
+(defun newline-from-anywhere-for-js2()
+  (interactive)
+  (end-of-line)
+  (js2-line-break) )
+(global-set-key (kbd "C-j") 'newline-from-anywhere)
+(defun newline-from-anywhere-prev-for-js2()
+  (interactive)
+  (beginning-of-line)
+  (js2-line-break)
+  (previous-line)
+  (c-indent-command))
+(global-set-key (kbd "C-S-j") 'newline-from-anywhere-prev)
 (add-to-list 'auto-mode-alist '("\\.\\(peg\\)?js$" . js2-mode))
 (add-hook 'js2-mode-hook
           '(lambda ()
              (setq js2-basic-offset 2)
-             (define-key js2-mode-map "\C-m" 'expand-bracket)
+             (define-key js2-mode-map "\C-m" 'expand-bracket-for-js2)
+             (define-key js2-mode-map "\C-j" 'newline-from-anywhere-for-js2)
+             (define-key js2-mode-map "\C-S-j" 'newline-from-anywhere-prev-for-js2)
              (define-key js2-mode-map (kbd "C-c b") 'web-beautify-js)
              (define-key js2-mode-map (kbd "C-c C-/") 'js2-mode-toggle-element)
+             (define-key js2-mode-map (kbd "C-c d") 'js-doc-insert-function-doc)
+             (define-key js2-mode-map (kbd "C-c C-d") 'js-doc-insert-file-doc)
+             (define-key js2-mode-map (kbd "@") 'js-doc-insert-tag)
              (hs-minor-mode)
              ))
+
+; settings for js-doc
+(custom-set-variables
+ ; '(js-doc-mail-address "your email address")
+ ; '(js-doc-author (format "your name <%s>" js-doc-mail-address))
+ ; '(js-doc-url "your url")
+ '(js-doc-license "The MIT License")
+ )
 
 
 ;;for Haskell
@@ -1651,7 +1685,7 @@
 (setq speedbar-smart-directory-expand-flag t)
 (setq speedbar-use-images nil)
 (setq sr-speedbar-auto-refresh t)
-(setq sr-speedbar-max-width 70)
+(setq sr-speedbar-max-width 50)
 (setq sr-speedbar-right-side nil)
 (setq sr-speedbar-width-console 40)
 

@@ -9,4 +9,4 @@ cmd /c mklink /d ${HOME}\AppData\Roaming\.emacs.d ${SET}\.emacs.d
 
 cmd /c mklink $profile ${SET}\windows\powershell_profile.ps1
 
-# cmd /c mklink ${HOME}\.gitconfig ${SET}\gitfiles\.gitconfig
+cmd /c mklink ${HOME}\.gitconfig ${SET}\gitfiles\.gitconfig

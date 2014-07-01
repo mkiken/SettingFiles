@@ -7,8 +7,8 @@ Repo="`pwd | sed -e \"s/.\{3\}$//\"`"
 echo "ln -si ${Repo}mac/.aliases ~/.aliases"
 ln -si "${Repo}mac/.aliases" ~/.aliases
 
-# echo "ln -si ${Repo}gitfiles/.gitconfig ~/.gitconfig"
-# ln -si "${Repo}gitfiles/.gitconfig" ~/.gitconfig
+echo "ln -si ${Repo}gitfiles/.gitconfig ~/.gitconfig"
+ln -si "${Repo}gitfiles/.gitconfig" ~/.gitconfig
 
 echo "ln -si ${Repo}gitfiles/.gitignore_global ~/.gitignore"
 ln -si "${Repo}gitfiles/.gitignore_global" ~/.gitignore
