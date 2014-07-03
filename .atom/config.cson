@@ -9,6 +9,8 @@
   'disabledPackages': [
     'turbo-javascript'
     'jslint'
+    'emmet'
+    'script'
   ]
   'themes': [
     'atom-dark-ui'
@@ -32,3 +34,5 @@
 'jslint':
   'hideOnNoErrors': true
   'useFoldModeAsDefault': true
+'markdown-preview':
+  'breakOnSingleNewline': true

@@ -1,7 +1,7 @@
 " Vim Settings for GUI
 
 " カラースキーマを設定
-colorscheme molokai
+" colorscheme molokai
 " colorscheme Tomorrow
 " colorscheme Tomorrow-Night
 " colorscheme Tomorrow-Night-Bright
@@ -9,7 +9,7 @@ colorscheme molokai
 " colorscheme Tomorrow-Night-Eighties
 " colorscheme solarized
 " colorscheme wombat
-" colorscheme hybrid
+colorscheme hybrid
 " colorscheme iceberg
 
 " http://vim.1045645.n5.nabble.com/Random-color-scheme-at-start-td1165585.html

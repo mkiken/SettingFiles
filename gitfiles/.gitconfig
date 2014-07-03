@@ -27,7 +27,7 @@
 
 	; http://qiita.com/peccul/items/90dd469e2f72babbc106
 	today = log --oneline --since='12 hour ago'
-	cancel = reset --soft HEAD^
+	hisback = reset --soft HEAD^
 	zip = archive --format=zip --prefix=archive/ HEAD^ -o archive.zip
 	; http://qiita.com/usamik26/items/bfc2196f510d68b3c2cc
 	modified = diff --diff-filter=M
@@ -58,18 +58,20 @@
   d5 = diff HEAD~~~~~        # HEADから5つ前とdiff
   d10 = diff HEAD~~~~~~~~~~  # HEADから10前とdiff
 
-  rollback = git reset --hard
+  rollback = reset --hard
 
   sdf = diff —name-status
-  wdf = diff --word-diff=color
 
-; http://motemen.hatenablog.com/entry/2013/11/26/Git_%E3%81%AE_diff_%E3%82%92%E7%BE%8E%E3%81%97%E3%81%8F%E8%A1%A8%E7%A4%BA%E3%81%99%E3%82%8B%E3%81%9F%E3%82%81%E3%81%AB%E5%BF%85%E8%A6%81%E3%81%AA%E3%81%9F%E3%81%A3%E3%81%9F_1_%E3%81%A4%E3%81%AE%E8%A8%AD
-[pager]
-	; log = diff-highlight | less
-	; show = diff-highlight | less
-	log = /usr/local/Cellar/git/1.9.1/share/git-core/contrib/diff-highlight/diff-highlight | less
-	show = /usr/local/Cellar/git/1.9.1/share/git-core/contrib/diff-highlight/diff-highlight | less
-	diff = /usr/local/Cellar/git/1.9.1/share/git-core/contrib/diff-highlight/diff-highlight | less
+  r0 = checkout HEAD
+  r1 = checkout HEAD~
+  r2 = checkout HEAD~~
+  r3 = checkout HEAD~~~
+  r4 = checkout HEAD~~~~
+  r5 = checkout HEAD~~~~~
+  r10 = checkout HEAD~~~~~~~~~~
+
+  wdf = diff --word-diff=color
+  upsync = "!f_upsync () { git fetch upstream; git rebase upstream/master;};f_upsync"
 
 [color]
 	ui = auto
@@ -84,3 +86,7 @@
 [interactive]
 # git add/checkout -p時に，エンターでの決定を省略する
 	singlekey = true
+
+; http://d.hatena.ne.jp/z3100/20120505/1336203155
+[include]
+	path = .gitconfig.local

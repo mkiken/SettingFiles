@@ -190,13 +190,13 @@
   (end-of-line)
   (newline-and-indent) )
 (global-set-key (kbd "C-j") 'newline-from-anywhere)
-(defun newline-from-anywhere-prev()
+(defun backward-newline-from-anywhere()
   (interactive)
   (beginning-of-line)
   (newline-and-indent)
   (previous-line)
   (c-indent-command))
-(global-set-key (kbd "C-S-j") 'newline-from-anywhere-prev)
+(global-set-key (kbd "C-S-j") 'backward-newline-from-anywhere)
 
 
 ; ダイアログを出さない
@@ -435,6 +435,18 @@
 (global-set-key (kbd "C-S-k") 'backward-kill-line)
 (global-set-key (kbd "M-S-k") 'backward-kill-sentence)
 
+(defun backward-mark-paragraph (arg)
+  (interactive "p")
+  (mark-paragraph (- arg) 1)
+  )
+(global-set-key (kbd "M-H") 'backward-mark-paragraph)
+(defun backward-kill-sentence (arg)
+  (interactive "p")
+  (kill-sentence (- arg))
+  )
+(global-set-key (kbd "M-K") 'backward-kill-sentence)
+(global-set-key (kbd "C-c k") 'kill-paragraph)
+(global-set-key (kbd "C-c K") 'backward-kill-paragraph)
 
 ;; 一行コピー
 ;; http://emacswiki.org/emacs/CopyingWholeLines
@@ -1201,20 +1213,20 @@
   (end-of-line)
   (js2-line-break) )
 (global-set-key (kbd "C-j") 'newline-from-anywhere)
-(defun newline-from-anywhere-prev-for-js2()
+(defun backward-newline-from-anywhere-for-js2()
   (interactive)
   (beginning-of-line)
   (js2-line-break)
   (previous-line)
   (c-indent-command))
-(global-set-key (kbd "C-S-j") 'newline-from-anywhere-prev)
+(global-set-key (kbd "C-S-j") 'backward-newline-from-anywhere)
 (add-to-list 'auto-mode-alist '("\\.\\(peg\\)?js$" . js2-mode))
 (add-hook 'js2-mode-hook
           '(lambda ()
              (setq js2-basic-offset 2)
              (define-key js2-mode-map "\C-m" 'expand-bracket-for-js2)
              (define-key js2-mode-map "\C-j" 'newline-from-anywhere-for-js2)
-             (define-key js2-mode-map "\C-S-j" 'newline-from-anywhere-prev-for-js2)
+             (define-key js2-mode-map (kbd "C-S-j") 'backward-newline-from-anywhere-for-js2)
              (define-key js2-mode-map (kbd "C-c b") 'web-beautify-js)
              (define-key js2-mode-map (kbd "C-c C-/") 'js2-mode-toggle-element)
              (define-key js2-mode-map (kbd "C-c d") 'js-doc-insert-function-doc)
@@ -1241,14 +1253,14 @@
              (turn-on-haskell-decl-scan) ;Scans top-level declarations, and places them in a menu.
              (turn-on-haskell-doc) ;Echoes types of functions or syntax of keywords when the cursor is idle.
              (define-key haskell-mode-map "\C-j" 'haskell-newline-from-anywhere)
-             (define-key haskell-mode-map (kbd "C-S-j") 'haskell-newline-from-anywhere-prev)
+             (define-key haskell-mode-map (kbd "C-S-j") 'haskell-backward-newline-from-anywhere)
              ))
 ; (add-hook 'haskell-mode-hook 'turn-on-haskell-simple-indent)
 (defun haskell-newline-from-anywhere()
   (interactive)
   (end-of-line)
   (haskell-newline-and-indent) )
-(defun haskell-newline-from-anywhere-prev()
+(defun haskell-backward-newline-from-anywhere()
   (interactive)
   (beginning-of-line)
   (haskell-newline-and-indent)
@@ -1688,6 +1700,7 @@
 (setq sr-speedbar-max-width 50)
 (setq sr-speedbar-right-side nil)
 (setq sr-speedbar-width-console 40)
+(setq speedbar-directory-unshown-regexp "^$")
 
 (make-face 'speedbar-face)
 (setq speedbar-mode-hook '(lambda ()

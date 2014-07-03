@@ -2,9 +2,9 @@
 
 atom-lint
 autocomplete-plus   // タイプ中に補完
-emmet
+/* emmet // 読み込みが非常に重い */
 highlight-line
-script              // プログラムの実行
+/* script              // プログラムの実行 */
 vim-mode
 emacs-mode
 file-icons          // tree viewの見た目をきれいに

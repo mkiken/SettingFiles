@@ -38,15 +38,30 @@ function cdh(){cd ${HOME}}
 function cdrepo(){cd ${REPO}}
 function cds(){cd ${SET}}
 function up(){cd ..}
-function gst(){git status}
-function gps(){git push}
-# function gpl(){git pull}
-# function gci(){git commit}
-function gaa(){git add .}
-function winset(){ec ${SET}\windows\powershell_profile.ps1}
-function wininit() {ec ${SET}\windows\initialize.ps1}
-function einit() {ec ${SET}\.emacs.d\init.el}
 
+# alias for Git
+function gst(){git st}
+function gps(){git push}
+function gaa(){git add .}
+function grb(){git rollback}
+function gtr(){git tree}
+function gl(){git log}
+function ggr(){git gr}
+function glg(){git lg}
+function ghb(){git hisback}
+function gb(){git branch}
+
+
+
+
+function winset(){em${SET}\windows\powershell_profile.ps1}
+function wininit() {em ${SET}\windows\initialize.ps1}
+function einit() {em ${SET}\.emacs.d\init.el}
+
+# 空ファイルを作る
+function mf($name){
+ New-Item $name -itemType File
+}
 
 
 function la($arg){
@@ -72,5 +87,7 @@ function list-files-in-a-wide-format($arg) {
 
 $Env:Path += ";c:\MinGW\bin\"
 
+# load local settings.
+& "${HOME}\local_profile.ps1"
 
 # echo "alias set."

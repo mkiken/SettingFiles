@@ -680,11 +680,10 @@ be closed by `popwin:close-popup-window'."
 
 (defcustom popwin:special-display-config
   '(;; Emacs
+    help-mode
     (completion-list-mode :noselect t)
     (compilation-mode :noselect t)
     (grep-mode :stick t :noselect nil)
-    ;; (occur-mode :noselect t)
-    (help-mode :noselect t)
     (occur-mode :stick t :noselect nil)
     ("*Pp Macroexpand Output*" :noselect t)
     "*Shell Command Output*"

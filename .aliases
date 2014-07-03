@@ -1,6 +1,5 @@
 REPO="${HOME}/Desktop/repository/"
 SET="${HOME}/Desktop/repository/SettingFiles/"
-EIN="${HOME}/.emacs.d/init.el"
 
 #expanded command
 case "${OSTYPE}" in
@@ -152,8 +151,6 @@ alias gaa='git add .'
 # alias gra='git rmall'
 alias gcm='git commit'
 alias gci='git commit'
-alias gcma='git commit -a'
-alias gcmm='git commit -m'
 alias gps='git push'
 alias gpl='git pull'
 alias gdf='git diff'
@@ -164,6 +161,12 @@ alias grb='git rb'
 alias gsdf='git sdf'
 alias gwdf='git wdf'
 alias gtr='git tree'
+alias gl='git log'
+alias ggr='git gr'
+alias glg='git lg'
+alias ghb='git hisback'
+alias gb='git branch'
+alias gft='git fetch'
 
 #shortcut for Application
 alias e='./a.out'

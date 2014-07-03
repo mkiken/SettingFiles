@@ -73,6 +73,9 @@ set whichwrap=b,s,h,l,<,>,[,]
 " コマンドライン補完を拡張モードにする
 set wildmenu
 
+" コマンドモードでの補完設定
+set wildmode=longest:full,list
+
 " 検索の時に大文字小文字を区別しない
 set ignorecase
 " 最後まで検索したら先頭に戻る
@@ -467,6 +470,9 @@ map T ;T
  " Bundle 'SirVer/ultisnips'
  " Bundle 'honza/vim-snippets'
  Bundle 'mattn/emmet-vim'
+ Bundle 'heavenshell/vim-jsdoc'
+ " Bundle 'maksimr/vim-jsbeautify'
+ Bundle "Chiel92/vim-autoformat"
 
 
  " <Space>mに、switch.vimをマッピング
@@ -621,7 +627,7 @@ let g:syntastic_mode_map = {
 \ "active_filetypes" : ["javascript", "json"],
 \}
 
-let g:syntastic_javascript_checker = 'jshint'
+let g:syntastic_javascript_checkers = ['jshint']
 
 " http://mba-hack.blogspot.jp/2013/03/unitevim.html
 "" unite.vim {{{
@@ -913,3 +919,5 @@ let g:neosnippet#snippets_directory='~/.vim/bundle/vim-snippets/snippets'
 
 " let g:user_emmet_leader_key='<C-Z>'
 let g:user_emmet_leader_key='<c-x>'
+
+noremap <Leader>b :Autoformat<CR><CR>

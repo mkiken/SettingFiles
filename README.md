@@ -1,14 +1,43 @@
-<!-- サブモジュールのダウンロード -->
-git submodule update --init --recursive
+##初期化
+####Mac OS X
 
-<!-- シンボリックリンク作成 -->
-./dl.sh
+    cd mac
+    ./initialize
 
-<!-- for vim -->
-:BundleInstall
+####Windows
 
-<!-- for emacs -->
-package-initialize.elをM-x eval-buffer
+PowerShellで
 
-<!-- サブモジュールの足し方 -->
-git submodule add https://github.com/magnars/multiple-cursors.el.git .emacs.d/elisp/multiple-cursors
+    cd windows
+    ./initialize.ps1
+
+##更新
+####Mac OS X
+
+    cd mac
+    ./update
+
+####Windows
+
+PowerShellで
+
+    cd windows
+    ./update.ps1
+
+##エディタプラグインの更新
+####Vim
+Vimコマンドで
+
+    :BundleInstall
+
+####Emacs
+./.emacs.d/package-initialize.elをEmacsで開いて
+
+    M-x eval-buffer
+
+####Sublime Text 2
+./SublimeTextFiles/2/initialize.txt
+
+
+####Atom
+./.atom/atom_packages.txt
