@@ -11,11 +11,15 @@
     'jslint'
     'emmet'
     'script'
+    'metrics'
+    'feedback'
+    'atom-lint'
   ]
   'themes': [
     'atom-dark-ui'
-    'dracula-theme'
+    'tomorrow-night-eighties-syntax'
   ]
+  'useReactEditor': true
 'exception-reporting':
   'userId': '0a7c8ad7-7803-a619-cd7e-9c76b0560ed6'
 'welcome':
@@ -31,8 +35,8 @@
 'tree-view':
   'showOnRightSide': false
 'woah-there-mousewheel': {}
-'jslint':
-  'hideOnNoErrors': true
-  'useFoldModeAsDefault': true
 'markdown-preview':
   'breakOnSingleNewline': true
+'linter':
+  'showStatusBarWhenCursorIsInErrorRange': true
+  'lintOnChangeInterval': 3000

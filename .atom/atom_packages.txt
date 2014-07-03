@@ -1,6 +1,6 @@
 -----packages-----
 
-atom-lint
+// atom-lint
 autocomplete-plus   // タイプ中に補完
 /* emmet // 読み込みが非常に重い */
 highlight-line
@@ -17,9 +17,11 @@ Atom Beautifier
 autocomplete-paths
 autocomplete-snippets
 highlight-selected
-jslint
+// jslint
 javascript snippet
 Woah There Mousewheel //スクロールをゆっくりに
+linter
+linter-jshint
 
 -----theme-----
 
