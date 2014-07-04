@@ -137,11 +137,12 @@
 (setq-default save-place t)
 (show-paren-mode 1)
 (setq show-paren-delay 0)
-(setq show-paren-style 'expression)
+(setq show-paren-style 'mixed)
 
-; http://qiita.com/catatsuy/items/55d50d13ebc965e5f31e
+
+; http://wadap.hatenablog.com/entry/20120415/1334468285
 (require 'uniquify)
-(setq uniquify-buffer-name-style 'post-forward)
+(setq uniquify-buffer-name-style 'forward)
 
 ;; バックアップファイルを作らない
 ; (setq make-backup-files nil)
@@ -205,6 +206,7 @@
 ; http://www.emacswiki.org/emacs/AutoIndentation
 (electric-indent-mode 1)
 
+; yankしたテキストを自動整形
 (dolist (command '(yank yank-pop))
    (eval `(defadvice ,command (after indent-region activate)
             (and (not current-prefix-arg)
@@ -214,7 +216,7 @@
                                                       rspec-mode      python-mode
                                                       c-mode          c++-mode
                                                       objc-mode       latex-mode
-                                                      plain-tex-mode))
+                                                      plain-tex-mode  js2-mode))
                  (let ((mark-even-if-inactive transient-mark-mode))
                    (indent-region (region-beginning) (region-end) nil))))))
 
@@ -852,8 +854,8 @@
                       ; :underline t
                       )
   (set-face-attribute 'whitespace-tab nil
-					  :background my/bg-color
-					  ; :background nil
+					            :background my/bg-color
+					            ; :background nil
                       ; :foreground "LightSkyBlue"
                       ; :foreground "gray21"
                       ; :underline t
@@ -869,6 +871,11 @@
                       ; :foreground "gray19"
                       )
   )
+; (set-face-background 'show-paren-match (face-background 'default))
+(set-face-background 'show-paren-match (face-foreground 'default))
+; (set-face-foreground 'show-paren-match "#def")
+(set-face-foreground 'show-paren-match (face-background 'default))
+; (set-face-attribute 'show-paren-match nil :weight 'bold)
 
 ; (set-face-italic-p 'font-lock-comment-face t)
 
@@ -1725,3 +1732,5 @@
 (when windows-p
   (set-face-font 'speedbar-face "Meiryo UI-9")
   )
+
+

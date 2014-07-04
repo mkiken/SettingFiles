@@ -3,7 +3,7 @@ SET="${HOME}/Desktop/repository/SettingFiles/"
 
 #expanded command
 case "${OSTYPE}" in
-# Mac(Unix)
+# --------------- Mac(Unix) ---------------
 darwin*)
 # ここに設定
 alias ls='ls -G'
@@ -25,6 +25,11 @@ function es(){
 function ec(){
     /Applications/Emacs.app/Contents/MacOS/bin/emacsclient -n "$@" --alternate-editor /Applications/Emacs.app/Contents/MacOS/Emacs &
 }
+
+alias st='subl'
+alias at='atom'
+
+alias kr4mbsave='/Applications/KeyRemap4MacBook.app/Contents/Applications/KeyRemap4MacBook_cli.app/Contents/MacOS/KeyRemap4MacBook_cli export > ${SET}mac/kr4mb-import.sh'
 
 # 現在のディレクトリ以下の当てはまるファイルを全て削除する
 # http://www.omnioo.com/omnioolab/2012/07/find.php
@@ -99,7 +104,8 @@ alias up='cd ../'
 alias ng='noglob'
 
 ;;
-# Linux
+
+# --------------- Linux ---------------
 linux*)
 # ここに設定
 alias ls='ls --color=auto'
@@ -117,6 +123,8 @@ function ec(){
 }
 ;;
 esac
+
+# --------------- 共通設定 ---------------
 
 #make new alias
 #alias refresh='source ~/.bashrc'
@@ -186,4 +194,4 @@ alias allfile='defaults write com.apple.finder AppleShowAllFiles'
 # util
 alias sz='du -ch -d 1'
 
-alias kr4mbsave='/Applications/KeyRemap4MacBook.app/Contents/Applications/KeyRemap4MacBook_cli.app/Contents/MacOS/KeyRemap4MacBook_cli export > ${SET}mac/kr4mb-import.sh'
+

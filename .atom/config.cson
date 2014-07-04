@@ -19,7 +19,6 @@
     'atom-dark-ui'
     'tomorrow-night-eighties-syntax'
   ]
-  'useReactEditor': true
 'exception-reporting':
   'userId': '0a7c8ad7-7803-a619-cd7e-9c76b0560ed6'
 'welcome':
@@ -34,6 +33,7 @@
   'useFuzzyFileFinder': false
 'tree-view':
   'showOnRightSide': false
+  'hideVcsIgnoredFiles': true
 'woah-there-mousewheel': {}
 'markdown-preview':
   'breakOnSingleNewline': true
