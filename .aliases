@@ -132,6 +132,9 @@ alias refresh='source ~/.zshrc'
 
 alias pyserv='python -m SimpleHTTPServer'
 
+alias l='ls'
+alias le='less'
+
 #cd
 alias cdp='cd ~/Program/ProCon'
 alias cdd='cd ~/Desktop'

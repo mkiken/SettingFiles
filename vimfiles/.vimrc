@@ -244,10 +244,11 @@ nnoremap <C-S-Tab> gT
 nnoremap G G<End>
 vnoremap G G<End>
 onoremap G G<End>
+
 " ちょっと微妙かもだけど、9で行末に移動
-" nnoremap 9 <End>
-" vnoremap 9 <End>
-" onoremap 9 <End>
+nnoremap 9 <End>
+vnoremap 9 <End>
+onoremap 9 <End>
 
 " ヴィジュアルモードでdeleteで削除
 " MacのdeleteはBackSpaceらしい
@@ -330,7 +331,7 @@ inoremap <C-Right> <Esc>gt
 
 " オムニ補完
 " http://d.hatena.ne.jp/arerreee/20120726/1343316762
-imap <C-Space> <C-x><C-o>
+" imap <C-Space> <C-x><C-o>
 
 " インサートモードで改行
 " http://cohalz.com/2013/06/14/vim-easier-enter-keymap/
@@ -346,7 +347,8 @@ inoremap <C-f> <Right>
 inoremap <C-e> <End>
 inoremap <C-a> <Home>
 inoremap <C-d> <Del>
-inoremap <M-b> <M-left>
+" inoremap <M-Left> <Left>
+" inoremap <M-b> <M-left>
 " カーソルのある行を画面中央に
 inoremap <C-l> <C-o>zz
 " カーソルより前の文字を削除
@@ -457,11 +459,9 @@ map T ;T
  " Bundle 'Shougo/vimshell.vim'
  Bundle 'Shougo/vimfiler.vim'
  Bundle 'terryma/vim-expand-region'
-
  Bundle 'Shougo/neocomplete.vim'
  Bundle 'Shougo/neosnippet'
  Bundle 'Shougo/neosnippet-snippets'
-
  Bundle 'kien/ctrlp.vim'
  Bundle 'scrooloose/nerdcommenter'
  Bundle 'scrooloose/nerdtree'
@@ -473,6 +473,11 @@ map T ;T
  Bundle 'heavenshell/vim-jsdoc'
  " Bundle 'maksimr/vim-jsbeautify'
  Bundle "Chiel92/vim-autoformat"
+ Bundle 'tpope/vim-surround'
+ Bundle 'jelera/vim-javascript-syntax'
+ " Bundle 'pangloss/vim-javascript'
+ Bundle 'kana/vim-textobj-line'
+ Bundle 'kana/vim-textobj-entire'
 
 
  " <Space>mに、switch.vimをマッピング
@@ -508,93 +513,6 @@ call smartinput#define_rule({
 \   'char': '<CR>',
 \   'input': '<CR>\ <Esc>O\ ',
 \ } )
-
-
-" let g:neocomplete#enable_at_startup = 1
-
-
-" " neocomplcache
-" " https://github.com/Shougo/neocomplcache.vim
-" "Note: This option must set it in .vimrc(_vimrc).  NOT IN .gvimrc(_gvimrc)!
-" " Use neocomplcache.
-" let g:neocomplcache_enable_at_startup = 1
-" " Use smartcase.
-" let g:neocomplcache_enable_smart_case = 1
-" " Set minimum syntax keyword length.
-" let g:neocomplcache_min_syntax_length = 3
-" let g:neocomplcache_lock_buffer_name_pattern = '\*ku\*'
-
-" " Enable heavy features.
-" " Use camel case completion.
-" "let g:neocomplcache_enable_camel_case_completion = 1
-" " Use underbar completion.
-" let g:neocomplcache_enable_underbar_completion = 1
-" " let g:NeoComplCache_SkipInputTime = '1.5'
-" "方向キーによる自動展開を防止
-" "https://github.com/Shougo/neocomplcache.vim/issues/369
-" "日本語が途中で補完されて上手く打ち込めない
-" " let g:neocomplcache_enable_insert_char_pre = 1
-" " let g:neocomplcache_enable_cursor_hold_i = 1
-" " For cursor moving in insert mode(Not recommended)
-" " inoremap <expr><Left>  neocomplcache#close_popup() . "\<Left>"
-" " inoremap <expr><Right> neocomplcache#close_popup() . "\<Right>"
-" " inoremap <expr><Up>    neocomplcache#close_popup() . "\<Up>"
-" " inoremap <expr><Down>  neocomplcache#close_popup() . "\<Down>"
-
-" " inoremap <expr><Up> pumvisible() ? neocomplcache#close_popup()."\<Up>" : "\<Up>"
-" " inoremap <expr><Down> pumvisible() ? neocomplcache#close_popup()."\<Down>" : "\<Down>"
-
-" " Shell like behavior(not recommended).
-" set completeopt+=longest
-" " let g:neocomplcache_enable_auto_select = 1
-" let g:neocomplcache_disable_auto_complete = 1
-" inoremap <expr><TAB>  pumvisible() ? "\<Down>" : "\<C-x>\<C-u>"
-
-" " Define dictionary.
-" " let g:neocomplcache_dictionary_filetype_lists = {
-" "     \ 'default' : '',
-" "     \ 'vimshell' : $HOME.'/.vimshell_hist',
-" "     \ 'scheme' : $HOME.'/.gosh_completions'
-" "         \ }
-" " inoremap <expr><Up> pumvisible() ? neocomplcache#close_popup()."\<Up>" : "\<Up>"
-" " inoremap <expr><Down> pumvisible() ? neocomplcache#close_popup()."\<Down>" : "\<Down>"
-" " Define keyword.
-" if !exists('g:neocomplcache_keyword_patterns')
-"     let g:neocomplcache_keyword_patterns = {}
-" endif
-" let g:neocomplcache_keyword_patterns['default'] = '\h\w*'
-" " Plugin key-mappings.
-" inoremap <expr><C-g>     neocomplcache#undo_completion()
-" inoremap <expr><C-l>     neocomplcache#complete_common_string()
-" " Recommended key-mappings.
-" " <CR>: close popup and save indent.
-
-" " inoremap <expr> <CR>
-"       " \ neocomplcache#close_popup()
-"             " \ . eval(smartinput#sid().'_trigger_or_fallback("\<Enter>", "\<Enter>")')
-" inoremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
-" function! s:my_cr_function()
-" 	" return pumvisible() ? neocomplcache#close_popup() : "\<Plug>(smartinput_CR)"
-"     	return pumvisible() ? neocomplcache#close_popup() :
-"         \ neocomplcache#close_popup()
-"       \ . eval(smartinput#sid().'_trigger_or_fallback("\<Enter>", "\<Enter>")')
-
-" endfunction
-
-" " <TAB>: completion.
-" inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
-" " <C-h>, <BS>: close popup and delete backword char.
-" " inoremap <expr><C-h> neocomplcache#smart_close_popup()."\<C-h>"
-" " http://qiita.com/todashuta@github/items/958ef3b4c32b4f992e0e
-" inoremap <expr> <C-h>
-"       \ neocomplcache#close_popup()
-"       \ . eval(smartinput#sid().'_trigger_or_fallback("\<BS>", "\<C-h>")')
-" inoremap <expr> <BS>
-"       \ neocomplcache#close_popup()
-"       \ . eval(smartinput#sid().'_trigger_or_fallback("\<BS>", "\<BS>")')
-
-" " inoremap <expr><C-y>  neocomplcache#close_popup()
-" " inoremap <expr><C-e>  neocomplcache#cancel_popup()
 
 
 " ctrlp
@@ -719,7 +637,7 @@ let g:vimfiler_as_default_explorer = 1
 " nnoremap <Esc>f :VimFiler<Cr>
 
 " http://hrsh7th.hatenablog.com/entry/20120229/1330525683
-nnoremap <Leader>e :VimFiler -buffer-name=explorer -split -winwidth=45 -toggle -no-quit<Cr>
+nnoremap <Leader>e :VimFiler -buffer-name=explorer -split -winwidth=30 -toggle -no-quit<Cr>
 " nnoremap <Leader>e :VimFilerExplorer -buffer-name=explorer -split -winwidth=45 -toggle -no-quit<Cr>
 autocmd! FileType vimfiler call g:My_vimfiler_settings()
 function! g:My_vimfiler_settings()
@@ -727,7 +645,14 @@ function! g:My_vimfiler_settings()
   nnoremap <buffer>t          :call vimfiler#mappings#do_action('my_tabe')<Cr>
   nnoremap <buffer>s          :call vimfiler#mappings#do_action('my_split')<Cr>
   nnoremap <buffer>v          :call vimfiler#mappings#do_action('my_vsplit')<Cr>
+  nmap     <buffer><expr><Left> vimfiler#smart_cursor_map("\<Plug>(vimfiler_smart_h)", "\<Plug>(vimfiler_smart_h)")
+  nmap     <buffer><expr><Right> vimfiler#smart_cursor_map("\<Plug>(vimfiler_smart_l)", "\<Plug>(vimfiler_smart_l)")
+
+  " nnoremap <buffer><Left> h :call vimfiler#mappings#vimfiler_smart_h
+
 endfunction
+
+" autocmd FileType vimfiler nmap <Left> <buffer> <Plug>(vimfiler_smart_h)
 
 let s:my_action = { 'is_selectable' : 1 }
 function! s:my_action.func(candidates)
@@ -751,8 +676,27 @@ endfunction
 call unite#custom_action('file', 'my_vsplit', s:my_action)
 
 
+" https://github.com/terryma/vim-expand-region
+
 map + <Plug>(expand_region_expand)
 map - <Plug>(expand_region_shrink)
+
+" テキストオブジェクト
+" 値に1が設定されていればマップを展開する
+let g:expand_region_text_objects = {
+\   'i"' : 1,
+\   'a)' : 1,
+\   'a}' : 1,
+\   'ip' : 1,
+\   'it' : 1,
+\   'iw'  :0,
+\   'iW'  :0,
+\   'a]'  :1,
+\   'ib'  :1,
+\   'iB'  :1,
+\   'il'  :1,
+\   'ie'  :1,
+\}
 
 " https://github.com/SirVer/ultisnips
 
@@ -801,11 +745,19 @@ map - <Plug>(expand_region_shrink)
 " Settings for neocomplete.
 " Use neocomplete.
 let g:neocomplete#enable_at_startup = 1
+
+" 自動で補完しない
+let g:neocomplete#disable_auto_complete = 1
+
 " Use smartcase.
 let g:neocomplete#enable_smart_case = 1
 " Set minimum syntax keyword length.
-let g:neocomplete#sources#syntax#min_keyword_length = 3
+let g:neocomplete#sources#syntax#min_keyword_length = 2
 let g:neocomplete#lock_buffer_name_pattern = '\*ku\*'
+
+" 日本語入力中に補完されると日本語が打ち切れない（意味ない？）
+let g:neocomplete#lock_iminsert = 1
+
 
 " Define dictionary.
 let g:neocomplete#sources#dictionary#dictionaries = {
@@ -818,11 +770,18 @@ let g:neocomplete#sources#dictionary#dictionaries = {
 if !exists('g:neocomplete#keyword_patterns')
     let g:neocomplete#keyword_patterns = {}
 endif
+
+"日本語を補完候補として取得しないようにする
 let g:neocomplete#keyword_patterns['default'] = '\h\w*'
+
+let g:neocomplete#cursor_hold_i_time = 1500
+
+
+
 
 " Plugin key-mappings.
 inoremap <expr><C-g>     neocomplete#undo_completion()
-inoremap <expr><C-l>     neocomplete#complete_common_string()
+inoremap <expr><C-Space>     neocomplete#start_manual_complete()
 
 " Recommended key-mappings.
 " <CR>: close popup and save indent.
@@ -832,8 +791,6 @@ function! s:my_cr_function()
   " For no inserting <CR> key.
   return pumvisible() ? neocomplete#close_popup() : "\<CR>"
 endfunction
-" <TAB>: completion.
-inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
 " <C-h>, <BS>: close popup and delete backword char.
 inoremap <expr><C-h> neocomplete#smart_close_popup()."\<C-h>"
 inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
@@ -850,7 +807,7 @@ inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
 " Or set this.
 "let g:neocomplete#enable_cursor_hold_i = 1
 " Or set this.
-let g:neocomplete#enable_insert_char_pre = 1
+" let g:neocomplete#enable_insert_char_pre = 1
 
 " AutoComplPop like behavior.
 "let g:neocomplete#enable_auto_select = 1
@@ -896,7 +853,7 @@ endfunction
 
 " Settings for neosnippet"
 " Plugin key-mappings.
-imap <C-k>     <Plug>(neosnippet_expand_or_jump)
+" imap <C-k>     <Plug>(neosnippet_expand_or_jump)
 smap <C-k>     <Plug>(neosnippet_expand_or_jump)
 xmap <C-k>     <Plug>(neosnippet_expand_target)
 
@@ -921,3 +878,12 @@ let g:neosnippet#snippets_directory='~/.vim/bundle/vim-snippets/snippets'
 let g:user_emmet_leader_key='<c-x>'
 
 noremap <Leader>b :Autoformat<CR><CR>
+
+" https://github.com/jelera/vim-javascript-syntax
+" au FileType javascript call JavaScriptFold()
+
+" http://layzie.hatenablog.com/entry/20130122/1358811539
+" この設定入れるとshiftwidthを1にしてインデントしてくれる
+let g:SimpleJsIndenter_BriefMode = 1
+" この設定入れるとswitchのインデントがいくらかマシに
+let g:SimpleJsIndenter_CaseIndentLevel = -1

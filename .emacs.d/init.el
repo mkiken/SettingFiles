@@ -394,6 +394,15 @@
 (setq next-screen-context-lines 20) ;1画面スクロールしたときに以前の画面を何行分残すかを設定する． 0だとまったく残さない．
 ; (setq scroll-step 1)
 
+(defun my-scroll-down (arg)
+  (interactive "p")
+  (scroll-down-line 15))
+(defun my-scroll-up (arg)
+  (interactive "p")
+  (scroll-up-line 15))
+(global-set-key (kbd "M-v") 'my-scroll-down)
+(global-set-key (kbd "C-v") 'my-scroll-up)
+
 (global-set-key (kbd "C-S-v") 'scroll-up-1)
 (global-set-key (kbd "M-V") 'scroll-down-1)
 (global-set-key (kbd "C-<down>") 'scroll-up-1)
@@ -410,6 +419,9 @@
 (setq org-startup-truncated nil)
 ; font-lock を有効化
 ; (add-hook 'org-mode-hook 'turn-on-font-lock)
+
+
+
 
 ;; avoid "Symbolic link to SVN-controlled source file; follow link? (yes or no)"
 ; http://openlab.dino.co.jp/2008/10/30/212934368.html
