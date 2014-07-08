@@ -138,7 +138,7 @@ alias le='less'
 #cd
 alias cdp='cd ~/Program/ProCon'
 alias cdd='cd ~/Desktop'
-alias cdrepo='cd ${REPO}'
+alias cdr='cd ${REPO}'
 alias cds='cd ${SET}'
 alias cdphp='cd /Library/WebServer/Documents/'
 

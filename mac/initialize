@@ -83,16 +83,8 @@ brew install rlwrap
 
 ln -s /usr/local/Cellar/git/2.0.1/share/git-core/contrib/diff-highlight/diff-highlight  /usr/local/bin
 
-git submodule sync
-# http://rochefort.hatenablog.com/entry/20110410/p1
-git submodule update --init --recursive
-git submodule foreach 'git pull origin master'
-
-
-echo "If you use Vim, please call ':BundleInstall' on Vim."
-echo "If you use Emacs, please eval-buffer 'package-initialize.el' on Emacs."
-
 # touch ~/.gitconfig.local
 cp -i "${Repo}gitfiles/.gitconfig.local_mac" ~/.gitconfig.local
 echo "You can write LOCAL settings for git to '~/.gitconfig.local'."
 
+./update

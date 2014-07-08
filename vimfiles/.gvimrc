@@ -9,8 +9,25 @@
 " colorscheme Tomorrow-Night-Eighties
 " colorscheme solarized
 " colorscheme wombat
-colorscheme hybrid
+" colorscheme hybrid
 " colorscheme iceberg
+" colorscheme github
+" colorscheme grb256
+" colorscheme hybrid-light
+" colorscheme inkpot
+" colorscheme jellybeans
+" colorscheme sexy-railscasts
+" colorscheme solarized
+" colorscheme summerfruits256
+" colorscheme wombat
+" colorscheme BusyBee
+" colorscheme badwolf
+colorscheme codeschool
+" colorscheme lucius
+" colorscheme zenburn
+
+
+
 
 " http://vim.1045645.n5.nabble.com/Random-color-scheme-at-start-td1165585.html
 function! Load_random_colors()

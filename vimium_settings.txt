@@ -1,0 +1,17 @@
+Custom key mappings
+
+map F LinkHints.activateMode
+map f LinkHints.activateModeToOpenInNewTab
+map O Vomnibar.activate
+map o Vomnibar.activateInNewTab
+map q removeTab
+map Q restoreTab
+map B Vomnibar.activateBookmarks
+map b Vomnibar.activateBookmarksInNewTab
+unmap x
+unmap X
+map . nextTab
+map , previousTab
+map r reload
+map ; goForward
+map - goBack

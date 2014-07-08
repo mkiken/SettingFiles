@@ -478,6 +478,7 @@ map T ;T
  " Bundle 'pangloss/vim-javascript'
  Bundle 'kana/vim-textobj-line'
  Bundle 'kana/vim-textobj-entire'
+ Bundle 'kana/vim-textobj-user'
 
 
  " <Space>mに、switch.vimをマッピング
@@ -637,7 +638,10 @@ let g:vimfiler_as_default_explorer = 1
 " nnoremap <Esc>f :VimFiler<Cr>
 
 " http://hrsh7th.hatenablog.com/entry/20120229/1330525683
-nnoremap <Leader>e :VimFiler -buffer-name=explorer -split -winwidth=30 -toggle -no-quit<Cr>
+nnoremap <Leader>e :VimFiler -buffer-name=explorer -split -winwidth=25 -toggle -no-quit<Cr>
+
+
+" let g:netrw_liststyle=0
 " nnoremap <Leader>e :VimFilerExplorer -buffer-name=explorer -split -winwidth=45 -toggle -no-quit<Cr>
 autocmd! FileType vimfiler call g:My_vimfiler_settings()
 function! g:My_vimfiler_settings()
@@ -674,6 +678,9 @@ function! s:my_action.func(candidates)
   exec 'vsplit '. a:candidates[0].action__path
 endfunction
 call unite#custom_action('file', 'my_vsplit', s:my_action)
+
+let g:vimfiler_default_columns = 'type'
+" let g:vimfiler_explorer_columns = 'type'
 
 
 " https://github.com/terryma/vim-expand-region
