@@ -811,11 +811,11 @@
   ; (load "~/.emacs.d/conf/window-system")
   ;; Color Scheme
   (add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
-  ; (load-theme 'my-monokai t)
+  (load-theme 'my-monokai t)
   ;; (load-theme 'monokai t)
   ;; (load-theme 'molokai t)
   ; (load-theme 'monokai-dark-soda t)
-  (load-theme 'zenburn t)
+  ; (load-theme 'zenburn t)
   ;; (load-theme 'solarized-light t)
   ; (load-theme 'solarized-dark t)
   ; (load-theme 'twilight-anti-bright t)
@@ -957,7 +957,7 @@
 (global-set-key "\M-4" 'tabbar-mode)
 ;; http://www.emacswiki.org/emacs/TabBarMode
 ;; *tabbar-display-buffers*以外の*がつくバッファは表示しない
-(setq *tabbar-display-buffers* '("*scratch*" "*Messages*"))
+(setq *tabbar-display-buffers* '("*scratch*" "*Messages*" "*grep*"))
 (setq tabbar-buffer-list-function
       (lambda ()
         (remove-if
@@ -1609,13 +1609,14 @@
 
 ; for rotate text
 ; http://lists.gnu.org/archive/html/gnu-emacs-sources/2009-04/msg00017.html
-(autoload 'rotate-text "rotate-text" nil t)
-(autoload 'rotate-text-backward "rotate-text" nil t)
+(require 'rotate-text)
+; (autoload 'rotate-text "rotate-text" nil t)
+; (autoload 'rotate-text-backward "rotate-text" nil t)
 ; (global-set-key "\C-^" 'rotate-text)
 ; (global-set-key "C-S-^" 'rotate-text-backward)
 (define-key global-map (kbd "C-^") 'rotate-text)
 (define-key global-map (kbd "C-~") 'rotate-text-backward)
-; (add-to-list 'rotate-text-symbols '("and" "or"))
+(add-to-list 'rotate-text-symbols '("before" "after"))
 
 ; http://qiita.com/takc923/items/c3d64b55fc4f3a3b0838
 (require 'undo-tree)

@@ -14,7 +14,7 @@
 	co = checkout
 	br = branch
 	ci = commit
-	st = status -bs
+	s = status -bs
 	ft = fetch
 	ps = push
 	pl = pull
@@ -24,6 +24,7 @@
 	lg = log --stat --pretty=format:'%Cblue%h %Cgreen%ar %Cred%an %Creset%s %Cred%d'
 	gr = log --graph --date-order --pretty=format:'%Cblue%h %Cgreen%ci %Cred%an %Cblue%m %Creset%s %Cred%d'
 	rb = rebase
+	st = stash
 
 	; http://qiita.com/peccul/items/90dd469e2f72babbc106
 	today = log --oneline --since='12 hour ago'
@@ -72,6 +73,9 @@
 
   wdf = diff --word-diff=color
   upsync = "!f_upsync () { git fetch upstream; git rebase upstream/master;};f_upsync"
+
+  vdf= difftool --tool=vimdiff --no-prompt
+	vmodified = difftool --tool=vimdiff --no-prompt --diff-filter=M
 
 [color]
 	ui = auto

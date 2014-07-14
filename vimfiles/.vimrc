@@ -319,6 +319,11 @@ vnoremap gy "+y
 "*p  ペースト
 nnoremap gp "+p
 
+" http://vim.wikia.com/wiki/Format_pasted_text_automatically
+:nnoremap p ]p
+:nnoremap ]p p
+
+
 " http://cohama.hateblo.jp/entry/2013/10/07/020453
 nnoremap <F4> :<C-u>setlocal relativenumber!<CR>
 
@@ -357,7 +362,7 @@ inoremap <C-l> <C-o>zz
 inoremap <C-k> <c-o>D
 " inoremap <C-.> <c-o>dd
 " アンドゥ
-inoremap <C-x>u <C-o>u
+" inoremap <C-x>u <C-o>u
 inoremap <C-u> <C-o>u
 inoremap <C-]> <C-o>u
 inoremap <C-r> <C-o><C-r>
@@ -378,12 +383,12 @@ command! ReloadVimrc  :source ~/.vimrc
 " 検索をバッファローカルに
 " http://d.hatena.ne.jp/tyru/20140129/localize_search_options
 " Localize search options.
-autocmd WinLeave *
-\     let b:vimrc_pattern = @/
-\   | let b:vimrc_hlsearch = &hlsearch
-autocmd WinEnter *
-\     let @/ = get(b:, 'vimrc_pattern', @/)
-\   | let &l:hlsearch = get(b:, 'vimrc_hlsearch', &l:hlsearch)
+" autocmd WinLeave *
+" \     let b:vimrc_pattern = @/
+" \   | let b:vimrc_hlsearch = &hlsearch
+" autocmd WinEnter *
+" \     let @/ = get(b:, 'vimrc_pattern', @/)
+" \   | let &l:hlsearch = get(b:, 'vimrc_hlsearch', &l:hlsearch)
 
 " anzu.vim
 " mapping
@@ -432,6 +437,13 @@ map F ;F
 map T ;T
 " nmap s <Plug>(easymotion-s)
 
+" for grep
+" http://qiita.com/yuku_t/items/0c1aff03949cb1b8fe6b
+autocmd QuickFixCmdPost *grep* cwindow
+set grepprg=grep\ -nH
+
+noremap <Leader>o :Occur<CR>
+
 " for Vundle
 " https://github.com/gmarik/vundle
  filetype off                   " required!
@@ -457,7 +469,7 @@ map T ;T
  Bundle 'Shougo/unite.vim'
  Bundle 'Yggdroot/indentLine'
  " Bundle 'Shougo/vimshell.vim'
- Bundle 'Shougo/vimfiler.vim'
+ " Bundle 'Shougo/vimfiler.vim'
  Bundle 'terryma/vim-expand-region'
  Bundle 'Shougo/neocomplete.vim'
  Bundle 'Shougo/neosnippet'
@@ -472,18 +484,27 @@ map T ;T
  Bundle 'mattn/emmet-vim'
  Bundle 'heavenshell/vim-jsdoc'
  " Bundle 'maksimr/vim-jsbeautify'
- Bundle "Chiel92/vim-autoformat"
+ " Bundle 'einars/js-beautify'
+ " Bundle 'Chiel92/vim-autocsformat'
  Bundle 'tpope/vim-surround'
  Bundle 'jelera/vim-javascript-syntax'
  " Bundle 'pangloss/vim-javascript'
  Bundle 'kana/vim-textobj-line'
  Bundle 'kana/vim-textobj-entire'
  Bundle 'kana/vim-textobj-user'
+ " Bundle 'euoia/vim-jsbeautify-simple'
+ Bundle 'mkiken/vim-jsbeautify-simple'
+ " Bundle 'alpaca-tc/beautify.vim'
+ Bundle 'thinca/vim-qfreplace'
 
 
  " <Space>mに、switch.vimをマッピング
  " nnoremap <Space>m  <Plug>(switch-next)
  nnoremap ^ :Switch<cr>
+ let g:switch_custom_definitions =
+    \ [
+    \   ['before', 'after']
+    \ ]
 
 " for pathogen
 execute pathogen#infect()
@@ -499,6 +520,11 @@ map <Leader>n :NERDTreeToggle<CR>
 "NERDtreeで隠しファイルを表示する
 let NERDTreeShowHidden=1
 
+let NERDTreeMapChangeRoot='<right>'
+let NERDTreeMapUpdir='<left>'
+let NERDTreeMapOpenSplit='s'
+let NERDTreeMapOpenVSplit='v'
+
 if has("autocmd")
 	" http://docs.racket-lang.org/guide/Vim.html
 	autocmd BufNewFile,BufReadPost *.rkt,*.rktl set filetype=scheme
@@ -506,8 +532,8 @@ if has("autocmd")
 	autocmd BufNewFile,BufReadPost *.pegjs,*.language,*.grm  set filetype=pegjs
 endif
 
-call smartinput#map_to_trigger('i', '<Plug>(smartinput_BS)','<BS>','<BS>')
-call smartinput#map_to_trigger('i', '<Plug>(smartinput_C-h)', '<BS>', '<C-h>')
+" call smartinput#map_to_trigger('i', '<Plug>(smartinput_BS)','<BS>','<BS>')
+" call smartinput#map_to_trigger('i', '<Plug>(smartinput_C-h)', '<BS>', '<C-h>')
 call smartinput#map_to_trigger('i', '<Plug>(smartinput_CR)','<Enter>','<Enter>')
 call smartinput#define_rule({
 \   'at': '({\%#})',
@@ -521,11 +547,15 @@ call smartinput#define_rule({
 set runtimepath^=~/.vim/bundle/ctrlp.vim
 let g:ctrlp_map = '<c-p>'
 let g:ctrlp_cmd = 'CtrlP'
-let g:ctrlp_working_path_mode = 'c' " the directory of the current file.
+let g:ctrlp_working_path_mode = 'ra'
 set wildignore+=*/tmp/*,*.so,*.swp,*.zip     " MacOSX/Linux
-set wildignore+=*\\tmp\\*,*.swp,*.zip,*.exe  " Windows
+" set wildignore+=*\\tmp\\*,*.swp,*.zip,*.exe  " Windows
 let g:ctrlp_custom_ignore = '\v[\/]\.(git|hg|svn)$'
-" let g:ctrlp_user_command = 'find %s -type f'        " MacOSX/Linux
+" " let g:ctrlp_user_command = 'find %s -type f'        " MacOSX/Linux
+" let g:ctrlp_use_migemo = 1
+" let g:ctrlp_clear_cache_on_exit = 0   " 終了時キャッシュをクリアしない
+" let g:ctrlp_mruf_max            = 500 " MRUの最大記録数
+let g:ctrlp_open_new_file       = 1   " 新規ファイル作成時にタブで開く
 
 " URLを開けるようにする
 " http://vim-users.jp/2011/08/hack225/
@@ -581,7 +611,7 @@ au FileType unite nnoremap <silent> <buffer> <ESC><ESC> :q<CR>
 au FileType unite inoremap <silent> <buffer> <ESC><ESC> <ESC>:q<CR>
 
 "インサートモードで開始
-let g:unite_enable_start_insert = 1
+" let g:unite_enable_start_insert = 1
 "最近開いたファイル履歴の保存数
 let g:unite_source_file_mru_limit = 50
 "file_mruの表示フォーマットを指定。空にすると表示スピードが高速化される
@@ -613,6 +643,17 @@ function! s:unite_my_settings()"{{{
 	inoremap <silent> <buffer> <expr> <C-b> unite#do_action('bookmark')
 endfunction"}}}
 
+" http://qiita.com/kentaro/items/10b6dd5e3e1104dc6acc
+" nnoremap <silent> <Leader>p  :Unite file_rec:!<CR>
+
+" http://d.hatena.ne.jp/h1mesuke/20110918/p1
+" nnoremap <silent> [unite]p :<C-u>call <SID>unite_project('-start-insert')<CR>
+" function! s:unite_project(...)
+"   let opts = (a:0 ? join(a:000, ' ') : '')
+"   let dir = unite#util#path2project_directory(expand('%'))
+"   execute 'Unite' opts 'file_rec:' . dir
+" endfunction
+
 
 " let g:indent_guides_enable_on_vim_startup = 1
 " let g:indent_guides_auto_colors = 0
@@ -633,30 +674,34 @@ let g:indentLine_char = '¦' "use ¦, ┆ or │
 
 " https://github.com/Shougo/vimfiler.vim
 " vimfiler behaves as default explorer like netrw.
-let g:vimfiler_as_default_explorer = 1
+" let g:vimfiler_as_default_explorer = 1
 " nnoremap <Esc>f :VimFilerExplorer<Cr>
 " nnoremap <Esc>f :VimFiler<Cr>
 
 " http://hrsh7th.hatenablog.com/entry/20120229/1330525683
-nnoremap <Leader>e :VimFiler -buffer-name=explorer -split -winwidth=25 -toggle -no-quit<Cr>
+" nnoremap <Leader>e :VimFiler -buffer-name=explorer -split -winwidth=25 -toggle -no-quit<Cr>
 
 
 " let g:netrw_liststyle=0
 " nnoremap <Leader>e :VimFilerExplorer -buffer-name=explorer -split -winwidth=45 -toggle -no-quit<Cr>
-autocmd! FileType vimfiler call g:My_vimfiler_settings()
-function! g:My_vimfiler_settings()
-  nmap     <buffer><expr><Cr> vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
-  nnoremap <buffer>t          :call vimfiler#mappings#do_action('my_tabe')<Cr>
-  nnoremap <buffer>s          :call vimfiler#mappings#do_action('my_split')<Cr>
-  nnoremap <buffer>v          :call vimfiler#mappings#do_action('my_vsplit')<Cr>
-  nmap     <buffer><expr><Left> vimfiler#smart_cursor_map("\<Plug>(vimfiler_smart_h)", "\<Plug>(vimfiler_smart_h)")
-  nmap     <buffer><expr><Right> vimfiler#smart_cursor_map("\<Plug>(vimfiler_smart_l)", "\<Plug>(vimfiler_smart_l)")
+" autocmd! FileType vimfiler call g:My_vimfiler_settings()
+" function! g:My_vimfiler_settings()
+"   nmap     <buffer><expr><Cr> vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
+"   nnoremap <buffer>t          :call vimfiler#mappings#do_action('my_tabe')<Cr>
+"   nnoremap <buffer>s          :call vimfiler#mappings#do_action('my_split')<Cr>
+"   nnoremap <buffer>v          :call vimfiler#mappings#do_action('my_vsplit')<Cr>
+"   nmap     <buffer><expr><Left> vimfiler#smart_cursor_map("\<Plug>(vimfiler_smart_h)", "\<Plug>(vimfiler_smart_h)")
+"   nmap     <buffer><expr><Right> vimfiler#smart_cursor_map("\<Plug>(vimfiler_smart_l)", "\<Plug>(vimfiler_smart_l)")
 
   " nnoremap <buffer><Left> h :call vimfiler#mappings#vimfiler_smart_h
 
-endfunction
+" endfunction
 
 " autocmd FileType vimfiler nmap <Left> <buffer> <Plug>(vimfiler_smart_h)
+
+" let g:vimfiler_default_columns = 'type'
+" let g:vimfiler_explorer_columns = 'type'
+
 
 let s:my_action = { 'is_selectable' : 1 }
 function! s:my_action.func(candidates)
@@ -679,8 +724,6 @@ function! s:my_action.func(candidates)
 endfunction
 call unite#custom_action('file', 'my_vsplit', s:my_action)
 
-let g:vimfiler_default_columns = 'type'
-" let g:vimfiler_explorer_columns = 'type'
 
 
 " https://github.com/terryma/vim-expand-region
@@ -690,19 +733,23 @@ map - <Plug>(expand_region_shrink)
 
 " テキストオブジェクト
 " 値に1が設定されていればマップを展開する
+
 let g:expand_region_text_objects = {
 \   'i"' : 1,
+\   'a"' : 1,
+\   'i)' : 1,
 \   'a)' : 1,
+\   'i}' : 1,
 \   'a}' : 1,
-\   'ip' : 1,
-\   'it' : 1,
-\   'iw'  :0,
-\   'iW'  :0,
+\   'i]'  :1,
 \   'a]'  :1,
-\   'ib'  :1,
-\   'iB'  :1,
+\   'i''' :1,
+\   'a''' :1,
+\   'ip' : 1,
+\   'is' : 1,
+\   'iw'  :0,
 \   'il'  :1,
-\   'ie'  :1,
+\   'ie'  :1
 \}
 
 " https://github.com/SirVer/ultisnips
@@ -763,7 +810,7 @@ let g:neocomplete#sources#syntax#min_keyword_length = 2
 let g:neocomplete#lock_buffer_name_pattern = '\*ku\*'
 
 " 日本語入力中に補完されると日本語が打ち切れない（意味ない？）
-let g:neocomplete#lock_iminsert = 1
+" let g:neocomplete#lock_iminsert = 1
 
 
 " Define dictionary.
@@ -792,15 +839,15 @@ inoremap <expr><C-Space>     neocomplete#start_manual_complete()
 
 " Recommended key-mappings.
 " <CR>: close popup and save indent.
-inoremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
-function! s:my_cr_function()
+" inoremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
+" function! s:my_cr_function()
   " return neocomplete#close_popup() . "\<CR>"
   " For no inserting <CR> key.
-  return pumvisible() ? neocomplete#close_popup() : "\<CR>"
-endfunction
+  " return pumvisible() ? neocomplete#close_popup() : "\<CR>"
+" endfunction
 " <C-h>, <BS>: close popup and delete backword char.
-inoremap <expr><C-h> neocomplete#smart_close_popup()."\<C-h>"
-inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
+" inoremap <expr><C-h> neocomplete#smart_close_popup()."\<C-h>"
+" inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
 " inoremap <expr><C-y>  neocomplete#close_popup()
 " inoremap <expr><C-e>  neocomplete#cancel_popup()
 " Close popup by <Space>.
@@ -881,10 +928,14 @@ endif
 let g:neosnippet#snippets_directory='~/.vim/bundle/vim-snippets/snippets'
 
 
-" let g:user_emmet_leader_key='<C-Z>'
-let g:user_emmet_leader_key='<c-x>'
+let g:user_emmet_leader_key='<C-Z>'
+" let g:user_emmet_leader_key='<c-x>'
 
-noremap <Leader>b :Autoformat<CR><CR>
+" noremap <Leader>b :Autoformat<CR><CR>
+" nnoremap <leader>b :%!js-beautify -j -q -B -f -<CR>
+autocmd FileType javascript nmap <silent> <buffer> <Leader>b :JsBeautifySimple<cr>
+autocmd FileType javascript vmap <silent> <buffer> <Leader>b :JsBeautifySimple<cr>
+autocmd FileType javascript let b:JsBeautifySimple_config = "~/.jsbeautifyrc"
 
 " https://github.com/jelera/vim-javascript-syntax
 " au FileType javascript call JavaScriptFold()
@@ -894,3 +945,6 @@ noremap <Leader>b :Autoformat<CR><CR>
 let g:SimpleJsIndenter_BriefMode = 1
 " この設定入れるとswitchのインデントがいくらかマシに
 let g:SimpleJsIndenter_CaseIndentLevel = -1
+
+
+nnoremap <Leader>gr :Qfreplace
