@@ -164,6 +164,11 @@ function command_not_found_handler() {
     fi
 }
 
+# http://hagetak.hatenablog.com/entry/2014/07/17/093750
+function mkcd(){
+  mkdir $1 && cd $1
+}
+
 # auto directory pushd that you can get dirs list by cd -[tab]
 setopt auto_cd # ディレクトリ名と一致した場合 cd
 setopt auto_pushd

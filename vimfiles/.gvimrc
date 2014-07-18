@@ -1,7 +1,7 @@
 " Vim Settings for GUI
 
 " カラースキーマを設定
-" colorscheme molokai
+colorscheme molokai
 " colorscheme Tomorrow
 " colorscheme Tomorrow-Night
 " colorscheme Tomorrow-Night-Bright
@@ -22,7 +22,7 @@
 " colorscheme wombat
 " colorscheme BusyBee
 " colorscheme badwolf
-colorscheme codeschool
+" colorscheme codeschool
 " colorscheme lucius
 " colorscheme zenburn
 

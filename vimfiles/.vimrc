@@ -245,10 +245,10 @@ nnoremap G G<End>
 vnoremap G G<End>
 onoremap G G<End>
 
-" ちょっと微妙かもだけど、9で行末に移動
-nnoremap 9 <End>
-vnoremap 9 <End>
-onoremap 9 <End>
+" ちょっと微妙かもだけど、\で行末に移動
+nnoremap \ <End>
+vnoremap \ <End>
+onoremap \ <End>
 
 " ヴィジュアルモードでdeleteで削除
 " MacのdeleteはBackSpaceらしい
