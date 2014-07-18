@@ -545,8 +545,19 @@ function expand-or-complete-prefix-incr
 compdef -d npm
 compdef -d python #-mが重すぎるので無効
 
+
 # http://qiita.com/syui/items/82b080920a4241e96aed
 # http://stackoverflow.com/questions/4221239/zsh-use-completions-for-command-x-when-i-type-command-y
 compdef '_dispatch git git' g
+
+# http://please-sleep.cou929.nu/git-completion-and-prompt.html
+if which brew > /dev/null; then
+    fpath=($(brew --prefix)/share/zsh/site-functions $fpath)
+else
+    fpath=(~/.zsh/completion $fpath)
+fi
+
+# エイリアスも補完
+setopt no_complete_aliases
 
 export PATH=$HOME/.nodebrew/current/bin:$PATH

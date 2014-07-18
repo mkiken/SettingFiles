@@ -35,47 +35,59 @@ alias kr4mbsave='/Applications/KeyRemap4MacBook.app/Contents/Applications/KeyRem
 # http://www.omnioo.com/omnioolab/2012/07/find.php
 alias rrm='noglob _rrm'
 function _rrm(){
-    find . -name "$1"
-    echo "remove all above? [y/N]"
-    read ANSWER
-
-    case $ANSWER in
-        "Y" | "y" | "yes" | "Yes" | "YES" )
-            find . -name "$1" -exec rmtrash {} \;;
-            echo "$1 removed recursively.";;
-        * ) echo "rrm canceled.";;
+  opt=""
+  rmopt=""
+  while getopts "i" flag; do
+    case $flag in
+      \?) arg+=$flag; break;;
+      i) opt+="i";rmopt+="i";;
     esac
-}
+  done
+  shift $(( $OPTIND - 1 ))
 
-alias rrmi='noglob _rrmi'
-function _rrmi(){
-    find . -name "$1"
-    find . -name "$1" -exec rm -i {} \;
-    echo "rrmi $1 executed."
+  find -L . "-${opt}name" "*${@}*"
+  echo "remove all above? [y/N]"
+  read ANSWER
+  case $ANSWER in
+      "Y" | "y" | "yes" | "Yes" | "YES" )
+          find -L . "-${opt}name" "*${@}*" -exec rm "-r${rmopt}" {} \;;
+          echo "$@ removed recursively.";;
+      * ) echo "rrm canceled.";;
+  esac
 }
 
 alias rfind='noglob _rfind'
 # 現在のディレクトリ以下から引数の文字列を含むファイル名を列挙
 function _rfind(){
-    find . -name "*${1}*"
-}
-alias rfindi='noglob _rfindi'
-#case-insensitive version
-function _rfindi(){
-    find . -iname "*${1}*"
+  opt=""
+  while getopts "i" flag; do
+    case $flag in
+      \?) arg+=$flag; break;;
+      i) opt+="i";;
+    esac
+  done
+  shift $(( $OPTIND - 1 ))
+  find -L . "-${opt}name" "*${@}*"
 }
 
 # 現在のディレクトリ以下から引数の文字列を列挙
-
 alias rgrep='noglob _rgrep'
 function _rgrep(){
-    grep -nr "${1}" *
+  opt=""
+  while getopts "Eciwx" flag; do
+    case $flag in
+      \?) arg+=$flag; break;;
+      E) opt+="E";;
+      c) opt+="c";;
+      i) opt+="i";;
+      w) opt+="w";;
+      x) opt+="x";;
+    esac
+  done
+  shift $(( $OPTIND - 1 ))
+  grep "-nr${opt}" "${@}" *
 }
-alias rgrepi='noglob _rgrepi'
-#case-insensitive version
-function _rgrepi(){
-    grep -nri "${1}" *
-}
+
 
 # Haskellのファイルをa.outでコンパイルする
 # その際、オブジェクトファイル(.o)とインターフェースファイル(.hi)を削除
@@ -87,102 +99,8 @@ function ghca(){
                 fname=`echo $1 | sed -e "s/\.[^.]*$//"`
                 rm ${fname}.hi
                 rm ${fname}.o
-# echo "rm ${fname}.hi & ${fname}.o"
                 fi
 }
-
-function mls() {
-  # -h, --helpしたら呼ぶ
-  help() {
-    echo 'rmf help!'
-    echo 'Usage: rmf [option] filename'
-    return
-  }
-  # 引数に対してループを回す
-  for file in $*
-  do
-    # 引数一つ一つについてcase文で条件分岐
-    case $file in
-      # -hか--helpだった時はhelp()を呼んで終わり
-      -h|--help)
-        help
-        return
-        ;;
-      -a)
-        option="-a"
-        ;;
-      -l)
-        option="-l"
-        ;;
-      # ワイルドカード
-      # オプションではない時のメインとなる処理
-      *)
-        echo 'removed:' $file
-        /bin/ls $option $file
-    esac
-    # shiftで配列の先頭を削除出来る
-    # shift
-  done
-  return 1;  # 必要かどうかはわからない
-}
-
-# rmfで削除
-function rmf() {
-  # -h, --helpしたら呼ぶ
-  help() {
-    echo 'rmf help!'
-    echo 'Usage: rmf [option] filename'
-    return
-  }
-  # 引数に対してループを回す
-  for file in $*
-  do
-    # 引数一つ一つについてcase文で条件分岐
-    case $file in
-      # -hか--helpだった時はhelp()を呼んで終わり
-      -h|--help)
-        help
-        return
-        ;;
-      # -rfか-frだった時は$optionに"-rf"を入れておく
-      -rf|-fr)
-        option="-rf"
-        ;;
-      -l)
-        option="-l"
-        ;;
-      -a)
-        option="-a"
-        ;;
-      # ワイルドカード
-      # オプションではない時のメインとなる処理
-      *)
-        ;;
-    esac
-    # shiftで配列の先頭を削除出来る
-    # shift
-  done
-  echo "$option"
-  /bin/ls $option
-  return 0;  # 必要かどうかはわからない
-}
-
-# _rmfcmd() {
-  # # 補完のための便利な関数_arguments
-  # _arguments \
-    # # -h, --helpを入力した時にはファイル一覧の候補を表示しない
-    # # 複数のオプションは{foo,bar}と書く
-    # # '[description]'でオプションの説明
-    # '(- *)'{-h,--help}'[show help]' \
-    # -r'[recursive]' \
-    # -f'[force]' \
-    # -rf'[recursive && force]' \
-    # # ファイル一覧を出す
-    # '*: :_files'
-# }
-
-# # 補完関数_rmfcmdを自作関数rmfにあてる
-# compdef _rmfcmd rmf
 
 # http://tukaikta.blog135.fc2.com/blog-entry-214.html
 alias rm='rmtrash'
@@ -286,11 +204,8 @@ alias ccp='noglob ccp'
 #rlwrap
 alias ocaml='rlwrap ocaml'
 
-
 #display all files,End with true or false
 alias allfile='defaults write com.apple.finder AppleShowAllFiles'
-
-
 
 # util
 alias sz='du -ch -d 1'
