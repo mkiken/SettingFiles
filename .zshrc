@@ -33,76 +33,82 @@ function git_prompt_stash_count {
 # export LC_CTYPE=UTF-8
 # export LANG=UTF-8
 
-function rprompt-git-current-branch {
-  local name st color gitdir action
-  # if [[ "$PWD" =~ '/¥.git(/.*)?$' ]]; then
+# function rprompt-git-current-branch {
+  # local name st color gitdir action
+  # # if [[ "$PWD" =~ '/¥.git(/.*)?$' ]]; then
+    # # return
+  # # fi
+  # name=$(basename "`git symbolic-ref HEAD 2> /dev/null`")
+  # if [[ -z $name ]]; then
     # return
   # fi
-  name=$(basename "`git symbolic-ref HEAD 2> /dev/null`")
-  if [[ -z $name ]]; then
-    return
-  fi
 
-  gitdir=`git rev-parse --git-dir 2> /dev/null`
-  action=`VCS_INFO_git_getaction "$gitdir"` && action="($action)"
+  # gitdir=`git rev-parse --git-dir 2> /dev/null`
+  # action=`VCS_INFO_git_getaction "$gitdir"` && action="($action)"
 
-  st=`git status 2> /dev/null`
-  if [[ -n `echo "$st" | grep "^nothing to"` ]]; then
-    color=%F{green}
-  elif [[ -n `echo "$st" | grep "^nothing added"` ]]; then
-    color=%F{yellow}
-  elif [[ -n `echo "$st" | grep "^# Untracked"` ]]; then
-    color=%B%F{red}
-  else
-     color=%F{red}
-  fi
-  echo "::$color$name`git_prompt_stash_count`$action%f%b"
-}
+  # st=`git status 2> /dev/null`
+  # if [[ -n `echo "$st" | grep "^nothing to"` ]]; then
+    # color=%F{green}
+  # elif [[ -n `echo "$st" | grep "^nothing added"` ]]; then
+    # color=%F{yellow}
+  # elif [[ -n `echo "$st" | grep "^# Untracked"` ]]; then
+    # color=%B%F{red}
+  # else
+     # color=%F{red}
+  # fi
+  # echo "::$color$name`git_prompt_stash_count`$action%f%b"
+# }
 
 # http://smokycat.info/zsh/262
-function prompt-git-current-branch {
-        local name st color
-        name=`git symbolic-ref HEAD 2> /dev/null`
-        if [[ -z $name ]]
-        then
-                return
-        fi
-        name=`basename $name`
+# function prompt-git-current-branch {
+        # local name st color
+        # name=`git symbolic-ref HEAD 2> /dev/null`
+        # if [[ -z $name ]]
+        # then
+                # return
+        # fi
+        # name=`basename $name`
 
-        st=`git status`
-        if [[ -n `echo $st | grep "^nothing to"` ]]
-        then
-                color="green"
-        else
-                color="red"
-        fi
+        # st=`git status`
+        # if [[ -n `echo $st | grep "^nothing to"` ]]
+        # then
+                # color="green"
+        # else
+                # color="red"
+        # fi
 
-        echo "%F{$color}[$name]%f"
-}
+        # echo "%F{$color}[$name]%f"
+# }
 
 # -------------- 使い方 ---------------- #
 # RPROMPT=''
 
+source "${SET}/submodules/zsh-git-prompt/zshrc.sh"
+export __GIT_PROMPT_DIR="${SET}/submodules/zsh-git-prompt"
 
 #from http://news.mynavi.jp/column/zsh/index.html
 case ${UID} in
 	0) #for super user
 		# RPROMPT='(%~)'
 		# PROMPT=$'%B%m%b:%?:%# '
-		RPROMPT='(%F{yellow}%(5~,%-2~/../%2~,%~)%f)`rprompt-git-current-branch`'
+		# RPROMPT='(%F{yellow}%(5~,%-2~/../%2~,%~)%f)`rprompt-git-current-branch`'
+		RPROMPT='[%F{yellow}%(5~,%-2~/../%2~,%~)%f]$(git_super_status)`git_prompt_stash_count`'
 		#PROMPT=$'%m: %n %D{%T} %{%}%#%{%} '
 		PROMPT="%{$fg[green]%} %n: %D{%T} %{%}%#%{%}%{$reset_color%} "
 		;;
 	*)
-        RPROMPT='(%F{cyan}%(5~,%-2~/../%2~,%~)%f)`rprompt-git-current-branch`'
-        # RPROMPT='(%F{cyan}%(5~,%-2~/../%2~,%~)%f)`prompt-git-current-branch`'
+    # RPROMPT='(%F{cyan}%(5~,%-2~/../%2~,%~)%f)`rprompt-git-current-branch`'
+    RPROMPT='[%F{cyan}%(5~,%-2~/../%2~,%~)%f]$(git_super_status)`git_prompt_stash_count`'
+    # RPROMPT='(%F{cyan}%(5~,%-2~/../%2~,%~)%f)`prompt-git-current-branch`'
 		# RPROMPT='(%F{cyan}%(5~,%-2~/../%2~,%~)%f)'
 		#PROMPT=$'%m: %n %D{%T} %{%}%#%{%} '
 		PROMPT="%{$fg[green]%} %n: %D{%T} %{%}%#%{%}%{$reset_color%} "
 esac
-precmd () {
+
+function precmd_prompt () {
 	PROMPT="%{%(?.$fg[green].$fg[red])%}%n[%D{%T}] %{%}%#%{%}%{$reset_color%} "
 }
+precmd_functions=(precmd_prompt)
 
 #SPROMPT="%r is correct? [n,y,a,e]:] "
 #http://0xcc.net/blog/archives/000032.html
@@ -181,7 +187,10 @@ setopt correct
 setopt list_packed
 
 # no remove postfix slash of command line
-setopt noautoremoveslash
+# setopt noautoremoveslash
+# unsetopt autoremoveslash
+unsetopt auto_param_slash      # ディレクトリ名の補完で末尾の / を自動的に付加し、次の補完に備える
+# unsetopt
 
 # no beep sound when complete list displayed
 #
@@ -237,7 +246,7 @@ setopt complete_aliases # aliased ls needs if file/dir completions work
 #from http://qiita.com/items/ed2d36698a5cc314557d
 zstyle ':completion:*:default' menu select=2
 zstyle ':completion:*' verbose yes
-zstyle ':completion:*' completer _expand _complete _match _prefix _approximate _list _history
+# zstyle ':completion:*' completer _expand _complete _match _prefix _approximate _list _history
 zstyle ':completion:*:messages' format '%F{YELLOW}%d'$DEFAULT
 zstyle ':completion:*:warnings' format '%F{RED}No matches for:''%F{YELLOW} %d'$DEFAULT
 zstyle ':completion:*:descriptions' format '%F{YELLOW}completing %B%d%b'$DEFAULT
@@ -271,7 +280,7 @@ export GREP_OPTIONS='--color=always'
 
 # 補完に関するオプション
 # http://voidy21.hatenablog.jp/entry/20090902/1251918174
-setopt auto_param_slash      # ディレクトリ名の補完で末尾の / を自動的に付加し、次の補完に備える
+# setopt auto_param_slash      # ディレクトリ名の補完で末尾の / を自動的に付加し、次の補完に備える
 setopt mark_dirs             # ファイル名の展開でディレクトリにマッチした場合 末尾に / を付加
 setopt list_types            # 補完候補一覧でファイルの種別を識別マーク表示 (訳注:ls -F の記号)
 setopt auto_menu             # 補完キー連打で順に補完候補を自動で補完
@@ -375,7 +384,7 @@ bindkey "[D" emacs-backward-word        #control right
 #bindkey '\C-xI' incremental-complete-word
 
 
-#: << '#_comment_out'
+: << '#_comment_out'
 
 # Incremental completion for zsh
 # by y.fujii <y-fujii at mimosa-pudica.net>, public domain
@@ -540,6 +549,26 @@ function expand-or-complete-prefix-incr
 		zle expand-or-complete-prefix
 	fi
 }
+#_comment_out
+
+#=============================
+# source auto-fu.zsh
+#=============================
+if [ -f "${SET}/submodules/auto-fu.zsh/auto-fu.zsh" ]; then
+# if [ -f ~/.zsh/auto-fu.zsh ]; then
+    source ~/.zsh/auto-fu.zsh
+    function zle-line-init () {
+        auto-fu-init
+    }
+    zle -N zle-line-init
+    # zstyle ':completion:*' completer _oldlist _complete
+    zstyle ':completion:*' completer _oldlist _expand _complete _match _prefix _approximate _list _history
+    zstyle ':auto-fu:highlight' completion/one fg=black
+fi
+# 「-azfu-」を表示させない
+zstyle ':auto-fu:var' postdisplay $''
+
+
 
 # npmの補完は重すぎるので無効
 compdef -d npm
@@ -550,14 +579,28 @@ compdef -d python #-mが重すぎるので無効
 # http://stackoverflow.com/questions/4221239/zsh-use-completions-for-command-x-when-i-type-command-y
 compdef '_dispatch git git' g
 
-# http://please-sleep.cou929.nu/git-completion-and-prompt.html
-if which brew > /dev/null; then
-    fpath=($(brew --prefix)/share/zsh/site-functions $fpath)
-else
-    fpath=(~/.zsh/completion $fpath)
-fi
-
-# エイリアスも補完
+  # エイリアスも補完
 setopt no_complete_aliases
 
-export PATH=$HOME/.nodebrew/current/bin:$PATH
+
+case "${OSTYPE}" in
+  # --------------- Mac(Unix) ---------------
+  darwin*)
+  # http://please-sleep.cou929.nu/git-completion-and-prompt.html
+  if which brew > /dev/null; then
+    fpath=($(brew --prefix)/share/zsh/site-functions $fpath)
+  else
+    fpath=(~/.zsh/completion $fpath)
+  fi
+
+  export PATH=$HOME/.nodebrew/current/bin:$PATH
+
+  # http://d.hatena.ne.jp/sugyan/20130319/1363689394
+  if which brew > /dev/null; then
+    _Z_CMD=j
+    source $(brew --prefix)/etc/profile.d/z.sh
+  fi
+  ;;
+esac
+
+

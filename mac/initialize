@@ -79,7 +79,10 @@ brew install rmtrash
 brew install --cocoa --srgb --japanese emacs -v
 brew install vim --devel --with-lua
 brew install rlwrap
+brew install z
 # brew install ghc
+
+touch ~/.z
 
 ln -s /usr/local/Cellar/git/2.0.1/share/git-core/contrib/diff-highlight/diff-highlight  /usr/local/bin
 

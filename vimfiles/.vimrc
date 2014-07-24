@@ -496,6 +496,7 @@ noremap <Leader>o :Occur<CR>
  Bundle 'mkiken/vim-jsbeautify-simple'
  " Bundle 'alpaca-tc/beautify.vim'
  Bundle 'thinca/vim-qfreplace'
+ Bundle 'Lokaltog/vim-powerline'
 
 
  " <Space>mに、switch.vimをマッピング
@@ -577,6 +578,29 @@ let g:syntastic_mode_map = {
 \}
 
 let g:syntastic_javascript_checkers = ['jshint']
+
+let g:syntastic_loc_list_height=5
+
+" http://stackoverflow.com/questions/17512794/toggle-error-location-panel-in-syntastic
+" function! ToggleErrors()
+"     let old_last_winnr = winnr('$')
+"     lclose
+"     if old_last_winnr == winnr('$')
+"         " Nothing was closed, open syntastic error location panel
+"         Errors
+"     endif
+" endfunction
+
+function! ToggleErrors()
+    if empty(filter(tabpagebuflist(), 'getbufvar(v:val, "&buftype") is# "quickfix"'))
+         " No location/quickfix list shown, open syntastic error location panel
+         Errors
+    else
+        lclose
+    endif
+endfunction
+
+nnoremap <silent> <Leader>e :<C-u>call ToggleErrors()<CR>
 
 " http://mba-hack.blogspot.jp/2013/03/unitevim.html
 "" unite.vim {{{
@@ -948,3 +972,6 @@ let g:SimpleJsIndenter_CaseIndentLevel = -1
 
 
 nnoremap <Leader>gr :Qfreplace
+
+let g:jsdoc_default_mapping = 0
+nnoremap <silent> <Leader>d :JsDoc<CR>

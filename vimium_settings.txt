@@ -1,7 +1,7 @@
 Custom key mappings
 
 map F LinkHints.activateMode
-map f LinkHints.activateModeToOpenInNewTab
+map f LinkHints.activateModeToOpenInNewForegroundTab
 map O Vomnibar.activate
 map o Vomnibar.activateInNewTab
 map q removeTab

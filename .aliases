@@ -31,77 +31,6 @@ alias at='atom'
 
 alias kr4mbsave='/Applications/KeyRemap4MacBook.app/Contents/Applications/KeyRemap4MacBook_cli.app/Contents/MacOS/KeyRemap4MacBook_cli export > ${SET}mac/kr4mb-import.sh'
 
-# 現在のディレクトリ以下の当てはまるファイルを全て削除する
-# http://www.omnioo.com/omnioolab/2012/07/find.php
-alias rrm='noglob _rrm'
-function _rrm(){
-  opt=""
-  rmopt=""
-  while getopts "i" flag; do
-    case $flag in
-      \?) arg+=$flag; break;;
-      i) opt+="i";rmopt+="i";;
-    esac
-  done
-  shift $(( $OPTIND - 1 ))
-
-  find -L . "-${opt}name" "*${@}*"
-  echo "remove all above? [y/N]"
-  read ANSWER
-  case $ANSWER in
-      "Y" | "y" | "yes" | "Yes" | "YES" )
-          find -L . "-${opt}name" "*${@}*" -exec rm "-r${rmopt}" {} \;;
-          echo "$@ removed recursively.";;
-      * ) echo "rrm canceled.";;
-  esac
-}
-
-alias rfind='noglob _rfind'
-# 現在のディレクトリ以下から引数の文字列を含むファイル名を列挙
-function _rfind(){
-  opt=""
-  while getopts "i" flag; do
-    case $flag in
-      \?) arg+=$flag; break;;
-      i) opt+="i";;
-    esac
-  done
-  shift $(( $OPTIND - 1 ))
-  find -L . "-${opt}name" "*${@}*"
-}
-
-# 現在のディレクトリ以下から引数の文字列を列挙
-alias rgrep='noglob _rgrep'
-function _rgrep(){
-  opt=""
-  while getopts "Eciwx" flag; do
-    case $flag in
-      \?) arg+=$flag; break;;
-      E) opt+="E";;
-      c) opt+="c";;
-      i) opt+="i";;
-      w) opt+="w";;
-      x) opt+="x";;
-    esac
-  done
-  shift $(( $OPTIND - 1 ))
-  grep "-nr${opt}" "${@}" *
-}
-
-
-# Haskellのファイルをa.outでコンパイルする
-# その際、オブジェクトファイル(.o)とインターフェースファイル(.hi)を削除
-function ghca(){
-    ghc $1 -o a.out
-        ret=$?
-        if test ${ret} -eq 0
-            then
-                fname=`echo $1 | sed -e "s/\.[^.]*$//"`
-                rm ${fname}.hi
-                rm ${fname}.o
-                fi
-}
-
 # http://tukaikta.blog135.fc2.com/blog-entry-214.html
 alias rm='rmtrash'
 
@@ -210,4 +139,75 @@ alias allfile='defaults write com.apple.finder AppleShowAllFiles'
 # util
 alias sz='du -ch -d 1'
 
+
+# 現在のディレクトリ以下の当てはまるファイルを全て削除する
+# http://www.omnioo.com/omnioolab/2012/07/find.php
+alias rrm='noglob _rrm'
+function _rrm(){
+  opt=""
+  rmopt=""
+  while getopts "i" flag; do
+    case $flag in
+      \?) arg+=$flag; break;;
+      i) opt+="i";rmopt+="i";;
+    esac
+  done
+  shift $(( $OPTIND - 1 ))
+
+  find -L . "-${opt}name" "*${@}*"
+  echo "remove all above? [y/N]"
+  read ANSWER
+  case $ANSWER in
+      "Y" | "y" | "yes" | "Yes" | "YES" )
+          find -L . "-${opt}name" "*${@}*" -exec rm "-r${rmopt}" {} \;;
+          echo "$@ removed recursively.";;
+      * ) echo "rrm canceled.";;
+  esac
+}
+
+alias rfind='noglob _rfind'
+# 現在のディレクトリ以下から引数の文字列を含むファイル名を列挙
+function _rfind(){
+  opt=""
+  while getopts "i" flag; do
+    case $flag in
+      \?) arg+=$flag; break;;
+      i) opt+="i";;
+    esac
+  done
+  shift $(( $OPTIND - 1 ))
+  find -L . "-${opt}name" "*${@}*"
+}
+
+# 現在のディレクトリ以下から引数の文字列を列挙
+alias rgrep='noglob _rgrep'
+function _rgrep(){
+  opt=""
+  while getopts "Eciwx" flag; do
+    case $flag in
+      \?) arg+=$flag; break;;
+      E) opt+="E";;
+      c) opt+="c";;
+      i) opt+="i";;
+      w) opt+="w";;
+      x) opt+="x";;
+    esac
+  done
+  shift $(( $OPTIND - 1 ))
+  grep "-nr${opt}" "${@}" *
+}
+
+
+# Haskellのファイルをa.outでコンパイルする
+# その際、オブジェクトファイル(.o)とインターフェースファイル(.hi)を削除
+function ghca(){
+    ghc $1 -o a.out
+        ret=$?
+        if test ${ret} -eq 0
+            then
+                fname=`echo $1 | sed -e "s/\.[^.]*$//"`
+                rm ${fname}.hi
+                rm ${fname}.o
+                fi
+}
 
