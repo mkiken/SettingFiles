@@ -54,7 +54,7 @@ function git_prompt_stash_count {
   # elif [[ -n `echo "$st" | grep "^# Untracked"` ]]; then
     # color=%B%F{red}
   # else
-     # color=%F{red}
+    # color=%F{red}
   # fi
   # echo "::$color$name`git_prompt_stash_count`$action%f%b"
 # }
@@ -83,8 +83,8 @@ function git_prompt_stash_count {
 # -------------- 使い方 ---------------- #
 # RPROMPT=''
 
-source "${SET}/submodules/zsh-git-prompt/zshrc.sh"
-export __GIT_PROMPT_DIR="${SET}/submodules/zsh-git-prompt"
+source "${SET}submodules/zsh-git-prompt/zshrc.sh"
+export __GIT_PROMPT_DIR="${SET}submodules/zsh-git-prompt"
 
 #from http://news.mynavi.jp/column/zsh/index.html
 case ${UID} in
@@ -554,9 +554,9 @@ function expand-or-complete-prefix-incr
 #=============================
 # source auto-fu.zsh
 #=============================
-if [ -f "${SET}/submodules/auto-fu.zsh/auto-fu.zsh" ]; then
+if [ -f "${SET}submodules/auto-fu.zsh/auto-fu.zsh" ]; then
 # if [ -f ~/.zsh/auto-fu.zsh ]; then
-    source ~/.zsh/auto-fu.zsh
+    source "${SET}submodules/auto-fu.zsh/auto-fu.zsh"
     function zle-line-init () {
         auto-fu-init
     }
@@ -580,7 +580,22 @@ compdef -d python #-mが重すぎるので無効
 compdef '_dispatch git git' g
 
   # エイリアスも補完
-setopt no_complete_aliases
+  setopt no_complete_aliases
+
+  # function powerline_precmd() {
+  # export PS1="$(${REP}powerline-shell/powerline-shell.py $? --shell zsh 2> /dev/null)"
+# }
+
+# function install_powerline_precmd() {
+# for s in "${precmd_functions[@]}"; do
+  # if [ "$s" = "powerline_precmd" ]; then
+    # return
+  # fi
+# done
+# precmd_functions+=(powerline_precmd)
+  # }
+
+  # install_powerline_precmd
 
 
 case "${OSTYPE}" in
