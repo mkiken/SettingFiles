@@ -95,6 +95,7 @@ alias zshenv='vi ~/.zshenv'
 alias jshintrc='vi ~/.jshintrc'
 alias jsbeautifyrc='vi ~/.jsbeautifyrc'
 alias editorconfig='vi ~/.editorconfig'
+alias tmuxconf='vi ~/.tmux.conf'
 
 #shortc cut for git
 alias g='noglob git'
@@ -123,6 +124,10 @@ alias gvdf='git vdf'
 alias gvmd='git vmodified'
 alias gco='git co'
 alias gst='git st'
+alias glst='gl --stat'
+alias glp='gl -p'
+alias gcl='git clean'
+alias gmg='git merge'
 
 #shortcut for Application
 alias e='./a.out'
@@ -138,6 +143,8 @@ alias allfile='defaults write com.apple.finder AppleShowAllFiles'
 
 # util
 alias sz='du -ch -d 1'
+
+alias t='tmux'
 
 
 # 現在のディレクトリ以下の当てはまるファイルを全て削除する

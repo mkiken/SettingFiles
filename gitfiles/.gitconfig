@@ -80,7 +80,7 @@
 [color]
 	ui = auto
 [core]
-	excludesfile = ~/.gitignore
+	excludesfile = /Users/a13596/.gitignore
 	autocrlf = input # CRLFを自動変換
 	; editor = emacs
 	editor = vim -c \"set fenc=utf-8\"
@@ -94,3 +94,9 @@
 ; http://d.hatena.ne.jp/z3100/20120505/1336203155
 [include]
 	path = .gitconfig.local
+[difftool "sourcetree"]
+	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
+	path = 
+[mergetool "sourcetree"]
+	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+	trustExitCode = true

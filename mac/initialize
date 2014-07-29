@@ -56,6 +56,9 @@ ln -si "${Repo}.atom/init.coffee" ~/.atom/init.coffee
 echo "ln -si ${Repo}.atom/styles.less"
 ln -si "${Repo}.atom/styles.less" ~/.atom/styles.less
 
+echo "ln -si ${Repo}.tmux.conf"
+ln -si "${Repo}.tmux.conf" ~/.tmux.conf
+
 echo 'symbolic links created.'
 
 
@@ -80,6 +83,7 @@ brew install --cocoa --srgb --japanese emacs -v
 brew install vim --devel --with-lua
 brew install rlwrap
 brew install z
+brew install tmux
 # brew install ghc
 
 touch ~/.z

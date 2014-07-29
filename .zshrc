@@ -3,7 +3,7 @@ source ~/.aliases
 
 
 # パスの設定
-PATH=/usr/local/bin:$PATH
+path=(/usr/local/bin(N-/) $path)
 
 autoload -U colors
 colors
@@ -14,6 +14,24 @@ typeset -U path
 # emacsのthemeが読み込める
 # http://www.emacswiki.org/emacs/ColorThemeQuestions
 export TERM=xterm-256color
+
+
+
+case "${OSTYPE}" in
+  # --------------- Mac(Unix) ---------------
+  darwin*)
+  # http://please-sleep.cou929.nu/git-completion-and-prompt.html
+  if which brew > /dev/null; then
+    fpath=($(brew --prefix)/share/zsh/site-functions(N-/) $fpath)
+    # http://d.hatena.ne.jp/sugyan/20130319/1363689394
+    _Z_CMD=j
+    source $(brew --prefix)/etc/profile.d/z.sh
+  else
+    fpath=(~/.zsh/completion(N-/) $fpath)
+  fi
+  path=($HOME/.nodebrew/current/bin(N-/) $path)
+
+esac
 
 # http://qiita.com/Cside_/items/13f85c11d3d0aa35d7ef
 setopt prompt_subst
@@ -26,6 +44,7 @@ function git_prompt_stash_count {
     echo "($COUNT)"
   fi
 }
+
 
 # export LC_CTYPE=ja_JP.UTF-8
 # export LANG=ja_JP.UTF-8
@@ -85,6 +104,8 @@ function git_prompt_stash_count {
 
 source "${SET}submodules/zsh-git-prompt/zshrc.sh"
 export __GIT_PROMPT_DIR="${SET}submodules/zsh-git-prompt"
+# キャッシュすると初回表示してくれない。でもしないと重い
+export ZSH_THEME_GIT_PROMPT_NOCACHE=1
 
 #from http://news.mynavi.jp/column/zsh/index.html
 case ${UID} in
@@ -94,7 +115,7 @@ case ${UID} in
 		# RPROMPT='(%F{yellow}%(5~,%-2~/../%2~,%~)%f)`rprompt-git-current-branch`'
 		RPROMPT='[%F{yellow}%(5~,%-2~/../%2~,%~)%f]$(git_super_status)`git_prompt_stash_count`'
 		#PROMPT=$'%m: %n %D{%T} %{%}%#%{%} '
-		PROMPT="%{$fg[green]%} %n: %D{%T} %{%}%#%{%}%{$reset_color%} "
+		# PROMPT="%{$fg[green]%} %n: %D{%T} %{%}%#%{%}%{$reset_color%} "
 		;;
 	*)
     # RPROMPT='(%F{cyan}%(5~,%-2~/../%2~,%~)%f)`rprompt-git-current-branch`'
@@ -102,11 +123,11 @@ case ${UID} in
     # RPROMPT='(%F{cyan}%(5~,%-2~/../%2~,%~)%f)`prompt-git-current-branch`'
 		# RPROMPT='(%F{cyan}%(5~,%-2~/../%2~,%~)%f)'
 		#PROMPT=$'%m: %n %D{%T} %{%}%#%{%} '
-		PROMPT="%{$fg[green]%} %n: %D{%T} %{%}%#%{%}%{$reset_color%} "
+		# PROMPT="%{$fg[green]%} %n: %D{%T} %{%}%#%{%}%{$reset_color%} "
 esac
 
 function precmd_prompt () {
-	PROMPT="%{%(?.$fg[green].$fg[red])%}%n[%D{%T}] %{%}%#%{%}%{$reset_color%} "
+	PROMPT="%K{black}%{%(?.$fg[green].$fg[red])%}%n[%D{%T}] %{%}%#%{%}%{$reset_color%}%k "
 }
 precmd_functions=(precmd_prompt)
 
@@ -187,33 +208,16 @@ setopt correct
 setopt list_packed
 
 # no remove postfix slash of command line
-# setopt noautoremoveslash
-# unsetopt autoremoveslash
 unsetopt auto_param_slash      # ディレクトリ名の補完で末尾の / を自動的に付加し、次の補完に備える
-# unsetopt
 
 # no beep sound when complete list displayed
-#
 setopt nolistbeep
-
-# # stop the beep
-# #
-# set bell-style none
-
-# # never beep when complete
-# #
-# set matchbeep=never
-
-# # stop the beep
-# #
-# set nobeep
 
 # ビープ音を鳴らさないようにする
 setopt NO_beep
 
 ## Keybind configuration
-# emacs like keybind (e.x. Ctrl-a goes to head of a line and Ctrl-e goes
-#   to end of it)
+# emacs like keybind (e.x. Ctrl-a goes to head of a line and Ctrl-e goes to end of it)
 bindkey -e
 
 # historical backward/forward search with linehead string binded to ^P/^N
@@ -378,179 +382,6 @@ bindkey "^[r" redo
 bindkey "[C" emacs-forward-word   #control left
 bindkey "[D" emacs-backward-word        #control right
 
-#incremental-complete
-#autoload incremental-complete-word
-#zle -N incremental-complete-word
-#bindkey '\C-xI' incremental-complete-word
-
-
-: << '#_comment_out'
-
-# Incremental completion for zsh
-# by y.fujii <y-fujii at mimosa-pudica.net>, public domain
-
-#autoload -U compinit
-zle -N self-insert self-insert-incr
-zle -N vi-cmd-mode-incr
-zle -N vi-backward-delete-char-incr
-zle -N backward-delete-char-incr
-zle -N expand-or-complete-prefix-incr
-#compinit
-
-bindkey -M viins '^[' vi-cmd-mode-incr
-bindkey -M viins '^h' vi-backward-delete-char-incr
-bindkey -M viins '^?' vi-backward-delete-char-incr
-bindkey -M viins '^i' expand-or-complete-prefix-incr
-bindkey -M emacs '^h' backward-delete-char-incr
-bindkey -M emacs '^?' backward-delete-char-incr
-bindkey -M emacs '^i' expand-or-complete-prefix-incr
-
-setopt automenu
-
-now_predict=0
-glob_context=0
-
-function limit-completion
-{
-    # echo "limit-completetion"
-	if ((compstate[nmatches] <= 1)); then
-		zle -M ""
-	elif ((compstate[list_lines] > 6)); then
-		compstate[list]=""
-		zle -M "$compstate[nmatches] matches($compstate[list_lines] lines). expand?"
-		# zle -M "$compstate[nmatches]"
-	fi
-}
-
-function correct-prediction
-{
-    # echo "correct-prediction"
-	if ((now_predict == 1)); then
-		if [[ "$BUFFER" != "$buffer_prd" ]] || ((CURSOR != cursor_org)); then
-			now_predict=0
-		fi
-	fi
-}
-
-function remove-prediction
-{
-    # echo "remove-prediction"
-	if ((now_predict == 1)); then
-		BUFFER="$buffer_org"
-		now_predict=0
-	fi
-}
-
-function show-prediction
-{
-    # echo "show-prediction"
-	# assert(now_predict == 0)
-	# *, ^のときは補完ではなく，list-expandしてほしい
-	if
-		((PENDING == 0)) &&
-		((CURSOR > 1)) &&
-		[[ "$PREBUFFER" == "" ]] &&
-		(
-		[[ "$BUFFER[CURSOR]" == "*" ]] ||
-			[[ "$BUFFER[CURSOR]" == "^" ]]
-		)
-	then
-		glob_context=1
-		zle list-expand
-	elif
-		((PENDING == 0)) &&
-		((CURSOR > 1)) &&
-		[[ "$PREBUFFER" == "" ]] &&
-		[[ "$BUFFER[CURSOR]" != " " ]]
-	then
-    # echo "show-prediction3"
-		cursor_org="$CURSOR"
-		buffer_org="$BUFFER"
-		comppostfuncs=(limit-completion)
-		if ((glob_context == 0))
-		then
-			zle complete-word
-		else
-			# glob文脈だったらcomplete-wordでなく，list-expandを呼ぶ
-			zle list-expand
-		fi
-		# zle complete-word
-    # echo "show-prediction2"
-		cursor_prd="$CURSOR"
-		buffer_prd="$BUFFER"
-		if [[ "$buffer_org[1,cursor_org]" == "$buffer_prd[1,cursor_org]" ]]; then
-    # echo "show-prediction4"
-			CURSOR="$cursor_org"
-			if [[ "$buffer_org" != "$buffer_prd" ]] || ((cursor_org != cursor_prd)); then
-				now_predict=1
-			fi
-		else
-    # echo "show-prediction5"
-            BUFFER="$buffer_org"
-            # BUFFER="$buffer_prd"
-            CURSOR="$cursor_org"
-		fi
-		echo -n "\e[32m"
-	else
-		glob_context=0
-		zle -M ""
-	fi
-}
-
-function preexec
-{
-	echo -n "\e[39m"
-}
-
-function vi-cmd-mode-incr
-{
-	correct-prediction
-	remove-prediction
-	zle vi-cmd-mode
-}
-
-function self-insert-incr
-{
-	correct-prediction
-	remove-prediction
-	if zle .self-insert; then
-		show-prediction
-	fi
-}
-
-function vi-backward-delete-char-incr
-{
-	correct-prediction
-	remove-prediction
-	if zle vi-backward-delete-char; then
-		show-prediction
-	fi
-}
-
-function backward-delete-char-incr
-{
-	correct-prediction
-	remove-prediction
-	if zle backward-delete-char; then
-		show-prediction
-	fi
-}
-
-function expand-or-complete-prefix-incr
-{
-	correct-prediction
-	if ((now_predict == 1)); then
-		CURSOR="$cursor_prd"
-		now_predict=0
-		comppostfuncs=(limit-completion)
-		zle list-choices
-	else
-		remove-prediction
-		zle expand-or-complete-prefix
-	fi
-}
-#_comment_out
-
 #=============================
 # source auto-fu.zsh
 #=============================
@@ -579,8 +410,8 @@ compdef -d python #-mが重すぎるので無効
 # http://stackoverflow.com/questions/4221239/zsh-use-completions-for-command-x-when-i-type-command-y
 compdef '_dispatch git git' g
 
-  # エイリアスも補完
-  setopt no_complete_aliases
+# エイリアスも補完
+setopt no_complete_aliases
 
   # function powerline_precmd() {
   # export PS1="$(${REP}powerline-shell/powerline-shell.py $? --shell zsh 2> /dev/null)"
@@ -598,24 +429,16 @@ compdef '_dispatch git git' g
   # install_powerline_precmd
 
 
-case "${OSTYPE}" in
-  # --------------- Mac(Unix) ---------------
-  darwin*)
-  # http://please-sleep.cou929.nu/git-completion-and-prompt.html
-  if which brew > /dev/null; then
-    fpath=($(brew --prefix)/share/zsh/site-functions $fpath)
-  else
-    fpath=(~/.zsh/completion $fpath)
-  fi
-
-  export PATH=$HOME/.nodebrew/current/bin:$PATH
-
-  # http://d.hatena.ne.jp/sugyan/20130319/1363689394
-  if which brew > /dev/null; then
-    _Z_CMD=j
-    source $(brew --prefix)/etc/profile.d/z.sh
-  fi
-  ;;
-esac
-
-
+# http://kaworu.jpn.org/kaworu/2012-05-02-1.php
+export MANPAGER='less -R'
+man() {
+	env \
+		LESS_TERMCAP_mb=$(printf "\e[1;31m") \
+		LESS_TERMCAP_md=$(printf "\e[1;31m") \
+		LESS_TERMCAP_me=$(printf "\e[0m") \
+		LESS_TERMCAP_se=$(printf "\e[0m") \
+		LESS_TERMCAP_so=$(printf "\e[1;44;33m") \
+		LESS_TERMCAP_ue=$(printf "\e[0m") \
+		LESS_TERMCAP_us=$(printf "\e[1;32m") \
+		man "$@"
+}
