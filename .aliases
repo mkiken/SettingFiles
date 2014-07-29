@@ -144,8 +144,10 @@ alias allfile='defaults write com.apple.finder AppleShowAllFiles'
 # util
 alias sz='du -ch -d 1'
 
+# tmux
 alias t='tmux'
-
+alias tks='t kill-server'
+alias tss='t start-server'
 
 # 現在のディレクトリ以下の当てはまるファイルを全て削除する
 # http://www.omnioo.com/omnioolab/2012/07/find.php

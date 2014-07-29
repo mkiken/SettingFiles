@@ -5,3 +5,4 @@ auto-save-list
 vimfiles/.vim/bundle/
 .emacs.d/elpa
 .emacs.d/server
+texput.log
