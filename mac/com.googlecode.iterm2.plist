@@ -9393,21 +9393,42 @@
 	<key>MaxVertically</key>
 	<false/>
 	<key>NSNavLastRootDirectory</key>
-	<string>~/Desktop/repository/iTerm2-Color-Schemes/schemes</string>
+	<string>~/Desktop/repository/SettingFiles</string>
 	<key>NSQuotedKeystrokeBinding</key>
 	<string></string>
 	<key>NSRepeatCountBinding</key>
 	<string></string>
 	<key>NSScrollAnimationEnabled</key>
 	<false/>
+	<key>NSTableView Columns KeyBingingTable</key>
+	<array>
+		<data>
+		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
+		hAErATCG
+		</data>
+		<string>198</string>
+		<data>
+		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
+		hAErATGG
+		</data>
+		<string>302</string>
+	</array>
+	<key>NSTableView Hidden Columns KeyBingingTable</key>
+	<array/>
+	<key>NSTableView Sort Ordering KeyBingingTable</key>
+	<array/>
 	<key>NSWindow Frame Preferences</key>
-	<string>76 263 924 485 0 0 1280 778 </string>
+	<string>204 261 924 485 0 0 1280 778 </string>
+	<key>NSWindow Frame SUStatusFrame</key>
+	<string>1504 633 384 129 1280 -280 1920 1058 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>383 86 625 692 0 0 1280 778 </string>
+	<string>49 66 610 706 0 0 1280 778 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
-	<string>79 64 625 714 0 0 1280 778 </string>
+	<string>1395 15 610 748 1280 -280 1920 1058 </string>
 	<key>NSWindow Frame iTerm Window 2</key>
-	<string>173 64 625 714 0 0 1280 778 </string>
+	<string>1869 -9 610 748 1280 -280 1920 1058 </string>
+	<key>NSWindow Frame iTerm Window 3</key>
+	<string>1879 -4 610 748 1280 -280 1920 1058 </string>
 	<key>NeverWarnAboutShortLivedSessions_6DE05245-ABC6-4133-86ED-9837935D9C3A</key>
 	<true/>
 	<key>New Bookmarks</key>
@@ -9585,7 +9606,7 @@
 			<key>Blink Allowed</key>
 			<false/>
 			<key>Blinking Cursor</key>
-			<false/>
+			<true/>
 			<key>Blur</key>
 			<false/>
 			<key>Blur Radius</key>
@@ -9626,7 +9647,7 @@
 				<real>0.16078431904315948</real>
 			</dict>
 			<key>Cursor Type</key>
-			<integer>1</integer>
+			<integer>0</integer>
 			<key>Custom Command</key>
 			<string>No</string>
 			<key>Custom Directory</key>
@@ -10941,7 +10962,7 @@
 		</dict>
 	</dict>
 	<key>PrefsCustomFolder</key>
-	<string>~/Desktop/repository/SettingFiles/mac/</string>
+	<string>/Users/a13596/Desktop/repository/SettingFiles/mac</string>
 	<key>PromptOnClose</key>
 	<true/>
 	<key>PromptOnQuit</key>
@@ -10959,7 +10980,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2014-07-29T15:34:46Z</date>
+	<date>2014-07-31T02:05:07Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Show Toolbelt</key>

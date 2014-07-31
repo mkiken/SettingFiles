@@ -95,7 +95,7 @@ alias zshenv='vi ~/.zshenv'
 alias jshintrc='vi ~/.jshintrc'
 alias jsbeautifyrc='vi ~/.jsbeautifyrc'
 alias editorconfig='vi ~/.editorconfig'
-alias tmuxconf='vi ~/.tmux.conf'
+alias tmuxconf='em ~/.tmux.conf'
 
 #shortc cut for git
 alias g='noglob git'
@@ -128,6 +128,7 @@ alias glst='gl --stat'
 alias glp='gl -p'
 alias gcl='git clean'
 alias gmg='git merge'
+alias gcob='gco -b'
 
 #shortcut for Application
 alias e='./a.out'
