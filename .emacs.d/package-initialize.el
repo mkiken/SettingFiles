@@ -41,7 +41,7 @@
   smooth-scroll
   tabbar
   flycheck
-  flycheck-pos-tip
+  ;; flycheck-pos-tip
   flymake-cursor
   yasnippet
   web-mode
@@ -49,6 +49,7 @@
   emmet-mode
   web-beautify
   js-doc
+  php-mode
     ))
 
 ;; my/favorite-packagesからインストールしていないパッケージをインストール

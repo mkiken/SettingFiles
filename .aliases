@@ -129,15 +129,22 @@ alias glp='gl -p'
 alias gcl='git clean'
 alias gmg='git merge'
 alias gcob='gco -b'
+alias gba='gb -a'
+alias gstd='gst drop'
 
 #shortcut for Application
 alias e='./a.out'
-alias cot='open -a CotEditor'
-alias aq='aquamacs'
+# alias cot='open -a CotEditor'
+# alias aq='aquamacs'
 alias ccp='noglob ccp'
 
+alias zmv='noglob zmv -W'
+alias zcp='zmv -C'
+
+alias vd='vimdiff'
+
 #rlwrap
-alias ocaml='rlwrap ocaml'
+# alias ocaml='rlwrap ocaml'
 
 #display all files,End with true or false
 alias allfile='defaults write com.apple.finder AppleShowAllFiles'
@@ -146,9 +153,9 @@ alias allfile='defaults write com.apple.finder AppleShowAllFiles'
 alias sz='du -ch -d 1'
 
 # tmux
-alias t='tmux'
-alias tks='t kill-server'
-alias tss='t start-server'
+# alias t='tmux'
+# alias tks='t kill-server'
+# alias tss='t start-server'
 
 # 現在のディレクトリ以下の当てはまるファイルを全て削除する
 # http://www.omnioo.com/omnioolab/2012/07/find.php

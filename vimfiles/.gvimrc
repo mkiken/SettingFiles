@@ -102,8 +102,8 @@ if OSTYPE == "Darwin\n"
 	"augroup hack234
 	"  autocmd!
 	if has('mac')
-		autocmd FocusGained * set transparency=2
-		autocmd FocusLost * set transparency=5
+		autocmd FocusGained * set transparency=5
+		autocmd FocusLost * set transparency=10
 		" set lines=50 columns=150
 	endif
 	"augroup END

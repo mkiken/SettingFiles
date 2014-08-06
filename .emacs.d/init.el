@@ -739,7 +739,7 @@
 	  (append (list
                 ;        '(width . 130)
                 ;        '(height . 35)
-		        '(alpha . (98 95)) ;; 透明度。(アクティブ時, 非アクティブ時)
+		        '(alpha . (95 90)) ;; 透明度。(アクティブ時, 非アクティブ時)
 				)
 			  initial-frame-alist))
 (setq default-frame-alist initial-frame-alist)
@@ -811,13 +811,13 @@
   ; (load "~/.emacs.d/conf/window-system")
   ;; Color Scheme
   (add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
-  (load-theme 'my-monokai t)
+  ; (load-theme 'my-monokai t)
   ;; (load-theme 'monokai t)
   ;; (load-theme 'molokai t)
   ; (load-theme 'monokai-dark-soda t)
   ; (load-theme 'zenburn t)
   ;; (load-theme 'solarized-light t)
-  ; (load-theme 'solarized-dark t)
+	(load-theme 'solarized-dark t)
   ; (load-theme 'twilight-anti-bright t)
   ; (load-theme 'tomorrow-night-paradise t)
   ; (load-theme 'tomorrow-night-blue t)
@@ -1153,8 +1153,8 @@
   ;; auto-fill-mode を有効にする
   ; (auto-fill-mode t)
   ;; タブ長の設定
-  (make-variable-buffer-local 'tab-width)
-  (setq tab-width 2)
+  ; (make-variable-buffer-local 'tab-width)
+  ; (setq tab-width 2)
   ;; タブの代わりにスペースを使う
   ; (setq indent-tabs-mode nil)
   ;; 自動改行(auto-newline)を有効にする
@@ -1299,6 +1299,16 @@
   (lambda ()
 		(local-set-key "o" 'next-error-follow-minor-mode)
     ))
+
+; なぜかphp-mode-hookだと動かなかった・・・
+(add-hook 'php-mode-pear-hook
+  '(lambda ()
+    ; (setq php-mode-force-pear t)
+		(setq indent-tabs-mode t)
+		(flymake-mode t)
+    (local-set-key (kbd "C-.") 'kill-whole-line)
+  )
+)
 
 
 ; http://www.haskell.org/haskellwiki/Emacs/Code_folding
@@ -1461,7 +1471,7 @@
 		               ("O"        . 'mc/reverse-regions)))
 
 (require 'flycheck)
-(add-hook 'after-init-hook #'global-flycheck-mode)
+; (add-hook 'after-init-hook #'global-flycheck-mode)
 (setq flycheck-display-errors-delay 30.0)
 (setq flycheck-idle-change-delay
         (if flycheck-current-errors 0.5 30.0))
@@ -1498,14 +1508,14 @@
                           ; (flycheck-mode)))
 
   ; http://qiita.com/senda-akiha/items/cddb02cfdbc0c8c7bc2b
-(eval-after-load 'flycheck
-  '(custom-set-variables
-   '(flycheck-display-errors-function #'flycheck-pos-tip-error-messages)
-; '(flycheck-add-next-checker
-                            ; 'javascript-jshint
-                           ; 'javascript-gjslint
-                           ; )
-   ))
+; (eval-after-load 'flycheck
+  ; '(custom-set-variables
+   ; '(flycheck-display-errors-function #'flycheck-pos-tip-error-messages)
+; ; '(flycheck-add-next-checker
+                            ; ; 'javascript-jshint
+                           ; ; 'javascript-gjslint
+                           ; ; )
+   ; ))
 ;; http://shnya.jp/blog/?p=477
 ;; http://emacswiki.org/cgi-bin/emacs/FlyMake
 ;; flymakeパッケージを読み込み
@@ -1583,6 +1593,18 @@
             source)))
 (push '("\\.java$" flymake-java-init) flymake-allowed-file-name-masks)
 (add-hook 'java-mode-hook '(lambda () (flymake-mode t)))
+
+; http://mugijiru.seesaa.net/article/326967860.html
+(defun flymake-php-init ()
+  (let* ((temp-file (flymake-init-create-temp-buffer-copy
+                     'flymake-create-temp-inplace))
+         (local-file (file-relative-name
+                      temp-file
+                      (file-name-directory buffer-file-name))))
+    (list "php" (list "-l" local-file))))
+(push '(".+\\.php$" flymake-php-init) flymake-allowed-file-name-masks)
+(push '("(Parse|Fatal) error: (.*) in (.*) on line ([0-9]+)" 3 4 nil 2) flymake-err-line-patterns)
+
 
 ; http://d.hatena.ne.jp/CortYuming/20121226/p1
 ;; クラッシュするキーバインドを無効に
@@ -1678,7 +1700,9 @@
 (when (not windows-p)
   (require 'web-mode)
   (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+  ; (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.tpl\\'" . web-mode))
+  ; (add-to-list 'auto-mode-alist '("\\.php\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.[gj]sp\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
@@ -1690,7 +1714,12 @@
 
 ; (require 'emmet-mode)
 (add-hook 'sgml-mode-hook 'emmet-mode) ;; マークアップ言語全部で使う
-(add-hook 'web-mode-hook 'emmet-mode) ;; マークアップ言語全部で使う
+(add-hook 'web-mode-hook
+  '(lambda ()
+    ; (emmet-mode t)
+    (setq indent-tabs-mode t)
+  )
+)
 (add-hook 'css-mode-hook  'emmet-mode) ;; CSSにも使う
 (add-hook 'emmet-mode-hook (lambda ()
                              (setq emmet-indentation 2);; indent はスペース2個
@@ -1698,7 +1727,7 @@
                              ))
 (eval-after-load "emmet-mode"
                  (lambda ()
-                   '(define-key emmet-mode-keymap (kbd "C-j") nil) ;; C-j は newline のままにしておく
+                   (define-key emmet-mode-keymap (kbd "C-j") nil) ;; C-j は newline のままにしておく
                    )
                  )
 

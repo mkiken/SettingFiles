@@ -360,8 +360,6 @@ function google () {
 #zmv
 #http://mollifier.hatenablog.com/entry/20101227/p1
 autoload -Uz zmv
-alias zmv='noglob zmv -W'
-alias zcp='zmv -C'
 
 # http://qiita.com/mollifier/items/9258c8fd8b59894b1bcd
 bindkey '^J' self-insert
@@ -404,6 +402,7 @@ zstyle ':auto-fu:var' postdisplay $''
 # npmの補完は重すぎるので無効
 compdef -d npm
 compdef -d python #-mが重すぎるので無効
+compdef -d java
 
 
 # http://qiita.com/syui/items/82b080920a4241e96aed
