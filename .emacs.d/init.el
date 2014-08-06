@@ -216,7 +216,8 @@
                                                       rspec-mode      python-mode
                                                       c-mode          c++-mode
                                                       objc-mode       latex-mode
-                                                      plain-tex-mode  js2-mode))
+                                                      plain-tex-mode  js2-mode
+                                                      web-mode))
                  (let ((mark-even-if-inactive transient-mark-mode))
                    (indent-region (region-beginning) (region-end) nil))))))
 
@@ -1184,11 +1185,22 @@
   ;;HideShow Mode
   (hs-minor-mode)
     ; (unset-local-key "{")
+
+    (setq flycheck-select-checker
+      'c/c++-clang)
+    (flycheck-mode)
 )
 
 ;; for C, C++, Java...
 ;; モードに入るときに呼び出す hook の設定
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
+
+
+(add-hook 'java-mode-hook (lambda ()
+                           (flymake-mode t)
+                          ; (flycheck-select-checker 'java-syntax-checker)
+                          ; (flycheck-mode)
+                          ))
 
 
 ;; for TeX
@@ -1266,6 +1278,7 @@
 ;;for Haskell
 (add-hook 'haskell-mode-hook
           '(lambda ()
+            (flycheck-mode)
              ; (local-set-key "\C-c" 'toggle-selective-display)
              ; (turn-on-haskell-simple-indent) ;Simple indentation.
              (turn-on-haskell-indentation) ;Intelligent semi-automatic indentation Mk2.
@@ -1310,6 +1323,22 @@
   )
 )
 
+(add-hook 'sgml-mode-hook
+          '(lambda ()
+             (emmet-mode t)
+             (flycheck-mode t)
+             )
+          )
+
+(add-hook 'web-mode-hook
+  '(lambda ()
+    ; (emmet-mode t)
+    (setq indent-tabs-mode t)
+  )
+)
+
+
+(add-hook 'css-mode-hook  'emmet-mode) ;; CSSにも使う
 
 ; http://www.haskell.org/haskellwiki/Emacs/Code_folding
 ;; folding for all rows, starting on the current column
@@ -1470,14 +1499,27 @@
 		               ("o"        . 'mc/sort-regions)
 		               ("O"        . 'mc/reverse-regions)))
 
-(require 'flycheck)
+(defun flycheck-display-error-messages (errors)
+  (message errors))
+(eval-after-load 'flycheck
+'(custom-set-variables
+ ; '(flycheck-display-errors-function #'flycheck-pos-tip-error-messages)
+; ; '(flycheck-add-next-checker
+                          ; ; 'javascript-jshint
+                         ; ; 'javascript-gjslint
+                         '(flycheck-display-errors-delay 0.2)
+                         '(flycheck-idle-change-delay
+                                 (if flycheck-current-errors 0.5 30.0))
+                         '(flycheck-check-syntax-automatically '(save
+                                                                 idle-change
+                                                                 mode-enabled))
+                         ; '(flycheck-display-errors-function #'flycheck-display-error-messages)
+
+                         )
+)
+
 ; (add-hook 'after-init-hook #'global-flycheck-mode)
-(setq flycheck-display-errors-delay 30.0)
-(setq flycheck-idle-change-delay
-        (if flycheck-current-errors 0.5 30.0))
-(setq flycheck-check-syntax-automatically '(save
-                                            idle-change
-                                            mode-enabled))
+
 
 ; http://qiita.com/akisute3@github/items/6fb94c30f92dae2a24ee
 ; (flycheck-define-checker c/c++
@@ -1491,31 +1533,6 @@
                            ; line-end))
   ; :modes (c-mode c++-mode))
 
-(add-hook 'c-mode-hook (lambda ()
-                          (flycheck-select-checker
-                           'c/c++-clang)
-                          (flycheck-mode)))
-
-(add-hook 'c++-mode-hook (lambda ()
-                          (flycheck-select-checker
-                           'c/c++-clang
-                           ; 'c/c++-cppcheck
-                           )
-                          (flycheck-mode)))
-
-; (add-hook 'java-mode-hook (lambda ()
-                          ; (flycheck-select-checker 'java-syntax-checker)
-                          ; (flycheck-mode)))
-
-  ; http://qiita.com/senda-akiha/items/cddb02cfdbc0c8c7bc2b
-; (eval-after-load 'flycheck
-  ; '(custom-set-variables
-   ; '(flycheck-display-errors-function #'flycheck-pos-tip-error-messages)
-; ; '(flycheck-add-next-checker
-                            ; ; 'javascript-jshint
-                           ; ; 'javascript-gjslint
-                           ; ; )
-   ; ))
 ;; http://shnya.jp/blog/?p=477
 ;; http://emacswiki.org/cgi-bin/emacs/FlyMake
 ;; flymakeパッケージを読み込み
@@ -1582,7 +1599,6 @@
 
 ;;for Java
 ;; http://www.info.kochi-tech.ac.jp/y-takata/index.php?%A5%E1%A5%F3%A5%D0%A1%BC%2Fy-takata%2FFlymake
-(add-hook 'java-mode-hook 'flymake-mode-on)
 (defun flymake-java-init ()
   (flymake-simple-make-init-impl
     'flymake-create-temp-with-folder-structure nil nil
@@ -1592,7 +1608,6 @@
   (list "javac" (list "-J-Dfile.encoding=utf-8" "-encoding" "utf-8"
             source)))
 (push '("\\.java$" flymake-java-init) flymake-allowed-file-name-masks)
-(add-hook 'java-mode-hook '(lambda () (flymake-mode t)))
 
 ; http://mugijiru.seesaa.net/article/326967860.html
 (defun flymake-php-init ()
@@ -1708,19 +1723,11 @@
   (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+  ; (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
   )
 
 
-; (require 'emmet-mode)
-(add-hook 'sgml-mode-hook 'emmet-mode) ;; マークアップ言語全部で使う
-(add-hook 'web-mode-hook
-  '(lambda ()
-    ; (emmet-mode t)
-    (setq indent-tabs-mode t)
-  )
-)
-(add-hook 'css-mode-hook  'emmet-mode) ;; CSSにも使う
+
 (add-hook 'emmet-mode-hook (lambda ()
                              (setq emmet-indentation 2);; indent はスペース2個
                              (define-key emmet-mode-keymap (kbd "C-c e") 'emmet-expand-line)
