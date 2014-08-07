@@ -217,7 +217,7 @@
                                                       c-mode          c++-mode
                                                       objc-mode       latex-mode
                                                       plain-tex-mode  js2-mode
-                                                      web-mode))
+                                                      web-mode        php-mode))
                  (let ((mark-even-if-inactive transient-mark-mode))
                    (indent-region (region-beginning) (region-end) nil))))))
 
@@ -1332,7 +1332,7 @@
 
 (add-hook 'web-mode-hook
   '(lambda ()
-    ; (emmet-mode t)
+    (emmet-mode t)
     (setq indent-tabs-mode t)
   )
 )
@@ -1730,13 +1730,16 @@
 
 (add-hook 'emmet-mode-hook (lambda ()
                              (setq emmet-indentation 2);; indent はスペース2個
+                             ; http://stackoverflow.com/questions/22049702/disabling-preview-for-emmet-mode-in-emacs
+                             (setq emmet-preview-default nil)
                              (define-key emmet-mode-keymap (kbd "C-c e") 'emmet-expand-line)
+                             (define-key emmet-mode-keymap (kbd "C-j") nil) ;; C-j は newline のままにしておく
                              ))
-(eval-after-load "emmet-mode"
-                 (lambda ()
-                   (define-key emmet-mode-keymap (kbd "C-j") nil) ;; C-j は newline のままにしておく
-                   )
-                 )
+; (eval-after-load "emmet-mode"
+                 ; (lambda ()
+                   ; (define-key emmet-mode-keymap (kbd "C-j") nil) ;; C-j は newline のままにしておく
+                   ; )
+                 ; )
 
  (require 'sr-speedbar)
 ; https://gist.github.com/josh/776856

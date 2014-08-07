@@ -392,7 +392,7 @@ if [ -f "${SET}submodules/auto-fu.zsh/auto-fu.zsh" ]; then
     zle -N zle-line-init
     # zstyle ':completion:*' completer _oldlist _complete
     zstyle ':completion:*' completer _oldlist _expand _complete _match _prefix _approximate _list _history
-    zstyle ':auto-fu:highlight' completion/one fg=black
+    zstyle ':auto-fu:highlight' completion/one fg=red
 fi
 # 「-azfu-」を表示させない
 zstyle ':auto-fu:var' postdisplay $''
