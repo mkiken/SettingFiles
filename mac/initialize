@@ -59,6 +59,9 @@ ln -si "${Repo}.atom/styles.less" ~/.atom/styles.less
 # echo "ln -si ${Repo}.tmux.conf"
 # ln -si "${Repo}.tmux.conf" ~/.tmux.conf
 
+echo "ln -si ${Repo}.peco"
+ln -si "${Repo}.peco" ~/.peco
+
 # touch ~/.gitconfig.local
 cp -i "${Repo}gitfiles/.gitconfig.local_mac" ~/.gitconfig.local
 echo "You can write LOCAL settings for git to '~/.gitconfig.local'."
@@ -79,6 +82,7 @@ echo 'backup directory for emacs and vim made.'
 
 ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"
 brew install git
+brew install zsh
 brew install rmtrash
 # brew install node
 # brew install tree
@@ -91,7 +95,11 @@ brew install rlwrap
 # brew install reattach-to-user-namespace
 # brew install ghc
 
+brew tap peco/peco
+brew install peco
+
 # touch ~/.z
+touch ~/.cd_history_file
 
 # ln -s /usr/local/Cellar/git/2.0.1/share/git-core/contrib/diff-highlight/diff-highlight  /usr/local/bin
 

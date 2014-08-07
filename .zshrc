@@ -24,8 +24,8 @@ case "${OSTYPE}" in
   if which brew > /dev/null; then
     fpath=($(brew --prefix)/share/zsh/site-functions(N-/) $fpath)
     # http://d.hatena.ne.jp/sugyan/20130319/1363689394
-    _Z_CMD=j
-    source $(brew --prefix)/etc/profile.d/z.sh
+    # _Z_CMD=j
+    # source $(brew --prefix)/etc/profile.d/z.sh
   else
     fpath=(~/.zsh/completion(N-/) $fpath)
   fi
@@ -34,8 +34,8 @@ case "${OSTYPE}" in
 esac
 
 # http://qiita.com/Cside_/items/13f85c11d3d0aa35d7ef
-setopt prompt_subst
-autoload -Uz VCS_INFO_get_data_git; VCS_INFO_get_data_git 2> /dev/null
+# setopt prompt_subst
+# autoload -Uz VCS_INFO_get_data_git; VCS_INFO_get_data_git 2> /dev/null
 
 # git stash count
 function git_prompt_stash_count {
@@ -140,7 +140,7 @@ precmd_functions=(precmd_prompt)
 # http://qiita.com/yuyuchu3333/items/b10542db482c3ac8b059
 function chpwd() { ls_abbrev }
 
-ls_abbrev() {
+function ls_abbrev() {
     if [[ ! -r $PWD ]]; then
         return
     fi
@@ -377,8 +377,8 @@ bindkey "^[r" redo
 
 # altで単語移動
 # http://superuser.com/questions/301029/problem-with-ctrl-left-right-bindings-in-oh-my-zsh
-bindkey "[C" emacs-forward-word   #control left
-bindkey "[D" emacs-backward-word        #control right
+# bindkey "[C" emacs-forward-word   #control left
+# bindkey "[D" emacs-backward-word        #control right
 
 #=============================
 # source auto-fu.zsh
@@ -442,34 +442,66 @@ man() {
 		man "$@"
 }
 
-
-# function peco-select-history() {
-    # local tac
-    # if which tac > /dev/null; then
-        # tac="tac"
-    # else
-        # tac="tail -r"
-    # fi
-    # BUFFER=$(history -n 1 | \
-        # eval $tac | \
-        # peco --query "$LBUFFER")
-    # CURSOR=$#BUFFER
-    # # zle clear-screen
-# }
-# zle -N peco-select-history
-# bindkey "^P" peco-select-history
-
 function exists { which $1 &> /dev/null }
 
 if exists peco; then
-    function peco_select_history() {
-        local tac
-        exists gtac && tac="gtac" || { exists tac && tac="tac" || { tac="tail -r" } }
-        BUFFER=$(fc -l -n 1 | eval $tac | peco --query "$LBUFFER")
-        CURSOR=$#BUFFER         # move cursor
-        zle -R -c               # refresh
+
+  # http://www.pupha.net/archives/2267/
+  function peco-select-history() {
+  local cmd=$(history | tail -r | peco)
+  r ${cmd}
+}
+
+zle -N peco_select_history
+alias phis='peco-select-history'
+
+function p(){
+$@ | peco
     }
 
-    zle -N peco_select_history
-    bindkey '^A' peco_select_history
+    alias -g P='| peco'
+
+
+    # http://stillpedant.hatenablog.com/entry/percol-cd-history
+    typeset -U chpwd_functions
+    CD_HISTORY_FILE=${HOME}/.cd_history_file # cd 履歴の記録先ファイル
+    function chpwd_record_history() {
+    echo $PWD >> ${CD_HISTORY_FILE}
+  }
+  chpwd_functions=($chpwd_functions chpwd_record_history)
+
+  # percol を使って cd 履歴の中からディレクトリを選択
+  # 過去の訪問回数が多いほど選択候補の上に来る
+  function peco_get_destination_from_history() {
+  sort ${CD_HISTORY_FILE} | uniq -c | sort -r | \
+    sed -e 's/^[ ]*[0-9]*[ ]*//' | \
+    sed -e s"/^${HOME//\//\\/}/~/" | \
+    peco | xargs echo
+}
+
+# peco を使って cd 履歴の中からディレクトリを選択し cd するウィジェット
+function peco_cd_history() {
+local destination=$(peco_get_destination_from_history)
+[ -n $destination ] && cd ${destination/#\~/${HOME}}
+zle -N reset-prompt
+}
+zle -N peco_cd_history
+alias pcd='peco_cd_history'
+
+# peco を使って cd 履歴の中からディレクトリを選択し，現在のカーソル位置に挿入するウィジェット
+function peco_insert_history() {
+local destination=$(peco_get_destination_from_history)
+if [ $? -eq 0 ]; then
+  local new_left="${LBUFFER} ${destination} "
+  BUFFER=${new_left}${RBUFFER}
+  CURSOR=${#new_left}
 fi
+zle -N reset-prompt
+}
+zle -N peco_insert_history
+alias pins='peco_insert_history'
+# }}}
+
+fi
+
+# zle -N zle-keymap-select auto-fu-zle-keymap-select
