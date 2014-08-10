@@ -72,7 +72,7 @@
 	(when (display-graphic-p)
 	  (set-face-attribute 'default nil
 						  :family "monaco"
-						  :height 120)
+						  :height 115)
 	  (set-fontset-font
 	 	(frame-parameter nil 'font)
 	 	'japanese-jisx0208
@@ -131,6 +131,7 @@
 
 ;; カーソルの位置が何行目かを表示する
 (global-linum-mode)
+; (setq linum-format "%d")
 
 ;; カーソルの場所を保存する
 (require 'saveplace)
@@ -139,6 +140,9 @@
 (setq show-paren-delay 0)
 (setq show-paren-style 'mixed)
 
+;; ミニバッファの履歴を保存する
+(savehist-mode t)
+(setq history-length 1000) ;履歴数
 
 ; http://wadap.hatenablog.com/entry/20120415/1334468285
 (require 'uniquify)
@@ -812,13 +816,13 @@
   ; (load "~/.emacs.d/conf/window-system")
   ;; Color Scheme
   (add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
-  ; (load-theme 'my-monokai t)
+  (load-theme 'my-monokai t)
   ;; (load-theme 'monokai t)
   ;; (load-theme 'molokai t)
   ; (load-theme 'monokai-dark-soda t)
   ; (load-theme 'zenburn t)
   ;; (load-theme 'solarized-light t)
-	(load-theme 'solarized-dark t)
+	; (load-theme 'solarized-dark t)
   ; (load-theme 'twilight-anti-bright t)
   ; (load-theme 'tomorrow-night-paradise t)
   ; (load-theme 'tomorrow-night-blue t)
@@ -1136,7 +1140,6 @@
 (defun my-c-mode-common-hook ()
   ;; my-c-stye を登録して有効にする
   (c-add-style "My C Programming Style" my-c-style t)
-
   ;; 次のスタイルがデフォルトで用意されているので選択してもよい
   ; (c-set-style "gnu")
   ;; (c-set-style "k&r")
@@ -1224,7 +1227,6 @@
 
 ;;js2-mode requires Emacs 24.0 or higher.
 (autoload 'js2-mode "js2-mode" nil t)
-; (require 'js2-mode)
 (defun expand-bracket-for-js2 ()
   (interactive)
   (if (and (and (< (point-min) (point)) (equal "{" (char-to-string (char-before (point)))))
@@ -1313,15 +1315,136 @@
 		(local-set-key "o" 'next-error-follow-minor-mode)
     ))
 
-; なぜかphp-mode-hookだと動かなかった・・・
-(add-hook 'php-mode-pear-hook
-  '(lambda ()
-    ; (setq php-mode-force-pear t)
-		(setq indent-tabs-mode t)
-		(flymake-mode t)
-    (local-set-key (kbd "C-.") 'kill-whole-line)
+(defconst my-codeigniter-style
+'(
+  ; (c-set-style "ellemtel")
+  ;; 基本オフセット量の設定
+  ; (c-basic-offset             . 2)
+  ;; tab キーでインデントを実行
+  (c-tab-always-indent        . t)
+  ;; セミコロンで自動改行しない
+  (c-hanging-semi&comma-criteria . nil)
+  ; (c-auto-newline . t)
+
+  (indent-tabs-mode . t)
+  ;; コメント行のオフセット量の設定
+  ; (c-comment-only-line-offset . 0)
+  ;
+  ;; コメントのスタイル (必要なければコメントアウトする)
+  (comment-start . "//")
+  (comment-end . "")
+  (comment-start-skip . "// *")
+  ; http://stackoverflow.com/questions/10758743/how-to-configure-emacs-to-properly-comment-code-in-php-mode
+  (comment-use-syntax . t)
+   ; (setq comment-start "// "
+         ; comment-end   ""
+         ; comment-start-skip "// *")
+
+
+  ;; カッコ前後の自動改行処理の設定
+  (c-hanging-braces-alist
+   . (
+      (class-open before after)       ; クラス宣言の'{'の前後
+      (class-close after)             ; クラス宣言の'}'の後
+      (defun-open before after)       ; 関数宣言の'{'の前後
+      (defun-close after)             ; 関数宣言の'}'の後
+      (inline-open after)             ; クラス内のインライン
+                                      ; 関数宣言の'{'の後
+      (inline-close after)            ; クラス内のインライン
+                                      ; 関数宣言の'}'の後
+      (brace-list-open after)         ; 列挙型、配列宣言の'{'の後
+      (brace-list-close before after) ; 列挙型、配列宣言の'}'の前後
+      (block-open before after)              ; ステートメントの'{'の後
+      (block-close before after)             ; ステートメントの'}'前後
+      (substatement-open before after)       ; サブステートメント
+                                      ; (if 文等)の'{'の後
+      (statement-case-open after)     ; case 文の'{'の後
+      (extern-lang-open before after) ; 他言語へのリンケージ宣言の
+                                      ; '{'の前後
+      (extern-lang-close before)      ; 他言語へのリンケージ宣言の
+                                      ; '}'の前
+      ))
+  ; コロン前後の自動改行処理の設定
+  ; (c-hanging-colons-alist
+   ; . (
+      ; (case-label after)              ; case ラベルの':'の後
+      ; (label after)                   ; ラベルの':'の後
+      ; (access-label after)            ; アクセスラベル(public等)の':'の後
+      ; (member-init-intro)             ; コンストラクタでのメンバー初期化
+                                      ; ; リストの先頭の':'では改行しない
+      ; (inher-intro before)            ; クラス宣言での継承リストの先頭の
+                                      ; ; ':'では改行しない
+      ; {)})
+
+  ; 挿入された余計な空白文字のキャンセル条件の設定
+  ; 下記の*を削除する
+  ; (c-cleanup-list
+   ; . (
+; brace-else-brace                ; else の直前
+                                      ; ; "} * else {"  ->  "} else {"
+      ; brace-elseif-brace              ; else if の直前
+                                      ; ; "} * else if (.*) {"
+                                      ; ; ->  } "else if (.*) {"
+      ; empty-defun-braces              ; 空のクラス・関数定義の'}' の直前
+                                      ; ;；"{ * }"  ->  "{}"
+      ; defun-close-semi                ; クラス・関数定義後の';' の直前
+                                      ; ; "} * ;"  ->  "};"
+      ; list-close-comma                ; 配列初期化時の'},'の直前
+                                      ; ; "} * ,"  ->  "},"
+      ; scope-operator                  ; スコープ演算子'::' の間
+                                      ; ; ": * :"  ->  "::"
+      ; ))
+  ;; オフセット量の設定
+  ;; 必要部分のみ抜粋(他の設定に付いては info 参照)
+  ;; オフセット量は下記で指定
+  ;; +  c-basic-offsetの 1倍, ++ c-basic-offsetの 2倍
+  ;; -  c-basic-offsetの-1倍, -- c-basic-offsetの-2倍
+  (c-offsets-alist
+   . (
+      (arglist-intro          . ++)   ; 引数リストの開始行
+      (arglist-close          . c-lineup-arglist) ; 引数リストの終了行
+      (substatement-open      . 0)    ; サブステートメントの開始行
+      (statement-cont         . ++)   ; ステートメントの継続行
+      (case-label             . 0)    ; case 文のラベル行
+      (label                  . 0)    ; ラベル行
+      (block-open             . 0)    ; ブロックの開始行
+      (member-init-intro      . ++)   ; メンバオブジェクトの初期化リスト
+      ))
+  ;; インデント時に構文解析情報を表示する
+  (c-echo-syntactic-information-p . t)
   )
+"My CodeIgniter Style")
+
+; なぜかphp-mode-hookだと動かなかった・・・
+; (add-hook 'php-mode-pear-hook
+  ; '(lambda ()
+     ; (message "php-mode-pear-hook enabled.")
+  ; )
+; )
+
+(add-hook 'php-mode-hook
+'(lambda ()
+   ; (php-enable-psr2-coding-style)
+   (c-add-style "My CodeIgniter Style" my-codeigniter-style t)
+   ; (c-toggle-auto-hungry-state 1)
+   (flymake-mode t)
+   (local-set-key (kbd "C-.") 'kill-whole-line)
+   (local-set-key (kbd "M-<tab>") 'auto-complete)
+   ;配列のインデント修正
+   ; http://blog.be-open.net/emacs/php-mode%E9%85%8D%E5%88%97%E3%82%A4%E3%83%B3%E3%83%87%E3%83%B3%E3%83%88/
+   (defun ywb-php-lineup-arglist-intro (langelem)
+    (save-excursion
+     (goto-char (cdr langelem))
+     (vector (+ (current-column) c-basic-offset))))
+   (defun ywb-php-lineup-arglist-close (langelem)
+    (save-excursion
+     (goto-char (cdr langelem))
+     (vector (current-column))))
+   (c-set-offset 'arglist-intro 'ywb-php-lineup-arglist-intro)
+   (c-set-offset 'arglist-close 'ywb-php-lineup-arglist-close)
+   )
 )
+
 
 (add-hook 'sgml-mode-hook
           '(lambda ()
@@ -1404,7 +1527,19 @@
 ;; auto-complete
 ;; 補完候補を自動ポップアップ
 (ac-config-default)
-(define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
+(setq ac-auto-start 3)                         ; 4 文字以上で起動
+(setq ac-auto-show-menu 0.8)                   ; 0.8秒でメニュー表示
+; (setq ac-use-comphist t)                       ; 補完候補をソート
+(setq ac-candidate-limit nil)                  ; 補完候補表示を無制限に
+(setq ac-use-quick-help nil)                   ; tool tip 無し
+(setq ac-use-menu-map t)                       ; キーバインド
+(define-key ac-mode-map (kbd "M-<tab>") 'auto-complete)
+(define-key ac-menu-map (kbd "C-n")         'ac-next)
+(define-key ac-menu-map (kbd "C-p")         'ac-previous)
+(setf (symbol-function 'yas-active-keys)
+      (lambda ()
+        (remove-duplicates
+         (mapcan #'yas--table-all-keys (yas--get-snippet-tables)))))
 ; http://d.hatena.ne.jp/IMAKADO/20090813/1250130343
 (defadvice ac-candidate-words-in-buffer (after remove-word-contain-japanese activate)
            (let ((contain-japanese (lambda (s) (string-match (rx (category japanese)) s))))
@@ -1654,6 +1789,7 @@
 (define-key global-map (kbd "C-^") 'rotate-text)
 (define-key global-map (kbd "C-~") 'rotate-text-backward)
 (add-to-list 'rotate-text-symbols '("before" "after"))
+(add-to-list 'rotate-text-symbols '("t" "nil"))
 
 ; http://qiita.com/takc923/items/c3d64b55fc4f3a3b0838
 (require 'undo-tree)
@@ -1785,4 +1921,4 @@
   (set-face-font 'speedbar-face "Meiryo UI-9")
   )
 
-
+(global-set-key (kbd "C-SPC") 'vim-region-mode)

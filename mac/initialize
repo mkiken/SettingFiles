@@ -60,7 +60,7 @@ ln -si "${Repo}.atom/styles.less" ~/.atom/styles.less
 # ln -si "${Repo}.tmux.conf" ~/.tmux.conf
 
 echo "ln -si ${Repo}.peco"
-ln -si "${Repo}.peco" ~/.peco
+ln -si "${Repo}.peco" ~
 
 # touch ~/.gitconfig.local
 cp -i "${Repo}gitfiles/.gitconfig.local_mac" ~/.gitconfig.local

@@ -237,8 +237,8 @@ setopt share_history        # share command history data
 
 ## Completion configuration
 #http://qiita.com/items/f2971728c845c75e9967
-autoload -U compinit && compinit
-compinit
+autoload -U compinit -u && compinit -u
+compinit -u
 
 #autoload predict-on
 #predict-on
@@ -392,7 +392,7 @@ if [ -f "${SET}submodules/auto-fu.zsh/auto-fu.zsh" ]; then
     zle -N zle-line-init
     # zstyle ':completion:*' completer _oldlist _complete
     zstyle ':completion:*' completer _oldlist _expand _complete _match _prefix _approximate _list _history
-    zstyle ':auto-fu:highlight' completion/one fg=red
+    zstyle ':auto-fu:highlight' completion/one fg=blue
 fi
 # 「-azfu-」を表示させない
 zstyle ':auto-fu:var' postdisplay $''
@@ -448,16 +448,16 @@ if exists peco; then
 
   # http://www.pupha.net/archives/2267/
   function peco-select-history() {
-  local cmd=$(history | tail -r | peco)
-  r ${cmd}
-}
+    local cmd=$(history | tail -r | peco)
+    r ${cmd}
+  }
 
 zle -N peco_select_history
 alias phis='peco-select-history'
 
 function p(){
-$@ | peco
-    }
+  $@ | peco
+}
 
     alias -g P='| peco'
 
@@ -481,9 +481,9 @@ $@ | peco
 
 # peco を使って cd 履歴の中からディレクトリを選択し cd するウィジェット
 function peco_cd_history() {
-local destination=$(peco_get_destination_from_history)
-[ -n $destination ] && cd ${destination/#\~/${HOME}}
-zle -N reset-prompt
+  local destination=$(peco_get_destination_from_history)
+  [ -n $destination ] && cd ${destination/#\~/${HOME}}
+  zle -N reset-prompt
 }
 zle -N peco_cd_history
 alias pcd='peco_cd_history'

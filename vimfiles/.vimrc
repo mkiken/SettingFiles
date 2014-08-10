@@ -497,6 +497,7 @@ noremap <Leader>o :Occur<CR>
  " Bundle 'alpaca-tc/beautify.vim'
  Bundle 'thinca/vim-qfreplace'
  Bundle 'Lokaltog/vim-powerline'
+ Bundle 'tpope/vim-fugitive'
 
 
  " <Space>mに、switch.vimをマッピング
@@ -504,7 +505,8 @@ noremap <Leader>o :Occur<CR>
  nnoremap ^ :Switch<cr>
  let g:switch_custom_definitions =
     \ [
-    \   ['before', 'after']
+    \   ['before', 'after'],
+    \   ['t', 'nil']
     \ ]
 
 " for pathogen
@@ -975,3 +977,12 @@ nnoremap <Leader>gr :Qfreplace
 
 let g:jsdoc_default_mapping = 0
 nnoremap <silent> <Leader>d :JsDoc<CR>
+
+nnoremap <silent> <Space>gb :Gblame<CR>
+nnoremap <silent> <Space>gd :Gdiff<CR>
+nnoremap <silent> <Space>gs :Gstatus<CR>
+nnoremap <silent> <Space>ga :Gwrite<CR>
+nnoremap <silent> <Space>gc :Gcommit<CR>
+nnoremap <silent> <Space>gr :Gremove<CR>
+nnoremap <silent> <Space>gm :Gmove<CR>
+nnoremap <silent> <Space>gr :Gread<CR>

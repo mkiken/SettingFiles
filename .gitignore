@@ -6,3 +6,4 @@ vimfiles/.vim/bundle/
 .emacs.d/elpa
 .emacs.d/server
 texput.log
+.emacs.d/history

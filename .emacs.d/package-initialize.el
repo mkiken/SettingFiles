@@ -50,6 +50,8 @@
   web-beautify
   js-doc
   php-mode
+  magit
+  vim-region
     ))
 
 ;; my/favorite-packagesからインストールしていないパッケージをインストール
