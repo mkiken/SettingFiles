@@ -292,6 +292,7 @@
 (global-set-key (kbd "C-x <right>")  'windmove-right)
 (global-set-key (kbd "C-x <up>")  'windmove-up)
 (global-set-key (kbd "C-x <down>")  'windmove-down)
+(global-set-key (kbd "C-x =")  'balance-windows)
 
 
 ;;インデントはタブにする
@@ -816,12 +817,12 @@
   ; (load "~/.emacs.d/conf/window-system")
   ;; Color Scheme
   (add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
-  (load-theme 'my-monokai t)
+  ; (load-theme 'my-monokai t)
   ;; (load-theme 'monokai t)
   ;; (load-theme 'molokai t)
   ; (load-theme 'monokai-dark-soda t)
   ; (load-theme 'zenburn t)
-  ;; (load-theme 'solarized-light t)
+  ; (load-theme 'solarized-light t)
 	; (load-theme 'solarized-dark t)
   ; (load-theme 'twilight-anti-bright t)
   ; (load-theme 'tomorrow-night-paradise t)
@@ -838,6 +839,7 @@
  ; (load-theme 'dark-gnus t)
  ; (load-theme 'ramangalahy t)
  ; (load-theme 'subdued t)
+ (load-theme 'inkpot t)
 
 
 
@@ -994,9 +996,6 @@
   :foreground (face-attribute 'mode-line :foreground)
   :box nil)
 
-;; HideShow Mode
-;; http://www.emacswiki.org/emacs/HideShow
-(define-key global-map (kbd "C-c /") 'hs-toggle-hiding)
 
 ;; https://github.com/m2ym/popwin-el
 (require 'popwin)
@@ -1017,7 +1016,7 @@
 ;; emacs-nav
 ; (add-to-list 'load-path "~/.emacs.d/elisp/emacs-nav-49")
 (require 'nav)
-(global-set-key (kbd "C-c f") 'nav-toggle) ;; C-x C-d で nav をトグル
+(global-set-key (kbd "C-c f") 'nav-toggle)
 
 ; https://github.com/ancane/emacs-nav
 (setq nav-split-window-direction 'vertical) ;; 分割したフレームを垂直に並べる
@@ -1187,6 +1186,7 @@
 
   ;;HideShow Mode
   (hs-minor-mode)
+  (define-key c-mode-base-map (kbd "C-c /") 'hs-toggle-hiding)
     ; (unset-local-key "{")
 
     (setq flycheck-select-checker
@@ -1212,8 +1212,6 @@
 			 (local-set-key "\C-j" 'newline-from-anywhere)
 			 (local-set-key (kbd "$") 'skeleton-pair-insert-maybe)
 			 (setq ac-auto-start nil) ;Texモードでは自動補完OFF
-			 ; (hs-minor-mode)
-			 ; (local-set-key "\C-c/" 'hs-toggle-hiding)
 			 )
 		  )
 
@@ -1221,7 +1219,10 @@
 ;; (add-hook 'lisp-mode-hook       'hs-minor-mode)
 
 ;; for sh
-(add-hook 'sh-mode-hook         'hs-minor-mode)
+(add-hook 'sh-mode-hook         '(lambda()
+                                  (hs-minor-mode)
+                                  (local-set-key (kbd "C-c /") 'hs-toggle-hiding)
+                                  ))
 
 ;;for JavaScript & pegjs
 
@@ -1266,6 +1267,7 @@
              (define-key js2-mode-map (kbd "C-c C-d") 'js-doc-insert-file-doc)
              (define-key js2-mode-map (kbd "@") 'js-doc-insert-tag)
              (hs-minor-mode)
+             (define-key js2-mode-map (kbd "C-c /") 'hs-toggle-hiding)
              ))
 
 ; settings for js-doc
@@ -1319,7 +1321,7 @@
 '(
   ; (c-set-style "ellemtel")
   ;; 基本オフセット量の設定
-  ; (c-basic-offset             . 2)
+  (c-basic-offset             . 2)
   ;; tab キーでインデントを実行
   (c-tab-always-indent        . t)
   ;; セミコロンで自動改行しない
@@ -1453,12 +1455,41 @@
              )
           )
 
+; (require 'generic)
+(define-generic-mode my-smarty-mode
+  nil
+  nil
+  ;; 第4引数には，色分けして欲しい単語に当てはまる正規表現と，色分け用の face を書く
+  nil
+  ;; 第５引数には，brainfuck-mode を有効にするファイルに当てはまる正規表現を書く
+  '("\\.tpl\\'")
+  ;; 第６引数に，brainfuck-mode の有効時に実行する関数を書く
+  ; '(define-bf-keymap bf-help-doc-fun)
+  '(web-mode smarty-mode)
+  ;; モードの説明
+  "Major mode for Smarty")
+
+(add-hook 'smarty-mode-hook
+ '(lambda ()
+    (setq comment-start "{* "
+          comment-end   " *}"
+          ; comment-start-skip "{ *"
+          comment-multi-line t
+          comment-use-syntax t
+          )
+   ))
+
 (add-hook 'web-mode-hook
-  '(lambda ()
-    (emmet-mode t)
-    (setq indent-tabs-mode t)
-  )
-)
+          '(lambda ()
+             (emmet-mode t)
+             (setq indent-tabs-mode t)
+             (define-key web-mode-map (kbd "C-c b") 'web-beautify-html)
+             (define-key web-mode-map (kbd "C-c /") 'web-mode-fold-or-unfold)
+             (define-key web-mode-map (kbd "M-;") nil)
+             (setq web-mode-comment-style 2)
+
+             )
+          )
 
 
 (add-hook 'css-mode-hook  'emmet-mode) ;; CSSにも使う
@@ -1475,7 +1506,12 @@
 ;;for Scala
 (add-to-list 'load-path "~/.emacs.d/elisp/scala-mode2")
 (require 'scala-mode2)
-(add-hook 'scala-mode-hook         'hs-minor-mode)
+(add-hook 'scala-mode-hook         '(lambda()
+                                      (hs-minor-mode)
+                                      (local-set-key (kbd "C-c /") 'hs-toggle-hiding)
+                                      ))
+
+
 ;;(autoload 'scala-mode2 "scala-mode2/scala-mode2" nil t)
 ;;(add-to-list 'auto-mode-alist '("\\.scala$" . scala-mode2))
 
@@ -1571,7 +1607,6 @@
 ;;  ・C-z     ：チラ見
 ;;  ・C-c C-f ：helm-follow-mode の ON/OFF
 (global-set-key (kbd "C-x C-b") 'helm-for-files)
-; (global-set-key (kbd "C-x C-;") 'helm-for-files)
 (define-key helm-command-map (kbd "C-;") 'helm-resume)
 (define-key helm-command-map (kbd "y")   'helm-show-kill-ring)
 (define-key helm-command-map (kbd "o")   'helm-occur)
@@ -1852,7 +1887,7 @@
   (require 'web-mode)
   (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
   ; (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.tpl\\'" . web-mode))
+  ; (add-to-list 'auto-mode-alist '("\\.tpl\\'" . web-mode))
   ; (add-to-list 'auto-mode-alist '("\\.php\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.[gj]sp\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))

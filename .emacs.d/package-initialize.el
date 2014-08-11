@@ -52,6 +52,7 @@
   php-mode
   magit
   vim-region
+  smarty-mode
     ))
 
 ;; my/favorite-packagesからインストールしていないパッケージをインストール
