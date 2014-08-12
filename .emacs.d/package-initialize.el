@@ -53,6 +53,7 @@
   magit
   vim-region
   smarty-mode
+  ;; linum-relative
     ))
 
 ;; my/favorite-packagesからインストールしていないパッケージをインストール

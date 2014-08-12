@@ -294,9 +294,6 @@
 (global-set-key (kbd "C-x <down>")  'windmove-down)
 (global-set-key (kbd "C-x =")  'balance-windows)
 
-
-;;インデントはタブにする
-; (setq indent-tabs-mode t)
 ;; tab ではなく space を使う
 (setq-default indent-tabs-mode nil)
 ;;タブ幅
@@ -308,8 +305,7 @@
 (setq require-final-newline t)
 
 ;; 行末の空白を表示
-;;(setq-default show-trailing-whitespace t)
-
+(setq-default show-trailing-whitespace t)
 
 ; http://qiita.com/itiut@github/items/4d74da2412a29ef59c3a
 (require 'whitespace)
@@ -322,14 +318,15 @@
                           tab-mark
                           ))
 
+; http://ergoemacs.org/emacs/whitespace-mode.html
 (setq whitespace-display-mappings
       '((space-mark ?\u3000 [?\u25a1])
-        ;; WARNING: the mapping below has a problem.
-        ;; When a TAB occupies exactly one column, it will display the
-        ;; character ?\xBB at that column followed by a TAB which goes to
-        ;; the next TAB column.
-        ;; If this is a problem for you, please, comment the line below.
-        (tab-mark ?\t [?\u00BB ?\t] [?\\ ?\t])))
+        ; (space-mark   ?\    [?\xB7]     [?.])	; space
+        ; (space-mark   ?\xA0 [?\xA4]     [?_])	; hard space
+        ; (newline-mark ?\n   [?\xB6 ?\n] [?$ ?\n])	; end-of-line
+        ; (tab-mark ?\t [?\u00BB ?\t] [?\\ ?\t])
+        (tab-mark 9 [183 9] [92 9])
+        ))
 
 ;; スペースは全角のみを可視化
 (setq whitespace-space-regexp "\\(\u3000+\\)")
@@ -839,7 +836,8 @@
  ; (load-theme 'dark-gnus t)
  ; (load-theme 'ramangalahy t)
  ; (load-theme 'subdued t)
- (load-theme 'inkpot t)
+ ; (load-theme 'inkpot t)
+ (load-theme 'noctilux t)
 
 
 
@@ -865,29 +863,27 @@
   ; (defvar my/bg-color "#232323")
   ; 背景に合わせる
   (defvar my/bg-color nil)
+  (defvar my/fg-color "#333333")
   (set-face-attribute 'whitespace-trailing nil
                       :background my/bg-color
-                      ; :foreground "DeepPink"
-                      ; :foreground "gray22"
-                      ; :foreground "gray22"
+                      :foreground my/fg-color
                       ; :underline t
                       )
   (set-face-attribute 'whitespace-tab nil
-					            :background my/bg-color
-					            ; :background nil
+                      ; :background my/bg-color
+                      :background nil
                       ; :foreground "LightSkyBlue"
-                      ; :foreground "gray21"
+                      :foreground my/fg-color
                       ; :underline t
                       )
   (set-face-attribute 'whitespace-space nil
                       :background my/bg-color
-                      ; :foreground "GreenYellow"
-                      ; :foreground "gray20"
+                      :foreground my/fg-color
                       ; :weight 'bold
                       )
   (set-face-attribute 'whitespace-empty nil
+                      :foreground my/fg-color
                       :background my/bg-color
-                      ; :foreground "gray19"
                       )
   )
 ; (set-face-background 'show-paren-match (face-background 'default))
@@ -1957,3 +1953,8 @@
   )
 
 (global-set-key (kbd "C-SPC") 'vim-region-mode)
+
+; (require 'linum-relative)
+; ; (autoload 'linum-relative "linum-relative" nil t)
+; (global-set-key (kbd "<f4>") 'linum-relative-toggle)
+; ; (linum-relative-toggle)
