@@ -9400,10 +9400,27 @@
 	<string></string>
 	<key>NSScrollAnimationEnabled</key>
 	<false/>
+	<key>NSTableView Columns KeyBingingTable</key>
+	<array>
+		<data>
+		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
+		hAErATCG
+		</data>
+		<string>198</string>
+		<data>
+		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
+		hAErATGG
+		</data>
+		<string>302</string>
+	</array>
+	<key>NSTableView Hidden Columns KeyBingingTable</key>
+	<array/>
+	<key>NSTableView Sort Ordering KeyBingingTable</key>
+	<array/>
 	<key>NSWindow Frame NSColorPanel</key>
 	<string>1167 272 201 309 0 0 1920 1058 </string>
 	<key>NSWindow Frame Preferences</key>
-	<string>996 391 924 485 0 0 1920 1058 </string>
+	<string>786 388 924 485 0 0 1920 1058 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
 	<string>854 409 570 451 0 0 1920 1058 </string>
 	<key>NeverWarnAboutShortLivedSessions_6DE05245-ABC6-4133-86ED-9837935D9C3A</key>
@@ -9803,9 +9820,9 @@
 				<key>0xf702-0x220000</key>
 				<dict>
 					<key>Action</key>
-					<integer>10</integer>
+					<integer>30</integer>
 					<key>Text</key>
-					<string>[1;2D</string>
+					<string></string>
 				</dict>
 				<key>0xf702-0x240000</key>
 				<dict>
@@ -9831,9 +9848,9 @@
 				<key>0xf703-0x220000</key>
 				<dict>
 					<key>Action</key>
-					<integer>10</integer>
+					<integer>31</integer>
 					<key>Text</key>
-					<string>[1;2C</string>
+					<string></string>
 				</dict>
 				<key>0xf703-0x240000</key>
 				<dict>
@@ -10957,7 +10974,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2014-08-05T06:38:28Z</date>
+	<date>2014-08-13T02:06:13Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Show Toolbelt</key>

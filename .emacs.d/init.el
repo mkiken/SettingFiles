@@ -297,8 +297,8 @@
 ;; tab ではなく space を使う
 (setq-default indent-tabs-mode nil)
 ;;タブ幅
-; (setq-default tab-width 4)
-(setq default-tab-width 2)
+(setq-default tab-width 2)
+; (setq default-tab-width 2)
 (setq tab-stop-list '(2 4 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100 104 108 112 116 120))
 ;; http://reiare.net/blog/2010/12/16/emacs-space-tab/
 ;; 最後に改行を入れる。
@@ -1472,16 +1472,22 @@
           ; comment-start-skip "{ *"
           comment-multi-line t
           comment-use-syntax t
+          indent-tabs-mode t
+          c-tab-always-indent t
           )
-   ))
+    (local-set-key (kbd "C-c b") 'web-beautify-html)
+    (local-set-key (kbd "C-c /") 'web-mode-fold-or-unfold)
+    (local-set-key (kbd "C-c c") 'web-mode-element-close)
+    ))
 
 (add-hook 'web-mode-hook
           '(lambda ()
              (emmet-mode t)
-             (setq indent-tabs-mode t)
+             ; (setq indent-tabs-mode t)
              (define-key web-mode-map (kbd "C-c b") 'web-beautify-html)
              (define-key web-mode-map (kbd "C-c /") 'web-mode-fold-or-unfold)
              (define-key web-mode-map (kbd "M-;") nil)
+             (define-key web-mode-map (kbd "C-c c") 'web-mode-element-close)
              (setq web-mode-comment-style 2)
 
              )
@@ -1820,6 +1826,7 @@
 (define-key global-map (kbd "C-^") 'rotate-text)
 (define-key global-map (kbd "C-~") 'rotate-text-backward)
 (add-to-list 'rotate-text-symbols '("before" "after"))
+(add-to-list 'rotate-text-symbols '("BEFORE" "AFTER"))
 (add-to-list 'rotate-text-symbols '("t" "nil"))
 
 ; http://qiita.com/takc923/items/c3d64b55fc4f3a3b0838

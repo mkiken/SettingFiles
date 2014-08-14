@@ -100,7 +100,6 @@ function git_prompt_stash_count {
 # }
 
 # -------------- 使い方 ---------------- #
-# RPROMPT=''
 
 source "${SET}submodules/zsh-git-prompt/zshrc.sh"
 export __GIT_PROMPT_DIR="${SET}submodules/zsh-git-prompt"
@@ -110,24 +109,14 @@ export ZSH_THEME_GIT_PROMPT_NOCACHE=1
 #from http://news.mynavi.jp/column/zsh/index.html
 case ${UID} in
 	0) #for super user
-		# RPROMPT='(%~)'
-		# PROMPT=$'%B%m%b:%?:%# '
-		# RPROMPT='(%F{yellow}%(5~,%-2~/../%2~,%~)%f)`rprompt-git-current-branch`'
-		RPROMPT='[%F{yellow}%(5~,%-2~/../%2~,%~)%f]$(git_super_status)`git_prompt_stash_count`'
-		#PROMPT=$'%m: %n %D{%T} %{%}%#%{%} '
-		# PROMPT="%{$fg[green]%} %n: %D{%T} %{%}%#%{%}%{$reset_color%} "
+		RPROMPT='[%F{yellow}%D{%T}%f]$(git_super_status)`git_prompt_stash_count`'
 		;;
 	*)
-    # RPROMPT='(%F{cyan}%(5~,%-2~/../%2~,%~)%f)`rprompt-git-current-branch`'
-    RPROMPT='[%F{cyan}%(5~,%-2~/../%2~,%~)%f]$(git_super_status)`git_prompt_stash_count`'
-    # RPROMPT='(%F{cyan}%(5~,%-2~/../%2~,%~)%f)`prompt-git-current-branch`'
-		# RPROMPT='(%F{cyan}%(5~,%-2~/../%2~,%~)%f)'
-		#PROMPT=$'%m: %n %D{%T} %{%}%#%{%} '
-		# PROMPT="%{$fg[green]%} %n: %D{%T} %{%}%#%{%}%{$reset_color%} "
+    RPROMPT='[%F{blue}%D{%T}%f]$(git_super_status)`git_prompt_stash_count`'
 esac
 
 function precmd_prompt () {
-	PROMPT="%K{black}%{%(?.$fg[green].$fg[red])%}%n[%D{%T}] %{%}%#%{%}%{$reset_color%}%k "
+	PROMPT="%K{black}%{%(?.$fg[green].$fg[red])%}%n%{$reset_color%} [%F{cyan}%(5~,%-2~/../%2~,%~)%f] %{%}%#%{%}%k "
 }
 precmd_functions=(precmd_prompt)
 
