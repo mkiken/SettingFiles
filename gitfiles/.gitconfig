@@ -74,8 +74,8 @@
   wdf = diff --word-diff=color
   upsync = "!f_upsync () { git fetch upstream; git rebase upstream/master;};f_upsync"
 
-  vdf= difftool --tool=vimdiff --no-prompt
-	vmodified = difftool --tool=vimdiff --no-prompt --diff-filter=M
+  vdf= difftool --tool=vimdiff --no-prompt --dir-diff
+	vmodified = difftool --tool=vimdiff --no-prompt --dir-diff --diff-filter=M
 
 [color]
 	ui = auto

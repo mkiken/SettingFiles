@@ -498,4 +498,8 @@ alias pins='peco_insert_history'
 
 fi
 
+alias pgco='git branch -a | peco | xargs git checkout'
+alias pgpl='git branch -a | peco | xargs git pull'
+alias pgps='git branch -a | peco | xargs git push origin'
+
 # zle -N zle-keymap-select auto-fu-zle-keymap-select
