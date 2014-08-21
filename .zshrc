@@ -200,10 +200,10 @@ setopt list_packed
 unsetopt auto_param_slash      # ディレクトリ名の補完で末尾の / を自動的に付加し、次の補完に備える
 
 # no beep sound when complete list displayed
-setopt nolistbeep
+# setopt nolistbeep
 
 # ビープ音を鳴らさないようにする
-setopt NO_beep
+# setopt NO_beep
 
 ## Keybind configuration
 # emacs like keybind (e.x. Ctrl-a goes to head of a line and Ctrl-e goes to end of it)
@@ -449,6 +449,7 @@ function p(){
 }
 
     alias -g P='| peco'
+    alias -g Px='| peco | xargs '
 
 
     # http://stillpedant.hatenablog.com/entry/percol-cd-history
@@ -459,7 +460,7 @@ function p(){
   }
   chpwd_functions=($chpwd_functions chpwd_record_history)
 
-  # percol を使って cd 履歴の中からディレクトリを選択
+  # pecoを使って cd 履歴の中からディレクトリを選択
   # 過去の訪問回数が多いほど選択候補の上に来る
   function peco_get_destination_from_history() {
   sort ${CD_HISTORY_FILE} | uniq -c | sort -r | \
@@ -496,10 +497,18 @@ zle -N peco_insert_history
 alias pins='peco_insert_history'
 # }}}
 
-fi
-
 alias pgco='git branch -a | peco | xargs git checkout'
 alias pgpl='git branch -a | peco | xargs git pull'
 alias pgps='git branch -a | peco | xargs git push origin'
+alias pgb='git branch -a | peco'
+alias pls='ls -a | peco'
+alias pfind='find -L . -name "*" | peco'
+alias pps='ps aux | peco'
+function pcat(){
+  cat -n $@ | peco
+}
+
+fi
+
 
 # zle -N zle-keymap-select auto-fu-zle-keymap-select

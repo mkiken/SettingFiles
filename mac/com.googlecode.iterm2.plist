@@ -9393,36 +9393,21 @@
 	<key>MaxVertically</key>
 	<false/>
 	<key>NSNavLastRootDirectory</key>
-	<string>~/Desktop/repository/SettingFiles/mac</string>
+	<string>~/Desktop/repository/iTerm2-Color-Schemes/schemes</string>
 	<key>NSQuotedKeystrokeBinding</key>
 	<string></string>
 	<key>NSRepeatCountBinding</key>
 	<string></string>
 	<key>NSScrollAnimationEnabled</key>
 	<false/>
-	<key>NSTableView Columns KeyBingingTable</key>
-	<array>
-		<data>
-		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
-		hAErATCG
-		</data>
-		<string>198</string>
-		<data>
-		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
-		hAErATGG
-		</data>
-		<string>302</string>
-	</array>
-	<key>NSTableView Hidden Columns KeyBingingTable</key>
-	<array/>
-	<key>NSTableView Sort Ordering KeyBingingTable</key>
-	<array/>
-	<key>NSWindow Frame NSColorPanel</key>
-	<string>1167 272 201 309 0 0 1920 1058 </string>
 	<key>NSWindow Frame Preferences</key>
-	<string>786 388 924 485 0 0 1920 1058 </string>
+	<string>0 285 924 485 0 0 1280 778 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>854 409 570 451 0 0 1920 1058 </string>
+	<string>173 64 625 714 0 0 1280 778 </string>
+	<key>NSWindow Frame iTerm Window 1</key>
+	<string>79 64 625 714 0 0 1280 778 </string>
+	<key>NSWindow Frame iTerm Window 2</key>
+	<string>173 64 625 714 0 0 1280 778 </string>
 	<key>NeverWarnAboutShortLivedSessions_6DE05245-ABC6-4133-86ED-9837935D9C3A</key>
 	<true/>
 	<key>New Bookmarks</key>
@@ -9674,7 +9659,7 @@
 			<key>Idle Code</key>
 			<integer>0</integer>
 			<key>Initial Text</key>
-			<string></string>
+			<string>tmux</string>
 			<key>Jobs to Ignore</key>
 			<array>
 				<string>rlogin</string>
@@ -10956,7 +10941,7 @@
 		</dict>
 	</dict>
 	<key>PrefsCustomFolder</key>
-	<string>/Users/a13596/Desktop/repository/SettingFiles/mac</string>
+	<string>~/Desktop/repository/SettingFiles/mac/</string>
 	<key>PromptOnClose</key>
 	<true/>
 	<key>PromptOnQuit</key>
@@ -10974,7 +10959,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2014-08-13T02:06:13Z</date>
+	<date>2014-08-20T16:48:56Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Show Toolbelt</key>
@@ -11029,6 +11014,6 @@
 	<key>findRegex_iTerm</key>
 	<false/>
 	<key>iTerm Version</key>
-	<string>2.0</string>
+	<string>1.0.0.20140629</string>
 </dict>
 </plist>

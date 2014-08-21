@@ -132,6 +132,7 @@
 ;; カーソルの位置が何行目かを表示する
 (global-linum-mode)
 ; (setq linum-format "%d")
+(setq linum-format " %3d")
 
 ;; カーソルの場所を保存する
 (require 'saveplace)
@@ -294,6 +295,9 @@
 (global-set-key (kbd "C-x <down>")  'windmove-down)
 (global-set-key (kbd "C-x =")  'balance-windows)
 
+; http://www.geocities.co.jp/SiliconValley-Bay/9285/EMACS-JA/emacs_165.html
+(setq split-window-keep-point nil)
+
 ;; tab ではなく space を使う
 (setq-default indent-tabs-mode nil)
 ;;タブ幅
@@ -440,7 +444,7 @@
             kill-buffer-query-functions))
 
 (setq revert-without-query '(".*"))
-(global-auto-revert-mode 1)
+; (global-auto-revert-mode 1)
 
 ;;from http://d.hatena.ne.jp/ama-ch/20090114/1231918903
 ;; カーソル位置から行頭まで削除する
@@ -769,6 +773,12 @@
 ;;; 現在の関数名をモードラインに表示
 (which-function-mode 1)
 
+; http://superuser.com/questions/349943/how-to-awake-emacs-gui-after-pressing-ctrlz
+(when window-system (global-unset-key (kbd "C-z")))
+
+;; enable to pop `mark-ring' repeatedly like C-u C-SPC C-SPC ...
+(setq set-mark-command-repeat-pop t)
+
 ;; 矩形選択
 ;; http://dev.ariel-networks.com/articles/emacs/part5/
 (cua-mode t)
@@ -960,7 +970,7 @@
 (global-set-key "\M-4" 'tabbar-mode)
 ;; http://www.emacswiki.org/emacs/TabBarMode
 ;; *tabbar-display-buffers*以外の*がつくバッファは表示しない
-(setq *tabbar-display-buffers* '("*scratch*" "*Messages*" "*grep*"))
+(setq *tabbar-display-buffers* '("*scratch*" "*Messages*" "*grep*" "*Occur*"))
 (setq tabbar-buffer-list-function
       (lambda ()
         (remove-if
@@ -1024,8 +1034,8 @@
 
 
 ;;; smooth-scroll
-(require 'smooth-scroll)
-(smooth-scroll-mode t)
+; (require 'smooth-scroll)
+; (smooth-scroll-mode t)
 
 
 ; {}の中でEnterした場合のみ展開する
@@ -1965,3 +1975,41 @@
 ; ; (autoload 'linum-relative "linum-relative" nil t)
 ; (global-set-key (kbd "<f4>") 'linum-relative-toggle)
 ; ; (linum-relative-toggle)
+
+(global-set-key (kbd "C-c m") 'magit-status)
+
+; http://d.hatena.ne.jp/tarao/20130304/evil_config#plugins
+(evil-mode 1)
+(global-evil-surround-mode 1)
+; (require 'mode-line-color)
+(require 'evil-mode-line)
+; (setq evil-mode-line-format nil)
+(require 'evil-relative-linum)
+(require 'evil-nerd-commenter)
+(evilnc-default-hotkeys)
+(require 'evil-operator-comment)
+(global-evil-operator-comment-mode 1)
+(require 'evil-little-word)
+(require 'evil-textobj-between)
+
+; http://stackoverflow.com/questions/8483182/evil-mode-best-practice
+(define-key evil-normal-state-map [escape] 'keyboard-quit)
+(define-key evil-visual-state-map [escape] 'keyboard-quit)
+(define-key minibuffer-local-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-ns-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-completion-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-must-match-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-isearch-map [escape] 'minibuffer-keyboard-quit)
+
+(define-key evil-insert-state-map "\C-e" 'end-of-line)
+(define-key evil-motion-state-map "\C-e" 'evil-end-of-line)
+(define-key evil-insert-state-map "\C-f" 'evil-forward-char)
+(define-key evil-insert-state-map "\C-f" 'evil-forward-char)
+(define-key evil-insert-state-map "\C-b" 'evil-backward-char)
+(define-key evil-insert-state-map "\C-d" 'evil-delete-char)
+(define-key evil-insert-state-map "\C-n" 'evil-next-line)
+(define-key evil-insert-state-map "\C-p" 'evil-previous-line)
+(define-key evil-insert-state-map "\C-w" 'evil-delete)
+(define-key evil-insert-state-map "\C-y" 'yank)
+(define-key evil-insert-state-map "\C-k" 'kill-line)
+; (define-key evil-normal-state-map (kbd "TAB") 'evil-undefine)
