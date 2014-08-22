@@ -444,7 +444,7 @@
             kill-buffer-query-functions))
 
 (setq revert-without-query '(".*"))
-; (global-auto-revert-mode 1)
+(global-auto-revert-mode 1)
 
 ;;from http://d.hatena.ne.jp/ama-ch/20090114/1231918903
 ;; カーソル位置から行頭まで削除する
