@@ -58,6 +58,7 @@
   ;; evil-surround
   powerline
   all-ext
+  highlight-symbol
     ))
 
 ;; my/favorite-packagesからインストールしていないパッケージをインストール

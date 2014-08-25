@@ -340,7 +340,7 @@
 
 ;;保存時に行末の空白を全て削除
 ;;from http://d.hatena.ne.jp/tototoshi/20101202/1291289625
-(add-hook 'before-save-hook 'delete-trailing-whitespace)
+; (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
 ;;http://masutaka.net/chalow/2011-10-12-1.html
 (global-whitespace-mode 1)
@@ -410,10 +410,10 @@
 (global-set-key (kbd "M-v") 'my-scroll-down)
 (global-set-key (kbd "C-v") 'my-scroll-up)
 
-(global-set-key (kbd "C-S-v") 'scroll-up-1)
-(global-set-key (kbd "M-V") 'scroll-down-1)
-(global-set-key (kbd "C-<down>") 'scroll-up-1)
-(global-set-key (kbd "C-<up>") 'scroll-down-1)
+(global-set-key (kbd "C-S-v") 'scroll-up-line)
+(global-set-key (kbd "M-V") 'scroll-down-line)
+(global-set-key (kbd "C-<down>") 'scroll-up-line)
+(global-set-key (kbd "C-<up>") 'scroll-down-line)
 ;; カーソル位置の保存
 ;; http://www.bookshelf.jp/soft/meadow_31.html
 (setq scroll-preserve-screen-position t)
@@ -546,7 +546,10 @@
 
 ;; 行に飛ぶ
 (global-set-key (kbd "C-c l") 'goto-line)
-(global-set-key (kbd "C-c o") 'occur)
+(global-set-key (kbd "C-c o 1") 'occur)
+(global-set-key (kbd "C-c o 2") 'multi-occur-in-matching-buffers)
+(global-set-key (kbd "C-c o 3") 'helm-occur)
+(global-set-key (kbd "C-c o 4") 'helm-multi-occur)
 (global-set-key (kbd "C-c v") 'revert-buffer)
 
 ; http://shibayu36.hatenablog.com/entry/2012/12/04/111221
@@ -567,6 +570,7 @@
                  (goto-char (mark))
                  (isearch-repeat-forward)))
              ad-do-it))
+(define-key isearch-mode-map (kbd "C-c o") 'isearch-occur)
 
 
 ;;http://flex.ee.uec.ac.jp/texi/faq-jp/faq-jp_130.html
@@ -1450,6 +1454,9 @@
      (vector (current-column))))
    (c-set-offset 'arglist-intro 'ywb-php-lineup-arglist-intro)
    (c-set-offset 'arglist-close 'ywb-php-lineup-arglist-close)
+   (remove-hook 'before-save-hook 'delete-trailing-whitespace)
+   ; http://qiita.com/itiut@github/items/4d74da2412a29ef59c3a
+   (set (make-local-variable 'whitespace-action) nil)
    )
 )
 
@@ -1488,6 +1495,7 @@
     (local-set-key (kbd "C-c b") 'web-beautify-html)
     (local-set-key (kbd "C-c /") 'web-mode-fold-or-unfold)
     (local-set-key (kbd "C-c c") 'web-mode-element-close)
+    (set (make-local-variable 'whitespace-action) nil)
     ))
 
 (add-hook 'web-mode-hook
@@ -1499,7 +1507,6 @@
              (define-key web-mode-map (kbd "M-;") nil)
              (define-key web-mode-map (kbd "C-c c") 'web-mode-element-close)
              (setq web-mode-comment-style 2)
-
              )
           )
 
@@ -1982,3 +1989,8 @@
 
 
 (global-set-key (kbd "C-c a") 'all)
+
+;; 適宜keybindの設定
+(global-set-key (kbd "<f1>") 'highlight-symbol-at-point)
+(global-set-key (kbd "M-<f1>") 'highlight-symbol-remove-all)
+; (setq highlight-symbol-colors '("DarkOrange" "DodgerBlue1" "DeepPink1")) ;; 使いたい色を設定、repeatしてくれる
