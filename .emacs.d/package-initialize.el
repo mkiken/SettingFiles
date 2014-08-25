@@ -54,8 +54,10 @@
   vim-region
   smarty-mode
   ;; linum-relative
-  evil
-  evil-surround
+  ;; evil
+  ;; evil-surround
+  powerline
+  all-ext
     ))
 
 ;; my/favorite-packagesからインストールしていないパッケージをインストール

@@ -906,8 +906,8 @@
 
 ;; for wc mode
 ;; http://www.emacswiki.org/emacs/WordCountMode
-(require 'wc-mode)
-(wc-mode)
+; (require 'wc-mode)
+; (wc-mode)
 
 ; https://github.com/nishikawasasaki/save-frame-posize.el/blob/master/save-frame-posize.el
 (require 'save-frame-posize)
@@ -970,7 +970,7 @@
 (global-set-key "\M-4" 'tabbar-mode)
 ;; http://www.emacswiki.org/emacs/TabBarMode
 ;; *tabbar-display-buffers*以外の*がつくバッファは表示しない
-(setq *tabbar-display-buffers* '("*scratch*" "*Messages*" "*grep*" "*Occur*"))
+(setq *tabbar-display-buffers* '("*scratch*" "*Messages*" "*grep*" "*Occur*" "*All*" "*helm occur*"))
 (setq tabbar-buffer-list-function
       (lambda ()
         (remove-if
@@ -1978,38 +1978,7 @@
 
 (global-set-key (kbd "C-c m") 'magit-status)
 
-; http://d.hatena.ne.jp/tarao/20130304/evil_config#plugins
-(evil-mode 1)
-(global-evil-surround-mode 1)
-; (require 'mode-line-color)
-(require 'evil-mode-line)
-; (setq evil-mode-line-format nil)
-(require 'evil-relative-linum)
-(require 'evil-nerd-commenter)
-(evilnc-default-hotkeys)
-(require 'evil-operator-comment)
-(global-evil-operator-comment-mode 1)
-(require 'evil-little-word)
-(require 'evil-textobj-between)
+(powerline-default-theme)
 
-; http://stackoverflow.com/questions/8483182/evil-mode-best-practice
-(define-key evil-normal-state-map [escape] 'keyboard-quit)
-(define-key evil-visual-state-map [escape] 'keyboard-quit)
-(define-key minibuffer-local-map [escape] 'minibuffer-keyboard-quit)
-(define-key minibuffer-local-ns-map [escape] 'minibuffer-keyboard-quit)
-(define-key minibuffer-local-completion-map [escape] 'minibuffer-keyboard-quit)
-(define-key minibuffer-local-must-match-map [escape] 'minibuffer-keyboard-quit)
-(define-key minibuffer-local-isearch-map [escape] 'minibuffer-keyboard-quit)
 
-(define-key evil-insert-state-map "\C-e" 'end-of-line)
-(define-key evil-motion-state-map "\C-e" 'evil-end-of-line)
-(define-key evil-insert-state-map "\C-f" 'evil-forward-char)
-(define-key evil-insert-state-map "\C-f" 'evil-forward-char)
-(define-key evil-insert-state-map "\C-b" 'evil-backward-char)
-(define-key evil-insert-state-map "\C-d" 'evil-delete-char)
-(define-key evil-insert-state-map "\C-n" 'evil-next-line)
-(define-key evil-insert-state-map "\C-p" 'evil-previous-line)
-(define-key evil-insert-state-map "\C-w" 'evil-delete)
-(define-key evil-insert-state-map "\C-y" 'yank)
-(define-key evil-insert-state-map "\C-k" 'kill-line)
-; (define-key evil-normal-state-map (kbd "TAB") 'evil-undefine)
+(global-set-key (kbd "C-c a") 'all)
