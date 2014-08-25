@@ -498,7 +498,8 @@ alias pins='peco_insert_history'
 # }}}
 
 alias pgco='git branch -a | peco | xargs git checkout'
-alias pgpl='git branch -a | peco | xargs git pull'
+alias pgcob='git branch -a | peco | xargs git checkout -b'
+alias pgpl='git branch -a | peco | xargs git pull origin'
 alias pgps='git branch -a | peco | xargs git push origin'
 alias pgb='git branch -a | peco'
 alias pls='ls -a | peco'
