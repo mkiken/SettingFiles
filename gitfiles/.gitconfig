@@ -4,7 +4,7 @@
   ; name = mkiken
   ; email = mkiken0@gmail.com
 [push]
-	default = matching
+  default = current
 
 ; https://blogs.atlassian.com/2013/06/git-diff/
 [alias]
@@ -96,7 +96,7 @@
 	path = .gitconfig.local
 [difftool "sourcetree"]
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path = 
+	path =
 [mergetool "sourcetree"]
 	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
 	trustExitCode = true

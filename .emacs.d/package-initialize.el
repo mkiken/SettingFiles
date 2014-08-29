@@ -59,6 +59,7 @@
   powerline
   all-ext
   highlight-symbol
+  ag
     ))
 
 ;; my/favorite-packagesからインストールしていないパッケージをインストール

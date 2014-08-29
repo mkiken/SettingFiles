@@ -113,6 +113,25 @@
 			  ("-cdac$" . 1.2)))
 	  )
 	)
+
+	;; PATH
+  (dolist (dir (list
+					; "/sbin"
+					; "/usr/sbin"
+					; "/bin"
+					; "/usr/bin"
+	        "/usr/local/bin"
+	        (expand-file-name "~/bin")
+	        ))
+    ;; exec-path
+    (when (and (file-exists-p dir) (not (member dir exec-path)))
+      (setenv "PATH" (concat dir ":" (getenv "PATH")))
+      (setq exec-path (append (list dir) exec-path))))
+
+  ;; ag
+  (setq ag-highlight-search t)
+  (setq ag-reuse-buffers 't)
+
   )
 
 ;; Settings for Windows
@@ -264,7 +283,8 @@
 (keyboard-translate ?\C-h ?\C-?)
 (define-key global-map (kbd "C-c h") 'help-command)
 
-(define-key global-map (kbd "C-c g") 'grep-find)
+; (define-key global-map (kbd "C-c g") 'grep-find)
+(define-key global-map (kbd "C-c g") 'ag)
 (define-key global-map (kbd "C-c t") 'sr-speedbar-select-window)
 
 ; 削除ファイルをゴミ箱に入れる
@@ -808,6 +828,7 @@
 ; (setq-default flyspell-mode t)
 ; (setq ispell-dictionary "american")
 
+; http://wata.blog.jp/archives/1811534.html
 
 ;;import
 (add-to-list 'load-path "~/.emacs.d/elisp")
@@ -974,7 +995,7 @@
 (global-set-key "\M-4" 'tabbar-mode)
 ;; http://www.emacswiki.org/emacs/TabBarMode
 ;; *tabbar-display-buffers*以外の*がつくバッファは表示しない
-(setq *tabbar-display-buffers* '("*scratch*" "*Messages*" "*grep*" "*Occur*" "*All*" "*helm occur*"))
+(setq *tabbar-display-buffers* '("*scratch*" "*Messages*" "*grep*" "*Occur*" "*All*" "*helm occur*" "*ag search*"))
 (setq tabbar-buffer-list-function
       (lambda ()
         (remove-if
@@ -1845,6 +1866,7 @@
 (add-to-list 'rotate-text-symbols '("before" "after"))
 (add-to-list 'rotate-text-symbols '("BEFORE" "AFTER"))
 (add-to-list 'rotate-text-symbols '("t" "nil"))
+(add-to-list 'rotate-text-symbols '("TRUE" "FALSE"))
 
 ; http://qiita.com/takc923/items/c3d64b55fc4f3a3b0838
 (require 'undo-tree)
@@ -1878,7 +1900,7 @@
 (require 'yasnippet)
 (setq yas-snippet-dirs
       '(
-          ;"~/.emacs.d/snippets"                 ;; personal snippets
+          "~/.emacs.d/snippets"                 ;; personal snippets
         ; "~/.emacs.d/elisp/some/collection/"           ;; foo-mode and bar-mode snippet collection
         "~/.emacs.d/elisp/yasnippet/yasmate/snippets" ;; the yasmate collection
         "~/.emacs.d/elisp/yasnippet/snippets"         ;; the default collection
