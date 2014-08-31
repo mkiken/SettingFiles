@@ -437,15 +437,19 @@ if exists peco; then
 
   # http://www.pupha.net/archives/2267/
   function peco-select-history() {
-    local cmd=$(history | tail -r | peco)
-    r ${cmd}
+    local cmd=`history | tail -r | peco | cut -d ' ' -f 1`
+    if [ "${cmd}" != "" ]; then
+      r ${cmd}
+      return 0;
+    fi
+    return -1;
   }
 
-zle -N peco_select_history
-alias phis='peco-select-history'
+zle -N peco-select-history
+alias phist='peco-select-history'
 
 function p(){
-  $@ | peco
+  $@ | peco | pbcopy
 }
 
     alias -g P='| peco'
@@ -497,10 +501,10 @@ zle -N peco_insert_history
 alias pins='peco_insert_history'
 # }}}
 
-alias pgco='git branch -a | peco | xargs git checkout'
-alias pgcob='git branch -a | peco | xargs git checkout -b'
-alias pgpl='git branch -a | peco | xargs git pull origin'
-alias pgps='git branch -a | peco | xargs git push origin'
+alias pgco='br_fmt | xargs git checkout'
+alias pgcob='br_fmt | xargs git checkout -b'
+alias pgpl='br_fmt | xargs git pull origin'
+alias pgps='br_fmt | xargs git push origin'
 alias pgb='git branch -a | peco'
 alias pls='ls -a | peco'
 alias pfind='find -L . -name "*" | peco'
@@ -509,7 +513,11 @@ function pcat(){
   cat -n $@ | peco
 }
 
-fi
+# Gitのブランチをpecoで扱えるように整形
+function br_fmt(){
+  git branch -a | peco | xargs echo | sed -e 's/\*//' | sed -e 's/remotes\/origin\///'
+}
 
+fi
 
 # zle -N zle-keymap-select auto-fu-zle-keymap-select

@@ -828,7 +828,9 @@
 ; (setq-default flyspell-mode t)
 ; (setq ispell-dictionary "american")
 
-; http://wata.blog.jp/archives/1811534.html
+; http://d.hatena.ne.jp/kitokitoki/20100425/p1
+;;Warning: `mapcar' called for effect; use `mapc' or `dolist' instead を防ぐ
+; (setq byte-compile-warnings '(free-vars unresolved callargs redefine obsolete noruntime cl-functions interactive-only make-local unused))
 
 ;;import
 (add-to-list 'load-path "~/.emacs.d/elisp")
@@ -867,12 +869,12 @@
   ; (load-theme 'espresso t)
 ; https://github.com/emacs-jp/replace-colorthemes/blob/master/subdued-theme.el
  ; (load-theme 'aliceblue t)
- ; (load-theme 'charcoal-black t)
+ (load-theme 'charcoal-black t)
  ; (load-theme 'dark-gnus t)
  ; (load-theme 'ramangalahy t)
  ; (load-theme 'subdued t)
  ; (load-theme 'inkpot t)
- (load-theme 'noctilux t)
+ ; (load-theme 'noctilux t)
 
 
 
@@ -1478,6 +1480,8 @@
    (remove-hook 'before-save-hook 'delete-trailing-whitespace)
    ; http://qiita.com/itiut@github/items/4d74da2412a29ef59c3a
    (set (make-local-variable 'whitespace-action) nil)
+   ; http://www.emacswiki.org/emacs/EmacsSyntaxTable
+   (modify-syntax-entry ?$ "$" php-mode-syntax-table)
    )
 )
 
@@ -1517,6 +1521,7 @@
     (local-set-key (kbd "C-c /") 'web-mode-fold-or-unfold)
     (local-set-key (kbd "C-c c") 'web-mode-element-close)
     (set (make-local-variable 'whitespace-action) nil)
+    (modify-syntax-entry ?$ "$" smarty-mode-syntax-table)
     ))
 
 (add-hook 'web-mode-hook
@@ -2016,3 +2021,9 @@
 (global-set-key (kbd "<f1>") 'highlight-symbol-at-point)
 (global-set-key (kbd "M-<f1>") 'highlight-symbol-remove-all)
 ; (setq highlight-symbol-colors '("DarkOrange" "DodgerBlue1" "DeepPink1")) ;; 使いたい色を設定、repeatしてくれる
+
+(require 'recentf-ext)
+(setq recentf-max-saved-items 100) ; 100個まで履歴として保存
+(global-set-key (kbd "C-x o") 'recentf-open-files)
+(setq recentf-exclude '(".recentf"))
+(setq recentf-auto-cleanup 10)

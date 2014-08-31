@@ -60,6 +60,7 @@
   all-ext
   highlight-symbol
   ag
+  recentf-ext
     ))
 
 ;; my/favorite-packagesからインストールしていないパッケージをインストール

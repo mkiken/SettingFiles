@@ -498,7 +498,7 @@ noremap <Leader>o :Occur<CR>
  Bundle 'thinca/vim-qfreplace'
  Bundle 'Lokaltog/vim-powerline'
  Bundle 'tpope/vim-fugitive'
-
+ Bundle 'rking/ag.vim'
 
  " <Space>mに、switch.vimをマッピング
  " nnoremap <Space>m  <Plug>(switch-next)
