@@ -1243,7 +1243,8 @@
 (add-hook 'tex-mode-hook
           '(lambda ()
 			 (local-set-key "\C-j" 'newline-from-anywhere)
-			 (local-set-key (kbd "$") 'skeleton-pair-insert-maybe)
+       ; (local-set-key (kbd "$") 'skeleton-pair-insert-maybe)
+       (modify-syntax-entry ?$ "$" tex-mode-syntax-table)
 			 (setq ac-auto-start nil) ;Texモードでは自動補完OFF
 			 )
 		  )
@@ -1481,7 +1482,7 @@
    ; http://qiita.com/itiut@github/items/4d74da2412a29ef59c3a
    (set (make-local-variable 'whitespace-action) nil)
    ; http://www.emacswiki.org/emacs/EmacsSyntaxTable
-   (modify-syntax-entry ?$ "$" php-mode-syntax-table)
+   (modify-syntax-entry ?$ "." php-mode-syntax-table)
    )
 )
 
@@ -1521,7 +1522,7 @@
     (local-set-key (kbd "C-c /") 'web-mode-fold-or-unfold)
     (local-set-key (kbd "C-c c") 'web-mode-element-close)
     (set (make-local-variable 'whitespace-action) nil)
-    (modify-syntax-entry ?$ "$" smarty-mode-syntax-table)
+    (modify-syntax-entry ?$ "." smarty-mode-syntax-table)
     ))
 
 (add-hook 'web-mode-hook

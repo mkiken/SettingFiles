@@ -171,7 +171,12 @@ function! s:remove_dust()
     call setpos(".", cursor)
     unlet cursor
 endfunction
-autocmd BufWritePre * call <SID>remove_dust()
+
+" http://stackoverflow.com/questions/6496778/vim-run-autocmd-on-all-filetypes-except
+let remove_dust_blacklist = ['php', 'smarty']
+autocmd BufWritePre * if index(remove_dust_blacklist, &ft) < 0 | call <SID>remove_dust()
+" autocmd BufWritePre * call <SID>remove_dust()
+
 
 " http://vim-users.jp/2009/09/hack69/
 set autochdir
@@ -499,6 +504,7 @@ noremap <Leader>o :Occur<CR>
  Bundle 'Lokaltog/vim-powerline'
  Bundle 'tpope/vim-fugitive'
  Bundle 'rking/ag.vim'
+ Bundle 'Shougo/neomru.vim'
 
  " <Space>mに、switch.vimをマッピング
  " nnoremap <Space>m  <Plug>(switch-next)
@@ -617,7 +623,7 @@ nnoremap <silent> [unite]t :<C-u>Unite<Space>buffer<CR>
 nnoremap <silent> [unite]b :<C-u>Unite<Space>bookmark<CR>
 nnoremap <silent> [unite]r :<C-u>Unite<Space>file_mru<CR>
 nnoremap <silent> [unite]d :<C-u>UniteWithBufferDir file<CR>
-nnoremap <silent> [unite]a :<C-u>Unite<Space>file_rec<CR>
+nnoremap <silent> [unite]o :<C-u>Unite<Space>file_rec<CR>
 nnoremap <silent> [unite]f :<C-u>UniteWithBufferDir -buffer-name=files file<CR>
 " vimprocがいるらしい http://mba-hack.blogspot.jp/2013/03/unitevim.html
 " nnoremap <silent> [unite]g :<C-u>Unite grep:. -buffer-name=search-buffer<CR>
@@ -679,6 +685,16 @@ endfunction"}}}
 "   let dir = unite#util#path2project_directory(expand('%'))
 "   execute 'Unite' opts 'file_rec:' . dir
 " endfunction
+
+" if executable('ag')
+"     " Use ag in unite grep source.
+"     let g:unite_source_grep_command = 'ag'
+"     let g:unite_source_grep_recursive_opt = 'HRn'
+"     let g:unite_source_grep_default_opts =
+"     \ '--line-numbers --nocolor --nogroup --hidden --ignore ' .
+"     \  '''.hg'' --ignore ''.svn'' --ignore ''.git'' --ignore ''.bzr'''
+" endif
+
 
 
 " let g:indent_guides_enable_on_vim_startup = 1
@@ -827,7 +843,7 @@ let g:expand_region_text_objects = {
 let g:neocomplete#enable_at_startup = 1
 
 " 自動で補完しない
-let g:neocomplete#disable_auto_complete = 1
+" let g:neocomplete#disable_auto_complete = 1
 
 " Use smartcase.
 let g:neocomplete#enable_smart_case = 1
@@ -951,7 +967,8 @@ if has('conceal')
 endif
 
 " Tell Neosnippet about the other snippets
-let g:neosnippet#snippets_directory='~/.vim/bundle/vim-snippets/snippets'
+" let g:neosnippet#snippets_directory='~/.vim/bundle/vim-snippets/snippets'
+let g:neosnippet#snippets_directory='~/.vim/snippets'
 
 
 let g:user_emmet_leader_key='<C-Z>'
