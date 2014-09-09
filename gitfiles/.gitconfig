@@ -77,6 +77,8 @@
   vdf= difftool --tool=vimdiff --no-prompt --dir-diff
 	vmodified = difftool --tool=vimdiff --no-prompt --dir-diff --diff-filter=M
 
+	remoterm = push --delete origin
+
 [color]
 	ui = auto
 [core]

@@ -243,6 +243,7 @@ nnoremap <Up>   gk
 nnoremap O :<C-u>call append(expand('.'), '')<Cr>j
 nnoremap <C-Tab> gt
 nnoremap <C-S-Tab> gT
+nnoremap gr gT
 " nnoremap <C-S-Tab> gT
 
 " Gはファイルの終端に移動
@@ -512,7 +513,9 @@ noremap <Leader>o :Occur<CR>
  let g:switch_custom_definitions =
     \ [
     \   ['before', 'after'],
-    \   ['t', 'nil']
+    \   ['t', 'nil'],
+    \   ['public', 'protected', 'private'],
+    \   ['TRUE', 'FALSE']
     \ ]
 
 " for pathogen
@@ -843,7 +846,7 @@ let g:expand_region_text_objects = {
 let g:neocomplete#enable_at_startup = 1
 
 " 自動で補完しない
-" let g:neocomplete#disable_auto_complete = 1
+let g:neocomplete#disable_auto_complete = 1
 
 " Use smartcase.
 let g:neocomplete#enable_smart_case = 1
