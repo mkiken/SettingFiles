@@ -9422,7 +9422,7 @@
 	<key>NSWindow Frame Preferences</key>
 	<string>594 317 924 485 0 0 1920 1058 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>854 409 570 451 0 0 1920 1058 </string>
+	<string>665 324 625 726 0 0 1920 1058 </string>
 	<key>NeverWarnAboutShortLivedSessions_6DE05245-ABC6-4133-86ED-9837935D9C3A</key>
 	<true/>
 	<key>New Bookmarks</key>
@@ -9764,9 +9764,9 @@
 				<key>0xf700-0x220000</key>
 				<dict>
 					<key>Action</key>
-					<integer>10</integer>
+					<integer>20</integer>
 					<key>Text</key>
-					<string>[1;2A</string>
+					<string></string>
 				</dict>
 				<key>0xf700-0x240000</key>
 				<dict>
@@ -9792,9 +9792,9 @@
 				<key>0xf701-0x220000</key>
 				<dict>
 					<key>Action</key>
-					<integer>10</integer>
+					<integer>21</integer>
 					<key>Text</key>
-					<string>[1;2B</string>
+					<string></string>
 				</dict>
 				<key>0xf701-0x240000</key>
 				<dict>
@@ -9820,7 +9820,7 @@
 				<key>0xf702-0x220000</key>
 				<dict>
 					<key>Action</key>
-					<integer>30</integer>
+					<integer>18</integer>
 					<key>Text</key>
 					<string></string>
 				</dict>
@@ -9848,7 +9848,7 @@
 				<key>0xf703-0x220000</key>
 				<dict>
 					<key>Action</key>
-					<integer>31</integer>
+					<integer>19</integer>
 					<key>Text</key>
 					<string></string>
 				</dict>
@@ -10974,7 +10974,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2014-08-25T00:58:17Z</date>
+	<date>2014-09-08T01:08:55Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Show Toolbelt</key>
