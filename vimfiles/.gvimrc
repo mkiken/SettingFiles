@@ -22,10 +22,10 @@
 " colorscheme wombat
 " colorscheme BusyBee
 " colorscheme badwolf
-" colorscheme codeschool
+colorscheme codeschool
 " colorscheme lucius
 " colorscheme zenburn
-  colorscheme macvim
+" colorscheme macvim
 
 
 

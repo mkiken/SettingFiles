@@ -366,8 +366,8 @@ bindkey "^[r" redo
 
 # altで単語移動
 # http://superuser.com/questions/301029/problem-with-ctrl-left-right-bindings-in-oh-my-zsh
-# bindkey "[C" emacs-forward-word   #control left
-# bindkey "[D" emacs-backward-word        #control right
+bindkey "[C" emacs-forward-word   #control left
+bindkey "[D" emacs-backward-word        #control right
 
 #=============================
 # source auto-fu.zsh

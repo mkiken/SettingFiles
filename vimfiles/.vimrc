@@ -349,6 +349,10 @@ inoremap <C-Right> <Esc>gt
 inoremap <C-j> <ESC>$a<CR>
 " nnoremap <C-j> $a<CR>
 
+" http://easyramble.com/disable-vim-auto-comment.html
+" set formatoptions-=ro
+autocmd FileType * setlocal formatoptions-=ro
+
 " http://notachi.hatenadiary.jp/entry/2012/11/13/181810
 " カーソル移動
 inoremap <C-p> <Up>
@@ -506,6 +510,9 @@ noremap <Leader>o :Occur<CR>
  Bundle 'tpope/vim-fugitive'
  Bundle 'rking/ag.vim'
  Bundle 'Shougo/neomru.vim'
+ Bundle 'thinca/vim-visualstar'
+ Bundle 't9md/vim-quickhl'
+ Bundle 'osyo-manga/vim-brightest'
 
  " <Space>mに、switch.vimをマッピング
  " nnoremap <Space>m  <Plug>(switch-next)
@@ -846,16 +853,18 @@ let g:expand_region_text_objects = {
 let g:neocomplete#enable_at_startup = 1
 
 " 自動で補完しない
-let g:neocomplete#disable_auto_complete = 1
+" let g:neocomplete#disable_auto_complete = 1
 
 " Use smartcase.
 let g:neocomplete#enable_smart_case = 1
 " Set minimum syntax keyword length.
-let g:neocomplete#sources#syntax#min_keyword_length = 2
+" https://twitter.com/dictav/status/287435117469761536
+let g:neocomplete#sources#syntax#min_keyword_length = 3
+let g:neocomplete#auto_completion_start_length = 3
 let g:neocomplete#lock_buffer_name_pattern = '\*ku\*'
 
 " 日本語入力中に補完されると日本語が打ち切れない（意味ない？）
-" let g:neocomplete#lock_iminsert = 1
+let g:neocomplete#lock_iminsert = 1
 
 
 " Define dictionary.
@@ -884,15 +893,15 @@ inoremap <expr><C-Space>     neocomplete#start_manual_complete()
 
 " Recommended key-mappings.
 " <CR>: close popup and save indent.
-" inoremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
-" function! s:my_cr_function()
-  " return neocomplete#close_popup() . "\<CR>"
-  " For no inserting <CR> key.
-  " return pumvisible() ? neocomplete#close_popup() : "\<CR>"
-" endfunction
+" inoremap <silent> <TAB> <C-r>=<SID>my_tab_function()<CR>
+function! s:my_tab_function()
+  return pumvisible() ? neocomplete#close_popup() : "\<TAB>"
+endfunction
+" imap <expr> <CR> pumvisible() ?
+      " \ neocomplete#close_popup() : "\<Plug>(smartinput_CR)"
 " <C-h>, <BS>: close popup and delete backword char.
-" inoremap <expr><C-h> neocomplete#smart_close_popup()."\<C-h>"
-" inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
+inoremap <expr><C-h> neocomplete#smart_close_popup()."\<C-h>"
+inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
 " inoremap <expr><C-y>  neocomplete#close_popup()
 " inoremap <expr><C-e>  neocomplete#cancel_popup()
 " Close popup by <Space>.
@@ -904,7 +913,7 @@ inoremap <expr><C-Space>     neocomplete#start_manual_complete()
 " inoremap <expr><Up>    neocomplete#close_popup() . "\<Up>"
 " inoremap <expr><Down>  neocomplete#close_popup() . "\<Down>"
 " Or set this.
-"let g:neocomplete#enable_cursor_hold_i = 1
+let g:neocomplete#enable_cursor_hold_i = 1
 " Or set this.
 " let g:neocomplete#enable_insert_char_pre = 1
 
@@ -913,7 +922,7 @@ inoremap <expr><C-Space>     neocomplete#start_manual_complete()
 
 " Shell like behavior(not recommended).
 "set completeopt+=longest
-"let g:neocomplete#enable_auto_select = 1
+let g:neocomplete#enable_auto_select = 1
 "let g:neocomplete#disable_auto_complete = 1
 "inoremap <expr><TAB>  pumvisible() ? "\<Down>" : "\<C-x>\<C-u>"
 
@@ -959,7 +968,8 @@ xmap <C-k>     <Plug>(neosnippet_expand_target)
 " SuperTab like snippets behavior.
 imap <expr><TAB> neosnippet#expandable_or_jumpable() ?
 \ "\<Plug>(neosnippet_expand_or_jump)"
-\: pumvisible() ? "\<C-n>" : "\<TAB>"
+\: pumvisible() ? "\<ESC>a" : "\<TAB>"
+
 smap <expr><TAB> neosnippet#expandable_or_jumpable() ?
 \ "\<Plug>(neosnippet_expand_or_jump)"
 \: "\<TAB>"
@@ -1006,3 +1016,18 @@ nnoremap <silent> <Space>gc :Gcommit<CR>
 nnoremap <silent> <Space>gr :Gremove<CR>
 nnoremap <silent> <Space>gm :Gmove<CR>
 nnoremap <silent> <Space>gr :Gread<CR>
+
+" http://books.google.co.jp/books?id=QZSWbc83LfQC&pg=PA108&lpg=PA108&dq=vim+star&source=bl&ots=i5zfo7mhZO&sig=IRCOtnO0RclvQzyMVFLb5VG3ga4&hl=ja&sa=X&ei=cMsNVNvJCore8AWQ54H4BA&ved=0CH4Q6AEwCQ#v=onepage&q=vim%20star&f=false
+map * <Plug>(visualstar-*)N
+map # <Plug>(visualstar-#)N
+
+nmap <Space>m <Plug>(quickhl-manual-this)
+xmap <Space>m <Plug>(quickhl-manual-this)
+nmap <Space>M <Plug>(quickhl-manual-reset)
+xmap <Space>M <Plug>(quickhl-manual-reset)
+
+" ハイライトするグループ名を設定します
+" アンダーラインで表示する
+let g:brightest#highlight = {
+\   "group" : "BrightestUnderline"
+\}
