@@ -50,11 +50,11 @@ alias allfile='defaults write com.apple.finder AppleShowAllFiles'
 # for server
 alias ap='sudo apachectl'
 alias phpini='${MACVIM} --remote-tab-silent /etc/php.ini'
-alias phpini2='sudo vi /etc/php.ini'
+alias phpini2='sudo vim /etc/php.ini'
 alias cdphp='cd /Library/WebServer/Documents/'
 alias cdphpl='cd /Users/${USER}/Sites'
 alias httpdconf='vi /private/etc/apache2/httpd.conf'
-alias httpdconf2='sudo vi /private/etc/apache2/httpd.conf'
+alias httpdconf2='sudo vim /private/etc/apache2/httpd.conf'
 ;;
 
 # --------------- Linux ---------------

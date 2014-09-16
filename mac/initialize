@@ -81,6 +81,10 @@ echo 'backup directory for emacs and vim made.'
 # install commands
 
 ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"
+# for permission of Homebrew
+sudo chown -R $USER /usr/local/
+sudo chown -R $USER /Library/Caches/Homebrew/
+
 brew install git
 brew install zsh
 brew install rmtrash
@@ -100,10 +104,6 @@ brew install ag
 
 # touch ~/.z
 touch ~/.cd_history_file
-
-# for permission of Homebrew
-sudo chown -R $USER /usr/local/
-sudo chown -R $USER /Library/Caches/Homebrew/
 
 # ln -s /usr/local/Cellar/git/2.0.1/share/git-core/contrib/diff-highlight/diff-highlight  /usr/local/bin
 1
