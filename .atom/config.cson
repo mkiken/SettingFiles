@@ -5,6 +5,7 @@
   'softWrapAtPreferredLineLength': true
   'preferredLineLength': 120
   'softWrap': true
+  'invisibles': {}
 'core':
   'disabledPackages': [
     'turbo-javascript'
@@ -14,10 +15,6 @@
     'metrics'
     'feedback'
     'atom-lint'
-  ]
-  'themes': [
-    'atom-dark-ui'
-    'tomorrow-night-eighties-syntax'
   ]
 'exception-reporting':
   'userId': '0a7c8ad7-7803-a619-cd7e-9c76b0560ed6'
@@ -40,3 +37,5 @@
 'linter':
   'showStatusBarWhenCursorIsInErrorRange': true
   'lintOnChangeInterval': 3000
+'whitespace':
+  'removeTrailingWhitespace': false

@@ -108,6 +108,7 @@ alias jsbeautifyrc='vi ~/.jsbeautifyrc'
 alias editorconfig='vi ~/.editorconfig'
 alias tmuxconf='em ~/.tmux.conf'
 alias macinit='vi ${SET}/mac/initialize'
+alias macupdate='vi ${SET}/mac/update'
 
 #shortc cut for git
 alias g='noglob git'
@@ -145,6 +146,7 @@ alias gba='gb -a'
 alias gstd='gst drop'
 alias gl1='gl --oneline'
 alias gmv='g mv'
+alias gbrsync='git fetch --prune'
 # alias gbd='gb -d'
 
 function gsync(){

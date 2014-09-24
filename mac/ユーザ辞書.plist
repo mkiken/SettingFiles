@@ -52,6 +52,14 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>(;´Д`)ｹﾞﾛｹﾞﾛ</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+		<key>timestamp</key>
+		<integer>1411542397</integer>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>（；ﾟДﾟ）</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
@@ -188,6 +196,14 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>L(・∀・ L) ｵｰｲ　　(」・∀・)」 ｵｰｲ</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+		<key>timestamp</key>
+		<integer>1411542385</integer>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>m(_ _)m</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
@@ -209,6 +225,14 @@
 		<string>かおもじ</string>
 		<key>timestamp</key>
 		<integer>1408622648</integer>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>ヮ(ﾟдﾟ)ォ!</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+		<key>timestamp</key>
+		<integer>1411542408</integer>
 	</dict>
 </array>
 </plist>

@@ -46,7 +46,7 @@
   'ctrl-;': 'editor:toggle-line-comments'
   'alt-;': 'editor:toggle-line-comments'
 
-'.vim-mode.command-mode':
+'.editor.vim-mode:not(.insert-mode)':
   'ctrl-a': 'emmet:increment-number-by-1'
   'ctrl-x': 'emmet:decrement-number-by-1'
   # 'ctrl-d': 'core:page-down'
@@ -56,6 +56,7 @@
   '%': 'bracket-matcher:go-to-matching-bracket'
   'O': 'editor:newline-below'
   'ctrl-d': 'core:page-down'
+  'g r': 'pane:show-previous-item'
 
 
 

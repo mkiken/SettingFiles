@@ -9420,7 +9420,7 @@
 	<key>NSWindow Frame NSColorPanel</key>
 	<string>1167 272 201 309 0 0 1920 1058 </string>
 	<key>NSWindow Frame Preferences</key>
-	<string>594 317 924 485 0 0 1920 1058 </string>
+	<string>675 471 924 485 0 0 1920 1058 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
 	<string>665 324 625 726 0 0 1920 1058 </string>
 	<key>NeverWarnAboutShortLivedSessions_6DE05245-ABC6-4133-86ED-9837935D9C3A</key>
@@ -10011,7 +10011,7 @@
 			<key>Screen</key>
 			<integer>-1</integer>
 			<key>Scrollback Lines</key>
-			<integer>5000</integer>
+			<integer>10000</integer>
 			<key>Scrollback With Status Bar</key>
 			<true/>
 			<key>Scrollback in Alternate Screen</key>
@@ -10974,7 +10974,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2014-09-08T01:08:55Z</date>
+	<date>2014-09-18T02:04:40Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Show Toolbelt</key>
