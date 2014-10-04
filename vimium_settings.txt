@@ -15,3 +15,8 @@ map , previousTab
 map r reload
 map ; goForward
 map - goBack
+map gr previousTab
+map H scrollLeft
+map L scrollRight
+map J scrollDown
+map K scrollUp

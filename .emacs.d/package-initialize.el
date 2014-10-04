@@ -15,7 +15,7 @@
     ; flycheck flymake-jslint
 
     ;;;; don't  use!
-    ; helm
+    helm
     ; popwin
     ; indent-guide
     ; scala-mode2

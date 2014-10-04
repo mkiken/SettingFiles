@@ -1641,7 +1641,7 @@
 
 ;; http://emacs.tsutomuonoda.com/emacs-anything-el-helm-mode-install/
 ;; for Helm(Anything)
-(add-to-list 'load-path "~/.emacs.d/elisp/helm")
+; (add-to-list 'load-path "~/.emacs.d/elisp/helm")
 (require 'helm-config)
 ;; コマンド補完
 (helm-mode 1)
@@ -1653,12 +1653,12 @@
 ;;  ・C-z     ：チラ見
 ;;  ・C-c C-f ：helm-follow-mode の ON/OFF
 (global-set-key (kbd "C-x C-b") 'helm-for-files)
-(define-key helm-command-map (kbd "C-;") 'helm-resume)
-(define-key helm-command-map (kbd "y")   'helm-show-kill-ring)
-(define-key helm-command-map (kbd "o")   'helm-occur)
-(define-key helm-command-map (kbd "C-s") 'helm-occur-from-isearch)
-(define-key helm-command-map (kbd "g")   'helm-do-grep) ; C-u 付で起動すると、recursive となる
-(define-key helm-command-map (kbd "t")   'helm-gtags-find-tag)
+; (define-key helm-command-map (kbd "C-;") 'helm-resume)
+; (define-key helm-command-map (kbd "y")   'helm-show-kill-ring)
+; (define-key helm-command-map (kbd "o")   'helm-occur)
+; (define-key helm-command-map (kbd "C-s") 'helm-occur-from-isearch)
+; (define-key helm-command-map (kbd "g")   'helm-do-grep) ; C-u 付で起動すると、recursive となる
+; (define-key helm-command-map (kbd "t")   'helm-gtags-find-tag)
 (global-set-key (kbd "C-c x") 'helm-mini)
 ; find-file-at-pointよりもfind^file
 ; (global-set-key (kbd "C-x C-f") 'find-file)
