@@ -3,7 +3,7 @@ snippet log
 
 
 snippet th
-  $this->${1};
+  $this->${1}->${2};
 
 snippet loadm
   $this->load->model('model/${1}_model');
@@ -11,5 +11,11 @@ snippet loadm
 snippet loadd
   $this->load->model('dao/${1}');
 
+snippet loadf
+  $this->load->model('facade/facade_${1}');
+
 snippet ar
   '${1}' => ${2},
+
+snippet thm
+  $this->${1}_model->${2};

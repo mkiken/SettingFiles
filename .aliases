@@ -146,7 +146,10 @@ alias gba='gb -a'
 alias gstd='gst drop'
 alias gl1='gl --oneline'
 alias gmv='g mv'
+alias grm='g rm'
 alias gbrsync='git fetch --prune'
+alias gbl='g bl'
+alias gprb='g pl --rebase'
 # alias gbd='gb -d'
 
 function gsync(){
