@@ -176,9 +176,14 @@ alias vd='vimdiff'
 alias sz='du -ch -d 1'
 
 # tmux
-# alias t='tmux'
-# alias tks='t kill-server'
-# alias tss='t start-server'
+alias t='tmux'
+alias ta='t a -t'
+alias tn='t new'
+alias tc='t new -s'
+alias tm='tmux rename-session -t'
+alias tk='t kill-session -t'
+alias tks='t kill-server'
+alias tss='t start-server'
 
 # 現在のディレクトリ以下の当てはまるファイルを全て削除する
 # http://www.omnioo.com/omnioolab/2012/07/find.php

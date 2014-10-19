@@ -1,41 +1,44 @@
-'editor':
-  'fontSize': 12
-  'showIndentGuide': true
-  'showInvisibles': true
-  'softWrapAtPreferredLineLength': true
-  'preferredLineLength': 120
-  'softWrap': true
-  'invisibles': {}
-'core':
-  'disabledPackages': [
-    'turbo-javascript'
-    'jslint'
-    'emmet'
-    'script'
-    'metrics'
-    'feedback'
-    'atom-lint'
-  ]
-'exception-reporting':
-  'userId': '0a7c8ad7-7803-a619-cd7e-9c76b0560ed6'
-'welcome':
-  'showOnStartup': false
-'metrics':
-  'userId': '4b0dd0d8e33ff1756775a073b0cdb1d5e4bd19e1'
-'emacs-mode':
-  'hideTabs': false
-  'hideSidebar': false
-  'useEmacsCursor': false
-  'useFuzzyBufferFinder': false
-  'useFuzzyFileFinder': false
-'tree-view':
-  'showOnRightSide': false
-  'hideVcsIgnoredFiles': true
-'woah-there-mousewheel': {}
-'markdown-preview':
-  'breakOnSingleNewline': true
-'linter':
-  'showStatusBarWhenCursorIsInErrorRange': true
-  'lintOnChangeInterval': 3000
-'whitespace':
-  'removeTrailingWhitespace': false
+'global':
+  'editor':
+    'fontSize': 12
+    'showIndentGuide': true
+    'showInvisibles': true
+    'softWrapAtPreferredLineLength': true
+    'preferredLineLength': 120
+    'softWrap': true
+    'invisibles': {}
+  'core':
+    'disabledPackages': [
+      'turbo-javascript'
+      'jslint'
+      'emmet'
+      'script'
+      'metrics'
+      'feedback'
+      'atom-lint'
+    ]
+    'themes': [
+      'atom-dark-ui'
+      'dracula-theme'
+    ]
+  'exception-reporting':
+    'userId': '0a7c8ad7-7803-a619-cd7e-9c76b0560ed6'
+  'welcome':
+    'showOnStartup': false
+  'metrics':
+    'userId': '4b0dd0d8e33ff1756775a073b0cdb1d5e4bd19e1'
+  'emacs-mode':
+    'hideTabs': false
+    'hideSidebar': false
+    'useEmacsCursor': false
+    'useFuzzyBufferFinder': false
+    'useFuzzyFileFinder': false
+  'tree-view':
+    'hideVcsIgnoredFiles': true
+  'markdown-preview':
+    'breakOnSingleNewline': true
+  'linter':
+    'showStatusBarWhenCursorIsInErrorRange': true
+    'lintOnChangeInterval': 3000
+  'whitespace':
+    'removeTrailingWhitespace': false

@@ -10,3 +10,6 @@
 [submodule "submodules/zsh-git-prompt"]
 	path = submodules/zsh-git-prompt
 	url = https://github.com/olivierverdier/zsh-git-prompt
+[submodule "submodules/used-mem"]
+	path = submodules/used-mem
+	url = https://github.com/yonchu/used-mem.git

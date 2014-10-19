@@ -15,14 +15,14 @@
 " colorscheme grb256
 " colorscheme hybrid-light
 " colorscheme inkpot
-" colorscheme jellybeans
+colorscheme jellybeans
 " colorscheme sexy-railscasts
 " colorscheme solarized
 " colorscheme summerfruits256
 " colorscheme wombat
 " colorscheme BusyBee
 " colorscheme badwolf
-colorscheme codeschool
+" colorscheme codeschool
 " colorscheme lucius
 " colorscheme zenburn
 " colorscheme macvim

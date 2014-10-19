@@ -224,7 +224,7 @@ set autochdir
 " inoremap ( ()<LEFT>
 " inoremap " ""<LEFT>
 " inoremap ' ''<LEFT>
-vnoremap { "zdi{<C-R>z}<ESC>
+vnoremap <Leader>{ "zdi{<C-R>z}<ESC>
 vnoremap [ "zdi[<C-R>z]<ESC>
 vnoremap ( "zdi(<C-R>z)<ESC>
 vnoremap " "zdi"<C-R>z"<ESC>
@@ -238,6 +238,13 @@ nnoremap gj j
 nnoremap gk k
 nnoremap <Down> gj
 nnoremap <Up>   gk
+
+" Alt-f, Alt-bを無理矢理マッピング
+" http://stackoverflow.com/questions/7501092/can-i-map-alt-key-in-vim
+" inoremap ƒ <ESC>lwi
+inoremap ƒ <C-o>w
+inoremap ∫ <C-o>b
+
 
 " http://vim-users.jp/2009/08/hack57/
 nnoremap O :<C-u>call append(expand('.'), '')<Cr>j
