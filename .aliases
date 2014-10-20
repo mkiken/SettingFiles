@@ -55,6 +55,8 @@ alias cdphp='cd /Library/WebServer/Documents/'
 alias cdphpl='cd /Users/${USER}/Sites'
 alias httpdconf='vi /private/etc/apache2/httpd.conf'
 alias httpdconf2='sudo vim /private/etc/apache2/httpd.conf'
+alias -g pc='pbcopy'
+alias -g pp='pbpaste'
 ;;
 
 # --------------- Linux ---------------
@@ -122,6 +124,8 @@ alias gps='git push'
 alias gpl='git pull'
 alias gdf='git diff'
 alias gmd='git modified'
+alias gad='git added'
+alias gdl='git deleted'
 alias gpdr='git pull-dry-run'
 alias gcb='git current-branch'
 alias grb='git rb'
@@ -150,6 +154,7 @@ alias grm='g rm'
 alias gbrsync='git fetch --prune'
 alias gbl='g bl'
 alias gprb='g pl --rebase'
+alias gr0='g r0'
 # alias gbd='gb -d'
 
 function gsync(){

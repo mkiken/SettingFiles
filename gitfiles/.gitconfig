@@ -6,6 +6,9 @@
 [push]
   default = current
 
+[pull]
+  default = current
+
 ; https://blogs.atlassian.com/2013/06/git-diff/
 [alias]
 # assumes git.git clone at ~/src/git
@@ -33,6 +36,8 @@
 	zip = archive --format=zip --prefix=archive/ HEAD^ -o archive.zip
 	; http://qiita.com/usamik26/items/bfc2196f510d68b3c2cc
 	modified = diff --diff-filter=M
+	added = diff --diff-filter=A
+	deleted = diff --diff-filter=D
 	; http://qiita.com/sonots/items/fbbcfdba6d7d016fbadb
 	current-branch = rev-parse --abbrev-ref HEAD
 	pull-dry-run  = !"git fetch origin; B=$(git rev-parse --abbrev-ref HEAD); git diff --stat --summary ${B}..origin/${B}"

@@ -9401,7 +9401,7 @@
 	<key>NSScrollAnimationEnabled</key>
 	<false/>
 	<key>NSWindow Frame Preferences</key>
-	<string>0 285 924 485 0 0 1280 778 </string>
+	<string>70 293 924 485 0 0 1280 778 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
 	<string>655 63 625 712 0 0 1280 778 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
@@ -9746,13 +9746,6 @@
 					<key>Text</key>
 					<string>9</string>
 				</dict>
-				<key>0xf700-0x220000</key>
-				<dict>
-					<key>Action</key>
-					<integer>20</integer>
-					<key>Text</key>
-					<string></string>
-				</dict>
 				<key>0xf700-0x240000</key>
 				<dict>
 					<key>Action</key>
@@ -9773,13 +9766,6 @@
 					<integer>11</integer>
 					<key>Text</key>
 					<string>0x1b 0x1b 0x5b 0x41</string>
-				</dict>
-				<key>0xf701-0x220000</key>
-				<dict>
-					<key>Action</key>
-					<integer>21</integer>
-					<key>Text</key>
-					<string></string>
 				</dict>
 				<key>0xf701-0x240000</key>
 				<dict>
@@ -9802,13 +9788,6 @@
 					<key>Text</key>
 					<string>0x1b 0x1b 0x5b 0x42</string>
 				</dict>
-				<key>0xf702-0x220000</key>
-				<dict>
-					<key>Action</key>
-					<integer>18</integer>
-					<key>Text</key>
-					<string></string>
-				</dict>
 				<key>0xf702-0x240000</key>
 				<dict>
 					<key>Action</key>
@@ -9829,13 +9808,6 @@
 					<integer>11</integer>
 					<key>Text</key>
 					<string>0x1b 0x1b 0x5b 0x44</string>
-				</dict>
-				<key>0xf703-0x220000</key>
-				<dict>
-					<key>Action</key>
-					<integer>19</integer>
-					<key>Text</key>
-					<string></string>
 				</dict>
 				<key>0xf703-0x240000</key>
 				<dict>
@@ -10959,7 +10931,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2014-10-19T13:09:38Z</date>
+	<date>2014-10-20T15:10:13Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Show Toolbelt</key>

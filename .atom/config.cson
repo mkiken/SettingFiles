@@ -6,7 +6,6 @@
     'softWrapAtPreferredLineLength': true
     'preferredLineLength': 120
     'softWrap': true
-    'invisibles': {}
   'core':
     'disabledPackages': [
       'turbo-javascript'
