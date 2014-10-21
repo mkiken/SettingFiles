@@ -360,6 +360,10 @@ inoremap <C-j> <ESC>$a<CR>
 " set formatoptions-=ro
 autocmd FileType * setlocal formatoptions-=ro
 
+" visulaモードで選択してからのインデント調整で調整後に選択範囲を開放しない
+vnoremap > >gv
+vnoremap < <gv
+
 " http://notachi.hatenadiary.jp/entry/2012/11/13/181810
 " カーソル移動
 inoremap <C-p> <Up>

@@ -50,6 +50,9 @@ ln -si "${Repo}.atom/config.cson" ~/.atom/config.cson
 echo "ln -si ${Repo}.atom/keymap.cson"
 ln -si "${Repo}.atom/keymap.cson" ~/.atom/keymap.cson
 
+echo "ln -si ${Repo}.atom/snippets.cson"
+ln -si "${Repo}.atom/snippets.cson" ~/.atom/snippets.cson
+
 echo "ln -si ${Repo}.atom/init.coffee"
 ln -si "${Repo}.atom/init.coffee" ~/.atom/init.coffee
 

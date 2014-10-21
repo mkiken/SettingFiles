@@ -35,6 +35,7 @@
   'ctrl-d': 'core:delete'
   'ctrl-[': 'bracket-matcher:go-to-matching-bracket'
   'ctrl-alt-[': 'bracket-matcher:select-inside-brackets'
+  # 'f4': 'relative-numbers:toggle'
 
 '.platform-darwin, .platform-darwin .command-palette .editor .vim-mode':
   'alt-x': 'command-palette:toggle'
