@@ -156,6 +156,7 @@ alias gbl='g bl'
 alias gprb='g pl --rebase'
 alias gr0='g r0'
 # alias gbd='gb -d'
+alias gcl='g cl'
 
 function gsync(){
 	git pull

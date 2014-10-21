@@ -13,3 +13,6 @@
 [submodule "submodules/used-mem"]
 	path = submodules/used-mem
 	url = https://github.com/yonchu/used-mem.git
+[submodule "submodules/zsh-syntax-highlighting"]
+	path = submodules/zsh-syntax-highlighting
+	url = git://github.com/zsh-users/zsh-syntax-highlighting.git

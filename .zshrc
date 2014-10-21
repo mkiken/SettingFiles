@@ -525,3 +525,6 @@ function br_fmt(){
 fi
 
 # zle -N zle-keymap-select auto-fu-zle-keymap-select
+if [ -f ${SET}submodules/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
+  source ${SET}submodules/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fi
