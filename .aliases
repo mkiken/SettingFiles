@@ -121,7 +121,7 @@ alias gaa='git add .'
 alias gcm='git commit'
 alias gci='git commit'
 alias gps='git push'
-alias gpl='git pull'
+# alias gpl='git current-branch | git pull origin'
 alias gdf='git diff'
 alias gmd='git modified'
 alias gad='git added'
@@ -153,7 +153,7 @@ alias gmv='g mv'
 alias grm='g rm'
 alias gbrsync='git fetch --prune'
 alias gbl='g bl'
-alias gprb='g pl --rebase'
+# alias gprb='g pl --rebase'
 alias gr0='g r0'
 # alias gbd='gb -d'
 alias gcl='g cl'
@@ -161,10 +161,29 @@ alias gsuu='g s -s | grep "^UU"'
 alias gsa='g s -s | grep "^A"'
 alias gsm='g s -s | grep "^M"'
 alias gsd='g s -s | grep "^D"'
+alias gcoo='gco --ours'
+alias gcot='gco --theirs'
 
 function gsync(){
 	git pull
 	git smupdate
+}
+
+function gpl(){
+  branch=`g current-branch`
+  remote=`g remote`
+  g pl "${remote}" "${branch}"
+}
+
+function gprb(){
+  branch=`g current-branch`
+  remote=`g remote`
+  g pl --rebase "${remote}" "${branch}"
+}
+
+function gbm(){
+  branch=`g current-branch`
+  g b -m "${branch}" $@
 }
 
 #shortcut for Application
