@@ -157,6 +157,10 @@ alias gprb='g pl --rebase'
 alias gr0='g r0'
 # alias gbd='gb -d'
 alias gcl='g cl'
+alias gsuu='g s -s | grep "^UU"'
+alias gsa='g s -s | grep "^A"'
+alias gsm='g s -s | grep "^M"'
+alias gsd='g s -s | grep "^D"'
 
 function gsync(){
 	git pull
