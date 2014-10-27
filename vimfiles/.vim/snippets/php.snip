@@ -1,12 +1,35 @@
 snippet log
   logger()->info(${1});
 
+snippet logw
+  logger()->warn(${1});
+
+snippet logn
+  logger()->notice(${1});
+
+snippet loge
+  logger()->error(${1});
+
+snippet logd
+  logger()->debug(${1});
 
 snippet th
   $this->${1};
 
 snippet th2
   $this->${1}->${2};
+
+snippet thm
+  $this->${1}_model->${2};
+
+snippet thr
+  $this->redis->${1};
+
+snippet thmem
+  $this->memcache->${1};
+
+snippet thmemm
+  $this->memcachemanage->${1};
 
 snippet loadm
   $this->load->model('model/${1}_model');
@@ -20,11 +43,11 @@ snippet loadf
 snippet ar
   '${1}' => ${2},
 
-snippet thm
-  $this->${1}_model->${2};
-
 snippet vd
   var_dump(${1});
 
 snippet pf
   printf("${1}");
+
+snippet ae
+  throw new ApplicationException('${1}');

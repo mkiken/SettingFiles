@@ -14,6 +14,7 @@ alias ll='ls -AFThl'
 alias vi='env LANG=ja_JP.UTF-8 ${MACVIM} --remote-tab-silent'
 alias vs='env LANG=ja_JP.UTF-8 ${MACVIM}'
 alias vimdiff='env LANG=ja_JP.UTF-8 ${MACVIM}diff'
+alias pg='sudo purge'
 
 function em(){
 	open -a /Applications/Emacs.app "$@"
