@@ -15,7 +15,9 @@ typeset -U path
 # http://www.emacswiki.org/emacs/ColorThemeQuestions
 export TERM=xterm-256color
 
-
+# export LESS='-R'
+export LESS='-R --no-init --quit-if-one-screen --RAW-CONTROL-CHARS'
+# export LESSOPEN='| /usr/local/bin/src-hilite-lesspipe.sh %s'
 
 case "${OSTYPE}" in
   # --------------- Mac(Unix) ---------------
@@ -269,7 +271,7 @@ zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 
 #grepの結果に色を付ける
 #http://d.hatena.ne.jp/bubbles/20081210/1228918665
-export GREP_OPTIONS='--color=always'
+export GREP_OPTIONS='--with-filename --line-number --color=always'
 
 # 補完に関するオプション
 # http://voidy21.hatenablog.jp/entry/20090902/1251918174
@@ -529,3 +531,4 @@ fi
 if [ -f ${SET}submodules/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
   source ${SET}submodules/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
+

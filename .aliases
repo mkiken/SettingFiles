@@ -153,7 +153,6 @@ alias gl1='gl --oneline'
 alias gmv='g mv'
 alias grm='g rm'
 alias gbrsync='git fetch --prune'
-alias gbl='g bl'
 # alias gprb='g pl --rebase'
 alias gr0='g r0'
 # alias gbd='gb -d'
@@ -165,9 +164,21 @@ alias gsd='g s -s | grep "^D"'
 alias gcoo='gco --ours'
 alias gcot='gco --theirs'
 
+function lessc(){
+  less | /usr/local/bin/src-hilite-lesspipe.sh $1
+}
+
+function gbl(){
+  g bl $@ | gsed -f "${SET}sedfiles/colorize_git_blame.sed" | less
+}
+
+function tflog(){
+  tail -f $@ | gsed -f "${SET}sedfiles/colorize_log.sed"
+}
+
 function gsync(){
-	git pull
-	git smupdate
+  git pull
+  git smupdate
 }
 
 function gpl(){
@@ -286,3 +297,4 @@ function ghca(){
                 fi
 }
 
+alias ag='ag -m 100000 --color'

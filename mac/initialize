@@ -60,7 +60,7 @@ echo "ln -si ${Repo}.atom/styles.less"
 ln -si "${Repo}.atom/styles.less" ~/.atom/styles.less
 
 # echo "ln -si ${Repo}.tmux.conf"
-# ln -si "${Repo}.tmux.conf" ~/.tmux.conf
+ln -si "${Repo}.tmux.conf" ~/.tmux.conf
 
 echo "ln -si ${Repo}.peco"
 ln -si "${Repo}.peco" ~
@@ -104,6 +104,8 @@ brew install reattach-to-user-namespace
 brew tap peco/peco
 brew install peco
 brew install ag
+brew install gnu-sed
+brew install source-highlight
 
 # touch ~/.z
 touch ~/.cd_history_file
