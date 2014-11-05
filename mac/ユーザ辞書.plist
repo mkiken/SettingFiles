@@ -124,19 +124,19 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>(*･ω･*)ﾎﾟｯ</string>
-		<key>shortcut</key>
-		<string>かおもじ</string>
-		<key>timestamp</key>
-		<integer>1414395049</integer>
-	</dict>
-	<dict>
-		<key>phrase</key>
 		<string>(*ﾟoﾟ*)</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
 		<key>timestamp</key>
 		<integer>1408622648</integer>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(｀･ω･´)ゞ</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+		<key>timestamp</key>
+		<integer>1415086785</integer>
 	</dict>
 	<dict>
 		<key>phrase</key>
