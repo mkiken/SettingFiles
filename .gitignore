@@ -7,3 +7,4 @@ vimfiles/.vim/bundle/
 .emacs.d/server
 texput.log
 .emacs.d/history
+.DS_Store

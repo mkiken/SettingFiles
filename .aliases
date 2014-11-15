@@ -165,6 +165,9 @@ alias gsm='g s -s | grep "^M"'
 alias gsd='g s -s | grep "^D"'
 alias gcoo='gco --ours'
 alias gcot='gco --theirs'
+alias gac='git add reset HEAD'
+alias gbd='gb -d'
+alias gbD='gb -D'
 
 function lessc(){
   less | /usr/local/bin/src-hilite-lesspipe.sh $1
@@ -187,6 +190,12 @@ function gpl(){
   branch=`g current-branch`
   remote=`g remote`
   g pl "${remote}" "${branch}"
+}
+
+function gdfb(){
+  branch=`g current-branch`
+  remote=`g remote`
+  g df $1 "${branch}" $2
 }
 
 function gprb(){
