@@ -85,7 +85,7 @@ esac
 
 #make new alias
 #alias refresh='source ~/.bashrc'
-alias refresh='source ~/.zshrc'
+alias refresh='source ~/.zshrc;echo "zshrc reloaded.";source ~/.zshenv;echo "zshenv reloaded."'
 
 alias pyserv='python -m SimpleHTTPServer'
 
@@ -125,10 +125,11 @@ alias gcm='git commit'
 alias gci='git commit'
 alias gps='git push'
 # alias gpl='git current-branch | git pull origin'
-alias gdf='git diff'
+alias gd='git diff'
 alias gmd='git modified'
+alias gdc='git diff --cached'
 alias gad='git added'
-alias gdl='git deleted'
+alias gdel='git deleted'
 alias gpdr='git pull-dry-run'
 alias gcb='git current-branch'
 alias grb='git rb'
@@ -168,6 +169,8 @@ alias gcot='gco --theirs'
 alias gac='git add reset HEAD'
 alias gbd='gb -d'
 alias gbD='gb -D'
+alias gdn='gd --name-status'
+alias gdp='ng git diff HEAD^ HEAD'
 
 function lessc(){
   less | /usr/local/bin/src-hilite-lesspipe.sh $1
@@ -194,7 +197,6 @@ function gpl(){
 
 function gdfb(){
   branch=`g current-branch`
-  remote=`g remote`
   g df $1 "${branch}" $2
 }
 

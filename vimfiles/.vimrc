@@ -533,7 +533,9 @@ noremap <Leader>o :Occur<CR>
     \   ['before', 'after'],
     \   ['t', 'nil'],
     \   ['public', 'protected', 'private'],
-    \   ['TRUE', 'FALSE']
+    \   ['TRUE', 'FALSE'],
+    \   ['front', 'back'],
+    \   ['test', 'notest'],
     \ ]
 
 " for pathogen
