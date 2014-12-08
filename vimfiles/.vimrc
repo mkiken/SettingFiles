@@ -31,7 +31,6 @@ set backupdir=~/.backup/vim/backup
 set number
 " カーソルが何行目の何列目に置かれているかを表示する
 set ruler
-set title "編集中のファイル名を表示する
 
 " http://d.hatena.ne.jp/ruicc/20090615/1245086039
 set nocompatible               " be iMproved
@@ -94,7 +93,6 @@ set autoread " ファイル内容が変更されると自動読み込みする
 
 set copyindent
 set preserveindent
-
 
 " タブラインを常に表示
 set showtabline=2
@@ -247,7 +245,7 @@ inoremap ∫ <C-o>b
 
 
 " http://vim-users.jp/2009/08/hack57/
-nnoremap O :<C-u>call append(expand('.'), '')<Cr>j
+nnoremap <Enter> :<C-u>call append(expand('.'), '')<Cr>j
 nnoremap <C-Tab> gt
 nnoremap <C-S-Tab> gT
 nnoremap gr gT
@@ -319,8 +317,6 @@ inoremap <D-7> <C-O>7gt
 inoremap <D-8> <C-O>8gt
 inoremap <D-9> <C-O>9gt
 inoremap <D-0> <C-O>10gt
-
-
 
 " 他のアプリケーションとのコピー&ペースト
 " https://sites.google.com/site/hymd3a/vim/vim-copy-paste
@@ -411,59 +407,29 @@ command! ReloadVimrc  :source ~/.vimrc
 " \     let @/ = get(b:, 'vimrc_pattern', @/)
 " \   | let &l:hlsearch = get(b:, 'vimrc_hlsearch', &l:hlsearch)
 
-" anzu.vim
-" mapping
-nmap n <Plug>(anzu-n-with-echo)
-nmap N <Plug>(anzu-N-with-echo)
-nmap * <Plug>(anzu-star-with-echo)
-nmap # <Plug>(anzu-sharp-with-echo)
 
-" clear status
-nmap <Esc><Esc> :nohl<CR> <Plug>(anzu-clear-search-status)
-
-" https://github.com/bkad/CamelCaseMotion
-map <silent> w <Plug>CamelCaseMotion_w
-map <silent> b <Plug>CamelCaseMotion_b
-map <silent> e <Plug>CamelCaseMotion_e
-sunmap w
-sunmap b
-sunmap e
-" statusline
-" set statusline=%{anzu#search_status()}
 " http://www.daisaru11.jp/blog/2011/08/vim%E3%81%A7%E6%8C%BF%E5%85%A5%E3%83%A2%E3%83%BC%E3%83%89%E3%81%AB%E3%81%AA%E3%82%89%E3%81%9A%E3%81%AB%E6%94%B9%E8%A1%8C%E3%82%92%E5%85%A5%E3%82%8C%E3%82%8B/
 " noremap <CR> o<ESC>
 
 " http://d.hatena.ne.jp/tyru/20130430/vim_resident
 "call singleton#enable()
 
-" ホームポジションに近いキーを使う
-" http://blog.remora.cx/2012/08/vim-easymotion.html
-"let g:EasyMotion_keys='hjklasdfgyuiopqwertnmzxcvbHJKLASDFGYUIOPQWERTNMZXCVB'
-" 「'」 + 何かにマッピング
-"http://haya14busa.com/vim-lazymotion-on-speed/
-let g:EasyMotion_leader_key=";"
-" 1 ストローク選択を優先する
-let g:EasyMotion_grouping=1
-" smartcase
-let g:EasyMotion_smartcase = 1
-let g:EasyMotion_use_migemo = 1
-let g:EasyMotion_startofline=0
-" カラー設定変更
-"hi EasyMotionTarget ctermbg=none ctermfg=red
-"hi EasyMotionShade  ctermbg=none ctermfg=blue
-" map f <Plug>(easymotion-fl)
-map f ;f
-map t ;t
-map F ;F
-map T ;T
-" nmap s <Plug>(easymotion-s)
-
 " for grep
 " http://qiita.com/yuku_t/items/0c1aff03949cb1b8fe6b
 autocmd QuickFixCmdPost *grep* cwindow
 set grepprg=grep\ -nH
 
-noremap <Leader>o :Occur<CR>
+
+" http://qiita.com/Linda_pp/items/ee4bf64b1fe2c0a32cbd
+" 行頭 → 非空白行頭をローテートする
+function! s:rotate_in_line()
+    let c = col('.')
+
+    let cmd = c == 1 ? '^' : '0'
+    execute "normal! ".cmd
+endfunction
+" 0 に割り当て
+nnoremap <silent>0 :<C-u>call <SID>rotate_in_line()<CR>
 
 " for Vundle
 " https://github.com/gmarik/vundle
@@ -524,6 +490,52 @@ noremap <Leader>o :Occur<CR>
  Bundle 'thinca/vim-visualstar'
  Bundle 't9md/vim-quickhl'
  Bundle 'osyo-manga/vim-brightest'
+ Bundle 'rhysd/vim-textobj-ruby'
+
+ " ホームポジションに近いキーを使う
+" http://blog.remora.cx/2012/08/vim-easymotion.html
+"let g:EasyMotion_keys='hjklasdfgyuiopqwertnmzxcvbHJKLASDFGYUIOPQWERTNMZXCVB'
+" 「'」 + 何かにマッピング
+"http://haya14busa.com/vim-lazymotion-on-speed/
+let g:EasyMotion_leader_key=";"
+" 1 ストローク選択を優先する
+let g:EasyMotion_grouping=1
+" smartcase
+let g:EasyMotion_smartcase = 1
+let g:EasyMotion_use_migemo = 1
+let g:EasyMotion_startofline=0
+" カラー設定変更
+"hi EasyMotionTarget ctermbg=none ctermfg=red
+"hi EasyMotionShade  ctermbg=none ctermfg=blue
+" map f <Plug>(easymotion-fl)
+map f ;f
+map t ;t
+map F ;F
+map T ;T
+" nmap s <Plug>(easymotion-s)
+
+
+" anzu.vim
+" mapping
+nmap n <Plug>(anzu-n-with-echo)
+nmap N <Plug>(anzu-N-with-echo)
+nmap * <Plug>(anzu-star-with-echo)
+nmap # <Plug>(anzu-sharp-with-echo)
+" clear status
+nmap <Esc><Esc> :nohl<CR> <Plug>(anzu-clear-search-status)
+" statusline
+" set statusline=%{anzu#search_status()}
+
+
+" https://github.com/bkad/CamelCaseMotion
+map <silent> w <Plug>CamelCaseMotion_w
+map <silent> b <Plug>CamelCaseMotion_b
+map <silent> e <Plug>CamelCaseMotion_e
+sunmap w
+sunmap b
+sunmap e
+
+noremap <Leader>o :Occur<CR>
 
  " <Space>mに、switch.vimをマッピング
  " nnoremap <Space>m  <Plug>(switch-next)
@@ -536,6 +548,7 @@ noremap <Leader>o :Occur<CR>
     \   ['TRUE', 'FALSE'],
     \   ['front', 'back'],
     \   ['test', 'notest'],
+    \   ['start', 'end'],
     \ ]
 
 " for pathogen

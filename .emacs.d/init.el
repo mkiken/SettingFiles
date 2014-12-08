@@ -851,7 +851,7 @@
   ; (load "~/.emacs.d/conf/window-system")
   ;; Color Scheme
   (add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
-  ; (load-theme 'my-monokai t)
+  (load-theme 'my-monokai t)
   ;; (load-theme 'monokai t)
   ;; (load-theme 'molokai t)
   ; (load-theme 'monokai-dark-soda t)
@@ -869,7 +869,7 @@
   ; (load-theme 'espresso t)
 ; https://github.com/emacs-jp/replace-colorthemes/blob/master/subdued-theme.el
  ; (load-theme 'aliceblue t)
- (load-theme 'charcoal-black t)
+ ; (load-theme 'charcoal-black t)
  ; (load-theme 'dark-gnus t)
  ; (load-theme 'ramangalahy t)
  ; (load-theme 'subdued t)
