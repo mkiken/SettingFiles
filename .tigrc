@@ -1,0 +1,15 @@
+# main viewの左端にコミットIDを表示する
+set main-view = id date author commit-title:graph=yes,refs=yes
+
+# 水平分割したウィンドウの下画面サイズを % で指定（行数指定も可）
+set split-view-height = 80%
+
+# 差分の前後の表示行数（diff-context)を指定
+set diff-context = 2
+
+set line-graphics = utf-8
+
+# デフォルトの bind generic G !git gc を無効化する
+bind generic G none
+bind generic g move-first-line
+bind generic G move-last-line

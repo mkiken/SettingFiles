@@ -16,7 +16,7 @@ typeset -U path
 export TERM=xterm-256color
 
 # export LESS='-R'
-export LESS='-R --no-init --quit-if-one-screen --RAW-CONTROL-CHARS'
+export LESS='-R --no-init --RAW-CONTROL-CHARS'
 # export LESSOPEN='| /usr/local/bin/src-hilite-lesspipe.sh %s'
 
 case "${OSTYPE}" in
@@ -323,6 +323,35 @@ setopt ignore_eof
 # WORDCHARS=${WORDCHARS:s,/,,}
 WORDCHARS='*?[]~&!#$%^(){}<>'
 
+# http://mba-hack.blogspot.jp/2012/11/zsh.html
+show_buffer_stack() {
+  POSTDISPLAY="
+stack: $LBUFFER"
+  zle push-line-or-edit
+}
+zle -N show_buffer_stack
+setopt noflowcontrol
+bindkey '^Q' show_buffer_stack
+
+pbcopy-buffer(){
+    print -rn $BUFFER | pbcopy
+    zle -M "pbcopy: ${BUFFER}"
+}
+
+zle -N pbcopy-buffer
+bindkey '^xp' pbcopy-buffer
+
+# http://qiita.com/yoshikaw/items/fe4aca1110979e223f7e
+bindkey '^]'   vi-find-next-char
+bindkey '^[^]' vi-find-prev-char
+
+# http://qiita.com/mollifier/items/7b1cfe609a7911a69706
+autoload -Uz edit-command-line
+zle -N edit-command-line
+bindkey '^xe' edit-command-line
+
+# http://qiita.com/mollifier/items/33bda290fe3c0ae7b3bb
+zstyle ':completion:*:processes' command "ps -u $USER -o pid,stat,%cpu,%mem,cputime,command"
 
 # http://qiita.com/items/55651f44f91123f1881c
 # url: $1, delimiter: $2, prefix: $3, words: $4..
@@ -531,4 +560,3 @@ fi
 if [ -f ${SET}submodules/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
   source ${SET}submodules/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
-

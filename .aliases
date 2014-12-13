@@ -33,7 +33,8 @@ function ec(){
 alias st='subl'
 alias at='atom'
 
-# alias kr4mbsave='/Applications/KeyRemap4MacBook.app/Contents/Applications/KeyRemap4MacBook_cli.app/Contents/MacOS/KeyRemap4MacBook_cli export > ${SET}mac/kr4mb-import.sh'
+alias karabiner-export='/Applications/Karabiner.app/Contents/Library/bin/karabiner export > ${SET}mac/karabiner-setting.sh'
+alias karabiner-import='sh ${SET}mac/karabiner-setting.sh'
 
 # http://tukaikta.blog135.fc2.com/blog-entry-214.html
 alias rm='rmtrash'
@@ -114,6 +115,8 @@ alias editorconfig='vi ~/.editorconfig'
 alias tmuxconf='em ~/.tmux.conf'
 alias macinit='vi ${SET}/mac/initialize'
 alias macupdate='vi ${SET}/mac/update'
+alias tigrc='vi ~/.tigrc'
+alias phpsnip='vi ~/.vim/snippets/php.snip'
 
 #shortc cut for git
 alias g='noglob git'
@@ -121,19 +124,23 @@ alias gs='git s'
 alias ga='git add'
 alias gaa='git add .'
 # alias gra='git rmall'
-alias gcm='git commit'
+alias gcm='git commit -m'
 alias gci='git commit'
+alias gca='git commit --amend'
 alias gps='git push'
+alias gps-dry-run='git push -n'
 # alias gpl='git current-branch | git pull origin'
 alias gd='git diff'
 alias gmd='git modified'
 alias gdc='git diff --cached'
 alias gad='git added'
 alias gdel='git deleted'
-alias gpdr='git pull-dry-run'
+alias gpl-dry-run='git pull-dry-run'
 alias gcb='git current-branch'
 alias grb='git rb'
-alias gwdf='git wdf'
+alias grba='git rb --abort'
+alias grbc='git rb --continue'
+alias gdfw='git wdf'
 alias gtr='git tree'
 alias gl='git log'
 alias ggr='git gr'
@@ -146,12 +153,17 @@ alias gvmd='git vmodified'
 alias gco='git co'
 alias gst='git st'
 alias glst='gl --stat'
+alias gln='gl --name-only'
+alias glns='gl --name-status'
 alias glp='gl -p'
 alias gcl='git clean'
 alias gmg='git merge'
 alias gcob='gco -b'
 alias gba='gb -a'
 alias gstd='gst drop'
+alias gstp='gst pop'
+alias gshs='gst show stash'
+alias gsts='gst show stash'
 alias gl1='gl --oneline'
 alias gmv='g mv'
 alias grm='g rm'
@@ -310,3 +322,34 @@ function ghca(){
                 fi
 }
 
+# http://blog.repl.info/2011/12/03/ssh-with-tmux-and-zsh/
+# tmuxの中でmanを実行した場合，新しくペインを作成する
+function sp-man() {
+  eval server=\${$#}
+  tmux split-window "exec man $@"
+}
+
+function sp-gs() {
+  eval server=\${$#}
+  tmux split-window "exec git s | less"
+}
+
+function sp-gmd() {
+  eval server=\${$#}
+  tmux split-window "exec git modified"
+}
+
+function sp-ag() {
+  eval server=\${$#}
+  tmux split-window "exec ag -S --stats -m 100000 --color $@ | less"
+}
+
+function sp-find() {
+  eval server=\${$#}
+  tmux split-window "exec find $@ | less"
+}
+
+function sp-tig() {
+  eval server=\${$#}
+  tmux split-window "exec tig"
+}

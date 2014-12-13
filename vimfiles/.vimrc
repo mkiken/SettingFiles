@@ -4,6 +4,14 @@
 syntax on
 set hlsearch " 検索結果文字列のハイライトを有効にする
 
+set encoding=utf-8
+scriptencoding utf-8
+
+" ミュートにする。
+set t_vb=
+set visualbell
+set noerrorbells
+
 set cursorline " カーソル行をハイライト
 "set cursorcolumn
 set background=dark
@@ -33,8 +41,9 @@ set number
 set ruler
 
 " http://d.hatena.ne.jp/ruicc/20090615/1245086039
-set nocompatible               " be iMproved
-
+if &compatible
+  set nocompatible
+endif
 
 " http://vim-users.jp/2010/04/hack137/
 " オートインデントを有効にする（新しい行のインデントを現在の行と同じにする）
@@ -129,8 +138,13 @@ set listchars=tab:»-,trail:-,extends:»,precedes:«,nbsp:%
 " https://sites.google.com/site/vimdocja/usr_05-html
 set iskeyword-=_
 
+" http://rbtnn.hateblo.jp/entry/2014/11/30/174749
+augroup vimrc
+  autocmd!
+augroup END
+
 " http://tech-tec.com/archives/934
-let mapleader=" "
+let g:mapleader=" "
 
 
 " 全角スペース・行末のスペース・タブの可視化
@@ -172,7 +186,7 @@ endfunction
 
 " http://stackoverflow.com/questions/6496778/vim-run-autocmd-on-all-filetypes-except
 let remove_dust_blacklist = ['php', 'smarty']
-autocmd BufWritePre * if index(remove_dust_blacklist, &ft) < 0 | call <SID>remove_dust()
+autocmd vimrc BufWritePre * if index(remove_dust_blacklist, &ft) < 0 | call <SID>remove_dust()
 " autocmd BufWritePre * call <SID>remove_dust()
 
 
@@ -354,7 +368,7 @@ inoremap <C-j> <ESC>$a<CR>
 
 " http://easyramble.com/disable-vim-auto-comment.html
 " set formatoptions-=ro
-autocmd FileType * setlocal formatoptions-=ro
+autocmd vimrc FileType * setlocal formatoptions-=ro
 
 " visulaモードで選択してからのインデント調整で調整後に選択範囲を開放しない
 vnoremap > >gv
@@ -416,7 +430,7 @@ command! ReloadVimrc  :source ~/.vimrc
 
 " for grep
 " http://qiita.com/yuku_t/items/0c1aff03949cb1b8fe6b
-autocmd QuickFixCmdPost *grep* cwindow
+autocmd vimrc QuickFixCmdPost *grep* cwindow
 set grepprg=grep\ -nH
 
 
@@ -549,6 +563,7 @@ noremap <Leader>o :Occur<CR>
     \   ['front', 'back'],
     \   ['test', 'notest'],
     \   ['start', 'end'],
+    \   ['import', 'export'],
     \ ]
 
 " for pathogen
@@ -572,9 +587,9 @@ let NERDTreeMapOpenVSplit='v'
 
 if has("autocmd")
 	" http://docs.racket-lang.org/guide/Vim.html
-	autocmd BufNewFile,BufReadPost *.rkt,*.rktl set filetype=scheme
+	autocmd vimrc BufNewFile,BufReadPost *.rkt,*.rktl set filetype=scheme
 
-	autocmd BufNewFile,BufReadPost *.pegjs,*.language,*.grm  set filetype=pegjs
+	autocmd vimrc BufNewFile,BufReadPost *.pegjs,*.language,*.grm  set filetype=pegjs
 endif
 
 " call smartinput#map_to_trigger('i', '<Plug>(smartinput_BS)','<BS>','<BS>')
@@ -686,7 +701,7 @@ let g:unite_source_file_mru_limit = 50
 let g:unite_source_file_mru_filename_format = ''
 
 "uniteを開いている間のキーマッピング
-autocmd FileType unite call s:unite_my_settings()
+autocmd vimrc FileType unite call s:unite_my_settings()
 function! s:unite_my_settings()"{{{
 	"ESCでuniteを終了
 	" nmap <buffer> <ESC> <Plug>(unite_exit)
@@ -953,11 +968,11 @@ let g:neocomplete#enable_auto_select = 1
 "inoremap <expr><TAB>  pumvisible() ? "\<Down>" : "\<C-x>\<C-u>"
 
 " Enable omni completion.
-autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
-autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
-autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
-autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
-autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
+autocmd vimrc FileType css setlocal omnifunc=csscomplete#CompleteCSS
+autocmd vimrc FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
+autocmd vimrc FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
+autocmd vimrc FileType python setlocal omnifunc=pythoncomplete#Complete
+autocmd vimrc FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
 
 " Enable heavy omni completion.
 if !exists('g:neocomplete#sources#omni#input_patterns')
@@ -1015,9 +1030,9 @@ let g:user_emmet_leader_key='<C-Z>'
 
 " noremap <Leader>b :Autoformat<CR><CR>
 " nnoremap <leader>b :%!js-beautify -j -q -B -f -<CR>
-autocmd FileType javascript nmap <silent> <buffer> <Leader>b :JsBeautifySimple<cr>
-autocmd FileType javascript vmap <silent> <buffer> <Leader>b :JsBeautifySimple<cr>
-autocmd FileType javascript let b:JsBeautifySimple_config = "~/.jsbeautifyrc"
+autocmd vimrc FileType javascript nmap <silent> <buffer> <Leader>b :JsBeautifySimple<cr>
+autocmd vimrc FileType javascript vmap <silent> <buffer> <Leader>b :JsBeautifySimple<cr>
+autocmd vimrc FileType javascript let b:JsBeautifySimple_config = "~/.jsbeautifyrc"
 
 " https://github.com/jelera/vim-javascript-syntax
 " au FileType javascript call JavaScriptFold()
@@ -1047,10 +1062,10 @@ nnoremap <silent> <Space>gr :Gread<CR>
 map * <Plug>(visualstar-*)N
 map # <Plug>(visualstar-#)N
 
-nmap <Space>m <Plug>(quickhl-manual-this)
-xmap <Space>m <Plug>(quickhl-manual-this)
-nmap <Space>M <Plug>(quickhl-manual-reset)
-xmap <Space>M <Plug>(quickhl-manual-reset)
+nmap <Space>h <Plug>(quickhl-manual-this)
+xmap <Space>h <Plug>(quickhl-manual-this)
+nmap <Space>H <Plug>(quickhl-manual-reset)
+xmap <Space>H <Plug>(quickhl-manual-reset)
 
 " ハイライトするグループ名を設定します
 " アンダーラインで表示する

@@ -17,6 +17,13 @@
 #   'ctrl-p': 'core:move-down'
 #
 
+
+'body':
+  'cmd-k h': 'window:focus-pane-on-left'
+  'cmd-k j': 'window:focus-pane-below'
+  'cmd-k k': 'window:focus-pane-above'
+  'cmd-k l': 'window:focus-pane-on-right'
+
 '.editor:not(.mini)':
   'ctrl-.': 'editor:delete-line'
   'ctrl-j': 'editor:newline-below'
@@ -47,6 +54,7 @@
   'ctrl-;': 'editor:toggle-line-comments'
   'alt-;': 'editor:toggle-line-comments'
 
+# vim normal-mode
 '.editor.vim-mode:not(.insert-mode)':
   'ctrl-a': 'emmet:increment-number-by-1'
   'ctrl-x': 'emmet:decrement-number-by-1'
@@ -55,10 +63,12 @@
   # '=': 'core:auto-indent'
   ',': 'editor:toggle-line-comments'
   '%': 'bracket-matcher:go-to-matching-bracket'
-  'O': 'editor:newline-below'
+  'Enter': 'editor:newline-below'
   'ctrl-d': 'core:page-down'
   'g r': 'pane:show-previous-item'
-
+  ':': 'command-palette:toggle'
+  'ctrl-w x': 'pane:close'
+  'ctrl-w t': 'tree-view:toggle-focus'
 
 
 '.autocomplete-plus input.hidden-input':
@@ -68,3 +78,6 @@
   # 'tab': 'autocomplete-plus:select-next'
   # 'shift-tab': 'autocomplete-plus:select-previous'
   'enter': 'autocomplete-plus:confirm'
+
+'.tree-view':
+  'ctrl-w t': 'tree-view:toggle-focus'

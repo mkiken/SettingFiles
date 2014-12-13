@@ -9401,9 +9401,9 @@
 	<key>NSScrollAnimationEnabled</key>
 	<false/>
 	<key>NSWindow Frame Preferences</key>
-	<string>70 293 924 485 0 0 1280 778 </string>
+	<string>16 289 924 485 0 0 1280 778 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>655 63 625 712 0 0 1280 778 </string>
+	<string>65 61 625 717 0 0 1280 778 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>79 64 625 714 0 0 1280 778 </string>
 	<key>NSWindow Frame iTerm Window 2</key>
@@ -9669,6 +9669,13 @@
 			</array>
 			<key>Keyboard Map</key>
 			<dict>
+				<key>0x2c-0x40000</key>
+				<dict>
+					<key>Action</key>
+					<integer>11</integer>
+					<key>Text</key>
+					<string>0x14 0x70</string>
+				</dict>
 				<key>0x2d-0x40000</key>
 				<dict>
 					<key>Action</key>
@@ -9676,54 +9683,75 @@
 					<key>Text</key>
 					<string>0x1f</string>
 				</dict>
+				<key>0x2e-0x40000</key>
+				<dict>
+					<key>Action</key>
+					<integer>11</integer>
+					<key>Text</key>
+					<string>0x14 0x6e</string>
+				</dict>
+				<key>0x31-0x40000</key>
+				<dict>
+					<key>Action</key>
+					<integer>11</integer>
+					<key>Text</key>
+					<string>0x14 0x31</string>
+				</dict>
 				<key>0x32-0x40000</key>
 				<dict>
 					<key>Action</key>
 					<integer>11</integer>
 					<key>Text</key>
-					<string>0x00</string>
+					<string>0x14 0x32</string>
 				</dict>
 				<key>0x33-0x40000</key>
 				<dict>
 					<key>Action</key>
 					<integer>11</integer>
 					<key>Text</key>
-					<string>0x1b</string>
+					<string>0x14 0x33</string>
 				</dict>
 				<key>0x34-0x40000</key>
 				<dict>
 					<key>Action</key>
 					<integer>11</integer>
 					<key>Text</key>
-					<string>0x1c</string>
+					<string>0x14 0x34</string>
 				</dict>
 				<key>0x35-0x40000</key>
 				<dict>
 					<key>Action</key>
 					<integer>11</integer>
 					<key>Text</key>
-					<string>0x1d</string>
+					<string>0x14 0x35</string>
 				</dict>
 				<key>0x36-0x40000</key>
 				<dict>
 					<key>Action</key>
 					<integer>11</integer>
 					<key>Text</key>
-					<string>0x1e</string>
+					<string>0x14 0x36</string>
 				</dict>
 				<key>0x37-0x40000</key>
 				<dict>
 					<key>Action</key>
 					<integer>11</integer>
 					<key>Text</key>
-					<string>0x1f</string>
+					<string>0x14 0x37</string>
 				</dict>
 				<key>0x38-0x40000</key>
 				<dict>
 					<key>Action</key>
 					<integer>11</integer>
 					<key>Text</key>
-					<string>0x7f</string>
+					<string>0x14 0x38</string>
+				</dict>
+				<key>0x39-0x40000</key>
+				<dict>
+					<key>Action</key>
+					<integer>11</integer>
+					<key>Text</key>
+					<string>0x14 0x39</string>
 				</dict>
 				<key>0x76-0x40000</key>
 				<dict>
@@ -9736,6 +9764,13 @@
 				<dict>
 					<key>Action</key>
 					<integer>9</integer>
+					<key>Text</key>
+					<string></string>
+				</dict>
+				<key>0x7f-0x0</key>
+				<dict>
+					<key>Action</key>
+					<integer>16</integer>
 					<key>Text</key>
 					<string></string>
 				</dict>
@@ -10931,7 +10966,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2014-10-20T15:10:13Z</date>
+	<date>2014-12-11T14:34:16Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Show Toolbelt</key>
@@ -10986,6 +11021,6 @@
 	<key>findRegex_iTerm</key>
 	<false/>
 	<key>iTerm Version</key>
-	<string>1.0.0.20140629</string>
+	<string>2.0.0.20141103</string>
 </dict>
 </plist>

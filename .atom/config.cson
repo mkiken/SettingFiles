@@ -4,8 +4,8 @@
     'showIndentGuide': true
     'showInvisibles': true
     'softWrapAtPreferredLineLength': true
-    'preferredLineLength': 120
     'softWrap': true
+    'invisibles': {}
   'core':
     'disabledPackages': [
       'turbo-javascript'
@@ -18,8 +18,9 @@
     ]
     'themes': [
       'atom-dark-ui'
-      'dracula-theme'
+      'tomorrow-night-bright-syntax'
     ]
+    'audioBeep': false
   'exception-reporting':
     'userId': '0a7c8ad7-7803-a619-cd7e-9c76b0560ed6'
   'welcome':
@@ -37,7 +38,9 @@
   'markdown-preview':
     'breakOnSingleNewline': true
   'linter':
-    'showStatusBarWhenCursorIsInErrorRange': true
     'lintOnChangeInterval': 3000
+    'statusBar': 'Show error if the cursor is in range'
   'whitespace':
     'removeTrailingWhitespace': false
+  'vim-mode':
+    'useSmartcaseForSearch': true

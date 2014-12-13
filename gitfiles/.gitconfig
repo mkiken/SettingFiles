@@ -15,13 +15,13 @@
 ; diff-highlight = /usr/local/Cellar/git/1.8.4.3/share/git-core/contrib/diff-highlight/diff-highlight
   ad = add
 	co = checkout
-	br = branch
+	br = -c color.branch=always branch
 	ci = commit
-	s = status -bs
+	s = -c color.status=always status -bs
 	ft = fetch
 	ps = push
 	pl = pull
-	df = diff
+	df = -c color.diff=always diff
 	sm = submodule
 	# http://qiita.com/hash/items/1f01aa09ccf148542f21
 	lg = log --stat --pretty=format:'%Cblue%h %Cgreen%ar %Cred%an %Creset%s %Cred%d'
@@ -106,7 +106,7 @@
 	path = .gitconfig.local
 [difftool "sourcetree"]
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path = 
+	path =
 [mergetool "sourcetree"]
 	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
 	trustExitCode = true

@@ -27,7 +27,9 @@ colorscheme jellybeans
 " colorscheme zenburn
 " colorscheme macvim
 
-
+augroup gvimrc
+  autocmd!
+augroup END
 
 
 " http://vim.1045645.n5.nabble.com/Random-color-scheme-at-start-td1165585.html
@@ -103,8 +105,8 @@ if OSTYPE == "Darwin\n"
 	"augroup hack234
 	"  autocmd!
 	if has('mac')
-		autocmd FocusGained * set transparency=5
-		autocmd FocusLost * set transparency=10
+		autocmd gvimrc FocusGained * set transparency=5
+		autocmd gvimrc FocusLost * set transparency=10
 		" set lines=50 columns=150
 	endif
 	"augroup END
@@ -138,8 +140,8 @@ let g:hi_insert = 'highlight StatusLine guifg=darkblue guibg=gray gui=none cterm
 if has('syntax')
 	augroup InsertHook
 		autocmd!
-		autocmd InsertEnter * call s:StatusLine('Enter')
-		autocmd InsertLeave * call s:StatusLine('Leave')
+		autocmd gvimrc InsertEnter * call s:StatusLine('Enter')
+		autocmd gvimrc InsertLeave * call s:StatusLine('Leave')
 	augroup END
 endif
 
@@ -168,7 +170,7 @@ endfunction
 let g:save_window_file = expand('~/.backup/vim/.vimwinpos')
 augroup SaveWindow
   autocmd!
-  autocmd VimLeavePre * call s:save_window()
+  autocmd gvimrc VimLeavePre * call s:save_window()
   function! s:save_window()
     let options = [
       \ 'set columns=' . &columns,
