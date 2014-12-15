@@ -448,7 +448,6 @@ endfunction
 nnoremap <silent>0 :<C-u>call <SID>rotate_in_line()<CR>
 
 " for Vundle
-" https://github.com/gmarik/vundle
  filetype off                   " required!
 
  set rtp+=~/.vim/bundle/Vundle.vim/
@@ -507,6 +506,8 @@ nnoremap <silent>0 :<C-u>call <SID>rotate_in_line()<CR>
  Bundle 't9md/vim-quickhl'
  Bundle 'osyo-manga/vim-brightest'
  Bundle 'rhysd/vim-textobj-ruby'
+ Bundle 'haya14busa/incsearch.vim'
+
 
  " ホームポジションに近いキーを使う
 " http://blog.remora.cx/2012/08/vim-easymotion.html
@@ -1076,3 +1077,7 @@ xmap <Space>H <Plug>(quickhl-manual-reset)
 let g:brightest#highlight = {
 \   "group" : "BrightestUnderline"
 \}
+
+map /  <Plug>(incsearch-forward)
+map ?  <Plug>(incsearch-backward)
+map g/ <Plug>(incsearch-stay)
