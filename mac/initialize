@@ -116,8 +116,7 @@ brew install tig
 # touch ~/.z
 touch ~/.cd_history_file
 
-# ln -s /usr/local/Cellar/git/2.0.1/share/git-core/contrib/diff-highlight/diff-highlight  /usr/local/bin
-1
+ln -s /usr/local/Cellar/git/2.2.0/share/git-core/contrib/diff-highlight/diff-highlight  /usr/local/bin
 
 git submodule update --init --recursive
 

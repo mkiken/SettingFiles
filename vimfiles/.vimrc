@@ -343,8 +343,8 @@ vnoremap gy "+y
 nnoremap gp "+p
 
 " http://vim.wikia.com/wiki/Format_pasted_text_automatically
-:nnoremap p ]p
-:nnoremap ]p p
+" :nnoremap p ]p
+" :nnoremap ]p p
 
 
 " http://cohama.hateblo.jp/entry/2013/10/07/020453
@@ -399,6 +399,8 @@ inoremap <C-]> <C-o>u
 inoremap <C-r> <C-o><C-r>
 " 貼りつけ
 inoremap <C-y> <C-o>P
+inoremap ∆ <C-o>O
+
 
 " inoremap <C-i> <C-o>=
 
@@ -557,13 +559,15 @@ noremap <Leader>o :Occur<CR>
  let g:switch_custom_definitions =
     \ [
     \   ['before', 'after'],
-    \   ['t', 'nil'],
+    \   ['int', 'float', 'double', 'string', 'null', 'undefined'],
     \   ['public', 'protected', 'private'],
     \   ['TRUE', 'FALSE'],
     \   ['front', 'back'],
     \   ['test', 'notest'],
     \   ['start', 'end'],
     \   ['import', 'export'],
+    \   ['max', 'min'],
+    \   ['increase', 'decrease'],
     \ ]
 
 " for pathogen

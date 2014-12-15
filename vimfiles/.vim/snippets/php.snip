@@ -14,10 +14,13 @@ snippet logd
   logger()->debug(${1});
 
 snippet th
-  $this->${1};
+  $this->${1}
+
+snippet td2
+  $this->${1}->${2}
 
 snippet thd
-  $this->${1}->${2};
+  $this->${1}->${2}
 
 snippet thm
   $this->${1}_model->${2};
@@ -39,6 +42,12 @@ snippet loadd
 
 snippet loadf
   $this->load->model('facade/facade_${1}');
+
+snippet loadl
+  $this->load->library('${1}');
+
+snippet ci
+  $this->CI->${1};
 
 snippet ar
   '${1}' => ${2},
