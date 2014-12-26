@@ -202,10 +202,10 @@ setopt list_packed
 unsetopt auto_param_slash      # ディレクトリ名の補完で末尾の / を自動的に付加し、次の補完に備える
 
 # no beep sound when complete list displayed
-# setopt nolistbeep
+setopt nolistbeep
 
 # ビープ音を鳴らさないようにする
-# setopt NO_beep
+setopt NO_beep
 
 ## Keybind configuration
 # emacs like keybind (e.x. Ctrl-a goes to head of a line and Ctrl-e goes to end of it)

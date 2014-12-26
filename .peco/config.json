@@ -2,8 +2,8 @@
     "Keymap": {
         "M-v": "peco.SelectPreviousPage",
         "C-v": "peco.SelectNextPage",
-        "C-p": "peco.SelectPrevious",
-        "C-n": "peco.SelectNext",
+        "C-p": "peco.SelectUp",
+        "C-n": "peco.SelectDown",
         "C-g": "peco.Cancel"
     }
 }

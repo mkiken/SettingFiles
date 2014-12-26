@@ -88,7 +88,7 @@ echo 'backup directory for emacs and vim made.'
 
 # install commands
 
-ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"
+ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 # for permission of Homebrew
 sudo chown -R $USER /usr/local/
 sudo chown -R $USER /Library/Caches/Homebrew/
@@ -99,7 +99,7 @@ brew install rmtrash
 # brew install node
 # brew install tree
 # brew install --cocoa --srgb --with-gnutls --japanese emacs -v
-brew install --cocoa --srgb --japanese emacs -v
+# brew install --cocoa --srgb --japanese emacs -v
 brew install vim --devel --with-lua
 brew install rlwrap
 # brew install z

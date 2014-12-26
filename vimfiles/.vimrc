@@ -569,6 +569,9 @@ noremap <Leader>o :Occur<CR>
     \   ['import', 'export'],
     \   ['max', 'min'],
     \   ['increase', 'decrease'],
+    \   ['get', 'set'],
+    \   ['above', 'below'],
+    \   ['jpg', 'png', 'gif'],
     \ ]
 
 " for pathogen
@@ -1024,6 +1027,8 @@ smap <expr><TAB> neosnippet#expandable_or_jumpable() ?
 if has('conceal')
   set conceallevel=2 concealcursor=i
 endif
+" http://d.hatena.ne.jp/osyo-manga/20140820/1408546674
+autocmd InsertLeave * syntax clear neosnippetConcealExpandSnippets
 
 " Tell Neosnippet about the other snippets
 " let g:neosnippet#snippets_directory='~/.vim/bundle/vim-snippets/snippets'
@@ -1080,4 +1085,6 @@ let g:brightest#highlight = {
 
 map /  <Plug>(incsearch-forward)
 map ?  <Plug>(incsearch-backward)
-map g/ <Plug>(incsearch-stay)
+" どうもincsearchは日本語が打てないようなので最悪これで
+nnoremap <Leader>/ /
+" map g/ <Plug>(incsearch-stay)
