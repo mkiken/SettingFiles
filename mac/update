@@ -11,5 +11,6 @@ brew upgrade emacs
 brew upgrade vim
 brew upgrade rlwrap
 
-echo "If bundle of Vim is updated, please call ':BundleInstall' on Vim."
+vim -c BundleInstall -c BundleUpdate -c qa
+../.atom/package_initialize
 echo "If package of Emacs is updated, please eval-buffer 'package-initialize.el' on Emacs."

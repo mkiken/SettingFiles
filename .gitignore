@@ -8,3 +8,4 @@ vimfiles/.vim/bundle/
 texput.log
 .emacs.d/history
 .DS_Store
+npm-debug.log

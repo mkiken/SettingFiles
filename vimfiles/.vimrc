@@ -410,6 +410,13 @@ inoremap ∆ <C-o>O
 nnoremap <Space>s  :<C-u>source ~/.vimrc <Return>
 command! ReloadVimrc  :source ~/.vimrc
 
+" http://tech.toshiya240.com/articles/2014/06/matchit-vim/
+:source $VIMRUNTIME/macros/matchit.vim
+augroup matchit
+  au!
+  au FileType ruby let b:match_words = '\<\(module\|class\|def\|begin\|do\|if\|unless\|case\)\>:\<\(elsif\|when\|rescue\)\>:\<\(else\|ensure\)\>:\<end\>'
+augroup END
+
 "コピーしながら括弧移動
 " nnoremap <C-%> y%%
 
@@ -507,6 +514,8 @@ nnoremap <silent>0 :<C-u>call <SID>rotate_in_line()<CR>
  Bundle 'osyo-manga/vim-brightest'
  Bundle 'rhysd/vim-textobj-ruby'
  Bundle 'haya14busa/incsearch.vim'
+ Bundle 'rhysd/clever-f.vim'
+ Bundle 'vimtaku/hl_matchit.vim'
 
 
  " ホームポジションに近いキーを使う
@@ -525,10 +534,10 @@ let g:EasyMotion_startofline=0
 "hi EasyMotionTarget ctermbg=none ctermfg=red
 "hi EasyMotionShade  ctermbg=none ctermfg=blue
 " map f <Plug>(easymotion-fl)
-map f ;f
-map t ;t
-map F ;F
-map T ;T
+" map f ;f
+" map t ;t
+" map F ;F
+" map T ;T
 " nmap s <Plug>(easymotion-s)
 
 
@@ -1087,4 +1096,10 @@ map /  <Plug>(incsearch-forward)
 map ?  <Plug>(incsearch-backward)
 " どうもincsearchは日本語が打てないようなので最悪これで
 nnoremap <Leader>/ /
+nnoremap <Leader>? ?
 " map g/ <Plug>(incsearch-stay)
+
+"" for hl_matchit
+let g:hl_matchit_enable_on_vim_startup = 1
+let g:hl_matchit_hl_groupname = 'Title'
+let g:hl_matchit_allow_ft = 'html\|vim\|ruby\|sh'

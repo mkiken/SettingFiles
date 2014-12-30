@@ -113,6 +113,14 @@ brew install gnu-sed
 brew install source-highlight
 brew install tig
 
+brew tap phinze/homebrew-cask
+brew install brew-cask
+brew cask install atom
+brew cask install evernote
+brew cask install google-chrome
+brew cask install macvim
+brew cask install skype
+
 # touch ~/.z
 touch ~/.cd_history_file
 

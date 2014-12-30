@@ -224,6 +224,7 @@ HISTFILE=~/.zsh_history
 HISTSIZE=10000
 SAVEHIST=10000
 setopt hist_ignore_dups     # ignore duplication command history list
+setopt hist_ignore_all_dups
 setopt share_history        # share command history data
 
 ## Completion configuration
@@ -475,88 +476,91 @@ if exists peco; then
     fi
     return -1;
   }
+  zle -N peco-select-history
+  alias phist='peco-select-history'
+  # bindkey '^r' peco-select-history
 
-zle -N peco-select-history
-alias phist='peco-select-history'
+  function p(){
+    $@ | peco | pbcopy
+  }
 
-function p(){
-  $@ | peco | pbcopy
-}
+  alias -g P='| peco'
+  alias -g Px='| peco | xargs '
 
-    alias -g P='| peco'
-    alias -g Px='| peco | xargs '
-
-
-    # http://stillpedant.hatenablog.com/entry/percol-cd-history
-    typeset -U chpwd_functions
-    CD_HISTORY_FILE=${HOME}/.cd_history_file # cd 履歴の記録先ファイル
-    function chpwd_record_history() {
+  # http://stillpedant.hatenablog.com/entry/percol-cd-history
+  typeset -U chpwd_functions
+  CD_HISTORY_FILE=${HOME}/.cd_history_file # cd 履歴の記録先ファイル
+  function chpwd_record_history() {
     echo $PWD >> ${CD_HISTORY_FILE}
   }
   chpwd_functions=($chpwd_functions chpwd_record_history)
 
-  # pecoを使って cd 履歴の中からディレクトリを選択
-  # 過去の訪問回数が多いほど選択候補の上に来る
+    # pecoを使って cd 履歴の中からディレクトリを選択
+    # 過去の訪問回数が多いほど選択候補の上に来る
   function peco_get_destination_from_history() {
-  sort ${CD_HISTORY_FILE} | uniq -c | sort -r | \
+    sort ${CD_HISTORY_FILE} | uniq -c | sort -r | \
     sed -e 's/^[ ]*[0-9]*[ ]*//' | \
     sed -e s"/^${HOME//\//\\/}/~/" | \
     peco | xargs echo
-}
+  }
 
-# peco を使って cd 履歴の中からディレクトリを選択し cd するウィジェット
-function peco_cd_history() {
+  # peco を使って cd 履歴の中からディレクトリを選択し cd するウィジェット
+  function peco_cd_history() {
+    local destination=$(peco_get_destination_from_history)
+    if [ "${destination}" != "" ]; then
+      echo "${destination}"
+      cd ${destination/#\~/${HOME}}
+      zle -N reset-prompt
+      return 0;
+  fi
+    return -1;
+  }
+  zle -N peco_cd_history
+  alias pcd='peco_cd_history'
+  alias j='pcd'
+
+  # peco を使って cd 履歴の中からディレクトリを選択し，現在のカーソル位置に挿入するウィジェット
+  function peco_insert_history() {
   local destination=$(peco_get_destination_from_history)
-  if [ "${destination}" != "" ]; then
-    echo "${destination}"
-    cd ${destination/#\~/${HOME}}
-    zle -N reset-prompt
-    return 0;
-fi
-  return -1;
-}
-zle -N peco_cd_history
-alias pcd='peco_cd_history'
+  if [ $? -eq 0 ]; then
+    local new_left="${LBUFFER} ${destination} "
+    BUFFER=${new_left}${RBUFFER}
+    CURSOR=${#new_left}
+  fi
+  zle -N reset-prompt
+  }
+  zle -N peco_insert_history
+  alias pins='peco_insert_history'
+  # }}}
 
-# peco を使って cd 履歴の中からディレクトリを選択し，現在のカーソル位置に挿入するウィジェット
-function peco_insert_history() {
-local destination=$(peco_get_destination_from_history)
-if [ $? -eq 0 ]; then
-  local new_left="${LBUFFER} ${destination} "
-  BUFFER=${new_left}${RBUFFER}
-  CURSOR=${#new_left}
-fi
-zle -N reset-prompt
-}
-zle -N peco_insert_history
-alias pins='peco_insert_history'
-# }}}
+  alias pgco='br_fmt | xargs git checkout'
+  alias pgcob='br_fmt | xargs git checkout -b'
+  alias pgmg='br_fmt | xargs git merge'
+  alias pgpl='br_fmt | xargs git pull origin'
+  alias pgps='br_fmt | xargs git push origin'
+  alias pgbd='br_fmt | xargs git branch -d'
+  alias pgbD='br_fmt | xargs git branch -D'
+  alias pgb='git branch -a | peco'
+  alias pgbd_remote='br_fmt | xargs git push --delete origin'
+  alias pgrb='br_fmt | xargs git pull --rebase origin'
+  alias pls='ls -AaR | peco'
+  alias pfind='find -L . -name "*" | peco'
+  alias pps='ps aux | peco'
+  function pcat(){
+    cat -n $@ | peco
+  }
 
-alias pgco='br_fmt | xargs git checkout'
-alias pgcob='br_fmt | xargs git checkout -b'
-alias pgmg='br_fmt | xargs git merge'
-alias pgpl='br_fmt | xargs git pull origin'
-alias pgps='br_fmt | xargs git push origin'
-alias pgbd='br_fmt | xargs git branch -d'
-alias pgbD='br_fmt | xargs git branch -D'
-alias pgb='git branch -a | peco'
-alias pgbd_remote='br_fmt | xargs git push --delete origin'
-alias pgrb='br_fmt | xargs git pull --rebase origin'
-alias pls='ls -AaR | peco'
-alias pfind='find -L . -name "*" | peco'
-alias pps='ps aux | peco'
-function pcat(){
-  cat -n $@ | peco
-}
+  # Gitのブランチをpecoで扱えるように整形
+  function br_fmt(){
+    git branch -a | peco | xargs echo | sed -e 's/\*//' | sed -e 's/remotes\/origin\///'
+  }
 
-# Gitのブランチをpecoで扱えるように整形
-function br_fmt(){
-  git branch -a | peco | xargs echo | sed -e 's/\*//' | sed -e 's/remotes\/origin\///'
-}
-
+  alias pkill='ps ax | peco | awk "{ print $1 }" | xargs kill'
 fi
 
 # zle -N zle-keymap-select auto-fu-zle-keymap-select
 if [ -f ${SET}submodules/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
   source ${SET}submodules/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
+
+source ${SET}submodules/zsh-bd/bd.zsh

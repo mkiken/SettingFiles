@@ -5,6 +5,7 @@
     'showInvisibles': true
     'softWrapAtPreferredLineLength': true
     'softWrap': true
+    'scrollPastEnd': true
     'invisibles': {}
   'core':
     'disabledPackages': [
@@ -18,7 +19,7 @@
     ]
     'themes': [
       'atom-dark-ui'
-      'tomorrow-night-bright-syntax'
+      'tomorrow-night-eighties-syntax'
     ]
     'audioBeep': false
   'exception-reporting':
