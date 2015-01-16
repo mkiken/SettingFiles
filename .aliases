@@ -174,10 +174,10 @@ alias gbrsync='git fetch --prune'
 alias gr0='g r0'
 # alias gbd='gb -d'
 alias gcl='g cl'
-alias gsuu='g s -s | grep "^UU"'
-alias gsa='g s -s | grep "^A"'
-alias gsm='g s -s | grep "^M"'
-alias gsd='g s -s | grep "^D"'
+alias gsuu='g s -s | grep "UU"'
+alias gsa='g s -s | grep "A"'
+alias gsm='g s -s | grep "M"'
+alias gsd='g s -s | grep "D"'
 alias gcoo='gco --ours'
 alias gcot='gco --theirs'
 alias gac='git add reset HEAD'
@@ -222,7 +222,7 @@ function gprb(){
 
 function gbm(){
   branch=`g current-branch`
-  g b -m "${branch}" $@
+  gb -m "${branch}" $@
 }
 
 #shortcut for Application
