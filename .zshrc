@@ -469,7 +469,7 @@ if exists peco; then
 
   # http://www.pupha.net/archives/2267/
   function peco-select-history() {
-    local cmd=`history | tail -r | peco | cut -d ' ' -f 1`
+    local cmd=`history -500 | tail -r | peco | cut -d ' ' -f 1`
     if [ "${cmd}" != "" ]; then
       r ${cmd}
       return 0;
@@ -543,6 +543,8 @@ if exists peco; then
   alias pgb='git branch -a | peco'
   alias pgbd_remote='br_fmt | xargs git push --delete origin'
   alias pgrb='br_fmt | xargs git pull --rebase origin'
+  alias pgl='br_fmt | xargs git log'
+  alias pglp='br_fmt | xargs git log -p'
   alias pls='ls -AaR | peco'
   alias pfind='find -L . -name "*" | peco'
   alias pps='ps aux | peco'

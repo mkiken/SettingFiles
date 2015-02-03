@@ -185,6 +185,8 @@ alias gbd='gb -d'
 alias gbD='gb -D'
 alias gdn='gd --name-status'
 alias gdp='ng git diff HEAD^ HEAD'
+alias gcp='g cp'
+alias gcln='gcl -n'
 
 function lessc(){
   less | /usr/local/bin/src-hilite-lesspipe.sh $1
@@ -223,6 +225,59 @@ function gprb(){
 function gbm(){
   branch=`g current-branch`
   gb -m "${branch}" $@
+}
+
+function gmg-remote-master(){
+	gft
+	gmg remotes/origin/master
+}
+
+function gmg-master(){
+	gft
+  my_branch=`g current-branch`
+	echo "target branch is ${my_branch}."
+  gco master
+
+	if test $? -ne 0
+	then
+	  echo "gco master fail."
+		exit
+	fi
+	gpl
+	if test $? -ne 0
+	then
+		echo "git pull master fail."
+		exit
+	fi
+
+  echo "do gco ${my_branch}"
+	gco "${my_branch}"
+  if test $? -ne 0
+  then
+    echo "git checkout ${my_branch} fail."
+    exit
+  fi
+
+  gmg master
+  echo "gmg-master done."
+}
+
+function gcob-from-master(){
+	gft
+
+	gco master
+	if test $? -ne 0
+	then
+			exit
+	fi
+
+	gpl
+	if test $? -ne 0
+	then
+			exit
+	fi
+
+	gcob $1
 }
 
 #shortcut for Application

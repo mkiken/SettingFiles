@@ -581,7 +581,8 @@ noremap <Leader>o :Occur<CR>
     \   ['get', 'set'],
     \   ['above', 'below'],
     \   ['jpg', 'png', 'gif'],
-    \   ['new', 'old']
+    \   ['new', 'old'],
+    \   ['up', 'down']
     \ ]
 
 " for pathogen

@@ -29,7 +29,9 @@
 	rb = rebase
 	st = stash
 	bl = blame
-	cl = clone
+	; cl = clone
+	cl = clean
+	cp = cherry-pick
 
 	; http://qiita.com/peccul/items/90dd469e2f72babbc106
 	today = log --oneline --since='12 hour ago'
