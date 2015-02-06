@@ -516,6 +516,7 @@ nnoremap <silent>0 :<C-u>call <SID>rotate_in_line()<CR>
  Bundle 'haya14busa/incsearch.vim'
  Bundle 'rhysd/clever-f.vim'
  Bundle 'vimtaku/hl_matchit.vim'
+ Bundle 'deris/vim-diffbuf'
 
 
  " ホームポジションに近いキーを使う

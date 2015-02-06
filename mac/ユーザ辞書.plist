@@ -20,6 +20,14 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>_〆(・ω・｀ )</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+		<key>timestamp</key>
+		<integer>1423199379</integer>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>＼(^o^)／</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
@@ -81,6 +89,14 @@
 		<string>かおもじ</string>
 		<key>timestamp</key>
 		<integer>1420592726</integer>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>( ﾟдﾟ)ﾊｯ!</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+		<key>timestamp</key>
+		<integer>1423199368</integer>
 	</dict>
 	<dict>
 		<key>phrase</key>

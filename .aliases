@@ -187,6 +187,8 @@ alias gdn='gd --name-status'
 alias gdp='ng git diff HEAD^ HEAD'
 alias gcp='g cp'
 alias gcln='gcl -n'
+alias grl='g rl'
+alias grv='g rv'
 
 function lessc(){
   less | /usr/local/bin/src-hilite-lesspipe.sh $1
