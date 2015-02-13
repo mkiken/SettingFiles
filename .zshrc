@@ -536,6 +536,7 @@ if exists peco; then
   alias pgco='br_fmt | xargs git checkout'
   alias pgcob='br_fmt | xargs git checkout -b'
   alias pgmg='br_fmt | xargs git merge'
+  alias pgmgs='br_fmt | xargs git merge -s'
   alias pgpl='br_fmt | xargs git pull origin'
   alias pgps='br_fmt | xargs git push origin'
   alias pgbd='br_fmt | xargs git branch -d'

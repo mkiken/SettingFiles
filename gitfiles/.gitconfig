@@ -34,6 +34,8 @@
 	cp = cherry-pick
 	rl = reflog
 	rv = revert
+	mt = mergetool
+	add-cancel = reset HEAD
 
 	; http://qiita.com/peccul/items/90dd469e2f72babbc106
 	today = log --oneline --since='12 hour ago'
@@ -99,7 +101,7 @@
 	editor = vim -c \"set fenc=utf-8\"
 	quotepath = false
 [merge]
-	tool = vimdiff
+	tool = vimdiff2
 	; http://qiita.com/yaotti/items/2361768b6ed781e87780
 [interactive]
 # git add/checkout -p時に，エンターでの決定を省略する

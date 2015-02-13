@@ -25,8 +25,20 @@ snippet thd
 snippet thm
   $this->${1}_model->${2};
 
+snippet thc
+  $this->${1}_config->${2};
+
 snippet thr
   $this->redis->${1};
+
+snippet tha
+  $this->assert${1}(${2});
+
+snippet thae
+  $this->assertEquals(${1}, ${2}, ${3});
+
+snippet thci
+  $this->CI->${1};
 
 snippet thmem
   $this->memcache->${1};

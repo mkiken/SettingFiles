@@ -9763,13 +9763,6 @@
 					<key>Text</key>
 					<string></string>
 				</dict>
-				<key>0x7f-0x0</key>
-				<dict>
-					<key>Action</key>
-					<integer>16</integer>
-					<key>Text</key>
-					<string></string>
-				</dict>
 				<key>0x9-0x40000</key>
 				<dict>
 					<key>Action</key>
@@ -10962,7 +10955,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2015-01-14T23:55:27Z</date>
+	<date>2015-02-12T00:48:58Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Show Toolbelt</key>
