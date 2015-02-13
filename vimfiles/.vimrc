@@ -517,6 +517,8 @@ nnoremap <silent>0 :<C-u>call <SID>rotate_in_line()<CR>
  Bundle 'rhysd/clever-f.vim'
  Bundle 'vimtaku/hl_matchit.vim'
  Bundle 'deris/vim-diffbuf'
+ " Bundle 'kana/vim-smartword'
+ Bundle 'oppara/phpstylist.vim'
 
 
  " ホームポジションに近いキーを使う
@@ -558,6 +560,12 @@ nmap <Esc><Esc> :nohl<CR> <Plug>(anzu-clear-search-status)
 map <silent> w <Plug>CamelCaseMotion_w
 map <silent> b <Plug>CamelCaseMotion_b
 map <silent> e <Plug>CamelCaseMotion_e
+omap <silent> iw <Plug>CamelCaseMotion_iw
+xmap <silent> iw <Plug>CamelCaseMotion_iw
+omap <silent> ib <Plug>CamelCaseMotion_ib
+xmap <silent> ib <Plug>CamelCaseMotion_ib
+omap <silent> ie <Plug>CamelCaseMotion_ie
+xmap <silent> ie <Plug>CamelCaseMotion_ie
 sunmap w
 sunmap b
 sunmap e
@@ -1106,3 +1114,35 @@ nnoremap <Leader>? ?
 let g:hl_matchit_enable_on_vim_startup = 1
 let g:hl_matchit_hl_groupname = 'Title'
 let g:hl_matchit_allow_ft = 'html\|vim\|ruby\|sh'
+
+" http://d.hatena.ne.jp/oppara/20111229/p1
+" phpStylist.php へのパス
+let g:phpstylist_cmd_path = $HOME.'/Desktop/repository/SettingFiles/bin/phpStylist.php'
+
+" phpStylist のオプション
+" php /path/to/phpStylist.php --help
+ let g:phpstylist_options = {
+    \ 'default' : [
+      \ '--add_missing_braces ',
+      \ '--align_array_assignment',
+      \ '--align_var_assignment ',
+      \ '--indent_case ',
+      \ '--indent_size 1 ',
+      \ '--indent_with_tabs ',
+      \ '--keep_redundant_lines ',
+      \ '--line_before_comment_multi ',
+      \ '--line_before_curly ',
+      \ '--line_before_curly_function ',
+      \ '--space_after_comma ',
+      \ '--space_after_if ',
+      \ '--space_around_arithmetic ',
+      \ '--space_around_assignment ',
+      \ '--space_around_colon_question ',
+      \ '--space_around_comparison ',
+      \ '--space_around_concat ',
+      \ '--space_around_double_arrow ',
+      \ '--space_around_logical ',
+      \ '--space_inside_for ',
+      \ '--vertical_array ',
+    \]
+  \}
