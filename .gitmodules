@@ -19,3 +19,6 @@
 [submodule "submodules/zsh-bd"]
 	path = submodules/zsh-bd
 	url = https://github.com/Tarrasch/zsh-bd
+[submodule "submodules/php-short-array-syntax-converter"]
+	path = submodules/php-short-array-syntax-converter
+	url = https://github.com/thomasbachem/php-short-array-syntax-converter

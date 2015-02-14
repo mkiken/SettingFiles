@@ -192,50 +192,7 @@ autocmd vimrc BufWritePre * if index(remove_dust_blacklist, &ft) < 0 | call <SID
 
 " http://vim-users.jp/2009/09/hack69/
 set autochdir
-" command! -nargs=? -complete=dir -bang CD  call s:ChangeCurrentDir('<args>', '<bang>')
-" function! s:ChangeCurrentDir(directory, bang)
-    " if a:directory == ''
-        " lcd %:p:h
-    " else
-        " execute 'lcd' . a:directory
-    " endif
 
-    " if a:bang == ''
-        " pwd
-    " endif
-" endfunction
-
-" " Change current directory.
-" nnoremap <silent> <Space>cd :<C-u>CD<CR>
-
-" let OSTYPE = system('uname')
-" if OSTYPE == "Darwin\n"
-	" "
-	" " MacVim?-KaoriYa?固有の設定
-	" "
-	" let $PATH = simplify($VIM . '/../../MacOS') . ':' . $PATH
-	" set migemodict=$VIMRUNTIME/dict/migemo-dict
-	" set migemodict=/usr/local/share/migemo/utf-8/migemo-dict
-	" set migemo
-
-" migemo割り当て
-" noremap  // :<C-u>Migemo<CR>
-" endif
-
-"----------------------------------------------------
-" Migemo
-"----------------------------------------------------
-" if has ('migemo')
-" set migemo
-" set migemodict=/usr/local/share/migemo/utf-8/migemo-dict
-" endif
-
-" http://d.hatena.ne.jp/spiritloose/20061113/1163401194
-" inoremap { {}<LEFT>
-" inoremap [ []<LEFT>
-" inoremap ( ()<LEFT>
-" inoremap " ""<LEFT>
-" inoremap ' ''<LEFT>
 vnoremap <Leader>{ "zdi{<C-R>z}<ESC>
 vnoremap [ "zdi[<C-R>z]<ESC>
 vnoremap ( "zdi(<C-R>z)<ESC>
@@ -445,11 +402,26 @@ set grepprg=grep\ -nH
 
 " http://qiita.com/Linda_pp/items/ee4bf64b1fe2c0a32cbd
 " 行頭 → 非空白行頭をローテートする
+" function! s:rotate_in_line()
+    " let c = col('.')
+
+    " let cmd = c == 1 ? '^' : '0'
+    " execute "normal! ".cmd
+" endfunction
+" 行頭 → 非空白行頭 → 行末 をローテートする
 function! s:rotate_in_line()
     let c = col('.')
 
-    let cmd = c == 1 ? '^' : '0'
+    let cmd = c == 1 ? '^' : '$'
     execute "normal! ".cmd
+
+    if c == col('.')
+        if cmd == '^'
+            normal! $
+        else
+            normal! 0
+        endif
+    endif
 endfunction
 " 0 に割り当て
 nnoremap <silent>0 :<C-u>call <SID>rotate_in_line()<CR>
@@ -519,6 +491,7 @@ nnoremap <silent>0 :<C-u>call <SID>rotate_in_line()<CR>
  Bundle 'deris/vim-diffbuf'
  " Bundle 'kana/vim-smartword'
  Bundle 'oppara/phpstylist.vim'
+ Bundle 'junegunn/vim-easy-align'
 
 
  " ホームポジションに近いキーを使う
@@ -1016,14 +989,27 @@ let g:neocomplete#sources#omni#input_patterns.perl = '\h\w*->\h\w*\|\h\w*::'
 
 " Multiple_cursorsとの競合の対応
 " https://github.com/terryma/vim-multiple-cursors/pull/65
+" function! Multiple_cursors_before()
+    " exe 'NeoCompleteLock'
+    " echo 'Disabled autocomplete'
+" endfunction
+
+" function! Multiple_cursors_after()
+    " exe 'NeoCompleteUnlock'
+    " echo 'Enabled autocomplete'
+" endfunction
+" Called once right before you start selecting multiple cursors
 function! Multiple_cursors_before()
+  if exists(':NeoCompleteLock')==2
     exe 'NeoCompleteLock'
-    echo 'Disabled autocomplete'
+  endif
 endfunction
 
+" Called once only when the multiple selection is canceled (default <Esc>)
 function! Multiple_cursors_after()
+  if exists(':NeoCompleteUnlock')==2
     exe 'NeoCompleteUnlock'
-    echo 'Enabled autocomplete'
+  endif
 endfunction
 
 
@@ -1146,3 +1132,8 @@ let g:phpstylist_cmd_path = $HOME.'/Desktop/repository/SettingFiles/bin/phpStyli
       \ '--vertical_array ',
     \]
   \}
+
+" Start interactive EasyAlign in visual mode (e.g. vip<Enter>)
+vmap <Enter> <Plug>(EasyAlign)
+" Start interactive EasyAlign for a motion/text object (e.g. gaip)
+nmap ga <Plug>(EasyAlign)
