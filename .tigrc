@@ -9,7 +9,56 @@ set diff-context = 2
 
 set line-graphics = utf-8
 
+# merge diff表示
+# http://qiita.com/YasuOza/items/7be136f03867d20b8332
+set diff-options = -m --first-parent
+
+# set line-number = yes
+
+
+########
+# generic
+########
 # デフォルトの bind generic G !git gc を無効化する
 bind generic G none
 bind generic g move-first-line
 bind generic G move-last-line
+bind generic B !git current-branch
+# Y で、コミットハッシュ値をコピーできるようにする
+bind generic Y !@bash -c "cut -c-7 <<<%(commit) | xargs echo -n | pbcopy"
+
+########
+# main view
+########
+# チーム開発しているとよくremoteで更新が入るため手元に同期
+bind main <Ctrl-r> !?git pull --rebase
+# revert作業は手早く行う必要があるためバインドして効率化
+bind main V !?git revert %(commit)
+# 任意のリビジョンを再現するためにcheckoutすることが多いためバインド
+bind main C !?git checkout %(commit)
+bind main M !?git merge %(commit)
+
+########
+# refs view
+########
+# カーソル行のブランチを親にして入力した名前のブランチを作成
+bind branch n !git checkout -b %(prompt) %(ref)
+# 不要になったブランチを削除（squash mergeや別リポジトリへのmergeをするワークフロー用）
+bind branch D !?git branch -D %(ref)
+# 不要になったブランチを削除
+bind branch d !?git branch -d %(ref)
+# originへのpush
+# bind branch P !?git push -u origin %(ref)
+bind branch P !?git pull origin %(ref)
+bind branch M !?git merge %(ref)
+bind branch S !?git merge --squash %(ref)
+bind branch l !git log %(ref)
+bind branch C !?git checkout %(ref)
+
+########
+# status view
+########
+# pushできるようにする
+# https://github.com/jonas/tig/issues/199
+bind status P !?git push origin
+
