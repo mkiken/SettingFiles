@@ -17,6 +17,7 @@ alias vimdiff='env LANG=ja_JP.UTF-8 ${MACVIM}diff'
 alias pg='sudo purge'
 alias ag='ag -S --stats -m 100000 --color'
 alias agh='ag --hidden'
+alias agl='ag -l'
 
 function em(){
 	open -a /Applications/Emacs.app "$@"
@@ -102,6 +103,7 @@ alias cds='cd ${SET}'
 #shortcut for setting files
 alias bashrc='vi ~/.bashrc'
 alias zshrc='vi ~/.zshrc'
+alias pecoconfig='vi ${SET}.zshrc_peco'
 alias aliases='vi ~/.aliases'
 alias einit='vi ~/.emacs.d/init.el'
 # alias vimrc='vi ~/.vimrc'
@@ -190,6 +192,9 @@ alias gcp='g cp'
 alias gcln='gcl -n'
 alias grl='g rl'
 alias grv='g rv'
+alias gcf='g conflicts'
+alias gdt='g dt'
+alias gmt='g mt'
 
 function lessc(){
   less | /usr/local/bin/src-hilite-lesspipe.sh $1
@@ -244,13 +249,13 @@ function gmg-master(){
 	if test $? -ne 0
 	then
 	  echo "gco master fail."
-		exit
+		return
 	fi
 	gpl
 	if test $? -ne 0
 	then
 		echo "git pull master fail."
-		exit
+		return
 	fi
 
   echo "do gco ${my_branch}"
@@ -258,7 +263,7 @@ function gmg-master(){
   if test $? -ne 0
   then
     echo "git checkout ${my_branch} fail."
-    exit
+    return
   fi
 
   gmg master
@@ -271,18 +276,21 @@ function gcob-from-master(){
 	gco master
 	if test $? -ne 0
 	then
-			exit
+		echo 'gco master fail.'
+			return
 	fi
 	git pull origin master
 	if test $? -ne 0
 	then
-			exit
+		echo 'git pull origin master fail.'
+		return
 	fi
 
 	gpl
 	if test $? -ne 0
 	then
-			exit
+		echo 'git pull fail.'
+		return
 	fi
 
 	gcob $1

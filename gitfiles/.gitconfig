@@ -35,6 +35,7 @@
 	rl = reflog
 	rv = revert
 	mt = mergetool
+	dt = difftool
 	add-cancel = reset HEAD
 
 	; http://qiita.com/peccul/items/90dd469e2f72babbc106
@@ -91,6 +92,7 @@
 	vmodified = difftool --tool=vimdiff --no-prompt --dir-diff --diff-filter=M
 
 	remoterm = push --delete origin
+	conflicts = !git ls-files -u | cut -f 2 | sort -u
 
 [color]
 	ui = auto
@@ -100,8 +102,6 @@
 	; editor = emacs
 	editor = vim -c \"set fenc=utf-8\"
 	quotepath = false
-[merge]
-	tool = vimdiff2
 	; http://qiita.com/yaotti/items/2361768b6ed781e87780
 [interactive]
 # git add/checkout -p時に，エンターでの決定を省略する
@@ -110,11 +110,20 @@
 ; http://d.hatena.ne.jp/z3100/20120505/1336203155
 [include]
 	path = .gitconfig.local
+[diff]
+    tool = mvimdiff
+[difftool "mvimdiff"]
+    cmd = mvim -f -d \"$LOCAL\" \"$REMOTE\"
 [difftool "sourcetree"]
-	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path =
+  cmd = opendiff \"$LOCAL\" \"$REMOTE\"
+  path =
+[merge]
+	; tool = vimdiff2
+	tool = mvimdiff
+[mergetool "mvimdiff"]
+    cmd = mvim -f -d \"$LOCAL\" \"$MERGED\" \"$REMOTE\"
 [mergetool "sourcetree"]
-	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
-	trustExitCode = true
+  cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+  trustExitCode = true
 [i18n]
 	commitencoding = utf-8

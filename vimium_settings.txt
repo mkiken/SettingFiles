@@ -20,3 +20,5 @@ map H scrollLeft
 map L scrollRight
 map J scrollDown
 map K scrollUp
+map U scrollPageUp
+map D scrollPageDown

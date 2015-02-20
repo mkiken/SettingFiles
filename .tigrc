@@ -42,7 +42,7 @@ bind main M !?git merge %(commit)
 # refs view
 ########
 # カーソル行のブランチを親にして入力した名前のブランチを作成
-bind branch n !git checkout -b %(prompt) %(ref)
+bind branch c !git checkout -b %(prompt) %(ref)
 # 不要になったブランチを削除（squash mergeや別リポジトリへのmergeをするワークフロー用）
 bind branch D !?git branch -D %(ref)
 # 不要になったブランチを削除

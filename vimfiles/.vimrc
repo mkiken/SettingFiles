@@ -565,7 +565,8 @@ noremap <Leader>o :Occur<CR>
     \   ['above', 'below'],
     \   ['jpg', 'png', 'gif'],
     \   ['new', 'old'],
-    \   ['up', 'down']
+    \   ['up', 'down'],
+    \   ['create', 'update', 'delete']
     \ ]
 
 " for pathogen
@@ -1138,6 +1139,9 @@ let g:phpstylist_cmd_path = $HOME.'/Desktop/repository/SettingFiles/bin/phpStyli
 vmap <Enter> <Plug>(EasyAlign)
 " Start interactive EasyAlign for a motion/text object (e.g. gaip)
 nmap ga <Plug>(EasyAlign)
+let g:easy_align_delimiters = {
+\ '/': { 'pattern': '//\+', 'delimiter_align': 'l', 'ignore_groups': ['!Comment'] }
+\ }
 
 
 " http://cohama.hateblo.jp/entry/20130517/1368806202

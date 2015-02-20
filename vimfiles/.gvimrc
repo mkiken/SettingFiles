@@ -9,13 +9,13 @@
 " colorscheme Tomorrow-Night-Eighties
 " colorscheme solarized
 " colorscheme wombat
-" colorscheme hybrid
+colorscheme hybrid
 " colorscheme iceberg
 " colorscheme github
 " colorscheme grb256
 " colorscheme hybrid-light
 " colorscheme inkpot
-colorscheme jellybeans
+" colorscheme jellybeans
 " colorscheme sexy-railscasts
 " colorscheme solarized
 " colorscheme summerfruits256
