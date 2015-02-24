@@ -46,7 +46,8 @@ bind branch c !git checkout -b %(prompt) %(ref)
 # 不要になったブランチを削除（squash mergeや別リポジトリへのmergeをするワークフロー用）
 bind branch D !?git branch -D %(ref)
 # 不要になったブランチを削除
-bind branch d !?git branch -d %(ref)
+# bind branch d !?git branch -d %(ref)
+bind branch d !?git diff %(branch)
 # originへのpush
 # bind branch P !?git push -u origin %(ref)
 bind branch P !?git pull origin %(ref)

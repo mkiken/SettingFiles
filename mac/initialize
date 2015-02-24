@@ -113,6 +113,9 @@ brew install gnu-sed
 brew install source-highlight
 brew install tig
 
+brew tap laurent22/massren
+brew install massren
+
 brew tap phinze/homebrew-cask
 brew install brew-cask
 brew cask install atom

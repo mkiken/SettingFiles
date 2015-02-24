@@ -21,3 +21,5 @@ node_modules
 *.zip
 *.log
 *.sql
+
+*.tpl.php

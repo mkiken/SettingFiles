@@ -612,9 +612,23 @@ let g:ctrlp_map = '<c-p>'
 let g:ctrlp_cmd = 'CtrlPMixed'
 let g:ctrlp_working_path_mode = 'ra'
 set wildignore+=*/tmp/*,*.so,*.swp,*.zip     " MacOSX/Linux
+set wildignore+=*/compiled/*     " MacOSX/Linux
 " set wildignore+=*\\tmp\\*,*.swp,*.zip,*.exe  " Windows
 let g:ctrlp_custom_ignore = '\v[\/]\.(git|hg|svn)$'
-let g:ctrlp_user_command = 'find %s -type f'        " MacOSX/Linux
+" The Silver Searcher
+if executable('ag')
+  " Use ag over grep
+  set grepprg=ag\ --nogroup\ --nocolor
+
+  " Use ag in CtrlP for listing files. Lightning fast and respects .gitignore
+  let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
+
+  " ag is fast enough that CtrlP doesn't need to cache
+  " let g:ctrlp_use_caching = 0
+else
+  let g:ctrlp_user_command = 'find %s -type f'        " MacOSX/Linux
+endif
+" let g:ctrlp_user_command = 'ag %s'
 " let g:ctrlp_use_migemo = 1
 " let g:ctrlp_clear_cache_on_exit = 0   " 終了時キャッシュをクリアしない
 " let g:ctrlp_mruf_max            = 500 " MRUの最大記録数
@@ -628,15 +642,12 @@ vmap gb <Plug>(openbrowser-smart-search)
 
 " http://blog.thomasupton.com/2012/05/syntastic/
 " On by default, turn it off for html
-let g:syntastic_mode_map = {
-  \ 'mode': 'active',
-	\ 'active_filetypes': ['javascript', 'json'],
-	\ 'passive_filetypes': ['scala'] }
 
 " for jshint
 let g:syntastic_mode_map = {
 \ "mode" : "active",
 \ "active_filetypes" : ["javascript", "json"],
+\ 'passive_filetypes': ['scala']
 \}
 
 let g:syntastic_javascript_checkers = ['jshint']
@@ -748,6 +759,16 @@ endfunction"}}}
 "     \ '--line-numbers --nocolor --nogroup --hidden --ignore ' .
 "     \  '''.hg'' --ignore ''.svn'' --ignore ''.git'' --ignore ''.bzr'''
 " endif
+
+" カーソル位置の単語をgrep検索
+nnoremap <silent> ,cg :<C-u>Unite grep:. -buffer-name=search-buffer<CR><C-R><C-W>
+
+" unite grep に ag(The Silver Searcher) を使う
+if executable('ag')
+  let g:unite_source_grep_command = 'ag'
+  let g:unite_source_grep_default_opts = '--nogroup --nocolor --column'
+  let g:unite_source_grep_recursive_opt = ''
+endif
 
 
 
@@ -1139,9 +1160,46 @@ let g:phpstylist_cmd_path = $HOME.'/Desktop/repository/SettingFiles/bin/phpStyli
 vmap <Enter> <Plug>(EasyAlign)
 " Start interactive EasyAlign for a motion/text object (e.g. gaip)
 nmap ga <Plug>(EasyAlign)
+" let g:easy_align_delimiters = {
+" \ '/': { 'pattern': '//\+', 'delimiter_align': 'l', 'ignore_groups': ['!Comment'] }
+" \ }
+" http://qiita.com/NanohaAsOnKai/items/5e196bfbb8c3d0b98385
 let g:easy_align_delimiters = {
-\ '/': { 'pattern': '//\+', 'delimiter_align': 'l', 'ignore_groups': ['!Comment'] }
-\ }
+\    '=': {
+\        'pattern': '===\|!==\|<=>\|\(&&\|||\|<<\|>>\)=\|=\~[#?]\?\|=>\|[:+/*!%^=><&|.-]\?=[#?]\?',
+\        'left_margin': 1,
+\        'right_margin': 1,
+\        'stick_to_left': 0 },
+\    '>': {
+\        'pattern': '>>\|=>\|>', },
+\    '/': {
+\        'pattern':       '//\+\|/\*\|\*/',
+\        'delimiter_align': 'l',
+\        'ignore_groups': ['String', '!Comment'], },
+\    '#': {
+\        'pattern':         '#\+',
+\        'ignore_groups':   ['String'],
+\        'delimiter_align': 'l', },
+\    '$': {
+\        'pattern':         '\((.*\)\@!$\(.*)\)\@!',
+\        'ignore_groups':   ['String', '!Comment'],
+\        'right_margin':  0,
+\        'delimiter_align': 'l', },
+\    ']': {
+\        'pattern':       '[[\]]',
+\        'left_margin':   0,
+\        'right_margin':  0,
+\        'stick_to_left': 0, },
+\    ')': {
+\        'pattern':       '[()]',
+\        'left_margin':   0,
+\        'right_margin':  0,
+\        'stick_to_left': 0, },
+\    'd': {
+\        'pattern':      ' \(\S\+\s*[;=]\)\@=',
+\        'ignore_groups':   ['String', '!Comment'],
+\        'left_margin':  0,
+\        'right_margin': 0, }, }
 
 
 " http://cohama.hateblo.jp/entry/20130517/1368806202

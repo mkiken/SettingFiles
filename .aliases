@@ -18,6 +18,10 @@ alias pg='sudo purge'
 alias ag='ag -S --stats -m 100000 --color'
 alias agh='ag --hidden'
 alias agl='ag -l'
+# http://shigemk2.hatenablog.com/entry/2014/09/08/find%E3%81%A8silver_searcher%E3%82%92%E7%B5%84%E3%81%BF%E5%90%88%E3%82%8F%E3%81%9B%E3%81%A6%E3%80%81%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB%E5%90%8D%E3%82%92%E6%A4%9C%E7%B4%A2%E3%81%99%E3%82%8B
+alias agf='find . -type f | ag'
+alias agd='find . -type d | ag'
+alias agn='find . | ag'
 
 function em(){
 	open -a /Applications/Emacs.app "$@"
