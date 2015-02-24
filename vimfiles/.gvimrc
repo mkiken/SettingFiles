@@ -132,38 +132,6 @@ endif
 highlight Cursor guifg=#000d18 guibg=#8faf9f gui=bold
 highlight CursorIM guifg=NONE guibg=#ecbcbc
 
-""""""""""""""""""""""""""""""
-"挿入モード時、ステータスラインの色を変更
-""""""""""""""""""""""""""""""
-let g:hi_insert = 'highlight StatusLine guifg=darkblue guibg=gray gui=none ctermfg=blue ctermbg=yellow cterm=none'
-
-if has('syntax')
-	augroup InsertHook
-		autocmd!
-		autocmd gvimrc InsertEnter * call s:StatusLine('Enter')
-		autocmd gvimrc InsertLeave * call s:StatusLine('Leave')
-	augroup END
-endif
-
-let s:slhlcmd = ''
-function! s:StatusLine(mode)
-	if a:mode == 'Enter'
-		silent! let s:slhlcmd = 'highlight ' . s:GetHighlight('StatusLine')
-		silent exec g:hi_insert
-	else
-		highlight clear StatusLine
-		silent exec s:slhlcmd
-	endif
-endfunction
-
-function! s:GetHighlight(hi)
-	redir => hl
-	exec 'highlight '.a:hi
-	redir END
-	let hl = substitute(hl, '[\r\n]', '', 'g')
-	let hl = substitute(hl, 'xxx', '', '')
-	return hl
-endfunction
 
 " Window sizeの保存
 " http://vim-users.jp/2010/01/hack120/

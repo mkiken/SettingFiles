@@ -121,13 +121,6 @@ set foldmethod=manual
 set foldlevel=100 "Don't autofold anything
 
 
-" http://win-to-mac.blogspot.jp/2012/08/vim.html
-set statusline=%<%f\ %m%r%h%w%{'['.(&fenc!=''?&fenc:&enc).']['.&ff.']'}%=%l,%c%V%8P
-
-" for WordCount
-" https://github.com/fuenor/vim-wordcount
-set statusline+=[wc:%{WordCount()}]
-set updatetime=500
 
 " http://blog.remora.cx/2011/08/display-invisible-characters-on-vim.html
 set list
@@ -211,8 +204,8 @@ nnoremap <Up>   gk
 " Alt-f, Alt-bを無理矢理マッピング
 " http://stackoverflow.com/questions/7501092/can-i-map-alt-key-in-vim
 " inoremap ƒ <ESC>lwi
-inoremap ƒ <C-o>w
-inoremap ∫ <C-o>b
+noremap! ƒ <C-o>w
+noremap! ∫ <C-o>b
 
 
 " http://vim-users.jp/2009/08/hack57/
@@ -333,13 +326,13 @@ vnoremap < <gv
 
 " http://notachi.hatenadiary.jp/entry/2012/11/13/181810
 " カーソル移動
-inoremap <C-p> <Up>
-inoremap <C-n> <Down>
-inoremap <C-b> <Left>
-inoremap <C-f> <Right>
-inoremap <C-e> <End>
-inoremap <C-a> <Home>
-inoremap <C-d> <Del>
+noremap! <C-p> <Up>
+noremap! <C-n> <Down>
+noremap! <C-b> <Left>
+noremap! <C-f> <Right>
+noremap! <C-e> <End>
+noremap! <C-a> <Home>
+noremap! <C-d> <Del>
 " inoremap <M-Left> <Left>
 " inoremap <M-b> <M-left>
 " カーソルのある行を画面中央に
@@ -351,12 +344,12 @@ inoremap <C-k> <c-o>D
 " inoremap <C-.> <c-o>dd
 " アンドゥ
 " inoremap <C-x>u <C-o>u
-inoremap <C-u> <C-o>u
-inoremap <C-]> <C-o>u
-inoremap <C-r> <C-o><C-r>
+noremap! <C-u> <C-o>u
+noremap! <C-]> <C-o>u
+noremap! <C-r> <C-o><C-r>
 " 貼りつけ
-inoremap <C-y> <C-o>P
-inoremap ∆ <C-o>O
+noremap! <C-y> <C-o>P
+noremap! ∆ <C-o>O
 
 
 " inoremap <C-i> <C-o>=
@@ -477,7 +470,7 @@ nnoremap <silent>0 :<C-u>call <SID>rotate_in_line()<CR>
  Bundle 'mkiken/vim-jsbeautify-simple'
  " Bundle 'alpaca-tc/beautify.vim'
  Bundle 'thinca/vim-qfreplace'
- Bundle 'Lokaltog/vim-powerline'
+ " Bundle 'Lokaltog/vim-powerline'
  Bundle 'tpope/vim-fugitive'
  Bundle 'rking/ag.vim'
  Bundle 'Shougo/neomru.vim'
@@ -493,6 +486,7 @@ nnoremap <silent>0 :<C-u>call <SID>rotate_in_line()<CR>
  Bundle 'oppara/phpstylist.vim'
  Bundle 'junegunn/vim-easy-align'
  Bundle 'gregsexton/gitv'
+ Plugin 'bling/vim-airline'
 
 
  " ホームポジションに近いキーを使う
@@ -1227,3 +1221,18 @@ function! s:my_gitv_settings()
   nnoremap <buffer> <Space>rh :<C-u>Git reset --hard <C-r>=GitvGetCurrentHash()<CR>
   nnoremap <silent><buffer> t :<C-u>windo call <SID>toggle_git_folding()<CR>1<C-w>w
 endfunction
+
+
+" http://win-to-mac.blogspot.jp/2012/08/vim.html
+" set statusline=%<%f\ %m%r%h%w%{'['.(&fenc!=''?&fenc:&enc).']['.&ff.']'}%=%l,%c%V%8P
+
+" for WordCount
+" https://github.com/fuenor/vim-wordcount
+" set statusline+=[wc:%{WordCount()}]
+
+" (percentage, line number, column number)
+let g:airline_section_z = 'l:%l|c:%c|wc:%{WordCount()}'
+set updatetime=500
+
+" (bufferline or filename)
+let g:airline_section_c = '%{getcwd()} | %t'
