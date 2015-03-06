@@ -82,6 +82,7 @@ mkdir -p ~/.backup/emacs/backup
 mkdir -p ~/.backup/emacs/autosave
 mkdir -p ~/.backup/vim/backup
 mkdir -p ~/.backup/vim/swap
+mkdir -p ~/.backup/vim/undo
 
 echo 'backup directory for emacs and vim made.'
 
@@ -134,3 +135,5 @@ git submodule update --init --recursive
 ./update
 
 ln -si "${Repo}submodules/used-mem/used-mem" /usr/local/bin/used-mem
+
+massren --config editor "mvim"

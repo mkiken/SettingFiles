@@ -15,9 +15,7 @@ typeset -U path
 # http://www.emacswiki.org/emacs/ColorThemeQuestions
 export TERM=xterm-256color
 
-# export LESS='-R'
 export LESS='-R --no-init --RAW-CONTROL-CHARS'
-# export LESSOPEN='| /usr/local/bin/src-hilite-lesspipe.sh %s'
 
 case "${OSTYPE}" in
   # --------------- Mac(Unix) ---------------

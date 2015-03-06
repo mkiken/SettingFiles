@@ -37,6 +37,7 @@
 	mt = mergetool
 	dt = difftool
 	add-cancel = reset HEAD
+	bs = bisect
 
 	; http://qiita.com/peccul/items/90dd469e2f72babbc106
 	today = log --oneline --since='12 hour ago'
@@ -100,7 +101,9 @@
 	excludesfile = /Users/a13596/.gitignore
 	autocrlf = false
 	; editor = emacs
-	editor = vim -c \"set fenc=utf-8\"
+	; editor = vim -c \"set fenc=utf-8\"
+	; editor = mvim
+	editor = vim
 	quotepath = false
 	; http://qiita.com/yaotti/items/2361768b6ed781e87780
 [interactive]
@@ -115,15 +118,15 @@
 [difftool "mvimdiff"]
     cmd = mvim -f -d \"$LOCAL\" \"$REMOTE\"
 [difftool "sourcetree"]
-  cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-  path =
+	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
+	path = 
 [merge]
 	; tool = vimdiff2
 	tool = mvimdiff
 [mergetool "mvimdiff"]
     cmd = mvim -f -d \"$LOCAL\" \"$MERGED\" \"$REMOTE\"
 [mergetool "sourcetree"]
-  cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
-  trustExitCode = true
+	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+	trustExitCode = true
 [i18n]
 	commitencoding = utf-8

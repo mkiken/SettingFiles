@@ -1,5 +1,3 @@
-Custom key mappings
-
 map F LinkHints.activateMode
 map f LinkHints.activateModeToOpenInNewForegroundTab
 map O Vomnibar.activate
@@ -13,6 +11,7 @@ unmap X
 map . nextTab
 map , previousTab
 map r reload
+map R reload
 map ; goForward
 map - goBack
 map gr previousTab
@@ -20,5 +19,5 @@ map H scrollLeft
 map L scrollRight
 map J scrollDown
 map K scrollUp
-map U scrollPageUp
-map D scrollPageDown
+map U scrollPageUp
+map D scrollPageDown

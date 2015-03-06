@@ -199,10 +199,17 @@ alias grv='g rv'
 alias gcf='g conflicts'
 alias gdt='g dt'
 alias gmt='g mt'
+alias gbs='g bs'
+alias gbsg='g bs good'
+alias gbsb='g bs bad'
 
 function lessc(){
-  less | /usr/local/bin/src-hilite-lesspipe.sh $1
+	export LESSOPEN='| /usr/local/bin/src-hilite-lesspipe.sh %s'
+	less $1
+	LESSOPEN=''
 }
+alias vless='/usr/local/share/vim/vim74/macros/less.sh'
+
 
 function gbl(){
   g bl $@ | gsed -f "${SET}sedfiles/colorize_git_blame.sed" | less
@@ -335,13 +342,13 @@ alias sz='du -ch -d 1'
 
 # tmux
 alias tm='tmux'
-alias tma='t a -t'
-alias tmn='t new'
-alias tmc='t new -s'
-alias tmr='tmux rename-session -t'
-alias tmk='t kill-session -t'
-alias tmks='t kill-server'
-alias tmss='t start-server'
+alias tma='tm a -t'
+alias tmn='tm new'
+alias tmc='tm new -s'
+alias tmr='tm rename-session -t'
+alias tmk='tm kill-session -t'
+alias tmks='tm kill-server'
+alias tmss='tm start-server'
 
 #tig
 alias t='tig'

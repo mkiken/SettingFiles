@@ -26,7 +26,8 @@ set laststatus=2 "ステータスラインを常に表示する
 " set nobackup
 
 " http://stackoverflow.com/questions/15660669/what-is-a-un-file-or-or-why-does-vim-in-the-terminal-make-the-un-file
-set noundofile
+set undofile
+set undodir=~/.backup/vim/undo
 
 " http://nanasi.jp/articles/howto/file/seemingly-unneeded-file.html
 set swapfile
@@ -204,9 +205,13 @@ nnoremap <Up>   gk
 " Alt-f, Alt-bを無理矢理マッピング
 " http://stackoverflow.com/questions/7501092/can-i-map-alt-key-in-vim
 " inoremap ƒ <ESC>lwi
-noremap! ƒ <C-o>w
-noremap! ∫ <C-o>b
 
+" M-f
+noremap! ƒ <C-o>w
+" M-b
+noremap! ∫ <C-o>b
+" M-j
+noremap! Ô <C-o>O
 
 " http://vim-users.jp/2009/08/hack57/
 nnoremap <Enter> :<C-u>call append(expand('.'), '')<Cr>j
@@ -315,6 +320,10 @@ inoremap <C-Right> <Esc>gt
 " http://cohalz.com/2013/06/14/vim-easier-enter-keymap/
 inoremap <C-j> <ESC>$a<CR>
 " nnoremap <C-j> $a<CR>
+
+" http://haya14busa.com/vim-break-undo-sequence-in-insertmode/
+inoremap <Space> <Space><C-g>u
+inoremap <CR> <CR><C-g>u
 
 " http://easyramble.com/disable-vim-auto-comment.html
 " set formatoptions-=ro
@@ -912,7 +921,7 @@ let g:expand_region_text_objects = {
 let g:neocomplete#enable_at_startup = 1
 
 " 自動で補完しない
-" let g:neocomplete#disable_auto_complete = 1
+let g:neocomplete#disable_auto_complete = 1
 
 " Use smartcase.
 let g:neocomplete#enable_smart_case = 1
@@ -1231,7 +1240,7 @@ endfunction
 " set statusline+=[wc:%{WordCount()}]
 
 " (percentage, line number, column number)
-let g:airline_section_z = 'l:%l|c:%c|wc:%{WordCount()}'
+let g:airline_section_z = 'l:%l/%L|c:%c|wc:%{WordCount()}|%P'
 set updatetime=500
 
 " (bufferline or filename)

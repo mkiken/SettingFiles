@@ -62,4 +62,3 @@ bind branch C !?git checkout %(ref)
 # pushできるようにする
 # https://github.com/jonas/tig/issues/199
 bind status P !?git push origin
-
