@@ -354,6 +354,8 @@ alias tmss='tm start-server'
 alias t='tig'
 alias ta='tig --all'
 
+alias -g V='| view -'
+
 # 現在のディレクトリ以下の当てはまるファイルを全て削除する
 # http://www.omnioo.com/omnioolab/2012/07/find.php
 alias rrm='noglob _rrm'

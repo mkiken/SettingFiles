@@ -119,21 +119,19 @@ brew install massren
 
 brew tap phinze/homebrew-cask
 brew install brew-cask
-brew cask install atom
+# brew cask install atom
 brew cask install evernote
 brew cask install google-chrome
 brew cask install macvim
-brew cask install skype
+# brew cask install skype
 
 # touch ~/.z
 touch ~/.cd_history_file
 
-ln -s /usr/local/Cellar/git/2.2.0/share/git-core/contrib/diff-highlight/diff-highlight  /usr/local/bin
-
-git submodule update --init --recursive
-
-./update
+ln -s /usr/local/Cellar/git/2.3.1/share/git-core/contrib/diff-highlight/diff-highlight  /usr/local/bin
 
 ln -si "${Repo}submodules/used-mem/used-mem" /usr/local/bin/used-mem
 
 massren --config editor "mvim"
+
+./update

@@ -5,12 +5,13 @@ git submodule update --recursive
 git submodule foreach 'git pull origin master'
 
 brew update
-brew upgrade git
-brew upgrade rmtrash
-brew upgrade emacs
-brew upgrade vim
-brew upgrade rlwrap
+brew upgrade
+# brew upgrade git
+# brew upgrade rmtrash
+# brew upgrade emacs
+# brew upgrade vim
+# brew upgrade rlwrap
 
 vim -c BundleInstall -c BundleUpdate -c qa
-../.atom/package_initialize
-echo "If package of Emacs is updated, please eval-buffer 'package-initialize.el' on Emacs."
+# ../.atom/package_initialize
+# echo "If package of Emacs is updated, please eval-buffer 'package-initialize.el' on Emacs."

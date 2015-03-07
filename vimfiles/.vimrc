@@ -26,8 +26,10 @@ set laststatus=2 "ステータスラインを常に表示する
 " set nobackup
 
 " http://stackoverflow.com/questions/15660669/what-is-a-un-file-or-or-why-does-vim-in-the-terminal-make-the-un-file
-set undofile
-set undodir=~/.backup/vim/undo
+if has('persistent_undo')
+  set undofile
+  set undodir=~/.backup/vim/undo
+endif
 
 " http://nanasi.jp/articles/howto/file/seemingly-unneeded-file.html
 set swapfile
@@ -107,7 +109,6 @@ set preserveindent
 " タブラインを常に表示
 set showtabline=2
 
-
 " http://shoken.hatenablog.com/entry/20120617/p
 set splitbelow "新しいウィンドウを下に開く
 set splitright "新しいウィンドウを右に開く
@@ -121,8 +122,6 @@ set splitright "新しいウィンドウを右に開く
 set foldmethod=manual
 set foldlevel=100 "Don't autofold anything
 
-
-
 " http://blog.remora.cx/2011/08/display-invisible-characters-on-vim.html
 set list
 set listchars=tab:»-,trail:-,extends:»,precedes:«,nbsp:%
@@ -131,6 +130,9 @@ set listchars=tab:»-,trail:-,extends:»,precedes:«,nbsp:%
 "_でも単語区切り
 " https://sites.google.com/site/vimdocja/usr_05-html
 set iskeyword-=_
+
+" http://qiita.com/takeh1k0/items/b66b8a66bb4073084ee5
+set ambiwidth=double
 
 " http://rbtnn.hateblo.jp/entry/2014/11/30/174749
 augroup vimrc
@@ -291,11 +293,11 @@ inoremap <D-0> <C-O>10gt
 " https://sites.google.com/site/hymd3a/vim/vim-copy-paste
 " :set clipboard=unnamed
 "*x  切り取り
-vnoremap gx "+x
+vnoremap <Leader>x "+x
 "*y  コピー
-vnoremap gy "+y
+vnoremap <Leader>y "+y
 "*p  ペースト
-nnoremap gp "+p
+nnoremap <Leader>p "+p
 
 " http://vim.wikia.com/wiki/Format_pasted_text_automatically
 " :nnoremap p ]p
@@ -321,9 +323,8 @@ inoremap <C-Right> <Esc>gt
 inoremap <C-j> <ESC>$a<CR>
 " nnoremap <C-j> $a<CR>
 
-" http://haya14busa.com/vim-break-undo-sequence-in-insertmode/
-inoremap <Space> <Space><C-g>u
-inoremap <CR> <CR><C-g>u
+inoremap , ,<Space>
+
 
 " http://easyramble.com/disable-vim-auto-comment.html
 " set formatoptions-=ro
@@ -366,7 +367,7 @@ noremap! ∆ <C-o>O
 " vimrcをリロード
 " http://whileimautomaton.net/2008/07/20150335
 " nnoremap <Space>s  :<C-u>source $VIMRC<Return>
-nnoremap <Space>s  :<C-u>source ~/.vimrc <Return>
+nnoremap <Leader>s  :<C-u>source ~/.vimrc <Return>
 command! ReloadVimrc  :source ~/.vimrc
 
 " http://tech.toshiya240.com/articles/2014/06/matchit-vim/
@@ -427,6 +428,72 @@ function! s:rotate_in_line()
 endfunction
 " 0 に割り当て
 nnoremap <silent>0 :<C-u>call <SID>rotate_in_line()<CR>
+
+" undoを区切る
+" http://haya14busa.com/vim-break-undo-sequence-in-insertmode/
+inoremap <Space> <Space><C-g>u
+" inoremap <CR> <CR><C-g>u
+
+" </で閉じタグを自動補完
+" http://qiita.com/hail2u/items/26c473677b2ce5672876
+autocmd FileType html inoremap <silent> <buffer> </ </<C-x><C-o>
+
+" 編集位置の自動復帰
+" http://blog.papix.net/entry/2012/12/14/042937
+" au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g`\""
+
+" 括弧補完。カーソルを自動的に()の中へ
+" imap { {}<Left>
+" imap [ []<Left>
+" imap ( ()<Left>
+" imap " ""<Left>
+" imap ' ''<Left>
+
+" smartinputによってkaomojiが入力できないことがあるので、回避策
+nnoremap <F5> :<C-u>setlocal imdisable!<CR>
+
+" インデントレベルが同じ行を探して移動する
+" http://qiita.com/crispy/items/ff3522a327d0a7d7706b
+func! s:IndentSensitive(backward)
+  let lineNum = line('.')
+  let line = getline(lineNum)
+  let col = col('.')
+  call cursor(lineNum, 1)
+  let indentLevel = s:getIndentLevel(line)
+  let nextLine = getline(lineNum + (a:backward ? -1 : 1))
+  let nextIndentLevel = s:getIndentLevel(nextLine)
+  let pattern = printf('^[ \t]\{%d}[^ \t]', indentLevel)
+  if indentLevel != nextIndentLevel
+    let hitLineNum = search(pattern, 'n' . (a:backward ? 'b' : ''))
+  else
+    let lastLineNum = line('$')
+    let hitLineNum = lineNum
+    while 1 <= lineNum && lineNum <= lastLineNum
+      let lineNum += a:backward ? -1 : 1
+      if lineNum < 1
+        break
+      endif
+      if s:getIndentLevel(getline(lineNum)) != indentLevel
+        break
+      end
+      let hitLineNum = lineNum
+    endwhile
+  endif
+  call cursor(hitLineNum, col)
+endfunc
+func! s:getIndentLevel(str)
+  return len(matchstr(a:str, '^[ \t]*'))
+endfunc
+func! IndentSensitivePrev()
+  call s:IndentSensitive(1)
+endfunc
+func! IndentSensitiveNext()
+  call s:IndentSensitive(0)
+endfunc
+nnoremap <silent> <Leader>k :call IndentSensitivePrev()<CR>
+nnoremap <silent> <Leader>j :call IndentSensitiveNext()<CR>
+
+" Plugins
 
 " for Vundle
  filetype off                   " required!
@@ -496,6 +563,13 @@ nnoremap <silent>0 :<C-u>call <SID>rotate_in_line()<CR>
  Bundle 'junegunn/vim-easy-align'
  Bundle 'gregsexton/gitv'
  Plugin 'bling/vim-airline'
+ " Plugin 'jiangmiao/auto-pairs'
+ Plugin 'cohama/vim-smartinput-endwise'
+ Plugin 'lilydjwg/colorizer'
+ Plugin 'tyru/open-browser-github.vim'
+ Plugin 'tpope/vim-abolish'
+ Plugin 'LeafCage/yankround.vim'
+ Plugin 'vim-scripts/Changed'
 
 
  " ホームポジションに近いキーを使う
@@ -549,8 +623,8 @@ sunmap e
 
 noremap <Leader>o :Occur<CR>
 
- " <Space>mに、switch.vimをマッピング
- " nnoremap <Space>m  <Plug>(switch-next)
+ " <Leader>mに、switch.vimをマッピング
+ " nnoremap <Leader>m  <Plug>(switch-next)
  nnoremap ^ :Switch<cr>
  let g:switch_custom_definitions =
     \ [
@@ -601,12 +675,35 @@ endif
 " call smartinput#map_to_trigger('i', '<Plug>(smartinput_BS)','<BS>','<BS>')
 " call smartinput#map_to_trigger('i', '<Plug>(smartinput_C-h)', '<BS>', '<C-h>')
 call smartinput#map_to_trigger('i', '<Plug>(smartinput_CR)','<Enter>','<Enter>')
+" call smartinput#define_rule({
+" \   'at': '({\%#})',
+" \   'char': '<CR>',
+" \   'input': '<CR>\ <Esc>O\ ',
+" \ } )
+" http://rhysd.hatenablog.com/entry/20121017/1350444269
+" 改行時に行末スペースの除去
 call smartinput#define_rule({
-\   'at': '({\%#})',
+\   'at': '\s\+\%#',
 \   'char': '<CR>',
-\   'input': '<CR>\ <Esc>O\ ',
-\ } )
+\   'input': "<C-o>:call setline('.', substitute(getline('.'), '\\s\\+$', '', ''))<CR><CR>",
+\   })
+" Ruby で文字列内展開 #{} やブロック引数 do || の補助
+call smartinput#map_to_trigger('i', '#', '#', '#')
+call smartinput#define_rule({
+            \   'at'       : '\%#',
+            \   'char'     : '#',
+            \   'input'    : '#{}<Left>',
+            \   'filetype' : ['ruby'],
+            \   'syntax'   : ['Constant', 'Special'],
+            \   })
 
+call smartinput#map_to_trigger('i', '<Bar>', '<Bar>', '<Bar>')
+call smartinput#define_rule({
+            \   'at' : '\({\|\<do\>\)\s*\%#',
+            \   'char' : '<Bar>',
+            \   'input' : '<Bar><Bar><Left>',
+            \   'filetype' : ['ruby'],
+            \    })
 
 " ctrlp
 " https://github.com/kien/ctrlp.vim
@@ -636,6 +733,8 @@ endif
 " let g:ctrlp_clear_cache_on_exit = 0   " 終了時キャッシュをクリアしない
 " let g:ctrlp_mruf_max            = 500 " MRUの最大記録数
 let g:ctrlp_open_new_file       = 1   " 新規ファイル作成時にタブで開く
+let g:ctrlp_available       = 1   " for yankround
+
 
 " URLを開けるようにする
 " http://vim-users.jp/2011/08/hack225/
@@ -689,10 +788,12 @@ nmap    <Leader>f [unite]
 nnoremap [unite]u  :<C-u>Unite -no-split<Space>
 nnoremap <silent> [unite]t :<C-u>Unite<Space>buffer<CR>
 nnoremap <silent> [unite]b :<C-u>Unite<Space>bookmark<CR>
-nnoremap <silent> [unite]r :<C-u>Unite<Space>file_mru<CR>
+nnoremap <silent> [unite]m :<C-u>Unite<Space>file_mru<CR>
 nnoremap <silent> [unite]d :<C-u>UniteWithBufferDir file<CR>
-nnoremap <silent> [unite]o :<C-u>Unite<Space>file_rec<CR>
+nnoremap <silent> [unite]r :<C-u>Unite<Space>file_rec<CR>
+nnoremap <silent> [unite]p :<C-u>Unite<Space>file_rec:!<CR>
 nnoremap <silent> [unite]f :<C-u>UniteWithBufferDir -buffer-name=files file<CR>
+nnoremap <silent> [unite]y :<C-u>Unite<Space>yankaround<CR>
 " vimprocがいるらしい http://mba-hack.blogspot.jp/2013/03/unitevim.html
 " nnoremap <silent> [unite]g :<C-u>Unite grep:. -buffer-name=search-buffer<CR>
 nnoremap <silent> ,vr :UniteResume<CR>
@@ -1069,6 +1170,11 @@ let g:neosnippet#snippets_directory='~/.vim/snippets'
 
 let g:user_emmet_leader_key='<C-Z>'
 " let g:user_emmet_leader_key='<c-x>'
+let g:user_emmet_settings = {
+\ 'variables': {
+\ 'lang' : 'ja'
+\ }
+\}
 
 " noremap <Leader>b :Autoformat<CR><CR>
 " nnoremap <leader>b :%!js-beautify -j -q -B -f -<CR>
@@ -1085,29 +1191,26 @@ let g:SimpleJsIndenter_BriefMode = 1
 " この設定入れるとswitchのインデントがいくらかマシに
 let g:SimpleJsIndenter_CaseIndentLevel = -1
 
-
-nnoremap <Leader>gr :Qfreplace
-
 let g:jsdoc_default_mapping = 0
 nnoremap <silent> <Leader>d :JsDoc<CR>
 
-nnoremap <silent> <Space>gb :Gblame<CR>
-nnoremap <silent> <Space>gd :Gdiff<CR>
-nnoremap <silent> <Space>gs :Gstatus<CR>
-nnoremap <silent> <Space>ga :Gwrite<CR>
-nnoremap <silent> <Space>gc :Gcommit<CR>
-nnoremap <silent> <Space>gr :Gremove<CR>
-nnoremap <silent> <Space>gm :Gmove<CR>
-nnoremap <silent> <Space>gr :Gread<CR>
+nnoremap <silent> <Leader>gb :Gblame<CR>
+nnoremap <silent> <Leader>gd :Gdiff<CR>
+nnoremap <silent> <Leader>gs :Gstatus<CR>
+nnoremap <silent> <Leader>ga :Gwrite<CR>
+nnoremap <silent> <Leader>gc :Gcommit<CR>
+nnoremap <silent> <Leader>gr :Gremove<CR>
+nnoremap <silent> <Leader>gm :Gmove<CR>
+nnoremap <silent> <Leader>gr :Gread<CR>
 
 " http://books.google.co.jp/books?id=QZSWbc83LfQC&pg=PA108&lpg=PA108&dq=vim+star&source=bl&ots=i5zfo7mhZO&sig=IRCOtnO0RclvQzyMVFLb5VG3ga4&hl=ja&sa=X&ei=cMsNVNvJCore8AWQ54H4BA&ved=0CH4Q6AEwCQ#v=onepage&q=vim%20star&f=false
 map * <Plug>(visualstar-*)N
 map # <Plug>(visualstar-#)N
 
-nmap <Space>h <Plug>(quickhl-manual-this)
-xmap <Space>h <Plug>(quickhl-manual-this)
-nmap <Space>H <Plug>(quickhl-manual-reset)
-xmap <Space>H <Plug>(quickhl-manual-reset)
+nmap <Leader>h <Plug>(quickhl-manual-this)
+xmap <Leader>h <Plug>(quickhl-manual-this)
+nmap <Leader>H <Plug>(quickhl-manual-reset)
+xmap <Leader>H <Plug>(quickhl-manual-reset)
 
 " ハイライトするグループ名を設定します
 " アンダーラインで表示する
@@ -1224,10 +1327,10 @@ function! s:my_gitv_settings()
   " ここに設定を書く
   setlocal iskeyword+=/,-,.
   nnoremap <silent><buffer> C :<C-u>Git checkout <C-r><C-w><CR>
-  nnoremap <buffer> <Space>rb :<C-u>Git rebase <C-r>=GitvGetCurrentHash()<CR><Space>
-  nnoremap <buffer> <Space>R :<C-u>Git revert <C-r>=GitvGetCurrentHash()<CR><CR>
-  nnoremap <buffer> <Space>h :<C-u>Git cherry-pick <C-r>=GitvGetCurrentHash()<CR><CR>
-  nnoremap <buffer> <Space>rh :<C-u>Git reset --hard <C-r>=GitvGetCurrentHash()<CR>
+  nnoremap <buffer> <Leader>rb :<C-u>Git rebase <C-r>=GitvGetCurrentHash()<CR><Space>
+  nnoremap <buffer> <Leader>R :<C-u>Git revert <C-r>=GitvGetCurrentHash()<CR><CR>
+  nnoremap <buffer> <Leader>h :<C-u>Git cherry-pick <C-r>=GitvGetCurrentHash()<CR><CR>
+  nnoremap <buffer> <Leader>rh :<C-u>Git reset --hard <C-r>=GitvGetCurrentHash()<CR>
   nnoremap <silent><buffer> t :<C-u>windo call <SID>toggle_git_folding()<CR>1<C-w>w
 endfunction
 
@@ -1245,3 +1348,14 @@ set updatetime=500
 
 " (bufferline or filename)
 let g:airline_section_c = '%{getcwd()} | %t'
+
+call smartinput_endwise#define_default_rules()
+
+nmap p <Plug>(yankround-p)
+xmap p <Plug>(yankround-p)
+nmap P <Plug>(yankround-P)
+nmap gp <Plug>(yankround-gp)
+xmap gp <Plug>(yankround-gp)
+nmap gP <Plug>(yankround-gP)
+nmap <Leader>w <Plug>(yankround-prev)
+nmap <C-n> <Plug>(yankround-next)
