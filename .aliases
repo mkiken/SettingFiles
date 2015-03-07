@@ -13,6 +13,8 @@ alias ll='ls -AFThl'
 #MacVim on CUI
 alias vi='env LANG=ja_JP.UTF-8 ${MACVIM} --remote-tab-silent'
 alias vs='env LANG=ja_JP.UTF-8 ${MACVIM}'
+alias visp='mvim -o'
+alias vivsp='mvim -O'
 alias vimdiff='env LANG=ja_JP.UTF-8 ${MACVIM}diff'
 alias pg='sudo purge'
 alias ag='ag -S --stats -m 100000 --color'

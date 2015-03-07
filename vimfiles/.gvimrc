@@ -154,3 +154,4 @@ if filereadable(g:save_window_file)
 else
 	set lines=50 columns=150
 endif
+

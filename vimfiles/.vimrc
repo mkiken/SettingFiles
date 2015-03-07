@@ -85,7 +85,8 @@ set whichwrap=b,s,h,l,<,>,[,]
 set wildmenu
 
 " コマンドモードでの補完設定
-set wildmode=longest:full,list
+" set wildmode=longest:full,list
+set wildmode=list:full,longest:full
 
 " 検索の時に大文字小文字を区別しない
 set ignorecase
@@ -133,6 +134,15 @@ set iskeyword-=_
 
 " http://qiita.com/takeh1k0/items/b66b8a66bb4073084ee5
 set ambiwidth=double
+
+" http://superuser.com/questions/22444/make-vim-display-a-line-at-the-edge-of-the-set-textwidth
+set colorcolumn=80
+" highlight ColorColumn ctermbg=green guibg=orange
+" highlight ColorColumn cterm=italic gui=none
+
+" 権限無いファイルでも保存
+cabbrev w!! w !sudo tee % >/dev/null
+
 
 " http://rbtnn.hateblo.jp/entry/2014/11/30/174749
 augroup vimrc
@@ -343,6 +353,15 @@ noremap! <C-f> <Right>
 noremap! <C-e> <End>
 noremap! <C-a> <Home>
 noremap! <C-d> <Del>
+
+" http://cohama.hateblo.jp/entry/20130529/1369843236
+" cnoremap <expr> / (getcmdtype() == '/') '\/' : '/'
+" cnoremap <C-o> <C-\>e(getcmdtype() == '/' <Bar><Bar> getcmdtype() == '?') ? '\<' . getcmdline() . '\>' : getcmdline()<CR>
+
+" http://linuxserver.jp/%E3%82%BD%E3%83%95%E3%83%88%E3%82%A6%E3%82%A7%E3%82%A2/%E3%83%86%E3%82%AD%E3%82%B9%E3%83%88%E3%82%A8%E3%83%87%E3%82%A3%E3%82%BF/vim/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89%E3%83%A2%E3%83%BC%E3%83%89%E3%81%A7%E3%81%AE%E3%83%9A%E3%83%BC%E3%82%B9%E3%83%88.php
+" noremap! <C-y> <C-r>"
+
+
 " inoremap <M-Left> <Left>
 " inoremap <M-b> <M-left>
 " カーソルのある行を画面中央に
@@ -449,7 +468,7 @@ autocmd FileType html inoremap <silent> <buffer> </ </<C-x><C-o>
 " imap " ""<Left>
 " imap ' ''<Left>
 
-" smartinputによってkaomojiが入力できないことがあるので、回避策
+" smartinputによって顔文字が入力できないことがあるので、回避策
 nnoremap <F5> :<C-u>setlocal imdisable!<CR>
 
 " インデントレベルが同じ行を探して移動する
@@ -495,81 +514,134 @@ nnoremap <silent> <Leader>j :call IndentSensitiveNext()<CR>
 
 " Plugins
 
+
+" Note: Skip initialization for vim-tiny or vim-small.
+ if !1 | finish | endif
+
 " for Vundle
  filetype off                   " required!
 
  set rtp+=~/.vim/bundle/Vundle.vim/
- call vundle#rc()
+ call vundle#begin()
 
  " let Vundle manage Vundle
  " required!
- Bundle 'gmarik/Vundle.vim'
+ Plugin 'gmarik/Vundle.vim'
 
  " My Bundles here:
- Bundle 'derekwyatt/vim-scala'
- " Bundle 'yonchu/accelerated-smooth-scroll'
- Bundle 'haya14busa/vim-easymotion'
- Bundle 'kana/vim-smartinput'
- " Bundle 'mhinz/vim-startify'
- " Bundle 'osyo-manga/vim-over'
- Bundle 'AndrewRadev/switch.vim'
- Bundle 'terryma/vim-multiple-cursors'
- Bundle 'tyru/open-browser.vim'
- " Bundle 'haya14busa/vim-migemo'
- Bundle 'Shougo/unite.vim'
- Bundle 'Yggdroot/indentLine'
- " Bundle 'Shougo/vimshell.vim'
- " Bundle 'Shougo/vimfiler.vim'
- Bundle 'terryma/vim-expand-region'
- Bundle 'Shougo/neocomplete.vim'
- Bundle 'Shougo/neosnippet'
- Bundle 'Shougo/neosnippet-snippets'
- Bundle 'kien/ctrlp.vim'
- Bundle 'scrooloose/nerdcommenter'
- Bundle 'scrooloose/nerdtree'
- Bundle 'scrooloose/syntastic'
- " Bundle 'Valloric/YouCompleteMe'
- " Bundle 'SirVer/ultisnips'
- " Bundle 'honza/vim-snippets'
- Bundle 'mattn/emmet-vim'
- Bundle 'heavenshell/vim-jsdoc'
- " Bundle 'maksimr/vim-jsbeautify'
- " Bundle 'einars/js-beautify'
- " Bundle 'Chiel92/vim-autocsformat'
- Bundle 'tpope/vim-surround'
- Bundle 'jelera/vim-javascript-syntax'
- " Bundle 'pangloss/vim-javascript'
- Bundle 'kana/vim-textobj-line'
- Bundle 'kana/vim-textobj-entire'
- Bundle 'kana/vim-textobj-user'
- " Bundle 'euoia/vim-jsbeautify-simple'
- Bundle 'mkiken/vim-jsbeautify-simple'
- " Bundle 'alpaca-tc/beautify.vim'
- Bundle 'thinca/vim-qfreplace'
- " Bundle 'Lokaltog/vim-powerline'
- Bundle 'tpope/vim-fugitive'
- Bundle 'rking/ag.vim'
- Bundle 'Shougo/neomru.vim'
- Bundle 'thinca/vim-visualstar'
- Bundle 't9md/vim-quickhl'
- Bundle 'osyo-manga/vim-brightest'
- Bundle 'rhysd/vim-textobj-ruby'
- Bundle 'haya14busa/incsearch.vim'
- Bundle 'rhysd/clever-f.vim'
- Bundle 'vimtaku/hl_matchit.vim'
- Bundle 'deris/vim-diffbuf'
- " Bundle 'kana/vim-smartword'
- Bundle 'oppara/phpstylist.vim'
- Bundle 'junegunn/vim-easy-align'
- Bundle 'gregsexton/gitv'
+ Plugin 'derekwyatt/vim-scala'
+ " Plugin 'yonchu/accelerated-smooth-scroll'
+ Plugin 'haya14busa/vim-easymotion'
+ Plugin 'kana/vim-smartinput'
+ " Plugin 'mhinz/vim-startify'
+ " Plugin 'osyo-manga/vim-over'
+ Plugin 'AndrewRadev/switch.vim'
+ Plugin 'terryma/vim-multiple-cursors'
+ Plugin 'tyru/open-browser.vim'
+ " Plugin 'haya14busa/vim-migemo'
+ Plugin 'Shougo/unite.vim'
+ Plugin 'Yggdroot/indentLine'
+ " Plugin 'Shougo/vimshell.vim'
+ " Plugin 'Shougo/vimfiler.vim'
+ Plugin 'terryma/vim-expand-region'
+ Plugin 'Shougo/neocomplete.vim'
+ Plugin 'Shougo/neosnippet'
+ Plugin 'Shougo/neosnippet-snippets'
+ Plugin 'kien/ctrlp.vim'
+ Plugin 'scrooloose/nerdcommenter'
+ Plugin 'scrooloose/nerdtree'
+ Plugin 'scrooloose/syntastic'
+ " Plugin 'Valloric/YouCompleteMe'
+ " Plugin 'SirVer/ultisnips'
+ " Plugin 'honza/vim-snippets'
+ Plugin 'mattn/emmet-vim'
+ Plugin 'heavenshell/vim-jsdoc'
+ " Plugin 'maksimr/vim-jsbeautify'
+ " Plugin 'einars/js-beautify'
+ " Plugin 'Chiel92/vim-autocsformat'
+ Plugin 'tpope/vim-surround'
+ Plugin 'jelera/vim-javascript-syntax'
+ " Plugin 'pangloss/vim-javascript'
+ Plugin 'kana/vim-textobj-line'
+ Plugin 'kana/vim-textobj-entire'
+ Plugin 'kana/vim-textobj-user'
+ " Plugin 'euoia/vim-jsbeautify-simple'
+ Plugin 'mkiken/vim-jsbeautify-simple'
+ " Plugin 'alpaca-tc/beautify.vim'
+ Plugin 'thinca/vim-qfreplace'
+ " Plugin 'Lokaltog/vim-powerline'
+ Plugin 'tpope/vim-fugitive'
+ Plugin 'rking/ag.vim'
+ Plugin 'Shougo/neomru.vim'
+ Plugin 'thinca/vim-visualstar'
+ Plugin 't9md/vim-quickhl'
+ Plugin 'osyo-manga/vim-brightest'
+ Plugin 'rhysd/vim-textobj-ruby'
+ Plugin 'haya14busa/incsearch.vim'
+ Plugin 'rhysd/clever-f.vim'
+ Plugin 'vimtaku/hl_matchit.vim'
+ Plugin 'deris/vim-diffbuf'
+ " Plugin 'kana/vim-smartword'
+ Plugin 'oppara/phpstylist.vim'
+ Plugin 'junegunn/vim-easy-align'
+ Plugin 'gregsexton/gitv'
  Plugin 'bling/vim-airline'
  " Plugin 'jiangmiao/auto-pairs'
- Plugin 'cohama/vim-smartinput-endwise'
+ " Plugin 'cohama/vim-smartinput-endwise'
  Plugin 'lilydjwg/colorizer'
  Plugin 'tyru/open-browser-github.vim'
  Plugin 'tpope/vim-abolish'
  Plugin 'LeafCage/yankround.vim'
  Plugin 'vim-scripts/Changed'
+ " Plugin 'tacahiroy/ctrlp-funky'
+ " Plugin 'h1mesuke/unite-outline'
+ Plugin 'Shougo/unite-outline'
+ " Plugin 'soramugi/auto-ctags.vim'
+ Plugin 'Shougo/neobundle.vim'
+ Plugin 'xolox/vim-misc'
+ Plugin 'xolox/vim-easytags'
+
+ call vundle#end()            " required
+
+
+ if has('vim_starting')
+   if &compatible
+     set nocompatible               " Be iMproved
+   endif
+
+   " Required:
+   set runtimepath+=~/.vim/bundle/neobundle.vim/
+ endif
+
+ " Required:
+ call neobundle#begin(expand('~/.vim/bundle/'))
+
+ " Let NeoBundle manage NeoBundle
+ " Required:
+ NeoBundleFetch 'Shougo/neobundle.vim'
+
+ NeoBundle 'Shougo/vimproc.vim', {
+       \ 'build' : {
+       \     'windows' : 'tools\\update-dll-mingw',
+       \     'cygwin' : 'make -f make_cygwin.mak',
+       \     'mac' : 'make -f make_mac.mak',
+       \     'linux' : 'make',
+       \     'unix' : 'gmake',
+       \    },
+       \ }
+
+ " My Bundles here:
+ " Refer to |:NeoBundle-examples|.
+ " Note: You don't set neobundle setting in .gvimrc!
+
+ call neobundle#end()
+
+ " Required:
+ filetype plugin indent on
+
+ " If there are uninstalled bundles found on startup,
+ " this will conveniently prompt you to install them.
+ NeoBundleCheck
 
 
  " ホームポジションに近いキーを使う
@@ -672,6 +744,7 @@ if has("autocmd")
 	autocmd vimrc BufNewFile,BufReadPost *.pegjs,*.language,*.grm  set filetype=pegjs
 endif
 
+" 改行系のmappingにはundo区切りのために<C-g>uつける
 " call smartinput#map_to_trigger('i', '<Plug>(smartinput_BS)','<BS>','<BS>')
 " call smartinput#map_to_trigger('i', '<Plug>(smartinput_C-h)', '<BS>', '<C-h>')
 call smartinput#map_to_trigger('i', '<Plug>(smartinput_CR)','<Enter>','<Enter>')
@@ -685,25 +758,50 @@ call smartinput#map_to_trigger('i', '<Plug>(smartinput_CR)','<Enter>','<Enter>')
 call smartinput#define_rule({
 \   'at': '\s\+\%#',
 \   'char': '<CR>',
-\   'input': "<C-o>:call setline('.', substitute(getline('.'), '\\s\\+$', '', ''))<CR><CR>",
+\   'input': "<C-o>:call setline('.', substitute(getline('.'), '\\s\\+$', '', ''))<CR><CR><C-g>u",
 \   })
-" Ruby で文字列内展開 #{} やブロック引数 do || の補助
-call smartinput#map_to_trigger('i', '#', '#', '#')
+" よく分からないけどundo区切りが他の方法で上手くいかないのでとりあえず暫定対応
 call smartinput#define_rule({
-            \   'at'       : '\%#',
-            \   'char'     : '#',
-            \   'input'    : '#{}<Left>',
-            \   'filetype' : ['ruby'],
-            \   'syntax'   : ['Constant', 'Special'],
-            \   })
+\   'at': '',
+\   'char': '<CR>',
+\   'input': "<CR><C-g>u",
+\   })
 
-call smartinput#map_to_trigger('i', '<Bar>', '<Bar>', '<Bar>')
+" http://qiita.com/hara/items/1d30f6a6354fa480184b
+" module, class, def, if, unless, case, while, until, for, begin に対応する end を補完
 call smartinput#define_rule({
-            \   'at' : '\({\|\<do\>\)\s*\%#',
-            \   'char' : '<Bar>',
-            \   'input' : '<Bar><Bar><Left>',
-            \   'filetype' : ['ruby'],
-            \    })
+\ 'at': '^\%(.*=\)\?\s*\zs\%(module\|class\|def\|if\|unless\|case\|while\|until\|for\|begin\)\>\%(.*[^.:@$]\<end\>\)\@!.*\%#$',
+\ 'char': '<CR>',
+\ 'input': '<CR>end<Esc>O',
+\ 'filetype': ['ruby'],
+\ 'syntax': ['rubyBlock']
+\ })
+
+" do に対応する end を補完
+call smartinput#define_rule({
+\ 'at': '\<do\ze\%(\s*|.*|\)\=\s*\%#$',
+\ 'char': '<CR>',
+\ 'input': '<CR>end<Esc>O',
+\ 'filetype': ['ruby'],
+\ 'syntax': ['rubyDoBlock']
+\ })
+" Ruby で文字列内展開 #{} やブロック引数 do || の補助
+" call smartinput#map_to_trigger('i', '#', '#', '#')
+" call smartinput#define_rule({
+            " \   'at'       : '\%#',
+            " \   'char'     : '#',
+            " \   'input'    : '#{}<Left>',
+            " \   'filetype' : ['ruby'],
+            " \   'syntax'   : ['Constant', 'Special'],
+            " \   })
+
+" call smartinput#map_to_trigger('i', '<Bar>', '<Bar>', '<Bar>')
+" call smartinput#define_rule({
+            " \   'at' : '\({\|\<do\>\)\s*\%#',
+            " \   'char' : '<Bar>',
+            " \   'input' : '<Bar><Bar><Left>',
+            " \   'filetype' : ['ruby'],
+            " \    })
 
 " ctrlp
 " https://github.com/kien/ctrlp.vim
@@ -783,6 +881,8 @@ nnoremap <silent> <Leader>e :<C-u>call ToggleErrors()<CR>
 nnoremap    [unite]   <Nop>
 nmap    <Leader>f [unite]
 
+" ウィンドウを水平分割なら下に、垂直分割なら右に開く
+let g:unite_split_rule = 'botright'
 " unite.vim keymap
 " <a href="https://github.com/alwei/dotfiles/blob/3760650625663f3b08f24bc75762ec843ca7e112/.vimrc" target="_blank" rel="noreferrer" style="cursor:help;display:inline !important;">https://github.com/alwei/dotfiles/blob/3760650625663f3b08f24bc75762ec843ca7e112/.vimrc</a>
 nnoremap [unite]u  :<C-u>Unite -no-split<Space>
@@ -794,6 +894,7 @@ nnoremap <silent> [unite]r :<C-u>Unite<Space>file_rec<CR>
 nnoremap <silent> [unite]p :<C-u>Unite<Space>file_rec:!<CR>
 nnoremap <silent> [unite]f :<C-u>UniteWithBufferDir -buffer-name=files file<CR>
 nnoremap <silent> [unite]y :<C-u>Unite<Space>yankaround<CR>
+nnoremap <silent> [unite]o :<C-u>Unite -vertical -winwidth=40<Space>outline<CR>
 " vimprocがいるらしい http://mba-hack.blogspot.jp/2013/03/unitevim.html
 " nnoremap <silent> [unite]g :<C-u>Unite grep:. -buffer-name=search-buffer<CR>
 nnoremap <silent> ,vr :UniteResume<CR>
@@ -1349,7 +1450,7 @@ set updatetime=500
 " (bufferline or filename)
 let g:airline_section_c = '%{getcwd()} | %t'
 
-call smartinput_endwise#define_default_rules()
+" call smartinput_endwise#define_default_rules()
 
 nmap p <Plug>(yankround-p)
 xmap p <Plug>(yankround-p)
@@ -1357,5 +1458,19 @@ nmap P <Plug>(yankround-P)
 nmap gp <Plug>(yankround-gp)
 xmap gp <Plug>(yankround-gp)
 nmap gP <Plug>(yankround-gP)
-nmap <Leader>w <Plug>(yankround-prev)
-nmap <C-n> <Plug>(yankround-next)
+" M-p
+nmap π <Plug>(yankround-prev)
+ " M-n
+nmap ˜ <Plug>(yankround-next)
+
+
+" for Changed
+let g:Changed_definedSigns = 1
+highlight ChangedAddHl cterm=bold ctermbg=NONE ctermfg=green gui=bold guibg=NONE guifg=green
+highlight ChangedDeleteHl cterm=bold ctermbg=NONE ctermfg=red gui=bold guibg=NONE guifg=red
+highlight ChangedDefaultHl cterm=bold ctermbg=NONE ctermfg=yellow gui=bold guibg=NONE guifg=yellow
+sign define SIGN_CHANGED_DELETED_VIM text=- texthl=ChangedDeleteHl
+sign define SIGN_CHANGED_ADDED_VIM   text=+ texthl=ChangedAddHl
+sign define SIGN_CHANGED_VIM         text=* texthl=ChangedDefaultHl
+
+let g:easytags_events = ['BufWritePost']
