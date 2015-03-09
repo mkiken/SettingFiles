@@ -116,6 +116,7 @@ brew install tig
 
 brew tap laurent22/massren
 brew install massren
+brew install ctags
 
 brew tap phinze/homebrew-cask
 brew install brew-cask

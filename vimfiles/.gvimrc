@@ -155,3 +155,6 @@ else
 	set lines=50 columns=150
 endif
 
+highlight ChangedAddHl cterm=bold ctermbg=NONE ctermfg=green gui=bold guibg=NONE guifg=green
+highlight ChangedDeleteHl cterm=bold ctermbg=NONE ctermfg=red gui=bold guibg=NONE guifg=red
+highlight ChangedDefaultHl cterm=bold ctermbg=NONE ctermfg=yellow gui=bold guibg=NONE guifg=yellow

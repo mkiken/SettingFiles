@@ -386,7 +386,7 @@ noremap! ∆ <C-o>O
 " vimrcをリロード
 " http://whileimautomaton.net/2008/07/20150335
 " nnoremap <Space>s  :<C-u>source $VIMRC<Return>
-nnoremap <Leader>s  :<C-u>source ~/.vimrc <Return>
+nnoremap <Leader>s  :<C-u>source ~/.vimrc <Return> :<C-u>source ~/.gvimrc <Return>
 command! ReloadVimrc  :source ~/.vimrc
 
 " http://tech.toshiya240.com/articles/2014/06/matchit-vim/
@@ -600,6 +600,8 @@ nnoremap <silent> <Leader>j :call IndentSensitiveNext()<CR>
  Plugin 'Shougo/neobundle.vim'
  Plugin 'xolox/vim-misc'
  Plugin 'xolox/vim-easytags'
+ Plugin 'kana/vim-textobj-jabraces'
+ Plugin 'thinca/vim-textobj-comment'
 
  call vundle#end()            " required
 
@@ -620,6 +622,11 @@ nnoremap <silent> <Leader>j :call IndentSensitiveNext()<CR>
  " Required:
  NeoBundleFetch 'Shougo/neobundle.vim'
 
+
+ " My Bundles here:
+ " Refer to |:NeoBundle-examples|.
+ " Note: You don't set neobundle setting in .gvimrc!
+
  NeoBundle 'Shougo/vimproc.vim', {
        \ 'build' : {
        \     'windows' : 'tools\\update-dll-mingw',
@@ -630,9 +637,14 @@ nnoremap <silent> <Leader>j :call IndentSensitiveNext()<CR>
        \    },
        \ }
 
- " My Bundles here:
- " Refer to |:NeoBundle-examples|.
- " Note: You don't set neobundle setting in .gvimrc!
+NeoBundleLazy "majutsushi/tagbar", {
+      \ "autoload": { "commands": ["TagbarToggle"] }}
+if ! empty(neobundle#get("tagbar"))
+   " Width (default 40)
+  let g:tagbar_width = 20
+  " Map for toggle
+  nn <silent> <leader>tt :TagbarToggle<CR>
+endif
 
  call neobundle#end()
 
@@ -1466,11 +1478,17 @@ nmap ˜ <Plug>(yankround-next)
 
 " for Changed
 let g:Changed_definedSigns = 1
-highlight ChangedAddHl cterm=bold ctermbg=NONE ctermfg=green gui=bold guibg=NONE guifg=green
-highlight ChangedDeleteHl cterm=bold ctermbg=NONE ctermfg=red gui=bold guibg=NONE guifg=red
-highlight ChangedDefaultHl cterm=bold ctermbg=NONE ctermfg=yellow gui=bold guibg=NONE guifg=yellow
 sign define SIGN_CHANGED_DELETED_VIM text=- texthl=ChangedDeleteHl
 sign define SIGN_CHANGED_ADDED_VIM   text=+ texthl=ChangedAddHl
 sign define SIGN_CHANGED_VIM         text=* texthl=ChangedDefaultHl
 
 let g:easytags_events = ['BufWritePost']
+let g:easytags_async = 1
+
+" http://qiita.com/tutu/items/fbc4023ebc3004964e86
+nnoremap <Leader>tv :vsp<CR> :exe("tjump ".expand('<cword>'))<CR>
+nnoremap <Leader>ts :split<CR> :exe("tjump ".expand('<cword>'))<CR>
+nnoremap <Leader>tp <C-w>}
+nnoremap <Leader>tq <C-w><C-z>
+nnoremap <Leader>tn <C-]>
+nnoremap <Leader>tb <C-t>
