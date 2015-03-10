@@ -1176,9 +1176,9 @@ inoremap <expr><C-Space>     neocomplete#start_manual_complete()
 " Recommended key-mappings.
 " <CR>: close popup and save indent.
 " inoremap <silent> <TAB> <C-r>=<SID>my_tab_function()<CR>
-function! s:my_tab_function()
-  return pumvisible() ? neocomplete#close_popup() : "\<TAB>"
-endfunction
+" function! s:my_tab_function()
+  " return pumvisible() ? neocomplete#close_popup() : "\<TAB>"
+" endfunction
 " imap <expr> <CR> pumvisible() ?
       " \ neocomplete#close_popup() : "\<Plug>(smartinput_CR)"
 " <C-h>, <BS>: close popup and delete backword char.
@@ -1263,7 +1263,7 @@ xmap <C-k>     <Plug>(neosnippet_expand_target)
 " SuperTab like snippets behavior.
 imap <expr><TAB> neosnippet#expandable_or_jumpable() ?
 \ "\<Plug>(neosnippet_expand_or_jump)"
-\: pumvisible() ? "\<ESC>a" : "\<TAB>"
+\: pumvisible() ? "\<C-n>" : "\<TAB>"
 
 smap <expr><TAB> neosnippet#expandable_or_jumpable() ?
 \ "\<Plug>(neosnippet_expand_or_jump)"
