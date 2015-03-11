@@ -602,6 +602,7 @@ nnoremap <silent> <Leader>j :call IndentSensitiveNext()<CR>
  Plugin 'xolox/vim-easytags'
  Plugin 'kana/vim-textobj-jabraces'
  Plugin 'thinca/vim-textobj-comment'
+ Plugin 'saihoooooooo/vim-textobj-space'
 
  call vundle#end()            " required
 

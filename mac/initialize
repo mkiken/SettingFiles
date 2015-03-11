@@ -121,9 +121,14 @@ brew install ctags
 brew tap phinze/homebrew-cask
 brew install brew-cask
 # brew cask install atom
+brew cask install iterm2
 brew cask install evernote
 brew cask install google-chrome
 brew cask install macvim
+brew cask install alfred
+brew cask install xtrafinder
+brew cask install dropbox
+brew cask install clipmenu
 # brew cask install skype
 
 # touch ~/.z
@@ -134,5 +139,8 @@ ln -s /usr/local/Cellar/git/2.3.1/share/git-core/contrib/diff-highlight/diff-hig
 ln -si "${Repo}submodules/used-mem/used-mem" /usr/local/bin/used-mem
 
 massren --config editor "mvim"
+
+source ~/.zshrc
+A="${SET}submodules/auto-fu.zsh/auto-fu.zsh" ; (zsh -c "source $A ; auto-fu-zcompile $A ~/.zsh")
 
 ./update

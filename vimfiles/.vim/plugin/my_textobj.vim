@@ -18,3 +18,11 @@ call textobj#user#plugin('variable', {
 \           'select': ['av', 'iv'],
 \      },
 \   })
+
+
+call textobj#user#plugin('newline', {
+\      '-': {
+\           'pattern': '[\n]\+',
+\           'select': ['an', 'in'],
+\      },
+\   })

@@ -188,6 +188,9 @@ compinit -u
 
 setopt complete_aliases # aliased ls needs if file/dir completions work
 
+# http://blog.mkt-sys.jp/2014/06/fix-zsh-env.html
+setopt no_flow_control
+
 #from http://qiita.com/items/ed2d36698a5cc314557d
 zstyle ':completion:*:default' menu select=2
 zstyle ':completion:*' verbose yes
@@ -350,24 +353,15 @@ bindkey "^[r" redo
 bindkey "[C" emacs-forward-word   #control left
 bindkey "[D" emacs-backward-word        #control right
 
-#=============================
-# source auto-fu.zsh
-#=============================
-if [ -f "${SET}submodules/auto-fu.zsh/auto-fu.zsh" ]; then
-# if [ -f ~/.zsh/auto-fu.zsh ]; then
-    source "${SET}submodules/auto-fu.zsh/auto-fu.zsh"
-    function zle-line-init () {
-        auto-fu-init
-    }
-    zle -N zle-line-init
-    # zstyle ':completion:*' completer _oldlist _complete
-    zstyle ':completion:*' completer _oldlist _expand _complete _match _prefix _approximate _list _history
-    zstyle ':auto-fu:highlight' completion/one fg=blue
-fi
-# 「-azfu-」を表示させない
-zstyle ':auto-fu:var' postdisplay $''
-
-
+# http://mollifier.hatenablog.com/entry/20081214/1229229752
+function _kill-backward-blank-word() {
+    # 現在位置から左のスペースまでをkillする
+    zle set-mark-command
+    zle vi-backward-blank-word
+    zle kill-region
+}
+zle -N _kill-backward-blank-word
+bindkey '^J' _kill-backward-blank-word
 
 # npmの補完は重すぎるので無効
 compdef -d npm
@@ -424,3 +418,98 @@ if [ -f ${SET}submodules/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; 
 fi
 
 source ${SET}submodules/zsh-bd/bd.zsh
+
+
+
+# http://qiita.com/termoshtt/items/68a5372a43543037667f
+autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
+add-zsh-hook chpwd chpwd_recent_dirs
+zstyle ':chpwd:*' recent-dirs-max 500 # cdrの履歴を保存する個数
+zstyle ':chpwd:*' recent-dirs-default yes
+zstyle ':completion:*' recent-dirs-insert both
+
+# source ${SET}submodules/zaw/zaw.zsh
+# zstyle ':filter-select:highlight' selected fg=black,bg=white,standout
+# zstyle ':filter-select:highlight' matched fg=yellow,standout
+zstyle ':filter-select' max-lines 20 # use 10 lines for filter-select
+zstyle ':filter-select' rotate-list yes # enable rotation for filter-select
+zstyle ':filter-select' case-insensitive yes # enable case-insensitive search
+zstyle ':filter-select' extended-search yes # see below
+source ${SET}submodules/zaw/zaw.zsh
+
+function zaw-src-gitdir () {
+  _dir=$(git rev-parse --show-cdup 2>/dev/null)
+  if [ $? -eq 0 ]
+  then
+    candidates=( $(git ls-files ${_dir} | perl -MFile::Basename -nle \
+                                               '$a{dirname $_}++; END{delete $a{"."}; print for sort keys %a}') )
+  fi
+  actions=("zaw-src-gitdir-cd")
+  act_descriptions=("change directory in git repos")
+}
+
+function zaw-src-gitdir-cd () {
+  BUFFER="cd $1"
+  zle accept-line
+}
+zaw-register-src -n gitdir zaw-src-gitdir
+
+bindkey '^X^M' zaw-cdr
+bindkey '^X^R' zaw-history
+bindkey '^X^H' zaw-history
+bindkey '^X^F' zaw-git-files
+bindkey '^X^B' zaw-git-branches
+bindkey '^X^S' zaw-ssh-hosts
+bindkey '^X^P' zaw-process
+bindkey '^X^W' zaw-tmux
+bindkey '^X^A' zaw-applications
+bindkey '^X^O' zaw-open-file
+# bindkey '^X?'  zaw-print-src
+
+# http://qiita.com/scalper/items/4728afaac9962bf91bfa
+# bindkey '^[d' zaw-cdr
+# bindkey '^[g' zaw-git-branches
+bindkey '^X^D' zaw-gitdir
+
+
+#=============================
+# source auto-fu.zsh
+#=============================
+if [ -f "${SET}submodules/auto-fu.zsh/auto-fu.zsh" ]; then
+# if [ -f ~/.zsh/auto-fu.zsh ]; then
+    # source "${SET}submodules/auto-fu.zsh/auto-fu.zsh"
+
+## auto-fu.zsh stuff.
+# source ~/Desktop/repository/SettingFiles/submodules/auto-fu.zsh/auto-fu.zsh
+{ . ~/.zsh/auto-fu; auto-fu-install; }
+zstyle ':auto-fu:highlight' input bold
+zstyle ':auto-fu:highlight' completion fg=black,bold
+zstyle ':auto-fu:highlight' completion/one fg=white,bold,underline
+zstyle ':auto-fu:var' postdisplay $'\n-azfu-'
+zstyle ':auto-fu:var' track-keymap-skip opp
+zle-line-init () {auto-fu-init;}; zle -N zle-line-init
+zle -N zle-keymap-select auto-fu-zle-keymap-select
+
+    function zle-line-init () {
+        auto-fu-init
+    }
+    zle -N zle-line-init
+    # zstyle ':completion:*' completer _oldlist _complete
+    zstyle ':completion:*' completer _oldlist _expand _complete _match _prefix _approximate _list _history
+    zstyle ':auto-fu:highlight' completion/one fg=blue
+fi
+# 「-azfu-」を表示させない
+zstyle ':auto-fu:var' postdisplay $''
+
+zstyle ':auto-fu:var' enable all
+zstyle ':auto-fu:var' disable ag
+
+# http://d.hatena.ne.jp/hchbaw/20110309/1299680906
+# ダブルクォート内の場合でも自動補完を抑制
+zstyle ':auto-fu:var' autoable-function/skipwords \
+  "('|$'|\")*"
+# ag, grepの後は自動補完を抑制
+zstyle ':auto-fu:var' autoable-function/skiplines \
+  '([[:print:]]##[[:space:]]##|(#s)[[:space:]]#)(ag*|*grep|brew|cask) *'
+
+# unsetopt sh_wordsplit

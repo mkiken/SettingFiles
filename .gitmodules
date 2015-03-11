@@ -22,3 +22,6 @@
 [submodule "submodules/php-short-array-syntax-converter"]
 	path = submodules/php-short-array-syntax-converter
 	url = https://github.com/thomasbachem/php-short-array-syntax-converter
+[submodule "submodules/zaw"]
+	path = submodules/zaw
+	url = https://github.com/zsh-users/zaw

@@ -24,6 +24,13 @@ alias agl='ag -l'
 alias agf='find . -type f | ag'
 alias agd='find . -type d | ag'
 alias agn='find . | ag'
+alias aga='ag -u' # 隠しファイルおよび無視リストも対象
+alias agp='ag --pager="less -R"'
+alias agg='ag -g' # ファイル名で検索
+alias agq='ag -Q' # 正規表現を無視
+
+alias br='brew'
+alias cask='brew cask'
 
 function em(){
 	open -a /Applications/Emacs.app "$@"
