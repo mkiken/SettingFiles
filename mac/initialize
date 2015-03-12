@@ -140,7 +140,7 @@ ln -si "${Repo}submodules/used-mem/used-mem" /usr/local/bin/used-mem
 
 massren --config editor "mvim"
 
-source ~/.zshrc
+# source ~/.zshrc
 A="${SET}submodules/auto-fu.zsh/auto-fu.zsh" ; (zsh -c "source $A ; auto-fu-zcompile $A ~/.zsh")
 
 ./update

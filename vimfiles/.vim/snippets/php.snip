@@ -70,11 +70,14 @@ snippet as
 snippet vd
   var_dump(${1});
 
+snippet ve
+  var_export(${1}, TRUE)
+
 snippet pf
   printf("${1}");
 
 snippet pr
-  print_r(${1});
+  print_r(${1}, TRUE)
 
 snippet ae
   throw new ApplicationException('${1}');

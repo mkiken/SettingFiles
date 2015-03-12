@@ -467,3 +467,12 @@ function sp-tig() {
   eval server=\${$#}
   tmux split-window "exec tig"
 }
+
+# ファイル名で絞って検索
+function agG() {
+	if test $# -lt 2; then
+		echo "need at least 2 argument."
+		return
+  fi
+	ag $1 -G $2
+}

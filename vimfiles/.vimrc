@@ -333,7 +333,7 @@ inoremap <C-Right> <Esc>gt
 inoremap <C-j> <ESC>$a<CR>
 " nnoremap <C-j> $a<CR>
 
-inoremap , ,<Space>
+" inoremap , ,<Space>
 
 
 " http://easyramble.com/disable-vim-auto-comment.html
