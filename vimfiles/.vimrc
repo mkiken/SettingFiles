@@ -512,6 +512,52 @@ endfunc
 nnoremap <silent> <Leader>k :call IndentSensitivePrev()<CR>
 nnoremap <silent> <Leader>j :call IndentSensitiveNext()<CR>
 
+
+" 各タブページのカレントバッファ名+αを表示
+function! s:tabpage_label(n)
+  " t:title と言う変数があったらそれを使う
+  let title = gettabvar(a:n, 'title')
+  if title !=# ''
+    return title
+  endif
+
+  " タブページ内のバッファのリスト
+  let bufnrs = tabpagebuflist(a:n)
+
+  " カレントタブページかどうかでハイライトを切り替える
+  let hi = a:n is tabpagenr() ? '%#TabLineSel#' : '%#TabLine#'
+
+  " バッファが複数あったらバッファ数を表示
+  let no = len(bufnrs)
+  if no is 1
+    let no = ''
+  endif
+  " タブページ内に変更ありのバッファがあったら '+' を付ける
+  let mod = len(filter(copy(bufnrs), 'getbufvar(v:val, "&modified")')) ? '+' : ''
+  let sp = (no . mod) ==# '' ? '' : ' '  " 隙間空ける
+
+  " カレントバッファ
+  let curbufnr = bufnrs[tabpagewinnr(a:n) - 1]  " tabpagewinnr() は 1 origin
+  let fname = pathshorten(bufname(curbufnr))
+
+  let label = no . mod . sp . fname
+
+  return '%' . a:n . 'T' . hi . label . '%T%#TabLineFill#'
+endfunction
+" http://d.hatena.ne.jp/thinca/20111204/1322932585
+function! MakeTabLine()
+  let titles = map(range(1, tabpagenr('$')), 's:tabpage_label(v:val)')
+  let sep = ' | '  " タブ間の区切り
+  let tabpages = join(titles, sep) . sep . '%#TabLineFill#%T'
+  let info = ''  " 好きな情報を入れる
+  let info .= fnamemodify(getcwd(), ":~") . ' '
+  " current function info (cfi.vim)
+  " let info .= cfi#format('%s()' . sep, '')
+  return tabpages . '%=' . info  " タブリストを左に、情報を右に表示
+endfunction
+
+set tabline=%!MakeTabLine()
+
 " Plugins
 
 
@@ -758,14 +804,25 @@ if has("autocmd")
 endif
 
 " 改行系のmappingにはundo区切りのために<C-g>uつける
-" call smartinput#map_to_trigger('i', '<Plug>(smartinput_BS)','<BS>','<BS>')
-" call smartinput#map_to_trigger('i', '<Plug>(smartinput_C-h)', '<BS>', '<C-h>')
+call smartinput#map_to_trigger('i', '<Plug>(smartinput_BS)','<BS>','<BS>')
+call smartinput#map_to_trigger('i', '<Plug>(smartinput_C-h)', '<BS>', '<C-h>')
 call smartinput#map_to_trigger('i', '<Plug>(smartinput_CR)','<Enter>','<Enter>')
 " call smartinput#define_rule({
 " \   'at': '({\%#})',
 " \   'char': '<CR>',
 " \   'input': '<CR>\ <Esc>O\ ',
 " \ } )
+call smartinput#define_rule({
+\   'at': '\[\%#\]',
+\   'char': '<CR>',
+\   'input': '<CR><Esc>O',
+\ } )
+
+call smartinput#define_rule({
+\   'at': '\(\%#\)',
+\   'char': '<CR>',
+\   'input': '<CR><Esc>O',
+\ } )
 " http://rhysd.hatenablog.com/entry/20121017/1350444269
 " 改行時に行末スペースの除去
 call smartinput#define_rule({
@@ -1183,8 +1240,8 @@ inoremap <expr><C-Space>     neocomplete#start_manual_complete()
 " imap <expr> <CR> pumvisible() ?
       " \ neocomplete#close_popup() : "\<Plug>(smartinput_CR)"
 " <C-h>, <BS>: close popup and delete backword char.
-inoremap <expr><C-h> neocomplete#smart_close_popup()."\<C-h>"
-inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
+" inoremap <expr><C-h> neocomplete#smart_close_popup()."\<C-h>"
+" inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
 " inoremap <expr><C-y>  neocomplete#close_popup()
 " inoremap <expr><C-e>  neocomplete#cancel_popup()
 " Close popup by <Space>.

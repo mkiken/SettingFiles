@@ -9,7 +9,7 @@
 " colorscheme Tomorrow-Night-Eighties
 " colorscheme solarized
 " colorscheme wombat
-colorscheme hybrid
+" colorscheme hybrid
 " colorscheme iceberg
 " colorscheme github
 " colorscheme grb256
@@ -20,12 +20,14 @@ colorscheme hybrid
 " colorscheme solarized
 " colorscheme summerfruits256
 " colorscheme wombat
-" colorscheme BusyBee
+colorscheme BusyBee
 " colorscheme badwolf
 " colorscheme codeschool
 " colorscheme lucius
 " colorscheme zenburn
 " colorscheme macvim
+" colorscheme slate
+
 
 augroup gvimrc
   autocmd!
@@ -45,6 +47,8 @@ command! LoadRandomColors call Load_random_colors()
 
 " ツールバー非表示
 set guioptions-=T
+" gVimでもテキストベースのタブページを使う
+" set guioptions-=e
 
 " http://doruby.kbmj.com/aisi/20091218/Vim__
 " 個別のタブの表示設定をします
@@ -57,9 +61,18 @@ function! GuiTabLabel()
 
   " 表示文字列にバッファ名を追加します
   " パスを全部表示させると長いのでファイル名だけを使います 詳しくは help fnamemodify()
-  let l:bufname = fnamemodify(bufname(l:bufnrlist[tabpagewinnr(v:lnum) - 1]), ':t')
-  " バッファ名がなければ No title としておきます。ここではマルチバイト文字を使わないほうが無難です
-  let l:label .= l:bufname == '' ? 'No title' : l:bufname
+  let l:_bufname = bufname(l:bufnrlist[tabpagewinnr(v:lnum) - 1])
+  if l:_bufname == ''
+    " バッファ名がなければ No title としておきます。ここではマルチバイト文字を使わないほうが無難です
+    let l:bufname = 'No title'
+  else
+    " 空じゃなければ短縮
+    let l:_pathname = pathshorten(fnamemodify(l:_bufname, ':p'))
+    let l:bufname_split = split(l:_pathname, '/')
+    let l:bufname = len(l:bufname_split) >= 2 ? l:bufname_split[-2] . '/' . l:bufname_split[-1] : l:bufname_split[-1]
+  endif
+
+  let l:label .= l:bufname
 
   " タブ内にウィンドウが複数あるときにはその数を追加します(デフォルトで一応あるので)
   let l:wincount = tabpagewinnr(v:lnum, '$')
@@ -67,10 +80,10 @@ function! GuiTabLabel()
     let l:label .= '[' . l:wincount . ']'
   endif
 
-  " このタブページに変更のあるバッファがるときには '[+]' を追加します(デフォルトで一応あるので)
+  " このタブページに変更のあるバッファがあるときには '[+]' を追加します(デフォルトで一応あるので)
   for bufnr in l:bufnrlist
     if getbufvar(bufnr, "&modified")
-      let l:label .= ' +'
+      let l:label = '* ' . l:label
       break
     endif
   endfor
