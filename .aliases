@@ -11,8 +11,8 @@ alias ls='ls -G'
 alias la='ls -A'
 alias ll='ls -AFThl'
 #MacVim on CUI
-alias vi='env LANG=ja_JP.UTF-8 ${MACVIM} --remote-tab-silent'
-alias vs='env LANG=ja_JP.UTF-8 ${MACVIM}'
+alias -g vs='env LANG=ja_JP.UTF-8 ${MACVIM}'
+alias -g vi='vs --remote-tab-silent'
 alias visp='mvim -o'
 alias vivsp='mvim -O'
 alias vimdiff='env LANG=ja_JP.UTF-8 ${MACVIM}diff'
@@ -364,6 +364,10 @@ alias t='tig'
 alias ta='tig --all'
 
 alias -g V='| view -'
+
+alias benchmark-vim-awake='vs --startuptime vim_benchmark.txt'
+alias benchmark-vim-plugin='vim --cmd "profile start vim_benchmark.txt" --cmd "profile file */plugin/*.vim" --cmd "profile file .vimrc" -c quit'
+alias benchmark-vimrc='vim --cmd "profile start vim_benchmark.txt" --cmd "profile file .vimrc" -c quit'
 
 # 現在のディレクトリ以下の当てはまるファイルを全て削除する
 # http://www.omnioo.com/omnioolab/2012/07/find.php

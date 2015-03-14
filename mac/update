@@ -1,9 +1,12 @@
 #!/bin/sh
 
+echo "start git submodule setting."
 git submodule sync
 git submodule update --recursive
 git submodule foreach 'git pull origin master'
+echo "end git submodule setting."
 
+echo "start brew update."
 brew update
 brew upgrade
 # brew upgrade git
@@ -11,7 +14,8 @@ brew upgrade
 # brew upgrade emacs
 # brew upgrade vim
 # brew upgrade rlwrap
+echo "end brew update."
 
-vim -c BundleInstall -c BundleUpdate -c qa
+vim -c NeoBundleInstall -c NeoBundleUpdate -c qa
 # ../.atom/package_initialize
 # echo "If package of Emacs is updated, please eval-buffer 'package-initialize.el' on Emacs."

@@ -16,11 +16,11 @@
 " colorscheme hybrid-light
 " colorscheme inkpot
 " colorscheme jellybeans
-" colorscheme sexy-railscasts
+colorscheme sexy-railscasts
 " colorscheme solarized
 " colorscheme summerfruits256
 " colorscheme wombat
-colorscheme BusyBee
+" colorscheme BusyBee
 " colorscheme badwolf
 " colorscheme codeschool
 " colorscheme lucius
@@ -67,9 +67,10 @@ function! GuiTabLabel()
     let l:bufname = 'No title'
   else
     " 空じゃなければ短縮
-    let l:_pathname = pathshorten(fnamemodify(l:_bufname, ':p'))
+    " let l:_pathname = pathshorten(fnamemodify(l:_bufname, ':p'))
+    let l:_pathname = fnamemodify(l:_bufname, ':~')
     let l:bufname_split = split(l:_pathname, '/')
-    let l:bufname = len(l:bufname_split) >= 2 ? l:bufname_split[-2] . '/' . l:bufname_split[-1] : l:bufname_split[-1]
+    let l:bufname = len(l:bufname_split) >= 2 ? l:bufname_split[-1] . '/' . l:bufname_split[-2] : l:bufname_split[-1]
   endif
 
   let l:label .= l:bufname
@@ -77,7 +78,7 @@ function! GuiTabLabel()
   " タブ内にウィンドウが複数あるときにはその数を追加します(デフォルトで一応あるので)
   let l:wincount = tabpagewinnr(v:lnum, '$')
   if l:wincount > 1
-    let l:label .= '[' . l:wincount . ']'
+    let l:label = '[' . l:wincount . ']' . l:label
   endif
 
   " このタブページに変更のあるバッファがあるときには '[+]' を追加します(デフォルトで一応あるので)

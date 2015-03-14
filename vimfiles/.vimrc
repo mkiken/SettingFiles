@@ -95,6 +95,7 @@ set wrapscan
 " インクリメンタルサーチ(検索文字を打ち込むと即検索)
 set incsearch
 set smartcase " 検索文字列に大文字が含まれている場合は区別して検索する
+set gdefault "置換の時 g オプションをデフォルトで有効にする
 
 set autoread " ファイル内容が変更されると自動読み込みする
 
@@ -204,6 +205,7 @@ vnoremap [ "zdi[<C-R>z]<ESC>
 vnoremap ( "zdi(<C-R>z)<ESC>
 vnoremap " "zdi"<C-R>z"<ESC>
 vnoremap ' "zdi'<C-R>z'<ESC>
+" vnoremap < S> " インデントと衝突><
 
 " http://d.hatena.ne.jp/thata/20100606/1275796513
 "カーソルを表示行で移動する。物理行移動は<C-n>,<C-p>
@@ -359,7 +361,7 @@ noremap! <C-d> <Del>
 " cnoremap <C-o> <C-\>e(getcmdtype() == '/' <Bar><Bar> getcmdtype() == '?') ? '\<' . getcmdline() . '\>' : getcmdline()<CR>
 
 " http://linuxserver.jp/%E3%82%BD%E3%83%95%E3%83%88%E3%82%A6%E3%82%A7%E3%82%A2/%E3%83%86%E3%82%AD%E3%82%B9%E3%83%88%E3%82%A8%E3%83%87%E3%82%A3%E3%82%BF/vim/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89%E3%83%A2%E3%83%BC%E3%83%89%E3%81%A7%E3%81%AE%E3%83%9A%E3%83%BC%E3%82%B9%E3%83%88.php
-" noremap! <C-y> <C-r>"
+noremap! <C-v> <C-r>"
 
 
 " inoremap <M-Left> <Left>
@@ -377,9 +379,8 @@ noremap! <C-u> <C-o>u
 noremap! <C-]> <C-o>u
 noremap! <C-r> <C-o><C-r>
 " 貼りつけ
-noremap! <C-y> <C-o>P
+" noremap! <C-y> <C-o>P
 noremap! ∆ <C-o>O
-
 
 " inoremap <C-i> <C-o>=
 
@@ -558,100 +559,18 @@ endfunction
 
 set tabline=%!MakeTabLine()
 
+function! AlignBenchmark() abort
+  let s:list = []
+  global/^SCRIPT/
+        \ call add(s:list, printf("%s\t%s",
+        \                         matchstr(getline(line('.')+2), '\d\+\.\d\+'),
+        \                         matchstr(getline('.'), 'SCRIPT\s*\zs.*$')))
+  new
+  put =reverse(sort(s:list))
+  1 delete _
+endfunction
+
 " Plugins
-
-
-" Note: Skip initialization for vim-tiny or vim-small.
- if !1 | finish | endif
-
-" for Vundle
- filetype off                   " required!
-
- set rtp+=~/.vim/bundle/Vundle.vim/
- call vundle#begin()
-
- " let Vundle manage Vundle
- " required!
- Plugin 'gmarik/Vundle.vim'
-
- " My Bundles here:
- Plugin 'derekwyatt/vim-scala'
- " Plugin 'yonchu/accelerated-smooth-scroll'
- Plugin 'haya14busa/vim-easymotion'
- Plugin 'kana/vim-smartinput'
- " Plugin 'mhinz/vim-startify'
- " Plugin 'osyo-manga/vim-over'
- Plugin 'AndrewRadev/switch.vim'
- Plugin 'terryma/vim-multiple-cursors'
- Plugin 'tyru/open-browser.vim'
- " Plugin 'haya14busa/vim-migemo'
- Plugin 'Shougo/unite.vim'
- Plugin 'Yggdroot/indentLine'
- " Plugin 'Shougo/vimshell.vim'
- " Plugin 'Shougo/vimfiler.vim'
- Plugin 'terryma/vim-expand-region'
- Plugin 'Shougo/neocomplete.vim'
- Plugin 'Shougo/neosnippet'
- Plugin 'Shougo/neosnippet-snippets'
- Plugin 'kien/ctrlp.vim'
- Plugin 'scrooloose/nerdcommenter'
- Plugin 'scrooloose/nerdtree'
- Plugin 'scrooloose/syntastic'
- " Plugin 'Valloric/YouCompleteMe'
- " Plugin 'SirVer/ultisnips'
- " Plugin 'honza/vim-snippets'
- Plugin 'mattn/emmet-vim'
- Plugin 'heavenshell/vim-jsdoc'
- " Plugin 'maksimr/vim-jsbeautify'
- " Plugin 'einars/js-beautify'
- " Plugin 'Chiel92/vim-autocsformat'
- Plugin 'tpope/vim-surround'
- Plugin 'jelera/vim-javascript-syntax'
- " Plugin 'pangloss/vim-javascript'
- Plugin 'kana/vim-textobj-line'
- Plugin 'kana/vim-textobj-entire'
- Plugin 'kana/vim-textobj-user'
- " Plugin 'euoia/vim-jsbeautify-simple'
- Plugin 'mkiken/vim-jsbeautify-simple'
- " Plugin 'alpaca-tc/beautify.vim'
- Plugin 'thinca/vim-qfreplace'
- " Plugin 'Lokaltog/vim-powerline'
- Plugin 'tpope/vim-fugitive'
- Plugin 'rking/ag.vim'
- Plugin 'Shougo/neomru.vim'
- Plugin 'thinca/vim-visualstar'
- Plugin 't9md/vim-quickhl'
- Plugin 'osyo-manga/vim-brightest'
- Plugin 'rhysd/vim-textobj-ruby'
- Plugin 'haya14busa/incsearch.vim'
- Plugin 'rhysd/clever-f.vim'
- Plugin 'vimtaku/hl_matchit.vim'
- Plugin 'deris/vim-diffbuf'
- " Plugin 'kana/vim-smartword'
- Plugin 'oppara/phpstylist.vim'
- Plugin 'junegunn/vim-easy-align'
- Plugin 'gregsexton/gitv'
- Plugin 'bling/vim-airline'
- " Plugin 'jiangmiao/auto-pairs'
- " Plugin 'cohama/vim-smartinput-endwise'
- Plugin 'lilydjwg/colorizer'
- Plugin 'tyru/open-browser-github.vim'
- Plugin 'tpope/vim-abolish'
- Plugin 'LeafCage/yankround.vim'
- Plugin 'vim-scripts/Changed'
- " Plugin 'tacahiroy/ctrlp-funky'
- " Plugin 'h1mesuke/unite-outline'
- Plugin 'Shougo/unite-outline'
- " Plugin 'soramugi/auto-ctags.vim'
- Plugin 'Shougo/neobundle.vim'
- Plugin 'xolox/vim-misc'
- Plugin 'xolox/vim-easytags'
- Plugin 'kana/vim-textobj-jabraces'
- Plugin 'thinca/vim-textobj-comment'
- Plugin 'saihoooooooo/vim-textobj-space'
-
- call vundle#end()            " required
-
 
  if has('vim_starting')
    if &compatible
@@ -674,6 +593,70 @@ set tabline=%!MakeTabLine()
  " Refer to |:NeoBundle-examples|.
  " Note: You don't set neobundle setting in .gvimrc!
 
+
+ " NeoBundle 'yonchu/accelerated-smooth-scroll'
+ NeoBundle 'haya14busa/vim-easymotion'
+ NeoBundle 'kana/vim-smartinput'
+ " NeoBundle 'mhinz/vim-startify'
+ " NeoBundle 'osyo-manga/vim-over'
+ " NeoBundle 'terryma/vim-multiple-cursors'
+ " NeoBundle 'haya14busa/vim-migemo'
+ NeoBundle 'Yggdroot/indentLine'
+ " NeoBundle 'Shougo/vimshell.vim'
+ " NeoBundle 'Shougo/vimfiler.vim'
+ NeoBundle 'terryma/vim-expand-region'
+ NeoBundle 'Shougo/neocomplete.vim'
+ NeoBundle 'Shougo/neosnippet'
+ NeoBundle 'Shougo/neosnippet-snippets'
+ NeoBundle 'kien/ctrlp.vim'
+ NeoBundle 'scrooloose/nerdcommenter'
+ NeoBundle 'scrooloose/syntastic'
+ " NeoBundle 'Valloric/YouCompleteMe'
+ " NeoBundle 'SirVer/ultisnips'
+ " NeoBundle 'honza/vim-snippets'
+ " NeoBundle 'maksimr/vim-jsbeautify'
+ " NeoBundle 'einars/js-beautify'
+ " NeoBundle 'Chiel92/vim-autocsformat'
+ NeoBundle 'tpope/vim-surround'
+ " NeoBundle 'pangloss/vim-javascript'
+ NeoBundle 'kana/vim-textobj-line'
+ NeoBundle 'kana/vim-textobj-entire'
+ NeoBundle 'kana/vim-textobj-user'
+ " NeoBundle 'euoia/vim-jsbeautify-simple'
+ " NeoBundle 'alpaca-tc/beautify.vim'
+ " NeoBundle 'Lokaltog/vim-powerline'
+ NeoBundle 'tpope/vim-fugitive'
+ NeoBundle 'Shougo/neomru.vim'
+ " NeoBundle 'thinca/vim-visualstar'
+ NeoBundle 't9md/vim-quickhl'
+ NeoBundle 'osyo-manga/vim-brightest'
+ NeoBundle 'haya14busa/incsearch.vim'
+ NeoBundle 'rhysd/clever-f.vim'
+ NeoBundle 'vimtaku/hl_matchit.vim'
+ " NeoBundle 'kana/vim-smartword'
+ NeoBundle 'bling/vim-airline'
+ " NeoBundle 'jiangmiao/auto-pairs'
+ " NeoBundle 'cohama/vim-smartinput-endwise'
+ NeoBundle 'lilydjwg/colorizer'
+ NeoBundle 'tyru/open-browser-github.vim'
+ NeoBundle 'tpope/vim-abolish'
+ NeoBundle 'LeafCage/yankround.vim'
+ NeoBundle 'vim-scripts/Changed'
+ " NeoBundle 'tacahiroy/ctrlp-funky'
+ " NeoBundle 'h1mesuke/unite-outline'
+ NeoBundle 'Shougo/unite-outline'
+ " NeoBundle 'soramugi/auto-ctags.vim'
+ NeoBundle 'xolox/vim-misc'
+ NeoBundle 'xolox/vim-easytags'
+ NeoBundle 'kana/vim-textobj-jabraces'
+ NeoBundle 'thinca/vim-textobj-comment'
+ NeoBundle 'saihoooooooo/vim-textobj-space'
+ NeoBundle 'ujihisa/unite-colorscheme'
+ NeoBundle 'haya14busa/vim-asterisk'
+ " NeoBundle 'mtth/scratch.vim'
+ NeoBundle 'violetyk/scratch-utility'
+
+
  NeoBundle 'Shougo/vimproc.vim', {
        \ 'build' : {
        \     'windows' : 'tools\\update-dll-mingw',
@@ -688,11 +671,106 @@ NeoBundleLazy "majutsushi/tagbar", {
       \ "autoload": { "commands": ["TagbarToggle"] }}
 if ! empty(neobundle#get("tagbar"))
    " Width (default 40)
-  let g:tagbar_width = 20
+  " let g:tagbar_width = 20
   " Map for toggle
   nn <silent> <leader>tt :TagbarToggle<CR>
 endif
 
+NeoBundleLazy 'Shougo/unite.vim' , {
+\   'autoload' : { 'commands' : [ 'Unite' ] }
+\ }
+let s:bundle = neobundle#get('unite.vim')
+function! s:bundle.hooks.on_source(bundle)
+  " unite.vimの設定
+  " ウィンドウを水平分割なら下に、垂直分割なら右に開く
+  let g:unite_split_rule = 'botright'
+  " vinarise
+  " let g:vinarise_enable_auto_detect = 1
+  " ESCキーを2回押すと終了する
+  au FileType unite nnoremap <silent> <buffer> <ESC><ESC> :q<CR>
+  au FileType unite inoremap <silent> <buffer> <ESC><ESC> <ESC>:q<CR>
+
+  "インサートモードで開始
+  " let g:unite_enable_start_insert = 1
+  "最近開いたファイル履歴の保存数
+  let g:unite_source_file_mru_limit = 50
+  "file_mruの表示フォーマットを指定。空にすると表示スピードが高速化される
+  let g:unite_source_file_mru_filename_format = ''
+
+  "uniteを開いている間のキーマッピング
+  autocmd vimrc FileType unite call s:unite_my_settings()
+  function! s:unite_my_settings()"{{{
+	  "ESCでuniteを終了
+	  " nmap <buffer> <ESC> <Plug>(unite_exit)
+	  "入力モードのときjjでノーマルモードに移動
+	  " imap <buffer> jj <Plug>(unite_insert_leave)
+	  "入力モードのときctrl+wでバックスラッシュも削除
+	  " imap <buffer> <C-w> <Plug>(unite_delete_backward_path)
+	  "ctrl+jで縦に分割して開く
+	  nnoremap <silent> <buffer> <expr> s unite#do_action('split')
+	  inoremap <silent> <buffer> <expr> <C-s> unite#do_action('split')
+	  "ctrl+jで横に分割して開く
+	  nnoremap <silent> <buffer> <expr> v unite#do_action('vsplit')
+	  inoremap <silent> <buffer> <expr> <C-v> unite#do_action('vsplit')
+	  "ctrl+oでその場所に開く
+	  nnoremap <silent> <buffer> <expr> o unite#do_action('open')
+	  inoremap <silent> <buffer> <expr> <C-o> unite#do_action('open')
+	  "ctrl+tでタブで開く
+	  nnoremap <silent> <buffer> <expr> t unite#do_action('tabopen')
+	  inoremap <silent> <buffer> <expr> <C-t> unite#do_action('tabopen')
+	  "ctrl+bでブックマーク
+	  nnoremap <silent> <buffer> <expr> b unite#do_action('bookmark')
+	  inoremap <silent> <buffer> <expr> <C-b> unite#do_action('bookmark')
+  endfunction"}}}
+
+endfunction
+
+" lazy load
+NeoBundleLazy 'mattn/emmet-vim',{
+                          \"autoload" : {"filetypes" :["html", "smarty"]}
+                          \}
+NeoBundleLazy 'derekwyatt/vim-scala',{
+                          \"autoload" : {"filetypes" :["scala"]}
+                          \}
+NeoBundleLazy 'jelera/vim-javascript-syntax',{
+                          \"autoload" : {"filetypes" :["javascript"]}
+                          \}
+NeoBundleLazy 'heavenshell/vim-jsdoc',{
+                          \"autoload" : {"filetypes" :["javascript"]}
+                          \}
+NeoBundleLazy 'rhysd/vim-textobj-ruby',{
+                          \"autoload" : {"filetypes" :["ruby"]}
+                          \}
+NeoBundleLazy 'oppara/phpstylist.vim',{
+                          \"autoload" : {"filetypes" :["php"]}
+                          \}
+NeoBundleLazy 'mkiken/vim-jsbeautify-simple',{
+                          \"autoload" : {"filetypes" :["javascript"]}
+                          \}
+NeoBundleLazy  'AndrewRadev/switch.vim',{
+\   'autoload' : { 'commands' : [ "Switch"] }
+                          \}
+NeoBundleLazy 'tyru/open-browser.vim',{
+\   'autoload' : { 'commands' : [ "OpenBrowserSmartSearch"] }
+                          \}
+NeoBundleLazy 'thinca/vim-qfreplace',{
+\   'autoload' : { 'commands' : [ "Qfreplace"] }
+                          \}
+NeoBundleLazy  'rking/ag.vim',{
+\   'autoload' : { 'commands' : [ "Ag", "AgFile"] }
+                          \}
+NeoBundleLazy 'deris/vim-diffbuf',{
+\   'autoload' : { 'commands' : [ "DiffBuf"] }
+                          \}
+NeoBundleLazy 'junegunn/vim-easy-align',{
+\   'autoload' : { 'commands' : [ "EasyAlign"] }
+                          \}
+NeoBundleLazy 'gregsexton/gitv',{
+\   'autoload' : { 'commands' : [ "Gitv", "Gitv!"] }
+                          \}
+NeoBundleLazy 'scrooloose/nerdtree',{
+\   'autoload' : { 'commands' : [ 'NERDTreeToggle'] }
+                          \}
  call neobundle#end()
 
  " Required:
@@ -728,14 +806,20 @@ let g:EasyMotion_startofline=0
 
 " anzu.vim
 " mapping
-nmap n <Plug>(anzu-n-with-echo)
-nmap N <Plug>(anzu-N-with-echo)
-nmap * <Plug>(anzu-star-with-echo)
-nmap # <Plug>(anzu-sharp-with-echo)
+nmap n nzz<Plug>(anzu-update-search-status)<Plug>(anzu-echo-search-status)
+nmap N Nzz<Plug>(anzu-update-search-status)<Plug>(anzu-echo-search-status)
+nmap * *zz<Plug>(anzu-update-search-status)<Plug>(anzu-echo-search-status)
+nmap # #zz<Plug>(anzu-update-search-status)<Plug>(anzu-echo-search-status)
 " clear status
 nmap <Esc><Esc> :nohl<CR> <Plug>(anzu-clear-search-status)
 " statusline
 " set statusline=%{anzu#search_status()}
+augroup vim-anzu
+" 一定時間キー入力がないとき、ウインドウを移動したとき、タブを移動したときに
+" 検索ヒット数の表示を消去する
+    autocmd!
+    autocmd CursorHold,CursorHoldI,WinLeave,TabLeave * call anzu#clear_search_status()
+augroup END
 
 
 " https://github.com/bkad/CamelCaseMotion
@@ -804,25 +888,16 @@ if has("autocmd")
 endif
 
 " 改行系のmappingにはundo区切りのために<C-g>uつける
-call smartinput#map_to_trigger('i', '<Plug>(smartinput_BS)','<BS>','<BS>')
-call smartinput#map_to_trigger('i', '<Plug>(smartinput_C-h)', '<BS>', '<C-h>')
-call smartinput#map_to_trigger('i', '<Plug>(smartinput_CR)','<Enter>','<Enter>')
-" call smartinput#define_rule({
-" \   'at': '({\%#})',
-" \   'char': '<CR>',
-" \   'input': '<CR>\ <Esc>O\ ',
-" \ } )
+" call smartinput#map_to_trigger('i', '<Plug>(smartinput_BS)','<BS>','<BS>')
+" call smartinput#map_to_trigger('i', '<Plug>(smartinput_C-h)', '<BS>', '<C-h>')
+" call smartinput#map_to_trigger('i', '<Plug>(smartinput_CR)','<Enter>','<Enter>')
+
 call smartinput#define_rule({
 \   'at': '\[\%#\]',
 \   'char': '<CR>',
-\   'input': '<CR><Esc>O',
+\   'input': '<CR><Esc>O<C-g>u',
 \ } )
 
-call smartinput#define_rule({
-\   'at': '\(\%#\)',
-\   'char': '<CR>',
-\   'input': '<CR><Esc>O',
-\ } )
 " http://rhysd.hatenablog.com/entry/20121017/1350444269
 " 改行時に行末スペースの除去
 call smartinput#define_rule({
@@ -832,7 +907,7 @@ call smartinput#define_rule({
 \   })
 " よく分からないけどundo区切りが他の方法で上手くいかないのでとりあえず暫定対応
 call smartinput#define_rule({
-\   'at': '',
+\   'at': '\%#',
 \   'char': '<CR>',
 \   'input': "<CR><C-g>u",
 \   })
@@ -951,13 +1026,12 @@ nnoremap <silent> <Leader>e :<C-u>call ToggleErrors()<CR>
 nnoremap    [unite]   <Nop>
 nmap    <Leader>f [unite]
 
-" ウィンドウを水平分割なら下に、垂直分割なら右に開く
-let g:unite_split_rule = 'botright'
 " unite.vim keymap
 " <a href="https://github.com/alwei/dotfiles/blob/3760650625663f3b08f24bc75762ec843ca7e112/.vimrc" target="_blank" rel="noreferrer" style="cursor:help;display:inline !important;">https://github.com/alwei/dotfiles/blob/3760650625663f3b08f24bc75762ec843ca7e112/.vimrc</a>
 nnoremap [unite]u  :<C-u>Unite -no-split<Space>
 nnoremap <silent> [unite]t :<C-u>Unite<Space>buffer<CR>
 nnoremap <silent> [unite]b :<C-u>Unite<Space>bookmark<CR>
+nnoremap <silent> [unite]c :<C-u>Unite<Space>colorscheme -auto-preview<CR>
 nnoremap <silent> [unite]m :<C-u>Unite<Space>file_mru<CR>
 nnoremap <silent> [unite]d :<C-u>UniteWithBufferDir file<CR>
 nnoremap <silent> [unite]r :<C-u>Unite<Space>file_rec<CR>
@@ -969,8 +1043,6 @@ nnoremap <silent> [unite]o :<C-u>Unite -vertical -winwidth=40<Space>outline<CR>
 " nnoremap <silent> [unite]g :<C-u>Unite grep:. -buffer-name=search-buffer<CR>
 nnoremap <silent> ,vr :UniteResume<CR>
 
-" vinarise
-let g:vinarise_enable_auto_detect = 1
 
 " unite-build map
 nnoremap <silent> ,vb :Unite build<CR>
@@ -978,42 +1050,7 @@ nnoremap <silent> ,vcb :Unite build:!<CR>
 nnoremap <silent> ,vch :UniteBuildClearHighlight<CR>
 "" }}}
 
-" ESCキーを2回押すと終了する
-au FileType unite nnoremap <silent> <buffer> <ESC><ESC> :q<CR>
-au FileType unite inoremap <silent> <buffer> <ESC><ESC> <ESC>:q<CR>
 
-"インサートモードで開始
-" let g:unite_enable_start_insert = 1
-"最近開いたファイル履歴の保存数
-let g:unite_source_file_mru_limit = 50
-"file_mruの表示フォーマットを指定。空にすると表示スピードが高速化される
-let g:unite_source_file_mru_filename_format = ''
-
-"uniteを開いている間のキーマッピング
-autocmd vimrc FileType unite call s:unite_my_settings()
-function! s:unite_my_settings()"{{{
-	"ESCでuniteを終了
-	" nmap <buffer> <ESC> <Plug>(unite_exit)
-	"入力モードのときjjでノーマルモードに移動
-	" imap <buffer> jj <Plug>(unite_insert_leave)
-	"入力モードのときctrl+wでバックスラッシュも削除
-	" imap <buffer> <C-w> <Plug>(unite_delete_backward_path)
-	"ctrl+jで縦に分割して開く
-	nnoremap <silent> <buffer> <expr> s unite#do_action('split')
-	inoremap <silent> <buffer> <expr> <C-s> unite#do_action('split')
-	"ctrl+jで横に分割して開く
-	nnoremap <silent> <buffer> <expr> v unite#do_action('vsplit')
-	inoremap <silent> <buffer> <expr> <C-v> unite#do_action('vsplit')
-	"ctrl+oでその場所に開く
-	nnoremap <silent> <buffer> <expr> o unite#do_action('open')
-	inoremap <silent> <buffer> <expr> <C-o> unite#do_action('open')
-	"ctrl+tでタブで開く
-	nnoremap <silent> <buffer> <expr> t unite#do_action('tabopen')
-	inoremap <silent> <buffer> <expr> <C-t> unite#do_action('tabopen')
-	"ctrl+bでブックマーク
-	nnoremap <silent> <buffer> <expr> b unite#do_action('bookmark')
-	inoremap <silent> <buffer> <expr> <C-b> unite#do_action('bookmark')
-endfunction"}}}
 
 " http://qiita.com/kentaro/items/10b6dd5e3e1104dc6acc
 " nnoremap <silent> <Leader>p  :Unite file_rec:!<CR>
@@ -1237,13 +1274,18 @@ inoremap <expr><C-Space>     neocomplete#start_manual_complete()
 " function! s:my_tab_function()
   " return pumvisible() ? neocomplete#close_popup() : "\<TAB>"
 " endfunction
-" imap <expr> <CR> pumvisible() ?
-      " \ neocomplete#close_popup() : "\<Plug>(smartinput_CR)"
+" imap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
+" imap <expr> <CR> pumvisible() ? neocomplete#close_popup() : "\<Plug>(smartinput_CR)"
+      " " \ neocomplete#close_popup() : "\<Plug>(smartinput_CR)"
+" function! s:my_cr_function()
+  " return pumvisible() ? neocomplete#close_popup() : "\<Plug>(smartinput_CR)"
+" endfunction
 " <C-h>, <BS>: close popup and delete backword char.
 " inoremap <expr><C-h> neocomplete#smart_close_popup()."\<C-h>"
 " inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
-" inoremap <expr><C-y>  neocomplete#close_popup()
-" inoremap <expr><C-e>  neocomplete#cancel_popup()
+" plugin内で使われているので必須
+inoremap <expr><C-y>  neocomplete#close_popup()
+inoremap <expr><C-e>  neocomplete#cancel_popup()
 " Close popup by <Space>.
 "inoremap <expr><Space> pumvisible() ? neocomplete#close_popup() : "\<Space>"
 
@@ -1297,18 +1339,18 @@ let g:neocomplete#sources#omni#input_patterns.perl = '\h\w*->\h\w*\|\h\w*::'
     " echo 'Enabled autocomplete'
 " endfunction
 " Called once right before you start selecting multiple cursors
-function! Multiple_cursors_before()
-  if exists(':NeoCompleteLock')==2
-    exe 'NeoCompleteLock'
-  endif
-endfunction
+" function! Multiple_cursors_before()
+  " if exists(':NeoCompleteLock')==2
+    " exe 'NeoCompleteLock'
+  " endif
+" endfunction
 
 " Called once only when the multiple selection is canceled (default <Esc>)
-function! Multiple_cursors_after()
-  if exists(':NeoCompleteUnlock')==2
-    exe 'NeoCompleteUnlock'
-  endif
-endfunction
+" function! Multiple_cursors_after()
+  " if exists(':NeoCompleteUnlock')==2
+    " exe 'NeoCompleteUnlock'
+  " endif
+" endfunction
 
 
 
@@ -1363,7 +1405,7 @@ let g:SimpleJsIndenter_BriefMode = 1
 let g:SimpleJsIndenter_CaseIndentLevel = -1
 
 let g:jsdoc_default_mapping = 0
-nnoremap <silent> <Leader>d :JsDoc<CR>
+" nnoremap <silent> <Leader>d :JsDoc<CR>
 
 nnoremap <silent> <Leader>gb :Gblame<CR>
 nnoremap <silent> <Leader>gd :Gdiff<CR>
@@ -1375,8 +1417,24 @@ nnoremap <silent> <Leader>gm :Gmove<CR>
 nnoremap <silent> <Leader>gr :Gread<CR>
 
 " http://books.google.co.jp/books?id=QZSWbc83LfQC&pg=PA108&lpg=PA108&dq=vim+star&source=bl&ots=i5zfo7mhZO&sig=IRCOtnO0RclvQzyMVFLb5VG3ga4&hl=ja&sa=X&ei=cMsNVNvJCore8AWQ54H4BA&ved=0CH4Q6AEwCQ#v=onepage&q=vim%20star&f=false
-map * <Plug>(visualstar-*)N
-map # <Plug>(visualstar-#)N
+" map * <Plug>(visualstar-*)N
+" map # <Plug>(visualstar-#)N
+map *   <Plug>(asterisk-*)
+map #   <Plug>(asterisk-#)
+map g*  <Plug>(asterisk-g*)
+map g#  <Plug>(asterisk-g#)
+map z*  <Plug>(asterisk-z*)
+map gz* <Plug>(asterisk-gz*)
+map z#  <Plug>(asterisk-z#)
+map gz# <Plug>(asterisk-gz#)
+nmap *   vis<Plug>(asterisk-*)
+nmap #   vis<Plug>(asterisk-#)
+nmap g*  vis<Plug>(asterisk-g*)
+nmap g#  vis<Plug>(asterisk-g#)
+nmap z*  vis<Plug>(asterisk-z*)
+nmap gz* vis<Plug>(asterisk-gz*)
+nmap z#  vis<Plug>(asterisk-z#)
+nmap gz# vis<Plug>(asterisk-gz#)
 
 nmap <Leader>h <Plug>(quickhl-manual-this)
 xmap <Leader>h <Plug>(quickhl-manual-this)
@@ -1550,3 +1608,18 @@ nnoremap <Leader>tp <C-w>}
 nnoremap <Leader>tq <C-w><C-z>
 nnoremap <Leader>tn <C-]>
 nnoremap <Leader>tb <C-t>
+
+" http://blog.supermomonga.com/articles/vim/share-cr-map-with-multiple-plugins.html
+if neobundle#tap('vim-smartinput')
+  function! neobundle#tapped.hooks.on_post_source(bundle)
+    " neosnippet and neocomplete compatible
+    call smartinput#map_to_trigger('i', '<Plug>(vimrc_cr)', '<Enter>', '<Enter>')
+    imap <expr><CR> !pumvisible() ? "\<Plug>(vimrc_cr)" :
+          \ neosnippet#expandable() ? "\<Plug>(neosnippet_expand)" :
+          \ neocomplete#close_popup()
+  endfunction
+  call neobundle#untap()
+endif
+
+nnoremap <silent> <Leader>d :filetype detect<CR>
+let g:scratchBackupFile=$HOME . "~/.backup/vim/scratch.txt"

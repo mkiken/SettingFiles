@@ -6,7 +6,7 @@ let loaded_textobj_my_textobj = 1
 
 call textobj#user#plugin('sentence', {
 \      '-': {
-\           'pattern': '[A-Za-z_][a-zA-Z0-9_]\+',
+\           'pattern': '[A-Za-z_\-][a-zA-Z0-9_\-]\+',
 \           'select': ['as', 'is'],
 \      },
 \   })
