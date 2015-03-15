@@ -116,6 +116,11 @@ set splitbelow "新しいウィンドウを下に開く
 set splitright "新しいウィンドウを右に開く
 
 " set paste
+" http://vim.wikia.com/wiki/Toggle_auto-indenting_for_code_paste
+nnoremap <F6> :set invpaste paste?<CR>
+imap <F6> <C-O>:set invpaste paste?<CR>
+set pastetoggle=<F6>
+set showmode
 
 " folding
 " http://www.ksknet.net/vi/post_183.html
@@ -221,9 +226,10 @@ nnoremap <Up>   gk
 " inoremap ƒ <ESC>lwi
 
 " M-f
-noremap! ƒ <C-o>w
+" noremap! ƒ <C-o>w
+noremap! ƒ <S-Right>
 " M-b
-noremap! ∫ <C-o>b
+noremap! ∫ <S-Left>
 " M-j
 noremap! Ô <C-o>O
 
@@ -339,8 +345,10 @@ inoremap <C-j> <ESC>$a<CR>
 
 
 " http://easyramble.com/disable-vim-auto-comment.html
+"
 " set formatoptions-=ro
-autocmd vimrc FileType * setlocal formatoptions-=ro
+" autocmd vimrc FileType * setlocal formatoptions-=ro
+" autocmd FileType * setlocal formatoptions-=ro
 
 " visulaモードで選択してからのインデント調整で調整後に選択範囲を開放しない
 vnoremap > >gv
@@ -655,6 +663,7 @@ endfunction
  NeoBundle 'haya14busa/vim-asterisk'
  " NeoBundle 'mtth/scratch.vim'
  NeoBundle 'violetyk/scratch-utility'
+ NeoBundle 'deris/vim-loadafterft'
 
 
  NeoBundle 'Shougo/vimproc.vim', {
@@ -1285,7 +1294,7 @@ inoremap <expr><C-Space>     neocomplete#start_manual_complete()
 " inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
 " plugin内で使われているので必須
 inoremap <expr><C-y>  neocomplete#close_popup()
-inoremap <expr><C-e>  neocomplete#cancel_popup()
+" inoremap <expr><C-e>  neocomplete#cancel_popup()
 " Close popup by <Space>.
 "inoremap <expr><Space> pumvisible() ? neocomplete#close_popup() : "\<Space>"
 
@@ -1602,12 +1611,12 @@ let g:easytags_events = ['BufWritePost']
 let g:easytags_async = 1
 
 " http://qiita.com/tutu/items/fbc4023ebc3004964e86
-nnoremap <Leader>tv :vsp<CR> :exe("tjump ".expand('<cword>'))<CR>
-nnoremap <Leader>ts :split<CR> :exe("tjump ".expand('<cword>'))<CR>
-nnoremap <Leader>tp <C-w>}
-nnoremap <Leader>tq <C-w><C-z>
-nnoremap <Leader>tn <C-]>
-nnoremap <Leader>tb <C-t>
+noremap <Leader>tv :vsp<CR> :exe("tjump ".expand('<cword>'))<CR>
+noremap <Leader>ts :split<CR> :exe("tjump ".expand('<cword>'))<CR>
+noremap <Leader>tp <C-w>}
+noremap <Leader>tq <C-w><C-z>
+noremap <Leader>tn <C-]>
+noremap <Leader>tb <C-t>
 
 " http://blog.supermomonga.com/articles/vim/share-cr-map-with-multiple-plugins.html
 if neobundle#tap('vim-smartinput')
@@ -1623,3 +1632,10 @@ endif
 
 nnoremap <silent> <Leader>d :filetype detect<CR>
 let g:scratchBackupFile=$HOME . "~/.backup/vim/scratch.txt"
+
+" http://deris.hatenablog.jp/entry/20120818/1345291162
+let g:execcmd_after_ftplugin = {
+  \    '_': [
+  \        'setlocal fo-=r fo-=o',
+  \    ],
+  \}
