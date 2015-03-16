@@ -232,6 +232,8 @@ noremap! ƒ <S-Right>
 noremap! ∫ <S-Left>
 " M-j
 noremap! Ô <C-o>O
+" M-d
+noremap! ∂ <C-o>dw
 
 " http://vim-users.jp/2009/08/hack57/
 nnoremap <Enter> :<C-u>call append(expand('.'), '')<Cr>j
@@ -1089,6 +1091,10 @@ if executable('ag')
   let g:unite_source_grep_command = 'ag'
   let g:unite_source_grep_default_opts = '--nogroup --nocolor --column'
   let g:unite_source_grep_recursive_opt = ''
+  let g:unite_source_rec_async_command =
+        \ 'ag --follow --nocolor --nogroup --hidden -g ""'
+  " ignore files
+  call unite#custom#source('file_rec/async', 'ignore_pattern', '(png\|gif\|jpeg\|jpg)$')
 endif
 
 

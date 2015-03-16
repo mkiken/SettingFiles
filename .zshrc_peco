@@ -93,4 +93,4 @@ function br_fmt(){
 }
 
 alias pkill='ps ax | peco | awk "{ print $1 }" | xargs kill'
-alias pvi='ls | peco | xargs vi'
+alias pvi='ls | peco | xargs VI'

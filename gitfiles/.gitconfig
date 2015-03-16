@@ -130,3 +130,5 @@
 	trustExitCode = true
 [i18n]
 	commitencoding = utf-8
+[mergetool]
+	keepBackup = false
