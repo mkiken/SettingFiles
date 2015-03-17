@@ -69,7 +69,9 @@ case ${UID} in
 esac
 
 function precmd_prompt () {
-	PROMPT="%K{black}%{%(?.$fg[green].$fg[red])%}%n%{$reset_color%} [%F{cyan}%(5~,%-2~/../%2~,%~)%f] %{%}%#%{%}%k "
+  PROMPT="%K{white}%{%(?.$fg[green].$fg[red])%}%n%{$reset_color%}%k%K{white} [%F{cyan}%(5~,%-2~/../%2~,%~)%f] %{%}%#%{%}%k "
+  # PROMPT="%K{black}%{%(?.$fg[green].$fg[red])%}%n%{$reset_color%}%k%K{black} %F{white}[%f%F{cyan}%(5~,%-2~/../%2~,%~)%f%F{white}] %{%}%#%{%}%f%k "
+	# PROMPT="%{%(?.$fg[green].$fg[red])%}%n%{$reset_color%} [%F{cyan}%(5~,%-2~/../%2~,%~)%f] %{%}%#%{%} "
 }
 precmd_functions=(precmd_prompt)
 
@@ -218,6 +220,9 @@ colors
 
 # LS_COLORSを設定しておく
 export LS_COLORS='di=34:ln=35:so=32:pi=33:ex=31:bd=46;34:cd=43;34:su=41;30:sg=46;30:tw=42;30:ow=43;30'
+
+# http://www.spookies.co.jp/blog/zsh-5-0-0-%E3%81%AE%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89%E3%83%A9%E3%82%A4%E3%83%B3%E3%83%8F%E3%82%A4%E3%83%A9%E3%82%A4%E3%83%88%E3%82%92%E4%BD%BF%E3%81%86
+zle_highlight=(region:standout special:standout suffix:fg=blue,bold isearch:fg=magenta,underline)
 
 # ファイル補完候補に色を付ける
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}

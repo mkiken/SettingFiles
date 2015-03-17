@@ -203,7 +203,7 @@ autocmd vimrc BufWritePre * if index(remove_dust_blacklist, &ft) < 0 | call <SID
 
 
 " http://vim-users.jp/2009/09/hack69/
-set autochdir
+" set autochdir
 
 vnoremap <Leader>{ "zdi{<C-R>z}<ESC>
 vnoremap [ "zdi[<C-R>z]<ESC>
@@ -612,7 +612,6 @@ endfunction
  " NeoBundle 'terryma/vim-multiple-cursors'
  " NeoBundle 'haya14busa/vim-migemo'
  NeoBundle 'Yggdroot/indentLine'
- " NeoBundle 'Shougo/vimshell.vim'
  " NeoBundle 'Shougo/vimfiler.vim'
  NeoBundle 'terryma/vim-expand-region'
  NeoBundle 'Shougo/neocomplete.vim'
@@ -781,6 +780,12 @@ NeoBundleLazy 'gregsexton/gitv',{
                           \}
 NeoBundleLazy 'scrooloose/nerdtree',{
 \   'autoload' : { 'commands' : [ 'NERDTreeToggle'] }
+                          \}
+NeoBundleLazy 'Shougo/vimshell.vim',{
+\   'autoload' : { 'commands' : [ 'VimShell', 'VimShellPop'] }
+                          \}
+NeoBundleLazy 'thinca/vim-quickrun',{
+\   'autoload' : { 'commands' : [ 'QuickRun'] }
                           \}
  call neobundle#end()
 
@@ -1645,3 +1650,7 @@ let g:execcmd_after_ftplugin = {
   \        'setlocal fo-=r fo-=o',
   \    ],
   \}
+
+nnoremap <F7> :VimShell -toggle -split<CR>
+nnoremap <Leader>qp :QuickRun php<CR>
+nnoremap <Leader>qr :QuickRun ruby<CR>

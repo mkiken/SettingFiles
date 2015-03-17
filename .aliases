@@ -59,7 +59,7 @@ alias cp='cp -i'
 alias mv='mv -i'
 
 alias pv='popd'
-alias up='cd ../'
+# alias up='cd ../'
 
 alias ng='noglob'
 
@@ -480,4 +480,17 @@ function agG() {
 		return
   fi
 	ag $1 -G $2
+}
+
+# http://stackoverflow.com/questions/5349718/how-can-i-repeat-a-character-in-bash
+function up() {
+	if test $# -lt 1; then
+	    echo $#
+	  cd ../
+		return
+  fi
+  tmp=''
+  repeat $1 tmp+='../'
+  cd "$tmp"
+
 }
