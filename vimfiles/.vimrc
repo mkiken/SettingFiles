@@ -351,6 +351,7 @@ inoremap <C-j> <ESC>$a<CR>
 " set formatoptions-=ro
 " autocmd vimrc FileType * setlocal formatoptions-=ro
 " autocmd FileType * setlocal formatoptions-=ro
+autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o
 
 " visulaモードで選択してからのインデント調整で調整後に選択範囲を開放しない
 vnoremap > >gv
@@ -664,7 +665,7 @@ endfunction
  NeoBundle 'haya14busa/vim-asterisk'
  " NeoBundle 'mtth/scratch.vim'
  NeoBundle 'violetyk/scratch-utility'
- NeoBundle 'deris/vim-loadafterft'
+ " NeoBundle 'deris/vim-loadafterft'
 
 
  NeoBundle 'Shougo/vimproc.vim', {
@@ -912,6 +913,14 @@ call smartinput#define_rule({
 \   'at': '\[\%#\]',
 \   'char': '<CR>',
 \   'input': '<CR><Esc>O<C-g>u',
+\ } )
+
+
+call smartinput#define_rule({
+\   'at': '{\%#}',
+\   'char': '<CR>',
+\   'input': '<Left><CR><Right><CR><Esc>O<C-g>u',
+\   'filetype' : ['php'],
 \ } )
 
 " http://rhysd.hatenablog.com/entry/20121017/1350444269
@@ -1518,6 +1527,7 @@ nmap ga <Plug>(EasyAlign)
 " let g:easy_align_delimiters = {
 " \ '/': { 'pattern': '//\+', 'delimiter_align': 'l', 'ignore_groups': ['!Comment'] }
 " \ }
+let g:easy_align_ignore_groups = ['String']
 " http://qiita.com/NanohaAsOnKai/items/5e196bfbb8c3d0b98385
 let g:easy_align_delimiters = {
 \    '=': {
@@ -1526,18 +1536,15 @@ let g:easy_align_delimiters = {
 \        'right_margin': 1,
 \        'stick_to_left': 0 },
 \    '>': {
-\        'pattern': '>>\|=>\|>', },
+\        'pattern': '>>\|=>\|>'},
 \    '/': {
 \        'pattern':       '//\+\|/\*\|\*/',
-\        'delimiter_align': 'l',
-\        'ignore_groups': ['String', '!Comment'], },
+\        'delimiter_align': 'l'},
 \    '#': {
 \        'pattern':         '#\+',
-\        'ignore_groups':   ['String'],
 \        'delimiter_align': 'l', },
 \    '$': {
 \        'pattern':         '\((.*\)\@!$\(.*)\)\@!',
-\        'ignore_groups':   ['String', '!Comment'],
 \        'right_margin':  0,
 \        'delimiter_align': 'l', },
 \    ']': {
@@ -1552,7 +1559,6 @@ let g:easy_align_delimiters = {
 \        'stick_to_left': 0, },
 \    'd': {
 \        'pattern':      ' \(\S\+\s*[;=]\)\@=',
-\        'ignore_groups':   ['String', '!Comment'],
 \        'left_margin':  0,
 \        'right_margin': 0, }, }
 
@@ -1645,11 +1651,11 @@ nnoremap <silent> <Leader>d :filetype detect<CR>
 let g:scratchBackupFile=$HOME . "~/.backup/vim/scratch.txt"
 
 " http://deris.hatenablog.jp/entry/20120818/1345291162
-let g:execcmd_after_ftplugin = {
-  \    '_': [
-  \        'setlocal fo-=r fo-=o',
-  \    ],
-  \}
+" let g:execcmd_after_ftplugin = {
+  " \    '_': [
+  " \        'setlocal fo-=r fo-=o fo-=c',
+  " \    ],
+  " \}
 
 nnoremap <F7> :VimShell -toggle -split<CR>
 nnoremap <Leader>qp :QuickRun php<CR>
