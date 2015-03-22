@@ -120,7 +120,7 @@ if OSTYPE == "Darwin\n"
 	"  autocmd!
 	if has('mac')
 		autocmd gvimrc FocusGained * set transparency=5
-		autocmd gvimrc FocusLost * set transparency=10
+		autocmd gvimrc FocusLost * set transparency=15
 		" set lines=50 columns=150
 	endif
 	"augroup END

@@ -489,7 +489,7 @@ if [ -f "${SET}submodules/auto-fu.zsh/auto-fu.zsh" ]; then
 { . ~/.zsh/auto-fu; auto-fu-install; }
 zstyle ':auto-fu:highlight' input bold
 zstyle ':auto-fu:highlight' completion fg=black,bold
-zstyle ':auto-fu:highlight' completion/one fg=white,bold,underline
+zstyle ':auto-fu:highlight' completion/one fg=blue,bold,underline
 zstyle ':auto-fu:var' postdisplay $'\n-azfu-'
 zstyle ':auto-fu:var' track-keymap-skip opp
 zle-line-init () {auto-fu-init;}; zle -N zle-line-init

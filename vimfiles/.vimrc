@@ -666,6 +666,8 @@ endfunction
  " NeoBundle 'mtth/scratch.vim'
  NeoBundle 'violetyk/scratch-utility'
  " NeoBundle 'deris/vim-loadafterft'
+ NeoBundle 'vim-scripts/SearchComplete'
+ NeoBundle 'blueyed/vim-diminactive'
 
 
  NeoBundle 'Shougo/vimproc.vim', {
@@ -1630,9 +1632,9 @@ let g:easytags_async = 1
 " http://qiita.com/tutu/items/fbc4023ebc3004964e86
 noremap <Leader>tv :vsp<CR> :exe("tjump ".expand('<cword>'))<CR>
 noremap <Leader>ts :split<CR> :exe("tjump ".expand('<cword>'))<CR>
-noremap <Leader>tp <C-w>}
+nmap <Leader>tp vas<C-w>}
 noremap <Leader>tq <C-w><C-z>
-noremap <Leader>tn <C-]>
+nmap <Leader>tn vas<C-]>
 noremap <Leader>tb <C-t>
 
 " http://blog.supermomonga.com/articles/vim/share-cr-map-with-multiple-plugins.html
