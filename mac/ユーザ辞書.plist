@@ -156,6 +156,14 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>(　ﾟ皿ﾟ)ｷｰｯ!!</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+		<key>timestamp</key>
+		<integer>1427279997</integer>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(・_・)</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
@@ -233,6 +241,14 @@
 		<string>かおもじ</string>
 		<key>timestamp</key>
 		<integer>1420592726</integer>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(*´σー｀)エヘヘ</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+		<key>timestamp</key>
+		<integer>1427178125</integer>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -364,6 +380,14 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>(∩´∀｀)∩ﾜｰｲ</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+		<key>timestamp</key>
+		<integer>1427270829</integer>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(ﾟ⊿ﾟ)ｼﾗﾈ</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
@@ -441,6 +465,14 @@
 		<string>かおもじ</string>
 		<key>timestamp</key>
 		<integer>1425210209</integer>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>┌(┌ ^o^)┐ﾎﾓｫ…</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+		<key>timestamp</key>
+		<integer>1427188400</integer>
 	</dict>
 	<dict>
 		<key>phrase</key>

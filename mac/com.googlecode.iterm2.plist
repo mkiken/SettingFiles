@@ -9393,7 +9393,7 @@
 	<key>MaxVertically</key>
 	<false/>
 	<key>NSNavLastRootDirectory</key>
-	<string>~/Desktop/repository/iTerm2-Color-Schemes/schemes</string>
+	<string>~/Desktop/repository/SettingFiles</string>
 	<key>NSQuotedKeystrokeBinding</key>
 	<string></string>
 	<key>NSRepeatCountBinding</key>
@@ -9401,15 +9401,9 @@
 	<key>NSScrollAnimationEnabled</key>
 	<false/>
 	<key>NSWindow Frame Preferences</key>
-	<string>314 226 924 485 0 0 1280 777 </string>
-	<key>NSWindow Frame SUStatusFrame</key>
-	<string>931 621 384 129 0 0 1280 777 </string>
+	<string>970 357 924 485 0 0 1920 1058 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>50 65 625 712 0 0 1280 777 </string>
-	<key>NSWindow Frame iTerm Window 1</key>
-	<string>79 64 625 714 0 0 1280 778 </string>
-	<key>NSWindow Frame iTerm Window 2</key>
-	<string>173 64 625 714 0 0 1280 778 </string>
+	<string>1938 211 1525 824 1920 -120 1920 1178 </string>
 	<key>NeverWarnAboutShortLivedSessions_6DE05245-ABC6-4133-86ED-9837935D9C3A</key>
 	<true/>
 	<key>New Bookmarks</key>
@@ -10943,7 +10937,7 @@
 		</dict>
 	</dict>
 	<key>PrefsCustomFolder</key>
-	<string>~/Desktop/repository/SettingFiles/mac/</string>
+	<string>/Users/a13596/Desktop/repository/SettingFiles/mac</string>
 	<key>PromptOnClose</key>
 	<true/>
 	<key>PromptOnQuit</key>
@@ -10961,7 +10955,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2015-03-21T07:00:59Z</date>
+	<date>2015-03-26T13:21:08Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Show Toolbelt</key>

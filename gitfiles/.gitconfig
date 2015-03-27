@@ -132,3 +132,6 @@
 	commitencoding = utf-8
 [mergetool]
 	keepBackup = false
+[user]
+	name = 
+	email = 
