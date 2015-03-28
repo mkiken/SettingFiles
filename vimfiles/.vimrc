@@ -205,6 +205,11 @@ autocmd vimrc BufWritePre * if index(remove_dust_blacklist, &ft) < 0 | call <SID
 " http://vim-users.jp/2009/09/hack69/
 " set autochdir
 
+" http://superuser.com/questions/195022/vim-how-to-synchronize-nerdtree-with-current-opened-tab-file-path
+autocmd BufEnter * lcd %:p:h
+" http://qiita.com/shiena/items/1e98fd14d0ef0084b17f
+nnoremap <Leader>c :lcd %:h<cr>
+
 vnoremap <Leader>{ "zdi{<C-R>z}<ESC>
 vnoremap [ "zdi[<C-R>z]<ESC>
 vnoremap ( "zdi(<C-R>z)<ESC>
@@ -668,6 +673,8 @@ endfunction
  " NeoBundle 'deris/vim-loadafterft'
  NeoBundle 'vim-scripts/SearchComplete'
  NeoBundle 'blueyed/vim-diminactive'
+ " NeoBundle 'airblade/vim-gitgutter'
+ NeoBundle 'sgur/vim-lazygutter'
 
 
  NeoBundle 'Shougo/vimproc.vim', {
@@ -1662,3 +1669,6 @@ let g:scratchBackupFile=$HOME . "~/.backup/vim/scratch.txt"
 nnoremap <F7> :VimShell -toggle -split<CR>
 nnoremap <Leader>qp :QuickRun php<CR>
 nnoremap <Leader>qr :QuickRun ruby<CR>
+
+let g:gitgutter_map_keys = 0
+let g:gitgutter_eager = 0

@@ -92,9 +92,17 @@ function br_fmt(){
   git branch -a | peco | xargs echo | sed -e 's/\*//' | sed -e 's/remotes\/origin\///'
 }
 
-# TODO できてない
 function pgmg-remote(){
-  br_fmt | awk '{printf("%s%s\n", "remotes/origin/", $0)}' | gmg
+  br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}' | xargs git merge
+}
+function pgmgs-remote(){
+  br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}' | xargs git merge --squash
+}
+function pgl-remote(){
+  br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}' | xargs git log
+}
+function pgd-remote(){
+  br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}' | xargs git diff
 }
 
 alias pkill='ps ax | peco | awk "{ print $1 }" | xargs kill'

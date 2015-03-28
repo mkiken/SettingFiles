@@ -7,7 +7,7 @@
 " colorscheme Tomorrow-Night-Bright
 " colorscheme Tomorrow-Night-Blue
 " colorscheme Tomorrow-Night-Eighties
-" colorscheme solarized
+colorscheme solarized
 " colorscheme wombat
 " colorscheme hybrid
 " colorscheme iceberg
