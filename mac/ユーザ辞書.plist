@@ -58,6 +58,12 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>( ´Д｀ )ﾉ</string>
+		<key>shortcut</key>
+		<string>おつ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>お疲れ様です。</string>
 		<key>shortcut</key>
 		<string>おつ</string>
@@ -535,12 +541,6 @@
 		<string>+（0ﾟ・∀・） + ﾜｸﾜｸﾃｶﾃｶ</string>
 		<key>shortcut</key>
 		<string>わくてか</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>( ´Д｀ )ﾉ</string>
-		<key>shortcut</key>
-		<string>おつ</string>
 	</dict>
 </array>
 </plist>

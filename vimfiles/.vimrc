@@ -146,6 +146,10 @@ set colorcolumn=80
 " highlight ColorColumn ctermbg=green guibg=orange
 " highlight ColorColumn cterm=italic gui=none
 
+" http://vim.wikia.com/wiki/Make_search_results_appear_in_the_middle_of_the_screen
+" set scrolloff=999
+set scrolloff=5
+
 " 権限無いファイルでも保存
 cabbrev w!! w !sudo tee % >/dev/null
 
@@ -208,7 +212,8 @@ autocmd vimrc BufWritePre * if index(remove_dust_blacklist, &ft) < 0 | call <SID
 " http://superuser.com/questions/195022/vim-how-to-synchronize-nerdtree-with-current-opened-tab-file-path
 autocmd BufEnter * lcd %:p:h
 " http://qiita.com/shiena/items/1e98fd14d0ef0084b17f
-nnoremap <Leader>c :lcd %:h<cr>
+" nnoremap <Leader>c :lcd %:h<cr>
+cabbrev cdc :lcd %:h
 
 vnoremap <Leader>{ "zdi{<C-R>z}<ESC>
 vnoremap [ "zdi[<C-R>z]<ESC>
@@ -331,6 +336,7 @@ nnoremap <Leader>p "+p
 
 " http://cohama.hateblo.jp/entry/2013/10/07/020453
 nnoremap <F4> :<C-u>setlocal relativenumber!<CR>
+inoremap <F4> <C-O>:setlocal relativenumber!<CR>
 
 " nnoremap <M-j> j
 inoremap <C-Left> <Esc>gT
@@ -487,6 +493,8 @@ autocmd FileType html inoremap <silent> <buffer> </ </<C-x><C-o>
 
 " smartinputによって顔文字が入力できないことがあるので、回避策
 nnoremap <F5> :<C-u>setlocal imdisable!<CR>
+inoremap <F5> <C-O>:setlocal imdisable!<CR>
+
 
 " インデントレベルが同じ行を探して移動する
 " http://qiita.com/crispy/items/ff3522a327d0a7d7706b
@@ -1667,6 +1675,7 @@ let g:scratchBackupFile=$HOME . "~/.backup/vim/scratch.txt"
   " \}
 
 nnoremap <F7> :VimShell -toggle -split<CR>
+inoremap <F7> <C-o>:VimShell -toggle -split<CR>
 nnoremap <Leader>qp :QuickRun php<CR>
 nnoremap <Leader>qr :QuickRun ruby<CR>
 
