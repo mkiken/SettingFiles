@@ -6,7 +6,7 @@
 		<key>phrase</key>
 		<string>∑(ﾟДﾟ)ｱｯ</string>
 		<key>shortcut</key>
-		<string>あ</string>
+		<string>あっ</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -34,6 +34,24 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>(ノﾟ∀ﾟ)八(ﾟ∀ﾟ )ノｲｴｰｲ</string>
+		<key>shortcut</key>
+		<string>いえーい</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(ノﾟДﾟ)八(ﾟДﾟ )ノｲｴｰｲ</string>
+		<key>shortcut</key>
+		<string>いえーい</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>v(o・∀・o)v</string>
+		<key>shortcut</key>
+		<string>いえーい</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>ｳﾙｾｰ!!(((((;｀Д´)≡⊃)｀Д)､;'.･</string>
 		<key>shortcut</key>
 		<string>うるせー</string>
@@ -42,13 +60,19 @@
 		<key>phrase</key>
 		<string>(´･ω｀･)ｴｯ?</string>
 		<key>shortcut</key>
-		<string>え</string>
+		<string>えっ</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
 		<string>(*´σー｀)エヘヘ</string>
 		<key>shortcut</key>
 		<string>えへへ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>∑d(ﾟ∀ﾟd)ｫｩｨｪ!!</string>
+		<key>shortcut</key>
+		<string>おういえ</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -100,6 +124,12 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string> ٩( ´ω` )و</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string> 人ゝω・)</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
@@ -107,6 +137,12 @@
 	<dict>
 		<key>phrase</key>
 		<string>_〆(・ω・｀ )</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>･ﾟ･(｡✖д✖｡)･ﾟ･</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
 	</dict>
@@ -160,6 +196,12 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>₍₍ ◝(・ω・)◟ ⁾⁾</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(*｀へ´*)</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
@@ -196,6 +238,12 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>(´・с_・｀)</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(´･_･`)</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
@@ -208,7 +256,19 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>（^o^三^o^）</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>（＾ω＾）</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(✿╹◡╹)ﾉ☆</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
 	</dict>
@@ -250,6 +310,12 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>◟( ˘•ω•˘ )◞</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>ヽ(・ω・*)ﾉ</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
@@ -262,7 +328,25 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>٩( 'ω' )و </string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>٩(๑❛ㅂ❛๑)۶</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>v(｡･ω･｡)</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>‎灬╹ω╹灬</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
 	</dict>
@@ -306,7 +390,7 @@
 		<key>phrase</key>
 		<string>ｷﾀ――(ﾟ∀ﾟ)――!!</string>
 		<key>shortcut</key>
-		<string>きた</string>
+		<string>きたー</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -337,6 +421,12 @@
 		<string>(　ﾟдﾟ)ｸﾚ</string>
 		<key>shortcut</key>
 		<string>くれ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(@σﾟ∀ﾟ)σｹﾞｯﾂ!</string>
+		<key>shortcut</key>
+		<string>げっつ</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -391,6 +481,12 @@
 		<string>(　・ω・) ㌧</string>
 		<key>shortcut</key>
 		<string>とん</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>ヾ(・ω・ ) ﾅﾃﾞﾅﾃﾞ</string>
+		<key>shortcut</key>
+		<string>なでなで</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -498,13 +594,19 @@
 		<key>phrase</key>
 		<string>┌(┌ ^o^)┐ﾎﾓｫ…</string>
 		<key>shortcut</key>
-		<string>ほも</string>
+		<string>ほもぉ</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
 		<string>ヽ(｀Д´#)ﾉ ﾑｷｰ!!</string>
 		<key>shortcut</key>
 		<string>むきー</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(๑˃̵ᴗ˂̵)و</string>
+		<key>shortcut</key>
+		<string>やった</string>
 	</dict>
 	<dict>
 		<key>phrase</key>

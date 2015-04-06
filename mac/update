@@ -16,6 +16,6 @@ brew upgrade
 # brew upgrade rlwrap
 echo "end brew update."
 
-vim -c NeoBundleInstall -c NeoBundleUpdate -c qa
+vim -c NeoBundleClean -c NeoBundleInstall -c NeoBundleUpdate -c qa
 # ../.atom/package_initialize
 # echo "If package of Emacs is updated, please eval-buffer 'package-initialize.el' on Emacs."

@@ -494,3 +494,7 @@ function up() {
   cd "$tmp"
 
 }
+
+# function dirdiff(){
+  # vim -c DirDiff $1 $2
+# }

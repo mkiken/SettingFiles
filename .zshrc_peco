@@ -107,3 +107,4 @@ function pgd-remote(){
 
 alias pkill='ps ax | peco | awk "{ print $1 }" | xargs kill'
 alias pvi='ls | peco | xargs VI'
+alias popen='ls | peco | xargs open'

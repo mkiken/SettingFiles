@@ -627,7 +627,7 @@ endfunction
  " NeoBundle 'haya14busa/vim-migemo'
  NeoBundle 'Yggdroot/indentLine'
  " NeoBundle 'Shougo/vimfiler.vim'
- NeoBundle 'terryma/vim-expand-region'
+ " NeoBundle 'terryma/vim-expand-region'
  NeoBundle 'Shougo/neocomplete.vim'
  NeoBundle 'Shougo/neosnippet'
  NeoBundle 'Shougo/neosnippet-snippets'
@@ -649,7 +649,7 @@ endfunction
  " NeoBundle 'alpaca-tc/beautify.vim'
  " NeoBundle 'Lokaltog/vim-powerline'
  NeoBundle 'tpope/vim-fugitive'
- NeoBundle 'Shougo/neomru.vim'
+ NeoBundle 'Shougo/neomru.vim' " for Unite
  " NeoBundle 'thinca/vim-visualstar'
  NeoBundle 't9md/vim-quickhl'
  NeoBundle 'osyo-manga/vim-brightest'
@@ -661,7 +661,6 @@ endfunction
  " NeoBundle 'jiangmiao/auto-pairs'
  " NeoBundle 'cohama/vim-smartinput-endwise'
  NeoBundle 'lilydjwg/colorizer'
- NeoBundle 'tyru/open-browser-github.vim'
  NeoBundle 'tpope/vim-abolish'
  NeoBundle 'LeafCage/yankround.vim'
  NeoBundle 'vim-scripts/Changed'
@@ -683,7 +682,9 @@ endfunction
  NeoBundle 'blueyed/vim-diminactive'
  " NeoBundle 'airblade/vim-gitgutter'
  NeoBundle 'sgur/vim-lazygutter'
-
+ NeoBundle 'kana/vim-textobj-datetime'
+ NeoBundle 'kana/vim-textobj-function'
+ NeoBundle 'kmnk/vim-unite-giti'
 
  NeoBundle 'Shougo/vimproc.vim', {
        \ 'build' : {
@@ -701,7 +702,7 @@ if ! empty(neobundle#get("tagbar"))
    " Width (default 40)
   " let g:tagbar_width = 20
   " Map for toggle
-  nn <silent> <leader>tt :TagbarToggle<CR>
+  nn <silent> <leader>te :TagbarToggle<CR>
 endif
 
 NeoBundleLazy 'Shougo/unite.vim' , {
@@ -805,6 +806,16 @@ NeoBundleLazy 'Shougo/vimshell.vim',{
 NeoBundleLazy 'thinca/vim-quickrun',{
 \   'autoload' : { 'commands' : [ 'QuickRun'] }
                           \}
+NeoBundleLazy 'cohama/agit.vim',{
+\   'autoload' : { 'commands' : [ 'Agit'] }
+                          \}
+NeoBundleLazy 'will133/vim-dirdiff',{
+\   'autoload' : { 'commands' : [ 'DirDiff'] }
+                          \}
+NeoBundleLazy 'tyru/open-browser-github.vim',{
+\   'autoload' : { 'commands' : [ 'OpenGithubFile', 'OpenGithubIssue', 'OpenGithubProject' ,'OpenGithubPullReq'] }
+                          \}
+
  call neobundle#end()
 
  " Required:
@@ -892,7 +903,9 @@ noremap <Leader>o :Occur<CR>
     \   ['jpg', 'png', 'gif'],
     \   ['new', 'old'],
     \   ['up', 'down'],
-    \   ['create', 'update', 'delete']
+    \   ['create', 'update', 'delete'],
+    \   ['left', 'right'],
+    \   ['next', 'previous']
     \ ]
 
 " for pathogen
@@ -1081,6 +1094,7 @@ nnoremap <silent> [unite]p :<C-u>Unite<Space>file_rec:!<CR>
 nnoremap <silent> [unite]f :<C-u>UniteWithBufferDir -buffer-name=files file<CR>
 nnoremap <silent> [unite]y :<C-u>Unite<Space>yankaround<CR>
 nnoremap <silent> [unite]o :<C-u>Unite -vertical -winwidth=40<Space>outline<CR>
+nnoremap <silent> [unite]g :<C-u>Unite<Space>giti<CR>
 " vimprocがいるらしい http://mba-hack.blogspot.jp/2013/03/unitevim.html
 " nnoremap <silent> [unite]g :<C-u>Unite grep:. -buffer-name=search-buffer<CR>
 nnoremap <silent> ,vr :UniteResume<CR>
@@ -1202,9 +1216,8 @@ call unite#custom_action('file', 'my_vsplit', s:my_action)
 
 
 " https://github.com/terryma/vim-expand-region
-
-map + <Plug>(expand_region_expand)
-map - <Plug>(expand_region_shrink)
+" map + <Plug>(expand_region_expand)
+" map - <Plug>(expand_region_shrink)
 
 " テキストオブジェクト
 " 値に1が設定されていればマップを展開する
@@ -1647,6 +1660,7 @@ let g:easytags_async = 1
 " http://qiita.com/tutu/items/fbc4023ebc3004964e86
 noremap <Leader>tv :vsp<CR> :exe("tjump ".expand('<cword>'))<CR>
 noremap <Leader>ts :split<CR> :exe("tjump ".expand('<cword>'))<CR>
+map <silent><Leader>tt <C-w><C-]><C-w>T
 nmap <Leader>tp vas<C-w>}
 noremap <Leader>tq <C-w><C-z>
 nmap <Leader>tn vas<C-]>
@@ -1681,3 +1695,12 @@ nnoremap <Leader>qr :QuickRun ruby<CR>
 
 let g:gitgutter_map_keys = 0
 let g:gitgutter_eager = 0
+
+" カーソル移動で一覧と差分を更新させたくない
+let g:agit_enable_auto_show_commit = 0
+" vimrc 設定例
+autocmd FileType agit call s:my_agit_setting()
+function! s:my_agit_setting()
+  nmap <buffer> ch <Plug>(agit-git-cherry-pick)
+  nmap <buffer> Rv <Plug>(agit-git-revert)
+endfunction

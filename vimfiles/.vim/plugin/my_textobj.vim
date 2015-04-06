@@ -26,3 +26,11 @@ call textobj#user#plugin('newline', {
 \           'select': ['an', 'in'],
 \      },
 \   })
+
+
+call textobj#user#plugin('continuous', {
+\      '-': {
+\           'pattern': '[^ ]\+',
+\           'select': ['aC', 'iC'],
+\      },
+\   })
