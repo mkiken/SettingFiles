@@ -99,12 +99,6 @@ set gdefault "置換の時 g オプションをデフォルトで有効にする
 
 set autoread " ファイル内容が変更されると自動読み込みする
 
-" タブ文字を自動削除しない（効かない・・・）
-" http://vim-users.jp/2010/04/hack137/
-" nnoremap o oX<C-h>
-" nnoremap O OX<C-h>
-" inoremap <CR> <CR>X<C-h>
-
 set copyindent
 set preserveindent
 
@@ -210,7 +204,7 @@ autocmd vimrc BufWritePre * if index(remove_dust_blacklist, &ft) < 0 | call <SID
 " set autochdir
 
 " http://superuser.com/questions/195022/vim-how-to-synchronize-nerdtree-with-current-opened-tab-file-path
-autocmd BufEnter * lcd %:p:h
+" autocmd BufEnter * lcd %:p:h
 " http://qiita.com/shiena/items/1e98fd14d0ef0084b17f
 " nnoremap <Leader>c :lcd %:h<cr>
 cabbrev cdc :lcd %:h
@@ -233,10 +227,6 @@ nnoremap <Up>   gk
 
 " Alt-f, Alt-bを無理矢理マッピング
 " http://stackoverflow.com/questions/7501092/can-i-map-alt-key-in-vim
-" inoremap ƒ <ESC>lwi
-
-" M-f
-" noremap! ƒ <C-o>w
 noremap! ƒ <S-Right>
 " M-b
 noremap! ∫ <S-Left>
@@ -272,13 +262,6 @@ vnoremap <BS> d
 " {}括弧をfoldする
 nnoremap z/ zf%
 
-" super keyでWindow移動（MacVimのみ）
-" http://qiita.com/ukitazume/items/e5df95feab1c2412cb3a
-" nnoremap <C-j> <C-w>j
-" nnoremap <C-k> <C-w>k
-" nnoremap <C-h> <C-w>h
-" nnoremap <C-l> <C-w>l
-
 nnoremap <C-M-Left> <C-w><Left>
 nnoremap <C-M-Up> <C-w><Up>
 nnoremap <C-M-Down> <C-w><Down>
@@ -296,28 +279,6 @@ nnoremap <C-l> 5l
 
 " http://stackoverflow.com/questions/2005214/switching-to-a-particular-tab-in-vim
 " Jump to particular tab directly
-"NORMAL mode bindings for gvim
-noremap <D-1> 1gt
-noremap <D-2> 2gt
-noremap <D-3> 3gt
-noremap <D-4> 4gt
-noremap <D-5> 5gt
-noremap <D-6> 6gt
-noremap <D-7> 7gt
-noremap <D-8> 8gt
-noremap <D-9> 9gt
-noremap <D-0> 10gt
-"INSERT mode bindings for gvim
-inoremap <D-1> <C-O>1gt
-inoremap <D-2> <C-O>2gt
-inoremap <D-3> <C-O>3gt
-inoremap <D-4> <C-O>4gt
-inoremap <D-5> <C-O>5gt
-inoremap <D-6> <C-O>6gt
-inoremap <D-7> <C-O>7gt
-inoremap <D-8> <C-O>8gt
-inoremap <D-9> <C-O>9gt
-inoremap <D-0> <C-O>10gt
 
 " 他のアプリケーションとのコピー&ペースト
 " https://sites.google.com/site/hymd3a/vim/vim-copy-paste
@@ -345,24 +306,9 @@ inoremap <C-Right> <Esc>gt
 " ESCを2回入力で検索時のハイライトを解除
 " nnoremap <Esc><Esc> :nohlsearch<CR>
 
-" オムニ補完
-" http://d.hatena.ne.jp/arerreee/20120726/1343316762
-" imap <C-Space> <C-x><C-o>
-
 " インサートモードで改行
 " http://cohalz.com/2013/06/14/vim-easier-enter-keymap/
 inoremap <C-j> <ESC>$a<CR>
-" nnoremap <C-j> $a<CR>
-
-" inoremap , ,<Space>
-
-
-" http://easyramble.com/disable-vim-auto-comment.html
-"
-" set formatoptions-=ro
-" autocmd vimrc FileType * setlocal formatoptions-=ro
-" autocmd FileType * setlocal formatoptions-=ro
-autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o
 
 " visulaモードで選択してからのインデント調整で調整後に選択範囲を開放しない
 vnoremap > >gv
@@ -404,8 +350,6 @@ noremap! <C-r> <C-o><C-r>
 " noremap! <C-y> <C-o>P
 noremap! ∆ <C-o>O
 
-" inoremap <C-i> <C-o>=
-
 " vimrcをリロード
 " http://whileimautomaton.net/2008/07/20150335
 " nnoremap <Space>s  :<C-u>source $VIMRC<Return>
@@ -419,26 +363,6 @@ augroup matchit
   au FileType ruby let b:match_words = '\<\(module\|class\|def\|begin\|do\|if\|unless\|case\)\>:\<\(elsif\|when\|rescue\)\>:\<\(else\|ensure\)\>:\<end\>'
 augroup END
 
-"コピーしながら括弧移動
-" nnoremap <C-%> y%%
-
-" 検索をバッファローカルに
-" http://d.hatena.ne.jp/tyru/20140129/localize_search_options
-" Localize search options.
-" autocmd WinLeave *
-" \     let b:vimrc_pattern = @/
-" \   | let b:vimrc_hlsearch = &hlsearch
-" autocmd WinEnter *
-" \     let @/ = get(b:, 'vimrc_pattern', @/)
-" \   | let &l:hlsearch = get(b:, 'vimrc_hlsearch', &l:hlsearch)
-
-
-" http://www.daisaru11.jp/blog/2011/08/vim%E3%81%A7%E6%8C%BF%E5%85%A5%E3%83%A2%E3%83%BC%E3%83%89%E3%81%AB%E3%81%AA%E3%82%89%E3%81%9A%E3%81%AB%E6%94%B9%E8%A1%8C%E3%82%92%E5%85%A5%E3%82%8C%E3%82%8B/
-" noremap <CR> o<ESC>
-
-" http://d.hatena.ne.jp/tyru/20130430/vim_resident
-"call singleton#enable()
-
 " for grep
 " http://qiita.com/yuku_t/items/0c1aff03949cb1b8fe6b
 autocmd vimrc QuickFixCmdPost *grep* cwindow
@@ -446,13 +370,6 @@ set grepprg=grep\ -nH
 
 
 " http://qiita.com/Linda_pp/items/ee4bf64b1fe2c0a32cbd
-" 行頭 → 非空白行頭をローテートする
-" function! s:rotate_in_line()
-    " let c = col('.')
-
-    " let cmd = c == 1 ? '^' : '0'
-    " execute "normal! ".cmd
-" endfunction
 " 行頭 → 非空白行頭 → 行末 をローテートする
 function! s:rotate_in_line()
     let c = col('.')
@@ -478,18 +395,9 @@ inoremap <Space> <Space><C-g>u
 
 " </で閉じタグを自動補完
 " http://qiita.com/hail2u/items/26c473677b2ce5672876
-autocmd FileType html inoremap <silent> <buffer> </ </<C-x><C-o>
-
-" 編集位置の自動復帰
-" http://blog.papix.net/entry/2012/12/14/042937
-" au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g`\""
-
-" 括弧補完。カーソルを自動的に()の中へ
-" imap { {}<Left>
-" imap [ []<Left>
-" imap ( ()<Left>
-" imap " ""<Left>
-" imap ' ''<Left>
+" smartyのomnifuncをhtmlと同じにする
+autocmd FileType smarty setlocal omnifunc=htmlcomplete#CompleteTags
+autocmd FileType html,smarty inoremap <silent> <buffer> </ </<C-x><C-o>
 
 " smartinputによって顔文字が入力できないことがあるので、回避策
 nnoremap <F5> :<C-u>setlocal imdisable!<CR>
@@ -685,6 +593,7 @@ endfunction
  NeoBundle 'kana/vim-textobj-datetime'
  NeoBundle 'kana/vim-textobj-function'
  NeoBundle 'kmnk/vim-unite-giti'
+ NeoBundle 'MattesGroeger/vim-bookmarks'
 
  NeoBundle 'Shougo/vimproc.vim', {
        \ 'build' : {
@@ -807,7 +716,7 @@ NeoBundleLazy 'thinca/vim-quickrun',{
 \   'autoload' : { 'commands' : [ 'QuickRun'] }
                           \}
 NeoBundleLazy 'cohama/agit.vim',{
-\   'autoload' : { 'commands' : [ 'Agit'] }
+\   'autoload' : { 'commands' : [ 'Agit', 'AgitFile'] }
                           \}
 NeoBundleLazy 'will133/vim-dirdiff',{
 \   'autoload' : { 'commands' : [ 'DirDiff'] }
@@ -838,16 +747,6 @@ let g:EasyMotion_grouping=1
 let g:EasyMotion_smartcase = 1
 let g:EasyMotion_use_migemo = 1
 let g:EasyMotion_startofline=0
-" カラー設定変更
-"hi EasyMotionTarget ctermbg=none ctermfg=red
-"hi EasyMotionShade  ctermbg=none ctermfg=blue
-" map f <Plug>(easymotion-fl)
-" map f ;f
-" map t ;t
-" map F ;F
-" map T ;T
-" nmap s <Plug>(easymotion-s)
-
 
 " anzu.vim
 " mapping
@@ -985,23 +884,6 @@ call smartinput#define_rule({
 \ 'filetype': ['ruby'],
 \ 'syntax': ['rubyDoBlock']
 \ })
-" Ruby で文字列内展開 #{} やブロック引数 do || の補助
-" call smartinput#map_to_trigger('i', '#', '#', '#')
-" call smartinput#define_rule({
-            " \   'at'       : '\%#',
-            " \   'char'     : '#',
-            " \   'input'    : '#{}<Left>',
-            " \   'filetype' : ['ruby'],
-            " \   'syntax'   : ['Constant', 'Special'],
-            " \   })
-
-" call smartinput#map_to_trigger('i', '<Bar>', '<Bar>', '<Bar>')
-" call smartinput#define_rule({
-            " \   'at' : '\({\|\<do\>\)\s*\%#',
-            " \   'char' : '<Bar>',
-            " \   'input' : '<Bar><Bar><Left>',
-            " \   'filetype' : ['ruby'],
-            " \    })
 
 " ctrlp
 " https://github.com/kien/ctrlp.vim
@@ -1055,15 +937,6 @@ let g:syntastic_javascript_checkers = ['jshint']
 let g:syntastic_loc_list_height=5
 
 " http://stackoverflow.com/questions/17512794/toggle-error-location-panel-in-syntastic
-" function! ToggleErrors()
-"     let old_last_winnr = winnr('$')
-"     lclose
-"     if old_last_winnr == winnr('$')
-"         " Nothing was closed, open syntastic error location panel
-"         Errors
-"     endif
-" endfunction
-
 function! ToggleErrors()
     if empty(filter(tabpagebuflist(), 'getbufvar(v:val, "&buftype") is# "quickfix"'))
          " No location/quickfix list shown, open syntastic error location panel
@@ -1085,7 +958,8 @@ nmap    <Leader>f [unite]
 " <a href="https://github.com/alwei/dotfiles/blob/3760650625663f3b08f24bc75762ec843ca7e112/.vimrc" target="_blank" rel="noreferrer" style="cursor:help;display:inline !important;">https://github.com/alwei/dotfiles/blob/3760650625663f3b08f24bc75762ec843ca7e112/.vimrc</a>
 nnoremap [unite]u  :<C-u>Unite -no-split<Space>
 nnoremap <silent> [unite]t :<C-u>Unite<Space>buffer<CR>
-nnoremap <silent> [unite]b :<C-u>Unite<Space>bookmark<CR>
+" nnoremap <silent> [unite]b :<C-u>Unite<Space>bookmark<CR>
+nnoremap <silent> [unite]b :<C-u>Unite<Space>vim_bookmarks<CR>
 nnoremap <silent> [unite]c :<C-u>Unite<Space>colorscheme -auto-preview<CR>
 nnoremap <silent> [unite]m :<C-u>Unite<Space>file_mru<CR>
 nnoremap <silent> [unite]d :<C-u>UniteWithBufferDir file<CR>
@@ -1106,28 +980,6 @@ nnoremap <silent> ,vcb :Unite build:!<CR>
 nnoremap <silent> ,vch :UniteBuildClearHighlight<CR>
 "" }}}
 
-
-
-" http://qiita.com/kentaro/items/10b6dd5e3e1104dc6acc
-" nnoremap <silent> <Leader>p  :Unite file_rec:!<CR>
-
-" http://d.hatena.ne.jp/h1mesuke/20110918/p1
-" nnoremap <silent> [unite]p :<C-u>call <SID>unite_project('-start-insert')<CR>
-" function! s:unite_project(...)
-"   let opts = (a:0 ? join(a:000, ' ') : '')
-"   let dir = unite#util#path2project_directory(expand('%'))
-"   execute 'Unite' opts 'file_rec:' . dir
-" endfunction
-
-" if executable('ag')
-"     " Use ag in unite grep source.
-"     let g:unite_source_grep_command = 'ag'
-"     let g:unite_source_grep_recursive_opt = 'HRn'
-"     let g:unite_source_grep_default_opts =
-"     \ '--line-numbers --nocolor --nogroup --hidden --ignore ' .
-"     \  '''.hg'' --ignore ''.svn'' --ignore ''.git'' --ignore ''.bzr'''
-" endif
-
 " カーソル位置の単語をgrep検索
 nnoremap <silent> ,cg :<C-u>Unite grep:. -buffer-name=search-buffer<CR><C-R><C-W>
 
@@ -1141,20 +993,6 @@ if executable('ag')
   " ignore files
   call unite#custom#source('file_rec/async', 'ignore_pattern', '(png\|gif\|jpeg\|jpg)$')
 endif
-
-
-
-" let g:indent_guides_enable_on_vim_startup = 1
-" let g:indent_guides_auto_colors = 0
-" " set list lcs=tab:┊\
-" " indent guides
-" augroup indentguides
-" 	autocmd!
-" 	autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd  guibg=blue   ctermbg=3
-" 	autocmd VimEnter,Colorscheme * :hi IndentGuidesEven guibg=yellow ctermbg=4
-" 	let g:indent_guides_start_level = 2
-" 	let g:indent_guides_guide_size = 1
-" augroup END
 
 " https://github.com/Yggdroot/indentLine
 let g:indentLine_color_term = 111
@@ -1213,12 +1051,6 @@ function! s:my_action.func(candidates)
 endfunction
 call unite#custom_action('file', 'my_vsplit', s:my_action)
 
-
-
-" https://github.com/terryma/vim-expand-region
-" map + <Plug>(expand_region_expand)
-" map - <Plug>(expand_region_shrink)
-
 " テキストオブジェクト
 " 値に1が設定されていればマップを展開する
 
@@ -1239,50 +1071,6 @@ let g:expand_region_text_objects = {
 \   'il'  :1,
 \   'ie'  :1
 \}
-
-" https://github.com/SirVer/ultisnips
-
-" " Trigger configuration. Do not use <tab> if you use https://github.com/Valloric/YouCompleteMe.
-" " let g:UltiSnipsExpandTrigger="<cr>"
-" " let g:UltiSnipsExpandTrigger="<>"
-" " let g:UltiSnipsJumpForwardTrigger="<c-b>"
-" " let g:UltiSnipsJumpBackwardTrigger="<c-z>"
-
-" " If you want :UltiSnipsEdit to split your window.
-" let g:UltiSnipsEditSplit="vertical"
-
-
-" " https://github.com/Valloric/YouCompleteMe/issues/36#issuecomment-15451411
-" let g:UltiSnipsExpandTrigger       = "<tab>"
-" let g:UltiSnipsJumpForwardTrigger  = "<tab>"
-" let g:UltiSnipsJumpBackwardTrigger = "<s-tab>"
-" let g:UltiSnipsSnippetDirectories  = ["snips"]
-
-" function! g:UltiSnips_Complete()
-"     call UltiSnips#ExpandSnippet()
-"     if g:ulti_expand_res == 0
-"         if pumvisible()
-"             return "\<C-n>"
-"         else
-"             call UltiSnips#JumpForwards()
-"             if g:ulti_jump_forwards_res == 0
-"                return "\<TAB>"
-"             endif
-"         endif
-"     endif
-"     return ""
-" endfunction
-
-" au InsertEnter * exec "inoremap <silent> " . g:UltiSnipsExpandTrigger . " <C-R>=g:UltiSnips_Complete()<cr>"
-
-
-" " Settings for YouCompleteMe
-" " https://github.com/Valloric/YouCompleteMe
-" let g:ycm_complete_in_comments = 1    " コメント内でも補完
-" let g:ycm_seed_identifiers_with_syntax = 1    "ファイルに合ったシンタックスで補完
-" " let g:ycm_cache_omnifunc = 0
-" " let g:ycm_key_select_completion = "<CR>"
-
 
 " Settings for neocomplete.
 " Use neocomplete.
@@ -1348,11 +1136,6 @@ inoremap <expr><C-y>  neocomplete#close_popup()
 " Close popup by <Space>.
 "inoremap <expr><Space> pumvisible() ? neocomplete#close_popup() : "\<Space>"
 
-" For cursor moving in insert mode(Not recommended)
-" inoremap <expr><Left>  neocomplete#close_popup() . "\<Left>"
-" inoremap <expr><Right> neocomplete#close_popup() . "\<Right>"
-" inoremap <expr><Up>    neocomplete#close_popup() . "\<Up>"
-" inoremap <expr><Down>  neocomplete#close_popup() . "\<Down>"
 " Or set this.
 let g:neocomplete#enable_cursor_hold_i = 1
 " Or set this.
@@ -1378,40 +1161,13 @@ autocmd vimrc FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
 if !exists('g:neocomplete#sources#omni#input_patterns')
   let g:neocomplete#sources#omni#input_patterns = {}
 endif
-"let g:neocomplete#sources#omni#input_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
-"let g:neocomplete#sources#omni#input_patterns.c = '[^.[:digit:] *\t]\%(\.\|->\)'
-"let g:neocomplete#sources#omni#input_patterns.cpp = '[^.[:digit:] *\t]\%(\.\|->\)\|\h\w*::'
+let g:neocomplete#sources#omni#input_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
+let g:neocomplete#sources#omni#input_patterns.c = '[^.[:digit:] *\t]\%(\.\|->\)'
+let g:neocomplete#sources#omni#input_patterns.cpp = '[^.[:digit:] *\t]\%(\.\|->\)\|\h\w*::'
 
 " For perlomni.vim setting.
 " https://github.com/c9s/perlomni.vim
 let g:neocomplete#sources#omni#input_patterns.perl = '\h\w*->\h\w*\|\h\w*::'
-
-" Multiple_cursorsとの競合の対応
-" https://github.com/terryma/vim-multiple-cursors/pull/65
-" function! Multiple_cursors_before()
-    " exe 'NeoCompleteLock'
-    " echo 'Disabled autocomplete'
-" endfunction
-
-" function! Multiple_cursors_after()
-    " exe 'NeoCompleteUnlock'
-    " echo 'Enabled autocomplete'
-" endfunction
-" Called once right before you start selecting multiple cursors
-" function! Multiple_cursors_before()
-  " if exists(':NeoCompleteLock')==2
-    " exe 'NeoCompleteLock'
-  " endif
-" endfunction
-
-" Called once only when the multiple selection is canceled (default <Esc>)
-" function! Multiple_cursors_after()
-  " if exists(':NeoCompleteUnlock')==2
-    " exe 'NeoCompleteUnlock'
-  " endif
-" endfunction
-
-
 
 " Settings for neosnippet"
 " Plugin key-mappings.
@@ -1467,13 +1223,14 @@ let g:jsdoc_default_mapping = 0
 " nnoremap <silent> <Leader>d :JsDoc<CR>
 
 nnoremap <silent> <Leader>gb :Gblame<CR>
-nnoremap <silent> <Leader>gd :Gdiff<CR>
+nnoremap <silent> <Leader>gd :Gdiff<Space>
 nnoremap <silent> <Leader>gs :Gstatus<CR>
 nnoremap <silent> <Leader>ga :Gwrite<CR>
 nnoremap <silent> <Leader>gc :Gcommit<CR>
 nnoremap <silent> <Leader>gr :Gremove<CR>
 nnoremap <silent> <Leader>gm :Gmove<CR>
-nnoremap <silent> <Leader>gr :Gread<CR>
+nnoremap <silent> <Leader>gC :Gread<Space>
+nnoremap <silent> <Leader>gl :Glog<CR>
 
 " http://books.google.co.jp/books?id=QZSWbc83LfQC&pg=PA108&lpg=PA108&dq=vim+star&source=bl&ots=i5zfo7mhZO&sig=IRCOtnO0RclvQzyMVFLb5VG3ga4&hl=ja&sa=X&ei=cMsNVNvJCore8AWQ54H4BA&ved=0CH4Q6AEwCQ#v=onepage&q=vim%20star&f=false
 " map * <Plug>(visualstar-*)N
@@ -1516,7 +1273,7 @@ nnoremap <Leader>? ?
 "" for hl_matchit
 let g:hl_matchit_enable_on_vim_startup = 1
 let g:hl_matchit_hl_groupname = 'Title'
-let g:hl_matchit_allow_ft = 'html\|vim\|ruby\|sh'
+let g:hl_matchit_allow_ft = 'html\|vim\|ruby\|sh\|smarty'
 
 " http://d.hatena.ne.jp/oppara/20111229/p1
 " phpStylist.php へのパス
@@ -1554,9 +1311,6 @@ let g:phpstylist_cmd_path = $HOME.'/Desktop/repository/SettingFiles/bin/phpStyli
 vmap <Enter> <Plug>(EasyAlign)
 " Start interactive EasyAlign for a motion/text object (e.g. gaip)
 nmap ga <Plug>(EasyAlign)
-" let g:easy_align_delimiters = {
-" \ '/': { 'pattern': '//\+', 'delimiter_align': 'l', 'ignore_groups': ['!Comment'] }
-" \ }
 let g:easy_align_ignore_groups = ['String']
 " http://qiita.com/NanohaAsOnKai/items/5e196bfbb8c3d0b98385
 let g:easy_align_delimiters = {
@@ -1623,18 +1377,13 @@ endfunction
 " http://win-to-mac.blogspot.jp/2012/08/vim.html
 " set statusline=%<%f\ %m%r%h%w%{'['.(&fenc!=''?&fenc:&enc).']['.&ff.']'}%=%l,%c%V%8P
 
-" for WordCount
+" for WordCount (percentage, line number, column number)
 " https://github.com/fuenor/vim-wordcount
-" set statusline+=[wc:%{WordCount()}]
-
-" (percentage, line number, column number)
 let g:airline_section_z = 'l:%l/%L|c:%c|wc:%{WordCount()}|%P'
 set updatetime=500
 
 " (bufferline or filename)
 let g:airline_section_c = '%{getcwd()} | %t'
-
-" call smartinput_endwise#define_default_rules()
 
 nmap p <Plug>(yankround-p)
 xmap p <Plug>(yankround-p)
@@ -1681,13 +1430,6 @@ endif
 nnoremap <silent> <Leader>d :filetype detect<CR>
 let g:scratchBackupFile=$HOME . "~/.backup/vim/scratch.txt"
 
-" http://deris.hatenablog.jp/entry/20120818/1345291162
-" let g:execcmd_after_ftplugin = {
-  " \    '_': [
-  " \        'setlocal fo-=r fo-=o fo-=c',
-  " \    ],
-  " \}
-
 nnoremap <F7> :VimShell -toggle -split<CR>
 inoremap <F7> <C-o>:VimShell -toggle -split<CR>
 nnoremap <Leader>qp :QuickRun php<CR>
@@ -1704,3 +1446,19 @@ function! s:my_agit_setting()
   nmap <buffer> ch <Plug>(agit-git-cherry-pick)
   nmap <buffer> Rv <Plug>(agit-git-revert)
 endfunction
+
+" http://qiita.com/c0hama/items/99a6f92323ca5e6fb730
+" agit.vim を vimfiler や unite-file 内から開く
+let agit_file = { 'description' : 'open the file''s history in agit.vim' }
+function! agit_file.func(candidate)
+    execute 'AgitFile' '--file='.a:candidate.action__path
+endfunction
+call unite#custom#action('file', 'agit-file', agit_file)
+
+call unite#custom#profile('source/vim_bookmarks', 'context', {
+    \   'winheight': 13,
+    \   'direction': 'botright',
+    \   'start_insert': 0,
+    \   'keep_focus': 1,
+    \   'no_quit': 1,
+    \ })

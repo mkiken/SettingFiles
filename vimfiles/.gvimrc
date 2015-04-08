@@ -149,26 +149,25 @@ highlight CursorIM guifg=NONE guibg=#ecbcbc
 " Window sizeの保存
 " 重いかもなので試しにコメントアウト
 " http://vim-users.jp/2010/01/hack120/
-" let g:save_window_file = expand('~/.backup/vim/.vimwinpos')
-" augroup SaveWindow
-  " autocmd!
-  " autocmd gvimrc VimLeavePre * call s:save_window()
-  " function! s:save_window()
-    " let options = [
-      " \ 'set columns=' . &columns,
-      " \ 'set lines=' . &lines,
-      " \ 'winpos ' . getwinposx() . ' ' . getwinposy(),
-      " \ ]
-    " call writefile(options, g:save_window_file)
-  " endfunction
-" augroup END
+let g:save_window_file = expand('~/.backup/vim/.vimwinpos')
+augroup SaveWindow
+  autocmd!
+  autocmd gvimrc VimLeavePre * call s:save_window()
+  function! s:save_window()
+    let options = [
+      \ 'set columns=' . &columns,
+      \ 'set lines=' . &lines,
+      \ 'winpos ' . getwinposx() . ' ' . getwinposy(),
+      \ ]
+    call writefile(options, g:save_window_file)
+  endfunction
+augroup END
 
-" if filereadable(g:save_window_file)
-  " execute 'source' g:save_window_file
-" else
-	" set lines=50 columns=150
-" endif
+if filereadable(g:save_window_file)
+  execute 'source' g:save_window_file
+else
   set lines=50 columns=150
+endif
 
 highlight ChangedAddHl cterm=bold ctermbg=NONE ctermfg=green gui=bold guibg=NONE guifg=green
 highlight ChangedDeleteHl cterm=bold ctermbg=NONE ctermfg=red gui=bold guibg=NONE guifg=red
