@@ -61,12 +61,11 @@ function! GuiTabLabel()
   " 表示文字列にバッファ名を追加します
   " パスを全部表示させると長いのでファイル名だけを使います 詳しくは help fnamemodify()
   let l:_bufname = bufname(l:bufnrlist[tabpagewinnr(v:lnum) - 1])
-  if l:_bufname == ''
+  if l:_bufname ==# ''
     " バッファ名がなければ No title としておきます。ここではマルチバイト文字を使わないほうが無難です
     let l:bufname = 'No title'
   else
     " 空じゃなければ短縮
-    " let l:_pathname = pathshorten(fnamemodify(l:_bufname, ':p'))
     let l:_pathname = fnamemodify(l:_bufname, ':~')
     let l:bufname_split = split(l:_pathname, '/')
     let l:bufname = len(l:bufname_split) >= 2 ? l:bufname_split[-1] . '/' . l:bufname_split[-2] : l:bufname_split[-1]
@@ -95,11 +94,6 @@ endfunction
 " guitablabel に上の関数を設定します
 " その表示の前に %N というところでタブ番号を表示させています
 set guitablabel=%N:\ %{GuiTabLabel()}
-
-" http://d.hatena.ne.jp/Minamo/20081124/1227553857
-" hi NonText guibg=NONE guifg=DarkGreen
-" hi SpecialKey guibg=NONE guifg=Gray40
-
 
 let OSTYPE = system('uname')
 if OSTYPE == "Darwin\n"
@@ -137,9 +131,6 @@ elseif OSTYPE == "Linux\n"
 
 endif
 
-
-" set lines=50 columns=150
-
 "## IME状態に応じたカーソル色を設定
 " http://mba-hack.blogspot.jp/2012/09/vim.html
 highlight Cursor guifg=#000d18 guibg=#8faf9f gui=bold
@@ -147,7 +138,6 @@ highlight CursorIM guifg=NONE guibg=#ecbcbc
 
 
 " Window sizeの保存
-" 重いかもなので試しにコメントアウト
 " http://vim-users.jp/2010/01/hack120/
 let g:save_window_file = expand('~/.backup/vim/.vimwinpos')
 augroup SaveWindow

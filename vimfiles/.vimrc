@@ -724,6 +724,9 @@ NeoBundleLazy 'will133/vim-dirdiff',{
 NeoBundleLazy 'tyru/open-browser-github.vim',{
 \   'autoload' : { 'commands' : [ 'OpenGithubFile', 'OpenGithubIssue', 'OpenGithubProject' ,'OpenGithubPullReq'] }
                           \}
+NeoBundleLazy 'int3/vim-extradite',{
+\   'autoload' : { 'commands' : ['Extradite'] }
+                          \}
 
  call neobundle#end()
 
