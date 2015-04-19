@@ -69,7 +69,7 @@ case ${UID} in
 esac
 
 function precmd_prompt () {
-  PROMPT="%K{white}%{%(?.$fg[green].$fg[red])%}%n%{$reset_color%}%k%K{white} [%F{cyan}%(5~,%-2~/../%2~,%~)%f] %{%}%#%{%}%k "
+  PROMPT="%K{white}%{%(?.$fg[green].$fg[red])%}%n%{$reset_color%}%k%K{white} [%F{cyan}%(5~,%-2~/../%2~,%~)%f] %{%}%#%{%}%(1j.%j.)%k "
   # PROMPT="%K{black}%{%(?.$fg[green].$fg[red])%}%n%{$reset_color%}%k%K{black} %F{white}[%f%F{cyan}%(5~,%-2~/../%2~,%~)%f%F{white}] %{%}%#%{%}%f%k "
 	# PROMPT="%{%(?.$fg[green].$fg[red])%}%n%{$reset_color%} [%F{cyan}%(5~,%-2~/../%2~,%~)%f] %{%}%#%{%} "
 }
@@ -78,7 +78,6 @@ precmd_functions=(precmd_prompt)
 #SPROMPT="%r is correct? [n,y,a,e]:] "
 #http://0xcc.net/blog/archives/000032.html
 # PROMPT='%n@%m:%(5~,%-2~/../%2~,%~)%# '
-
 
 
 # http://qiita.com/yuyuchu3333/items/b10542db482c3ac8b059

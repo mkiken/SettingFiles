@@ -212,6 +212,10 @@ alias gmt='g mt'
 alias gbs='g bs'
 alias gbsg='g bs good'
 alias gbsb='g bs bad'
+alias gsmu='g smupdate'
+alias gsms='g sm status'
+alias grp='git remote prune origin'
+alias gfp='git fetch --all --prune'
 
 function lessc(){
 	export LESSOPEN='| /usr/local/bin/src-hilite-lesspipe.sh %s'

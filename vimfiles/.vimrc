@@ -807,7 +807,8 @@ noremap <Leader>o :Occur<CR>
     \   ['up', 'down'],
     \   ['create', 'update', 'delete'],
     \   ['left', 'right'],
-    \   ['next', 'previous']
+    \   ['next', 'previous'],
+    \   ['north', 'east', 'south', 'west']
     \ ]
 
 " for pathogen

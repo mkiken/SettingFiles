@@ -14,6 +14,7 @@ brew upgrade
 # brew upgrade emacs
 # brew upgrade vim
 # brew upgrade rlwrap
+brew cask update
 echo "end brew update."
 
 vim -c NeoBundleClean -c NeoBundleInstall -c NeoBundleUpdate -c qa
