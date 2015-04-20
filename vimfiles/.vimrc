@@ -576,8 +576,8 @@ endfunction
  " NeoBundle 'h1mesuke/unite-outline'
  NeoBundle 'Shougo/unite-outline'
  " NeoBundle 'soramugi/auto-ctags.vim'
- NeoBundle 'xolox/vim-misc'
- NeoBundle 'xolox/vim-easytags'
+ " NeoBundle 'xolox/vim-misc'
+ " NeoBundle 'xolox/vim-easytags'
  NeoBundle 'kana/vim-textobj-jabraces'
  NeoBundle 'thinca/vim-textobj-comment'
  NeoBundle 'saihoooooooo/vim-textobj-space'
@@ -586,7 +586,7 @@ endfunction
  " NeoBundle 'mtth/scratch.vim'
  NeoBundle 'violetyk/scratch-utility'
  " NeoBundle 'deris/vim-loadafterft'
- NeoBundle 'vim-scripts/SearchComplete'
+ " NeoBundle 'vim-scripts/SearchComplete'
  NeoBundle 'blueyed/vim-diminactive'
  " NeoBundle 'airblade/vim-gitgutter'
  NeoBundle 'sgur/vim-lazygutter'
@@ -1407,8 +1407,8 @@ sign define SIGN_CHANGED_DELETED_VIM text=- texthl=ChangedDeleteHl
 sign define SIGN_CHANGED_ADDED_VIM   text=+ texthl=ChangedAddHl
 sign define SIGN_CHANGED_VIM         text=* texthl=ChangedDefaultHl
 
-let g:easytags_events = ['BufWritePost']
-let g:easytags_async = 1
+" let g:easytags_events = ['BufWritePost']
+" let g:easytags_async = 1
 
 " http://qiita.com/tutu/items/fbc4023ebc3004964e86
 noremap <Leader>tv :vsp<CR> :exe("tjump ".expand('<cword>'))<CR>
