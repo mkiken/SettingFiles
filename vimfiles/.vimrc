@@ -502,6 +502,23 @@ function! AlignBenchmark() abort
   1 delete _
 endfunction
 
+" php syntax
+" https://github.com/StanAngeloff/php.vim/blob/48fc7311fa07c2b83888e7a31fae03118bae720b/syntax/php.vim#L754
+" let php_folding = 1
+"           php_folding = 1  for folding loops, if/elseif/else, switch, try/catch, classes, and functions based on
+"                            indent, finds a } with an indent matching the structure.
+"                         2  for folding all { }, ( ), and [ ] pairs. (see known bugs ii)
+"           php_sync_method = x
+"                             x=-1 to sync by search ( default )
+"                             x>0 to sync at least x lines backwards
+"                             x=0 to sync from start
+let php_sql_query = 1 " 文字列中のSQLをハイライトする
+" let php_parent_error_close = 1 " ] や ) の対応エラーをハイライトする
+" let php_parent_error_open = 1 " 対応する閉じ括弧がない開き括弧( や [が存在する場合、php終了タグをスキップさせる
+let php_html_in_strings = 1 " for HTML syntax highlighting inside strings (default: 0)
+" let php_var_selector_is_identifier = 1
+
+
 " Plugins
 
  if has('vim_starting')
@@ -519,6 +536,7 @@ endfunction
  " Let NeoBundle manage NeoBundle
  " Required:
  NeoBundleFetch 'Shougo/neobundle.vim'
+ let g:neobundle#install_process_timeout = 1500
 
 
  " My Bundles here:
@@ -542,7 +560,6 @@ endfunction
  NeoBundle 'kien/ctrlp.vim'
  NeoBundle 'scrooloose/nerdcommenter'
  NeoBundle 'scrooloose/syntastic'
- " NeoBundle 'Valloric/YouCompleteMe'
  " NeoBundle 'SirVer/ultisnips'
  " NeoBundle 'honza/vim-snippets'
  " NeoBundle 'maksimr/vim-jsbeautify'
@@ -663,6 +680,15 @@ function! s:bundle.hooks.on_source(bundle)
 
 endfunction
 
+NeoBundle 'Valloric/YouCompleteMe', {
+     \ 'build' : {
+     \     'mac' : './install.sh --clang-completer --system-libclang --omnisharp-completer',
+     \     'unix' : './install.sh --clang-completer --system-libclang --omnisharp-completer',
+     \     'windows' : './install.sh --clang-completer --system-libclang --omnisharp-completer',
+     \     'cygwin' : './install.sh --clang-completer --system-libclang --omnisharp-completer'
+     \    }
+     \ }
+
 " lazy load
 NeoBundleLazy 'mattn/emmet-vim',{
                           \"autoload" : {"filetypes" :["html", "smarty"]}
@@ -726,6 +752,9 @@ NeoBundleLazy 'tyru/open-browser-github.vim',{
                           \}
 NeoBundleLazy 'int3/vim-extradite',{
 \   'autoload' : { 'commands' : ['Extradite'] }
+                          \}
+NeoBundleLazy 'StanAngeloff/php.vim',{
+                          \"autoload" : {"filetypes" :["php"]}
                           \}
 
  call neobundle#end()
@@ -972,9 +1001,11 @@ nnoremap <silent> [unite]p :<C-u>Unite<Space>file_rec:!<CR>
 nnoremap <silent> [unite]f :<C-u>UniteWithBufferDir -buffer-name=files file<CR>
 nnoremap <silent> [unite]y :<C-u>Unite<Space>yankaround<CR>
 nnoremap <silent> [unite]o :<C-u>Unite -vertical -winwidth=40<Space>outline<CR>
+" http://d.hatena.ne.jp/osyo-manga/20130617/1371468776
+nnoremap <silent> [unite]v :<C-u>Unite output:let<CR>
 " nnoremap <silent> [unite]g :<C-u>Unite<Space>giti<CR>
 " vimprocがいるらしい http://mba-hack.blogspot.jp/2013/03/unitevim.html
-" nnoremap <silent> [unite]g :<C-u>Unite grep:. -buffer-name=search-buffer<CR>
+nnoremap <silent> [unite]g :<C-u>Unite grep:. -buffer-name=search-buffer<CR>
 nnoremap <silent> ,vr :UniteResume<CR>
 
 
@@ -1467,3 +1498,14 @@ call unite#custom#profile('source/vim_bookmarks', 'context', {
     \   'keep_focus': 1,
     \   'no_quit': 1,
     \ })
+
+" https://github.com/StanAngeloff/php.vim
+" let g:php_syntax_extensions_enabled = 1
+function! PhpSyntaxOverride()
+  hi! def link phpDocTags  phpDefine
+  hi! def link phpDocParam phpType
+endfunction
+augroup phpSyntaxOverride
+  autocmd!
+  autocmd FileType php call PhpSyntaxOverride()
+augroup END
