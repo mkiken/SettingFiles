@@ -95,6 +95,9 @@
 	remoterm = push --delete origin
 	conflicts = !git ls-files -u | cut -f 2 | sort -u
 
+  merged-branches = branch --merged
+  merged-remote-branches = !git branch -a --merged | grep -v \\* | grep -v master | grep remotes/origin/ | sed -e 's%remotes/origin/%%g'
+
 [color]
 	ui = auto
 [core]
@@ -133,5 +136,5 @@
 [mergetool]
 	keepBackup = false
 [user]
-	name = 
-	email = 
+	name =
+	email =

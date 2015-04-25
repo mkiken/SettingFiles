@@ -228,7 +228,8 @@ zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 
 #grepの結果に色を付ける
 #http://d.hatena.ne.jp/bubbles/20081210/1228918665
-export GREP_OPTIONS='--with-filename --line-number --color=always'
+# export GREP_OPTIONS='--with-filename --line-number --color=always'
+# export GREP_OPTIONS='--color=always'
 
 # 補完に関するオプション
 # http://voidy21.hatenablog.jp/entry/20090902/1251918174

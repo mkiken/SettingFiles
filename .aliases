@@ -216,6 +216,10 @@ alias gsmu='g smupdate'
 alias gsms='g sm status'
 alias grp='git remote prune origin'
 alias gfp='git fetch --all --prune'
+# http://shigemk2.hatenablog.com/entry/20130629/1372463353
+# 現在の作業ブランチにマージしていないブランチを削除
+alias g-delete-remote-merged-branches-dry-run="git branch -a --merged | 'grep' -v '*' | 'grep' -v master | 'grep' remotes/origin/ | sed -e 's% *remotes/origin/%%' | xargs -I% git push -n origin :%"
+alias g-delete-remote-merged-branches="git branch -a --merged | 'grep' -v '*' | 'grep' -v master | 'grep' remotes/origin/ | sed -e 's% *remotes/origin/%%' | xargs -I% git push origin :%"
 
 function lessc(){
 	export LESSOPEN='| /usr/local/bin/src-hilite-lesspipe.sh %s'

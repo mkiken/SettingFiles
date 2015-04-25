@@ -571,7 +571,7 @@ endfunction
  NeoBundle 'lilydjwg/colorizer'
  NeoBundle 'tpope/vim-abolish'
  NeoBundle 'LeafCage/yankround.vim'
- NeoBundle 'vim-scripts/Changed'
+ " NeoBundle 'vim-scripts/Changed'
  " NeoBundle 'tacahiroy/ctrlp-funky'
  " NeoBundle 'h1mesuke/unite-outline'
  NeoBundle 'Shougo/unite-outline'
@@ -586,13 +586,13 @@ endfunction
  " NeoBundle 'mtth/scratch.vim'
  NeoBundle 'violetyk/scratch-utility'
  " NeoBundle 'deris/vim-loadafterft'
- " NeoBundle 'vim-scripts/SearchComplete'
+ NeoBundle 'vim-scripts/SearchComplete'
  NeoBundle 'blueyed/vim-diminactive'
- " NeoBundle 'airblade/vim-gitgutter'
- NeoBundle 'sgur/vim-lazygutter'
+ NeoBundle 'airblade/vim-gitgutter'
+ " NeoBundle 'sgur/vim-lazygutter'
  NeoBundle 'kana/vim-textobj-datetime'
  NeoBundle 'kana/vim-textobj-function'
- NeoBundle 'kmnk/vim-unite-giti'
+ " NeoBundle 'kmnk/vim-unite-giti'
  NeoBundle 'MattesGroeger/vim-bookmarks'
 
  NeoBundle 'Shougo/vimproc.vim', {
@@ -703,21 +703,21 @@ NeoBundleLazy 'deris/vim-diffbuf',{
 NeoBundleLazy 'junegunn/vim-easy-align',{
 \   'autoload' : { 'commands' : [ "EasyAlign"] }
                           \}
-NeoBundleLazy 'gregsexton/gitv',{
-\   'autoload' : { 'commands' : [ "Gitv", "Gitv!"] }
-                          \}
+" NeoBundleLazy 'gregsexton/gitv',{
+" \   'autoload' : { 'commands' : [ "Gitv", "Gitv!"] }
+                          " \}
 NeoBundleLazy 'scrooloose/nerdtree',{
 \   'autoload' : { 'commands' : [ 'NERDTreeToggle'] }
                           \}
-NeoBundleLazy 'Shougo/vimshell.vim',{
-\   'autoload' : { 'commands' : [ 'VimShell', 'VimShellPop'] }
-                          \}
-NeoBundleLazy 'thinca/vim-quickrun',{
-\   'autoload' : { 'commands' : [ 'QuickRun'] }
-                          \}
-NeoBundleLazy 'cohama/agit.vim',{
-\   'autoload' : { 'commands' : [ 'Agit', 'AgitFile'] }
-                          \}
+" NeoBundleLazy 'Shougo/vimshell.vim',{
+" \   'autoload' : { 'commands' : [ 'VimShell', 'VimShellPop'] }
+                          " \}
+" NeoBundleLazy 'thinca/vim-quickrun',{
+" \   'autoload' : { 'commands' : [ 'QuickRun'] }
+                          " \}
+" NeoBundleLazy 'cohama/agit.vim',{
+" \   'autoload' : { 'commands' : [ 'Agit', 'AgitFile'] }
+                          " \}
 NeoBundleLazy 'will133/vim-dirdiff',{
 \   'autoload' : { 'commands' : [ 'DirDiff'] }
                           \}
@@ -972,7 +972,7 @@ nnoremap <silent> [unite]p :<C-u>Unite<Space>file_rec:!<CR>
 nnoremap <silent> [unite]f :<C-u>UniteWithBufferDir -buffer-name=files file<CR>
 nnoremap <silent> [unite]y :<C-u>Unite<Space>yankaround<CR>
 nnoremap <silent> [unite]o :<C-u>Unite -vertical -winwidth=40<Space>outline<CR>
-nnoremap <silent> [unite]g :<C-u>Unite<Space>giti<CR>
+" nnoremap <silent> [unite]g :<C-u>Unite<Space>giti<CR>
 " vimprocがいるらしい http://mba-hack.blogspot.jp/2013/03/unitevim.html
 " nnoremap <silent> [unite]g :<C-u>Unite grep:. -buffer-name=search-buffer<CR>
 nnoremap <silent> ,vr :UniteResume<CR>
@@ -1354,28 +1354,28 @@ let g:easy_align_delimiters = {
 " http://cohama.hateblo.jp/entry/20130517/1368806202
 
 " これは外に定義!
-function! s:gitv_get_current_hash()
-  return matchstr(getline('.'), '\[\zs.\{7\}\ze\]$')
-endfunction
+" function! s:gitv_get_current_hash()
+  " return matchstr(getline('.'), '\[\zs.\{7\}\ze\]$')
+" endfunction
 
-autocmd FileType git setlocal nofoldenable foldlevel=0
-function! s:toggle_git_folding()
-  if &filetype ==# 'git'
-    setlocal foldenable!
-  endif
-endfunction
+" autocmd FileType git setlocal nofoldenable foldlevel=0
+" function! s:toggle_git_folding()
+  " if &filetype ==# 'git'
+    " setlocal foldenable!
+  " endif
+" endfunction
 
-autocmd FileType gitv call s:my_gitv_settings()
-function! s:my_gitv_settings()
-  " ここに設定を書く
-  setlocal iskeyword+=/,-,.
-  nnoremap <silent><buffer> C :<C-u>Git checkout <C-r><C-w><CR>
-  nnoremap <buffer> <Leader>rb :<C-u>Git rebase <C-r>=GitvGetCurrentHash()<CR><Space>
-  nnoremap <buffer> <Leader>R :<C-u>Git revert <C-r>=GitvGetCurrentHash()<CR><CR>
-  nnoremap <buffer> <Leader>h :<C-u>Git cherry-pick <C-r>=GitvGetCurrentHash()<CR><CR>
-  nnoremap <buffer> <Leader>rh :<C-u>Git reset --hard <C-r>=GitvGetCurrentHash()<CR>
-  nnoremap <silent><buffer> t :<C-u>windo call <SID>toggle_git_folding()<CR>1<C-w>w
-endfunction
+" autocmd FileType gitv call s:my_gitv_settings()
+" function! s:my_gitv_settings()
+  " " ここに設定を書く
+  " setlocal iskeyword+=/,-,.
+  " nnoremap <silent><buffer> C :<C-u>Git checkout <C-r><C-w><CR>
+  " nnoremap <buffer> <Leader>rb :<C-u>Git rebase <C-r>=GitvGetCurrentHash()<CR><Space>
+  " nnoremap <buffer> <Leader>R :<C-u>Git revert <C-r>=GitvGetCurrentHash()<CR><CR>
+  " nnoremap <buffer> <Leader>h :<C-u>Git cherry-pick <C-r>=GitvGetCurrentHash()<CR><CR>
+  " nnoremap <buffer> <Leader>rh :<C-u>Git reset --hard <C-r>=GitvGetCurrentHash()<CR>
+  " nnoremap <silent><buffer> t :<C-u>windo call <SID>toggle_git_folding()<CR>1<C-w>w
+" endfunction
 
 
 " http://win-to-mac.blogspot.jp/2012/08/vim.html
@@ -1384,7 +1384,7 @@ endfunction
 " for WordCount (percentage, line number, column number)
 " https://github.com/fuenor/vim-wordcount
 let g:airline_section_z = 'l:%l/%L|c:%c|wc:%{WordCount()}|%P'
-set updatetime=500
+set updatetime=1000
 
 " (bufferline or filename)
 let g:airline_section_c = '%{getcwd()} | %t'
@@ -1402,10 +1402,10 @@ nmap ˜ <Plug>(yankround-next)
 
 
 " for Changed
-let g:Changed_definedSigns = 1
-sign define SIGN_CHANGED_DELETED_VIM text=- texthl=ChangedDeleteHl
-sign define SIGN_CHANGED_ADDED_VIM   text=+ texthl=ChangedAddHl
-sign define SIGN_CHANGED_VIM         text=* texthl=ChangedDefaultHl
+" let g:Changed_definedSigns = 1
+" sign define SIGN_CHANGED_DELETED_VIM text=- texthl=ChangedDeleteHl
+" sign define SIGN_CHANGED_ADDED_VIM   text=+ texthl=ChangedAddHl
+" sign define SIGN_CHANGED_VIM         text=* texthl=ChangedDefaultHl
 
 " let g:easytags_events = ['BufWritePost']
 " let g:easytags_async = 1
@@ -1434,30 +1434,31 @@ endif
 nnoremap <silent> <Leader>d :filetype detect<CR>
 let g:scratchBackupFile=$HOME . "~/.backup/vim/scratch.txt"
 
-nnoremap <F7> :VimShell -toggle -split<CR>
-inoremap <F7> <C-o>:VimShell -toggle -split<CR>
-nnoremap <Leader>qp :QuickRun php<CR>
-nnoremap <Leader>qr :QuickRun ruby<CR>
+" nnoremap <F7> :VimShell -toggle -split<CR>
+" inoremap <F7> <C-o>:VimShell -toggle -split<CR>
+" nnoremap <Leader>qp :QuickRun php<CR>
+" nnoremap <Leader>qr :QuickRun ruby<CR>
 
 let g:gitgutter_map_keys = 0
+let g:gitgutter_realtime = 0
 let g:gitgutter_eager = 0
 
 " カーソル移動で一覧と差分を更新させたくない
-let g:agit_enable_auto_show_commit = 0
+" let g:agit_enable_auto_show_commit = 0
 " vimrc 設定例
-autocmd FileType agit call s:my_agit_setting()
-function! s:my_agit_setting()
-  nmap <buffer> ch <Plug>(agit-git-cherry-pick)
-  nmap <buffer> Rv <Plug>(agit-git-revert)
-endfunction
+" autocmd FileType agit call s:my_agit_setting()
+" function! s:my_agit_setting()
+  " nmap <buffer> ch <Plug>(agit-git-cherry-pick)
+  " nmap <buffer> Rv <Plug>(agit-git-revert)
+" endfunction
 
 " http://qiita.com/c0hama/items/99a6f92323ca5e6fb730
 " agit.vim を vimfiler や unite-file 内から開く
-let agit_file = { 'description' : 'open the file''s history in agit.vim' }
-function! agit_file.func(candidate)
-    execute 'AgitFile' '--file='.a:candidate.action__path
-endfunction
-call unite#custom#action('file', 'agit-file', agit_file)
+" let agit_file = { 'description' : 'open the file''s history in agit.vim' }
+" function! agit_file.func(candidate)
+    " execute 'AgitFile' '--file='.a:candidate.action__path
+" endfunction
+" call unite#custom#action('file', 'agit-file', agit_file)
 
 call unite#custom#profile('source/vim_bookmarks', 'context', {
     \   'winheight': 13,
