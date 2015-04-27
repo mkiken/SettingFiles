@@ -512,7 +512,7 @@ endfunction
 "                             x=-1 to sync by search ( default )
 "                             x>0 to sync at least x lines backwards
 "                             x=0 to sync from start
-let php_sql_query = 1 " 文字列中のSQLをハイライトする
+" let php_sql_query = 1 " 文字列中のSQLをハイライトする
 " let php_parent_error_close = 1 " ] や ) の対応エラーをハイライトする
 " let php_parent_error_open = 1 " 対応する閉じ括弧がない開き括弧( や [が存在する場合、php終了タグをスキップさせる
 let php_html_in_strings = 1 " for HTML syntax highlighting inside strings (default: 0)
@@ -680,14 +680,14 @@ function! s:bundle.hooks.on_source(bundle)
 
 endfunction
 
-NeoBundle 'Valloric/YouCompleteMe', {
-     \ 'build' : {
-     \     'mac' : './install.sh --clang-completer --system-libclang --omnisharp-completer',
-     \     'unix' : './install.sh --clang-completer --system-libclang --omnisharp-completer',
-     \     'windows' : './install.sh --clang-completer --system-libclang --omnisharp-completer',
-     \     'cygwin' : './install.sh --clang-completer --system-libclang --omnisharp-completer'
-     \    }
-     \ }
+" NeoBundle 'Valloric/YouCompleteMe', {
+     " \ 'build' : {
+     " \     'mac' : './install.sh --clang-completer --system-libclang --omnisharp-completer',
+     " \     'unix' : './install.sh --clang-completer --system-libclang --omnisharp-completer',
+     " \     'windows' : './install.sh --clang-completer --system-libclang --omnisharp-completer',
+     " \     'cygwin' : './install.sh --clang-completer --system-libclang --omnisharp-completer'
+     " \    }
+     " \ }
 
 " lazy load
 NeoBundleLazy 'mattn/emmet-vim',{
