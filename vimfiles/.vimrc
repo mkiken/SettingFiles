@@ -343,12 +343,12 @@ inoremap <C-k> <c-o>D
 " inoremap <C-.> <c-o>dd
 " アンドゥ
 " inoremap <C-x>u <C-o>u
-noremap! <C-u> <C-o>u
-noremap! <C-]> <C-o>u
-noremap! <C-r> <C-o><C-r>
+inoremap <C-u> <C-o>u
+inoremap <C-]> <C-o>u
+inoremap <C-r> <C-o><C-r>
 " 貼りつけ
 " noremap! <C-y> <C-o>P
-noremap! ∆ <C-o>O
+" noremap! ∆ <C-o>O
 
 " vimrcをリロード
 " http://whileimautomaton.net/2008/07/20150335
@@ -837,7 +837,8 @@ noremap <Leader>o :Occur<CR>
     \   ['create', 'update', 'delete'],
     \   ['left', 'right'],
     \   ['next', 'previous'],
-    \   ['north', 'east', 'south', 'west']
+    \   ['north', 'east', 'south', 'west'],
+    \   ['yes', 'no']
     \ ]
 
 " for pathogen

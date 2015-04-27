@@ -518,3 +518,9 @@ zstyle ':auto-fu:var' autoable-function/skiplines \
   '([[:print:]]##[[:space:]]##|(#s)[[:space:]]#)(ag*|*grep|brew|cask) *'
 
 # unsetopt sh_wordsplit
+
+# 自動コンパイル
+# http://blog.n-z.jp/blog/2013-12-10-auto-zshrc-recompile.html
+if [ ! -f ~/.zshrc.zwc -o ~/.zshrc -nt ~/.zshrc.zwc ]; then
+   zcompile ~/.zshrc
+fi

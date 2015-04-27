@@ -101,7 +101,7 @@ esac
 
 #make new alias
 #alias refresh='source ~/.bashrc'
-alias refresh='source ~/.zshrc;echo "zshrc reloaded.";source ~/.zshenv;echo "zshenv reloaded."'
+alias reload='zcompile ~/.zshrc;source ~/.zshrc;echo "zshrc reloaded.";zcompile ~/.zprofile;source ~/.zprofile;echo "zprofile reloaded."'
 
 alias pyserv='python -m SimpleHTTPServer'
 
@@ -125,6 +125,7 @@ alias vimrc='vi ~/.vimrc'
 alias gvimrc='vi ~/.gvimrc'
 alias gitconfig='vi ~/.gitconfig'
 alias zshenv='vi ~/.zshenv'
+alias zprofile='vi ~/.zprofile'
 alias jshintrc='vi ~/.jshintrc'
 alias jsbeautifyrc='vi ~/.jsbeautifyrc'
 alias editorconfig='vi ~/.editorconfig'

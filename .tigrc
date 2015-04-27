@@ -14,7 +14,8 @@ set line-graphics = utf-8
 set diff-options = -m --first-parent
 
 # set line-number = yes
-
+set ignore-case = yes
+set wrap-lines = yes
 
 ########
 # generic
