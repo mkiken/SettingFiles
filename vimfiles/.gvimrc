@@ -39,13 +39,13 @@ function! Load_random_colors()
   exe 'so ' . mycolors[localtime() % len(mycolors)]
   unlet mycolors
 endfunction
-" call Load_random_colors()
 
-" command! Load_random_colors call Load_random_colors()
 command! LoadRandomColors call Load_random_colors()
 
 " ツールバー非表示
 set guioptions-=T
+" http://www.kaoriya.net/blog/2011/09/20110915/
+set guioptions-=m
 " gVimでもテキストベースのタブページを使う
 " set guioptions-=e
 
@@ -118,11 +118,6 @@ if OSTYPE == "Darwin\n"
 	endif
 	"augroup END
 
-	" highlight Cursor guifg=#000d18 guibg=#8faf9f gui=bold
-	" highlight CursorIM guifg=NONE guibg=#ecbcbc
-
-
-
 elseif OSTYPE == "Linux\n"
 	""ここにLinux向けの設定
 	set guifont=DejaVu\ Sans\ Mono\ 10
@@ -158,7 +153,3 @@ if filereadable(g:save_window_file)
 else
   set lines=50 columns=150
 endif
-
-" highlight ChangedAddHl cterm=bold ctermbg=NONE ctermfg=green gui=bold guibg=NONE guifg=green
-" highlight ChangedDeleteHl cterm=bold ctermbg=NONE ctermfg=red gui=bold guibg=NONE guifg=red
-" highlight ChangedDefaultHl cterm=bold ctermbg=NONE ctermfg=yellow gui=bold guibg=NONE guifg=yellow

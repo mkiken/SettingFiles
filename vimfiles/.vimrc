@@ -14,7 +14,7 @@ set noerrorbells
 
 set cursorline " カーソル行をハイライト
 "set cursorcolumn
-set background=dark
+" set background=dark
 
 set title "編集中のファイル名を表示する
 set showcmd "入力中のコマンドを表示する
@@ -168,10 +168,6 @@ if has("syntax")
         " 下の行の"　"は全角スペース
         syntax match InvisibleJISX0208Space "　" display containedin=ALL
         highlight InvisibleJISX0208Space term=underline ctermbg=Blue guibg=darkgray gui=underline
-        "syntax match InvisibleTrailedSpace "[ \t]\+$" display containedin=ALL
-        "highlight InvisibleTrailedSpace term=underline ctermbg=Red guibg=NONE gui=undercurl guisp=darkorange
-        "syntax match InvisibleTab "\t" display containedin=ALL
-        "highlight InvisibleTab term=underline ctermbg=white gui=undercurl guisp=darkslategray
     endfunction
 
     augroup invisible
@@ -203,10 +199,6 @@ autocmd vimrc BufWritePre * if index(remove_dust_blacklist, &ft) < 0 | call <SID
 " http://vim-users.jp/2009/09/hack69/
 " set autochdir
 
-" http://superuser.com/questions/195022/vim-how-to-synchronize-nerdtree-with-current-opened-tab-file-path
-" autocmd BufEnter * lcd %:p:h
-" http://qiita.com/shiena/items/1e98fd14d0ef0084b17f
-" nnoremap <Leader>c :lcd %:h<cr>
 cabbrev cdc :lcd %:h
 
 vnoremap <Leader>{ "zdi{<C-R>z}<ESC>
@@ -248,9 +240,9 @@ vnoremap G G<End>
 onoremap G G<End>
 
 " ちょっと微妙かもだけど、\で行末に移動
-nnoremap \ <End>
-vnoremap \ <End>
-onoremap \ <End>
+nnoremap \ <End>h
+vnoremap \ <End>h
+onoremap \ <End>h
 
 " ヴィジュアルモードでdeleteで削除
 " MacのdeleteはBackSpaceらしい
@@ -323,10 +315,6 @@ noremap! <C-f> <Right>
 noremap! <C-e> <End>
 noremap! <C-a> <Home>
 noremap! <C-d> <Del>
-
-" http://cohama.hateblo.jp/entry/20130529/1369843236
-" cnoremap <expr> / (getcmdtype() == '/') '\/' : '/'
-" cnoremap <C-o> <C-\>e(getcmdtype() == '/' <Bar><Bar> getcmdtype() == '?') ? '\<' . getcmdline() . '\>' : getcmdline()<CR>
 
 " http://linuxserver.jp/%E3%82%BD%E3%83%95%E3%83%88%E3%82%A6%E3%82%A7%E3%82%A2/%E3%83%86%E3%82%AD%E3%82%B9%E3%83%88%E3%82%A8%E3%83%87%E3%82%A3%E3%82%BF/vim/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89%E3%83%A2%E3%83%BC%E3%83%89%E3%81%A7%E3%81%AE%E3%83%9A%E3%83%BC%E3%82%B9%E3%83%88.php
 noremap! <C-v> <C-r>"
@@ -477,6 +465,7 @@ function! s:tabpage_label(n)
 
   return '%' . a:n . 'T' . hi . label . '%T%#TabLineFill#'
 endfunction
+
 " http://d.hatena.ne.jp/thinca/20111204/1322932585
 function! MakeTabLine()
   let titles = map(range(1, tabpagenr('$')), 's:tabpage_label(v:val)')
@@ -501,23 +490,6 @@ function! AlignBenchmark() abort
   put =reverse(sort(s:list))
   1 delete _
 endfunction
-
-" php syntax
-" https://github.com/StanAngeloff/php.vim/blob/48fc7311fa07c2b83888e7a31fae03118bae720b/syntax/php.vim#L754
-" let php_folding = 1
-"           php_folding = 1  for folding loops, if/elseif/else, switch, try/catch, classes, and functions based on
-"                            indent, finds a } with an indent matching the structure.
-"                         2  for folding all { }, ( ), and [ ] pairs. (see known bugs ii)
-"           php_sync_method = x
-"                             x=-1 to sync by search ( default )
-"                             x>0 to sync at least x lines backwards
-"                             x=0 to sync from start
-" let php_sql_query = 1 " 文字列中のSQLをハイライトする
-" let php_parent_error_close = 1 " ] や ) の対応エラーをハイライトする
-" let php_parent_error_open = 1 " 対応する閉じ括弧がない開き括弧( や [が存在する場合、php終了タグをスキップさせる
-let php_html_in_strings = 1 " for HTML syntax highlighting inside strings (default: 0)
-" let php_var_selector_is_identifier = 1
-
 
 " Plugins
 
@@ -568,7 +540,7 @@ let php_html_in_strings = 1 " for HTML syntax highlighting inside strings (defau
  NeoBundle 'tpope/vim-surround'
  " NeoBundle 'pangloss/vim-javascript'
  NeoBundle 'kana/vim-textobj-line'
- NeoBundle 'kana/vim-textobj-entire'
+ " NeoBundle 'kana/vim-textobj-entire'
  NeoBundle 'kana/vim-textobj-user'
  " NeoBundle 'euoia/vim-jsbeautify-simple'
  " NeoBundle 'alpaca-tc/beautify.vim'
@@ -577,7 +549,7 @@ let php_html_in_strings = 1 " for HTML syntax highlighting inside strings (defau
  NeoBundle 'Shougo/neomru.vim' " for Unite
  " NeoBundle 'thinca/vim-visualstar'
  NeoBundle 't9md/vim-quickhl'
- NeoBundle 'osyo-manga/vim-brightest'
+ " NeoBundle 'osyo-manga/vim-brightest'
  NeoBundle 'haya14busa/incsearch.vim'
  NeoBundle 'rhysd/clever-f.vim'
  NeoBundle 'vimtaku/hl_matchit.vim'
@@ -607,7 +579,7 @@ let php_html_in_strings = 1 " for HTML syntax highlighting inside strings (defau
  NeoBundle 'blueyed/vim-diminactive'
  NeoBundle 'airblade/vim-gitgutter'
  " NeoBundle 'sgur/vim-lazygutter'
- NeoBundle 'kana/vim-textobj-datetime'
+ " NeoBundle 'kana/vim-textobj-datetime'
  NeoBundle 'kana/vim-textobj-function'
  " NeoBundle 'kmnk/vim-unite-giti'
  NeoBundle 'MattesGroeger/vim-bookmarks'
@@ -747,9 +719,6 @@ NeoBundleLazy 'scrooloose/nerdtree',{
 NeoBundleLazy 'will133/vim-dirdiff',{
 \   'autoload' : { 'commands' : [ 'DirDiff'] }
                           \}
-NeoBundleLazy 'tyru/open-browser-github.vim',{
-\   'autoload' : { 'commands' : [ 'OpenGithubFile', 'OpenGithubIssue', 'OpenGithubProject' ,'OpenGithubPullReq'] }
-                          \}
 NeoBundleLazy 'int3/vim-extradite',{
 \   'autoload' : { 'commands' : ['Extradite'] }
                           \}
@@ -762,8 +731,6 @@ NeoBundleLazy 'StanAngeloff/php.vim',{
  " Required:
  filetype plugin indent on
 
- " If there are uninstalled bundles found on startup,
- " this will conveniently prompt you to install them.
  NeoBundleCheck
 
 
@@ -866,11 +833,6 @@ if has("autocmd")
 
 	autocmd vimrc BufNewFile,BufReadPost *.pegjs,*.language,*.grm  set filetype=pegjs
 endif
-
-" 改行系のmappingにはundo区切りのために<C-g>uつける
-" call smartinput#map_to_trigger('i', '<Plug>(smartinput_BS)','<BS>','<BS>')
-" call smartinput#map_to_trigger('i', '<Plug>(smartinput_C-h)', '<BS>', '<C-h>')
-" call smartinput#map_to_trigger('i', '<Plug>(smartinput_CR)','<Enter>','<Enter>')
 
 call smartinput#define_rule({
 \   'at': '\[\%#\]',
@@ -1035,37 +997,6 @@ let g:indentLine_color_term = 111
 let g:indentLine_color_gui = '#708090'
 let g:indentLine_char = '¦' "use ¦, ┆ or │
 
-" https://github.com/Shougo/vimfiler.vim
-" vimfiler behaves as default explorer like netrw.
-" let g:vimfiler_as_default_explorer = 1
-" nnoremap <Esc>f :VimFilerExplorer<Cr>
-" nnoremap <Esc>f :VimFiler<Cr>
-
-" http://hrsh7th.hatenablog.com/entry/20120229/1330525683
-" nnoremap <Leader>e :VimFiler -buffer-name=explorer -split -winwidth=25 -toggle -no-quit<Cr>
-
-
-" let g:netrw_liststyle=0
-" nnoremap <Leader>e :VimFilerExplorer -buffer-name=explorer -split -winwidth=45 -toggle -no-quit<Cr>
-" autocmd! FileType vimfiler call g:My_vimfiler_settings()
-" function! g:My_vimfiler_settings()
-"   nmap     <buffer><expr><Cr> vimfiler#smart_cursor_map("\<Plug>(vimfiler_expand_tree)", "\<Plug>(vimfiler_edit_file)")
-"   nnoremap <buffer>t          :call vimfiler#mappings#do_action('my_tabe')<Cr>
-"   nnoremap <buffer>s          :call vimfiler#mappings#do_action('my_split')<Cr>
-"   nnoremap <buffer>v          :call vimfiler#mappings#do_action('my_vsplit')<Cr>
-"   nmap     <buffer><expr><Left> vimfiler#smart_cursor_map("\<Plug>(vimfiler_smart_h)", "\<Plug>(vimfiler_smart_h)")
-"   nmap     <buffer><expr><Right> vimfiler#smart_cursor_map("\<Plug>(vimfiler_smart_l)", "\<Plug>(vimfiler_smart_l)")
-
-  " nnoremap <buffer><Left> h :call vimfiler#mappings#vimfiler_smart_h
-
-" endfunction
-
-" autocmd FileType vimfiler nmap <Left> <buffer> <Plug>(vimfiler_smart_h)
-
-" let g:vimfiler_default_columns = 'type'
-" let g:vimfiler_explorer_columns = 'type'
-
-
 let s:my_action = { 'is_selectable' : 1 }
 function! s:my_action.func(candidates)
   wincmd p
@@ -1144,19 +1075,12 @@ let g:neocomplete#keyword_patterns['default'] = '\h\w*'
 
 let g:neocomplete#cursor_hold_i_time = 1500
 
-
-
-
 " Plugin key-mappings.
 inoremap <expr><C-g>     neocomplete#undo_completion()
 inoremap <expr><C-Space>     neocomplete#start_manual_complete()
 
 " Recommended key-mappings.
 " <CR>: close popup and save indent.
-" inoremap <silent> <TAB> <C-r>=<SID>my_tab_function()<CR>
-" function! s:my_tab_function()
-  " return pumvisible() ? neocomplete#close_popup() : "\<TAB>"
-" endfunction
 " imap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
 " imap <expr> <CR> pumvisible() ? neocomplete#close_popup() : "\<Plug>(smartinput_CR)"
       " " \ neocomplete#close_popup() : "\<Plug>(smartinput_CR)"
@@ -1295,9 +1219,9 @@ xmap <Leader>H <Plug>(quickhl-manual-reset)
 
 " ハイライトするグループ名を設定します
 " アンダーラインで表示する
-let g:brightest#highlight = {
-\   "group" : "BrightestUnderline"
-\}
+" let g:brightest#highlight = {
+" \   "group" : "BrightestUnderline"
+" \}
 
 map /  <Plug>(incsearch-forward)
 map ?  <Plug>(incsearch-backward)
@@ -1381,37 +1305,6 @@ let g:easy_align_delimiters = {
 \        'pattern':      ' \(\S\+\s*[;=]\)\@=',
 \        'left_margin':  0,
 \        'right_margin': 0, }, }
-
-
-" http://cohama.hateblo.jp/entry/20130517/1368806202
-
-" これは外に定義!
-" function! s:gitv_get_current_hash()
-  " return matchstr(getline('.'), '\[\zs.\{7\}\ze\]$')
-" endfunction
-
-" autocmd FileType git setlocal nofoldenable foldlevel=0
-" function! s:toggle_git_folding()
-  " if &filetype ==# 'git'
-    " setlocal foldenable!
-  " endif
-" endfunction
-
-" autocmd FileType gitv call s:my_gitv_settings()
-" function! s:my_gitv_settings()
-  " " ここに設定を書く
-  " setlocal iskeyword+=/,-,.
-  " nnoremap <silent><buffer> C :<C-u>Git checkout <C-r><C-w><CR>
-  " nnoremap <buffer> <Leader>rb :<C-u>Git rebase <C-r>=GitvGetCurrentHash()<CR><Space>
-  " nnoremap <buffer> <Leader>R :<C-u>Git revert <C-r>=GitvGetCurrentHash()<CR><CR>
-  " nnoremap <buffer> <Leader>h :<C-u>Git cherry-pick <C-r>=GitvGetCurrentHash()<CR><CR>
-  " nnoremap <buffer> <Leader>rh :<C-u>Git reset --hard <C-r>=GitvGetCurrentHash()<CR>
-  " nnoremap <silent><buffer> t :<C-u>windo call <SID>toggle_git_folding()<CR>1<C-w>w
-" endfunction
-
-
-" http://win-to-mac.blogspot.jp/2012/08/vim.html
-" set statusline=%<%f\ %m%r%h%w%{'['.(&fenc!=''?&fenc:&enc).']['.&ff.']'}%=%l,%c%V%8P
 
 " for WordCount (percentage, line number, column number)
 " https://github.com/fuenor/vim-wordcount
@@ -1505,6 +1398,7 @@ call unite#custom#profile('source/vim_bookmarks', 'context', {
 function! PhpSyntaxOverride()
   hi! def link phpDocTags  phpDefine
   hi! def link phpDocParam phpType
+  hi! def link phpDocIdentifier phpIdentifier
 endfunction
 augroup phpSyntaxOverride
   autocmd!
