@@ -146,7 +146,9 @@ set scrolloff=5
 
 " 権限無いファイルでも保存
 cabbrev w!! w !sudo tee % >/dev/null
-
+cabbrev a Ag
+cabbrev tc tabclose
+cabbrev cdc CdCurrent
 
 " http://rbtnn.hateblo.jp/entry/2014/11/30/174749
 augroup vimrc
@@ -353,7 +355,7 @@ augroup END
 
 " for grep
 " http://qiita.com/yuku_t/items/0c1aff03949cb1b8fe6b
-autocmd vimrc QuickFixCmdPost *grep* cwindow
+autocmd QuickFixCmdPost *grep* cwindow
 set grepprg=grep\ -nH
 
 
@@ -491,7 +493,19 @@ function! AlignBenchmark() abort
   1 delete _
 endfunction
 
-" Plugins
+
+" http://hail2u.net/blog/software/vim-auto-close-quickfix-window.html
+augroup QfAutoCommands
+  autocmd!
+
+  " Auto-close quickfix window
+  autocmd WinEnter * if (winnr('$') == 1) && (getbufvar(winbufnr(0), '&buftype')) == 'quickfix' | quit | endif
+augroup END
+
+
+" ##################################
+" ###   Plugins
+" ##################################
 
  if has('vim_starting')
    if &compatible
@@ -583,6 +597,7 @@ endfunction
  NeoBundle 'kana/vim-textobj-function'
  " NeoBundle 'kmnk/vim-unite-giti'
  NeoBundle 'MattesGroeger/vim-bookmarks'
+ NeoBundle 'Valloric/ListToggle'
 
  NeoBundle 'Shougo/vimproc.vim', {
        \ 'build' : {
@@ -620,7 +635,7 @@ function! s:bundle.hooks.on_source(bundle)
   "インサートモードで開始
   " let g:unite_enable_start_insert = 1
   "最近開いたファイル履歴の保存数
-  let g:unite_source_file_mru_limit = 50
+  let g:unite_source_file_mru_limit = 25
   "file_mruの表示フォーマットを指定。空にすると表示スピードが高速化される
   let g:unite_source_file_mru_filename_format = ''
 
@@ -725,6 +740,9 @@ NeoBundleLazy 'int3/vim-extradite',{
 NeoBundleLazy 'StanAngeloff/php.vim',{
                           \"autoload" : {"filetypes" :["php"]}
                           \}
+" NeoBundleLazy 'milkypostman/vim-togglelist',{
+" \   'autoload' : { 'commands' : ['ToggleLocationList', 'ToggleQuickfixList'] }
+                          " \}
 
  call neobundle#end()
 
@@ -805,7 +823,9 @@ noremap <Leader>o :Occur<CR>
     \   ['left', 'right'],
     \   ['next', 'previous'],
     \   ['north', 'east', 'south', 'west'],
-    \   ['yes', 'no']
+    \   ['yes', 'no'],
+    \   ['ASC', 'DESC'],
+    \   ['if', 'else', 'elseif']
     \ ]
 
 " for pathogen
@@ -1404,3 +1424,6 @@ augroup phpSyntaxOverride
   autocmd!
   autocmd FileType php call PhpSyntaxOverride()
 augroup END
+
+let g:lt_location_list_toggle_map = '<leader>l'
+let g:lt_quickfix_list_toggle_map = '<leader>q'

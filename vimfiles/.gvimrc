@@ -7,7 +7,7 @@
 " colorscheme Tomorrow-Night-Bright
 " colorscheme Tomorrow-Night-Blue
 " colorscheme Tomorrow-Night-Eighties
-colorscheme solarized
+" colorscheme solarized
 " colorscheme wombat
 " colorscheme hybrid
 " colorscheme iceberg
@@ -23,7 +23,7 @@ colorscheme solarized
 " colorscheme badwolf
 " colorscheme codeschool
 " colorscheme lucius
-" colorscheme zenburn
+colorscheme zenburn
 " colorscheme macvim
 " colorscheme slate
 
