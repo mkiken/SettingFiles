@@ -41,7 +41,7 @@ set backupdir=~/.backup/vim/backup
 " 行番号の表示
 set number
 " カーソルが何行目の何列目に置かれているかを表示する
-set ruler
+" set ruler
 
 " http://d.hatena.ne.jp/ruicc/20090615/1245086039
 if &compatible
@@ -107,7 +107,7 @@ set showtabline=2
 
 " http://shoken.hatenablog.com/entry/20120617/p
 set splitbelow "新しいウィンドウを下に開く
-set splitright "新しいウィンドウを右に開く
+" set splitright "新しいウィンドウを右に開く
 
 " set paste
 " http://vim.wikia.com/wiki/Toggle_auto-indenting_for_code_paste
@@ -825,7 +825,9 @@ noremap <Leader>o :Occur<CR>
     \   ['north', 'east', 'south', 'west'],
     \   ['yes', 'no'],
     \   ['ASC', 'DESC'],
-    \   ['if', 'else', 'elseif']
+    \   ['if', 'else', 'elseif'],
+    \   ['==', '!=', '==='],
+    \   ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     \ ]
 
 " for pathogen
@@ -1253,7 +1255,8 @@ nnoremap <Leader>? ?
 "" for hl_matchit
 let g:hl_matchit_enable_on_vim_startup = 1
 let g:hl_matchit_hl_groupname = 'Title'
-let g:hl_matchit_allow_ft = 'html\|vim\|ruby\|sh\|smarty'
+" let g:hl_matchit_allow_ft = 'html\|vim\|ruby\|sh\|smarty'
+let g:hl_matchit_allow_ft = 'html\|vim\|ruby\|sh'
 
 " http://d.hatena.ne.jp/oppara/20111229/p1
 " phpStylist.php へのパス
@@ -1332,7 +1335,8 @@ let g:airline_section_z = 'l:%l/%L|c:%c|wc:%{WordCount()}|%P'
 set updatetime=1000
 
 " (bufferline or filename)
-let g:airline_section_c = '%{getcwd()} | %t'
+" let g:airline_section_c = '%{getcwd()} | %t'
+let g:airline_section_c = '%{getcwd()}'
 
 nmap p <Plug>(yankround-p)
 xmap p <Plug>(yankround-p)
