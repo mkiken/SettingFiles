@@ -101,8 +101,17 @@ function pgmgs-remote(){
 function pgl-remote(){
   br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}' | xargs git log
 }
+function pglp-remote(){
+  br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}' | xargs git log -p
+}
+function pglst-remote(){
+  br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}' | xargs git log --stat
+}
 function pgd-remote(){
   br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}' | xargs git diff
+}
+function pgdn-remote(){
+  br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}' | xargs git diff --name-status
 }
 
 alias pkill='ps ax | peco | awk "{ print $1 }" | xargs kill'

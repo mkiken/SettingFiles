@@ -149,6 +149,8 @@ cabbrev w!! w !sudo tee % >/dev/null
 cabbrev a Ag
 cabbrev tc tabclose
 cabbrev cdc CdCurrent
+cabbrev gb Gblame
+cabbrev gd Gdiff
 
 " http://rbtnn.hateblo.jp/entry/2014/11/30/174749
 augroup vimrc
@@ -590,7 +592,7 @@ augroup END
  NeoBundle 'violetyk/scratch-utility'
  " NeoBundle 'deris/vim-loadafterft'
  NeoBundle 'vim-scripts/SearchComplete'
- NeoBundle 'blueyed/vim-diminactive'
+ " NeoBundle 'blueyed/vim-diminactive'
  NeoBundle 'airblade/vim-gitgutter'
  " NeoBundle 'sgur/vim-lazygutter'
  " NeoBundle 'kana/vim-textobj-datetime'
@@ -616,6 +618,7 @@ if ! empty(neobundle#get("tagbar"))
   " let g:tagbar_width = 20
   " Map for toggle
   nn <silent> <leader>te :TagbarToggle<CR>
+  let g:tagbar_left = 1
 endif
 
 NeoBundleLazy 'Shougo/unite.vim' , {
@@ -972,6 +975,8 @@ nnoremap <silent> <Leader>e :<C-u>call ToggleErrors()<CR>
 nnoremap    [unite]   <Nop>
 nmap    <Leader>f [unite]
 
+let g:unite_source_history_yank_enable =1  "history/yankの有効化
+
 " unite.vim keymap
 " <a href="https://github.com/alwei/dotfiles/blob/3760650625663f3b08f24bc75762ec843ca7e112/.vimrc" target="_blank" rel="noreferrer" style="cursor:help;display:inline !important;">https://github.com/alwei/dotfiles/blob/3760650625663f3b08f24bc75762ec843ca7e112/.vimrc</a>
 nnoremap [unite]u  :<C-u>Unite -no-split<Space>
@@ -984,14 +989,15 @@ nnoremap <silent> [unite]d :<C-u>UniteWithBufferDir file<CR>
 nnoremap <silent> [unite]r :<C-u>Unite<Space>file_rec<CR>
 nnoremap <silent> [unite]p :<C-u>Unite<Space>file_rec:!<CR>
 nnoremap <silent> [unite]f :<C-u>UniteWithBufferDir -buffer-name=files file<CR>
-nnoremap <silent> [unite]y :<C-u>Unite<Space>yankaround<CR>
+nnoremap <silent> [unite]y :<C-u>Unite<Space>history/yank<CR>
 nnoremap <silent> [unite]o :<C-u>Unite -vertical -winwidth=40<Space>outline<CR>
 " http://d.hatena.ne.jp/osyo-manga/20130617/1371468776
 nnoremap <silent> [unite]v :<C-u>Unite output:let<CR>
 " nnoremap <silent> [unite]g :<C-u>Unite<Space>giti<CR>
 " vimprocがいるらしい http://mba-hack.blogspot.jp/2013/03/unitevim.html
-nnoremap <silent> [unite]g :<C-u>Unite grep:. -buffer-name=search-buffer<CR>
-nnoremap <silent> ,vr :UniteResume<CR>
+nnoremap <silent> [unite]g :<C-u>Unite grep:. -buffer-name=search-buffer -no-quit<CR>
+nnoremap <silent> [unite]q :UniteResume<CR>
+nnoremap <silent> [unite]/ :<C-u>Unite -buffer-name=search line -start-insert -no-quit<CR>
 
 
 " unite-build map
@@ -1013,6 +1019,12 @@ if executable('ag')
   " ignore files
   call unite#custom#source('file_rec/async', 'ignore_pattern', '(png\|gif\|jpeg\|jpg)$')
 endif
+
+" Like ctrlp.vim settings.
+  call unite#custom#profile('default', 'context', {
+  \   'winheight': 10,
+  \   'direction': 'botright',
+  \ })
 
 " https://github.com/Yggdroot/indentLine
 let g:indentLine_color_term = 111
@@ -1431,3 +1443,6 @@ augroup END
 
 let g:lt_location_list_toggle_map = '<leader>l'
 let g:lt_quickfix_list_toggle_map = '<leader>q'
+
+" for SilverSearcher
+let g:ag_highlight=1
