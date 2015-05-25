@@ -98,6 +98,9 @@
   merged-branches = branch --merged
   merged-remote-branches = !git branch -a --merged | grep -v \\* | grep -v master | grep remotes/origin/ | sed -e 's%remotes/origin/%%g'
 
+  name = config user.name
+  email = config user.email
+
 [color]
 	ui = auto
 [core]
@@ -122,7 +125,7 @@
     cmd = mvim -f -d \"$LOCAL\" \"$REMOTE\"
 [difftool "sourcetree"]
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path = 
+	path =
 [merge]
 	; tool = vimdiff2
 	tool = mvimdiff

@@ -504,6 +504,9 @@ augroup QfAutoCommands
   autocmd WinEnter * if (winnr('$') == 1) && (getbufvar(winbufnr(0), '&buftype')) == 'quickfix' | quit | endif
 augroup END
 
+" 画面再描画
+nnoremap <Leader>r <C-l>
+
 
 " ##################################
 " ###   Plugins
