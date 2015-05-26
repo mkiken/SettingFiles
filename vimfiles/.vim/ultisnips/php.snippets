@@ -1,0 +1,147 @@
+snippet log
+logger()->info(${1});
+endsnippet
+
+snippet logw
+logger()->warn(${1});
+endsnippet
+
+snippet logn
+logger()->notice(${1});
+endsnippet
+
+snippet loge
+logger()->error(${1});
+endsnippet
+
+snippet logd
+logger()->debug(${1});
+endsnippet
+
+snippet plog
+logger()->info(print_r(${1}, TRUE));
+endsnippet
+
+snippet vlog
+logger()->info(var_export(${1}, TRUE));
+endsnippet
+
+snippet th
+$this->${1}
+endsnippet
+
+snippet td2
+$this->${1}->${2}
+endsnippet
+
+snippet thd
+$this->${1}->${2}
+endsnippet
+
+snippet thm
+$this->${1}_model->${2};
+endsnippet
+
+snippet thc
+$this->${1}_config->${2};
+endsnippet
+
+snippet thr
+$this->redis->${1};
+endsnippet
+
+snippet tha
+$this->assert${1}(${2});
+endsnippet
+
+snippet thae
+$this->assertEquals(${1}, ${2}, ${3});
+endsnippet
+
+snippet thci
+$this->CI->${1};
+endsnippet
+
+snippet thmem
+$this->memcache->${1};
+endsnippet
+
+snippet thmemm
+$this->memcachemanage->${1};
+endsnippet
+
+snippet loadm
+$this->load->model('model/${1}_model');
+endsnippet
+
+snippet loadd
+$this->load->model('dao/${1}');
+endsnippet
+
+snippet loadf
+$this->load->model('facade/facade_${1}');
+endsnippet
+
+snippet loadl
+$this->load->library('${1}');
+endsnippet
+
+snippet ci
+$this->CI->${1};
+endsnippet
+
+snippet ar
+'${1}' => ${2},
+endsnippet
+
+snippet as
+$${1} = ${2};
+endsnippet
+
+snippet vd
+var_dump(${1});
+endsnippet
+
+snippet ve
+var_export(${1}, TRUE)
+endsnippet
+
+snippet pf
+printf("${1}");
+endsnippet
+
+snippet pr
+print_r(${1}, TRUE)
+endsnippet
+
+snippet ae
+new ApplicationException('${1}');
+endsnippet
+
+snippet re
+new RedirectException('${1}', '${2}');
+endsnippet
+
+snippet vdf
+{${1}|@var_dump}
+endsnippet
+
+snippet doc
+	/**
+	 * ${1}
+	 *
+	 * @param ${2}
+	 * @return ${3}
+	 */
+endsnippet
+
+snippet try
+try
+{
+	${1}
+}
+catch (${2})
+{
+	${3}
+}
+endsnippet
