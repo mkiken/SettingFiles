@@ -4,6 +4,12 @@
 <array>
 	<dict>
 		<key>phrase</key>
+		<string>(∩ﾟдﾟ)ｱｰｱｰきこえなーい</string>
+		<key>shortcut</key>
+		<string>あーあー</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>（ﾉ∀｀）ｱﾁｬｰ</string>
 		<key>shortcut</key>
 		<string>あちゃー</string>
@@ -13,6 +19,12 @@
 		<string>∑(ﾟДﾟ)ｱｯ</string>
 		<key>shortcut</key>
 		<string>あっ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>( ﾟ∀ﾟ)ｱﾊﾊ八八ﾉヽﾉヽﾉヽﾉ ＼ / ＼/ ＼</string>
+		<key>shortcut</key>
+		<string>あはは</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -70,9 +82,27 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string> (」・ω・)」うー！(／・ω・)／にゃー！</string>
+		<key>shortcut</key>
+		<string>うーにゃー</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(´ε｀；)ｳｰﾝ…</string>
 		<key>shortcut</key>
 		<string>うーん</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(´；ω；｀)ｳｯ…</string>
+		<key>shortcut</key>
+		<string>うっ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>ζ*'ヮ')ζうっうー</string>
+		<key>shortcut</key>
+		<string>うっうー</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -101,6 +131,18 @@
 	<dict>
 		<key>phrase</key>
 		<string>(ﾟДﾟ≡ﾟдﾟ)ｴｯ!?</string>
+		<key>shortcut</key>
+		<string>えっ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>Σ(゜Д゜;)</string>
+		<key>shortcut</key>
+		<string>えっ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>Σ(゜Д゜ノ)ノ</string>
 		<key>shortcut</key>
 		<string>えっ</string>
 	</dict>
@@ -454,6 +496,12 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>(/ω＼)</string>
+		<key>shortcut</key>
+		<string>きゃー</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>ヽ(・∀・ )ﾉ ｷｬｯ ｷｬｯ</string>
 		<key>shortcut</key>
 		<string>きゃっきゃ</string>
@@ -526,9 +574,33 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>|д・)</string>
+		<key>shortcut</key>
+		<string>じー</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>壁|ω・）</string>
+		<key>shortcut</key>
+		<string>じー</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(｀･ω･´)ｼｬｷｰﾝ</string>
+		<key>shortcut</key>
+		<string>しゃきーん</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(ﾟ⊿ﾟ)ｼﾗﾈ</string>
 		<key>shortcut</key>
 		<string>しらね</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>⊂('ω`⊂ 三</string>
+		<key>shortcut</key>
+		<string>ずさー</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -568,6 +640,18 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>（//∇//）</string>
+		<key>shortcut</key>
+		<string>てれ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>┣¨┣¨┣¨┣¨┣¨┣¨┣¨┣¨┣¨┣¨┣¨┣¨┣¨</string>
+		<key>shortcut</key>
+		<string>どどど</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(　・ω・) ㌧</string>
 		<key>shortcut</key>
 		<string>とん</string>
@@ -592,9 +676,21 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>(*´･ω･)(･ω･｀*)ﾈｰ</string>
+		<key>shortcut</key>
+		<string>ねー</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(´ぅω・｀)ﾈﾑｲ</string>
 		<key>shortcut</key>
 		<string>ねむい</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(:3 っ)っ</string>
+		<key>shortcut</key>
+		<string>ねる</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -676,6 +772,18 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>(´・ω・)σ)Д`)</string>
+		<key>shortcut</key>
+		<string>ぷに</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(⑅´∀`)σ)∀`*)</string>
+		<key>shortcut</key>
+		<string>ぷに</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(o´∀｀)σ)Д`)ﾌﾟﾆ</string>
 		<key>shortcut</key>
 		<string>ぷに</string>
@@ -748,9 +856,21 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>ヽ('ω')ﾉ三ヽ('ω')ﾉ</string>
+		<key>shortcut</key>
+		<string>もうしわけねえ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(๑˃̵ᴗ˂̵)و</string>
 		<key>shortcut</key>
 		<string>やった</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>ζ*'ヮ')ζ</string>
+		<key>shortcut</key>
+		<string>やよい</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -802,129 +922,15 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>(´；ω；｀)ｳｯ…</string>
-		<key>shortcut</key>
-		<string>うっ</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>ζ*'ヮ')ζ</string>
-		<key>shortcut</key>
-		<string>やよい</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>ζ*'ヮ')ζうっうー</string>
-		<key>shortcut</key>
-		<string>うっうー</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>(∩ﾟдﾟ)ｱｰｱｰきこえなーい</string>
-		<key>shortcut</key>
-		<string>あーあー</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string> (」・ω・)」うー！(／・ω・)／にゃー！</string>
-		<key>shortcut</key>
-		<string>うーにゃー</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>( ﾟ∀ﾟ)ｱﾊﾊ八八ﾉヽﾉヽﾉヽﾉ ＼ / ＼/ ＼</string>
-		<key>shortcut</key>
-		<string>あはは</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>Σ(゜Д゜ノ)ノ</string>
-		<key>shortcut</key>
-		<string>えっ</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>Σ(゜Д゜;)</string>
-		<key>shortcut</key>
-		<string>えっ</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>(/ω＼)</string>
-		<key>shortcut</key>
-		<string>きゃー</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>⊂('ω`⊂ 三</string>
-		<key>shortcut</key>
-		<string>ずさー</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>壁|ω・）</string>
-		<key>shortcut</key>
-		<string>じー</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>|д・)</string>
-		<key>shortcut</key>
-		<string>じー</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>(｀･ω･´)ｼｬｷｰﾝ</string>
-		<key>shortcut</key>
-		<string>しゃきーん</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>（//∇//）</string>
-		<key>shortcut</key>
-		<string>てれ</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>┣¨┣¨┣¨┣¨┣¨┣¨┣¨┣¨┣¨┣¨┣¨┣¨┣¨</string>
-		<key>shortcut</key>
-		<string>どどど</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>(*´･ω･)(･ω･｀*)ﾈｰ</string>
-		<key>shortcut</key>
-		<string>ねー</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>(:3 っ)っ</string>
-		<key>shortcut</key>
-		<string>ねる</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>(´・ω・)σ)Д`)</string>
-		<key>shortcut</key>
-		<string>ぷに</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>(⑅´∀`)σ)∀`*)</string>
-		<key>shortcut</key>
-		<string>ぷに</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>ヽ('ω')ﾉ三ヽ('ω')ﾉ</string>
-		<key>shortcut</key>
-		<string>もうしわけねえ</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
 		<string>／人◕‿‿◕人＼</string>
 		<key>shortcut</key>
 		<string>わけがわからないよ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>( ﾟ∀ﾟ)o彡°おっぱい！おっぱい！</string>
+		<key>shortcut</key>
+		<string>おっぱい</string>
 	</dict>
 </array>
 </plist>

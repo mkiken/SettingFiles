@@ -133,7 +133,7 @@ alias tmuxconf='vi ~/.tmux.conf'
 alias macinit='vi ${SET}/mac/initialize'
 alias macupdate='vi ${SET}/mac/update'
 alias tigrc='vi ~/.tigrc'
-alias phpsnip='vi ~/.vim/snippets/php.snip'
+alias phpsnip='vi ~/.vim/ultisnips/php.snippets'
 
 #shortcut for git
 alias g='noglob git'
