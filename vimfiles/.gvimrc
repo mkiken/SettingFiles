@@ -20,10 +20,10 @@
 " colorscheme summerfruits256
 " colorscheme wombat
 " colorscheme BusyBee
-" colorscheme badwolf
+colorscheme badwolf
 " colorscheme codeschool
 " colorscheme lucius
-colorscheme zenburn
+" colorscheme zenburn
 " colorscheme macvim
 " colorscheme slate
 

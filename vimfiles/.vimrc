@@ -1452,7 +1452,7 @@ let g:lt_quickfix_list_toggle_map = '<leader>q'
 let g:ag_highlight=1
 
 " YouCompleteMe
-let g:ycm_min_num_of_chars_for_completion = 5
+" let g:ycm_min_num_of_chars_for_completion = 5
 let g:ycm_complete_in_comments = 1
 let g:ycm_seed_identifiers_with_syntax = 1
 let g:ycm_key_list_select_completion=[]
@@ -1462,4 +1462,5 @@ let g:UltiSnipsSnippetDirectories=[$HOME.'/.vim/ultisnips']
 
 set completeopt-=preview
 let g:ycm_add_preview_to_completeopt = 0
-" let g:ycm_auto_trigger = 0
+let g:ycm_auto_trigger = 0
+let g:ycm_key_detailed_diagnostics = ''
