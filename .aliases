@@ -507,3 +507,18 @@ function up() {
 # function dirdiff(){
   # vim -c DirDiff $1 $2
 # }
+
+alias g-delete-remote-merged-branches-dry-run="git branch -a --merged | 'grep' -v '*' | 'grep' -v master | 'grep' remotes/origin/ | sed -e 's% *remotes/origin/%%' | xargs -I% git push -n origin :% 2>&1 | tee -a ~/Desktop/delete_branches_dry_run.log"
+alias g-delete-remote-merged-branches="git branch -a --merged | 'grep' -v '*' | 'grep' -v master | 'grep' remotes/origin/ | sed -e 's% *remotes/origin/%%' | xargs -I% git push origin :% 2>&1 | tee -a ~/Desktop/delete_branches.log"
+
+function g-delete-remote-branches-hash-check() {
+	git branch -a | grep -v '*' | grep -v master | grep $1 | grep remotes/origin/ | xargs -I{} sh -c 'echo {};git rev-parse {};echo ""' 2>&1 | tee -a ~/Desktop/delete_branches_hash_check.txt
+}
+
+function g-delete-remote-branches-dry-run() {
+	git branch -a | grep -v '*' | grep -v master | grep $1 | grep remotes/origin/ | sed -e 's% *remotes/origin/%%' | xargs -I% git push -n origin :% 2>&1 | tee -a ~/Desktop/delete_branches_dry_run.log
+}
+
+function g-delete-remote-branches() {
+	git branch -a | grep -v '*' | grep -v master | grep $1 | grep remotes/origin/ | sed -e 's% *remotes/origin/%%' | xargs -I% git push origin :% 2>&1 | tee -a ~/Desktop/delete_branches.log
+}
