@@ -67,9 +67,9 @@ alias pins='peco_insert_history'
 # }}}
 
 alias pgco='br_fmt | xargs git checkout'
-alias pgcob='br_fmt | xargs git checkout -b'
+alias pgcob='pgco -b'
 alias pgmg='br_fmt | xargs git merge'
-alias pgmgs='br_fmt | xargs git merge --squash'
+alias pgmgs='pgmg --squash'
 alias pgpl='br_fmt | xargs git pull origin'
 alias pgps='br_fmt | xargs git push origin'
 alias pgbd='br_fmt | xargs git branch -d'
@@ -78,11 +78,16 @@ alias pgb='git branch -a | peco'
 alias pgbd_remote='br_fmt | xargs git push --delete origin'
 alias pgrb='br_fmt | xargs git pull --rebase origin'
 alias pgl='br_fmt | xargs git log'
-alias pglp='br_fmt | xargs git log -p'
+alias pglp='pgl -p'
 alias pgd='br_fmt | xargs git diff'
 alias pls='ls -AaR | peco'
 alias pfind='find -L . -name "*" | peco'
 alias pps='ps aux | peco'
+alias pkill='ps ax | peco | awk "{ print $1 }" | xargs kill'
+alias pvi='pfind | xargs VI'
+alias popen='pfind | xargs open'
+alias pless='pfind | xargs less'
+
 function pcat(){
   cat -n $@ | peco
 }
@@ -92,28 +97,28 @@ function br_fmt(){
   git branch -a | peco | xargs echo | sed -e 's/\*//' | sed -e 's/remotes\/origin\///'
 }
 
-function pgmg-remote(){
-  br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}' | xargs git merge
-}
-function pgmgs-remote(){
-  br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}' | xargs git merge --squash
-}
-function pgl-remote(){
-  br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}' | xargs git log
-}
-function pglp-remote(){
-  br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}' | xargs git log -p
-}
-function pglst-remote(){
-  br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}' | xargs git log --stat
-}
-function pgd-remote(){
-  br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}' | xargs git diff
-}
-function pgdn-remote(){
-  br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}' | xargs git diff --name-status
+function br_fmt_remote(){
+  br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}'
 }
 
-alias pkill='ps ax | peco | awk "{ print $1 }" | xargs kill'
-alias pvi='ls | peco | xargs VI'
-alias popen='ls | peco | xargs open'
+function pgmg-remote(){
+  br_fmt_remote | xargs git merge
+}
+function pgmgs-remote(){
+  br_fmt_remote | xargs git merge --squash
+}
+function pgl-remote(){
+  br_fmt_remote | xargs git log
+}
+function pglp-remote(){
+  br_fmt_remote | xargs git log -p
+}
+function pglst-remote(){
+  br_fmt_remote | xargs git log --stat
+}
+function pgd-remote(){
+  br_fmt_remote | xargs git diff
+}
+function pgdn-remote(){
+  br_fmt_remote | xargs git diff --name-status
+}

@@ -139,25 +139,25 @@ alias phpsnip='vi ~/.vim/ultisnips/php.snippets'
 alias g='noglob git'
 alias gs='git s'
 alias ga='git add'
-alias gaa='git add .'
+alias gaa='ga .'
 # alias gra='git rmall'
-alias gcm='git commit -m'
+alias gcm='gci -m'
 alias gci='git commit'
-alias gca='git commit --amend'
+alias gca='gci --amend'
 alias gps='git push'
 alias gps-dry-run='git push -n'
 # alias gpl='git current-branch | git pull origin'
 alias gd='git diff'
 alias gmd='git modified'
-alias gdc='git diff --cached'
+alias gdc='gd --cached'
 alias gad='git added'
 alias gdel='git deleted'
 alias gpl-dry-run='git pull-dry-run'
 alias gcb='git current-branch'
 alias grb='git rb'
-alias grba='git rb --abort'
-alias grbc='git rb --continue'
-alias grbi='git rb -i'
+alias grba='grb --abort'
+alias grbc='grb --continue'
+alias grbi='grb -i'
 alias gdfw='git wdf'
 alias gtr='git tree'
 alias gl='git log'
@@ -176,7 +176,7 @@ alias glns='gl --name-status'
 alias glp='gl -p'
 alias gcl='git clean'
 alias gmg='git merge'
-alias gmgs='git merge --squash'
+alias gmgs='gmg --squash'
 alias gcob='gco -b'
 alias gba='gb -a'
 alias gstd='gst drop'
@@ -217,10 +217,6 @@ alias gsmu='g smupdate'
 alias gsms='g sm status'
 alias grp='git remote prune origin'
 alias gfp='git fetch --all --prune'
-# http://shigemk2.hatenablog.com/entry/20130629/1372463353
-# 現在の作業ブランチにマージしていないブランチを削除
-alias g-delete-remote-merged-branches-dry-run="git branch -a --merged | 'grep' -v '*' | 'grep' -v master | 'grep' remotes/origin/ | sed -e 's% *remotes/origin/%%' | xargs -I% git push -n origin :%"
-alias g-delete-remote-merged-branches="git branch -a --merged | 'grep' -v '*' | 'grep' -v master | 'grep' remotes/origin/ | sed -e 's% *remotes/origin/%%' | xargs -I% git push origin :%"
 
 function lessc(){
 	export LESSOPEN='| /usr/local/bin/src-hilite-lesspipe.sh %s'
@@ -379,6 +375,9 @@ alias benchmark-vim-awake='vs --startuptime vim_benchmark.txt'
 alias benchmark-vim-plugin='vim --cmd "profile start vim_benchmark.txt" --cmd "profile file */plugin/*.vim" --cmd "profile file .vimrc" -c quit'
 alias benchmark-vimrc='vim --cmd "profile start vim_benchmark.txt" --cmd "profile file .vimrc" -c quit'
 
+alias php-syntax-check='find . -name "*.php" -exec php -l {} \; | grep -v "No syntax errors detected in"'
+alias php-syntax-check-full='find . -name "*.php" -exec php -l {} \;'
+
 # 現在のディレクトリ以下の当てはまるファイルを全て削除する
 # http://www.omnioo.com/omnioolab/2012/07/find.php
 alias rrm='noglob _rrm'
@@ -508,17 +507,30 @@ function up() {
   # vim -c DirDiff $1 $2
 # }
 
-alias g-delete-remote-merged-branches-dry-run="git branch -a --merged | 'grep' -v '*' | 'grep' -v master | 'grep' remotes/origin/ | sed -e 's% *remotes/origin/%%' | xargs -I% git push -n origin :% 2>&1 | tee -a ~/Desktop/delete_branches_dry_run.log"
-alias g-delete-remote-merged-branches="git branch -a --merged | 'grep' -v '*' | 'grep' -v master | 'grep' remotes/origin/ | sed -e 's% *remotes/origin/%%' | xargs -I% git push origin :% 2>&1 | tee -a ~/Desktop/delete_branches.log"
+# http://shigemk2.hatenablog.com/entry/20130629/1372463353
+# 現在の作業ブランチにマージしていないブランチを削除
+alias g-delete-remote-merged-branches="g-remote-merged-branches | xargs -I% git push origin :%"
+alias g-remote-merged-branches="git branch -a --merged | 'grep' -v '*' | 'grep' -v master | 'grep' remotes/origin/ | sed -e 's% *remotes/origin/%%'"
+
+alias g-delete-remote-merged-branches-dry-run="g-remote-merged-branches | xargs -I% git push -n origin :% 2>&1 | tee -a ~/Desktop/delete_branches_dry_run.log"
+alias g-delete-remote-merged-branches="g-remote-merged-branches | xargs -I% git push origin :% 2>&1 | tee -a ~/Desktop/delete_branches.log"
+
+function g-remote-branches(){
+  git branch -a | grep -v '*' | grep -v master | grep $1 | grep remotes/origin/
+}
+
+function g-remote-branches-fmt(){
+  g-remote-branches | sed -e 's% *remotes/origin/%%'
+}
 
 function g-delete-remote-branches-hash-check() {
-	git branch -a | grep -v '*' | grep -v master | grep $1 | grep remotes/origin/ | xargs -I{} sh -c 'echo {};git rev-parse {};echo ""' 2>&1 | tee -a ~/Desktop/delete_branches_hash_check.txt
+  g-remote-branches $1 | xargs -I{} sh -c 'echo {};git rev-parse {};echo ""' 2>&1 | tee -a ~/Desktop/delete_branches_hash_check.txt
 }
 
 function g-delete-remote-branches-dry-run() {
-	git branch -a | grep -v '*' | grep -v master | grep $1 | grep remotes/origin/ | sed -e 's% *remotes/origin/%%' | xargs -I% git push -n origin :% 2>&1 | tee -a ~/Desktop/delete_branches_dry_run.log
+	g-remote-branches-fmt $1 | xargs -I% git push -n origin :% 2>&1 | tee -a ~/Desktop/delete_branches_dry_run.log
 }
 
 function g-delete-remote-branches() {
-	git branch -a | grep -v '*' | grep -v master | grep $1 | grep remotes/origin/ | sed -e 's% *remotes/origin/%%' | xargs -I% git push origin :% 2>&1 | tee -a ~/Desktop/delete_branches.log
+	g-remote-branches-fmt $1 | xargs -I% git push origin :% 2>&1 | tee -a ~/Desktop/delete_branches.log
 }
