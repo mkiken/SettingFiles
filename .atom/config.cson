@@ -51,15 +51,17 @@
     useEmacsCursor: true
     useFuzzyFileFinder: false
     useFuzzyBufferFinder: false
-  linter:
-    {}
+  linter: {}
   "exception-reporting":
     userId: "ab2ede93-4a6d-ac5c-e79c-362a6c7e1cd8"
   welcome:
     showOnStartup: false
   core:
-    {}
+    themes: [
+      "atom-dark-ui"
+      "dracula-theme"
+    ]
   editor:
-    invisibles:
-      {}
-    fontSize: 11
+    invisibles: {}
+    fontSize: 12
+  "one-dark-ui": {}
