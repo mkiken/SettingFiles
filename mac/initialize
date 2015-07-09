@@ -140,7 +140,16 @@ ln -si "${Repo}submodules/used-mem/used-mem" /usr/local/bin/used-mem
 
 massren --config editor "mvim"
 
+# zsh setting
+chsh -s /usr/local/bin/zsh
+
 # source ~/.zshrc
 A="${SET}submodules/auto-fu.zsh/auto-fu.zsh" ; (zsh -c "source $A ; auto-fu-zcompile $A ~/.zsh")
+
+cd ~/.vim/bundle/YouCompleteMe
+git submodule update --init --recursive
+./install.sh --clang-completer
+cd $OLDPWD
+
 
 ./update

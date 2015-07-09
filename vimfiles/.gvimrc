@@ -2,7 +2,7 @@
 
 " カラースキーマを設定
 " colorscheme molokai
-" colorscheme Tomorrow
+colorscheme Tomorrow
 " colorscheme Tomorrow-Night
 " colorscheme Tomorrow-Night-Bright
 " colorscheme Tomorrow-Night-Blue
@@ -15,7 +15,7 @@
 " colorscheme grb256
 " colorscheme hybrid-light
 " colorscheme inkpot
-colorscheme jellybeans
+" colorscheme jellybeans
 " colorscheme sexy-railscasts
 " colorscheme summerfruits256
 " colorscheme wombat
