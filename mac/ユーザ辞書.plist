@@ -16,6 +16,12 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>｡⌒ ヽ(´ー｀ )</string>
+		<key>shortcut</key>
+		<string>あげる</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>（ﾉ∀｀）ｱﾁｬｰ</string>
 		<key>shortcut</key>
 		<string>あちゃー</string>
@@ -316,7 +322,7 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>（￣□￣；）</string>
+		<string>(￣□￣；)</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
 	</dict>
@@ -766,6 +772,12 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>(・д・)ﾁｯ</string>
+		<key>shortcut</key>
+		<string>ちっ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(ﾉ・∀・)ﾉ　＝＝＝＝＝┻━┻))ﾟДﾟ)･∵.</string>
 		<key>shortcut</key>
 		<string>ちゃぶだい</string>
@@ -787,12 +799,6 @@
 		<string>|дﾟ)ﾁﾗｯ</string>
 		<key>shortcut</key>
 		<string>ちらっ</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>ﾏﾀﾞｧ?(・∀・ )っ/凵⌒☆ﾁﾝﾁﾝ</string>
-		<key>shortcut</key>
-		<string>ちんちん</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -976,7 +982,7 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>（　´_ゝ｀）ﾌｰﾝ</string>
+		<string>(　´_ゝ｀)ﾌｰﾝ</string>
 		<key>shortcut</key>
 		<string>ふーん</string>
 	</dict>
@@ -1054,9 +1060,21 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>ｶｰｯ(ﾟДﾟ≡ﾟдﾟ)､ﾍﾟｯ</string>
+		<key>shortcut</key>
+		<string>ぺっ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(ﾟДﾟ )</string>
 		<key>shortcut</key>
 		<string>ぽかーん</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>ぼこぼこにしてやんよ (　･ω･)っ≡つ ﾊﾞﾊﾞﾊﾞﾊﾞ</string>
+		<key>shortcut</key>
+		<string>ぼこぼこ</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -1069,6 +1087,12 @@
 		<string>┌(┌ ^o^)┐ﾎﾓｫ…</string>
 		<key>shortcut</key>
 		<string>ほもぉ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>ﾏﾀﾞｧ?(・∀・ )っ/凵⌒☆ﾁﾝﾁﾝ</string>
+		<key>shortcut</key>
+		<string>まだ</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -1153,24 +1177,6 @@
 		<string>／人◕‿‿◕人＼</string>
 		<key>shortcut</key>
 		<string>わけがわからないよ</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>ｶｰｯ(ﾟДﾟ≡ﾟдﾟ)､ﾍﾟｯ</string>
-		<key>shortcut</key>
-		<string>ぺっ</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>ぼこぼこにしてやんよ (　･ω･)っ≡つ ﾊﾞﾊﾞﾊﾞﾊﾞ</string>
-		<key>shortcut</key>
-		<string>ぼこぼこ</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>｡⌒ ヽ(´ー｀ )</string>
-		<key>shortcut</key>
-		<string>やるよ</string>
 	</dict>
 </array>
 </plist>

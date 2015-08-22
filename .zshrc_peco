@@ -97,6 +97,24 @@ function br_fmt(){
   git branch -a | peco | xargs echo | sed -e 's/\*//' | sed -e 's/remotes\/origin\///'
 }
 
+# peco git show file
+function pgsf(){
+ local temp=`br_fmt | xargs echo`
+ git show "${temp}":"$@"
+}
+
+# peco git checkout file
+function pgcof(){
+ local temp=`br_fmt | xargs echo`
+ gco "${temp}" -- "$@"
+}
+
+# peco git checkout directory
+function pgcod(){
+ local temp=`br_fmt | xargs echo`
+ gco "${temp}" "$@"
+}
+
 function br_fmt_remote(){
   br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}'
 }
@@ -121,4 +139,9 @@ function pgd-remote(){
 }
 function pgdn-remote(){
   br_fmt_remote | xargs git diff --name-status
+}
+
+# http://qiita.com/fmy/items/b92254d14049996f6ec3
+function agvim () {
+  vim $(ag $@ | peco --query "$LBUFFER" | awk -F : '{print "-c " $2 " " $1}')
 }

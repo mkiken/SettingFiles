@@ -507,6 +507,8 @@ augroup END
 " 画面再描画
 nnoremap <Leader>r <C-l>
 
+" cnoremap <CR> <Plug>(anzu-update-search-status)<Plug>(anzu-echo-search-status)<CR>
+
 
 " ##################################
 " ###   Plugins
@@ -1262,6 +1264,7 @@ xmap <Leader>H <Plug>(quickhl-manual-reset)
 " \}
 
 map /  <Plug>(incsearch-forward)
+" (anzu-update-search-status)<Plug>(anzu-echo-search-status)
 map ?  <Plug>(incsearch-backward)
 " どうもincsearchは日本語が打てないようなので最悪これで
 nnoremap <Leader>/ /
