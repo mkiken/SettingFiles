@@ -147,10 +147,13 @@ set scrolloff=5
 " 権限無いファイルでも保存
 cabbrev w!! w !sudo tee % >/dev/null
 cabbrev a Ag
+cabbrev tn tabnew
 cabbrev tc tabclose
+cabbrev to tabonly
 cabbrev cdc CdCurrent
 cabbrev gb Gblame
 cabbrev gd Gdiff
+cabbrev rev g/.*/mo0
 
 " http://rbtnn.hateblo.jp/entry/2014/11/30/174749
 augroup vimrc
@@ -244,9 +247,9 @@ vnoremap G G<End>
 onoremap G G<End>
 
 " ちょっと微妙かもだけど、\で行末に移動
-nnoremap \ <End>h
-vnoremap \ <End>h
-onoremap \ <End>h
+" nnoremap \ <End>h
+" vnoremap \ <End>h
+" onoremap \ <End>h
 
 " ヴィジュアルモードでdeleteで削除
 " MacのdeleteはBackSpaceらしい
@@ -809,7 +812,7 @@ noremap <Leader>o :Occur<CR>
 
  " <Leader>mに、switch.vimをマッピング
  " nnoremap <Leader>m  <Plug>(switch-next)
- nnoremap ^ :Switch<cr>
+ nnoremap \ :Switch<cr>
  let g:switch_custom_definitions =
     \ [
     \   ['before', 'after'],

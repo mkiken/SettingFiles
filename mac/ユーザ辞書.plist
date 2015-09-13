@@ -220,6 +220,12 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>L(ﾟ□ﾟ)」ｵｰﾏｲｶﾞ!</string>
+		<key>shortcut</key>
+		<string>おーまいが</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>( ´Д｀ )ﾉ</string>
 		<key>shortcut</key>
 		<string>おつ</string>
@@ -292,12 +298,6 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>_〆(・ω・｀ )</string>
-		<key>shortcut</key>
-		<string>かおもじ</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
 		<string>･ﾟ･(｡✖д✖｡)･ﾟ･</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
@@ -311,6 +311,12 @@
 	<dict>
 		<key>phrase</key>
 		<string>( ･´ｰ･｀) </string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>( ｡・ω・)ノ</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
 	</dict>
@@ -394,12 +400,6 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>(´・с_・｀)</string>
-		<key>shortcut</key>
-		<string>かおもじ</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
 		<string>(´･_･`)</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
@@ -436,13 +436,7 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>(T ^ T)</string>
-		<key>shortcut</key>
-		<string>かおもじ</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>(T_T)</string>
+		<string>(ノ・ω・)ノ</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
 	</dict>
@@ -646,6 +640,12 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>(つд⊂)ｺﾞｼｺﾞｼ</string>
+		<key>shortcut</key>
+		<string>ごしごし</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(＞人＜;)</string>
 		<key>shortcut</key>
 		<string>ごめん</string>
@@ -661,6 +661,12 @@
 		<string>|彡ｻｯ</string>
 		<key>shortcut</key>
 		<string>さっ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>（´・ω・`）.;:…（´・ω...:.;::..（´・;::: .:.;: ｻﾗｻﾗ..</string>
+		<key>shortcut</key>
+		<string>さらさら</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -685,6 +691,24 @@
 		<string>|←樹海|　　　　　┗(^o^ )┓三</string>
 		<key>shortcut</key>
 		<string>じゅかい</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>_〆(・ω・｀ )</string>
+		<key>shortcut</key>
+		<string>しょぼん</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(´・ω・`)</string>
+		<key>shortcut</key>
+		<string>しょぼん</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(´・с_・｀)</string>
+		<key>shortcut</key>
+		<string>しょぼん</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -802,6 +826,12 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>(σ･∀･｀)</string>
+		<key>shortcut</key>
+		<string>えへへ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(・ω&lt;)ﾃﾍﾍﾟﾛ</string>
 		<key>shortcut</key>
 		<string>てへぺろ</string>
@@ -823,6 +853,24 @@
 		<string>(　・ω・) ㌧</string>
 		<key>shortcut</key>
 		<string>とん</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(/ _ ; )</string>
+		<key>shortcut</key>
+		<string>なき</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(T ^ T)</string>
+		<key>shortcut</key>
+		<string>なき</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(T_T)</string>
+		<key>shortcut</key>
+		<string>なき</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -946,7 +994,13 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>（＃＾ω＾）ﾋﾟｷﾋﾟｷ</string>
+		<string>(ﾉｼ 'ω')ﾉｼ ﾊﾞﾝﾊﾞﾝ</string>
+		<key>shortcut</key>
+		<string>ばんばん</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(＃＾ω＾)ﾋﾟｷﾋﾟｷ</string>
 		<key>shortcut</key>
 		<string>ぴきぴき</string>
 	</dict>
@@ -1093,12 +1147,6 @@
 		<string>ﾏﾀﾞｧ?(・∀・ )っ/凵⌒☆ﾁﾝﾁﾝ</string>
 		<key>shortcut</key>
 		<string>まだ</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>ﾏﾀﾞｧ?（・∀・ ）っ/凵⌒☆ﾁﾝ ﾁﾝ</string>
-		<key>shortcut</key>
-		<string>まだぁ</string>
 	</dict>
 	<dict>
 		<key>phrase</key>

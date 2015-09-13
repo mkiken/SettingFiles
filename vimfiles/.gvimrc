@@ -1,32 +1,31 @@
 " Vim Settings for GUI
 
 " カラースキーマを設定
-" colorscheme molokai
-colorscheme Tomorrow
-" colorscheme Tomorrow-Night
-" colorscheme Tomorrow-Night-Bright
-" colorscheme Tomorrow-Night-Blue
-" colorscheme Tomorrow-Night-Eighties
-" colorscheme solarized
-" colorscheme wombat
-" colorscheme hybrid
-" colorscheme iceberg
-" colorscheme github
-" colorscheme grb256
-" colorscheme hybrid-light
-" colorscheme inkpot
-" colorscheme jellybeans
-" colorscheme sexy-railscasts
-" colorscheme summerfruits256
-" colorscheme wombat
 " colorscheme BusyBee
+" colorscheme Tomorrow
+" colorscheme Tomorrow-Night
+" colorscheme Tomorrow-Night-Blue
+" colorscheme Tomorrow-Night-Bright
+" colorscheme Tomorrow-Night-Eighties
 " colorscheme badwolf
 " colorscheme codeschool
+colorscheme evening
+" colorscheme github
+" colorscheme grb256
+" colorscheme hybrid
+" colorscheme hybrid-light
+" colorscheme iceberg
+" colorscheme inkpot
+" colorscheme jellybeans
 " colorscheme lucius
-" colorscheme zenburn
 " colorscheme macvim
+" colorscheme molokai
+" colorscheme sexy-railscasts
 " colorscheme slate
-
+" colorscheme solarized
+" colorscheme summerfruits256
+" colorscheme wombat
+" colorscheme zenburn
 
 augroup gvimrc
   autocmd!
