@@ -9,7 +9,7 @@
 " colorscheme Tomorrow-Night-Eighties
 " colorscheme badwolf
 " colorscheme codeschool
-colorscheme evening
+" colorscheme evening
 " colorscheme github
 " colorscheme grb256
 " colorscheme hybrid
@@ -22,10 +22,12 @@ colorscheme evening
 " colorscheme molokai
 " colorscheme sexy-railscasts
 " colorscheme slate
-" colorscheme solarized
+colorscheme solarized
 " colorscheme summerfruits256
 " colorscheme wombat
 " colorscheme zenburn
+
+set background=dark
 
 augroup gvimrc
   autocmd!

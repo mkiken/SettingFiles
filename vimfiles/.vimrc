@@ -14,7 +14,6 @@ set noerrorbells
 
 set cursorline " カーソル行をハイライト
 "set cursorcolumn
-" set background=dark
 
 set title "編集中のファイル名を表示する
 set showcmd "入力中のコマンドを表示する
@@ -147,13 +146,18 @@ set scrolloff=5
 " 権限無いファイルでも保存
 cabbrev w!! w !sudo tee % >/dev/null
 cabbrev a Ag
-cabbrev tn tabnew
-cabbrev tc tabclose
-cabbrev to tabonly
-cabbrev cdc CdCurrent
-cabbrev gb Gblame
-cabbrev gd Gdiff
-cabbrev rev g/.*/mo0
+command! Tn tabnew
+command! Tc tabclose
+command! To tabonly
+command! Cdc CdCurrent
+" cabbrev cdc :lcd %:h
+command! Ga :call Gadd()
+command! Gb Gblame
+command! Gc Gcommit
+command! Gd Gdiff
+command! Gr Gread
+command! Gs Gstatus
+command! Rev g/.*/mo0
 
 " http://rbtnn.hateblo.jp/entry/2014/11/30/174749
 augroup vimrc
@@ -205,8 +209,6 @@ autocmd vimrc BufWritePre * if index(remove_dust_blacklist, &ft) < 0 | call <SID
 
 " http://vim-users.jp/2009/09/hack69/
 " set autochdir
-
-cabbrev cdc :lcd %:h
 
 vnoremap <Leader>{ "zdi{<C-R>z}<ESC>
 vnoremap [ "zdi[<C-R>z]<ESC>
@@ -608,6 +610,7 @@ nnoremap <Leader>r <C-l>
  " NeoBundle 'kmnk/vim-unite-giti'
  NeoBundle 'MattesGroeger/vim-bookmarks'
  NeoBundle 'Valloric/ListToggle'
+ " NeoBundle 'rhysd/committia.vim'
 
  NeoBundle 'Shougo/vimproc.vim', {
        \ 'build' : {
@@ -1224,10 +1227,16 @@ let g:SimpleJsIndenter_CaseIndentLevel = -1
 let g:jsdoc_default_mapping = 0
 " nnoremap <silent> <Leader>d :JsDoc<CR>
 
+function! Gadd ()
+  :Gwrite
+  :echo 'git add [ ' . expand('%:t') . ' ].'
+endfunction
+
 nnoremap <silent> <Leader>gb :Gblame<CR>
 nnoremap <silent> <Leader>gd :Gdiff<Space>
 nnoremap <silent> <Leader>gs :Gstatus<CR>
-nnoremap <silent> <Leader>ga :Gwrite<CR> \| :echo 'git add [ ' . expand('%:t') . ' ].'<CR>
+" nnoremap <silent> <Leader>ga :Gwrite<CR> \| :echo 'git add [ ' . expand('%:t') . ' ].'<CR>
+nnoremap <silent> <Leader>ga :call Gadd()<CR>
 nnoremap <silent> <Leader>gc :Gcommit<CR>
 nnoremap <silent> <Leader>gr :Gremove<CR>
 nnoremap <silent> <Leader>gm :Gmove<CR>
