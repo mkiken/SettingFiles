@@ -511,26 +511,30 @@ function up() {
 # 現在の作業ブランチにマージしていないブランチを削除
 alias g-delete-remote-merged-branches="g-remote-merged-branches | xargs -I% git push origin :%"
 alias g-remote-merged-branches="git branch -a --merged | 'grep' -v '*' | 'grep' -v master | 'grep' remotes/origin/ | sed -e 's% *remotes/origin/%%'"
+alias g-remote-merged-branches_orig="git branch -a --merged | 'grep' -v '*' | 'grep' -v master | 'grep' remotes/origin/"
 
 alias g-delete-remote-merged-branches-dry-run="g-remote-merged-branches | xargs -I% git push -n origin :% 2>&1 | tee -a ~/Desktop/delete_branches_dry_run.log"
 alias g-delete-remote-merged-branches="g-remote-merged-branches | xargs -I% git push origin :% 2>&1 | tee -a ~/Desktop/delete_branches.log"
 
-function g-remote-branches(){
+alias g-delete-remote-branches-hash-check="g-remote-merged-branches_orig | xargs -I{} sh -c 'echo {};git rev-parse {};echo ""' 2>&1 | tee -a ~/Desktop/delete_branches_hash_check.txt"
+
+# 単語を使ってブランチを削除
+function g-remote-branches-by-word(){
   git branch -a | grep -v '*' | grep -v master | grep $1 | grep remotes/origin/
 }
 
-function g-remote-branches-fmt(){
-  g-remote-branches | sed -e 's% *remotes/origin/%%'
+function g-remote-branches-by-word-fmt(){
+  g-remote-branches-by-word $1 | sed -e 's% *remotes/origin/%%'
 }
 
-function g-delete-remote-branches-hash-check() {
-  g-remote-branches $1 | xargs -I{} sh -c 'echo {};git rev-parse {};echo ""' 2>&1 | tee -a ~/Desktop/delete_branches_hash_check.txt
+function g-delete-remote-branches-by-word-hash-check() {
+  g-remote-branches-by-word $1 | xargs -I{} sh -c 'echo {};git rev-parse {};echo ""' 2>&1 | tee -a ~/Desktop/delete_branches_hash_check.txt
 }
 
-function g-delete-remote-branches-dry-run() {
-	g-remote-branches-fmt $1 | xargs -I% git push -n origin :% 2>&1 | tee -a ~/Desktop/delete_branches_dry_run.log
+function g-delete-remote-branches-by-word-dry-run() {
+  g-remote-branches-by-word-fmt $1 | xargs -I% git push -n origin :% 2>&1 | tee -a ~/Desktop/delete_branches_dry_run.log
 }
 
-function g-delete-remote-branches() {
-	g-remote-branches-fmt $1 | xargs -I% git push origin :% 2>&1 | tee -a ~/Desktop/delete_branches.log
+function g-delete-remote-branches-by-word() {
+  g-remote-branches-by-word-fmt $1 | xargs -I% git push origin :% 2>&1 | tee -a ~/Desktop/delete_branches.log
 }
