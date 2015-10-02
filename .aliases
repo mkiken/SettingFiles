@@ -10,6 +10,8 @@ MACVIM="/Applications/MacVim.app/Contents/MacOS/mvim"
 alias ls='ls -G'
 alias la='ls -A'
 alias ll='ls -AFThl'
+alias lsg='ls | grep'
+alias -g L='| less'
 #MacVim on CUI
 alias -g vs='env LANG=ja_JP.UTF-8 ${MACVIM}'
 alias -g VI='vs --remote-tab-silent'
