@@ -64,4 +64,7 @@
   editor:
     invisibles: {}
     fontSize: 12
+    softWrap: true
+    zoomFontWhenCtrlScrolling: true
+    scrollPastEnd: true
   "one-dark-ui": {}

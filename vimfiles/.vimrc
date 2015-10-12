@@ -931,9 +931,11 @@ let g:ctrlp_custom_ignore = '\v[\/]\.(git|hg|svn)$'
 if executable('ag')
   " Use ag over grep
   set grepprg=ag\ --nogroup\ --nocolor
+  let g:ag_prg="ag --smart-case --column --nogroup --noheading --nocolor"
 
   " Use ag in CtrlP for listing files. Lightning fast and respects .gitignore
   let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
+  let g:ag_highlight = 1 " highlight the search terms after searching
 
   " ag is fast enough that CtrlP doesn't need to cache
   " let g:ctrlp_use_caching = 0
