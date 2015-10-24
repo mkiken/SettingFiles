@@ -42,6 +42,7 @@
 	; http://qiita.com/peccul/items/90dd469e2f72babbc106
 	today = log --oneline --since='12 hour ago'
 	hisback = reset --soft HEAD^
+	back = reset --hard HEAD^
 	zip = archive --format=zip --prefix=archive/ HEAD^ -o archive.zip
 	; http://qiita.com/usamik26/items/bfc2196f510d68b3c2cc
 	modified = diff --diff-filter=M
@@ -104,7 +105,6 @@
 [color]
 	ui = auto
 [core]
-	excludesfile = /Users/a13596/.gitignore
 	autocrlf = false
 	; editor = emacs
 	; editor = vim -c \"set fenc=utf-8\"
@@ -125,7 +125,7 @@
     cmd = mvim -f -d \"$LOCAL\" \"$REMOTE\"
 [difftool "sourcetree"]
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path = 
+	path =
 [merge]
 	; tool = vimdiff2
 	tool = mvimdiff

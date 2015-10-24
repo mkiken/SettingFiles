@@ -58,8 +58,8 @@
     showOnStartup: false
   core:
     themes: [
-      "atom-dark-ui"
-      "dracula-theme"
+      "atom-light-ui"
+      "atom-light-syntax"
     ]
   editor:
     invisibles: {}
@@ -67,4 +67,7 @@
     softWrap: true
     zoomFontWhenCtrlScrolling: true
     scrollPastEnd: true
+    showIndentGuide: true
+    showInvisibles: true
   "one-dark-ui": {}
+  tablr: {}

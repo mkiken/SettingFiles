@@ -20,9 +20,9 @@
 " colorscheme lucius
 " colorscheme macvim
 " colorscheme molokai
-" colorscheme sexy-railscasts
+colorscheme sexy-railscasts
 " colorscheme slate
-colorscheme solarized
+" colorscheme solarized
 " colorscheme summerfruits256
 " colorscheme wombat
 " colorscheme zenburn

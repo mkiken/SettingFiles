@@ -611,6 +611,7 @@ nnoremap <Leader>r <C-l>
  NeoBundle 'MattesGroeger/vim-bookmarks'
  NeoBundle 'Valloric/ListToggle'
  " NeoBundle 'rhysd/committia.vim'
+ NeoBundle 'vim-scripts/csv.vim'
 
  NeoBundle 'Shougo/vimproc.vim', {
        \ 'build' : {
@@ -1485,3 +1486,14 @@ let g:ycm_filetype_specific_completion_to_disable = {
       \ 'php': 1,
       \ 'smarty': 1
       \}
+
+" csv.vimをトグル
+function! ToggleCsvPlugin()
+  if exists('g:csv_no_conceal')
+    unlet g:csv_no_conceal
+  else
+    let g:csv_no_conceal = 1
+  endif
+  :InitCSV
+endfunction
+command! ToggleCsvPlugin :call ToggleCsvPlugin()
