@@ -1,0 +1,304 @@
+
+# http://www.pupha.net/archives/2267/
+function fzf-select-history() {
+  local cmd=`history -500 | tail -r | fzf | cut -d ' ' -f 1`
+  if [ "${cmd}" != "" ]; then
+    r ${cmd}
+    return 0;
+  fi
+  return -1;
+}
+zle -N fzf-select-history
+alias fhist='fzf-select-history'
+# bindkey '^r' fzf-select-history
+
+function f(){
+  $@ | fzf | pbcopy
+}
+
+
+alias -g F='| fzf'
+alias -g Fx='| fzf | xargs '
+alias -g Ft='| fzf-tmux'
+
+# http://stillpedant.hatenablog.com/entry/percol-cd-history
+typeset -U chpwd_functions
+CD_HISTORY_FILE=${HOME}/.cd_history_file # cd 履歴の記録先ファイル
+function chpwd_record_history() {
+  echo $PWD >> ${CD_HISTORY_FILE}
+}
+chpwd_functions=($chpwd_functions chpwd_record_history)
+
+  # fzfを使って cd 履歴の中からディレクトリを選択
+  # 過去の訪問回数が多いほど選択候補の上に来る
+function fzf_get_destination_from_history() {
+  sort ${CD_HISTORY_FILE} | uniq -c | sort -r | \
+  sed -e 's/^[ ]*[0-9]*[ ]*//' | \
+  sed -e s"/^${HOME//\//\\/}/~/" | \
+  fzf | xargs echo
+}
+
+# fzf を使って cd 履歴の中からディレクトリを選択し cd するウィジェット
+function fzf_cd_history() {
+  local destination=$(fzf_get_destination_from_history)
+  if [ "${destination}" != "" ]; then
+    echo "${destination}"
+    cd ${destination/#\~/${HOME}}
+    zle -N reset-prompt
+    return 0;
+fi
+  return -1;
+}
+zle -N fzf_cd_history
+alias fcd='fzf_cd_history'
+alias fj='pcd'
+
+# fzf を使って cd 履歴の中からディレクトリを選択し，現在のカーソル位置に挿入するウィジェット
+function fzf_insert_history() {
+local destination=$(fzf_get_destination_from_history)
+if [ $? -eq 0 ]; then
+  local new_left="${LBUFFER} ${destination} "
+  BUFFER=${new_left}${RBUFFER}
+  CURSOR=${#new_left}
+fi
+zle -N reset-prompt
+}
+zle -N fzf_insert_history
+alias fins='fzf_insert_history'
+# }}}
+
+alias fgco='fbr_fmt | xargs git checkout'
+alias fgcob='fgco -b'
+alias fgmg='fbr_fmt | xargs git merge'
+alias fgmgs='fgmg --squash'
+alias fgpl='fbr_fmt | xargs git pull origin'
+alias fgps='fbr_fmt | xargs git push origin'
+alias fgbd='fbr_fmt | xargs git branch -d'
+alias fgbD='fbr_fmt | xargs git branch -D'
+alias fgb='git branch -a | fzf'
+alias fgbd_remote='fbr_fmt | xargs git push --delete origin'
+alias fgrb='fbr_fmt | xargs git pull --rebase origin'
+alias fgl='fbr_fmt | xargs git log'
+alias fglp='pgl -p'
+alias fgd='fbr_fmt | xargs git diff'
+alias fls='ls -AaR | fzf'
+alias ffind='find -L . -name "*" | fzf'
+alias fps='ps aux | fzf'
+alias fkill='ps ax | fzf | awk "{ print $1 }" | xargs kill'
+alias fvi='ffind | xargs VI'
+alias fopen='ffind | xargs open'
+alias fless='ffind | xargs less'
+
+function fcat(){
+  cat -n $@ | fzf
+}
+
+# Gitのブランチをfzfで扱えるように整形
+function fbr_fmt(){
+  git branch -a | fzf | xargs echo | sed -e 's/\*//' | sed -e 's/remotes\/origin\///'
+}
+
+# fzf git show file
+function fgsf(){
+ local temp=`fbr_fmt | xargs echo`
+ git show "${temp}":"$@"
+}
+
+# fzf git checkout file
+function fgcof(){
+ local temp=`fbr_fmt | xargs echo`
+ gco "${temp}" -- "$@"
+}
+
+# fzf git checkout directory
+function fgcod(){
+ local temp=`fbr_fmt | xargs echo`
+ gco "${temp}" "$@"
+}
+
+function fbr_fmt_remote(){
+  fbr_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}'
+}
+
+function fgmg-remote(){
+  fbr_fmt_remote | xargs git merge
+}
+function fgmgs-remote(){
+  fbr_fmt_remote | xargs git merge --squash
+}
+function fgl-remote(){
+  fbr_fmt_remote | xargs git log
+}
+function fglp-remote(){
+  fbr_fmt_remote | xargs git log -p
+}
+function fglst-remote(){
+  fbr_fmt_remote | xargs git log --stat
+}
+function fgd-remote(){
+  fbr_fmt_remote | xargs git diff
+}
+function fgdn-remote(){
+  fbr_fmt_remote | xargs git diff --name-status
+}
+
+# http://qiita.com/fmy/items/b92254d14049996f6ec3
+function fagvim () {
+  vim $(ag $@ | fzf --query "$LBUFFER" | awk -F : '{print "-c " $2 " " $1}')
+}
+
+# https://github.com/junegunn/fzf/wiki/examples
+
+# fe [FUZZY PATTERN] - Open the selected file with the default editor
+#   - Bypass fuzzy finder if there's only one match (--select-1)
+#   - Exit if there's no match (--exit-0)
+fe() {
+  local file
+  file=$(fzf --query="$1" --select-1 --exit-0)
+  [ -n "$file" ] && ${EDITOR:-vim} "$file"
+}
+
+# Modified version where you can press
+#   - CTRL-O to open with `open` command,
+#   - CTRL-E or Enter key to open with the $EDITOR
+fo() {
+  local out file key
+  out=$(fzf-tmux --query="$1" --exit-0 --expect=ctrl-o,ctrl-e)
+  key=$(head -1 <<< "$out")
+  file=$(head -2 <<< "$out" | tail -1)
+  if [ -n "$file" ]; then
+    [ "$key" = ctrl-o ] && open "$file" || ${EDITOR:-vim} "$file"
+  fi
+}
+# fd - cd to selected directory
+fd() {
+  local dir
+  dir=$(find ${1:-*} -path '*/\.*' -prune \
+                  -o -type d -print 2> /dev/null | fzf +m) &&
+  cd "$dir"
+}
+# fda - including hidden directories
+fda() {
+  local dir
+  dir=$(find ${1:-.} -type d 2> /dev/null | fzf +m) && cd "$dir"
+}
+# cdf - cd into the directory of the selected file
+cdf() {
+   local file
+   local dir
+   file=$(fzf +m -q "$1") && dir=$(dirname "$file") && cd "$dir"
+}
+
+# fh - repeat history
+fh() {
+  print -z $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed 's/ *[0-9]* *//')
+}
+# fkill - kill process
+fkill2() {
+  pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
+
+  if [ "x$pid" != "x" ]
+  then
+    kill -${1:-9} $pid
+  fi
+}
+# fbr - checkout git branch (including remote branches)
+fbr() {
+  local branches branch
+  branches=$(git branch --all | grep -v HEAD) &&
+  branch=$(echo "$branches" |
+           fzf-tmux -d $(( 2 + $(wc -l <<< "$branches") )) +m) &&
+  git checkout $(echo "$branch" | sed "s/.* //" | sed "s#remotes/[^/]*/##")
+}
+
+# fco - checkout git branch/tag
+fco() {
+  local tags branches target
+  tags=$(
+    git tag | awk '{print "\x1b[31;1mtag\x1b[m\t" $1}') || return
+  branches=$(
+    git branch --all | grep -v HEAD             |
+    sed "s/.* //"    | sed "s#remotes/[^/]*/##" |
+    sort -u          | awk '{print "\x1b[34;1mbranch\x1b[m\t" $1}') || return
+  target=$(
+    (echo "$tags"; echo "$branches") |
+    fzf-tmux -l30 -- --no-hscroll --ansi +m -d "\t" -n 2) || return
+  git checkout $(echo "$target" | awk '{print $2}')
+}
+# fcoc - checkout git commit
+fcoc() {
+  local commits commit
+  commits=$(git log --pretty=oneline --abbrev-commit --reverse) &&
+  commit=$(echo "$commits" | fzf --tac +s +m -e) &&
+  git checkout $(echo "$commit" | sed "s/ .*//")
+}
+# fshow - git commit browser
+fshow() {
+  git log --graph --color=always \
+      --format="%C(auto)%h%d %s %C(black)%C(bold)%cr" "$@" |
+  fzf --ansi --no-sort --reverse --tiebreak=index --toggle-sort=\` \
+      --bind "ctrl-m:execute:
+                echo '{}' | grep -o '[a-f0-9]\{7\}' | head -1 |
+                xargs -I % sh -c 'git show --color=always % | less -R'"
+}
+# fcs - get git commit sha
+# example usage: git rebase -i `fcs`
+fcs() {
+  local commits commit
+  commits=$(git log --color=always --pretty=oneline --abbrev-commit --reverse) &&
+  commit=$(echo "$commits" | fzf --tac +s +m -e --ansi --reverse) &&
+  echo -n $(echo "$commit" | sed "s/ .*//")
+}
+# fstash - easier way to deal with stashes
+# type fstash to get a list of your stashes
+# enter shows you the contents of the stash
+# ctrl-d shows a diff of the stash against your current HEAD
+# ctrl-b checks the stash out as a branch, for easier merging
+fstash() {
+  local out q k sha
+    while out=$(
+      git stash list --pretty="%C(yellow)%h %>(14)%Cgreen%cr %C(blue)%gs" |
+      fzf --ansi --no-sort --query="$q" --print-query \
+          --expect=ctrl-d,ctrl-b);
+    do
+      q=$(head -1 <<< "$out")
+      k=$(head -2 <<< "$out" | tail -1)
+      sha=$(tail -1 <<< "$out" | cut -d' ' -f1)
+      [ -z "$sha" ] && continue
+      if [ "$k" = 'ctrl-d' ]; then
+        git diff $sha
+      elif [ "$k" = 'ctrl-b' ]; then
+        git stash branch "stash-$sha" $sha
+        break;
+      else
+        git stash show -p $sha
+      fi
+    done
+}
+# fs [FUZZY PATTERN] - Select selected tmux session
+#   - Bypass fuzzy finder if there's only one match (--select-1)
+#   - Exit if there's no match (--exit-0)
+fs() {
+  local session
+  session=$(tmux list-sessions -F "#{session_name}" | \
+    fzf --query="$1" --select-1 --exit-0) &&
+  tmux switch-client -t "$session"
+}
+# ftpane - switch pane
+ftpane () {
+  local panes current_window target target_window target_pane
+  panes=$(tmux list-panes -s -F '#I:#P - #{pane_current_path} #{pane_current_command}')
+  current_window=$(tmux display-message  -p '#I')
+
+  target=$(echo "$panes" | fzf) || return
+
+  target_window=$(echo $target | awk 'BEGIN{FS=":|-"} {print$1}')
+  target_pane=$(echo $target | awk 'BEGIN{FS=":|-"} {print$2}' | cut -c 1)
+
+  if [[ $current_window -eq $target_window ]]; then
+    tmux select-pane -t ${target_window}.${target_pane}
+  else
+    tmux select-pane -t ${target_window}.${target_pane} &&
+    tmux select-window -t $target_window
+  fi
+}

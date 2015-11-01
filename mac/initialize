@@ -19,6 +19,10 @@ ln -si "${Repo}vimfiles/.gvimrc" ~/.gvimrc
 echo "ln -si ${Repo}vimfiles/.vimrc ~/.vimrc"
 ln -si "${Repo}vimfiles/.vimrc" ~/.vimrc
 
+mkdir -p ~/.config/nvim
+echo "ln -si ${Repo}vimfiles/.vimrc ~/.config/nvim/init.vim"
+ln -si "${Repo}vimfiles/.vimrc" ~/.config/nvim/init.vim
+
 echo "ln -si ${Repo}.zshrc ~/.zshrc"
 ln -si "${Repo}.zshrc" ~/.zshrc
 
@@ -118,6 +122,9 @@ brew tap laurent22/massren
 brew install massren
 brew install ctags
 
+brew reinstall --HEAD fzf
+/usr/local/Cellar/fzf/HEAD/install
+
 brew tap phinze/homebrew-cask
 brew install brew-cask
 # brew cask install atom
@@ -131,6 +138,7 @@ brew cask install dropbox
 brew cask install clipmenu
 # brew cask install skype
 brew cask install bettertouchtool
+
 # touch ~/.z
 touch ~/.cd_history_file
 

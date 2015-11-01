@@ -416,6 +416,11 @@ if exists peco; then
   source "${SET}.zshrc_peco"
 fi
 
+if exists fzf; then
+  source "${SET}.zshrc_fzf"
+  export FZF_DEFAULT_OPTS="--extended --cycle --reverse --no-sort --multi"
+fi
+
 # zle -N zle-keymap-select auto-fu-zle-keymap-select
 if [ -f ${SET}submodules/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
   source ${SET}submodules/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
@@ -586,3 +591,5 @@ afu-ad-delete-unambiguous-prefix afu+accept-and-hold
 if [ ! -f ~/.zshrc.zwc -o ~/.zshrc -nt ~/.zshrc.zwc ]; then
    zcompile ~/.zshrc
 fi
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

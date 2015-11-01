@@ -14,6 +14,8 @@ brew upgrade
 # brew upgrade emacs
 # brew upgrade vim
 # brew upgrade rlwrap
+brew reinstall --HEAD neovim
+brew reinstall --HEAD fzf
 brew cask update
 echo "end brew update."
 
