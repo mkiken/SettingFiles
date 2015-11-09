@@ -108,6 +108,8 @@ exec 'source ' .  g:setting_files_path . '/vimfiles/.vimrc.common'
  " NeoBundle 'rhysd/committia.vim'
  NeoBundle 'vim-scripts/csv.vim'
  " NeoBundle 'junegunn/fzf.vim'
+ NeoBundle 'mkiken/vim-bufonly'
+ " NeoBundle 'dyng/ctrlsf.vim'
 
  NeoBundle 'Shougo/vimproc.vim', {
        \ 'build' : {
@@ -870,7 +872,7 @@ let g:airline_section_c = '%{getcwd()}'
 
 nmap p <Plug>(yankround-p)
 xmap p <Plug>(yankround-p)
-nmap P <Plug>(yankround-P)
+" nmap P <Plug>(yankround-P)
 nmap gp <Plug>(yankround-gp)
 xmap gp <Plug>(yankround-gp)
 nmap gP <Plug>(yankround-gP)

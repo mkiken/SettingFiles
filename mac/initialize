@@ -29,8 +29,8 @@ ln -si "${Repo}.zshrc" ~/.zshrc
 echo "ln -si ${Repo}.tigrc ~/.tigrc"
 ln -si "${Repo}.tigrc" ~/.tigrc
 
-echo "ln -si ${Repo}.emacs.d ~"
-ln -si "${Repo}.emacs.d" ~
+# echo "ln -si ${Repo}.emacs.d ~"
+# ln -si "${Repo}.emacs.d" ~
 
 echo "ln -si ${Repo}vimfiles/.vim ~"
 ln -si "${Repo}vimfiles/.vim" ~
@@ -82,13 +82,14 @@ echo 'symbolic links created.'
 
 
 # mkdir -p ~/.backup
-mkdir -p ~/.backup/emacs/backup
-mkdir -p ~/.backup/emacs/autosave
+# mkdir -p ~/.backup/emacs/backup
+# mkdir -p ~/.backup/emacs/autosave
 mkdir -p ~/.backup/vim/backup
 mkdir -p ~/.backup/vim/swap
 mkdir -p ~/.backup/vim/undo
 
-echo 'backup directory for emacs and vim made.'
+# echo 'backup directory for emacs and vim made.'
+echo 'backup directory for vim made.'
 
 
 # install commands
@@ -106,6 +107,7 @@ brew install rmtrash
 # brew install --cocoa --srgb --with-gnutls --japanese emacs -v
 # brew install --cocoa --srgb --japanese emacs -v
 brew install vim --devel --with-lua
+brew install neovim/neovim/neovim
 brew install rlwrap
 # brew install z
 brew install tmux
@@ -159,5 +161,7 @@ git submodule update --init --recursive
 ./install.sh --clang-completer
 cd $OLDPWD
 
+# for Tmux Plugin Manager
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
 ./update

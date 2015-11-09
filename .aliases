@@ -136,6 +136,7 @@ alias editorconfig='vi ~/.editorconfig'
 alias tmuxconf='vi ~/.tmux.conf'
 alias macinit='vi ${SET}/mac/initialize'
 alias macupdate='vi ${SET}/mac/update'
+alias submoduleconf='vi ${SET}/.gitmodules'
 alias tigrc='vi ~/.tigrc'
 alias phpsnip='vi ~/.vim/ultisnips/php.snippets'
 

@@ -157,6 +157,7 @@ command! Gd Gdiff
 command! Gr Gread
 command! Gs Gstatus
 command! Rev g/.*/mo0
+command! Bo BufOnly
 
 " http://rbtnn.hateblo.jp/entry/2014/11/30/174749
 augroup vimrc
@@ -212,8 +213,12 @@ autocmd vimrc BufWritePre * if index(remove_dust_blacklist, &ft) < 0 | call <SID
 vnoremap <Leader>{ "zdi{<C-R>z}<ESC>
 vnoremap [ "zdi[<C-R>z]<ESC>
 vnoremap ( "zdi(<C-R>z)<ESC>
+vnoremap <Leader>} "zdi{<C-R>z}<ESC>
+vnoremap ] "zdi[<C-R>z]<ESC>
+vnoremap ) "zdi(<C-R>z)<ESC>
 vnoremap " "zdi"<C-R>z"<ESC>
 vnoremap ' "zdi'<C-R>z'<ESC>
+vnoremap ` "zdi`<C-R>z`<ESC>
 " vnoremap < S> " インデントと衝突><
 
 " http://d.hatena.ne.jp/thata/20100606/1275796513
@@ -247,10 +252,10 @@ nnoremap G G<End>
 vnoremap G G<End>
 onoremap G G<End>
 
-" ちょっと微妙かもだけど、\で行末に移動
-" nnoremap \ <End>h
-" vnoremap \ <End>h
-" onoremap \ <End>h
+" ちょっと微妙かもだけど、-で行末に移動
+" nnoremap - <End>
+" vnoremap - <End>
+" onoremap - <End>
 
 " ヴィジュアルモードでdeleteで削除
 " MacのdeleteはBackSpaceらしい
@@ -289,6 +294,8 @@ vnoremap <Leader>x "+x
 vnoremap <Leader>y "+y
 "*p  ペースト
 nnoremap <Leader>p "+p
+
+nnoremap P $p
 
 " http://vim.wikia.com/wiki/Format_pasted_text_automatically
 " :nnoremap p ]p
@@ -381,8 +388,10 @@ function! s:rotate_in_line()
         endif
     endif
 endfunction
-" 0 に割り当て
-nnoremap <silent>0 :<C-u>call <SID>rotate_in_line()<CR>
+" - に割り当て
+nnoremap <silent>- :<C-u>call <SID>rotate_in_line()<CR>
+vnoremap <silent>- :<C-u>call <SID>rotate_in_line()<CR>
+onoremap <silent>- :<C-u>call <SID>rotate_in_line()<CR>
 
 " undoを区切る
 " http://haya14busa.com/vim-break-undo-sequence-in-insertmode/
