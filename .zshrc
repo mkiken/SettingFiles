@@ -371,6 +371,7 @@ bindkey '^J' _kill-backward-blank-word
 compdef -d npm
 compdef -d python #-mが重すぎるので無効
 compdef -d java
+compdef -d man
 
 
 # http://qiita.com/syui/items/82b080920a4241e96aed

@@ -71,3 +71,6 @@
     showInvisibles: true
   "one-dark-ui": {}
   tablr: {}
+  "git-diff":
+    showIconsInEditorGutter: true
+  blame: {}
