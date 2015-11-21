@@ -22,31 +22,7 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>( ；´Д｀)</string>
-		<key>shortcut</key>
-		<string>あせ</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>(￣□￣；)</string>
-		<key>shortcut</key>
-		<string>あせ</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>(;・`д・́)</string>
-		<key>shortcut</key>
-		<string>あせ</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>（；ﾟДﾟ）</string>
-		<key>shortcut</key>
-		<string>あせ</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>σ(^_^;)</string>
+		<string>(；´Д`A</string>
 		<key>shortcut</key>
 		<string>あせ</string>
 	</dict>
@@ -358,6 +334,12 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>･ﾟ･(｡✖д✖｡)･ﾟ･</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(　 Д )　　ﾟ　　ﾟ</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
@@ -376,6 +358,12 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>（￣□￣；）</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(￣▽￣)</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
@@ -383,6 +371,24 @@
 	<dict>
 		<key>phrase</key>
 		<string>(・_・)</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(・ω・)</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(;・`д・́)</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>（；ﾟДﾟ）</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
 	</dict>
@@ -400,7 +406,19 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>(*´ω｀*)</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(*&gt;▽&lt;*)ゞ</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(*ﾟoﾟ*)</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
 	</dict>
@@ -412,7 +430,7 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>(´･Д･)</string>
+		<string>(´;ω;`)</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
 	</dict>
@@ -442,7 +460,13 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>(o´・∀・)o</string>
+		<string>(T ^ T)</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(T_T)</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
 	</dict>
@@ -472,13 +496,13 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>♪(=ﾟωﾟ=)</string>
+		<string>ヽ(・ω・*)ﾉ</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>ヽ(・ω・*)ﾉ</string>
+		<string>ヽ(；▽；)ノ</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
 	</dict>
@@ -526,6 +550,12 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>σ(^_^;)</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>((((( ；ﾟДﾟ)))))ｶﾞｸｶﾞｸﾌﾞﾙﾌﾞﾙ</string>
 		<key>shortcut</key>
 		<string>がくぶる</string>
@@ -535,12 +565,6 @@
 		<string>(((ﾟДﾟ)))</string>
 		<key>shortcut</key>
 		<string>がくぶる</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>(」・ω・)」</string>
-		<key>shortcut</key>
-		<string>かもん</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -658,7 +682,7 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>(つд⊂)ｺﾞｼｺﾞｼ</string>
+		<string> (つд⊂)ｺﾞｼｺﾞｼ</string>
 		<key>shortcut</key>
 		<string>ごしごし</string>
 	</dict>
@@ -868,12 +892,6 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>(*ﾟoﾟ*)</string>
-		<key>shortcut</key>
-		<string>てれ</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
 		<string>（//∇//）</string>
 		<key>shortcut</key>
 		<string>てれ</string>
@@ -904,12 +922,6 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>･ﾟ･(｡✖д✖｡)･ﾟ･</string>
-		<key>shortcut</key>
-		<string>なき</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
 		<string>｡･ﾟ･(ﾉ∀`)･ﾟ･｡</string>
 		<key>shortcut</key>
 		<string>なき</string>
@@ -928,37 +940,7 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>(´;ω;`)</string>
-		<key>shortcut</key>
-		<string>なき</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>(´ﾉω；`)</string>
-		<key>shortcut</key>
-		<string>なき</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
 		<string>(´Д⊂ヽ</string>
-		<key>shortcut</key>
-		<string>なき</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>(T ^ T)</string>
-		<key>shortcut</key>
-		<string>なき</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>(T_T)</string>
-		<key>shortcut</key>
-		<string>なき</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>ヽ(；▽；)ノ</string>
 		<key>shortcut</key>
 		<string>なき</string>
 	</dict>
@@ -1012,12 +994,6 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>(__)｡｡ooOZZZZ</string>
-		<key>shortcut</key>
-		<string>ねる</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
 		<string>(:3 っ)っ</string>
 		<key>shortcut</key>
 		<string>ねる</string>
@@ -1025,18 +1001,6 @@
 	<dict>
 		<key>phrase</key>
 		<string>(o_ _)o.｡oOOｸﾞｩｸﾞｩ･｡･｡･｡zzzZZZ</string>
-		<key>shortcut</key>
-		<string>ねる</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>(つ＿－*)｡οΟ</string>
-		<key>shortcut</key>
-		<string>ねる</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>(ΘωΘ)o.｡o○ｸﾞｰ</string>
 		<key>shortcut</key>
 		<string>ねる</string>
 	</dict>
@@ -1192,6 +1156,12 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string> (´；ω；｀)ﾌﾞﾜｯ</string>
+		<key>shortcut</key>
+		<string>ぶわっ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(´；ω；｀)ﾌﾞﾜｯ</string>
 		<key>shortcut</key>
 		<string>ぶわっ</string>
@@ -1255,6 +1225,12 @@
 		<string>ﾏﾀﾞｧ?(・∀・ )っ/凵⌒☆ﾁﾝﾁﾝ</string>
 		<key>shortcut</key>
 		<string>まだ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>ﾏﾀﾞｧ?（・∀・ ）っ/凵⌒☆ﾁﾝ ﾁﾝ</string>
+		<key>shortcut</key>
+		<string>まだぁ</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -1339,12 +1315,6 @@
 		<string>／人◕‿‿◕人＼</string>
 		<key>shortcut</key>
 		<string>わけがわからないよ</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>(；´Д`A</string>
-		<key>shortcut</key>
-		<string>あせ</string>
 	</dict>
 </array>
 </plist>

@@ -7,8 +7,8 @@ git submodule foreach 'git pull origin master'
 echo "end git submodule setting."
 
 echo "start brew update."
-brew update
-brew upgrade
+brew update -v
+brew upgrade -v
 # brew upgrade git
 # brew upgrade rmtrash
 # brew upgrade emacs

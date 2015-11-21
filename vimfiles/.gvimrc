@@ -18,9 +18,9 @@
 " colorscheme inkpot
 " colorscheme jellybeans
 " colorscheme lucius
-" colorscheme macvim
+colorscheme macvim
 " colorscheme molokai
-colorscheme sexy-railscasts
+" colorscheme sexy-railscasts
 " colorscheme slate
 " colorscheme solarized
 " colorscheme summerfruits256
