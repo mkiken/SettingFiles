@@ -61,6 +61,9 @@
       "atom-light-ui"
       "atom-light-syntax"
     ]
+    packagesWithKeymapsDisabled: [
+      "blame"
+    ]
   editor:
     invisibles: {}
     fontSize: 12

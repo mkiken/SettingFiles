@@ -18,8 +18,8 @@
 " colorscheme inkpot
 " colorscheme jellybeans
 " colorscheme lucius
-colorscheme macvim
-" colorscheme molokai
+" colorscheme macvim
+colorscheme molokai
 " colorscheme sexy-railscasts
 " colorscheme slate
 " colorscheme solarized
