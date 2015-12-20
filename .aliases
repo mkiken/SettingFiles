@@ -16,6 +16,7 @@ alias -g L='| less'
 alias -g vs='env LANG=ja_JP.UTF-8 ${MACVIM}'
 alias -g VI='vs --remote-tab-silent'
 alias vi='vs --remote-tab-silent'
+alias vim-orig='vim -u NONE --noplugin'
 alias nv='nvim'
 alias visp='mvim -o'
 alias vivsp='mvim -O'
@@ -28,7 +29,7 @@ alias agl='ag -l'
 alias agf='find . -type f | ag'
 alias agd='find . -type d | ag'
 alias agn='find . | ag'
-alias aga='ag -u' # 隠しファイルおよび無視リストも対象
+alias agu='ag -u' # 隠しファイルおよび無視リストも対象
 alias agp='ag --pager="less -R"'
 alias agg='ag -g' # ファイル名で検索
 alias agq='ag -Q' # 正規表現を無視

@@ -145,6 +145,8 @@ set scrolloff=5
 " 権限無いファイルでも保存
 cabbrev w!! w !sudo tee % >/dev/null
 cabbrev a Ag
+cabbrev c CtrlSF
+cabbrev t TagbarCurrentTag
 command! Tn tabnew
 command! Tc tabclose
 command! To tabonly
@@ -295,7 +297,7 @@ vnoremap <Leader>y "+y
 "*p  ペースト
 nnoremap <Leader>p "+p
 
-nnoremap P $p
+" nnoremap P $p
 
 " http://vim.wikia.com/wiki/Format_pasted_text_automatically
 " :nnoremap p ]p

@@ -328,6 +328,12 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>(｢`･д･)｢</string>
+		<key>shortcut</key>
+		<string>がおー</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string> (・8・) </string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
@@ -419,6 +425,12 @@
 	<dict>
 		<key>phrase</key>
 		<string>(`・ω・´)</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(´･_･`)</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
 	</dict>
@@ -565,6 +577,12 @@
 		<string>(´・ω・)ｶﾜｲｿｽ</string>
 		<key>shortcut</key>
 		<string>かわいそす</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>( 'ω'o[...]o</string>
+		<key>shortcut</key>
+		<string>カンペ</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -988,6 +1006,12 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>_(:3＞∠)_</string>
+		<key>shortcut</key>
+		<string>ねる</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(:3 っ)っ</string>
 		<key>shortcut</key>
 		<string>ねる</string>
@@ -995,6 +1019,12 @@
 	<dict>
 		<key>phrase</key>
 		<string>(o_ _)o.｡oOOｸﾞｩｸﾞｩ･｡･｡･｡zzzZZZ</string>
+		<key>shortcut</key>
+		<string>ねる</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>c(⌒っ.ω.)っ</string>
 		<key>shortcut</key>
 		<string>ねる</string>
 	</dict>
@@ -1027,6 +1057,12 @@
 		<string>'`ｨ (ﾟдﾟ)/</string>
 		<key>shortcut</key>
 		<string>はい</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(＊･∀･)尸</string>
+		<key>shortcut</key>
+		<string>はた</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -1312,33 +1348,15 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>( 'ω'o[...]o</string>
+		<string>｜ω・)。o０（）</string>
 		<key>shortcut</key>
-		<string>カンペ</string>
+		<string>ふきだし</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>(｢`･д･)｢</string>
+		<string>( ´)Д(｀)</string>
 		<key>shortcut</key>
-		<string>がおー</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>(＊･∀･)尸</string>
-		<key>shortcut</key>
-		<string>はた</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>_(:3＞∠)_</string>
-		<key>shortcut</key>
-		<string>ねる</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>c(⌒っ.ω.)っ</string>
-		<key>shortcut</key>
-		<string>ねる</string>
+		<string>ぴざ</string>
 	</dict>
 </array>
 </plist>

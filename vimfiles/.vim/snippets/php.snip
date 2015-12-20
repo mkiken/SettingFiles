@@ -13,10 +13,10 @@ snippet loge
 snippet logd
   logger()->debug(${1});
 
-snippet plog
+snippet logp
   logger()->info(print_r(${1}, TRUE));
 
-snippet vlog
+snippet logv
   logger()->info(var_export(${1}, TRUE));
 
 snippet th
@@ -91,7 +91,7 @@ snippet ae
 snippet re
   throw new RedirectException('${1}', '${2}');
 
-snippet vdf
+snippet vd2
   {${1}|@var_dump}
 
 snippet doc

@@ -55,8 +55,8 @@ exec 'source ' .  g:setting_files_path . '/vimfiles/.vimrc.common'
  NeoBundle 'scrooloose/syntastic'
  NeoBundle 'SirVer/ultisnips'
  NeoBundle 'honza/vim-snippets'
- " NeoBundle 'maksimr/vim-jsbeautify'
- " NeoBundle 'einars/js-beautify'
+ NeoBundle 'maksimr/vim-jsbeautify'
+ NeoBundle 'einars/js-beautify'
  " NeoBundle 'Chiel92/vim-autocsformat'
  NeoBundle 'tpope/vim-surround'
  " NeoBundle 'pangloss/vim-javascript'
@@ -109,7 +109,7 @@ exec 'source ' .  g:setting_files_path . '/vimfiles/.vimrc.common'
  NeoBundle 'vim-scripts/csv.vim'
  " NeoBundle 'junegunn/fzf.vim'
  NeoBundle 'mkiken/vim-bufonly'
- " NeoBundle 'dyng/ctrlsf.vim'
+ NeoBundle 'dyng/ctrlsf.vim'
  NeoBundle 'nixprime/cpsm'
 
  NeoBundle 'Shougo/vimproc.vim', {
@@ -209,9 +209,9 @@ NeoBundleLazy 'rhysd/vim-textobj-ruby',{
 NeoBundleLazy 'oppara/phpstylist.vim',{
                           \"autoload" : {"filetypes" :["php"]}
                           \}
-NeoBundleLazy 'mkiken/vim-jsbeautify-simple',{
-                          \"autoload" : {"filetypes" :["javascript"]}
-                          \}
+" NeoBundleLazy 'mkiken/vim-jsbeautify-simple',{
+                          " \"autoload" : {"filetypes" :["javascript"]}
+                          " \}
 NeoBundleLazy  'AndrewRadev/switch.vim',{
 \   'autoload' : { 'commands' : [ "Switch"] }
                           \}
@@ -716,9 +716,26 @@ let g:user_emmet_settings = {
 
 " noremap <Leader>b :Autoformat<CR><CR>
 " nnoremap <leader>b :%!js-beautify -j -q -B -f -<CR>
-autocmd vimrc FileType javascript nmap <silent> <buffer> <Leader>b :JsBeautifySimple<cr>
-autocmd vimrc FileType javascript vmap <silent> <buffer> <Leader>b :JsBeautifySimple<cr>
-autocmd vimrc FileType javascript let b:JsBeautifySimple_config = "~/.jsbeautifyrc"
+" autocmd vimrc FileType javascript nmap <silent> <buffer> <Leader>b :JsBeautifySimple<cr>
+" autocmd vimrc FileType javascript vmap <silent> <buffer> <Leader>b :JsBeautifySimple<cr>
+" autocmd vimrc FileType javascript let b:JsBeautifySimple_config = "~/.jsbeautifyrc"
+map <Leader>b :call JsBeautify()<cr>
+" or
+autocmd FileType javascript noremap <buffer>  <Leader>b :call JsBeautify()<cr>
+" for json
+autocmd FileType json noremap <buffer> <Leader>b :call JsonBeautify()<cr>
+" for jsx
+autocmd FileType jsx noremap <buffer> <Leader>b :call JsxBeautify()<cr>
+" for html
+autocmd FileType html noremap <buffer> <Leader>b :call HtmlBeautify()<cr>
+" for css or scss
+autocmd FileType css noremap <buffer> <Leader>b :call CSSBeautify()<cr>
+autocmd FileType javascript vnoremap <buffer>  <Leader>b :call RangeJsBeautify()<cr>
+autocmd FileType json vnoremap <buffer> <Leader>b :call RangeJsonBeautify()<cr>
+autocmd FileType jsx vnoremap <buffer> <Leader>b :call RangeJsxBeautify()<cr>
+autocmd FileType html vnoremap <buffer> <Leader>b :call RangeHtmlBeautify()<cr>
+autocmd FileType css vnoremap <buffer> <Leader>b :call RangeCSSBeautify()<cr>
+command! JsBeautify :call JsBeautify()
 
 " https://github.com/jelera/vim-javascript-syntax
 " au FileType javascript call JavaScriptFold()
@@ -999,3 +1016,6 @@ function! ToggleCsvPlugin()
   :InitCSV
 endfunction
 command! ToggleCsvPlugin :call ToggleCsvPlugin()
+
+let g:ctrlsf_auto_close = 0
+let g:ctrlsf_default_root = 'project'
