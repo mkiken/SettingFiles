@@ -18,11 +18,11 @@ snippet logd
 logger()->debug(${1});
 endsnippet
 
-snippet plog
+snippet logp
 logger()->info(print_r(${1}, TRUE));
 endsnippet
 
-snippet vlog
+snippet logv
 logger()->info(var_export(${1}, TRUE));
 endsnippet
 
@@ -43,7 +43,7 @@ $this->${1}_model->${2};
 endsnippet
 
 snippet thc
-$this->${1}_config->${2};
+$this->${1}_config['${2}'];
 endsnippet
 
 snippet thr
@@ -86,10 +86,6 @@ snippet loadl
 $this->load->library('${1}');
 endsnippet
 
-snippet ci
-$this->CI->${1};
-endsnippet
-
 snippet ar
 '${1}' => ${2},
 endsnippet
@@ -122,7 +118,7 @@ snippet re
 new RedirectException('${1}', '${2}');
 endsnippet
 
-snippet vdf
+snippet vd2
 {${1}|@var_dump}
 endsnippet
 
@@ -151,4 +147,10 @@ public function ${1}(${2})
 {
 	${3}
 }
+endsnippet
+
+snippet us
+__::${1}(${2}, function (${3}) {
+	${4}
+});
 endsnippet

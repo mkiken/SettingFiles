@@ -8,7 +8,7 @@
 " colorscheme Tomorrow-Night-Bright
 " colorscheme Tomorrow-Night-Eighties
 " colorscheme badwolf
-" colorscheme codeschool
+colorscheme codeschool
 " colorscheme evening
 " colorscheme github
 " colorscheme grb256
@@ -19,7 +19,7 @@
 " colorscheme jellybeans
 " colorscheme lucius
 " colorscheme macvim
-colorscheme molokai
+" colorscheme molokai
 " colorscheme sexy-railscasts
 " colorscheme slate
 " colorscheme solarized

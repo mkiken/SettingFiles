@@ -1114,6 +1114,12 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>( ´)Д(｀)</string>
+		<key>shortcut</key>
+		<string>ぴざ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(｀･ω･´)ゞﾋﾞｼｯ!!</string>
 		<key>shortcut</key>
 		<string>びしっ</string>
@@ -1147,6 +1153,12 @@
 		<string>( `_ゝ´)ﾌｫｫｰ</string>
 		<key>shortcut</key>
 		<string>ふぉー</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>｜ω・)。o０（）</string>
+		<key>shortcut</key>
+		<string>ふきだし</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -1348,15 +1360,9 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>｜ω・)。o０（）</string>
+		<string>(゜д゜)</string>
 		<key>shortcut</key>
-		<string>ふきだし</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>( ´)Д(｀)</string>
-		<key>shortcut</key>
-		<string>ぴざ</string>
+		<string>ぽかーん</string>
 	</dict>
 </array>
 </plist>
