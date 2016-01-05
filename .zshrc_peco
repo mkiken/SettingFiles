@@ -87,6 +87,8 @@ alias pkill='ps ax | peco | awk "{ print $1 }" | xargs kill'
 alias pvi='pfind | xargs VI'
 alias popen='pfind | xargs open'
 alias pless='pfind | xargs less'
+# http://qiita.com/itkrt2y/items/0671d1f48e66f21241e2
+alias pghq='cd $(ghq root)/$(ghq list | peco)'
 
 function pcat(){
   cat -n $@ | peco

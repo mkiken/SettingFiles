@@ -124,6 +124,9 @@ brew tap laurent22/massren
 brew install massren
 brew install ctags
 
+brew install go
+
+
 brew reinstall --HEAD fzf
 /usr/local/Cellar/fzf/HEAD/install
 

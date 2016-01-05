@@ -111,6 +111,7 @@ exec 'source ' .  g:setting_files_path . '/vimfiles/.vimrc.common'
  NeoBundle 'mkiken/vim-bufonly'
  NeoBundle 'dyng/ctrlsf.vim'
  NeoBundle 'nixprime/cpsm'
+ NeoBundle 'simeji/winresizer'
 
  NeoBundle 'Shougo/vimproc.vim', {
        \ 'build' : {
@@ -1019,3 +1020,8 @@ command! ToggleCsvPlugin :call ToggleCsvPlugin()
 
 let g:ctrlsf_auto_close = 0
 let g:ctrlsf_default_root = 'project'
+
+" winresier
+let g:winresizer_gui_enable = 1
+let g:winresizer_start_key = '<leader>w'
+let g:winresizer_gui_start_key = '<leader>g'

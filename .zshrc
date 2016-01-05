@@ -52,6 +52,9 @@ function git_prompt_stash_count {
 # export LC_CTYPE=UTF-8
 # export LANG=UTF-8
 
+export GOPATH=$HOME
+export PATH=$PATH:$GOPATH/bin
+
 # -------------- 使い方 ---------------- #
 
 source "${SET}submodules/zsh-git-prompt/zshrc.sh"
@@ -594,3 +597,4 @@ if [ ! -f ~/.zshrc.zwc -o ~/.zshrc -nt ~/.zshrc.zwc ]; then
 fi
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
