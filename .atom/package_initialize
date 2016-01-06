@@ -13,4 +13,9 @@ apm install tomorrow-night-eighties-syntax
 apm install vim-mode
 apm install blame
 apm install tablr
+apm install ex-mode
+apm install sort-lines
+apm install cursor-history
+apm install vim-mode-visual-block
+apm install clipboard-history
 apm upgrade

@@ -68,9 +68,13 @@
   'ctrl-w t': 'tree-view:toggle-focus'
   'g j': 'core:move-down'
   'g k': 'vim-mode:move-up'
+  
+'atom-text-editor.vim-mode.normal-mode':
+  'ctrl-i': 'cursor-history:next'
+  'ctrl-o': 'cursor-history:prev'
 
 '.tree-view':
   'ctrl-w t': 'tree-view:toggle-focus'
-  
+
 '.autocomplete-plus':
   'enter': 'autocomplete-plus:confirm'
