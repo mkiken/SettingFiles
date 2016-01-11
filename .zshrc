@@ -384,6 +384,11 @@ compdef '_dispatch git git' g
 # エイリアスも補完
 setopt no_complete_aliases
 
+# setopt no_unset # 未定義変数の使用禁止
+
+## 自動補完される余分なカンマなどを適宜削除してスムーズに入力できるようにする
+# setopt auto_param_keys
+
   # function powerline_precmd() {
   # export PS1="$(${REP}powerline-shell/powerline-shell.py $? --shell zsh 2> /dev/null)"
 # }

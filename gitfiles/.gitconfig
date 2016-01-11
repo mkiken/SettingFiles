@@ -102,6 +102,12 @@
   name = config user.name
   email = config user.email
 
+  ; http://qiita.com/usamik26/items/7bfa61b31344206077fb
+  shallow-clone = clone --depth 1
+
+  ; http://qiita.com/kaneshin/items/9b22088f24d060ab034c
+  alias = !git config --list | grep 'alias\\.' | sed 's/alias\\.\\([^=]*\\)=\\(.*\\)/\\1\\\t => \\2/' | sort
+
 [color]
 	ui = auto
 [core]
@@ -143,3 +149,12 @@
 [user]
 	name =
 	email =
+
+; http://qiita.com/yuku_t/items/04853c9aecb40edadbb2
+[tig "bind"]
+diff = <Ctrl-n> :/^@@
+diff = <Ctrl-p> :?^@@
+log = <Ctrl-n> :/^commit
+log = <Ctrl-p> :?^commit
+stage = <Ctrl-n> :/^@@
+stage = <Ctrl-p> :?^@@
