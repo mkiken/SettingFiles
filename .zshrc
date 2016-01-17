@@ -45,6 +45,16 @@ function git_prompt_stash_count {
   fi
 }
 
+function my-git-status {
+	# http://stackoverflow.com/questions/15715825/how-do-you-get-git-repos-name-in-some-git-repository
+	local tmp_path=$(git rev-parse --show-toplevel 2>/dev/null)
+	if [ -n "$tmp_path" ]; then
+		local repo_name=`basename $tmp_path`
+		echo "(%F{yellow}${repo_name}%f:$(git_super_status)$(git_prompt_stash_count))"
+	fi
+
+}
+
 
 # export LC_CTYPE=ja_JP.UTF-8
 # export LANG=ja_JP.UTF-8
@@ -62,13 +72,16 @@ export __GIT_PROMPT_DIR="${SET}submodules/zsh-git-prompt"
 # キャッシュすると初回表示してくれない。でもしないと重い
 export ZSH_THEME_GIT_PROMPT_NOCACHE=1
 
+export ZSH_THEME_GIT_PROMPT_PREFIX=""
+export ZSH_THEME_GIT_PROMPT_SUFFIX=""
+
 #from http://news.mynavi.jp/column/zsh/index.html
 case ${UID} in
 	0) #for super user
-		RPROMPT='[%F{yellow}%D{%T}%f]$(git_super_status)`git_prompt_stash_count`'
+		RPROMPT='[%F{yellow}%D{%T}%f]$(my-git-status)'
 		;;
 	*)
-    RPROMPT='[%F{blue}%D{%T}%f]$(git_super_status)`git_prompt_stash_count`'
+    RPROMPT='[%F{blue}%D{%T}%f]$(my-git-status)'
 esac
 
 function precmd_prompt () {
