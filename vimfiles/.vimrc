@@ -280,6 +280,9 @@ NeoBundleLazy 'blueyed/smarty.vim',{
 " NeoBundleLazy 'milkypostman/vim-togglelist',{
 " \   'autoload' : { 'commands' : ['ToggleLocationList', 'ToggleQuickfixList'] }
                           " \}
+NeoBundleLazy '2072/PHP-Indenting-for-VIm',{
+                          \"autoload" : {"filetypes" :["php"]}
+                          \}
 
  call neobundle#end()
 
@@ -1047,3 +1050,6 @@ let g:ctrlsf_default_root = 'project'
 let g:winresizer_gui_enable = 1
 let g:winresizer_start_key = '<leader>w'
 let g:winresizer_gui_start_key = '<leader>g'
+
+" To indent 'case:' and 'default:' statements in switch() blocks: >
+let g:PHP_vintage_case_default_indent = 1
