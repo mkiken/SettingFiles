@@ -12,3 +12,4 @@ endfunction
 
 nmap <silent>  <leader>#  :call JumpToDeclaration()<CR>
 
+nnoremap <leader>" #/function <C-r>/<CR>

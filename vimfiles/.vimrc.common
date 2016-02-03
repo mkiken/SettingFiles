@@ -145,7 +145,7 @@ set scrolloff=5
 " 権限無いファイルでも保存
 cabbrev w!! w !sudo tee % >/dev/null
 cabbrev a Ag
-cabbrev c CtrlSF
+" cabbrev c CtrlSF
 cabbrev t TagbarCurrentTag
 command! Tn tabnew
 command! Tc tabclose

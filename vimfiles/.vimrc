@@ -127,7 +127,7 @@ let g:loaded_netrwFileHandlers = 1
  NeoBundle 'vim-scripts/csv.vim'
  " NeoBundle 'junegunn/fzf.vim'
  NeoBundle 'mkiken/vim-bufonly'
- NeoBundle 'dyng/ctrlsf.vim'
+ " NeoBundle 'dyng/ctrlsf.vim'
  NeoBundle 'nixprime/cpsm'
  NeoBundle 'simeji/winresizer'
  NeoBundle 'AndrewRadev/splitjoin.vim'
@@ -280,9 +280,10 @@ NeoBundleLazy 'blueyed/smarty.vim',{
 " NeoBundleLazy 'milkypostman/vim-togglelist',{
 " \   'autoload' : { 'commands' : ['ToggleLocationList', 'ToggleQuickfixList'] }
                           " \}
-NeoBundleLazy '2072/PHP-Indenting-for-VIm',{
-                          \"autoload" : {"filetypes" :["php"]}
-                          \}
+" NeoBundleLazy '2072/PHP-Indenting-for-VIm',{
+                          " \"autoload" : {"filetypes" :["php"]}
+                          " \}
+NeoBundleLazy '2072/PHP-Indenting-for-VIm'
 
  call neobundle#end()
 
@@ -399,7 +400,7 @@ endif
 call smartinput#define_rule({
 \   'at': '\[\%#\]',
 \   'char': '<CR>',
-\   'input': '<CR><Esc>O<C-g>u',
+\   'input': '<CR><Esc>xO<C-g>u',
 \ } )
 
 
@@ -1043,8 +1044,8 @@ function! ToggleCsvPlugin()
 endfunction
 command! ToggleCsvPlugin :call ToggleCsvPlugin()
 
-let g:ctrlsf_auto_close = 0
-let g:ctrlsf_default_root = 'project'
+" let g:ctrlsf_auto_close = 0
+" let g:ctrlsf_default_root = 'project'
 
 " winresier
 let g:winresizer_gui_enable = 1
