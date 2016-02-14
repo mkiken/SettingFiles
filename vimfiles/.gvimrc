@@ -5,7 +5,7 @@
 " colorscheme Tomorrow
 " colorscheme Tomorrow-Night
 " colorscheme Tomorrow-Night-Blue
-colorscheme Tomorrow-Night-Bright
+" colorscheme Tomorrow-Night-Bright
 " colorscheme Tomorrow-Night-Eighties
 " colorscheme badwolf
 " colorscheme codeschool
@@ -22,12 +22,13 @@ colorscheme Tomorrow-Night-Bright
 " colorscheme molokai
 " colorscheme sexy-railscasts
 " colorscheme slate
-" colorscheme solarized
+colorscheme solarized
 " colorscheme summerfruits256
 " colorscheme wombat
 " colorscheme zenburn
 
-set background=dark
+set background=light
+" set background=dark
 
 augroup gvimrc
   autocmd!

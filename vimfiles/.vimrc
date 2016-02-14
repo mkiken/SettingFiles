@@ -114,7 +114,7 @@ let g:loaded_netrwFileHandlers = 1
  " NeoBundle 'mtth/scratch.vim'
  NeoBundle 'violetyk/scratch-utility'
  " NeoBundle 'deris/vim-loadafterft'
- NeoBundle 'vim-scripts/SearchComplete'
+ " NeoBundle 'vim-scripts/SearchComplete'
  " NeoBundle 'blueyed/vim-diminactive'
  NeoBundle 'airblade/vim-gitgutter'
  " NeoBundle 'sgur/vim-lazygutter'
@@ -167,9 +167,9 @@ function! s:bundle.hooks.on_source(bundle)
   au FileType unite inoremap <silent> <buffer> <ESC><ESC> <ESC>:q<CR>
 
   "インサートモードで開始
-  " let g:unite_enable_start_insert = 1
+  let g:unite_enable_start_insert = 1
   "最近開いたファイル履歴の保存数
-  let g:unite_source_file_mru_limit = 25
+  let g:unite_source_file_mru_limit = 50
   "file_mruの表示フォーマットを指定。空にすると表示スピードが高速化される
   let g:unite_source_file_mru_filename_format = ''
 
@@ -194,6 +194,18 @@ function! s:bundle.hooks.on_source(bundle)
 	  "ctrl+tでタブで開く
 	  nnoremap <silent> <buffer> <expr> t unite#do_action('tabopen')
 	  inoremap <silent> <buffer> <expr> <C-t> unite#do_action('tabopen')
+	  "ctrl+aで上部に開く
+	  nnoremap <silent> <buffer> <expr> a unite#do_action('above')
+	  inoremap <silent> <buffer> <expr> <C-a> unite#do_action('above')
+	  "ctrl+bで下部に開く
+	  nnoremap <silent> <buffer> <expr> b unite#do_action('below')
+	  inoremap <silent> <buffer> <expr> <C-b> unite#do_action('below')
+	  "ctrl+rで下部に開く
+	  nnoremap <silent> <buffer> <expr> r unite#do_action('right')
+	  inoremap <silent> <buffer> <expr> <C-r> unite#do_action('right')
+	  "ctrl+lで下部に開く
+	  nnoremap <silent> <buffer> <expr> l unite#do_action('left')
+	  inoremap <silent> <buffer> <expr> <C-l> unite#do_action('left')
 	  "ctrl+bでブックマーク
 	  nnoremap <silent> <buffer> <expr> b unite#do_action('bookmark')
 	  inoremap <silent> <buffer> <expr> <C-b> unite#do_action('bookmark')
@@ -523,11 +535,11 @@ let g:unite_source_history_yank_enable =1  "history/yankの有効化
 " unite.vim keymap
 " <a href="https://github.com/alwei/dotfiles/blob/3760650625663f3b08f24bc75762ec843ca7e112/.vimrc" target="_blank" rel="noreferrer" style="cursor:help;display:inline !important;">https://github.com/alwei/dotfiles/blob/3760650625663f3b08f24bc75762ec843ca7e112/.vimrc</a>
 nnoremap [unite]u  :<C-u>Unite -no-split<Space>
-nnoremap <silent> [unite]t :<C-u>Unite<Space>buffer<CR>
+nnoremap <silent> [unite]t :<C-u>Unite<Space>buffer -no-quit<CR>
 " nnoremap <silent> [unite]b :<C-u>Unite<Space>bookmark<CR>
 nnoremap <silent> [unite]b :<C-u>Unite<Space>vim_bookmarks<CR>
 nnoremap <silent> [unite]c :<C-u>Unite<Space>colorscheme -auto-preview<CR>
-nnoremap <silent> [unite]m :<C-u>Unite<Space>file_mru<CR>
+nnoremap <silent> [unite]m :<C-u>Unite<Space>file_mru -no-quit<CR>
 nnoremap <silent> [unite]d :<C-u>UniteWithBufferDir file<CR>
 nnoremap <silent> [unite]r :<C-u>Unite<Space>file_rec<CR>
 nnoremap <silent> [unite]p :<C-u>Unite<Space>file_rec:!<CR>
