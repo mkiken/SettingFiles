@@ -108,6 +108,8 @@
   ; http://qiita.com/kaneshin/items/9b22088f24d060ab034c
   alias = !git config --list | grep 'alias\\.' | sed 's/alias\\.\\([^=]*\\)=\\(.*\\)/\\1\\\t => \\2/' | sort
 
+	repository = rev-parse --show-toplevel
+
 [color]
 	ui = auto
 [core]

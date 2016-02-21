@@ -223,6 +223,8 @@ alias gsmu='g smupdate'
 alias gsms='g sm status'
 alias grp='git remote prune origin'
 alias gfp='git fetch --all --prune'
+alias cdgr='cd `g repository`'
+alias grn='basename `g repository`'
 
 function lessc(){
 	export LESSOPEN='| /usr/local/bin/src-hilite-lesspipe.sh %s'

@@ -90,7 +90,7 @@ snippet loadl
 $this->load->library('${1}');
 endsnippet
 
-snippet ar
+snippet ar "for array element" i
 '${1}' => ${2},
 endsnippet
 
@@ -110,16 +110,16 @@ snippet pf
 printf("${1}");
 endsnippet
 
-snippet pr
+snippet pr "for print_r" i
 print_r(${1}, TRUE)
 endsnippet
 
 snippet ae
-new ApplicationException('${1}');
+new ApplicationException('${1}')
 endsnippet
 
 snippet re
-new RedirectException('${1}', '${2}');
+new RedirectException('${1}', '${2}')
 endsnippet
 
 snippet doc
@@ -153,4 +153,8 @@ snippet us
 __::${1}(${2}, function (${3}) {
 	${4}
 });
+endsnippet
+
+snippet er
+throw ${1};
 endsnippet

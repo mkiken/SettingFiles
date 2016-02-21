@@ -142,7 +142,7 @@ brew cask install xtrafinder
 brew cask install dropbox
 brew cask install clipmenu
 # brew cask install skype
-brew cask install bettertouchtool
+# brew cask install bettertouchtool # 有料に(´・ω・｀)
 
 # touch ~/.z
 touch ~/.cd_history_file

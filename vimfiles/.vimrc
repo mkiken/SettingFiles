@@ -1,5 +1,19 @@
 "Vim Settings for CUI
 
+" https://github.com/kana/vim-smartinput/issues/67
+" これが原因かcabbrev展開されない・・・？
+
+cabbrev a Ag
+" cabbrev t TagbarCurrentTag
+" cabbrev t <c-r>=(getcmdtype()==':' && getcmdpos()==1 ? 'TagbarCurrentTag' : 't')<CR>
+command! Ga :call Gadd()
+command! Gb Gblame
+command! Gc Gcommit
+command! Gd Gdiff
+command! Gr Gread
+command! Gs Gstatus
+command! Bo BufOnly
+
 if !exists('g:setting_files_path')
   let g:setting_files_path = $HOME.'/Desktop/repository/SettingFiles' | lockvar! setting_files_path
 endif
@@ -68,7 +82,8 @@ let g:loaded_netrwFileHandlers = 1
  " NeoBundle 'Shougo/neocomplete.vim'
  " NeoBundle 'Shougo/neosnippet'
  " NeoBundle 'Shougo/neosnippet-snippets'
- NeoBundle 'kien/ctrlp.vim'
+ " NeoBundle 'kien/ctrlp.vim'
+ NeoBundle 'ctrlpvim/ctrlp.vim'
  NeoBundle 'scrooloose/nerdcommenter'
  NeoBundle 'scrooloose/syntastic'
  NeoBundle 'SirVer/ultisnips'
@@ -89,7 +104,7 @@ let g:loaded_netrwFileHandlers = 1
  " NeoBundle 'thinca/vim-visualstar'
  NeoBundle 't9md/vim-quickhl'
  " NeoBundle 'osyo-manga/vim-brightest'
- NeoBundle 'haya14busa/incsearch.vim'
+ " NeoBundle 'haya14busa/incsearch.vim'
  NeoBundle 'rhysd/clever-f.vim'
  NeoBundle 'vimtaku/hl_matchit.vim'
  " NeoBundle 'kana/vim-smartword'
@@ -131,6 +146,7 @@ let g:loaded_netrwFileHandlers = 1
  NeoBundle 'nixprime/cpsm'
  NeoBundle 'simeji/winresizer'
  NeoBundle 'AndrewRadev/splitjoin.vim'
+ NeoBundle 'tsukkee/unite-help'
 
  NeoBundle 'Shougo/vimproc.vim', {
        \ 'build' : {
@@ -148,7 +164,7 @@ if ! empty(neobundle#get("tagbar"))
    " Width (default 40)
   " let g:tagbar_width = 20
   " Map for toggle
-  nn <silent> <leader>te :TagbarToggle<CR>
+  nn <silent> <leader>t :TagbarToggle<CR>
   let g:tagbar_left = 1
 endif
 
@@ -296,6 +312,9 @@ NeoBundleLazy 'blueyed/smarty.vim',{
                           " \"autoload" : {"filetypes" :["php"]}
                           " \}
 NeoBundleLazy '2072/PHP-Indenting-for-VIm'
+NeoBundleLazy  'tacahiroy/ctrlp-funky',{
+\   'autoload' : { 'commands' : [ "CtrlPFunky"] }
+                          \}
 
  call neobundle#end()
 
@@ -354,7 +373,12 @@ noremap <Leader>o :Occur<CR>
 
  " <Leader>mに、switch.vimをマッピング
  " nnoremap <Leader>m  <Plug>(switch-next)
- nnoremap \ :Switch<cr>
+ " nnoremap \ :Switch<cr>
+let g:switch_mapping = '\'
+let g:switch_reverse_mapping = '|'
+
+let g:switch_find_smallest_match = 0
+
  let g:switch_custom_definitions =
     \ [
     \   ['before', 'after'],
@@ -371,8 +395,8 @@ noremap <Leader>o :Occur<CR>
     \   ['above', 'below'],
     \   ['jpg', 'png', 'gif'],
     \   ['new', 'old'],
-    \   ['up', 'down'],
     \   ['create', 'update', 'delete'],
+    \   ['down', 'up'],
     \   ['left', 'right'],
     \   ['next', 'previous'],
     \   ['north', 'east', 'south', 'west'],
@@ -528,7 +552,7 @@ nnoremap <silent> <Leader>e :<C-u>call ToggleErrors()<CR>
 "" unite.vim {{{
 " The prefix key.
 nnoremap    [unite]   <Nop>
-nmap    <Leader>f [unite]
+nmap    <Leader>u [unite]
 
 let g:unite_source_history_yank_enable =1  "history/yankの有効化
 
@@ -539,7 +563,7 @@ nnoremap <silent> [unite]t :<C-u>Unite<Space>buffer -no-quit<CR>
 " nnoremap <silent> [unite]b :<C-u>Unite<Space>bookmark<CR>
 nnoremap <silent> [unite]b :<C-u>Unite<Space>vim_bookmarks<CR>
 nnoremap <silent> [unite]c :<C-u>Unite<Space>colorscheme -auto-preview<CR>
-nnoremap <silent> [unite]m :<C-u>Unite<Space>file_mru -no-quit<CR>
+nnoremap <silent> [unite]m :<C-u>Unite<Space>file_mru<CR>
 nnoremap <silent> [unite]d :<C-u>UniteWithBufferDir file<CR>
 nnoremap <silent> [unite]r :<C-u>Unite<Space>file_rec<CR>
 nnoremap <silent> [unite]p :<C-u>Unite<Space>file_rec:!<CR>
@@ -553,6 +577,8 @@ nnoremap <silent> [unite]v :<C-u>Unite output:let<CR>
 nnoremap <silent> [unite]g :<C-u>Unite grep:. -buffer-name=search-buffer -no-quit<CR>
 nnoremap <silent> [unite]q :UniteResume<CR>
 nnoremap <silent> [unite]/ :<C-u>Unite -buffer-name=search line -start-insert -no-quit<CR>
+nnoremap <silent> [unite]h :<C-u>Unite -start-insert help<CR>
+nnoremap <silent> [unite]l :<C-u>Unite line<CR>
 
 
 " unite-build map
@@ -827,6 +853,7 @@ nmap gz# vis<Plug>(asterisk-gz#)
 
 nmap <Leader>h <Plug>(quickhl-manual-this)
 xmap <Leader>h <Plug>(quickhl-manual-this)
+
 nmap <Leader>H <Plug>(quickhl-manual-reset)
 xmap <Leader>H <Plug>(quickhl-manual-reset)
 
@@ -836,12 +863,12 @@ xmap <Leader>H <Plug>(quickhl-manual-reset)
 " \   "group" : "BrightestUnderline"
 " \}
 
-map /  <Plug>(incsearch-forward)
+" map /  <Plug>(incsearch-forward)
 " (anzu-update-search-status)<Plug>(anzu-echo-search-status)
-map ?  <Plug>(incsearch-backward)
+" map ?  <Plug>(incsearch-backward)
 " どうもincsearchは日本語が打てないようなので最悪これで
-nnoremap <Leader>/ /
-nnoremap <Leader>? ?
+" nnoremap <Leader>/ /
+" nnoremap <Leader>? ?
 " map g/ <Plug>(incsearch-stay)
 
 "" for hl_matchit
@@ -952,13 +979,13 @@ nmap ˜ <Plug>(yankround-next)
 " let g:easytags_async = 1
 
 " http://qiita.com/tutu/items/fbc4023ebc3004964e86
-noremap <Leader>tv :vsp<CR> :exe("tjump ".expand('<cword>'))<CR>
-noremap <Leader>ts :split<CR> :exe("tjump ".expand('<cword>'))<CR>
-map <silent><Leader>tt <C-w><C-]><C-w>T
-nmap <Leader>tp vas<C-w>}
-noremap <Leader>tq <C-w><C-z>
-nmap <Leader>tn vas<C-]>
-noremap <Leader>tb <C-t>
+" noremap <Leader>tv :vsp<CR> :exe("tjump ".expand('<cword>'))<CR>
+" noremap <Leader>ts :split<CR> :exe("tjump ".expand('<cword>'))<CR>
+" map <silent><Leader>tt <C-w><C-]><C-w>T
+" nmap <Leader>tp vas<C-w>}
+" noremap <Leader>tq <C-w><C-z>
+" nmap <Leader>tn vas<C-]>
+" noremap <Leader>tb <C-t>
 
 " http://blog.supermomonga.com/articles/vim/share-cr-map-with-multiple-plugins.html
 " if neobundle#tap('vim-smartinput')
@@ -1066,3 +1093,9 @@ let g:winresizer_gui_start_key = '<leader>g'
 
 " To indent 'case:' and 'default:' statements in switch() blocks: >
 let g:PHP_vintage_case_default_indent = 1
+
+nnoremap <silent> <Leader>fn :TagbarCurrentTag<CR>
+
+nnoremap <Leader>fu :CtrlPFunky<Cr>
+" narrow the list down with a word under cursor
+nnoremap <Leader>fU :execute 'CtrlPFunky ' . expand('<cword>')<Cr>

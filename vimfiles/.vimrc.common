@@ -144,9 +144,7 @@ set scrolloff=5
 
 " 権限無いファイルでも保存
 cabbrev w!! w !sudo tee % >/dev/null
-cabbrev a Ag
 " cabbrev c CtrlSF
-cabbrev t TagbarCurrentTag
 " http://vim-jp.org/vimdoc-ja/windows.html#:vert
 cabbrev spa abo sp
 cabbrev spb bel sp
@@ -158,14 +156,7 @@ command! Tc tabclose
 command! To tabonly
 command! Cdc CdCurrent
 " cabbrev cdc :lcd %:h
-command! Ga :call Gadd()
-command! Gb Gblame
-command! Gc Gcommit
-command! Gd Gdiff
-command! Gr Gread
-command! Gs Gstatus
 command! Rev g/.*/mo0
-command! Bo BufOnly
 
 " http://rbtnn.hateblo.jp/entry/2014/11/30/174749
 augroup vimrc
