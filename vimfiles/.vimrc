@@ -375,7 +375,7 @@ noremap <Leader>o :Occur<CR>
  " nnoremap <Leader>m  <Plug>(switch-next)
  " nnoremap \ :Switch<cr>
 let g:switch_mapping = '\'
-let g:switch_reverse_mapping = '|'
+" let g:switch_reverse_mapping = '|'
 
 let g:switch_find_smallest_match = 0
 

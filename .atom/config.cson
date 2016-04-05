@@ -1,13 +1,7 @@
 "*":
   "*":
-    editor:
-      fontSize: 12
-      showIndentGuide: true
-      showInvisibles: true
-      softWrapAtPreferredLineLength: true
-      softWrap: true
-      scrollPastEnd: true
     core:
+      audioBeep: false
       disabledPackages: [
         "turbo-javascript"
         "jslint"
@@ -21,59 +15,65 @@
         "atom-dark-ui"
         "tomorrow-night-eighties-syntax"
       ]
-      audioBeep: false
-    "exception-reporting":
-      userId: "0a7c8ad7-7803-a619-cd7e-9c76b0560ed6"
-    welcome:
-      showOnStartup: false
-    metrics:
-      userId: "4b0dd0d8e33ff1756775a073b0cdb1d5e4bd19e1"
+    editor:
+      fontSize: 12
+      scrollPastEnd: true
+      showIndentGuide: true
+      showInvisibles: true
+      softWrap: true
+      softWrapAtPreferredLineLength: true
     "emacs-mode":
-      hideTabs: false
       hideSidebar: false
+      hideTabs: false
       useEmacsCursor: false
       useFuzzyBufferFinder: false
       useFuzzyFileFinder: false
-    "tree-view":
-      hideVcsIgnoredFiles: true
-    "markdown-preview":
-      breakOnSingleNewline: true
+    "exception-reporting":
+      userId: "0a7c8ad7-7803-a619-cd7e-9c76b0560ed6"
     linter:
       lintOnChangeInterval: 3000
       statusBar: "Show error if the cursor is in range"
-    whitespace:
-      removeTrailingWhitespace: false
+    "markdown-preview":
+      breakOnSingleNewline: true
+    metrics:
+      userId: "4b0dd0d8e33ff1756775a073b0cdb1d5e4bd19e1"
+    "tree-view":
+      hideVcsIgnoredFiles: true
     "vim-mode":
       useSmartcaseForSearch: true
-  "emacs-mode":
-    hideTabs: false
-    hideSidebar: false
-    useEmacsCursor: true
-    useFuzzyFileFinder: false
-    useFuzzyBufferFinder: false
-  linter: {}
-  "exception-reporting":
-    userId: "ab2ede93-4a6d-ac5c-e79c-362a6c7e1cd8"
-  welcome:
-    showOnStartup: false
+    welcome:
+      showOnStartup: false
+    whitespace:
+      removeTrailingWhitespace: false
+  blame: {}
   core:
+    packagesWithKeymapsDisabled: [
+      "blame"
+    ]
     themes: [
       "atom-light-ui"
       "atom-light-syntax"
     ]
-    packagesWithKeymapsDisabled: [
-      "blame"
-    ]
   editor:
+    fontSize: 9
     invisibles: {}
-    fontSize: 12
-    softWrap: true
-    zoomFontWhenCtrlScrolling: true
     scrollPastEnd: true
     showIndentGuide: true
     showInvisibles: true
-  "one-dark-ui": {}
-  tablr: {}
+    softWrap: true
+    zoomFontWhenCtrlScrolling: true
+  "emacs-mode":
+    hideSidebar: false
+    hideTabs: false
+    useEmacsCursor: true
+    useFuzzyBufferFinder: false
+    useFuzzyFileFinder: false
+  "exception-reporting":
+    userId: "ab2ede93-4a6d-ac5c-e79c-362a6c7e1cd8"
   "git-diff":
     showIconsInEditorGutter: true
-  blame: {}
+  linter: {}
+  "one-dark-ui": {}
+  tablr: {}
+  welcome:
+    showOnStartup: false

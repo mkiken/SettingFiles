@@ -546,3 +546,12 @@ function g-delete-remote-branches-by-word-dry-run() {
 function g-delete-remote-branches-by-word() {
   g-remote-branches-by-word-fmt $1 | xargs -I% git push origin :% 2>&1 | tee -a ~/Desktop/delete_branches.log
 }
+
+function fullpath(){
+  echo "${PWD}/${1}"
+}
+
+# IntelliJでファイルを開く
+function ij(){
+    /Applications/IntelliJ\ IDEA.app/Contents/MacOS/idea `fullpath $1`
+}
