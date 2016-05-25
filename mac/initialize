@@ -74,6 +74,10 @@ ln -si "${Repo}.tmux.conf" ~/.tmux.conf
 echo "ln -si ${Repo}.peco"
 ln -si "${Repo}.peco" ~
 
+echo "ln -si ${Repo}.ideavimrc ~/.ideavimrc"
+ln -si "${Repo}.ideavimrc" ~/.ideavimrc
+
+
 # touch ~/.gitconfig.local
 cp -i "${Repo}gitfiles/.gitconfig.local_mac" ~/.gitconfig.local
 echo "You can write LOCAL settings for git to '~/.gitconfig.local'."
