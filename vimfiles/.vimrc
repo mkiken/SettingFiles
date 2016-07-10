@@ -102,6 +102,7 @@ let g:loaded_netrwFileHandlers = 1
  NeoBundle 'tpope/vim-fugitive'
  NeoBundle 'Shougo/neomru.vim' " for Unite
  " NeoBundle 'thinca/vim-visualstar'
+NeoBundle 'Shougo/unite.vim'
  NeoBundle 't9md/vim-quickhl'
  " NeoBundle 'osyo-manga/vim-brightest'
  " NeoBundle 'haya14busa/incsearch.vim'
@@ -168,9 +169,9 @@ if ! empty(neobundle#get("tagbar"))
   let g:tagbar_left = 1
 endif
 
-NeoBundleLazy 'Shougo/unite.vim' , {
-\   'autoload' : { 'commands' : [ 'Unite' ] }
-\ }
+" NeoBundleLazy 'Shougo/unite.vim' , {
+" \   'autoload' : { 'commands' : [ 'Unite' ] }
+" \ }
 let s:bundle = neobundle#get('unite.vim')
 function! s:bundle.hooks.on_source(bundle)
   " unite.vimの設定

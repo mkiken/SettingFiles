@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# Repo="${HOME}/Desktop/repository/SettingFiles/"
+# set Repo "$HOME/Desktop/repository/SettingFiles/"
 Repo="`pwd | sed -e \"s/.\{3\}$//\"`"
-
+# set Repo "$SET/"
 
 echo "ln -si ${Repo}.aliases ~/.aliases"
 ln -si "${Repo}.aliases" ~/.aliases
@@ -23,8 +23,15 @@ mkdir -p ~/.config/nvim
 echo "ln -si ${Repo}vimfiles/.vimrc ~/.config/nvim/init.vim"
 ln -si "${Repo}vimfiles/.vimrc" ~/.config/nvim/init.vim
 
-echo "ln -si ${Repo}.zshrc ~/.zshrc"
-ln -si "${Repo}.zshrc" ~/.zshrc
+# echo "ln -si ${Repo}.zshrc ~/.zshrc"
+# ln -si "${Repo}.zshrc" ~/.zshrc
+mkdir -p ~/.config/fish
+echo "ln -si ${Repo}config.fish ~/.config/fish/config.fish"
+ln -si ${Repo}config.fish ~/.config/fish/config.fish
+
+mkdir -p ~/.config/fish/functions
+echo "ln -si ${Repo}submodules/informative_git_prompt/__informative_git_prompt.fish ~/.config/fish/functions/__informative_git_prompt.fish"
+ln -si ${Repo}submodules/informative_git_prompt/__informative_git_prompt.fish ~/.config/fish/functions/__informative_git_prompt.fish
 
 echo "ln -si ${Repo}.tigrc ~/.tigrc"
 ln -si "${Repo}.tigrc" ~/.tigrc
@@ -104,7 +111,8 @@ sudo chown -R $USER /usr/local/
 sudo chown -R $USER /Library/Caches/Homebrew/
 
 brew install git
-brew install zsh
+# brew install zsh
+brew install fish
 brew install rmtrash
 # brew install node
 # brew install tree
@@ -142,7 +150,7 @@ brew cask install evernote
 brew cask install google-chrome
 brew cask install macvim
 brew cask install alfred
-brew cask install xtrafinder
+# brew cask install xtrafinder
 brew cask install dropbox
 brew cask install clipmenu
 # brew cask install skype
@@ -159,11 +167,8 @@ ln -si "${Repo}submodules/used-mem/used-mem" /usr/local/bin/used-mem
 
 massren --config editor "mvim"
 
-# zsh setting
-chsh -s /usr/local/bin/zsh
-
 # source ~/.zshrc
-A="${SET}submodules/auto-fu.zsh/auto-fu.zsh" ; (zsh -c "source $A ; auto-fu-zcompile $A ~/.zsh")
+# A="${SET}submodules/auto-fu.zsh/auto-fu.zsh" ; (zsh -c "source $A ; auto-fu-zcompile $A ~/.zsh")
 
 
 # for Tmux Plugin Manager
@@ -178,4 +183,9 @@ cd $OLDPWD
 cd ~/.vim/bundle/cpsm
 ./install.sh
 cd $OLDPWD
+
+# shell setting
+# chsh -s /usr/local/bin/zsh
+chsh -s $(`which fish`) $USER
+# chsh -s (which fish) $USER
 
