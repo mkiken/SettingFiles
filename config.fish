@@ -1,9 +1,11 @@
 #environment variables
 set REPO "$HOME/Desktop/repository";
 set SET "$REPO/SettingFiles";
+set SUBMODULE_DIR "$SET/submodules";
 set MACVIM "/Applications/MacVim.app/Contents/MacOS/mvim"
 set FISHCONFIG "$HOME/.config/fish/config.fish"
 set PECOCONFIG "$SET/peco.config"
+set CD_HISTORY_FILE $HOME/.cd_history_file # cd 履歴の記録先ファイル
 
 #editor
 alias vs='env LANG=ja_JP.UTF-8 $MACVIM'
@@ -21,6 +23,7 @@ alias gitconfig='vi $HOME/.gitconfig'
 alias macinit='vi $SET/mac/initialize'
 alias macupdate='vi $SET/mac/update'
 alias tigrc='vi ~/.tigrc'
+alias pecoconfig='vi $PECOCONFIG'
 
 # common
 alias reload='source $FISHCONFIG; and echo "config reloaded."'
@@ -50,6 +53,7 @@ alias agg='ag -g' # ファイル名で検索
 alias cdd="cd $HOME/Desktop"
 alias cdr="cd $REPO"
 alias cds="cd $SET"
+alias up='cd ..'
 
 # tmux
 alias tm='tmux'
@@ -59,7 +63,18 @@ alias tmks='tmux kill-server'
 alias g='git'
 alias gs='git s'
 alias gps='git push'
+alias gmd='git modified'
+alias gd='g diff'
+alias gdc='gd --cached'
 
+# https://github.com/fish-shell/fish-shell/issues/1640#issuecomment-53384451
+function chpwd --on-variable PWD
+  status --is-command-substitution; and return
+  ls
+  echo $PWD >> $CD_HISTORY_FILE # peco_cd_history 用
+end
+
+# for prompt
 # http://mariuszs.github.io/informative_git_prompt/
 # https://github.com/fish-shell/fish-shell/pull/880/files
 set -g __fish_git_prompt_show_informative_status 1
