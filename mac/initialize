@@ -29,10 +29,6 @@ mkdir -p ~/.config/fish
 echo "ln -si ${Repo}config.fish ~/.config/fish/config.fish"
 ln -si ${Repo}config.fish ~/.config/fish/config.fish
 
-mkdir -p ~/.config/fish/functions
-echo "ln -si ${Repo}submodules/informative_git_prompt/__informative_git_prompt.fish ~/.config/fish/functions/__informative_git_prompt.fish"
-ln -si ${Repo}submodules/informative_git_prompt/__informative_git_prompt.fish ~/.config/fish/functions/__informative_git_prompt.fish
-
 echo "ln -si ${Repo}.tigrc ~/.tigrc"
 ln -si "${Repo}.tigrc" ~/.tigrc
 

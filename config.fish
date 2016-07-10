@@ -61,6 +61,28 @@ alias gs='git s'
 alias gps='git push'
 
 # http://mariuszs.github.io/informative_git_prompt/
+# https://github.com/fish-shell/fish-shell/pull/880/files
+set -g __fish_git_prompt_show_informative_status 1
+set -g __fish_git_prompt_hide_untrackedfiles 1
+
+set -g __fish_git_prompt_color_branch magenta
+set -g __fish_git_prompt_showupstream "informative"
+set -g __fish_git_prompt_char_upstream_ahead "↑"
+set -g __fish_git_prompt_char_upstream_behind "↓"
+set -g __fish_git_prompt_char_upstream_prefix ""
+
+set -g __fish_git_prompt_char_stagedstate "●"
+set -g __fish_git_prompt_char_dirtystate "✚"
+set -g __fish_git_prompt_char_untrackedfiles "…"
+set -g __fish_git_prompt_char_conflictedstate "✖"
+set -g __fish_git_prompt_char_cleanstate "✔"
+
+set -g __fish_git_prompt_color_dirtystate blue
+set -g __fish_git_prompt_color_stagedstate yellow
+set -g __fish_git_prompt_color_invalidstate red
+set -g __fish_git_prompt_color_untrackedfiles $fish_color_normal
+set -g __fish_git_prompt_color_cleanstate green
+
 function fish_prompt -d "Write out the prompt"
 
     if [ $status -eq 0 ]
@@ -69,8 +91,7 @@ function fish_prompt -d "Write out the prompt"
         set color red
     end
 
-    # printf "%s%s %s%s:%s \$" (set_color -o $color) (prompt_pwd) (set_color normal) (__fish_git_prompt)
-    printf "%s%s %s%s:%s \$ " (set_color -o $color) (prompt_pwd) (set_color normal) (__informative_git_prompt)
+    printf "%s%s %s%s:%s \$" (set_color -o $color) (prompt_pwd) (set_color normal) (__fish_git_prompt)
 end
 
 # function fish_prompt

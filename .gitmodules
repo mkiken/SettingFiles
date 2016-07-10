@@ -22,6 +22,3 @@
 [submodule "vimfiles/.vim/bundle/neobundle.vim"]
 	path = vimfiles/.vim/bundle/neobundle.vim
 	url = https://github.com/Shougo/neobundle.vim
-[submodule "submodules/informative_git_prompt"]
-	path = submodules/informative_git_prompt
-	url = https://github.com/mariuszs/informative_git_prompt
