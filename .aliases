@@ -386,6 +386,8 @@ alias benchmark-vimrc='vim --cmd "profile start vim_benchmark.txt" --cmd "profil
 alias php-syntax-check='find . -name "*.php" -exec php -l {} \; | grep -v "No syntax errors detected in"'
 alias php-syntax-check-full='find . -name "*.php" -exec php -l {} \;'
 
+alias g++11='g++ -std=c++11'
+
 # 現在のディレクトリ以下の当てはまるファイルを全て削除する
 # http://www.omnioo.com/omnioolab/2012/07/find.php
 alias rrm='noglob _rrm'

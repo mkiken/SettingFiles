@@ -230,12 +230,12 @@ function! s:bundle.hooks.on_source(bundle)
 endfunction
 
 NeoBundle 'Valloric/YouCompleteMe', {
-     \ 'build' : {
-     \     'mac' : './install.sh --clang-completer --system-libclang --omnisharp-completer',
-     \     'unix' : './install.sh --clang-completer --system-libclang --omnisharp-completer',
-     \     'windows' : './install.sh --clang-completer --system-libclang --omnisharp-completer',
-     \     'cygwin' : './install.sh --clang-completer --system-libclang --omnisharp-completer'
-     \    }
+     \ 'build'      : {
+        \ 'mac'     : './install.py',
+        \ 'unix'    : './install.py',
+        \ 'windows' : 'install.py',
+        \ 'cygwin'  : './install.py'
+        \ }
      \ }
 
 " lazy load
@@ -314,6 +314,9 @@ NeoBundleLazy 'blueyed/smarty.vim',{
 NeoBundleLazy '2072/PHP-Indenting-for-VIm'
 NeoBundleLazy  'tacahiroy/ctrlp-funky',{
 \   'autoload' : { 'commands' : [ "CtrlPFunky"] }
+                          \}
+NeoBundleLazy 'octol/vim-cpp-enhanced-highlight',{
+                          \"autoload" : {"filetypes" :["cpp"]}
                           \}
 
  call neobundle#end()

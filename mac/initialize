@@ -148,6 +148,8 @@ brew cask install clipmenu
 # brew cask install skype
 # brew cask install bettertouchtool # 有料に(´・ω・｀)
 
+sudo easy_install Pygments
+
 # touch ~/.z
 touch ~/.cd_history_file
 
