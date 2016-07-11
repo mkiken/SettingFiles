@@ -7,12 +7,12 @@ set FISHCONFIG "$HOME/.config/fish/config.fish"
 set PECO_CONFIG "$SET/peco.config"
 set CD_HISTORY_FILE $HOME/.cd_history_file # cd 履歴の記録先ファイル
 set LOCAL_FISH_CONFIG "$HOME/.fishrc"
+set -gx BD_OPT 'sensitive'
 
 #editor
 alias vs='env LANG=ja_JP.UTF-8 $MACVIM'
 alias vi='vs --remote-tab-silent'
-# TODO これどうする？
-alias vimdiff='env LANG=ja_JP.UTF-8 $MACVIM''diff'
+alias vimdiff='env LANG=ja_JP.UTF-8 '"$MACVIM"'diff'
 alias vimrc='vi $HOME/.vimrc'
 alias st='subl'
 alias at='atom'
@@ -27,6 +27,7 @@ alias tigrc='vi ~/.tigrc'
 alias pecoconfig='vi $PECO_CONFIG'
 alias aliases='vi $HOME/.aliases'
 alias fishrc='vi $LOCAL_FISH_CONFIG'
+alias zshrc='vi $HOME/.zshrc'
 
 # common
 alias reload='source $FISHCONFIG; and echo "config reloaded."'
@@ -39,7 +40,8 @@ alias rm='rmtrash'
 # 事故死予防
 alias cp='cp -i'
 alias mv='mv -i'
-alias pv='popd'
+alias pv='prevd'
+alias nx='nextd'
 
 # ls
 alias l='ls'
@@ -77,6 +79,20 @@ alias gco='g checkout'
 alias gmg='g merge'
 alias gft='g fetch'
 alias gftp='gft --prune'
+alias gl='g log'
+alias glst='gl --stat'
+
+function up
+  if count $argv > /dev/null
+    set -l tmp ''
+    for i in (seq $argv[1]) #starts a for loop that will repeat as many times as second argument given
+    set  tmp "$tmp"'../'
+    end
+    cd "$tmp"
+  else
+    cd ../
+  end
+end
 
 function gpl
   g pl (g remote) (g current-branch)
@@ -113,6 +129,23 @@ set -g __fish_git_prompt_color_invalidstate red
 set -g __fish_git_prompt_color_untrackedfiles $fish_color_normal
 set -g __fish_git_prompt_color_cleanstate green
 
+# git stash count
+function git_prompt_stash_count
+  set -l COUNT (git stash list 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$COUNT" -gt 0 ];
+    echo "($COUNT)"
+  end
+end
+
+function my-git-status
+	# http://stackoverflow.com/questions/15715825/how-do-you-get-git-repos-name-in-some-git-repository
+	set -l tmp_path (git rev-parse --show-toplevel 2>/dev/null)
+	if [ -n "$tmp_path" ];
+		set repo_name (basename $tmp_path)
+		printf "%s:%s%s" $repo_name (__fish_git_prompt) (git_prompt_stash_count)
+	end
+end
+
 function fish_prompt -d "Write out the prompt"
 
     if [ $status -eq 0 ]
@@ -121,19 +154,14 @@ function fish_prompt -d "Write out the prompt"
         set color red
     end
 
-    printf "%s%s %s%s:%s \$" (set_color -o $color) (prompt_pwd) (set_color normal) (__fish_git_prompt)
+    printf "%s%s %s%s:%s \$" (set_color -o $color) (prompt_pwd) (set_color normal) (my-git-status)
 end
-
-# function fish_prompt
-  # echo (pwd)" ><(((o> "
-# end
 
 if test -e $PECO_CONFIG
   source $PECO_CONFIG
 end
 
 # load local setting.
-# TODO あれば
 if test -e $LOCAL_FISH_CONFIG
   source $LOCAL_FISH_CONFIG
 end

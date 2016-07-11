@@ -186,6 +186,11 @@ cd $OLDPWD
 
 # shell setting
 # chsh -s /usr/local/bin/zsh
-chsh -s $(`which fish`) $USER
-# chsh -s (which fish) $USER
+# chsh -s $(`which fish`) $USER
+
+# fish initialize
+fish
+chsh -s (which fish) $USER
+curl -Lo ~/.config/fish/functions/fisher.fish --create-dirs git.io/fisher
+fisher install 0rax/fish-bd
 
