@@ -163,6 +163,10 @@ ln -si "${Repo}submodules/used-mem/used-mem" /usr/local/bin/used-mem
 
 massren --config editor "mvim"
 
+# El Capitanにアップデートした後、gitコマンドが以下のエラーを吐いて動かなくなる問題
+# http://qiita.com/Ys_Jn/items/f7ff03f7a890329c3e2a
+xcode-select --install
+
 # source ~/.zshrc
 # A="${SET}submodules/auto-fu.zsh/auto-fu.zsh" ; (zsh -c "source $A ; auto-fu-zcompile $A ~/.zsh")
 

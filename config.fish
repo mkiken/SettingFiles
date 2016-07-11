@@ -4,8 +4,9 @@ set SET "$REPO/SettingFiles";
 set SUBMODULE_DIR "$SET/submodules";
 set MACVIM "/Applications/MacVim.app/Contents/MacOS/mvim"
 set FISHCONFIG "$HOME/.config/fish/config.fish"
-set PECOCONFIG "$SET/peco.config"
+set PECO_CONFIG "$SET/peco.config"
 set CD_HISTORY_FILE $HOME/.cd_history_file # cd 履歴の記録先ファイル
+set LOCAL_FISH_CONFIG "$HOME/.fishrc"
 
 #editor
 alias vs='env LANG=ja_JP.UTF-8 $MACVIM'
@@ -23,7 +24,9 @@ alias gitconfig='vi $HOME/.gitconfig'
 alias macinit='vi $SET/mac/initialize'
 alias macupdate='vi $SET/mac/update'
 alias tigrc='vi ~/.tigrc'
-alias pecoconfig='vi $PECOCONFIG'
+alias pecoconfig='vi $PECO_CONFIG'
+alias aliases='vi $HOME/.aliases'
+alias fishrc='vi $LOCAL_FISH_CONFIG'
 
 # common
 alias reload='source $FISHCONFIG; and echo "config reloaded."'
@@ -66,6 +69,18 @@ alias gps='git push'
 alias gmd='git modified'
 alias gd='g diff'
 alias gdc='gd --cached'
+alias gst='g stash'
+alias gstp='gst pop'
+alias gdn='gd --name-status'
+alias grm='g rm'
+alias gco='g checkout'
+alias gmg='g merge'
+alias gft='g fetch'
+alias gftp='gft --prune'
+
+function gpl
+  g pl (g remote) (g current-branch)
+end
 
 # https://github.com/fish-shell/fish-shell/issues/1640#issuecomment-53384451
 function chpwd --on-variable PWD
@@ -113,4 +128,12 @@ end
   # echo (pwd)" ><(((o> "
 # end
 
-source $PECOCONFIG
+if test -e $PECO_CONFIG
+  source $PECO_CONFIG
+end
+
+# load local setting.
+# TODO あれば
+if test -e $LOCAL_FISH_CONFIG
+  source $LOCAL_FISH_CONFIG
+end
