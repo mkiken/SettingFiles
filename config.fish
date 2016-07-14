@@ -8,6 +8,7 @@ set PECO_CONFIG "$SET/peco.config"
 set CD_HISTORY_FILE $HOME/.cd_history_file # cd 履歴の記録先ファイル
 set LOCAL_FISH_CONFIG "$HOME/.fishrc"
 set -gx BD_OPT 'sensitive'
+set -gx PATH /usr/local/bin $PATH
 
 #editor
 alias vs='env LANG=ja_JP.UTF-8 $MACVIM'
@@ -59,6 +60,7 @@ alias cdd="cd $HOME/Desktop"
 alias cdr="cd $REPO"
 alias cds="cd $SET"
 alias up='cd ..'
+alias cdpr='cd (g repository)'
 
 # tmux
 alias tm='tmux'
@@ -81,6 +83,17 @@ alias gft='g fetch'
 alias gftp='gft --prune'
 alias gl='g log'
 alias glst='gl --stat'
+alias gmv='g mv'
+alias grv='g rv'
+alias gcob='gco -b'
+alias gci='g commit'
+alias gcm='gci -m'
+alias gca='gci --amend'
+alias gcf='g conflicts'
+alias gmt='g mt'
+alias gcoo='gco --ours'
+alias gcot='gco --theirs'
+alias ga='g add'
 
 function up
   if count $argv > /dev/null
@@ -94,8 +107,21 @@ function up
   end
 end
 
+# ファイル名で絞って検索
+function agG
+	if test (count $argv) -lt 2
+		echo "need at least 2 argument."
+		return
+	end
+	ag $argv[1] -G $argv[2]
+end
+
 function gpl
   g pl (g remote) (g current-branch)
+end
+
+function gprb
+  g pl --rebase (g remote) (g current-branch)
 end
 
 # https://github.com/fish-shell/fish-shell/issues/1640#issuecomment-53384451
@@ -142,19 +168,21 @@ function my-git-status
 	set -l tmp_path (git rev-parse --show-toplevel 2>/dev/null)
 	if [ -n "$tmp_path" ];
 		set repo_name (basename $tmp_path)
-		printf "%s:%s%s" $repo_name (__fish_git_prompt) (git_prompt_stash_count)
+		printf "[%s%s%s]%s%s" (set_color yellow) $repo_name (set_color normal) (__fish_git_prompt) (git_prompt_stash_count)
 	end
 end
 
 function fish_prompt -d "Write out the prompt"
-
     if [ $status -eq 0 ]
         set color green
     else
         set color red
     end
+    printf "%s%s %s%s%s \$ " (set_color -o $color) (prompt_pwd) (set_color cyan) (date '+%H:%M:%S') (set_color normal)
+end
 
-    printf "%s%s %s%s:%s \$" (set_color -o $color) (prompt_pwd) (set_color normal) (my-git-status)
+function fish_right_prompt -d "Write out the prompt"
+    printf "%s" (my-git-status)
 end
 
 if test -e $PECO_CONFIG
