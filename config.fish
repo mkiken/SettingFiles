@@ -9,6 +9,7 @@ set CD_HISTORY_FILE $HOME/.cd_history_file # cd 履歴の記録先ファイル
 set LOCAL_FISH_CONFIG "$HOME/.fishrc"
 set -gx BD_OPT 'sensitive'
 set -gx PATH /usr/local/bin $PATH
+set -x LESS '-R --no-init --RAW-CONTROL-CHARS -M -n'
 
 #editor
 alias vs='env LANG=ja_JP.UTF-8 $MACVIM'
@@ -71,29 +72,34 @@ alias g='git'
 alias gs='git s'
 alias gps='git push'
 alias gmd='git modified'
+#  diff
 alias gd='g diff'
 alias gdc='gd --cached'
+alias gcf='g conflicts'
 alias gst='g stash'
 alias gstp='gst pop'
 alias gdn='gd --name-status'
 alias grm='g rm'
 alias gco='g checkout'
 alias gmg='g merge'
-alias gft='g fetch'
-alias gftp='gft --prune'
+alias gf='g fetch'
+alias gfp='gft --prune'
+#  log
 alias gl='g log'
 alias glst='gl --stat'
+alias glp='gl -p'
 alias gmv='g mv'
 alias grv='g rv'
+#  commit
 alias gcob='gco -b'
 alias gci='g commit'
 alias gcm='gci -m'
 alias gca='gci --amend'
-alias gcf='g conflicts'
 alias gmt='g mt'
 alias gcoo='gco --ours'
 alias gcot='gco --theirs'
 alias ga='g add'
+alias gcp='g cp'
 
 function up
   if count $argv > /dev/null
@@ -114,6 +120,12 @@ function agG
 		return
 	end
 	ag $argv[1] -G $argv[2]
+end
+
+function lessc
+	set -x LESSOPEN '| /usr/local/bin/src-hilite-lesspipe.sh %s'
+	less $argv[1]
+	set -x LESSOPEN ''
 end
 
 function gpl
