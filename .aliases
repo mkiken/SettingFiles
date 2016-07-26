@@ -1,5 +1,3 @@
-REPO="${HOME}/Desktop/repository/"
-SET="${HOME}/Desktop/repository/SettingFiles/"
 
 #expanded command
 case "${OSTYPE}" in

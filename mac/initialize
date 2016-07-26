@@ -23,11 +23,11 @@ mkdir -p ~/.config/nvim
 echo "ln -si ${Repo}vimfiles/.vimrc ~/.config/nvim/init.vim"
 ln -si "${Repo}vimfiles/.vimrc" ~/.config/nvim/init.vim
 
-# echo "ln -si ${Repo}.zshrc ~/.zshrc"
-# ln -si "${Repo}.zshrc" ~/.zshrc
-mkdir -p ~/.config/fish
-echo "ln -si ${Repo}config.fish ~/.config/fish/config.fish"
-ln -si ${Repo}config.fish ~/.config/fish/config.fish
+echo "ln -si ${Repo}.zshrc ~/.zshrc"
+ln -si "${Repo}.zshrc" ~/.zshrc
+# mkdir -p ~/.config/fish
+# echo "ln -si ${Repo}config.fish ~/.config/fish/config.fish"
+# ln -si ${Repo}config.fish ~/.config/fish/config.fish
 
 echo "ln -si ${Repo}.tigrc ~/.tigrc"
 ln -si "${Repo}.tigrc" ~/.tigrc
@@ -107,8 +107,8 @@ sudo chown -R $USER /usr/local/
 sudo chown -R $USER /Library/Caches/Homebrew/
 
 brew install git
-# brew install zsh
-brew install fish
+brew install zsh
+# brew install fish
 brew install rmtrash
 # brew install node
 # brew install tree
@@ -185,12 +185,12 @@ cd ~/.vim/bundle/cpsm
 cd $OLDPWD
 
 # shell setting
-# chsh -s /usr/local/bin/zsh
+sudo chsh -s /usr/local/bin/zsh
 # chsh -s $(`which fish`) $USER
 
 # fish initialize
-fish
-chsh -s (which fish) $USER
-curl -Lo ~/.config/fish/functions/fisher.fish --create-dirs git.io/fisher
-fisher install 0rax/fish-bd
+# fish
+# chsh -s (which fish) $USER
+# curl -Lo ~/.config/fish/functions/fisher.fish --create-dirs git.io/fisher
+# fisher install 0rax/fish-bd
 

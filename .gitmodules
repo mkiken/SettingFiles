@@ -1,6 +1,6 @@
-[submodule "submodules/auto-fu.zsh"]
-	path = submodules/auto-fu.zsh
-	url = https://github.com/hchbaw/auto-fu.zsh
+; [submodule "submodules/auto-fu.zsh"]
+	; path = submodules/auto-fu.zsh
+	; url = https://github.com/hchbaw/auto-fu.zsh
 [submodule "submodules/zsh-git-prompt"]
 	path = submodules/zsh-git-prompt
 	url = https://github.com/olivierverdier/zsh-git-prompt
@@ -22,3 +22,6 @@
 [submodule "vimfiles/.vim/bundle/neobundle.vim"]
 	path = vimfiles/.vim/bundle/neobundle.vim
 	url = https://github.com/Shougo/neobundle.vim
+[submodule "submodules/zsh-autosuggestions"]
+	path = submodules/zsh-autosuggestions
+	url = https://github.com/zsh-users/zsh-autosuggestions
