@@ -1,6 +1,6 @@
-; [submodule "submodules/auto-fu.zsh"]
-	; path = submodules/auto-fu.zsh
-	; url = https://github.com/hchbaw/auto-fu.zsh
+[submodule "submodules/auto-fu.zsh"]
+	path = submodules/auto-fu.zsh
+	url = https://github.com/hchbaw/auto-fu.zsh
 [submodule "submodules/zsh-git-prompt"]
 	path = submodules/zsh-git-prompt
 	url = https://github.com/olivierverdier/zsh-git-prompt
