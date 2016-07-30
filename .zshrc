@@ -54,7 +54,7 @@ function my-git-status {
 	local tmp_path=$(git rev-parse --show-toplevel 2>/dev/null)
 	if [ -n "$tmp_path" ]; then
 		local repo_name=`basename $tmp_path`
-		echo "(%F{yellow}${repo_name}%f:$(git_super_status)$(git_prompt_stash_count))"
+		echo "[%F{yellow}${repo_name}%f:$(git_super_status)$(git_prompt_stash_count)]"
 	fi
 
 }
@@ -79,18 +79,55 @@ export ZSH_THEME_GIT_PROMPT_NOCACHE=1
 export ZSH_THEME_GIT_PROMPT_PREFIX=""
 export ZSH_THEME_GIT_PROMPT_SUFFIX=""
 
+# ブランチ名をfish_styleのPWDのようにするためオーバーライド
+git_super_status() {
+	precmd_update_git_vars
+    if [ -n "$__CURRENT_GIT_STATUS" ]; then
+      local fish_style_git_branch="${${(M)GIT_BRANCH:#[/~]}:-${${(@j:/:M)${(@s:/:)GIT_BRANCH}##.#?}:h}/${GIT_BRANCH:t}}"
+	  STATUS="$ZSH_THEME_GIT_PROMPT_PREFIX$ZSH_THEME_GIT_PROMPT_BRANCH$fish_style_git_branch%{${reset_color}%}"
+	  if [ "$GIT_BEHIND" -ne "0" ]; then
+		  STATUS="$STATUS$ZSH_THEME_GIT_PROMPT_BEHIND$GIT_BEHIND%{${reset_color}%}"
+	  fi
+	  if [ "$GIT_AHEAD" -ne "0" ]; then
+		  STATUS="$STATUS$ZSH_THEME_GIT_PROMPT_AHEAD$GIT_AHEAD%{${reset_color}%}"
+	  fi
+	  STATUS="$STATUS$ZSH_THEME_GIT_PROMPT_SEPARATOR"
+	  if [ "$GIT_STAGED" -ne "0" ]; then
+		  STATUS="$STATUS$ZSH_THEME_GIT_PROMPT_STAGED$GIT_STAGED%{${reset_color}%}"
+	  fi
+	  if [ "$GIT_CONFLICTS" -ne "0" ]; then
+		  STATUS="$STATUS$ZSH_THEME_GIT_PROMPT_CONFLICTS$GIT_CONFLICTS%{${reset_color}%}"
+	  fi
+	  if [ "$GIT_CHANGED" -ne "0" ]; then
+		  STATUS="$STATUS$ZSH_THEME_GIT_PROMPT_CHANGED$GIT_CHANGED%{${reset_color}%}"
+	  fi
+	  if [ "$GIT_UNTRACKED" -ne "0" ]; then
+		  STATUS="$STATUS$ZSH_THEME_GIT_PROMPT_UNTRACKED%{${reset_color}%}"
+	  fi
+	  if [ "$GIT_CHANGED" -eq "0" ] && [ "$GIT_CONFLICTS" -eq "0" ] && [ "$GIT_STAGED" -eq "0" ] && [ "$GIT_UNTRACKED" -eq "0" ]; then
+		  STATUS="$STATUS$ZSH_THEME_GIT_PROMPT_CLEAN"
+	  fi
+	  STATUS="$STATUS%{${reset_color}%}$ZSH_THEME_GIT_PROMPT_SUFFIX"
+	  echo "$STATUS"
+	fi
+}
+
+
 #from http://news.mynavi.jp/column/zsh/index.html
 case ${UID} in
 	0) #for super user
-		RPROMPT='[%F{yellow}%D{%T}%f]$(my-git-status)'
+		RPROMPT='[%F{yellow}%D{%T}%f]'
 		;;
 	*)
-    RPROMPT='[%F{blue}%D{%T}%f]$(my-git-status)'
+    RPROMPT='[%F{blue}%D{%T}%f]'
 esac
 
 function precmd_prompt () {
-  PROMPT="%{%(?.$fg[green].$fg[red])%}%n%{$reset_color%} [%F{cyan}%(5~,%-2~/../%2~,%~)%f] %{%}%#%{%}%(1j.%j.) "
-  # PROMPT="%K{white}%{%(?.$fg[green].$fg[red])%}%n%{$reset_color%}%k%K{white} [%F{cyan}%(5~,%-2~/../%2~,%~)%f] %{%}%#%{%}%(1j.%j.)%k "
+  # https://github.com/sorin-ionescu/prezto/issues/290
+  local pwd="${PWD/#$HOME/~}"
+  local fish_style_pwd="${${(M)pwd:#[/~]}:-${${(@j:/:M)${(@s:/:)pwd}##.#?}:h}/${pwd:t}}"
+  PROMPT="%{%(?.$fg[green].$fg[red])%}$fish_style_pwd%{$reset_color%} $(my-git-status) %{%}%#%{%}%(1j.%j.) "
+  # PROMPT="%{%(?.$fg[green].$fg[red])%}%n%{$reset_color%} [%F{cyan}%(5~,%-2~/../%2~,%~)%f] %{%}%#%{%}%(1j.%j.) "
 }
 precmd_functions=(precmd_prompt)
 

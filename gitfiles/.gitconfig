@@ -130,11 +130,13 @@
 	path = .gitconfig.local
 [diff]
     tool = mvimdiff
+    ; http://qiita.com/takaakikasai/items/3d4f8a4867364a46dfa3
+    algorithm = histogram
 [difftool "mvimdiff"]
     cmd = mvim -f -d \"$LOCAL\" \"$REMOTE\"
 [difftool "sourcetree"]
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path = 
+	path =
 [merge]
 	; tool = vimdiff2
 	tool = mvimdiff

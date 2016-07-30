@@ -148,6 +148,7 @@ NeoBundle 'Shougo/unite.vim'
  NeoBundle 'simeji/winresizer'
  NeoBundle 'AndrewRadev/splitjoin.vim'
  NeoBundle 'tsukkee/unite-help'
+ NeoBundle 'vim-scripts/diffchar.vim'
 
  NeoBundle 'Shougo/vimproc.vim', {
        \ 'build' : {
@@ -1103,3 +1104,15 @@ nnoremap <silent> <Leader>fn :TagbarCurrentTag<CR>
 nnoremap <Leader>fu :CtrlPFunky<Cr>
 " narrow the list down with a word under cursor
 nnoremap <Leader>fU :execute 'CtrlPFunky ' . expand('<cword>')<Cr>
+
+" vimdiffで起動した際自動的に単語単位の差分(diffchar.vim)を有効にする
+" http://qiita.com/takaakikasai/items/0d617b6e0aed490dff35
+if &diff
+  augroup enable_diffchar
+    autocmd!
+    autocmd VimEnter * execute "%SDChar"
+  augroup END
+endif
+
+" f8はscratch-utilityで使われてるので回避
+nmap <F6> <Plug>ToggleDiffCharCurrentLine
