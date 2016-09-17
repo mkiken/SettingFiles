@@ -84,6 +84,10 @@ git_super_status() {
 	precmd_update_git_vars
     if [ -n "$__CURRENT_GIT_STATUS" ]; then
       local fish_style_git_branch="${${(M)GIT_BRANCH:#[/~]}:-${${(@j:/:M)${(@s:/:)GIT_BRANCH}##.#?}:h}/${GIT_BRANCH:t}}"
+      # ./masterとなるのでmasterにする
+      if [[ "$fish_style_git_branch" =~ "^\./.*" ]]; then
+        fish_style_git_branch="${fish_style_git_branch#./}"
+      fi
 	  STATUS="$ZSH_THEME_GIT_PROMPT_PREFIX$ZSH_THEME_GIT_PROMPT_BRANCH$fish_style_git_branch%{${reset_color}%}"
 	  if [ "$GIT_BEHIND" -ne "0" ]; then
 		  STATUS="$STATUS$ZSH_THEME_GIT_PROMPT_BEHIND$GIT_BEHIND%{${reset_color}%}"

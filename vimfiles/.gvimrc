@@ -6,7 +6,7 @@
 " colorscheme Tomorrow-Night
 " colorscheme Tomorrow-Night-Blue
 " colorscheme Tomorrow-Night-Bright
-" colorscheme Tomorrow-Night-Eighties
+colorscheme Tomorrow-Night-Eighties
 " colorscheme badwolf
 " colorscheme codeschool
 " colorscheme evening
@@ -16,7 +16,7 @@
 " colorscheme hybrid-light
 " colorscheme iceberg
 " colorscheme inkpot
-colorscheme jellybeans
+" colorscheme jellybeans
 " colorscheme lucius
 " colorscheme macvim
 " colorscheme molokai
