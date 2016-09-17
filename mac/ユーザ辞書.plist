@@ -4,6 +4,48 @@
 <array>
 	<dict>
 		<key>phrase</key>
+		<string>mori_kensuke@cyberagent.co.jp</string>
+		<key>shortcut</key>
+		<string>@emca</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>mkiken0@gmail.com</string>
+		<key>shortcut</key>
+		<string>@emgm</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>to_rest_is_to_rust@ezweb.ne.jp</string>
+		<key>shortcut</key>
+		<string>@emip</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>ken.mori523@siren.ocn.ne.jp</string>
+		<key>shortcut</key>
+		<string>@emkm</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>to_rest_is_to_rust@ezweb.ne.jp</string>
+		<key>shortcut</key>
+		<string>#mail</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>mori_kensuke@griphone.co.jp</string>
+		<key>shortcut</key>
+		<string>#mailc</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>mkiken0@gmail.com</string>
+		<key>shortcut</key>
+		<string>#mailg</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(∩ﾟдﾟ)ｱｰｱｰきこえなーい</string>
 		<key>shortcut</key>
 		<string>あーあー</string>
@@ -22,25 +64,13 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>（￣□￣；）</string>
-		<key>shortcut</key>
-		<string>あせ</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>(;・`д・́)</string>
-		<key>shortcut</key>
-		<string>あせ</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
 		<string>(；´Д`A</string>
 		<key>shortcut</key>
 		<string>あせ</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>（；ﾟДﾟ）</string>
+		<string>σ(^_^;) </string>
 		<key>shortcut</key>
 		<string>あせ</string>
 	</dict>
@@ -370,7 +400,19 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>( ･´ｰ･｀) </string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(　˙-˙  )</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>（￣□￣；）</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
 	</dict>
@@ -388,7 +430,13 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>(・ω・)</string>
+		<string>(;・`д・́)</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>（；ﾟДﾟ）</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
 	</dict>
@@ -431,6 +479,12 @@
 	<dict>
 		<key>phrase</key>
 		<string>(´･_･`)</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>(´;ω;`)</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
 	</dict>
@@ -527,6 +581,12 @@
 	<dict>
 		<key>phrase</key>
 		<string>v(｡･ω･｡)</string>
+		<key>shortcut</key>
+		<string>かおもじ</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>v('ω'v )三v('ω')v三( v'ω')v</string>
 		<key>shortcut</key>
 		<string>かおもじ</string>
 	</dict>
@@ -637,6 +697,12 @@
 		<string>( ☆∀☆)</string>
 		<key>shortcut</key>
 		<string>きらーん</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
+		<string>雲母坂</string>
+		<key>shortcut</key>
+		<string>きららざか</string>
 	</dict>
 	<dict>
 		<key>phrase</key>
@@ -1006,12 +1072,6 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>_(:3＞∠)_</string>
-		<key>shortcut</key>
-		<string>ねる</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
 		<string>(:3 っ)っ</string>
 		<key>shortcut</key>
 		<string>ねる</string>
@@ -1240,6 +1300,12 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>(゜д゜)</string>
+		<key>shortcut</key>
+		<string>ぽかーん</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>(ﾟДﾟ )</string>
 		<key>shortcut</key>
 		<string>ぽかーん</string>
@@ -1360,9 +1426,9 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
-		<string>(゜д゜)</string>
+		<string>(  ；∀；)</string>
 		<key>shortcut</key>
-		<string>ぽかーん</string>
+		<string>なき</string>
 	</dict>
 </array>
 </plist>
