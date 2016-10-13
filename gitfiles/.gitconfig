@@ -136,7 +136,7 @@
     cmd = mvim -f -d \"$LOCAL\" \"$REMOTE\"
 [difftool "sourcetree"]
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path =
+	path = 
 [merge]
 	; tool = vimdiff2
 	tool = mvimdiff

@@ -1396,6 +1396,12 @@
 	</dict>
 	<dict>
 		<key>phrase</key>
+		<string>（´-`）.｡oO（）</string>
+		<key>shortcut</key>
+		<string>ふきだし</string>
+	</dict>
+	<dict>
+		<key>phrase</key>
 		<string>ﾌﾟｷﾞｬ━━━━m9（＾Д＾）━━━━━ !!!!</string>
 		<key>shortcut</key>
 		<string>ぷぎゃー</string>
