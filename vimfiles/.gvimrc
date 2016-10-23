@@ -1,12 +1,12 @@
 " Vim Settings for GUI
 
 " カラースキーマを設定
-" colorscheme BusyBee
+colorscheme BusyBee
 " colorscheme Tomorrow
 " colorscheme Tomorrow-Night
 " colorscheme Tomorrow-Night-Blue
 " colorscheme Tomorrow-Night-Bright
-colorscheme Tomorrow-Night-Eighties
+" colorscheme Tomorrow-Night-Eighties
 " colorscheme badwolf
 " colorscheme codeschool
 " colorscheme evening

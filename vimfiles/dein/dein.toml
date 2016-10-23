@@ -21,6 +21,8 @@ repo = 'scrooloose/nerdcommenter'
 [[plugins]]
 repo = 'scrooloose/syntastic'
 [[plugins]]
+repo = 'Valloric/YouCompleteMe'
+[[plugins]]
 repo = 'SirVer/ultisnips'
 [[plugins]]
 repo = 'honza/vim-snippets'
@@ -48,7 +50,8 @@ repo = 'bling/vim-airline'
 repo = 'lilydjwg/colorizer'
 [[plugins]]
 repo = 'tpope/vim-abolish'
-# NeoBundle 'LeafCage/yankround.vim'
+[[plugins]]
+repo = 'LeafCage/yankround.vim'
 [[plugins]]
 repo = 'kana/vim-textobj-jabraces'
 [[plugins]]
@@ -80,6 +83,26 @@ repo = 'tsukkee/unite-help'
 [[plugins]]
 repo = 'vim-scripts/diffchar.vim'
 
+[[plugins]]
+repo      = 'ujihisa/unite-colorscheme'
+depends = ['unite.vim']
+
+[[plugins]]
+repo    = 'Shougo/neoyank.vim'
+depends = ['unite.vim']
+
+[[plugins]]
+repo      = 'Shougo/neomru.vim'
+
+[[plugins]]
+repo      = 'Shougo/unite-outline'
+depends = ['unite.vim']
+
+[[plugins]]
+repo      = 'nixprime/cpsm'
+# build = 'env PY3=ON ./install.sh'
+depends = ['ctrlp.vim']
+
 # git clone 後、実行すべきコマンドがある場合はこんな感じ
 [[plugins]]
 repo = 'Shougo/vimproc.vim'
@@ -95,6 +118,3 @@ hook_post_update = '''
   endif
   let g:dein#plugin.build = cmd
 '''
-
-[[plugins]]
-repo = 'Valloric/YouCompleteMe'
