@@ -176,11 +176,13 @@ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
 ./update
 
-cd ~/.vim/bundle/YouCompleteMe
+# ビルド
+cd "${Repo}vimfiles/dein/bundle/repos/github.com/Valloric/YouCompleteMe"
 git submodule update --init --recursive
 ./install.sh --clang-completer
 cd $OLDPWD
-cd ~/.vim/bundle/cpsm
+
+cd "${Repo}vimfiles/dein/bundle/repos/github.com/nixprime/cpsm"
 ./install.sh
 cd $OLDPWD
 

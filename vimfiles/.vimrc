@@ -16,10 +16,11 @@ command! Bo BufOnly
 
 if !exists('g:setting_files_path')
   let g:setting_files_path = $HOME.'/Desktop/repository/SettingFiles' | lockvar! setting_files_path
+  let g:vim_dir_path = g:setting_files_path . '/vimfiles' | lockvar! vim_dir_path
 endif
 
 " http://stackoverflow.com/questions/840900/vim-sourcing-based-on-a-string/841025#841163
-exec 'source ' .  g:setting_files_path . '/vimfiles/.vimrc.common'
+exec 'source ' .  g:vim_dir_path . '/.vimrc.common'
 
 " cnoremap <CR> <Plug>(anzu-update-search-status)<Plug>(anzu-echo-search-status)<CR>
 
@@ -50,284 +51,122 @@ let g:loaded_netrwFileHandlers = 1
    if &compatible
      set nocompatible               " Be iMproved
    endif
-
-   " Required:
-   set runtimepath+=~/.vim/bundle/neobundle.vim/
  endif
 
- " Required:
- call neobundle#begin(expand('~/.vim/bundle/'))
-
- " Let NeoBundle manage NeoBundle
- " Required:
- NeoBundleFetch 'Shougo/neobundle.vim'
- let g:neobundle#install_process_timeout = 1500
+" どこか最初の方に書いておく
+" http://qiita.com/delphinus/items/00ff2c0ba972c6e41542#on_source-%E3%83%95%E3%83%83%E3%82%AF%E3%81%AE%E8%A8%AD%E5%AE%9A%E6%96%B9%E6%B3%95%E3%81%8C%E5%A4%89%E3%82%8F%E3%81%A3%E3%81%9F
+augroup MyAutoCmd
+  autocmd!
+augroup END
 
 
- " My Bundles here:
- " Refer to |:NeoBundle-examples|.
- " Note: You don't set neobundle setting in .gvimrc!
+let s:dein_dir = g:vim_dir_path . '/dein'
+" プラグインが実際にインストールされるディレクトリ
+let s:dein_bundle_dir = s:dein_dir . '/bundle'
+" dein.vim 本体
+let s:dein_repo_dir = s:dein_bundle_dir . '/repos/github.com/Shougo/dein.vim'
 
-
- " NeoBundle 'yonchu/accelerated-smooth-scroll'
- NeoBundle 'haya14busa/vim-easymotion'
- NeoBundle 'kana/vim-smartinput'
- " NeoBundle 'mhinz/vim-startify'
- " NeoBundle 'osyo-manga/vim-over'
- NeoBundle 'terryma/vim-multiple-cursors'
- " NeoBundle 'haya14busa/vim-migemo'
- NeoBundle 'Yggdroot/indentLine'
- " NeoBundle 'Shougo/vimfiler.vim'
- " NeoBundle 'terryma/vim-expand-region'
- " NeoBundle 'Shougo/neocomplete.vim'
- " NeoBundle 'Shougo/neosnippet'
- " NeoBundle 'Shougo/neosnippet-snippets'
- " NeoBundle 'kien/ctrlp.vim'
- NeoBundle 'ctrlpvim/ctrlp.vim'
- NeoBundle 'scrooloose/nerdcommenter'
- NeoBundle 'scrooloose/syntastic'
- NeoBundle 'SirVer/ultisnips'
- NeoBundle 'honza/vim-snippets'
- NeoBundle 'maksimr/vim-jsbeautify'
- NeoBundle 'einars/js-beautify'
- " NeoBundle 'Chiel92/vim-autocsformat'
- NeoBundle 'tpope/vim-surround'
- " NeoBundle 'pangloss/vim-javascript'
- NeoBundle 'kana/vim-textobj-line'
- " NeoBundle 'kana/vim-textobj-entire'
- NeoBundle 'kana/vim-textobj-user'
- " NeoBundle 'euoia/vim-jsbeautify-simple'
- " NeoBundle 'alpaca-tc/beautify.vim'
- " NeoBundle 'Lokaltog/vim-powerline'
- NeoBundle 'tpope/vim-fugitive'
- NeoBundle 'Shougo/neomru.vim' " for Unite
- " NeoBundle 'thinca/vim-visualstar'
-NeoBundle 'Shougo/unite.vim'
- NeoBundle 't9md/vim-quickhl'
- " NeoBundle 'osyo-manga/vim-brightest'
- " NeoBundle 'haya14busa/incsearch.vim'
- NeoBundle 'rhysd/clever-f.vim'
- NeoBundle 'vimtaku/hl_matchit.vim'
- " NeoBundle 'kana/vim-smartword'
- NeoBundle 'bling/vim-airline'
- " NeoBundle 'jiangmiao/auto-pairs'
- " NeoBundle 'cohama/vim-smartinput-endwise'
- NeoBundle 'lilydjwg/colorizer'
- NeoBundle 'tpope/vim-abolish'
- NeoBundle 'LeafCage/yankround.vim'
- " NeoBundle 'vim-scripts/Changed'
- " NeoBundle 'tacahiroy/ctrlp-funky'
- " NeoBundle 'h1mesuke/unite-outline'
- NeoBundle 'Shougo/unite-outline'
- " NeoBundle 'soramugi/auto-ctags.vim'
- " NeoBundle 'xolox/vim-misc'
- " NeoBundle 'xolox/vim-easytags'
- NeoBundle 'kana/vim-textobj-jabraces'
- NeoBundle 'thinca/vim-textobj-comment'
- NeoBundle 'saihoooooooo/vim-textobj-space'
- NeoBundle 'ujihisa/unite-colorscheme'
- NeoBundle 'haya14busa/vim-asterisk'
- " NeoBundle 'mtth/scratch.vim'
- NeoBundle 'violetyk/scratch-utility'
- " NeoBundle 'deris/vim-loadafterft'
- " NeoBundle 'vim-scripts/SearchComplete'
- " NeoBundle 'blueyed/vim-diminactive'
- NeoBundle 'airblade/vim-gitgutter'
- " NeoBundle 'sgur/vim-lazygutter'
- " NeoBundle 'kana/vim-textobj-datetime'
- NeoBundle 'kana/vim-textobj-function'
- " NeoBundle 'kmnk/vim-unite-giti'
- NeoBundle 'MattesGroeger/vim-bookmarks'
- NeoBundle 'Valloric/ListToggle'
- " NeoBundle 'rhysd/committia.vim'
- NeoBundle 'vim-scripts/csv.vim'
- " NeoBundle 'junegunn/fzf.vim'
- NeoBundle 'mkiken/vim-bufonly'
- " NeoBundle 'dyng/ctrlsf.vim'
- NeoBundle 'nixprime/cpsm'
- NeoBundle 'simeji/winresizer'
- NeoBundle 'AndrewRadev/splitjoin.vim'
- NeoBundle 'tsukkee/unite-help'
- NeoBundle 'vim-scripts/diffchar.vim'
-
- NeoBundle 'Shougo/vimproc.vim', {
-       \ 'build' : {
-       \     'windows' : 'tools\\update-dll-mingw',
-       \     'cygwin' : 'make -f make_cygwin.mak',
-       \     'mac' : 'make -f make_mac.mak',
-       \     'linux' : 'make',
-       \     'unix' : 'gmake',
-       \    },
-       \ }
-
-NeoBundleLazy "majutsushi/tagbar", {
-      \ "autoload": { "commands": ["TagbarToggle"] }}
-if ! empty(neobundle#get("tagbar"))
-   " Width (default 40)
-  " let g:tagbar_width = 20
-  " Map for toggle
-  nn <silent> <leader>t :TagbarToggle<CR>
-  let g:tagbar_left = 1
+" dein.vim がなければ github から落としてくる
+if &runtimepath !~# '/dein.vim'
+  if !isdirectory(s:dein_repo_dir)
+    execute '!git clone https://github.com/Shougo/dein.vim' s:dein_repo_dir
+  endif
+  execute 'set runtimepath^=' . fnamemodify(s:dein_repo_dir, ':p')
 endif
 
-" NeoBundleLazy 'Shougo/unite.vim' , {
-" \   'autoload' : { 'commands' : [ 'Unite' ] }
-" \ }
-let s:bundle = neobundle#get('unite.vim')
-function! s:bundle.hooks.on_source(bundle)
-  " unite.vimの設定
-  " ウィンドウを水平分割なら下に、垂直分割なら右に開く
-  let g:unite_split_rule = 'botright'
-  " vinarise
-  " let g:vinarise_enable_auto_detect = 1
-  " ESCキーを2回押すと終了する
-  au FileType unite nnoremap <silent> <buffer> <ESC><ESC> :q<CR>
-  au FileType unite inoremap <silent> <buffer> <ESC><ESC> <ESC>:q<CR>
+" 設定開始
+if dein#load_state(s:dein_bundle_dir)
+  call dein#begin(s:dein_bundle_dir)
 
-  "インサートモードで開始
-  let g:unite_enable_start_insert = 1
-  "最近開いたファイル履歴の保存数
-  let g:unite_source_file_mru_limit = 50
-  "file_mruの表示フォーマットを指定。空にすると表示スピードが高速化される
-  let g:unite_source_file_mru_filename_format = ''
+  " プラグインリストを収めた TOML ファイル
+  " 予め TOML ファイル（後述）を用意しておく
+  let s:toml      = s:dein_dir . '/dein.toml'
+  let s:lazy_toml = s:dein_dir . '/dein_lazy.toml'
 
-  "uniteを開いている間のキーマッピング
-  autocmd vimrc FileType unite call s:unite_my_settings()
-  function! s:unite_my_settings()"{{{
-	  "ESCでuniteを終了
-	  " nmap <buffer> <ESC> <Plug>(unite_exit)
-	  "入力モードのときjjでノーマルモードに移動
-	  " imap <buffer> jj <Plug>(unite_insert_leave)
-	  "入力モードのときctrl+wでバックスラッシュも削除
-	  " imap <buffer> <C-w> <Plug>(unite_delete_backward_path)
-	  "ctrl+jで縦に分割して開く
-	  nnoremap <silent> <buffer> <expr> s unite#do_action('split')
-	  inoremap <silent> <buffer> <expr> <C-s> unite#do_action('split')
-	  "ctrl+jで横に分割して開く
-	  nnoremap <silent> <buffer> <expr> v unite#do_action('vsplit')
-	  inoremap <silent> <buffer> <expr> <C-v> unite#do_action('vsplit')
-	  "ctrl+oでその場所に開く
-	  nnoremap <silent> <buffer> <expr> o unite#do_action('open')
-	  inoremap <silent> <buffer> <expr> <C-o> unite#do_action('open')
-	  "ctrl+tでタブで開く
-	  nnoremap <silent> <buffer> <expr> t unite#do_action('tabopen')
-	  inoremap <silent> <buffer> <expr> <C-t> unite#do_action('tabopen')
-	  "ctrl+aで上部に開く
-	  nnoremap <silent> <buffer> <expr> a unite#do_action('above')
-	  inoremap <silent> <buffer> <expr> <C-a> unite#do_action('above')
-	  "ctrl+bで下部に開く
-	  nnoremap <silent> <buffer> <expr> b unite#do_action('below')
-	  inoremap <silent> <buffer> <expr> <C-b> unite#do_action('below')
-	  "ctrl+rで下部に開く
-	  nnoremap <silent> <buffer> <expr> r unite#do_action('right')
-	  inoremap <silent> <buffer> <expr> <C-r> unite#do_action('right')
-	  "ctrl+lで下部に開く
-	  nnoremap <silent> <buffer> <expr> l unite#do_action('left')
-	  inoremap <silent> <buffer> <expr> <C-l> unite#do_action('left')
-	  "ctrl+bでブックマーク
-	  nnoremap <silent> <buffer> <expr> b unite#do_action('bookmark')
-	  inoremap <silent> <buffer> <expr> <C-b> unite#do_action('bookmark')
-  endfunction"}}}
+  " TOML を読み込み、キャッシュしておく
+  call dein#load_toml(s:toml,      {'lazy': 0})
+  call dein#load_toml(s:lazy_toml, {'lazy': 1})
 
-endfunction
+  " 設定終了
+  call dein#end()
+  call dein#save_state()
+endif
 
-NeoBundle 'Valloric/YouCompleteMe', {
-     \ 'build'      : {
-        \ 'mac'     : './install.py',
-        \ 'unix'    : './install.py',
-        \ 'windows' : 'install.py',
-        \ 'cygwin'  : './install.py'
-        \ }
-     \ }
+" もし、未インストールものものがあったらインストール
+if dein#check_install()
+  call dein#install()
+endif
 
-" lazy load
-NeoBundleLazy 'mattn/emmet-vim',{
-                          \"autoload" : {"filetypes" :["html", "smarty"]}
-                          \}
-NeoBundleLazy 'derekwyatt/vim-scala',{
-                          \"autoload" : {"filetypes" :["scala"]}
-                          \}
-NeoBundleLazy 'jelera/vim-javascript-syntax',{
-                          \"autoload" : {"filetypes" :["javascript"]}
-                          \}
-NeoBundleLazy 'heavenshell/vim-jsdoc',{
-                          \"autoload" : {"filetypes" :["javascript"]}
-                          \}
-NeoBundleLazy 'rhysd/vim-textobj-ruby',{
-                          \"autoload" : {"filetypes" :["ruby"]}
-                          \}
-NeoBundleLazy 'oppara/phpstylist.vim',{
-                          \"autoload" : {"filetypes" :["php"]}
-                          \}
-" NeoBundleLazy 'mkiken/vim-jsbeautify-simple',{
-                          " \"autoload" : {"filetypes" :["javascript"]}
-                          " \}
-NeoBundleLazy  'AndrewRadev/switch.vim',{
-\   'autoload' : { 'commands' : [ "Switch"] }
-                          \}
-NeoBundleLazy 'tyru/open-browser.vim',{
-\   'autoload' : { 'commands' : [ "OpenBrowserSmartSearch"] }
-                          \}
-NeoBundleLazy 'thinca/vim-qfreplace',{
-\   'autoload' : { 'commands' : [ "Qfreplace"] }
-                          \}
-NeoBundleLazy  'rking/ag.vim',{
-\   'autoload' : { 'commands' : [ "Ag", "AgFile"] }
-                          \}
-NeoBundleLazy 'deris/vim-diffbuf',{
-\   'autoload' : { 'commands' : [ "DiffBuf"] }
-                          \}
-NeoBundleLazy 'junegunn/vim-easy-align',{
-\   'autoload' : { 'commands' : [ "EasyAlign"] }
-                          \}
-" NeoBundleLazy 'gregsexton/gitv',{
-" \   'autoload' : { 'commands' : [ "Gitv", "Gitv!"] }
-                          " \}
-NeoBundleLazy 'scrooloose/nerdtree',{
-\   'autoload' : { 'commands' : [ 'NERDTreeToggle'] }
-                          \}
-" NeoBundleLazy 'Shougo/vimshell.vim',{
-" \   'autoload' : { 'commands' : [ 'VimShell', 'VimShellPop'] }
-                          " \}
-" NeoBundleLazy 'thinca/vim-quickrun',{
-" \   'autoload' : { 'commands' : [ 'QuickRun'] }
-                          " \}
-" NeoBundleLazy 'cohama/agit.vim',{
-" \   'autoload' : { 'commands' : [ 'Agit', 'AgitFile'] }
-                          " \}
-NeoBundleLazy 'will133/vim-dirdiff',{
-\   'autoload' : { 'commands' : [ 'DirDiff'] }
-                          \}
-NeoBundleLazy 'int3/vim-extradite',{
-\   'autoload' : { 'commands' : ['Extradite'] }
-                          \}
-NeoBundleLazy 'StanAngeloff/php.vim',{
-                          \"autoload" : {"filetypes" :["php"]}
-                          \}
-NeoBundleLazy 'blueyed/smarty.vim',{
-                          \"autoload" : {"filetypes" :["smarty"]}
-                          \}
-" NeoBundleLazy 'milkypostman/vim-togglelist',{
-" \   'autoload' : { 'commands' : ['ToggleLocationList', 'ToggleQuickfixList'] }
-                          " \}
-" NeoBundleLazy '2072/PHP-Indenting-for-VIm',{
-                          " \"autoload" : {"filetypes" :["php"]}
-                          " \}
-NeoBundleLazy '2072/PHP-Indenting-for-VIm'
-NeoBundleLazy  'tacahiroy/ctrlp-funky',{
-\   'autoload' : { 'commands' : [ "CtrlPFunky"] }
-                          \}
-NeoBundleLazy 'octol/vim-cpp-enhanced-highlight',{
-                          \"autoload" : {"filetypes" :["cpp"]}
-                          \}
+if 1
+" if dein#tap('unite.vim')
+  " 実行すべき関数
+  " function! s:unite_on_source() abort
+    " unite.vimの設定
+    " ウィンドウを水平分割なら下に、垂直分割なら右に開く
+    let g:unite_split_rule = 'botright'
+    " vinarise
+    " let g:vinarise_enable_auto_detect = 1
+    " ESCキーを2回押すと終了する
+    au FileType unite nnoremap <silent> <buffer> <ESC><ESC> :q<CR>
+    au FileType unite inoremap <silent> <buffer> <ESC><ESC> <ESC>:q<CR>
 
- call neobundle#end()
+    "インサートモードで開始
+    let g:unite_enable_start_insert = 1
+    "最近開いたファイル履歴の保存数
+    let g:unite_source_file_mru_limit = 50
+    "file_mruの表示フォーマットを指定。空にすると表示スピードが高速化される
+    let g:unite_source_file_mru_filename_format = ''
 
- " Required:
- filetype plugin indent on
+    "uniteを開いている間のキーマッピング
+    autocmd vimrc FileType unite call s:unite_my_settings()
+    function! s:unite_my_settings()"{{{
+	    "ESCでuniteを終了
+	    " nmap <buffer> <ESC> <Plug>(unite_exit)
+	    "入力モードのときjjでノーマルモードに移動
+	    " imap <buffer> jj <Plug>(unite_insert_leave)
+	    "入力モードのときctrl+wでバックスラッシュも削除
+	    " imap <buffer> <C-w> <Plug>(unite_delete_backward_path)
+	    "ctrl+jで縦に分割して開く
+	    nnoremap <silent> <buffer> <expr> s unite#do_action('split')
+	    inoremap <silent> <buffer> <expr> <C-s> unite#do_action('split')
+	    "ctrl+jで横に分割して開く
+	    nnoremap <silent> <buffer> <expr> v unite#do_action('vsplit')
+	    inoremap <silent> <buffer> <expr> <C-v> unite#do_action('vsplit')
+	    "ctrl+oでその場所に開く
+	    nnoremap <silent> <buffer> <expr> o unite#do_action('open')
+	    inoremap <silent> <buffer> <expr> <C-o> unite#do_action('open')
+	    "ctrl+tでタブで開く
+	    nnoremap <silent> <buffer> <expr> t unite#do_action('tabopen')
+	    inoremap <silent> <buffer> <expr> <C-t> unite#do_action('tabopen')
+	    "ctrl+aで上部に開く
+	    nnoremap <silent> <buffer> <expr> a unite#do_action('above')
+	    inoremap <silent> <buffer> <expr> <C-a> unite#do_action('above')
+	    "ctrl+bで下部に開く
+	    nnoremap <silent> <buffer> <expr> b unite#do_action('below')
+	    inoremap <silent> <buffer> <expr> <C-b> unite#do_action('below')
+	    "ctrl+rで下部に開く
+	    nnoremap <silent> <buffer> <expr> r unite#do_action('right')
+	    inoremap <silent> <buffer> <expr> <C-r> unite#do_action('right')
+	    "ctrl+lで下部に開く
+	    nnoremap <silent> <buffer> <expr> l unite#do_action('left')
+	    inoremap <silent> <buffer> <expr> <C-l> unite#do_action('left')
+	    "ctrl+bでブックマーク
+	    nnoremap <silent> <buffer> <expr> b unite#do_action('bookmark')
+	    inoremap <silent> <buffer> <expr> <C-b> unite#do_action('bookmark')
+    endfunction"}}}
 
- NeoBundleCheck
+  " endfunction
+" echom g:dein#name
+  " g:dein#name にはプラグイン名が入る
+  " execute 'autocmd MyAutoCmd User' 'dein#source#' . g:dein#name
+  " execute 'autocmd MyAutoCmd User' 'dein#source#unite.vim'
+        " \ 'call s:unite_on_source()'
+  " call dein#set_hook('unite.vim', 'hook_post_source', function('s:unite_on_source'))
+endif
 
+" tagbar
+  nn <silent> <leader>t :TagbarToggle<CR>
+  let g:tagbar_left = 1
 
  " ホームポジションに近いキーを使う
 " http://blog.remora.cx/2012/08/vim-easymotion.html

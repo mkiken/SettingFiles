@@ -1,0 +1,82 @@
+# unite.vim を読み込んだら一緒に読み込む
+[[plugins]]
+repo      = 'Shougo/neomru.vim'
+on_source = ['unite.vim']
+
+[[plugins]]
+repo      = 'Shougo/unite-outline'
+on_source = ['unite.vim']
+
+[[plugins]]
+repo      = 'ujihisa/unite-colorscheme'
+on_source = ['unite.vim']
+
+[[plugins]]
+repo      = 'nixprime/cpsm'
+on_source = ['ctrlpvim/ctrlp.vim']
+
+# 特定のコマンドを打ったら読み込む
+[[plugins]]
+repo      = 'majutsushi/tagbar'
+on_cmd    = ['TagbarToggle']
+
+[[plugins]]
+repo      = 'AndrewRadev/switch.vim'
+on_cmd    = ['Switch']
+[[plugins]]
+repo      = 'tyru/open-browser.vim'
+on_cmd    = ['OpenBrowserSmartSearch']
+[[plugins]]
+repo      = 'thinca/vim-qfreplace'
+on_cmd    = ['Qfreplace']
+[[plugins]]
+repo      = 'rking/ag.vim'
+on_cmd    = ['Ag', 'AgFile']
+[[plugins]]
+repo      = 'deris/vim-diffbuf'
+on_cmd    = ['DiffBuf']
+[[plugins]]
+repo      = 'junegunn/vim-easy-align'
+on_cmd    = ['EasyAlign']
+[[plugins]]
+repo      = 'scrooloose/nerdtree'
+on_cmd    = ['NERDTreeToggle']
+[[plugins]]
+repo      = 'will133/vim-dirdiff'
+on_cmd    = ['DirDiff']
+[[plugins]]
+repo      = 'StanAngeloff/php.vim'
+on_cmd    = ['php']
+[[plugins]]
+repo      = 'blueyed/smarty.vim'
+on_cmd    = ['smarty']
+[[plugins]]
+repo      = '2072/PHP-Indenting-for-VIm'
+on_cmd    = ['php']
+[[plugins]]
+repo      = 'tacahiroy/ctrlp-funky'
+on_cmd    = ['CtrlPFunky']
+[[plugins]]
+repo      = 'octol/vim-cpp-enhanced-highlight'
+on_cmd    = ['cpp']
+
+# 特定のファイルタイプで読み込む
+[[plugins]]
+repo  = 'mattn/emmet-vim'
+on_ft = ['html', 'smarty']
+
+[[plugins]]
+repo  = 'derekwyatt/vim-scala'
+on_ft = ['scala']
+[[plugins]]
+repo  = 'jelera/vim-javascript-syntax'
+on_ft = ['javascript']
+[[plugins]]
+repo  = 'heavenshell/vim-jsdoc'
+on_ft = ['javascript']
+[[plugins]]
+repo  = 'rhysd/vim-textobj-ruby'
+on_ft = ['ruby']
+[[plugins]]
+repo  = 'oppara/phpstylist.vim'
+on_ft = ['php']
