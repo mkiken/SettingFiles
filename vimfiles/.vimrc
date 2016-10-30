@@ -19,6 +19,9 @@ if !exists('g:setting_files_path')
   let g:vim_dir_path = g:setting_files_path . '/vimfiles' | lockvar! vim_dir_path
 endif
 
+" MacVimデフォルトのカラースキームを読み込まないようにする
+let s:macvim_skip_colorscheme=1
+
 " http://stackoverflow.com/questions/840900/vim-sourcing-based-on-a-string/841025#841163
 exec 'source ' .  g:vim_dir_path . '/.vimrc.common'
 

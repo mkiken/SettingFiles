@@ -157,7 +157,7 @@ sudo easy_install Pygments
 # touch ~/.z
 touch ~/.cd_history_file
 
-ln -s /usr/local/Cellar/git/2.3.1/share/git-core/contrib/diff-highlight/diff-highlight  /usr/local/bin
+ln -s /usr/local/share/git-core/contrib/diff-highlight/diff-highlight  /usr/local/bin
 
 ln -si "${Repo}submodules/used-mem/used-mem" /usr/local/bin/used-mem
 

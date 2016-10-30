@@ -124,6 +124,7 @@
 [interactive]
 # git add/checkout -p時に，エンターでの決定を省略する
 	singlekey = true
+	diffFilter = diff-highlight
 
 ; http://d.hatena.ne.jp/z3100/20120505/1336203155
 [include]
@@ -132,6 +133,7 @@
     tool = mvimdiff
     ; http://qiita.com/takaakikasai/items/3d4f8a4867364a46dfa3
     algorithm = histogram
+	compactionHeuristic = true
 [difftool "mvimdiff"]
     cmd = mvim -f -d \"$LOCAL\" \"$REMOTE\"
 [difftool "sourcetree"]
@@ -163,3 +165,7 @@ log = <Ctrl-n> :/^commit
 log = <Ctrl-p> :?^commit
 stage = <Ctrl-n> :/^@@
 stage = <Ctrl-p> :?^@@
+[pager]
+	log = diff-highlight | less
+	show = diff-highlight | less
+	diff = diff-highlight | less
