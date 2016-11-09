@@ -3,7 +3,6 @@
 case "${OSTYPE}" in
 # --------------- Mac(Unix) ---------------
 darwin*)
-MACVIM="/Applications/MacVim.app/Contents/MacOS/mvim"
 # ここに設定
 alias ls='ls -G'
 alias la='ls -A'
@@ -11,14 +10,13 @@ alias ll='ls -AFThl'
 alias lsg='ls | grep'
 alias -g L='| less'
 #MacVim on CUI
-alias -g vs='env LANG=ja_JP.UTF-8 ${MACVIM}'
+alias -g vs='env LANG=ja_JP.UTF-8 mvim'
 alias -g VI='vs --remote-tab-silent'
 alias vi='vs --remote-tab-silent'
 alias vim-orig='vim -u NONE --noplugin'
 alias nv='nvim'
 alias visp='mvim -o'
 alias vivsp='mvim -O'
-alias vimdiff='env LANG=ja_JP.UTF-8 ${MACVIM}diff'
 alias pg='sudo purge'
 alias ag='ag -S --stats -m 100000 --color'
 alias agh='ag --hidden'
@@ -70,7 +68,7 @@ alias allfile='defaults write com.apple.finder AppleShowAllFiles'
 
 # for server
 alias ap='sudo apachectl'
-alias phpini='${MACVIM} --remote-tab-silent /etc/php.ini'
+alias phpini='vi /etc/php.ini'
 alias phpini2='sudo vim /etc/php.ini'
 alias cdphp='cd /Library/WebServer/Documents/'
 alias cdphpl='cd /Users/${USER}/Sites'

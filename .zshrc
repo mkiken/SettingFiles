@@ -1,6 +1,7 @@
 REPO="${HOME}/Desktop/repository/"
 SET="${REPO}SettingFiles/"
 SUBMODULE_DIR="${SET}submodules/"
+MACVIM="/Applications/MacVim.app/Contents/MacOS"
 
 #read Aliases
 source ~/.aliases
@@ -8,6 +9,7 @@ source ~/.aliases
 
 # パスの設定
 path=(/usr/local/bin(N-/) $path)
+path=($MACVIM(N-/) $path)
 
 autoload -U colors
 colors
