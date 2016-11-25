@@ -9,6 +9,7 @@ echo "end git submodule setting."
 echo "start brew update."
 brew update -v
 brew upgrade -v
+brew cleanup -s
 # brew upgrade git
 # brew upgrade rmtrash
 # brew upgrade emacs
@@ -19,7 +20,8 @@ brew reinstall --HEAD fzf
 brew cask update
 echo "end brew update."
 
-vim -c NeoBundleClean -c NeoBundleInstall -c NeoBundleUpdate -c qa
+# deinのアップデート
+vim -c "call dein#update()" -c qa
 # ../.atom/package_initialize
 # echo "If package of Emacs is updated, please eval-buffer 'package-initialize.el' on Emacs."
 # zcompile ~/.zshrc

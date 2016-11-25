@@ -2,6 +2,8 @@ REPO="${HOME}/Desktop/repository/"
 SET="${REPO}SettingFiles/"
 SUBMODULE_DIR="${SET}submodules/"
 MACVIM="/Applications/MacVim.app/Contents/MacOS"
+BREW_CASKROOM="/usr/local/Caskroom"
+BREW_CELLAR="/usr/local/Cellar"
 
 #read Aliases
 source ~/.aliases
