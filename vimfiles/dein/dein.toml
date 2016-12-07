@@ -82,6 +82,8 @@ repo = 'AndrewRadev/splitjoin.vim'
 repo = 'tsukkee/unite-help'
 [[plugins]]
 repo = 'vim-scripts/diffchar.vim'
+[[plugins]]
+repo      = 'tyru/open-browser.vim'
 
 [[plugins]]
 repo      = 'ujihisa/unite-colorscheme'

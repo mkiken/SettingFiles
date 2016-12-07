@@ -364,7 +364,6 @@ let g:ctrlp_match_func = {'match': 'cpsm#CtrlPMatch'}
 
 
 " URLを開けるようにする
-" http://vim-users.jp/2011/08/hack225/
 let g:netrw_nogx = 1 " disable netrw's gx mapping.
 nmap gb <Plug>(openbrowser-smart-search)
 vmap gb <Plug>(openbrowser-smart-search)

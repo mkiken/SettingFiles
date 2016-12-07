@@ -7,9 +7,6 @@ on_cmd    = ['TagbarToggle']
 repo      = 'AndrewRadev/switch.vim'
 on_cmd    = ['Switch']
 [[plugins]]
-repo      = 'tyru/open-browser.vim'
-on_cmd    = ['OpenBrowserSmartSearch']
-[[plugins]]
 repo      = 'thinca/vim-qfreplace'
 on_cmd    = ['Qfreplace']
 [[plugins]]
@@ -29,19 +26,22 @@ repo      = 'will133/vim-dirdiff'
 on_cmd    = ['DirDiff']
 [[plugins]]
 repo      = 'StanAngeloff/php.vim'
-on_cmd    = ['php']
+on_ft    = ['php']
 [[plugins]]
 repo      = 'blueyed/smarty.vim'
-on_cmd    = ['smarty']
+on_ft    = ['smarty']
 [[plugins]]
 repo      = '2072/PHP-Indenting-for-VIm'
-on_cmd    = ['php']
+on_ft    = ['php']
 [[plugins]]
 repo      = 'tacahiroy/ctrlp-funky'
 on_cmd    = ['CtrlPFunky']
 [[plugins]]
 repo      = 'octol/vim-cpp-enhanced-highlight'
-on_cmd    = ['cpp']
+on_ft    = ['cpp']
+[[plugins]]
+repo      = 'vim-scripts/sum.vim'
+on_cmd    = ['Sum']
 
 # 特定のファイルタイプで読み込む
 [[plugins]]
