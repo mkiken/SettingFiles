@@ -120,6 +120,7 @@
 	editor = vim
 	quotepath = false
 	ignorecase = false
+	excludesfile = ~/.gitignore
 	; http://qiita.com/yaotti/items/2361768b6ed781e87780
 [interactive]
 # git add/checkout -p時に，エンターでの決定を省略する
@@ -138,7 +139,7 @@
     cmd = mvim -f -d \"$LOCAL\" \"$REMOTE\"
 [difftool "sourcetree"]
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path = 
+	path =
 [merge]
 	; tool = vimdiff2
 	tool = mvimdiff

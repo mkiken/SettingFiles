@@ -628,7 +628,10 @@ fi
 
 # unsetopt sh_wordsplit
 
-source ${SUBMODULE_DIR}zsh-autosuggestions/zsh-autosuggestions.zsh
+if [ -z "$LOAD_COMPLETE" ]; then
+  # 再読み込みすると落ちるので1回のみロード
+  source ${SUBMODULE_DIR}zsh-autosuggestions/zsh-autosuggestions.zsh
+fi
 
 # 自動コンパイル
 # http://blog.n-z.jp/blog/2013-12-10-auto-zshrc-recompile.html
@@ -638,3 +641,4 @@ fi
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
+export LOAD_COMPLETE=`date`
