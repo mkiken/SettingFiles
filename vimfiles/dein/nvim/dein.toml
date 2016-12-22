@@ -1,0 +1,6 @@
+# theme
+[[plugins]]
+repo      = 'mhartington/oceanic-next'
+
+[[plugins]]
+repo      = 'freeo/vim-kalisi'

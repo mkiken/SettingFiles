@@ -105,6 +105,10 @@ repo      = 'nixprime/cpsm'
 # build = 'env PY3=ON ./install.sh'
 depends = ['ctrlp.vim']
 
+# theme
+[[plugins]]
+repo      = 'mhartington/oceanic-next'
+
 # git clone 後、実行すべきコマンドがある場合はこんな感じ
 [[plugins]]
 repo = 'Shougo/vimproc.vim'

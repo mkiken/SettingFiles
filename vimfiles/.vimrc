@@ -63,7 +63,7 @@ augroup MyAutoCmd
 augroup END
 
 
-let s:dein_dir = g:vim_dir_path . '/dein'
+let s:dein_dir = g:vim_dir_path . '/dein/vim'
 " プラグインが実際にインストールされるディレクトリ
 let s:dein_bundle_dir = s:dein_dir . '/bundle'
 " dein.vim 本体
@@ -725,7 +725,7 @@ let g:hl_matchit_allow_ft = 'html\|vim\|ruby\|sh'
 
 " http://d.hatena.ne.jp/oppara/20111229/p1
 " phpStylist.php へのパス
-let g:phpstylist_cmd_path = setting_files_path . '/bin/phpStylist.php'
+let g:phpstylist_cmd_path = g:setting_files_path . '/bin/phpStylist.php'
 
 " phpStylist のオプション
 " php /path/to/phpStylist.php --help

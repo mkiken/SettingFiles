@@ -20,8 +20,8 @@ echo "ln -si ${Repo}vimfiles/.vimrc ~/.vimrc"
 ln -si "${Repo}vimfiles/.vimrc" ~/.vimrc
 
 mkdir -p ~/.config/nvim
-echo "ln -si ${Repo}vimfiles/.vimrc ~/.config/nvim/init.vim"
-ln -si "${Repo}vimfiles/.vimrc" ~/.config/nvim/init.vim
+echo "ln -si ${Repo}vimfiles/init.vim ~/.config/nvim/init.vim"
+ln -si "${Repo}vimfiles/init.vim" ~/.config/nvim/init.vim
 
 echo "ln -si ${Repo}.zshrc ~/.zshrc"
 ln -si "${Repo}.zshrc" ~/.zshrc
