@@ -1,0 +1,12 @@
+#!/bin/sh
+
+echo "pre-commit test."
+if [ -z `git name` ] || [ -z `git email` ]
+then
+	cat <<\EOF
+Error: Your name or email address is empty.
+commit fails.
+
+EOF
+	exit 1
+fi

@@ -13,6 +13,9 @@ ln -si "${Repo}gitfiles/.gitconfig" ~/.gitconfig
 echo "ln -si ${Repo}gitfiles/.gitignore_global ~/.gitignore"
 ln -si "${Repo}gitfiles/.gitignore_global" ~/.gitignore
 
+echo "ln -si ${Repo}gitfiles/.git_template ~/.git_template"
+ln -si "${Repo}gitfiles/.git_template" ~/.git_template
+
 echo "ln -si ${Repo}vimfiles/.gvimrc ~/.gvimrc"
 ln -si "${Repo}vimfiles/.gvimrc" ~/.gvimrc
 

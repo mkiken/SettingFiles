@@ -50,12 +50,13 @@
     packagesWithKeymapsDisabled: [
       "blame"
     ]
+    telemetryConsent: "limited"
     themes: [
       "atom-light-ui"
       "atom-light-syntax"
     ]
   editor:
-    fontSize: 9
+    fontSize: 12
     invisibles: {}
     scrollPastEnd: true
     showIndentGuide: true
