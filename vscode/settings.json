@@ -1,0 +1,13 @@
+// Place your settings in this file to overwrite the default settings
+{
+    "editor.renderWhitespace": "all",
+    "editor.wrappingColumn": 0,
+    "editor.rulers": [
+        80
+    ],
+    "editor.renderIndentGuides": true,
+    "window.openFilesInNewWindow": false,
+    "window.showFullPath": true,
+    "vim.hlsearch": true,
+    "files.hotExit": false
+}

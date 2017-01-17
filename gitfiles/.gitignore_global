@@ -3,3 +3,6 @@ a.out
 *.class
 .org-id-locations
 ac-comphist.dat
+
+# for Visual Studio Code
+.vscode
