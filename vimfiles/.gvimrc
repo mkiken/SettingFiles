@@ -8,7 +8,7 @@
 " colorscheme Tomorrow-Night-Bright
 " colorscheme Tomorrow-Night-Eighties
 " colorscheme badwolf
-colorscheme codeschool
+" colorscheme codeschool
 " colorscheme evening
 " colorscheme github
 " colorscheme grb256
@@ -26,6 +26,8 @@ colorscheme codeschool
 " colorscheme summerfruits256
 " colorscheme wombat
 " colorscheme zenburn
+colorscheme  OceanicNextLight
+
 
 " set background=light
 set background=dark

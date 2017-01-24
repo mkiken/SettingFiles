@@ -6,3 +6,6 @@ ac-comphist.dat
 
 # for Visual Studio Code
 .vscode
+
+# node_module
+node_modules
