@@ -84,6 +84,8 @@ repo = 'tsukkee/unite-help'
 repo = 'vim-scripts/diffchar.vim'
 [[plugins]]
 repo      = 'tyru/open-browser.vim'
+[[plugins]]
+repo      = 'hjson/vim-hjson'
 
 [[plugins]]
 repo      = 'ujihisa/unite-colorscheme'
