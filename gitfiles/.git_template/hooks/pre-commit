@@ -1,6 +1,5 @@
 #!/bin/sh
 
-echo "pre-commit test."
 if [ -z `git name` ] || [ -z `git email` ]
 then
 	cat <<\EOF
