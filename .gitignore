@@ -11,3 +11,6 @@ texput.log
 vimfiles/.vim/bundle/
 vimfiles/dein/nvim/bundle/
 vimfiles/dein/vim/bundle/
+
+# redis dump
+dump.rdb
