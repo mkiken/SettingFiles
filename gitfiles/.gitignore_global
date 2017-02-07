@@ -9,3 +9,6 @@ ac-comphist.dat
 
 # node_module
 node_modules
+
+#redis dump
+dump.rdb
