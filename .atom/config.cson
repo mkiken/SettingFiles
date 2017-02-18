@@ -47,13 +47,14 @@
       removeTrailingWhitespace: false
   blame: {}
   core:
+    automaticallyUpdate: false
     packagesWithKeymapsDisabled: [
       "blame"
     ]
     telemetryConsent: "limited"
     themes: [
-      "atom-light-ui"
-      "atom-light-syntax"
+      "one-dark-ui"
+      "tomorrow-night-eighties-syntax"
     ]
   editor:
     fontSize: 12
@@ -73,7 +74,8 @@
     userId: "ab2ede93-4a6d-ac5c-e79c-362a6c7e1cd8"
   "git-diff":
     showIconsInEditorGutter: true
-  linter: {}
+  linter:
+    errorPanelHeight: 124
   "one-dark-ui": {}
   tablr: {}
   welcome:

@@ -161,7 +161,7 @@ sudo easy_install Pygments
 # touch ~/.z
 touch ~/.cd_history_file
 
-ln -s /usr/local/share/git-core/contrib/diff-highlight/diff-highlight  /usr/local/bin
+ln -si /usr/local/share/git-core/contrib/diff-highlight/diff-highlight  /usr/local/bin
 
 ln -si "${Repo}submodules/used-mem/used-mem" /usr/local/bin/used-mem
 
@@ -178,15 +178,15 @@ xcode-select --install
 # for Tmux Plugin Manager
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
-./update
+# ./update
 
 # ビルド
-cd "${Repo}vimfiles/dein/bundle/repos/github.com/Valloric/YouCompleteMe"
+cd "${Repo}vimfiles/dein/vim/bundle/repos/github.com/Valloric/YouCompleteMe"
 git submodule update --init --recursive
-./install.sh --clang-completer
+./install.py --clang-completer
 cd $OLDPWD
 
-cd "${Repo}vimfiles/dein/bundle/repos/github.com/nixprime/cpsm"
+cd "${Repo}vimfiles/dein/vim/bundle/repos/github.com/nixprime/cpsm"
 ./install.sh
 cd $OLDPWD
 
@@ -200,3 +200,4 @@ sudo chsh -s /usr/local/bin/zsh
 # curl -Lo ~/.config/fish/functions/fisher.fish --create-dirs git.io/fisher
 # fisher install 0rax/fish-bd
 
+echo "'apm stars --install' after install apm."
