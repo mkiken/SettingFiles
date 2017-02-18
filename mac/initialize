@@ -124,7 +124,7 @@ brew install rmtrash
 # brew install --cocoa --srgb --with-gnutls --japanese emacs -v
 # brew install --cocoa --srgb --japanese emacs -v
 brew install vim --devel --with-lua
-brew install neovim/neovim/neovim
+# brew install neovim/neovim/neovim
 brew install rlwrap
 # brew install z
 brew install tmux
@@ -142,15 +142,11 @@ brew install ctags
 
 brew install go
 
-
-brew reinstall --HEAD fzf
-/usr/local/Cellar/fzf/HEAD/install
-
 brew tap phinze/homebrew-cask
 brew install brew-cask
 # brew cask install atom
 brew cask install iterm2
-brew cask install evernote
+# brew cask install evernote
 brew cask install google-chrome
 brew cask install macvim
 brew cask install alfred
