@@ -487,10 +487,11 @@ if exists peco; then
   source "${SET}.zshrc_peco"
 fi
 
-if exists fzf; then
-  source "${SET}.zshrc_fzf"
-  export FZF_DEFAULT_OPTS="--extended --cycle --reverse --no-sort --multi"
-fi
+# if exists fzf; then
+#   source "${SET}.zshrc_fzf"
+#   export FZF_DEFAULT_OPTS="--extended --cycle --reverse --no-sort --multi"
+#   [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+# fi
 
 # zle -N zle-keymap-select auto-fu-zle-keymap-select
 if [ -f ${SUBMODULE_DIR}zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
@@ -638,7 +639,5 @@ fi
 if [ ! -f ~/.zshrc.zwc -o ~/.zshrc -nt ~/.zshrc.zwc ]; then
    zcompile ~/.zshrc
 fi
-
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 export LOAD_COMPLETE=`date`

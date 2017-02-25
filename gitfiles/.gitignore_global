@@ -9,6 +9,7 @@ ac-comphist.dat
 
 # node_module
 node_modules
+npm-debug.log
 
 #redis dump
 dump.rdb

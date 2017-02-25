@@ -39,12 +39,13 @@
       userId: "4b0dd0d8e33ff1756775a073b0cdb1d5e4bd19e1"
     "tree-view":
       hideVcsIgnoredFiles: true
-    "vim-mode":
-      useSmartcaseForSearch: true
     welcome:
       showOnStartup: false
     whitespace:
       removeTrailingWhitespace: false
+  "atom-beautify":
+    general:
+      _analyticsUserId: "17b41089-fcfb-4362-b13a-ad138c3eb9af"
   blame: {}
   core:
     automaticallyUpdate: false
@@ -56,6 +57,7 @@
       "one-dark-ui"
       "tomorrow-night-eighties-syntax"
     ]
+    useCustomTitleBar: true
   editor:
     fontSize: 12
     invisibles: {}
@@ -76,7 +78,16 @@
     showIconsInEditorGutter: true
   linter:
     errorPanelHeight: 124
+    lintOnFly: false
+    showErrorTabLine: true
+    statusIconScope: "File"
   "one-dark-ui": {}
   tablr: {}
+  "vim-mode-plus":
+    highlightSearch: true
+    incrementalSearch: true
+    showHoverSearchCounter: true
+    useSmartcaseForSearch: true
+    useSmartcaseForSearchCurrentWord: true
   welcome:
     showOnStartup: false

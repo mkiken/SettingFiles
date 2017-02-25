@@ -30,10 +30,6 @@
   'ctrl-shift-j': 'editor:newline-above'
   'ctrl-w': 'editor:delete-to-beginning-of-word'
   'alt-^': 'editor:join-lines'
-  'ctrl-^': 'emmet:increment-number-by-1'
-  'ctrl-~': 'emmet:decrement-number-by-1'
-  'alt-down': 'vim-mode:move-to-next-paragraph'
-  'alt-up': 'vim-mode:move-to-previous-paragraph'
   'ctrl-?': 'core:redo'
   'alt-d': 'editor:delete-to-end-of-word'
   'ctrl-d': 'core:delete'
@@ -41,7 +37,7 @@
   'ctrl-alt-[': 'bracket-matcher:select-inside-brackets'
   # 'f4': 'relative-numbers:toggle'
 
-'.platform-darwin, .platform-darwin .command-palette .editor .vim-mode':
+'.platform-darwin, .platform-darwin .command-palette .editor .vim-mode-plus':
   'alt-x': 'command-palette:toggle'
   'ctrl-c f': 'tree-view:toggle'
   'ctrl-c l': 'go-to-line:toggle'
@@ -52,9 +48,7 @@
   'alt-;': 'editor:toggle-line-comments'
 
 # vim normal-mode
-'.editor.vim-mode:not(.insert-mode)':
-  'ctrl-a': 'emmet:increment-number-by-1'
-  'ctrl-x': 'emmet:decrement-number-by-1'
+'.editor.vim-mode-plus:not(.insert-mode)':
   # 'ctrl-d': 'core:page-down'
   # 'ctrl-u': 'core:page-up'
   # '=': 'core:auto-indent'
@@ -63,13 +57,14 @@
   'enter': 'editor:newline-below'
   'ctrl-d': 'core:page-down'
   'g r': 'pane:show-previous-item'
-  ':': 'command-palette:toggle'
+  # ':': 'command-palette:toggle'
   'ctrl-w x': 'pane:close'
   'ctrl-w t': 'tree-view:toggle-focus'
   'g j': 'core:move-down'
-  'g k': 'vim-mode:move-up'
-  
-'atom-text-editor.vim-mode.normal-mode':
+  'g k': 'vim-mode-plus:move-up'
+  ':': 'ex-mode:open'
+
+'atom-text-editor.vim-mode-plus.normal-mode':
   'ctrl-i': 'cursor-history:next'
   'ctrl-o': 'cursor-history:prev'
 
