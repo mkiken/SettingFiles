@@ -13,3 +13,6 @@ npm-debug.log
 
 #redis dump
 dump.rdb
+
+#IntelliJ
+.idea
