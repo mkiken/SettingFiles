@@ -41,14 +41,14 @@ ln -si "${Repo}.tigrc" ~/.tigrc
 echo "ln -si ${Repo}vimfiles/.vim ~"
 ln -si "${Repo}vimfiles/.vim" ~
 
-echo "ln -si ${Repo}SublimeTextFiles/2/user_OSX.sublime-keymap"
-ln -si "${Repo}SublimeTextFiles/2/user_OSX.sublime-keymap" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/User/Default\ \(OSX\).sublime-keymap
-
-echo "ln -si ${Repo}SublimeTextFiles/2/default_OSX.sublime-keymap"
-ln -si "${Repo}SublimeTextFiles/2/default_OSX.sublime-keymap" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/Default/Default\ \(OSX\).sublime-keymap
-
-echo "ln -si ${Repo}SublimeTextFiles/2/Preferences.sublime-settings"
-ln -si "${Repo}SublimeTextFiles/2/Preferences.sublime-settings" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/User/Preferences.sublime-settings
+# echo "ln -si ${Repo}SublimeTextFiles/2/user_OSX.sublime-keymap"
+# ln -si "${Repo}SublimeTextFiles/2/user_OSX.sublime-keymap" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/User/Default\ \(OSX\).sublime-keymap
+#
+# echo "ln -si ${Repo}SublimeTextFiles/2/default_OSX.sublime-keymap"
+# ln -si "${Repo}SublimeTextFiles/2/default_OSX.sublime-keymap" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/Default/Default\ \(OSX\).sublime-keymap
+#
+# echo "ln -si ${Repo}SublimeTextFiles/2/Preferences.sublime-settings"
+# ln -si "${Repo}SublimeTextFiles/2/Preferences.sublime-settings" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/User/Preferences.sublime-settings
 
 echo "ln -si ${Repo}.jshintrc"
 ln -si "${Repo}.jshintrc" ~/.jshintrc
@@ -144,7 +144,7 @@ brew install go
 
 brew tap phinze/homebrew-cask
 brew install brew-cask
-# brew cask install atom
+brew cask install atom
 brew cask install iterm2
 # brew cask install evernote
 brew cask install google-chrome
@@ -153,6 +153,7 @@ brew cask install alfred
 # brew cask install xtrafinder
 brew cask install dropbox
 brew cask install clipmenu
+brew cask install karabiner
 # brew cask install skype
 # brew cask install bettertouchtool # 有料に(´・ω・｀)
 
