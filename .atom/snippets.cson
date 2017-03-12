@@ -13,42 +13,54 @@
 #     'prefix': 'log'
 #     'body': 'console.log $1'
 #
-'.text':
+'.text.html.php':
   'Console log':
     'prefix': 'log'
     'body': 'logger()->info($1)'
 
-'.text':
   'var dump':
     'prefix': 'vd'
     'body': 'var_dump($1)'
-    
-'.text':
+
   'printf':
     'prefix': 'pf'
     'body': 'printf("$1")'
 
-# '.text':
-#   'load model':
-#     'prefix': 'loadm'
-#     'body': 'this->load->model(\'model/$1_model\');'
-#     
-# '.text':
-#   'load dao':
-#     'prefix': 'dao'
-#     'body': 'this->load->model(\'dao/${1}\');'
-#     
-# '.text':
-#   'load facade':
-#     'prefix': 'loadf'
-#     'body': 'this->load->model(\'facade/facade_$1\');'
-
-'.text':
   'array element':
     'prefix': 'ar'
     'body': '\'$1\' => $2'
-# 
-# '.text':
-#   'this model':
-#     'prefix': 'thm'
-#     'body': 'this->$1_model->$2'
+
+'.source.cpp':
+  'increment for loop':
+    'prefix': 'fori'
+    'body':
+      """
+        for (int ${1:i} = ${2:0}; ${1:i} < $3; ${1:i}++){
+          $4
+        }
+      """
+
+  'decrement for loop':
+    'prefix': 'ford'
+    'body':
+      """
+        for (int ${1:i} = $2; ${1:i} >= ${3:0}; ${1:i}--){
+          $4
+        }
+      """
+
+  'cin':
+    'prefix': 'in'
+    'body': 'cin >> $1;'
+
+  'cout':
+    'prefix': 'cout'
+    'body': 'cout << $1 << endl;'
+
+  'asending order priority queue':
+    'prefix': 'priority_queue_asc'
+    'body': 'priority_queue<${1:int}, vector<${1:int}>, greater<${1:int}> > $2;'
+
+  'descending order priority queue':
+    'prefix': 'priority_queue_desc'
+    'body': 'priority_queue<$1> $2;'

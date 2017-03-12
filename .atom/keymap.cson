@@ -37,6 +37,9 @@
   'ctrl-alt-[': 'bracket-matcher:select-inside-brackets'
   # 'f4': 'relative-numbers:toggle'
 
+'.platform-darwin atom-text-editor':
+  'cmd-r': 'find-and-replace:show-replace'
+
 '.platform-darwin, .platform-darwin .command-palette .editor .vim-mode-plus':
   'alt-x': 'command-palette:toggle'
   'ctrl-c f': 'tree-view:toggle'
@@ -67,6 +70,7 @@
 'atom-text-editor.vim-mode-plus.normal-mode':
   'ctrl-i': 'cursor-history:next'
   'ctrl-o': 'cursor-history:prev'
+  '-': 'toggle:there'
 
 '.tree-view':
   'ctrl-w t': 'tree-view:toggle-focus'
