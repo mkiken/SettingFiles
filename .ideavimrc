@@ -7,6 +7,9 @@ set ignorecase
 "検索時に大文字を含んでいたら大/小を区別
 set smartcase
 
+" enable vim-surround plugin.
+set surround
+
 "インサートモードで bash 風キーマップ
 inoremap <C-a> <C-o>^
 inoremap <C-e> <C-o>$<Right>
