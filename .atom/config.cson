@@ -54,13 +54,14 @@
     ]
     telemetryConsent: "limited"
     themes: [
-      "one-dark-ui"
-      "tomorrow-night-eighties-syntax"
+      "atom-material-ui"
+      "atom-material-syntax-light"
     ]
     useCustomTitleBar: true
   editor:
     fontSize: 12
     invisibles: {}
+    nonWordCharacters: "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…_"
     scrollPastEnd: true
     showIndentGuide: true
     showInvisibles: true
