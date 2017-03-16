@@ -59,20 +59,23 @@ ln -si "${Repo}.jsbeautifyrc" ~/.jsbeautifyrc
 echo "ln -si ${Repo}.agignore"
 ln -si "${Repo}.agignore" ~/.agignore
 
-echo "ln -si ${Repo}.atom/config.cson"
-ln -si "${Repo}.atom/config.cson" ~/.atom/config.cson
+echo "ln -si ${Repo}atom/.atom/config.cson"
+ln -si "${Repo}atom/.atom/config.cson" ~/.atom/config.cson
 
-echo "ln -si ${Repo}.atom/keymap.cson"
-ln -si "${Repo}.atom/keymap.cson" ~/.atom/keymap.cson
+echo "ln -si ${Repo}atom/.atom/keymap.cson"
+ln -si "${Repo}atom/.atom/keymap.cson" ~/.atom/keymap.cson
 
-echo "ln -si ${Repo}.atom/snippets.cson"
-ln -si "${Repo}.atom/snippets.cson" ~/.atom/snippets.cson
+echo "ln -si ${Repo}atom/.atom/snippets.cson"
+ln -si "${Repo}atom/.atom/snippets.cson" ~/.atom/snippets.cson
 
-echo "ln -si ${Repo}.atom/init.coffee"
-ln -si "${Repo}.atom/init.coffee" ~/.atom/init.coffee
+echo "ln -si ${Repo}atom/.atom/init.coffee"
+ln -si "${Repo}atom/.atom/init.coffee" ~/.atom/init.coffee
 
-echo "ln -si ${Repo}.atom/styles.less"
-ln -si "${Repo}.atom/styles.less" ~/.atom/styles.less
+echo "ln -si ${Repo}atom/.atom/styles.less"
+ln -si "${Repo}atom/.atom/styles.less" ~/.atom/styles.less
+
+echo "ln -si ${Repo}atom/atom_merge"
+ln -si "${Repo}atom/atom_merge" /usr/local/bin
 
 # echo "ln -si ${Repo}.tmux.conf"
 ln -si "${Repo}.tmux.conf" ~/.tmux.conf

@@ -141,15 +141,13 @@
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
 	path =
 [merge]
-	; tool = vimdiff2
-	tool = mvimdiff
+	tool = atom
 [mergetool "mvimdiff"]
   cmd = mvim -f -d \"$LOCAL\" \"$MERGED\" \"$REMOTE\"
 	keepBackup = false
-[mergetool "sourcetree"]
-	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
-	trustExitCode = true
-	; trustExitCode = true
+[mergetool "atom"]
+  cmd = atom_merge $MERGED
+	keepBackup = false
 [i18n]
 	commitencoding = utf-8
 [mergetool]
