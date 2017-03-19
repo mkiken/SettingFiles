@@ -1,0 +1,10 @@
+#!/bin/sh
+
+if [ "$2" == "" ] ; then
+  git log > /dev/null 2>&1
+  # 初回のコミットじゃなかったら
+  if [ $? -eq 0 ]; then
+    # 前回のコミットメッセージをデフォルトに設定
+    echo "\n# `git --no-pager show -s --format=%B HEAD | awk -v RS='\n' -v ORS='\n# ' '{print}'``cat $1`" > $1
+  fi
+fi

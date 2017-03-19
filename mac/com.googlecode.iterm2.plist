@@ -9371,9 +9371,11 @@
 	<key>HotKeyBookmark</key>
 	<string>6DE05245-ABC6-4133-86ED-9837935D9C3A</string>
 	<key>HotKeyTogglesWindow</key>
-	<true/>
+	<false/>
 	<key>Hotkey</key>
 	<true/>
+	<key>HotkeyAutoHides</key>
+	<false/>
 	<key>HotkeyChar</key>
 	<integer>46</integer>
 	<key>HotkeyCode</key>
@@ -9431,9 +9433,9 @@
 	<key>NSWindow Frame SUUpdateAlert</key>
 	<string>330 302 620 392 0 0 1280 777 </string>
 	<key>NSWindow Frame SharedPreferences</key>
-	<string>236 303 796 474 0 0 1280 777 </string>
+	<string>236 311 937 466 0 0 1280 777 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>572 64 610 713 0 0 1280 777 </string>
+	<string>0 59 610 713 0 0 1280 777 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
 	<string>79 64 625 714 0 0 1280 778 </string>
 	<key>NSWindow Frame iTerm Window 2</key>
@@ -11112,7 +11114,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2017-03-15T13:45:15Z</date>
+	<date>2017-03-19T13:45:23Z</date>
 	<key>SavePasteHistory</key>
 	<false/>
 	<key>Show Toolbelt</key>
