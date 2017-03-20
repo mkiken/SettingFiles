@@ -48,14 +48,14 @@
       _analyticsUserId: "17b41089-fcfb-4362-b13a-ad138c3eb9af"
   blame: {}
   core:
-    automaticallyUpdate: false
+    closeDeletedFileTabs: true
     packagesWithKeymapsDisabled: [
       "blame"
     ]
     telemetryConsent: "limited"
     themes: [
       "atom-material-ui"
-      "atom-material-syntax-light"
+      "atom-material-syntax"
     ]
     useCustomTitleBar: true
   editor:
@@ -103,6 +103,9 @@
   "one-dark-ui": {}
   tablr: {}
   "vim-mode-plus":
+    automaticallyEscapeInsertModeOnActivePaneItemChange: true
+    clearHighlightSearchOnResetNormalMode: true
+    clearPersistentSelectionOnResetNormalMode: true
     highlightSearch: true
     incrementalSearch: true
     showHoverSearchCounter: true
