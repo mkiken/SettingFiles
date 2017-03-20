@@ -82,6 +82,8 @@
     lintOnFly: false
     showErrorTabLine: true
     statusIconScope: "File"
+  "linter-ui-default":
+    showPanel: true
   minimap:
     moveCursorOnMinimapClick: true
     plugins:
@@ -101,6 +103,10 @@
       selectionDecorationsZIndex: 0
   "minimap-linter": {}
   "one-dark-ui": {}
+  "project-manager":
+    alwaysOpenInSameWindow: true
+    savePathsRelativeToHome: true
+    sortBy: "last modified"
   tablr: {}
   "vim-mode-plus":
     automaticallyEscapeInsertModeOnActivePaneItemChange: true

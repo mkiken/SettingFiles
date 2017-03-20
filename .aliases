@@ -1,3 +1,4 @@
+#!/bin/sh
 
 #expanded command
 case "${OSTYPE}" in
