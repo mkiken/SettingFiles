@@ -54,8 +54,8 @@
     ]
     telemetryConsent: "limited"
     themes: [
-      "atom-material-ui"
-      "atom-material-syntax"
+      "rain-ui"
+      "rain-syntax"
     ]
     useCustomTitleBar: true
   editor:
