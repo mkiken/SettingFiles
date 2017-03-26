@@ -43,10 +43,9 @@
       showOnStartup: false
     whitespace:
       removeTrailingWhitespace: false
-  "atom-beautify":
-    general:
-      _analyticsUserId: "17b41089-fcfb-4362-b13a-ad138c3eb9af"
   blame: {}
+  "clang-format":
+    fallbackStyle: "google"
   core:
     closeDeletedFileTabs: true
     packagesWithKeymapsDisabled: [
@@ -59,11 +58,10 @@
     ]
     useCustomTitleBar: true
   editor:
-    fontSize: 12
+    fontSize: 11
     invisibles: {}
     nonWordCharacters: "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…_"
     scrollPastEnd: true
-    showIndentGuide: true
     showInvisibles: true
     softWrap: true
     zoomFontWhenCtrlScrolling: true
@@ -77,6 +75,8 @@
     userId: "ab2ede93-4a6d-ac5c-e79c-362a6c7e1cd8"
   "git-diff":
     showIconsInEditorGutter: true
+  jumpy:
+    highContrast: true
   linter:
     errorPanelHeight: 124
     lintOnFly: false
