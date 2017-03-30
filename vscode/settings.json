@@ -1,13 +1,16 @@
 // Place your settings in this file to overwrite the default settings
 {
-    "editor.renderWhitespace": "all",
-    "editor.wrappingColumn": 0,
+    "editor.renderWhitespace": "boundary",
+    "editor.wordWrap": "on",
+     "editor.wrappingIndent": "none",
     "editor.rulers": [
         80
     ],
     "editor.renderIndentGuides": true,
-    "window.openFilesInNewWindow": false,
-    "window.showFullPath": true,
+    "editor.minimap.enabled": true,
+    "window.openFilesInNewWindow": "default",
+    // "window.showFullPath": true,
     "vim.hlsearch": true,
-    "files.hotExit": false
+    "files.hotExit": "off",
+    "workbench.colorTheme": "Quiet Light"
 }
