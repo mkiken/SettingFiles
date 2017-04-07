@@ -198,6 +198,7 @@ alias grp='git remote prune origin'
 alias gfp='git fetch --all --prune'
 alias cdgr='cd `g repository`'
 alias grn='basename `g repository`'
+alias gpl='g pl'
 
 function lessc(){
 	export LESSOPEN='| /usr/local/bin/src-hilite-lesspipe.sh %s'
@@ -220,11 +221,11 @@ function gsync(){
   git smupdate
 }
 
-function gpl(){
-  branch=`g current-branch`
-  remote=`g remote`
-  g pl "${remote}" "${branch}"
-}
+# function gpl(){
+#   branch=`g current-branch`
+#   remote=`g remote`
+#   g pl "${remote}" "${branch}"
+# }
 
 function gdfb(){
   branch=`g current-branch`
@@ -256,21 +257,21 @@ function gmg-master(){
 	if test $? -ne 0
 	then
 	  echo "gco master fail."
-		return
+		return 1
 	fi
 	gpl
 	if test $? -ne 0
 	then
 		echo "git pull master fail."
-		return
+		return 1
 	fi
 
-  echo "do gco ${my_branch}"
+  echo "checkout ${my_branch}"
 	gco "${my_branch}"
   if test $? -ne 0
   then
     echo "git checkout ${my_branch} fail."
-    return
+    return 1
   fi
 
   gmg master
@@ -284,20 +285,20 @@ function gcob-from-master(){
 	if test $? -ne 0
 	then
 		echo 'gco master fail.'
-			return
+			return 1
 	fi
 	git pull origin master
 	if test $? -ne 0
 	then
 		echo 'git pull origin master fail.'
-		return
+		return 1
 	fi
 
 	gpl
 	if test $? -ne 0
 	then
 		echo 'git pull fail.'
-		return
+		return 1
 	fi
 
 	gcob $1
@@ -307,13 +308,13 @@ function gd-file(){
 	if test $# -eq 0
 	then
 		echo "no argument found."
-		return
+		return 1
 	fi
   my_branch=`g current-branch`
 	if test $# -eq 1
 	then
 		gd master $my_branch $1
-		return
+		return 0
 	fi
   gd $1 $my_branch $2
 }
@@ -468,7 +469,7 @@ function sp-tig() {
 function agG() {
 	if test $# -lt 2; then
 		echo "need at least 2 argument."
-		return
+		return 1
   fi
 	ag $1 -G $2
 }
@@ -478,7 +479,7 @@ function up() {
 	if test $# -lt 1; then
 	    echo $#
 	  cd ../
-		return
+		return 0
   fi
   tmp=''
   repeat $1 tmp+='../'

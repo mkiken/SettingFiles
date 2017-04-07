@@ -53,8 +53,8 @@
     ]
     telemetryConsent: "limited"
     themes: [
-      "rain-ui"
-      "rain-syntax"
+      "atom-light-ui"
+      "base16-tomorrow-light-theme"
     ]
     useCustomTitleBar: true
   editor:
@@ -77,11 +77,7 @@
     showIconsInEditorGutter: true
   jumpy:
     highContrast: true
-  linter:
-    errorPanelHeight: 124
-    lintOnFly: false
-    showErrorTabLine: true
-    statusIconScope: "File"
+  linter: {}
   "linter-ui-default":
     showPanel: true
   minimap:
