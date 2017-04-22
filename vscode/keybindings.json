@@ -25,4 +25,9 @@
         "command": "cursorEnd",
         "when": "editorTextFocus && vim.mode == 'Insert'"
     }
+    {
+        "key": "ctrl+d",
+        "command": "deleteRight",
+        "when": "editorTextFocus && vim.mode == 'Insert'"
+    }
 ]
