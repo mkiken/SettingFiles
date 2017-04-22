@@ -117,7 +117,7 @@
 	; editor = emacs
 	; editor = vim -c \"set fenc=utf-8\"
 	; editor = mvim
-	editor = vim
+	editor = vim --noplugin
 	quotepath = false
 	ignorecase = false
 	excludesfile = ~/.gitignore
