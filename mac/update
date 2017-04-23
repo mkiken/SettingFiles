@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/zsh
 
 echo "start git submodule setting."
 git submodule sync
@@ -15,8 +15,16 @@ brew cleanup -s
 brew cask update
 echo "end brew update."
 
+# $CD_HISTORY_FILEを軽量化
+if [ -n "$CD_HISTORY_FILE" ]; then
+   local contents=`cat $CD_HISTORY_FILE | sort | uniq`
+   echo $contents > $CD_HISTORY_FILE
+fi
+
 # deinのアップデート
-vim -c "call dein#update()" -c qa
+# vim -c "call dein#update()" -c qa
+
+# apmアップデート
 apm update
 apm upgrade
-# zcompile ~/.zshrc
+zcompile ~/.zshrc

@@ -1,3 +1,4 @@
+#!/bin/zsh
 
 # http://www.pupha.net/archives/2267/
 function peco-select-history() {
@@ -22,7 +23,7 @@ alias -g Px='| peco | xargs '
 
 # http://stillpedant.hatenablog.com/entry/percol-cd-history
 typeset -U chpwd_functions
-CD_HISTORY_FILE=${HOME}/.cd_history_file # cd 履歴の記録先ファイル
+export CD_HISTORY_FILE=${HOME}/.cd_history_file # cd 履歴の記録先ファイル
 function chpwd_record_history() {
   echo $PWD >> ${CD_HISTORY_FILE}
 }

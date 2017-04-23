@@ -53,8 +53,8 @@
     ]
     telemetryConsent: "limited"
     themes: [
-      "atom-light-ui"
-      "base16-tomorrow-light-theme"
+      "atom-material-ui"
+      "solarized-dark-syntax"
     ]
     useCustomTitleBar: true
   editor:
