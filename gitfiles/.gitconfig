@@ -114,10 +114,9 @@
 	ui = auto
 [core]
 	autocrlf = false
-	; editor = emacs
-	; editor = vim -c \"set fenc=utf-8\"
 	; editor = mvim
-	editor = vim --noplugin
+	# editor = vim --noplugin
+	editor = nvim
 	quotepath = false
 	ignorecase = false
 	excludesfile = ~/.gitignore
@@ -141,7 +140,8 @@
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
 	path =
 [merge]
-	tool = atom
+	# tool = atom
+	tool = mvimdiff
 [mergetool "mvimdiff"]
   cmd = mvim -f -d \"$LOCAL\" \"$MERGED\" \"$REMOTE\"
 	keepBackup = false

@@ -27,4 +27,5 @@ fi
 # apmアップデート
 apm update
 apm upgrade
+apm stars --install
 zcompile ~/.zshrc

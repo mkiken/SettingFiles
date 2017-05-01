@@ -43,6 +43,11 @@
       showOnStartup: false
     whitespace:
       removeTrailingWhitespace: false
+  "advanced-open-file":
+    fuzzyMatch: true
+    helmDirSwitch: true
+  "autocomplete-plus":
+    confirmCompletion: "enter"
   blame: {}
   "clang-format":
     fallbackStyle: "google"
@@ -54,9 +59,11 @@
     telemetryConsent: "limited"
     themes: [
       "atom-material-ui"
-      "solarized-dark-syntax"
+      "batman-syntax"
     ]
     useCustomTitleBar: true
+  "cursor-history":
+    excludeClosedBuffer: true
   editor:
     fontSize: 11
     invisibles: {}
@@ -79,6 +86,7 @@
     highContrast: true
   linter: {}
   "linter-ui-default":
+    panelHeight: 61
     showPanel: true
   minimap:
     moveCursorOnMinimapClick: true
@@ -104,13 +112,20 @@
     savePathsRelativeToHome: true
     sortBy: "last modified"
   tablr: {}
+  "tree-view":
+    autoReveal: true
+    focusOnReveal: false
   "vim-mode-plus":
     automaticallyEscapeInsertModeOnActivePaneItemChange: true
     clearHighlightSearchOnResetNormalMode: true
     clearPersistentSelectionOnResetNormalMode: true
+    hideStatusBarOnMaximizePane: false
+    hideTabBarOnMaximizePane: false
     highlightSearch: true
     incrementalSearch: true
     showHoverSearchCounter: true
+    statusBarModeStringStyle: "long"
+    useClipboardAsDefaultRegister: false
     useSmartcaseForSearch: true
     useSmartcaseForSearchCurrentWord: true
   welcome:
