@@ -130,5 +130,8 @@
 	"use_tab_stops": true,
 	"word_separators": "./\\()\"'-:,.;<>~!@#$%^&*|+=[]{}`~?_",
 	"word_wrap": true,
-	"wrap_width": 120
+	//起動時にコマンドモードにする
+	"vintage_start_in_command_mode": true,
+	//vintageキーバインドの有効化
+	"vintage_ctrl_keys": true
 }
