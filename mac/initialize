@@ -2,10 +2,11 @@
 
 # set Repo "$HOME/Desktop/repository/SettingFiles/"
 Repo="`pwd | sed -e \"s/.\{3\}$//\"`"
+Repo_shell="${Repo}shell/"
 # set Repo "$SET/"
 
-echo "ln -si ${Repo}.aliases ~/.aliases"
-ln -si "${Repo}.aliases" ~/.aliases
+echo "ln -si ${Repo_shell}.aliases ~/.aliases"
+ln -si "${Repo_shell}.aliases" ~/.aliases
 
 echo "ln -si ${Repo}gitfiles/.gitconfig ~/.gitconfig"
 ln -si "${Repo}gitfiles/.gitconfig" ~/.gitconfig
@@ -26,8 +27,8 @@ mkdir -p ~/.config/nvim
 echo "ln -si ${Repo}vimfiles/init.vim ~/.config/nvim/init.vim"
 ln -si "${Repo}vimfiles/init.vim" ~/.config/nvim/init.vim
 
-echo "ln -si ${Repo}.zshrc ~/.zshrc"
-ln -si "${Repo}.zshrc" ~/.zshrc
+echo "ln -si ${Repo_shell}.zshrc ~/.zshrc"
+ln -si "${Repo_shell}.zshrc" ~/.zshrc
 # mkdir -p ~/.config/fish
 # echo "ln -si ${Repo}config.fish ~/.config/fish/config.fish"
 # ln -si ${Repo}config.fish ~/.config/fish/config.fish

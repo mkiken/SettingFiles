@@ -78,7 +78,7 @@ export PATH=$PATH:$GOPATH/bin
 source "${SUBMODULE_DIR}zsh-git-prompt/zshrc.sh"
 export __GIT_PROMPT_DIR="${SUBMODULE_DIR}zsh-git-prompt"
 # キャッシュすると初回表示してくれない。でもしないと重い
-export ZSH_THEME_GIT_PROMPT_NOCACHE=1
+export ZSH_THEME_GIT_PROMPT_NOCACHE=0
 
 export ZSH_THEME_GIT_PROMPT_PREFIX=""
 export ZSH_THEME_GIT_PROMPT_SUFFIX=""
@@ -134,7 +134,7 @@ function precmd_prompt () {
   # https://github.com/sorin-ionescu/prezto/issues/290
   local pwd="${PWD/#$HOME/~}"
   local fish_style_pwd="${${(M)pwd:#[/~]}:-${${(@j:/:M)${(@s:/:)pwd}##.#?}:h}/${pwd:t}}"
-  PROMPT="%{%(?.$fg[green].$fg[red])%}$fish_style_pwd%{$reset_color%} $(my-git-status) %{%}%#%{%}%(1j.%j.) "
+  PROMPT="%{%(?.$fg[green].$fg[red])%}%U$fish_style_pwd%u%{$reset_color%} $(my-git-status) %{$fg[cyan]%}%i%{$reset_color%} %{%}%#%{%}%(1j.%j.) "
   # PROMPT="%{%(?.$fg[green].$fg[red])%}%n%{$reset_color%} [%F{cyan}%(5~,%-2~/../%2~,%~)%f] %{%}%#%{%}%(1j.%j.) "
 }
 precmd_functions=(precmd_prompt)
@@ -484,7 +484,7 @@ man() {
 function exists { which $1 &> /dev/null }
 
 if exists peco; then
-  source "${SET}.zshrc_peco"
+  source "${SET}shell/.zshrc_peco"
 fi
 
 # if exists fzf; then
