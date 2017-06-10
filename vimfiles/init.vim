@@ -51,12 +51,11 @@ filetype plugin on
 " Theme設定
 " syntax enable
 syntax on
-" colorscheme codeschool
 " GUI設定
 " if (has("termguicolors"))
  " set termguicolors
 " endif
-" colorscheme OceanicNext
+colorscheme OceanicNext
 " colorscheme kalisi
 
 " キーバインド
