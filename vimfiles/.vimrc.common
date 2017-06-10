@@ -353,12 +353,6 @@ inoremap <C-r> <C-o><C-r>
 " noremap! <C-y> <C-o>P
 " noremap! ∆ <C-o>O
 
-" vimrcをリロード
-" http://whileimautomaton.net/2008/07/20150335
-" nnoremap <Space>s  :<C-u>source $VIMRC<Return>
-nnoremap <Leader>s  :<C-u>source ~/.vimrc <Return> :<C-u>source ~/.gvimrc <Return>
-command! ReloadVimrc  :source ~/.vimrc
-
 " http://tech.toshiya240.com/articles/2014/06/matchit-vim/
 :source $VIMRUNTIME/macros/matchit.vim
 augroup matchit

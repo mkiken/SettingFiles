@@ -28,11 +28,11 @@ if dein#load_state(s:dein_bundle_dir)
   " プラグインリストを収めた TOML ファイル
   " 予め TOML ファイル（後述）を用意しておく
   let s:toml      = s:dein_dir . '/dein.toml'
-  " let s:lazy_toml = s:dein_dir . '/dein_lazy.toml'
+  let s:lazy_toml = s:dein_dir . '/dein_lazy.toml'
 
   " TOML を読み込み、キャッシュしておく
   call dein#load_toml(s:toml,      {'lazy': 0})
-  " call dein#load_toml(s:lazy_toml, {'lazy': 1})
+  call dein#load_toml(s:lazy_toml, {'lazy': 1})
 
   " 設定終了
   call dein#end()
@@ -43,6 +43,9 @@ endif
 if dein#check_install()
   call dein#install()
 endif
+
+" for NERDCommenter
+filetype plugin on
 
 
 " Theme設定
@@ -56,3 +59,15 @@ syntax on
 " colorscheme OceanicNext
 " colorscheme kalisi
 
+" キーバインド
+" NEDRCommenter
+let NERDSpaceDelims = 1
+nmap ,, <Plug>NERDCommenterToggle
+vmap ,, <Plug>NERDCommenterToggle
+
+" vimrcをリロード
+" http://whileimautomaton.net/2008/07/20150335
+" nnoremap <Space>s  :<C-u>source $VIMRC<Return>
+" nnoremap <Leader>s  :<C-u>source g:vim_dir_path . '/init.vim' <Return>
+nnoremap <Leader>s  :<C-u>source ~/.config/nvim/init.vim <Return>
+" command! ReloadVimrc  :source ~/.vimrc

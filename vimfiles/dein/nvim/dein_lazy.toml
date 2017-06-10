@@ -1,0 +1,4 @@
+# 特定のコマンドを打ったら読み込む
+[[plugins]]
+repo      = 'scrooloose/nerdcommenter'
+on_map    = ['<Plug>NERDCommenterToggle']

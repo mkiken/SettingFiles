@@ -184,6 +184,12 @@ let g:EasyMotion_smartcase = 1
 let g:EasyMotion_use_migemo = 1
 let g:EasyMotion_startofline=0
 
+" vimrcをリロード
+" http://whileimautomaton.net/2008/07/20150335
+" nnoremap <Space>s  :<C-u>source $VIMRC<Return>
+nnoremap <Leader>s  :<C-u>source ~/.vimrc <Return> :<C-u>source ~/.gvimrc <Return>
+command! ReloadVimrc  :source ~/.vimrc
+
 " anzu.vim
 " mapping
 nmap n nzz<Plug>(anzu-update-search-status)<Plug>(anzu-echo-search-status)
