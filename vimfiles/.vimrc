@@ -858,6 +858,17 @@ nnoremap <silent> <Leader>d :filetype detect<CR>
 " nnoremap <Leader>qp :QuickRun php<CR>
 " nnoremap <Leader>qr :QuickRun ruby<CR>
 
+vnoremap <Leader>{ "zdi{<C-R>z}<ESC>
+vnoremap [ "zdi[<C-R>z]<ESC>
+vnoremap ( "zdi(<C-R>z)<ESC>
+vnoremap <Leader>} "zdi{<C-R>z}<ESC>
+vnoremap ] "zdi[<C-R>z]<ESC>
+vnoremap ) "zdi(<C-R>z)<ESC>
+vnoremap " "zdi"<C-R>z"<ESC>
+vnoremap ' "zdi'<C-R>z'<ESC>
+vnoremap ` "zdi`<C-R>z`<ESC>
+" vnoremap < S> " インデントと衝突><
+
 let g:gitgutter_map_keys = 0
 let g:gitgutter_realtime = 0
 let g:gitgutter_eager = 0

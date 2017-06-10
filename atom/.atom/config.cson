@@ -61,7 +61,7 @@
       "atom-material-ui"
       "batman-syntax"
     ]
-    useCustomTitleBar: true
+    titleBar: "custom"
   "cursor-history":
     excludeClosedBuffer: true
   editor:

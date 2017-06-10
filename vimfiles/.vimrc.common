@@ -209,17 +209,6 @@ autocmd vimrc BufWritePre * if index(remove_dust_blacklist, &ft) < 0 | call <SID
 " http://vim-users.jp/2009/09/hack69/
 " set autochdir
 
-vnoremap <Leader>{ "zdi{<C-R>z}<ESC>
-vnoremap [ "zdi[<C-R>z]<ESC>
-vnoremap ( "zdi(<C-R>z)<ESC>
-vnoremap <Leader>} "zdi{<C-R>z}<ESC>
-vnoremap ] "zdi[<C-R>z]<ESC>
-vnoremap ) "zdi(<C-R>z)<ESC>
-vnoremap " "zdi"<C-R>z"<ESC>
-vnoremap ' "zdi'<C-R>z'<ESC>
-vnoremap ` "zdi`<C-R>z`<ESC>
-" vnoremap < S> " インデントと衝突><
-
 " http://d.hatena.ne.jp/thata/20100606/1275796513
 "カーソルを表示行で移動する。物理行移動は<C-n>,<C-p>
 nnoremap j gj
