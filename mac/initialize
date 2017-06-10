@@ -146,6 +146,10 @@ brew install ctags
 
 brew install go
 
+# for neovim
+brew install python3
+pip3 install neovim
+
 brew tap phinze/homebrew-cask
 brew install brew-cask
 brew cask install atom

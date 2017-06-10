@@ -70,3 +70,45 @@ vmap ,, <Plug>NERDCommenterToggle
 " nnoremap <Leader>s  :<C-u>source g:vim_dir_path . '/init.vim' <Return>
 nnoremap <Leader>s  :<C-u>source ~/.config/nvim/init.vim <Return>
 " command! ReloadVimrc  :source ~/.vimrc
+
+" Use deoplete.
+let g:deoplete#enable_at_startup = 1
+
+" Denite
+nnoremap    [denite]   <Nop>
+nmap    <Leader>d [denite]
+nnoremap [denite]u  :<C-u>Denite -no-split<Space>
+nnoremap <silent> [denite]t :<C-u>Denite buffer -no-quit<CR>
+nnoremap <silent> [denite]c :<C-u>Denite colorscheme -auto-preview<CR>
+nnoremap <silent> [denite]m :<C-u>Denite file_mru<CR>
+nnoremap <silent> [denite]d :<C-u>DeniteBufferDir file<CR>
+nnoremap <silent> [denite]r :<C-u>Denite file_rec<CR>
+nnoremap <silent> [denite]p :<C-u>Denite file_rec:!<CR>
+nnoremap <silent> [denite]f :<C-u>DeniteBufferDir -buffer-name=files file<CR>
+nnoremap <silent> [denite]y :<C-u>Denite neoyank<CR>
+" nnoremap <silent> [denite]o :<C-u>Denite -vertical -winwidth=40<Space>outline<CR>
+" http://d.hatena.ne.jp/osyo-manga/20130617/1371468776
+" nnoremap <silent> [denite]v :<C-u>Denite output:let<CR>
+" nnoremap <silent> [denite]g :<C-u>Denite<Space>giti<CR>
+" vimprocがいるらしい http://mba-hack.blogspot.jp/2013/03/denitevim.html
+nnoremap <silent> [denite]g :<C-u>Denite grep:. -buffer-name=search-buffer -no-quit<CR>
+nnoremap <silent> [denite]q :Denite -resume<CR>
+" nnoremap <silent> [denite]/ :<C-u>Denite -buffer-name=search line -start-insert -no-quit<CR>
+nnoremap <silent> [denite]/ :<C-u>Denite -buffer-name=search -auto-resize line<CR>
+nnoremap <silent> [denite]h :<C-u>Denite help<CR>
+nnoremap <silent> [denite]l :<C-u>Denite line<CR>
+
+" デフォルトが # なのがちょっと落ち着かないので>へ変更
+call denite#custom#option('default', 'prompt', '>')
+
+" denite/insert モードのときは，C- で移動できるようにする
+call denite#custom#map('insert', "<C-j>", '<denite:move_to_next_line>')
+call denite#custom#map('insert', "<C-k>", '<denite:move_to_previous_line>')
+
+" tabopen や vsplit のキーバインドを割り当て
+call denite#custom#map('insert', "<C-t>", '<denite:do_action:tabopen>')
+call denite#custom#map('insert', "<C-v>", '<denite:do_action:vsplit>')
+call denite#custom#map('insert', "<C-s>", '<denite:do_action:split>')
+call denite#custom#map('normal', "t", '<denite:do_action:tabopen>')
+call denite#custom#map('normal', "v", '<denite:do_action:vsplit>')
+call denite#custom#map('normal', "s", '<denite:do_action:split>')

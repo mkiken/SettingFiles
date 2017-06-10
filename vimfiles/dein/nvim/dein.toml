@@ -4,3 +4,15 @@ repo      = 'mhartington/oceanic-next'
 
 [[plugins]]
 repo      = 'freeo/vim-kalisi'
+
+[[plugins]]
+repo      = 'Shougo/deoplete.nvim'
+
+[[plugins]]
+repo      = 'Shougo/denite.nvim'
+
+[[plugins]]
+repo      = 'Shougo/neomru.vim'
+
+[[plugins]]
+repo      = 'Shougo/neoyank.vim'
