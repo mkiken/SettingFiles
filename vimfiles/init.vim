@@ -47,6 +47,16 @@ endif
 " for NERDCommenter
 filetype plugin on
 
+" neomake
+let g:neomake_open_list = 2
+let g:neomake_cpp_enabled_makers = ['clang']
+" let g:neomake_cpp_clang_maker = {
+    " \ 'args': ['-std=c++14', '-Wall', '-Wextra', '-Weverything', '-pedantic']
+    " \ }
+let g:neomake_cpp_clang_maker = {
+    \ 'args': ['-std=c++14']
+    \ }
+
 " 改行で自動コメントアウトを無効にする
 set formatoptions-=ro
 

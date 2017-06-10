@@ -16,3 +16,15 @@ repo      = 'Shougo/neomru.vim'
 
 [[plugins]]
 repo      = 'Shougo/neoyank.vim'
+
+[[plugins]]
+repo = 'neomake/neomake'
+hook_add = '''
+autocmd! BufWritePost * Neomake
+'''
+
+[[plugins]]
+repo      = 'cohama/lexima.vim'
+
+[[plugins]]
+repo      = 'flazz/vim-colorschemes'
