@@ -75,8 +75,8 @@ ln -si "${Repo}atom/.atom/init.coffee" ~/.atom/init.coffee
 echo "ln -si ${Repo}atom/.atom/styles.less"
 ln -si "${Repo}atom/.atom/styles.less" ~/.atom/styles.less
 
-echo "ln -si ${Repo}atom/atom_merge"
-ln -si "${Repo}atom/atom_merge" /usr/local/bin
+# echo "ln -si ${Repo}atom/atom_merge"
+# ln -si "${Repo}atom/atom_merge" /usr/local/bin
 
 # echo "ln -si ${Repo}.tmux.conf"
 ln -si "${Repo}.tmux.conf" ~/.tmux.conf
@@ -154,11 +154,10 @@ brew tap phinze/homebrew-cask
 brew install brew-cask
 brew cask install atom
 brew cask install iterm2
-# brew cask install evernote
 brew cask install google-chrome
 brew cask install macvim
+brew cask install vimr
 brew cask install alfred
-# brew cask install xtrafinder
 brew cask install dropbox
 brew cask install clipy
 brew cask install karabiner-elements
@@ -190,14 +189,14 @@ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 # ./update
 
 # ビルド
-cd "${Repo}vimfiles/dein/vim/bundle/repos/github.com/Valloric/YouCompleteMe"
-git submodule update --init --recursive
-./install.py --clang-completer
-cd $OLDPWD
+# cd "${Repo}vimfiles/dein/vim/bundle/repos/github.com/Valloric/YouCompleteMe"
+# git submodule update --init --recursive
+# ./install.py --clang-completer
+# cd $OLDPWD
 
-cd "${Repo}vimfiles/dein/vim/bundle/repos/github.com/nixprime/cpsm"
-./install.sh
-cd $OLDPWD
+# cd "${Repo}vimfiles/dein/vim/bundle/repos/github.com/nixprime/cpsm"
+# ./install.sh
+# cd $OLDPWD
 
 # shell setting
 sudo chsh -s /usr/local/bin/zsh
@@ -209,4 +208,4 @@ sudo chsh -s /usr/local/bin/zsh
 # curl -Lo ~/.config/fish/functions/fisher.fish --create-dirs git.io/fisher
 # fisher install 0rax/fish-bd
 
-echo "'apm stars --install' after install apm."
+# echo "'apm stars --install' after install apm."

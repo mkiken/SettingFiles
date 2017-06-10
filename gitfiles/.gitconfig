@@ -130,7 +130,8 @@
 [include]
 	path = .gitconfig.local
 [diff]
-	tool = p4mergetool
+	; tool = p4mergetool
+  tool = mvimdiff
     ; http://qiita.com/takaakikasai/items/3d4f8a4867364a46dfa3
     algorithm = histogram
 	compactionHeuristic = true
@@ -141,8 +142,8 @@
 	path =
 [merge]
 	# tool = atom
-	tool = p4mergetool
-  # tool = mvimdiff
+	; tool = p4mergetool
+  tool = mvimdiff
 [mergetool "mvimdiff"]
   cmd = mvim -f -d \"$LOCAL\" \"$MERGED\" \"$REMOTE\"
 	keepBackup = false

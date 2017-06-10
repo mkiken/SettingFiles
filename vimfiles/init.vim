@@ -47,6 +47,9 @@ endif
 " for NERDCommenter
 filetype plugin on
 
+" 改行で自動コメントアウトを無効にする
+set formatoptions-=ro
+
 
 " Theme設定
 " syntax enable
