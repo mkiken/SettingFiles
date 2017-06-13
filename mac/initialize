@@ -23,9 +23,9 @@ ln -si "${Repo}vimfiles/.gvimrc" ~/.gvimrc
 echo "ln -si ${Repo}vimfiles/.vimrc ~/.vimrc"
 ln -si "${Repo}vimfiles/.vimrc" ~/.vimrc
 
-mkdir -p ~/.config/nvim
-echo "ln -si ${Repo}vimfiles/init.vim ~/.config/nvim/init.vim"
-ln -si "${Repo}vimfiles/init.vim" ~/.config/nvim/init.vim
+mkdir -p ~/.config
+echo "ln -si ${Repo}vimfiles/nvim ~/.config"
+ln -si "${Repo}vimfiles/nvim" ~/.config
 
 echo "ln -si ${Repo_shell}.zshrc ~/.zshrc"
 ln -si "${Repo_shell}.zshrc" ~/.zshrc
