@@ -6,9 +6,6 @@ repo      = 'mhartington/oceanic-next'
 repo      = 'freeo/vim-kalisi'
 
 [[plugins]]
-repo      = 'Shougo/deoplete.nvim'
-
-[[plugins]]
 repo      = 'Shougo/denite.nvim'
 
 [[plugins]]
@@ -28,3 +25,6 @@ repo      = 'cohama/lexima.vim'
 
 [[plugins]]
 repo      = 'flazz/vim-colorschemes'
+
+[[plugins]]
+repo = 'Shougo/neosnippet-snippets'

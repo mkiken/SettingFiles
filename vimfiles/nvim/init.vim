@@ -133,9 +133,6 @@ vmap ,, <Plug>NERDCommenterToggle
 nnoremap <Leader>s  :<C-u>source ~/.config/nvim/init.vim <Return>
 " command! ReloadVimrc  :source ~/.vimrc
 
-" Use deoplete.
-let g:deoplete#enable_at_startup = 1
-
 " Denite
 nnoremap    [denite]   <Nop>
 nmap    <Leader>d [denite]
