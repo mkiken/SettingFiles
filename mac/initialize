@@ -156,7 +156,7 @@ brew cask install atom
 brew cask install iterm2
 brew cask install google-chrome
 brew cask install macvim
-brew cask install vimr
+# brew cask install vimr
 brew cask install alfred
 brew cask install dropbox
 brew cask install clipy
@@ -208,4 +208,4 @@ sudo chsh -s /usr/local/bin/zsh
 # curl -Lo ~/.config/fish/functions/fisher.fish --create-dirs git.io/fisher
 # fisher install 0rax/fish-bd
 
-# echo "'apm stars --install' after install apm."
+echo "'apm stars --install' after install apm."

@@ -3,13 +3,7 @@
     core:
       audioBeep: false
       disabledPackages: [
-        "turbo-javascript"
-        "jslint"
-        "emmet"
-        "script"
         "metrics"
-        "feedback"
-        "atom-lint"
       ]
       themes: [
         "atom-dark-ui"
@@ -22,12 +16,6 @@
       showInvisibles: true
       softWrap: true
       softWrapAtPreferredLineLength: true
-    "emacs-mode":
-      hideSidebar: false
-      hideTabs: false
-      useEmacsCursor: false
-      useFuzzyBufferFinder: false
-      useFuzzyFileFinder: false
     "exception-reporting":
       userId: "0a7c8ad7-7803-a619-cd7e-9c76b0560ed6"
     linter:
@@ -48,13 +36,15 @@
     helmDirSwitch: true
   "autocomplete-plus":
     confirmCompletion: "enter"
-  blame: {}
   "clang-format":
     fallbackStyle: "google"
   core:
     closeDeletedFileTabs: true
-    packagesWithKeymapsDisabled: [
-      "blame"
+    disabledPackages: [
+      "go-debug"
+      "go-plus"
+      "go-signature-statusbar"
+      "github"
     ]
     telemetryConsent: "limited"
     themes: [
@@ -72,14 +62,10 @@
     showInvisibles: true
     softWrap: true
     zoomFontWhenCtrlScrolling: true
-  "emacs-mode":
-    hideSidebar: false
-    hideTabs: false
-    useEmacsCursor: true
-    useFuzzyBufferFinder: false
-    useFuzzyFileFinder: false
   "exception-reporting":
     userId: "ab2ede93-4a6d-ac5c-e79c-362a6c7e1cd8"
+  fonts:
+    fontFamily: "Source Code Pro Medium"
   "git-diff":
     showIconsInEditorGutter: true
   jumpy:
@@ -88,30 +74,7 @@
   "linter-ui-default":
     panelHeight: 61
     showPanel: true
-  minimap:
-    moveCursorOnMinimapClick: true
-    plugins:
-      bookmarks: true
-      bookmarksDecorationsZIndex: 0
-      cursorline: true
-      cursorlineDecorationsZIndex: 0
-      "find-and-replace": true
-      "find-and-replaceDecorationsZIndex": 0
-      "git-diff": true
-      "git-diffDecorationsZIndex": 0
-      "highlight-selected": true
-      "highlight-selectedDecorationsZIndex": 0
-      linter: true
-      linterDecorationsZIndex: 0
-      selection: true
-      selectionDecorationsZIndex: 0
-  "minimap-linter": {}
   "one-dark-ui": {}
-  "project-manager":
-    alwaysOpenInSameWindow: true
-    savePathsRelativeToHome: true
-    sortBy: "last modified"
-  tablr: {}
   "tree-view":
     autoReveal: true
     focusOnReveal: false
@@ -130,3 +93,5 @@
     useSmartcaseForSearchCurrentWord: true
   welcome:
     showOnStartup: false
+  whitespace:
+    removeTrailingWhitespace: false

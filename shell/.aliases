@@ -1,5 +1,5 @@
 #!/bin/sh
-EDIT_COMMAND='vimr'
+EDIT_COMMAND='atom'
 
 #expanded command
 case "${OSTYPE}" in
