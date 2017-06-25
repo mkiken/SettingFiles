@@ -1,97 +1,41 @@
 "*":
-  "*":
-    core:
-      audioBeep: false
-      disabledPackages: [
-        "metrics"
-      ]
-      themes: [
-        "atom-dark-ui"
-        "tomorrow-night-eighties-syntax"
-      ]
-    editor:
-      fontSize: 12
-      scrollPastEnd: true
-      showIndentGuide: true
-      showInvisibles: true
-      softWrap: true
-      softWrapAtPreferredLineLength: true
-    "exception-reporting":
-      userId: "0a7c8ad7-7803-a619-cd7e-9c76b0560ed6"
-    linter:
-      lintOnChangeInterval: 3000
-      statusBar: "Show error if the cursor is in range"
-    "markdown-preview":
-      breakOnSingleNewline: true
-    metrics:
-      userId: "4b0dd0d8e33ff1756775a073b0cdb1d5e4bd19e1"
-    "tree-view":
-      hideVcsIgnoredFiles: true
-    welcome:
-      showOnStartup: false
-    whitespace:
-      removeTrailingWhitespace: false
-  "advanced-open-file":
-    fuzzyMatch: true
-    helmDirSwitch: true
-  "autocomplete-plus":
-    confirmCompletion: "enter"
-  "clang-format":
-    fallbackStyle: "google"
   core:
+    allowPendingPaneItems: false
     closeDeletedFileTabs: true
     disabledPackages: [
-      "go-debug"
+      "about"
       "go-plus"
+      "go-debug"
+      "welcome"
       "go-signature-statusbar"
       "github"
+      "open-on-github"
     ]
-    telemetryConsent: "limited"
-    themes: [
-      "atom-material-ui"
-      "batman-syntax"
-    ]
-    titleBar: "custom"
-  "cursor-history":
-    excludeClosedBuffer: true
+    restorePreviousWindowsOnStart: "no"
   editor:
+    fontFamily: "Monaco"
     fontSize: 11
-    invisibles: {}
-    nonWordCharacters: "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…_"
     scrollPastEnd: true
     showInvisibles: true
     softWrap: true
-    zoomFontWhenCtrlScrolling: true
   "exception-reporting":
-    userId: "ab2ede93-4a6d-ac5c-e79c-362a6c7e1cd8"
+    userId: "fe4df9d8-0000-44b4-8fa2-c2324fa5de62"
   fonts:
     fontFamily: "Source Code Pro Medium"
-  "git-diff":
-    showIconsInEditorGutter: true
   jumpy:
+    fontSize: 0.9
     highContrast: true
-  linter: {}
+  linter:
+    lintOnChangeInterval: 1000
   "linter-ui-default":
-    panelHeight: 61
     showPanel: true
-  "one-dark-ui": {}
-  "tree-view":
-    autoReveal: true
-    focusOnReveal: false
+  tabs:
+    enableVcsColoring: true
   "vim-mode-plus":
     automaticallyEscapeInsertModeOnActivePaneItemChange: true
-    clearHighlightSearchOnResetNormalMode: true
-    clearPersistentSelectionOnResetNormalMode: true
-    hideStatusBarOnMaximizePane: false
-    hideTabBarOnMaximizePane: false
-    highlightSearch: true
     incrementalSearch: true
     showHoverSearchCounter: true
     statusBarModeStringStyle: "long"
-    useClipboardAsDefaultRegister: false
     useSmartcaseForSearch: true
     useSmartcaseForSearchCurrentWord: true
-  welcome:
-    showOnStartup: false
-  whitespace:
-    removeTrailingWhitespace: false
+    wrapLeftRightMotion: true

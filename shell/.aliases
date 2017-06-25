@@ -116,6 +116,7 @@ alias submoduleconf='$EDIT_COMMAND ${SET}/.gitmodules'
 alias tigrc='$EDIT_COMMAND ~/.tigrc'
 alias dein='$EDIT_COMMAND ${SET}/vimfiles/dein/nvim/dein.toml'
 alias dein_lazy='$EDIT_COMMAND ${SET}/vimfiles/dein/nvim/dein_lazy.toml'
+alias atomconfig='$EDIT_COMMAND ~/.atom/config.cson'
 
 #shortcut for git
 alias g='noglob git'
