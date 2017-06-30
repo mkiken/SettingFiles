@@ -17,6 +17,9 @@ set diff-options = -m --first-parent
 set ignore-case = yes
 set wrap-lines = yes
 
+# https://github.com/jonas/tig/issues/595
+set status-show-untracked-files = yes
+
 ########
 # generic
 ########
