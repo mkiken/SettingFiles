@@ -1,7 +1,7 @@
 REPO="${HOME}/Desktop/repository/"
 SET="${REPO}SettingFiles/"
 SUBMODULE_DIR="${SET}submodules/"
-MACVIM="/Applications/MacVim.app/Contents/MacOS"
+# MACVIM="/Applications/MacVim.app/Contents/MacOS"
 BREW_CASKROOM="$(brew --prefix)/Caskroom"
 BREW_CELLAR="$(brew --prefix)/Cellar"
 
@@ -11,7 +11,7 @@ source ~/.aliases
 
 # パスの設定
 path=(/usr/local/bin(N-/) $path)
-path=($MACVIM(N-/) $path)
+# path=($MACVIM(N-/) $path)
 
 autoload -U colors
 colors
@@ -23,7 +23,7 @@ typeset -U path
 # http://www.emacswiki.org/emacs/ColorThemeQuestions
 export TERM=xterm-256color
 
-export LESS='-R --no-init --RAW-CONTROL-CHARS -M -n'
+export LESS='-R --no-init --RAW-CONTROL-CHARS -M -n -N'
 
 case "${OSTYPE}" in
   # --------------- Mac(Unix) ---------------
