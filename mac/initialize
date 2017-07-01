@@ -17,11 +17,11 @@ ln -si "${Repo}gitfiles/.gitignore_global" ~/.gitignore
 echo "ln -si ${Repo}gitfiles/.git_template ~"
 ln -si "${Repo}gitfiles/.git_template" ~
 
-echo "ln -si ${Repo}vimfiles/.gvimrc ~/.gvimrc"
-ln -si "${Repo}vimfiles/.gvimrc" ~/.gvimrc
+# echo "ln -si ${Repo}vimfiles/.gvimrc ~/.gvimrc"
+# ln -si "${Repo}vimfiles/.gvimrc" ~/.gvimrc
 
-echo "ln -si ${Repo}vimfiles/.vimrc ~/.vimrc"
-ln -si "${Repo}vimfiles/.vimrc" ~/.vimrc
+# echo "ln -si ${Repo}vimfiles/.vimrc ~/.vimrc"
+# ln -si "${Repo}vimfiles/.vimrc" ~/.vimrc
 
 mkdir -p ~/.config
 echo "ln -si ${Repo}vimfiles/nvim ~/.config"
@@ -39,8 +39,8 @@ ln -si "${Repo}.tigrc" ~/.tigrc
 # echo "ln -si ${Repo}.emacs.d ~"
 # ln -si "${Repo}.emacs.d" ~
 
-echo "ln -si ${Repo}vimfiles/.vim ~"
-ln -si "${Repo}vimfiles/.vim" ~
+# echo "ln -si ${Repo}vimfiles/.vim ~"
+# ln -si "${Repo}vimfiles/.vim" ~
 
 # echo "ln -si ${Repo}SublimeTextFiles/2/user_OSX.sublime-keymap"
 # ln -si "${Repo}SublimeTextFiles/2/user_OSX.sublime-keymap" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/User/Default\ \(OSX\).sublime-keymap
@@ -127,7 +127,7 @@ brew install rmtrash
 # brew install tree
 # brew install --cocoa --srgb --with-gnutls --japanese emacs -v
 # brew install --cocoa --srgb --japanese emacs -v
-brew install vim --devel --with-lua
+# brew install vim --devel --with-lua
 # brew install neovim/neovim/neovim
 brew install rlwrap
 # brew install z
@@ -155,7 +155,7 @@ brew install brew-cask
 brew cask install atom
 brew cask install iterm2
 brew cask install google-chrome
-brew cask install macvim
+# brew cask install macvim
 # brew cask install vimr
 brew cask install alfred
 brew cask install dropbox
@@ -173,7 +173,8 @@ ln -si /usr/local/share/git-core/contrib/diff-highlight/diff-highlight  /usr/loc
 
 ln -si "${Repo}submodules/used-mem/used-mem" /usr/local/bin/used-mem
 
-massren --config editor "mvim"
+# massren --config editor "mvim"
+massren --config editor "nvim"
 
 # El Capitanにアップデートした後、gitコマンドが以下のエラーを吐いて動かなくなる問題
 # http://qiita.com/Ys_Jn/items/f7ff03f7a890329c3e2a
