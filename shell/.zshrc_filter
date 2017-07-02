@@ -43,10 +43,7 @@ function filter_get_destination_from_history() {
 function filter_cd_history() {
   local destination=$(filter_get_destination_from_history)
   if [ "${destination}" != "" ]; then
-    cd ${destination/#\~/${HOME}}
-    print -s cd ${destination/#\~/${HOME}}
-    # print -z cd ${destination/#\~/${HOME}}
-    # zle -N reset-prompt
+    save_history cd ${destination/#\~/${HOME}}
     return 0;
   fi
   return -1;
@@ -72,7 +69,7 @@ alias fcd='filter_cd_history'
 alias fgco='filter_git_command git checkout'
 alias fgcob='fgco -b'
 alias fgmg='filter_git_command git merge'
-alias fgmgs='pgmg --squash'
+alias fgmgs='fgmg --squash'
 alias fgpl='filter_git_command git pull origin'
 alias fgps='filter_git_command git push origin'
 alias fgbd='filter_git_command git branch -d'
@@ -81,8 +78,16 @@ alias fgb='git branch -a | filter'
 alias fgbd_remote='filter_git_command git push --delete origin'
 alias fgrb='filter_git_command git pull --rebase origin'
 alias fgl='filter_git_command git log'
-alias fglp='pgl -p'
+alias fglp='fgl -p'
 alias fgd='filter_git_command git diff'
+
+alias fgmg-remote='filter_git_command_remote git merge'
+alias fgmgs-remote='fgmg-remote --squash'
+alias fgl-remote='filter_git_command_remote git log'
+alias fglp-remote='fgl-remote -p'
+alias fglst-remote='fgl-remote --stat'
+alias fgd-remote='filter_git_command_remote git diff'
+alias fgdn-remote='fgd-remote --name-status'
 
 alias fls='ls -AaR | filter'
 alias ffind='find -L . -name "*" | filter'
@@ -102,9 +107,14 @@ function br_fmt(){
   git branch -a | filter | xargs echo | sed -e 's/\*//' | sed -e 's/remotes\/origin\///'
 }
 
-function filter_git_command(){
-  # local br=$(br_fmt)
-  local cmd="$@ $(br_fmt)"
+# br_fmtのリモート対象版
+function br_fmt_remote(){
+  br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}'
+}
+
+# コマンドを履歴に残す
+function save_history(){
+  local cmd="$@"
   eval $cmd
 	if test $? -ne 0
 	then
@@ -113,46 +123,31 @@ function filter_git_command(){
   print -s $cmd
 }
 
+# ブランチをfilter toolで絞ってgitコマンドを実行する
+function filter_git_command(){
+  local cmd="$@ $(br_fmt)"
+  save_history $cmd
+}
+
+function filter_git_command_remote(){
+  local cmd="$@ $(br_fmt_remote)"
+  save_history $cmd
+}
+
 # filter tool git show file
 function fgsf(){
- local temp=`br_fmt | xargs echo`
- git show "${temp}":"$@"
+  local temp=`br_fmt | xargs echo`
+  save_history git show "${temp}":"$@"
 }
 
 # filter tool git checkout file
 function fgcof(){
- local temp=`br_fmt | xargs echo`
- gco "${temp}" -- "$@"
+  local temp=`br_fmt | xargs echo`
+  save_history gco "${temp}" -- "$@"
 }
 
 # filter tool git checkout directory
 function fgcod(){
- local temp=`br_fmt | xargs echo`
- gco "${temp}" "$@"
-}
-
-function br_fmt_remote(){
-  br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}'
-}
-
-function fgmg-remote(){
-  br_fmt_remote | xargs git merge
-}
-function fgmgs-remote(){
-  br_fmt_remote | xargs git merge --squash
-}
-function fgl-remote(){
-  br_fmt_remote | xargs git log
-}
-function fglp-remote(){
-  br_fmt_remote | xargs git log -p
-}
-function fglst-remote(){
-  br_fmt_remote | xargs git log --stat
-}
-function fgd-remote(){
-  br_fmt_remote | xargs git diff
-}
-function fgdn-remote(){
-  br_fmt_remote | xargs git diff --name-status
+  local temp=`br_fmt | xargs echo`
+  save_history gco "${temp}" "$@"
 }
