@@ -43,9 +43,10 @@ function filter_get_destination_from_history() {
 function filter_cd_history() {
   local destination=$(filter_get_destination_from_history)
   if [ "${destination}" != "" ]; then
-    echo "${destination}"
     cd ${destination/#\~/${HOME}}
-    zle -N reset-prompt
+    print -s cd ${destination/#\~/${HOME}}
+    # print -z cd ${destination/#\~/${HOME}}
+    # zle -N reset-prompt
     return 0;
   fi
   return -1;
