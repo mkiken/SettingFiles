@@ -93,10 +93,11 @@ alias fls='ls -AaR | filter'
 alias ffind='find -L . -name "*" | filter'
 alias fps='ps aux | filter'
 alias fkill='ps ax | filter | awk "{ print $1 }" | xargs kill'
-alias fopen='pfind | xargs open'
-alias fless='pfind | xargs less'
+alias fopen='filter_find_command open'
+# alias fless='ffind | xargs less'
+alias fless='filter_find_command less'
 # http://qiita.com/itkrt2y/items/0671d1f48e66f21241e2
-alias fghq='cd $(ghq root)/$(ghq list | filter)'
+alias fghq='save_history cd $(ghq root)/$(ghq list | filter)'
 
 function fcat(){
   cat -n $@ | filter
@@ -121,6 +122,12 @@ function save_history(){
 		return 1
 	fi
   print -s $cmd
+}
+
+# findの結果をfilter toolで絞ってコマンドを実行する
+function filter_find_command(){
+  local cmd="$(ffind)"
+  save_history $@ $cmd
 }
 
 # ブランチをfilter toolで絞ってgitコマンドを実行する
