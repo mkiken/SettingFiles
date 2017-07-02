@@ -137,6 +137,8 @@ brew install reattach-to-user-namespace
 # brew install peco
 brew install fzf
 brew install ag
+brew install ripgrep
+# brew install icdiff
 brew install gnu-sed
 brew install source-highlight
 brew install tig
