@@ -69,25 +69,25 @@ alias fcd='filter_cd_history'
 # }}}
 
 
-alias fgco='br_fmt | xargs git checkout'
-alias fgcob='pgco -b'
-alias fgmg='br_fmt | xargs git merge'
+alias fgco='filter_git_command git checkout'
+alias fgcob='fgco -b'
+alias fgmg='filter_git_command git merge'
 alias fgmgs='pgmg --squash'
-alias fgpl='br_fmt | xargs git pull origin'
-alias fgps='br_fmt | xargs git push origin'
-alias fgbd='br_fmt | xargs git branch -d'
-alias fgbD='br_fmt | xargs git branch -D'
+alias fgpl='filter_git_command git pull origin'
+alias fgps='filter_git_command git push origin'
+alias fgbd='filter_git_command git branch -d'
+alias fgbD='filter_git_command git branch -D'
 alias fgb='git branch -a | filter'
-alias fgbd_remote='br_fmt | xargs git push --delete origin'
-alias fgrb='br_fmt | xargs git pull --rebase origin'
-alias fgl='br_fmt | xargs git log'
+alias fgbd_remote='filter_git_command git push --delete origin'
+alias fgrb='filter_git_command git pull --rebase origin'
+alias fgl='filter_git_command git log'
 alias fglp='pgl -p'
-alias fgd='br_fmt | xargs git diff'
+alias fgd='filter_git_command git diff'
+
 alias fls='ls -AaR | filter'
 alias ffind='find -L . -name "*" | filter'
 alias fps='ps aux | filter'
 alias fkill='ps ax | filter | awk "{ print $1 }" | xargs kill'
-alias fvi='pfind | xargs VI'
 alias fopen='pfind | xargs open'
 alias fless='pfind | xargs less'
 # http://qiita.com/itkrt2y/items/0671d1f48e66f21241e2
@@ -100,6 +100,17 @@ function fcat(){
 # Gitのブランチをfilter toolで扱えるように整形
 function br_fmt(){
   git branch -a | filter | xargs echo | sed -e 's/\*//' | sed -e 's/remotes\/origin\///'
+}
+
+function filter_git_command(){
+  # local br=$(br_fmt)
+  local cmd="$@ $(br_fmt)"
+  eval $cmd
+	if test $? -ne 0
+	then
+		return 1
+	fi
+  print -s $cmd
 }
 
 # filter tool git show file
