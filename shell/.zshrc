@@ -5,7 +5,7 @@ SUBMODULE_DIR="${SET}submodules/"
 BREW_CASKROOM="$(brew --prefix)/Caskroom"
 BREW_CELLAR="$(brew --prefix)/Cellar"
 FILTER_TOOL='fzf-tmux'
-FILTER_COMMAND='${FILTER_TOOL} -d 20%'
+FILTER_COMMAND='${FILTER_TOOL} -d 20% --cycle --exit-0'
 
 #read Aliases
 source ~/.aliases
