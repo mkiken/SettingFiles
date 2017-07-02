@@ -81,8 +81,8 @@ ln -si "${Repo}atom/.atom/styles.less" ~/.atom/styles.less
 # echo "ln -si ${Repo}.tmux.conf"
 ln -si "${Repo}.tmux.conf" ~/.tmux.conf
 
-echo "ln -si ${Repo}.peco"
-ln -si "${Repo}.peco" ~
+# echo "ln -si ${Repo}.peco"
+# ln -si "${Repo}.peco" ~
 
 echo "ln -si ${Repo}.ideavimrc ~/.ideavimrc"
 ln -si "${Repo}.ideavimrc" ~/.ideavimrc
@@ -134,7 +134,8 @@ brew install rlwrap
 brew install tmux
 brew install reattach-to-user-namespace
 # brew install ghc
-brew install peco
+# brew install peco
+brew install fzf
 brew install ag
 brew install gnu-sed
 brew install source-highlight

@@ -29,6 +29,8 @@
     lintOnChangeInterval: 1000
   "linter-ui-default":
     showPanel: true
+  "open-recent":
+    ignoredNames: false
   tabs:
     enableVcsColoring: true
   "vim-mode-plus":

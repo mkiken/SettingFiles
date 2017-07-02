@@ -1,0 +1,149 @@
+#!/bin/zsh
+# FILTER_COMMAND='peco'
+
+if [ -z "$FILTER_COMMAND" ]; then
+  echo "FILTER_COMMAND variable is empty;"
+  return;
+fi
+
+# http://www.pupha.net/archives/2267/
+function filter_select_history() {
+  local cmd=`history -500 | tail -r | ${FILTER_COMMAND} | cut -d ' ' -f 1`
+  if [ "${cmd}" != "" ]; then
+    r ${cmd}
+    return 0;
+  fi
+  return -1;
+}
+zle -N filter_select_history
+alias fhist='filter_select_history'
+bindkey '^r' filter_select_history
+
+alias -g F='| ${FILTER_COMMAND}'
+
+# http://stillpedant.hatenablog.com/entry/percol-cd-history
+typeset -U chpwd_functions
+export CD_HISTORY_FILE=${HOME}/.cd_history_file # cd 履歴の記録先ファイル
+function chpwd_record_history() {
+  echo $PWD >> ${CD_HISTORY_FILE}
+}
+chpwd_functions=($chpwd_functions chpwd_record_history)
+
+  # filter toolを使って cd 履歴の中からディレクトリを選択
+  # 過去の訪問回数が多いほど選択候補の上に来る
+function filter_get_destination_from_history() {
+  sort ${CD_HISTORY_FILE} | uniq -c | sort -r | \
+  sed -e 's/^[ ]*[0-9]*[ ]*//' | \
+  sed -e s"/^${HOME//\//\\/}/~/" | \
+  ${FILTER_COMMAND} | xargs echo
+}
+
+# filter tool を使って cd 履歴の中からディレクトリを選択し cd するウィジェット
+function filter_cd_history() {
+  local destination=$(filter_get_destination_from_history)
+  if [ "${destination}" != "" ]; then
+    echo "${destination}"
+    cd ${destination/#\~/${HOME}}
+    zle -N reset-prompt
+    return 0;
+fi
+  return -1;
+}
+zle -N filter_cd_history
+alias fcd='filter_cd_history'
+
+# filter tool を使って cd 履歴の中からディレクトリを選択し，現在のカーソル位置に挿入するウィジェット
+# function filter_insert_history() {
+# local destination=$(filter_get_destination_from_history)
+# if [ $? -eq 0 ]; then
+#   local new_left="${LBUFFER} ${destination} "
+#   BUFFER=${new_left}${RBUFFER}
+#   CURSOR=${#new_left}
+# fi
+# zle -N reset-prompt
+# }
+# zle -N filter_insert_history
+# alias pins='filter_insert_history'
+# }}}
+
+alias fgco='br_fmt | xargs git checkout'
+alias fgcob='pgco -b'
+alias fgmg='br_fmt | xargs git merge'
+alias fgmgs='pgmg --squash'
+alias fgpl='br_fmt | xargs git pull origin'
+alias fgps='br_fmt | xargs git push origin'
+alias fgbd='br_fmt | xargs git branch -d'
+alias fgbD='br_fmt | xargs git branch -D'
+alias fgb='git branch -a | ${FILTER_COMMAND}'
+alias fgbd_remote='br_fmt | xargs git push --delete origin'
+alias fgrb='br_fmt | xargs git pull --rebase origin'
+alias fgl='br_fmt | xargs git log'
+alias fglp='pgl -p'
+alias fgd='br_fmt | xargs git diff'
+alias fls='ls -AaR | ${FILTER_COMMAND}'
+alias ffind='find -L . -name "*" | ${FILTER_COMMAND}'
+alias fps='ps aux | ${FILTER_COMMAND}'
+alias fkill='ps ax | ${FILTER_COMMAND} | awk "{ print $1 }" | xargs kill'
+alias fvi='pfind | xargs VI'
+alias fopen='pfind | xargs open'
+alias fless='pfind | xargs less'
+# http://qiita.com/itkrt2y/items/0671d1f48e66f21241e2
+alias fghq='cd $(ghq root)/$(ghq list | ${FILTER_COMMAND})'
+
+function fcat(){
+  cat -n $@ | ${FILTER_COMMAND}
+}
+
+# Gitのブランチをfilter toolで扱えるように整形
+function br_fmt(){
+  git branch -a | ${FILTER_COMMAND} | xargs echo | sed -e 's/\*//' | sed -e 's/remotes\/origin\///'
+}
+
+# filter tool git show file
+function fgsf(){
+ local temp=`br_fmt | xargs echo`
+ git show "${temp}":"$@"
+}
+
+# filter tool git checkout file
+function fgcof(){
+ local temp=`br_fmt | xargs echo`
+ gco "${temp}" -- "$@"
+}
+
+# filter tool git checkout directory
+function fgcod(){
+ local temp=`br_fmt | xargs echo`
+ gco "${temp}" "$@"
+}
+
+function br_fmt_remote(){
+  br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}'
+}
+
+function fgmg-remote(){
+  br_fmt_remote | xargs git merge
+}
+function fgmgs-remote(){
+  br_fmt_remote | xargs git merge --squash
+}
+function fgl-remote(){
+  br_fmt_remote | xargs git log
+}
+function fglp-remote(){
+  br_fmt_remote | xargs git log -p
+}
+function fglst-remote(){
+  br_fmt_remote | xargs git log --stat
+}
+function fgd-remote(){
+  br_fmt_remote | xargs git diff
+}
+function fgdn-remote(){
+  br_fmt_remote | xargs git diff --name-status
+}
+
+# http://qiita.com/fmy/items/b92254d14049996f6ec3
+# function agvim () {
+#   vim $(ag $@ | ${FILTER_COMMAND} --query "$LBUFFER" | awk -F : '{print "-c " $2 " " $1}')
+# }
