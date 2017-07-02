@@ -4,7 +4,8 @@ SUBMODULE_DIR="${SET}submodules/"
 # MACVIM="/Applications/MacVim.app/Contents/MacOS"
 BREW_CASKROOM="$(brew --prefix)/Caskroom"
 BREW_CELLAR="$(brew --prefix)/Cellar"
-FILTER_COMMAND='fzf-tmux'
+FILTER_TOOL='fzf-tmux'
+FILTER_COMMAND='${FILTER_TOOL} -d 20%'
 
 #read Aliases
 source ~/.aliases
@@ -484,7 +485,7 @@ man() {
 
 function exists { which $1 &> /dev/null }
 
-if exists ${FILTER_COMMAND}; then
+if exists ${FILTER_TOOL}; then
   source "${SET}shell/.zshrc_filter"
 fi
 

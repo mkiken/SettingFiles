@@ -1,5 +1,6 @@
 #!/bin/zsh
 # FILTER_COMMAND='peco'
+alias filter='eval ${FILTER_COMMAND}'
 
 if [ -z "$FILTER_COMMAND" ]; then
   echo "FILTER_COMMAND variable is empty;"
@@ -8,7 +9,7 @@ fi
 
 # http://www.pupha.net/archives/2267/
 function filter_select_history() {
-  local cmd=`history -500 | tail -r | ${FILTER_COMMAND} | cut -d ' ' -f 1`
+  local cmd=`history -500 | tail -r | filter | cut -d ' ' -f 1`
   if [ "${cmd}" != "" ]; then
     r ${cmd}
     return 0;
@@ -19,7 +20,7 @@ zle -N filter_select_history
 alias fhist='filter_select_history'
 bindkey '^r' filter_select_history
 
-alias -g F='| ${FILTER_COMMAND}'
+alias -g F='| filter'
 
 # http://stillpedant.hatenablog.com/entry/percol-cd-history
 typeset -U chpwd_functions
@@ -35,7 +36,7 @@ function filter_get_destination_from_history() {
   sort ${CD_HISTORY_FILE} | uniq -c | sort -r | \
   sed -e 's/^[ ]*[0-9]*[ ]*//' | \
   sed -e s"/^${HOME//\//\\/}/~/" | \
-  ${FILTER_COMMAND} | xargs echo
+  filter | xargs echo
 }
 
 # filter tool を使って cd 履歴の中からディレクトリを選択し cd するウィジェット
@@ -46,7 +47,7 @@ function filter_cd_history() {
     cd ${destination/#\~/${HOME}}
     zle -N reset-prompt
     return 0;
-fi
+  fi
   return -1;
 }
 zle -N filter_cd_history
@@ -66,6 +67,7 @@ alias fcd='filter_cd_history'
 # alias pins='filter_insert_history'
 # }}}
 
+
 alias fgco='br_fmt | xargs git checkout'
 alias fgcob='pgco -b'
 alias fgmg='br_fmt | xargs git merge'
@@ -74,29 +76,29 @@ alias fgpl='br_fmt | xargs git pull origin'
 alias fgps='br_fmt | xargs git push origin'
 alias fgbd='br_fmt | xargs git branch -d'
 alias fgbD='br_fmt | xargs git branch -D'
-alias fgb='git branch -a | ${FILTER_COMMAND}'
+alias fgb='git branch -a | filter'
 alias fgbd_remote='br_fmt | xargs git push --delete origin'
 alias fgrb='br_fmt | xargs git pull --rebase origin'
 alias fgl='br_fmt | xargs git log'
 alias fglp='pgl -p'
 alias fgd='br_fmt | xargs git diff'
-alias fls='ls -AaR | ${FILTER_COMMAND}'
-alias ffind='find -L . -name "*" | ${FILTER_COMMAND}'
-alias fps='ps aux | ${FILTER_COMMAND}'
-alias fkill='ps ax | ${FILTER_COMMAND} | awk "{ print $1 }" | xargs kill'
+alias fls='ls -AaR | filter'
+alias ffind='find -L . -name "*" | filter'
+alias fps='ps aux | filter'
+alias fkill='ps ax | filter | awk "{ print $1 }" | xargs kill'
 alias fvi='pfind | xargs VI'
 alias fopen='pfind | xargs open'
 alias fless='pfind | xargs less'
 # http://qiita.com/itkrt2y/items/0671d1f48e66f21241e2
-alias fghq='cd $(ghq root)/$(ghq list | ${FILTER_COMMAND})'
+alias fghq='cd $(ghq root)/$(ghq list | filter)'
 
 function fcat(){
-  cat -n $@ | ${FILTER_COMMAND}
+  cat -n $@ | filter
 }
 
 # Gitのブランチをfilter toolで扱えるように整形
 function br_fmt(){
-  git branch -a | ${FILTER_COMMAND} | xargs echo | sed -e 's/\*//' | sed -e 's/remotes\/origin\///'
+  git branch -a | filter | xargs echo | sed -e 's/\*//' | sed -e 's/remotes\/origin\///'
 }
 
 # filter tool git show file
@@ -142,8 +144,3 @@ function fgd-remote(){
 function fgdn-remote(){
   br_fmt_remote | xargs git diff --name-status
 }
-
-# http://qiita.com/fmy/items/b92254d14049996f6ec3
-# function agvim () {
-#   vim $(ag $@ | ${FILTER_COMMAND} --query "$LBUFFER" | awk -F : '{print "-c " $2 " " $1}')
-# }
