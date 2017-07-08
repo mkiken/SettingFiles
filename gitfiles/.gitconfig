@@ -130,23 +130,32 @@
 [include]
 	path = .gitconfig.local
 [diff]
-    tool = mvimdiff
+	; tool = p4mergetool
+  # tool = mvimdiff
+  tool = nvim
     ; http://qiita.com/takaakikasai/items/3d4f8a4867364a46dfa3
     algorithm = histogram
 	compactionHeuristic = true
 [difftool "mvimdiff"]
     cmd = mvim -f -d \"$LOCAL\" \"$REMOTE\"
+[difftool "nvim"]
+    cmd = nvim -f -d \"$LOCAL\" \"$REMOTE\"
 [difftool "sourcetree"]
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
 	path =
 [merge]
 	# tool = atom
-	tool = mvimdiff
+	; tool = p4mergetool
+  # tool = mvimdiff
+  tool = nvim
 [mergetool "mvimdiff"]
   cmd = mvim -f -d \"$LOCAL\" \"$MERGED\" \"$REMOTE\"
 	keepBackup = false
 [mergetool "atom"]
   cmd = atom_merge $MERGED
+	keepBackup = false
+[mergetool "nvim"]
+  cmd = nvim -f -d \"$LOCAL\" \"$MERGED\" \"$REMOTE\"
 	keepBackup = false
 [i18n]
 	commitencoding = utf-8
@@ -166,3 +175,11 @@ stage = <Ctrl-n> :/^@@
 stage = <Ctrl-p> :?^@@
 [init]
 	templatedir = ~/.git_template
+[mergetool "sourcetree"]
+	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+	trustExitCode = true
+[mergetool "p4mergetool"]
+	cmd = /Applications/p4merge.app/Contents/Resources/launchp4merge $PWD/$BASE $PWD/$REMOTE $PWD/$LOCAL $PWD/$MERGED
+	trustExitCode = false
+[difftool "p4mergetool"]
+	cmd = /Applications/p4merge.app/Contents/Resources/launchp4merge $LOCAL $REMOTE

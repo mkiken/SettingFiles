@@ -2,10 +2,11 @@
 
 # set Repo "$HOME/Desktop/repository/SettingFiles/"
 Repo="`pwd | sed -e \"s/.\{3\}$//\"`"
+Repo_shell="${Repo}shell/"
 # set Repo "$SET/"
 
-echo "ln -si ${Repo}.aliases ~/.aliases"
-ln -si "${Repo}.aliases" ~/.aliases
+echo "ln -si ${Repo_shell}.aliases ~/.aliases"
+ln -si "${Repo_shell}.aliases" ~/.aliases
 
 echo "ln -si ${Repo}gitfiles/.gitconfig ~/.gitconfig"
 ln -si "${Repo}gitfiles/.gitconfig" ~/.gitconfig
@@ -16,18 +17,18 @@ ln -si "${Repo}gitfiles/.gitignore_global" ~/.gitignore
 echo "ln -si ${Repo}gitfiles/.git_template ~"
 ln -si "${Repo}gitfiles/.git_template" ~
 
-echo "ln -si ${Repo}vimfiles/.gvimrc ~/.gvimrc"
-ln -si "${Repo}vimfiles/.gvimrc" ~/.gvimrc
+# echo "ln -si ${Repo}vimfiles/.gvimrc ~/.gvimrc"
+# ln -si "${Repo}vimfiles/.gvimrc" ~/.gvimrc
 
-echo "ln -si ${Repo}vimfiles/.vimrc ~/.vimrc"
-ln -si "${Repo}vimfiles/.vimrc" ~/.vimrc
+# echo "ln -si ${Repo}vimfiles/.vimrc ~/.vimrc"
+# ln -si "${Repo}vimfiles/.vimrc" ~/.vimrc
 
-mkdir -p ~/.config/nvim
-echo "ln -si ${Repo}vimfiles/init.vim ~/.config/nvim/init.vim"
-ln -si "${Repo}vimfiles/init.vim" ~/.config/nvim/init.vim
+mkdir -p ~/.config
+echo "ln -si ${Repo}vimfiles/nvim ~/.config"
+ln -si "${Repo}vimfiles/nvim" ~/.config
 
-echo "ln -si ${Repo}.zshrc ~/.zshrc"
-ln -si "${Repo}.zshrc" ~/.zshrc
+echo "ln -si ${Repo_shell}.zshrc ~/.zshrc"
+ln -si "${Repo_shell}.zshrc" ~/.zshrc
 # mkdir -p ~/.config/fish
 # echo "ln -si ${Repo}config.fish ~/.config/fish/config.fish"
 # ln -si ${Repo}config.fish ~/.config/fish/config.fish
@@ -38,8 +39,8 @@ ln -si "${Repo}.tigrc" ~/.tigrc
 # echo "ln -si ${Repo}.emacs.d ~"
 # ln -si "${Repo}.emacs.d" ~
 
-echo "ln -si ${Repo}vimfiles/.vim ~"
-ln -si "${Repo}vimfiles/.vim" ~
+# echo "ln -si ${Repo}vimfiles/.vim ~"
+# ln -si "${Repo}vimfiles/.vim" ~
 
 # echo "ln -si ${Repo}SublimeTextFiles/2/user_OSX.sublime-keymap"
 # ln -si "${Repo}SublimeTextFiles/2/user_OSX.sublime-keymap" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/User/Default\ \(OSX\).sublime-keymap
@@ -74,14 +75,14 @@ ln -si "${Repo}atom/.atom/init.coffee" ~/.atom/init.coffee
 echo "ln -si ${Repo}atom/.atom/styles.less"
 ln -si "${Repo}atom/.atom/styles.less" ~/.atom/styles.less
 
-echo "ln -si ${Repo}atom/atom_merge"
-ln -si "${Repo}atom/atom_merge" /usr/local/bin
+# echo "ln -si ${Repo}atom/atom_merge"
+# ln -si "${Repo}atom/atom_merge" /usr/local/bin
 
 # echo "ln -si ${Repo}.tmux.conf"
 ln -si "${Repo}.tmux.conf" ~/.tmux.conf
 
-echo "ln -si ${Repo}.peco"
-ln -si "${Repo}.peco" ~
+# echo "ln -si ${Repo}.peco"
+# ln -si "${Repo}.peco" ~
 
 echo "ln -si ${Repo}.ideavimrc ~/.ideavimrc"
 ln -si "${Repo}.ideavimrc" ~/.ideavimrc
@@ -126,15 +127,18 @@ brew install rmtrash
 # brew install tree
 # brew install --cocoa --srgb --with-gnutls --japanese emacs -v
 # brew install --cocoa --srgb --japanese emacs -v
-brew install vim --devel --with-lua
+# brew install vim --devel --with-lua
 # brew install neovim/neovim/neovim
 brew install rlwrap
 # brew install z
 brew install tmux
 brew install reattach-to-user-namespace
 # brew install ghc
-brew install peco
+# brew install peco
+brew install fzf
 brew install ag
+brew install ripgrep
+# brew install icdiff
 brew install gnu-sed
 brew install source-highlight
 brew install tig
@@ -145,15 +149,18 @@ brew install ctags
 
 brew install go
 
+# for neovim
+brew install python3
+pip3 install neovim
+
 brew tap phinze/homebrew-cask
 brew install brew-cask
 brew cask install atom
 brew cask install iterm2
-# brew cask install evernote
 brew cask install google-chrome
-brew cask install macvim
+# brew cask install macvim
+# brew cask install vimr
 brew cask install alfred
-# brew cask install xtrafinder
 brew cask install dropbox
 brew cask install clipy
 brew cask install karabiner-elements
@@ -169,7 +176,8 @@ ln -si /usr/local/share/git-core/contrib/diff-highlight/diff-highlight  /usr/loc
 
 ln -si "${Repo}submodules/used-mem/used-mem" /usr/local/bin/used-mem
 
-massren --config editor "mvim"
+# massren --config editor "mvim"
+massren --config editor "nvim"
 
 # El Capitanにアップデートした後、gitコマンドが以下のエラーを吐いて動かなくなる問題
 # http://qiita.com/Ys_Jn/items/f7ff03f7a890329c3e2a
@@ -185,14 +193,14 @@ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 # ./update
 
 # ビルド
-cd "${Repo}vimfiles/dein/vim/bundle/repos/github.com/Valloric/YouCompleteMe"
-git submodule update --init --recursive
-./install.py --clang-completer
-cd $OLDPWD
+# cd "${Repo}vimfiles/dein/vim/bundle/repos/github.com/Valloric/YouCompleteMe"
+# git submodule update --init --recursive
+# ./install.py --clang-completer
+# cd $OLDPWD
 
-cd "${Repo}vimfiles/dein/vim/bundle/repos/github.com/nixprime/cpsm"
-./install.sh
-cd $OLDPWD
+# cd "${Repo}vimfiles/dein/vim/bundle/repos/github.com/nixprime/cpsm"
+# ./install.sh
+# cd $OLDPWD
 
 # shell setting
 sudo chsh -s /usr/local/bin/zsh

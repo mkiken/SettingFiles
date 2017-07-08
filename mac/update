@@ -22,7 +22,7 @@ if [ -n "$CD_HISTORY_FILE" ]; then
 fi
 
 # deinのアップデート
-# vim -c "call dein#update()" -c qa
+nvim -c "call dein#update()" -c qa
 
 # apmアップデート
 apm update

@@ -1,0 +1,160 @@
+#!/bin/zsh
+# FILTER_COMMAND='peco'
+alias filter='eval ${FILTER_COMMAND}'
+
+if [ -z "$FILTER_COMMAND" ]; then
+  echo "FILTER_COMMAND variable is empty;"
+  return;
+fi
+
+# http://www.pupha.net/archives/2267/
+function filter_select_history() {
+  local cmd=`history -500 | tail -r | filter | cut -d ' ' -f 1`
+  if [ "${cmd}" != "" ]; then
+    r ${cmd}
+    return 0;
+  fi
+  return -1;
+}
+zle -N filter_select_history
+alias fhist='filter_select_history'
+bindkey '^r' filter_select_history
+
+alias -g F='| filter'
+
+# http://stillpedant.hatenablog.com/entry/percol-cd-history
+typeset -U chpwd_functions
+export CD_HISTORY_FILE=${HOME}/.cd_history_file # cd 履歴の記録先ファイル
+function chpwd_record_history() {
+  echo $PWD >> ${CD_HISTORY_FILE}
+}
+chpwd_functions=($chpwd_functions chpwd_record_history)
+
+  # filter toolを使って cd 履歴の中からディレクトリを選択
+  # 過去の訪問回数が多いほど選択候補の上に来る
+function filter_get_destination_from_history() {
+  sort ${CD_HISTORY_FILE} | uniq -c | sort -r | \
+  sed -e 's/^[ ]*[0-9]*[ ]*//' | \
+  sed -e s"/^${HOME//\//\\/}/~/" | \
+  filter | xargs echo
+}
+
+# filter tool を使って cd 履歴の中からディレクトリを選択し cd するウィジェット
+function filter_cd_history() {
+  local destination=$(filter_get_destination_from_history)
+  if [ "${destination}" != "" ]; then
+    save_history cd ${destination/#\~/${HOME}}
+    return 0;
+  fi
+  return -1;
+}
+zle -N filter_cd_history
+alias fcd='filter_cd_history'
+
+# filter tool を使って cd 履歴の中からディレクトリを選択し，現在のカーソル位置に挿入するウィジェット
+# function filter_insert_history() {
+# local destination=$(filter_get_destination_from_history)
+# if [ $? -eq 0 ]; then
+#   local new_left="${LBUFFER} ${destination} "
+#   BUFFER=${new_left}${RBUFFER}
+#   CURSOR=${#new_left}
+# fi
+# zle -N reset-prompt
+# }
+# zle -N filter_insert_history
+# alias pins='filter_insert_history'
+# }}}
+
+
+alias fgco='filter_git_command git checkout'
+alias fgcob='fgco -b'
+alias fgmg='filter_git_command git merge'
+alias fgmgs='fgmg --squash'
+alias fgpl='filter_git_command git pull origin'
+alias fgps='filter_git_command git push origin'
+alias fgbd='filter_git_command git branch -d'
+alias fgbD='filter_git_command git branch -D'
+alias fgb='git branch -a | filter'
+alias fgbd_remote='filter_git_command git push --delete origin'
+alias fgrb='filter_git_command git pull --rebase origin'
+alias fgl='filter_git_command git log'
+alias fglp='fgl -p'
+alias fgd='filter_git_command git diff'
+
+alias fgmg-remote='filter_git_command_remote git merge'
+alias fgmgs-remote='fgmg-remote --squash'
+alias fgl-remote='filter_git_command_remote git log'
+alias fglp-remote='fgl-remote -p'
+alias fglst-remote='fgl-remote --stat'
+alias fgd-remote='filter_git_command_remote git diff'
+alias fgdn-remote='fgd-remote --name-status'
+
+alias fls='ls -AaR | filter'
+alias ffind='find -L . -name "*" | filter'
+alias fps='ps aux | filter'
+alias fkill='ps ax | filter | awk "{ print $1 }" | xargs kill'
+alias fopen='filter_find_command open'
+# alias fless='ffind | xargs less'
+alias fless='filter_find_command less'
+# http://qiita.com/itkrt2y/items/0671d1f48e66f21241e2
+alias fghq='save_history cd $(ghq root)/$(ghq list | filter)'
+
+function fcat(){
+  cat -n $@ | filter
+}
+
+# Gitのブランチをfilter toolで扱えるように整形
+function br_fmt(){
+  git branch -a | filter | xargs echo | sed -e 's/\*//' | sed -e 's/remotes\/origin\///'
+}
+
+# br_fmtのリモート対象版
+function br_fmt_remote(){
+  br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}'
+}
+
+# コマンドを履歴に残す
+function save_history(){
+  local cmd="$@"
+  eval $cmd
+	if test $? -ne 0
+	then
+		return 1
+	fi
+  print -s $cmd
+}
+
+# findの結果をfilter toolで絞ってコマンドを実行する
+function filter_find_command(){
+  local cmd="$(ffind)"
+  save_history $@ $cmd
+}
+
+# ブランチをfilter toolで絞ってgitコマンドを実行する
+function filter_git_command(){
+  local cmd="$@ $(br_fmt)"
+  save_history $cmd
+}
+
+function filter_git_command_remote(){
+  local cmd="$@ $(br_fmt_remote)"
+  save_history $cmd
+}
+
+# filter tool git show file
+function fgsf(){
+  local temp=`br_fmt | xargs echo`
+  save_history git show "${temp}":"$@"
+}
+
+# filter tool git checkout file
+function fgcof(){
+  local temp=`br_fmt | xargs echo`
+  save_history gco "${temp}" -- "$@"
+}
+
+# filter tool git checkout directory
+function fgcod(){
+  local temp=`br_fmt | xargs echo`
+  save_history gco "${temp}" "$@"
+}

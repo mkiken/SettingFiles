@@ -209,17 +209,6 @@ autocmd vimrc BufWritePre * if index(remove_dust_blacklist, &ft) < 0 | call <SID
 " http://vim-users.jp/2009/09/hack69/
 " set autochdir
 
-vnoremap <Leader>{ "zdi{<C-R>z}<ESC>
-vnoremap [ "zdi[<C-R>z]<ESC>
-vnoremap ( "zdi(<C-R>z)<ESC>
-vnoremap <Leader>} "zdi{<C-R>z}<ESC>
-vnoremap ] "zdi[<C-R>z]<ESC>
-vnoremap ) "zdi(<C-R>z)<ESC>
-vnoremap " "zdi"<C-R>z"<ESC>
-vnoremap ' "zdi'<C-R>z'<ESC>
-vnoremap ` "zdi`<C-R>z`<ESC>
-" vnoremap < S> " インデントと衝突><
-
 " http://d.hatena.ne.jp/thata/20100606/1275796513
 "カーソルを表示行で移動する。物理行移動は<C-n>,<C-p>
 nnoremap j gj
@@ -352,12 +341,6 @@ inoremap <C-r> <C-o><C-r>
 " 貼りつけ
 " noremap! <C-y> <C-o>P
 " noremap! ∆ <C-o>O
-
-" vimrcをリロード
-" http://whileimautomaton.net/2008/07/20150335
-" nnoremap <Space>s  :<C-u>source $VIMRC<Return>
-nnoremap <Leader>s  :<C-u>source ~/.vimrc <Return> :<C-u>source ~/.gvimrc <Return>
-command! ReloadVimrc  :source ~/.vimrc
 
 " http://tech.toshiya240.com/articles/2014/06/matchit-vim/
 :source $VIMRUNTIME/macros/matchit.vim

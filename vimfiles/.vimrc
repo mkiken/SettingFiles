@@ -184,6 +184,12 @@ let g:EasyMotion_smartcase = 1
 let g:EasyMotion_use_migemo = 1
 let g:EasyMotion_startofline=0
 
+" vimrcをリロード
+" http://whileimautomaton.net/2008/07/20150335
+" nnoremap <Space>s  :<C-u>source $VIMRC<Return>
+nnoremap <Leader>s  :<C-u>source ~/.vimrc <Return> :<C-u>source ~/.gvimrc <Return>
+command! ReloadVimrc  :source ~/.vimrc
+
 " anzu.vim
 " mapping
 nmap n nzz<Plug>(anzu-update-search-status)<Plug>(anzu-echo-search-status)
@@ -851,6 +857,17 @@ nnoremap <silent> <Leader>d :filetype detect<CR>
 " inoremap <F7> <C-o>:VimShell -toggle -split<CR>
 " nnoremap <Leader>qp :QuickRun php<CR>
 " nnoremap <Leader>qr :QuickRun ruby<CR>
+
+vnoremap <Leader>{ "zdi{<C-R>z}<ESC>
+vnoremap [ "zdi[<C-R>z]<ESC>
+vnoremap ( "zdi(<C-R>z)<ESC>
+vnoremap <Leader>} "zdi{<C-R>z}<ESC>
+vnoremap ] "zdi[<C-R>z]<ESC>
+vnoremap ) "zdi(<C-R>z)<ESC>
+vnoremap " "zdi"<C-R>z"<ESC>
+vnoremap ' "zdi'<C-R>z'<ESC>
+vnoremap ` "zdi`<C-R>z`<ESC>
+" vnoremap < S> " インデントと衝突><
 
 let g:gitgutter_map_keys = 0
 let g:gitgutter_realtime = 0
