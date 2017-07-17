@@ -64,6 +64,8 @@
   'ctrl-i': 'cursor-history:next'
   'ctrl-o': 'cursor-history:prev'
   '-': 'toggle:there'
+  'g p': 'clip-history:paste'
+  'g @': 'clip-history:paste-newer'
 
 '.tree-view':
   'ctrl-w t': 'tree-view:toggle-focus'

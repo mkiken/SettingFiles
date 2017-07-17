@@ -240,11 +240,6 @@ nnoremap G G<End>
 vnoremap G G<End>
 onoremap G G<End>
 
-" ちょっと微妙かもだけど、-で行末に移動
-" nnoremap - <End>
-" vnoremap - <End>
-" onoremap - <End>
-
 " ヴィジュアルモードでdeleteで削除
 " MacのdeleteはBackSpaceらしい
 " vnoremap <DEL> d
@@ -323,13 +318,6 @@ noremap! <C-d> <Del>
 " 置換時に改行コードを入力したいのでコメントアウト
 " noremap! <C-v> <C-r>"
 
-
-" inoremap <M-Left> <Left>
-" inoremap <M-b> <M-left>
-" カーソルのある行を画面中央に
-inoremap <C-l> <C-o>zz
-" カーソルより前の文字を削除
-" inoremap <C-u> <C-o>d0
 " カーソルより後の文字を削除
 inoremap <C-k> <c-o>D
 " inoremap <C-.> <c-o>dd
@@ -353,28 +341,6 @@ augroup END
 " http://qiita.com/yuku_t/items/0c1aff03949cb1b8fe6b
 autocmd QuickFixCmdPost *grep* cwindow
 set grepprg=grep\ -nH
-
-
-" http://qiita.com/Linda_pp/items/ee4bf64b1fe2c0a32cbd
-" 行頭 → 非空白行頭 → 行末 をローテートする
-function! s:rotate_in_line()
-    let c = col('.')
-
-    let cmd = c == 1 ? '^' : '$'
-    execute "normal! ".cmd
-
-    if c == col('.')
-        if cmd == '^'
-            normal! $
-        else
-            normal! 0
-        endif
-    endif
-endfunction
-" - に割り当て
-nnoremap <silent>- :<C-u>call <SID>rotate_in_line()<CR>
-vnoremap <silent>- :<C-u>call <SID>rotate_in_line()<CR>
-onoremap <silent>- :<C-u>call <SID>rotate_in_line()<CR>
 
 " undoを区切る
 " http://haya14busa.com/vim-break-undo-sequence-in-insertmode/
@@ -511,3 +477,8 @@ highlight DiffAdd    cterm=bold ctermfg=10 ctermbg=22
 highlight DiffDelete cterm=bold ctermfg=10 ctermbg=52
 highlight DiffChange cterm=bold ctermfg=10 ctermbg=17
 highlight DiffText   cterm=bold ctermfg=10 ctermbg=21
+
+" ローカル用のvimrc読み込み
+if filereadable( $HOME . "/.vimrc_local" )
+  source ~/.vimrc_local
+endif
