@@ -27,8 +27,7 @@
     highContrast: true
   linter:
     lintOnChangeInterval: 1000
-  "linter-ui-default":
-    showPanel: true
+  "linter-ui-default": {}
   "open-recent":
     ignoredNames: false
   tabs:
@@ -38,6 +37,7 @@
     incrementalSearch: true
     showHoverSearchCounter: true
     statusBarModeStringStyle: "long"
+    useClipboardAsDefaultRegister: false
     useSmartcaseForSearch: true
     useSmartcaseForSearchCurrentWord: true
     wrapLeftRightMotion: true

@@ -67,6 +67,10 @@
   'g p': 'clip-history:paste'
   'g @': 'clip-history:paste-newer'
 
+'atom-text-editor.vim-mode-plus.insert-mode':
+  'space': 'custom:space'
+  'enter': 'custom:enter'
+
 '.tree-view':
   'ctrl-w t': 'tree-view:toggle-focus'
   'v': 'tree-view:open-selected-entry-right'

@@ -12,3 +12,17 @@
 #   editor = editorView.getEditor()
 #   if path.extname(editor.getPath()) is '.md'
 #     editor.setSoftWrap(true)
+
+atom.commands.add 'atom-text-editor.vim-mode-plus.insert-mode', 'custom:space', ->
+  view = atom.views.getView atom.workspace.getActiveTextEditor()
+  editor = @getModel()
+  atom.commands.dispatch view, 'vim-mode-plus:activate-normal-mode'
+  atom.commands.dispatch view, 'vim-mode-plus:insert-after'
+  editor.insertText(' ')
+
+atom.commands.add 'atom-text-editor.vim-mode-plus.insert-mode', 'custom:enter', ->
+  view = atom.views.getView atom.workspace.getActiveTextEditor()
+  editor = @getModel()
+  atom.commands.dispatch view, 'vim-mode-plus:activate-normal-mode'
+  atom.commands.dispatch view, 'vim-mode-plus:insert-after'
+  editor.insertText('\n')
