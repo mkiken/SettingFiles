@@ -9,9 +9,11 @@ fi
 
 # http://www.pupha.net/archives/2267/
 function filter_select_history() {
-  local cmd=`history -500 | tail -r | filter | cut -d ' ' -f 1`
+  local filter_cmd="$(history -500 | tail -r | filter)"
+  local cmd="$(echo ${filter_cmd} | cut -d ' ' -f 1)"
   if [ "${cmd}" != "" ]; then
-    r ${cmd}
+    BUFFER="!${cmd}"
+    CURSOR=$#BUFFER
     return 0;
   fi
   return -1;
