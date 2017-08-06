@@ -13,15 +13,13 @@
 #   if path.extname(editor.getPath()) is '.md'
 #     editor.setSoftWrap(true)
 
-atom.commands.add 'atom-text-editor.vim-mode-plus.insert-mode', 'custom:space', ->
+# undoに区切りをつけるため、キー実行前にvimのmodeを変える
+atom.commands.add 'atom-text-editor.vim-mode-plus.insert-mode', 'custom:key-with-mode-change', (e) ->
   editor = @getModel()
-  insertWithModeChange(editor, ' ')
+  modeChange(editor)
+  e.abortKeyBinding()
 
-atom.commands.add 'atom-text-editor.vim-mode-plus.insert-mode', 'custom:enter', ->
-  editor = @getModel()
-  insertWithModeChange(editor, '\n')
-
-insertWithModeChange = (editor, text) ->
+modeChange = (editor) ->
   view = atom.views.getView atom.workspace.getActiveTextEditor()
   column = editor.getCursorBufferPosition().column
   atom.commands.dispatch view, 'vim-mode-plus:activate-normal-mode'
@@ -29,5 +27,3 @@ insertWithModeChange = (editor, text) ->
     atom.commands.dispatch view, 'vim-mode-plus:activate-insert-mode'
   else
     atom.commands.dispatch view, 'vim-mode-plus:insert-after'
-
-  editor.insertText(text)

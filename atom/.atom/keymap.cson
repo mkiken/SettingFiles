@@ -37,7 +37,7 @@
   # 'f4': 'relative-numbers:toggle'
 
 '.platform-darwin atom-text-editor':
-  'cmd-r': 'find-and-replace:show-replace'
+  'cmd-r': 'find-and-replace:show'
 
 '.platform-darwin, .platform-darwin .command-palette .editor .vim-mode-plus':
   'alt-x': 'command-palette:toggle'
@@ -68,8 +68,8 @@
   'g @': 'clip-history:paste-newer'
 
 'atom-text-editor.vim-mode-plus.insert-mode':
-  'space': 'custom:space'
-  'enter': 'custom:enter'
+  'space': 'custom:key-with-mode-change'
+  'enter': 'custom:key-with-mode-change'
 
 '.tree-view':
   'ctrl-w t': 'tree-view:toggle-focus'
