@@ -537,6 +537,7 @@ function zaw-src-gitdir-cd () {
 }
 zaw-register-src -n gitdir zaw-src-gitdir
 
+bindkey '^R' zaw-history
 bindkey '^X^M' zaw-cdr
 bindkey '^X^R' zaw-history
 bindkey '^X^H' zaw-history
