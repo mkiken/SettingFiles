@@ -18,6 +18,8 @@
     scrollPastEnd: true
     showInvisibles: true
     softWrap: true
+  "ex-mode":
+    gdefault: true
   "exception-reporting":
     userId: "fe4df9d8-0000-44b4-8fa2-c2324fa5de62"
   fonts:
@@ -34,7 +36,12 @@
     enableVcsColoring: true
   "vim-mode-plus":
     automaticallyEscapeInsertModeOnActivePaneItemChange: true
+    clearMultipleCursorsOnEscapeInsertMode: true
+    findAcrossLines: true
+    groupChangesWhenLeavingInsertMode: false
     incrementalSearch: true
+    sequentialPaste: true
+    sequentialPasteMaxHistory: 10
     showHoverSearchCounter: true
     statusBarModeStringStyle: "long"
     useClipboardAsDefaultRegister: false
