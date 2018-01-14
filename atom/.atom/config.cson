@@ -1,4 +1,6 @@
 "*":
+  "autocomplete-plus":
+    confirmCompletion: "enter"
   core:
     allowPendingPaneItems: false
     closeDeletedFileTabs: true
@@ -10,8 +12,14 @@
       "go-signature-statusbar"
       "github"
       "open-on-github"
+      "narrow"
     ]
+    packagesWithKeymapsDisabled: []
     restorePreviousWindowsOnStart: "no"
+    themes: [
+      "one-dark-ui"
+      "solarized-dark-syntax"
+    ]
   editor:
     fontFamily: "Monaco"
     fontSize: 11
