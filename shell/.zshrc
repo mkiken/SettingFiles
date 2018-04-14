@@ -511,14 +511,14 @@ zstyle ':chpwd:*' recent-dirs-max 500 # cdrの履歴を保存する個数
 zstyle ':chpwd:*' recent-dirs-default yes
 zstyle ':completion:*' recent-dirs-insert both
 
-# source ${SET}submodules/zaw/zaw.zsh
+source ${SUBMODULE_DIR}zaw/zaw.zsh
 # zstyle ':filter-select:highlight' selected fg=black,bg=white,standout
-# zstyle ':filter-select:highlight' matched fg=yellow,standout
+zstyle ':filter-select:highlight' matched fg=yellow,standout
 zstyle ':filter-select' max-lines 20 # use 10 lines for filter-select
 zstyle ':filter-select' rotate-list yes # enable rotation for filter-select
 zstyle ':filter-select' case-insensitive yes # enable case-insensitive search
 zstyle ':filter-select' extended-search yes # see below
-source ${SUBMODULE_DIR}zaw/zaw.zsh
+zstyle ':filter-select' hist-find-no-dups yes # ignore duplicates in history source
 
 function zaw-src-gitdir () {
   _dir=$(git rev-parse --show-cdup 2>/dev/null)
@@ -538,14 +538,11 @@ function zaw-src-gitdir-cd () {
 zaw-register-src -n gitdir zaw-src-gitdir
 
 bindkey '^R' zaw-history
-bindkey '^X^M' zaw-cdr
-bindkey '^X^R' zaw-history
-bindkey '^X^H' zaw-history
 bindkey '^X^F' zaw-git-files
 bindkey '^X^B' zaw-git-branches
 bindkey '^X^S' zaw-ssh-hosts
 bindkey '^X^P' zaw-process
-bindkey '^X^W' zaw-tmux
+bindkey '^X^T' zaw-tmux
 bindkey '^X^A' zaw-applications
 bindkey '^X^O' zaw-open-file
 # bindkey '^X?'  zaw-print-src
