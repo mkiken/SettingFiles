@@ -47,6 +47,19 @@ esac
 # setopt prompt_subst
 # autoload -Uz VCS_INFO_get_data_git; VCS_INFO_get_data_git 2> /dev/null
 
+# git stash (fish style)
+function fish_style_git_branch {
+  local git_branch=$(git current-branch)
+    if [ -n "$git_branch" ]; then
+      local fish_style_git_branch="${${(M)git_branch:#[/~]}:-${${(@j:/:M)${(@s:/:)git_branch}##.#?}:h}/${git_branch:t}}"
+      # ./masterとなるのでmasterにする
+      if [[ "$fish_style_git_branch" =~ "^\./.*" ]]; then
+        fish_style_git_branch="${fish_style_git_branch#./}"
+      fi
+      echo $fish_style_git_branch
+    fi
+}
+
 # git stash count
 function git_prompt_stash_count {
   local COUNT=$(git stash list 2>/dev/null | wc -l | tr -d ' ')
@@ -60,68 +73,13 @@ function my-git-status {
 	local tmp_path=$(git rev-parse --show-toplevel 2>/dev/null)
 	if [ -n "$tmp_path" ]; then
 		local repo_name=`basename $tmp_path`
-		echo "[%F{yellow}${repo_name}%f:$(git_super_status)$(git_prompt_stash_count)]"
+		echo "[%F{yellow}${repo_name}%f:%F{magenta}$(fish_style_git_branch)%f$(git_prompt_stash_count)]"
 	fi
 
 }
-
-
-# export LC_CTYPE=ja_JP.UTF-8
-# export LANG=ja_JP.UTF-8
-
-# export LC_CTYPE=UTF-8
-# export LANG=UTF-8
 
 export GOPATH=$HOME
 export PATH=$PATH:$GOPATH/bin
-
-# -------------- 使い方 ---------------- #
-
-source "${SUBMODULE_DIR}zsh-git-prompt/zshrc.sh"
-export __GIT_PROMPT_DIR="${SUBMODULE_DIR}zsh-git-prompt"
-# キャッシュすると初回表示してくれない。でもしないと重い
-export ZSH_THEME_GIT_PROMPT_NOCACHE=0
-
-export ZSH_THEME_GIT_PROMPT_PREFIX=""
-export ZSH_THEME_GIT_PROMPT_SUFFIX=""
-
-# ブランチ名をfish_styleのPWDのようにするためオーバーライド
-git_super_status() {
-	precmd_update_git_vars
-    if [ -n "$__CURRENT_GIT_STATUS" ]; then
-      local fish_style_git_branch="${${(M)GIT_BRANCH:#[/~]}:-${${(@j:/:M)${(@s:/:)GIT_BRANCH}##.#?}:h}/${GIT_BRANCH:t}}"
-      # ./masterとなるのでmasterにする
-      if [[ "$fish_style_git_branch" =~ "^\./.*" ]]; then
-        fish_style_git_branch="${fish_style_git_branch#./}"
-      fi
-	  STATUS="$ZSH_THEME_GIT_PROMPT_PREFIX$ZSH_THEME_GIT_PROMPT_BRANCH$fish_style_git_branch%{${reset_color}%}"
-	  if [ "$GIT_BEHIND" -ne "0" ]; then
-		  STATUS="$STATUS$ZSH_THEME_GIT_PROMPT_BEHIND$GIT_BEHIND%{${reset_color}%}"
-	  fi
-	  if [ "$GIT_AHEAD" -ne "0" ]; then
-		  STATUS="$STATUS$ZSH_THEME_GIT_PROMPT_AHEAD$GIT_AHEAD%{${reset_color}%}"
-	  fi
-	  STATUS="$STATUS$ZSH_THEME_GIT_PROMPT_SEPARATOR"
-	  if [ "$GIT_STAGED" -ne "0" ]; then
-		  STATUS="$STATUS$ZSH_THEME_GIT_PROMPT_STAGED$GIT_STAGED%{${reset_color}%}"
-	  fi
-	  if [ "$GIT_CONFLICTS" -ne "0" ]; then
-		  STATUS="$STATUS$ZSH_THEME_GIT_PROMPT_CONFLICTS$GIT_CONFLICTS%{${reset_color}%}"
-	  fi
-	  if [ "$GIT_CHANGED" -ne "0" ]; then
-		  STATUS="$STATUS$ZSH_THEME_GIT_PROMPT_CHANGED$GIT_CHANGED%{${reset_color}%}"
-	  fi
-	  if [ "$GIT_UNTRACKED" -ne "0" ]; then
-		  STATUS="$STATUS$ZSH_THEME_GIT_PROMPT_UNTRACKED%{${reset_color}%}"
-	  fi
-	  if [ "$GIT_CHANGED" -eq "0" ] && [ "$GIT_CONFLICTS" -eq "0" ] && [ "$GIT_STAGED" -eq "0" ] && [ "$GIT_UNTRACKED" -eq "0" ]; then
-		  STATUS="$STATUS$ZSH_THEME_GIT_PROMPT_CLEAN"
-	  fi
-	  STATUS="$STATUS%{${reset_color}%}$ZSH_THEME_GIT_PROMPT_SUFFIX"
-	  echo "$STATUS"
-	fi
-}
-
 
 #from http://news.mynavi.jp/column/zsh/index.html
 case ${UID} in
@@ -140,11 +98,6 @@ function precmd_prompt () {
   # PROMPT="%{%(?.$fg[green].$fg[red])%}%n%{$reset_color%} [%F{cyan}%(5~,%-2~/../%2~,%~)%f] %{%}%#%{%}%(1j.%j.) "
 }
 precmd_functions=(precmd_prompt)
-
-#SPROMPT="%r is correct? [n,y,a,e]:] "
-#http://0xcc.net/blog/archives/000032.html
-# PROMPT='%n@%m:%(5~,%-2~/../%2~,%~)%# '
-
 
 # http://qiita.com/yuyuchu3333/items/b10542db482c3ac8b059
 function chpwd() { pwd;ls_abbrev }
@@ -291,11 +244,6 @@ zle_highlight=(region:standout special:standout suffix:fg=blue,bold isearch:fg=m
 
 # ファイル補完候補に色を付ける
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-
-#grepの結果に色を付ける
-#http://d.hatena.ne.jp/bubbles/20081210/1228918665
-# export GREP_OPTIONS='--with-filename --line-number --color=always'
-# export GREP_OPTIONS='--color=always'
 
 # 補完に関するオプション
 # http://voidy21.hatenablog.jp/entry/20090902/1251918174
@@ -453,22 +401,6 @@ setopt no_complete_aliases
 ## 自動補完される余分なカンマなどを適宜削除してスムーズに入力できるようにする
 # setopt auto_param_keys
 
-  # function powerline_precmd() {
-  # export PS1="$(${REP}powerline-shell/powerline-shell.py $? --shell zsh 2> /dev/null)"
-# }
-
-# function install_powerline_precmd() {
-# for s in "${precmd_functions[@]}"; do
-  # if [ "$s" = "powerline_precmd" ]; then
-    # return
-  # fi
-# done
-# precmd_functions+=(powerline_precmd)
-  # }
-
-  # install_powerline_precmd
-
-
 # http://kaworu.jpn.org/kaworu/2012-05-02-1.php
 export MANPAGER='less -R'
 man() {
@@ -501,15 +433,6 @@ if [ -f ${SUBMODULE_DIR}zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; t
 fi
 
 source ${SUBMODULE_DIR}zsh-bd/bd.zsh
-
-
-
-# http://qiita.com/termoshtt/items/68a5372a43543037667f
-# autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
-# add-zsh-hook chpwd chpwd_recent_dirs
-# zstyle ':chpwd:*' recent-dirs-max 500 # cdrの履歴を保存する個数
-# zstyle ':chpwd:*' recent-dirs-default yes
-# zstyle ':completion:*' recent-dirs-insert both
 
 source ${SUBMODULE_DIR}zaw/zaw.zsh
 # zstyle ':filter-select:highlight' selected fg=black,bg=white,standout
@@ -550,83 +473,6 @@ bindkey '^X^O' zaw-open-file
 # http://qiita.com/scalper/items/4728afaac9962bf91bfa
 # bindkey '^X^X' zaw-cdr
 bindkey '^X^D' zaw-gitdir
-
-
-#=============================
-# source auto-fu.zsh
-#=============================
-# if [ -f "${SET}submodules/auto-fu.zsh/auto-fu.zsh" ]; then
-# if [ 0 -ne 0 ]; then
-# # if [ -f ~/.zsh/auto-fu.zsh ]; then
-#       # source "${SET}submodules/auto-fu.zsh/auto-fu.zsh"
-#
-#   ## auto-fu.zsh stuff.
-#   # source ~/Desktop/repository/SettingFiles/submodules/auto-fu.zsh/auto-fu.zsh
-#   { . ~/.zsh/auto-fu; auto-fu-install; }
-#   zstyle ':auto-fu:highlight' input bold
-#   zstyle ':auto-fu:highlight' completion fg=black,bold
-#   zstyle ':auto-fu:highlight' completion/one fg=blue,bold,underline
-#   zstyle ':auto-fu:var' postdisplay $'\n-azfu-'
-#   zstyle ':auto-fu:var' track-keymap-skip opp
-#   zle-line-init () {auto-fu-init;}; zle -N zle-line-init
-#   zle -N zle-keymap-select auto-fu-zle-keymap-select
-#
-#       function zle-line-init () {
-#           auto-fu-init
-#       }
-#       zle -N zle-line-init
-#       # zstyle ':completion:*' completer _oldlist _complete
-#       zstyle ':completion:*' completer _oldlist _expand _complete _match _prefix _approximate _list _history
-#       zstyle ':auto-fu:highlight' completion/one fg=blue
-#   # 「-azfu-」を表示させない
-#   zstyle ':auto-fu:var' postdisplay $''
-#
-#   zstyle ':auto-fu:var' enable all
-#   zstyle ':auto-fu:var' disable ag
-#
-#   # http://d.hatena.ne.jp/hchbaw/20110309/1299680906
-#   # ダブルクォート内の場合でも自動補完を抑制
-#   zstyle ':auto-fu:var' autoable-function/skipwords \
-#     "('|$'|\")*"
-#   # ag, grepの後は自動補完を抑制
-#   zstyle ':auto-fu:var' autoable-function/skiplines \
-#     '([[:print:]]##[[:space:]]##|(#s)[[:space:]]#)(ag*|*grep|brew|cask|ssh) *'
-#
-#   # http://d.hatena.ne.jp/tarao/20100531/1275322620
-#   function afu+cancel () {
-#       afu-clearing-maybe
-#       ((afu_in_p == 1)) && { afu_in_p=0; BUFFER="$buffer_cur" }
-#   }
-#   function bindkey-advice-before () {
-#       local key="$1"
-#       local advice="$2"
-#       local widget="$3"
-#       [[ -z "$widget" ]] && {
-#           local -a bind
-#           bind=(`bindkey -M main "$key"`)
-#           widget=$bind[2]
-#       }
-#       local fun="$advice"
-#       if [[ "$widget" != "undefined-key" ]]; then
-#           local code=${"$(<=(cat <<"EOT"
-#               function $advice-$widget () {
-#                   zle $advice
-#                   zle $widget
-#               }
-#               fun="$advice-$widget"
-# EOT
-#           ))"}
-#           eval "${${${code//\$widget/$widget}//\$key/$key}//\$advice/$advice}"
-#       fi
-#       zle -N "$fun"
-#       bindkey -M afu "$key" "$fun"
-#   }
-#   bindkey-advice-before "^G" afu+cancel
-#   # bindkey-advice-before "^[" afu+cancel
-#   # bindkey-advice-before "^J" afu+cancel afu+accept-line
-# fi
-
-# unsetopt sh_wordsplit
 
 if [ -z "$LOAD_COMPLETE" ]; then
   # 再読み込みすると落ちるので1回のみロード
