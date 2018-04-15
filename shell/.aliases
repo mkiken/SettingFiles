@@ -91,7 +91,7 @@ alias le='less'
 
 #cd
 alias cdd='cd ~/Desktop'
-alias cdr='cd ${REPO}'
+alias cdrepo='cd ${REPO}'
 alias cds='cd ${SET}'
 
 #shortcut for setting files

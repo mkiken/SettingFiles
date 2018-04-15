@@ -505,11 +505,11 @@ source ${SUBMODULE_DIR}zsh-bd/bd.zsh
 
 
 # http://qiita.com/termoshtt/items/68a5372a43543037667f
-autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
-add-zsh-hook chpwd chpwd_recent_dirs
-zstyle ':chpwd:*' recent-dirs-max 500 # cdrの履歴を保存する個数
-zstyle ':chpwd:*' recent-dirs-default yes
-zstyle ':completion:*' recent-dirs-insert both
+# autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
+# add-zsh-hook chpwd chpwd_recent_dirs
+# zstyle ':chpwd:*' recent-dirs-max 500 # cdrの履歴を保存する個数
+# zstyle ':chpwd:*' recent-dirs-default yes
+# zstyle ':completion:*' recent-dirs-insert both
 
 source ${SUBMODULE_DIR}zaw/zaw.zsh
 # zstyle ':filter-select:highlight' selected fg=black,bg=white,standout
@@ -548,8 +548,7 @@ bindkey '^X^O' zaw-open-file
 # bindkey '^X?'  zaw-print-src
 
 # http://qiita.com/scalper/items/4728afaac9962bf91bfa
-# bindkey '^[d' zaw-cdr
-# bindkey '^[g' zaw-git-branches
+# bindkey '^X^X' zaw-cdr
 bindkey '^X^D' zaw-gitdir
 
 
