@@ -128,7 +128,6 @@ brew install rmtrash
 # brew install --cocoa --srgb --with-gnutls --japanese emacs -v
 # brew install --cocoa --srgb --japanese emacs -v
 # brew install vim --devel --with-lua
-# brew install neovim/neovim/neovim
 brew install rlwrap
 # brew install z
 brew install tmux
@@ -147,11 +146,9 @@ brew tap laurent22/massren
 brew install massren
 brew install ctags
 
-brew install go
+# brew install go
 
-# for neovim
-brew install python3
-pip3 install neovim
+brew install neovim
 
 brew tap phinze/homebrew-cask
 brew install brew-cask
