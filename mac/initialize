@@ -161,8 +161,7 @@ brew cask install alfred
 brew cask install dropbox
 brew cask install clipy
 brew cask install karabiner-elements
-# brew cask install skype
-# brew cask install bettertouchtool # 有料に(´・ω・｀)
+brew cask install boostnote
 
 sudo easy_install Pygments
 
