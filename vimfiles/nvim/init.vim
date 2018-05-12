@@ -117,7 +117,8 @@ syntax on
 " if (has("termguicolors"))
  " set termguicolors
 " endif
-colorscheme OceanicNext
+" colorscheme OceanicNext
+colorscheme molokai
 " colorscheme kalisi
 
 " キーバインド
@@ -171,3 +172,17 @@ call denite#custom#map('insert', "<C-s>", '<denite:do_action:split>')
 call denite#custom#map('normal', "t", '<denite:do_action:tabopen>')
 call denite#custom#map('normal', "v", '<denite:do_action:vsplit>')
 call denite#custom#map('normal', "s", '<denite:do_action:split>')
+
+" vimdiff設定
+let g:DiffUnit = 'Word3' " \< or \> character class boundaries
+" let g:DiffModeSync = 0
+if &diff
+  augroup enable_diffchar
+    " diffが見やすいカラースキームを指定しておく
+    " colorscheme molokai
+    autocmd!
+    autocmd VimEnter * execute "echom 'To word-diff be enabled, press <F7>.'"
+    " neovimだと効かないのでコメントアウト(  ；∀；)
+    " autocmd VimEnter * execute "%TDChar"
+  augroup END
+endif
