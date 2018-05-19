@@ -30,7 +30,8 @@ alias agd='find . -type d | ag'
 alias agn='find . | ag'
 alias agu='ag -u' # 隠しファイルおよび無視リストも対象
 alias agp='ag --pager="less -R"'
-alias agg='ag -g' # ファイル名で検索
+alias agg='ag --hidden -g' # ファイル名で検索（隠しファイル含む）
+alias agga='ag -u -g' # ファイル名で検索（全てのファイル）
 alias agq='ag -Q' # 正規表現を無視
 
 alias br='brew'
