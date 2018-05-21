@@ -8,7 +8,7 @@ set ignorecase
 set smartcase
 
 " キーワードのセパレータ追加
-set iskeyword-=_
+" set iskeyword-=_
 
 set incsearch
 
