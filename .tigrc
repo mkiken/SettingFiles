@@ -1,8 +1,12 @@
 # main viewの左端にコミットIDを表示する
 set main-view = id date author commit-title:graph=yes,refs=yes
 
+# Whether to show staged and unstaged changes in the main view.
+set show-changes = true
+
 # 水平分割したウィンドウの下画面サイズを % で指定（行数指定も可）
-set split-view-height = 80%
+set split-view-height = 70%
+set vertical-split = false
 
 # 差分の前後の表示行数（diff-context)を指定
 set diff-context = 2
@@ -19,6 +23,35 @@ set wrap-lines = yes
 
 # https://github.com/jonas/tig/issues/595
 set status-show-untracked-files = yes
+
+# set diff-highlight = yes
+
+# カラー設定
+# diff-view で境界が見やすくなるように変更
+color  diff-header       default magenta
+color  diff-chunk        black   white
+
+set wrap-lines = true
+
+# blame view の行数表示をON、intervalを1に
+set blame-view  = date:default author:email-user id:yes,color line-number:yes,interval=1 text
+
+# Pager系の行数表示をON、intervalを1に (default: line-number:no,interval=5)
+set pager-view  = line-number:yes,interval=1 text
+set stage-view  = line-number:yes,interval=1 text
+set log-view    = line-number:yes,interval=1 text
+set blob-view   = line-number:yes,interval=1 text
+set diff-view   = line-number:yes,interval=1 text:yes,commit-title-overflow=no
+
+# . で HEAD との diff
+bind main    .      !sh -c "git diff %(commit) | tig"
+bind diff    .      !sh -c "git diff %(commit) | tig"
+bind refs    .      !sh -c "git diff %(branch) | tig"
+
+# Alt-. で指定 commit ID との diff
+bind main    <Esc>. ?sh -c "git diff %(commit)..%(prompt Enter commit ID: ) | tig"
+bind diff    <Esc>. ?sh -c "git diff %(commit)..%(prompt Enter commit ID: ) | tig"
+bind refs    <Esc>. ?sh -c "git diff %(branch)..%(prompt Enter branch name: ) | tig"
 
 ########
 # generic

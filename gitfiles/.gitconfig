@@ -177,14 +177,17 @@
 	name =
 	email =
 
+[fetch]
+  prune = true
+
 ; http://qiita.com/yuku_t/items/04853c9aecb40edadbb2
 [tig "bind"]
-diff = <Ctrl-n> :/^@@
-diff = <Ctrl-p> :?^@@
-log = <Ctrl-n> :/^commit
-log = <Ctrl-p> :?^commit
-stage = <Ctrl-n> :/^@@
-stage = <Ctrl-p> :?^@@
+  diff = <Ctrl-n> :/^@@
+  diff = <Ctrl-p> :?^@@
+  log = <Ctrl-n> :/^commit
+  log = <Ctrl-p> :?^commit
+  stage = <Ctrl-n> :/^@@
+  stage = <Ctrl-p> :?^@@
 [init]
 	templatedir = ~/.git_template
 [mergetool "sourcetree"]
