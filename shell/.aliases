@@ -508,6 +508,9 @@ alias g-delete-remote-merged-branches="g-remote-merged-branches | xargs -I% git 
 
 alias g-delete-remote-branches-hash-check="g-remote-merged-branches_orig | xargs -I{} sh -c 'echo {};git rev-parse {};echo ""' 2>&1 | tee -a ~/Desktop/delete_branches_hash_check.txt"
 
+alias g-merged-branches="git merged-branches | grep -vE '^\*|master$|develop$'"
+alias g-delete-merged-branches="g-merged-branches | xargs -I% git branch -d %"
+
 # 単語を使ってブランチを削除
 function g-remote-branches-by-word(){
   git branch -a | grep -v '*' | grep -v master | grep $1 | grep remotes/origin/

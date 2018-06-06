@@ -8,6 +8,7 @@
 
 [pull]
   default = current
+  prune = true
 
 ; https://blogs.atlassian.com/2013/06/git-diff/
 [alias]
