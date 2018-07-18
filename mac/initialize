@@ -208,4 +208,6 @@ sudo chsh -s /usr/local/bin/zsh
 # curl -Lo ~/.config/fish/functions/fisher.fish --create-dirs git.io/fisher
 # fisher install 0rax/fish-bd
 
-echo "'apm stars --install' after install apm."
+apm stars --install
+
+echo "Please setting zsh!"
