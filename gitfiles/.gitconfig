@@ -150,7 +150,8 @@
   # tool = mvimdiff
   # tool = vimdiff
   # tool = p4merge
-	tool = diffmerge
+	tool = nvim
+	# tool = diffmerge
   # tool = vim
 [mergetool "mvimdiff"]
   cmd = mvim -f -d \"$LOCAL\" \"$MERGED\" \"$REMOTE\"
