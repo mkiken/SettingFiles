@@ -151,6 +151,11 @@ function fgsf(){
   local temp=`br_fmt | xargs echo`
   save_history git show "${temp}":"$@"
 }
+# filter tool git show file
+function fgsf-remote(){
+  local temp=`br_fmt | xargs echo`
+  save_history git show "remotes/origin/${temp}":"$@"
+}
 
 # filter tool git checkout file
 function fgcof(){
