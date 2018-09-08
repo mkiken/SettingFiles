@@ -31,3 +31,6 @@ repo = 'Shougo/neosnippet-snippets'
 
 [[plugins]]
 repo = 'rickhowe/diffchar.vim'
+
+[[plugins]]
+repo = 'AndrewRadev/linediff.vim'
