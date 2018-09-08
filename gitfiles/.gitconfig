@@ -159,7 +159,7 @@
   cmd = atom_merge $MERGED
 [mergetool "nvim"]
   # 2-way
-  cmd = nvim -f -d -c 'wincmd J' \"$MERGED\" \"$LOCAL\" \"$REMOTE\"
+  cmd = nvim -d \"$LOCAL\" \"$REMOTE\" \"$MERGED\" -c '2 wincmd l | wincmd J | wincmd k'
   # 3-way
   # cmd = nvim -f -d -c 'wincmd J' \"$MERGED\" \"$LOCAL\" \"$BASE\" \"$REMOTE\"
 [mergetool "vim"]

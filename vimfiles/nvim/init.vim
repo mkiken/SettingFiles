@@ -176,6 +176,8 @@ call denite#custom#map('normal', "s", '<denite:do_action:split>')
 " vimdiff設定
 " let g:DiffUnit = 'Word3' " \< or \> character class boundaries
 let g:DiffUnit = 'Char' " any single character
+let g:DiffColors = 3 " 16 colors in fixed order
+
 " let g:DiffModeSync = 0
 if &diff
   augroup enable_diffchar
