@@ -60,20 +60,20 @@ ln -si "${Repo}.jsbeautifyrc" ~/.jsbeautifyrc
 echo "ln -si ${Repo}.agignore"
 ln -si "${Repo}.agignore" ~/.agignore
 
-echo "ln -si ${Repo}atom/.atom/config.cson"
-ln -si "${Repo}atom/.atom/config.cson" ~/.atom/config.cson
+# echo "ln -si ${Repo}atom/.atom/config.cson"
+# ln -si "${Repo}atom/.atom/config.cson" ~/.atom/config.cson
 
-echo "ln -si ${Repo}atom/.atom/keymap.cson"
-ln -si "${Repo}atom/.atom/keymap.cson" ~/.atom/keymap.cson
+# echo "ln -si ${Repo}atom/.atom/keymap.cson"
+# ln -si "${Repo}atom/.atom/keymap.cson" ~/.atom/keymap.cson
 
-echo "ln -si ${Repo}atom/.atom/snippets.cson"
-ln -si "${Repo}atom/.atom/snippets.cson" ~/.atom/snippets.cson
+# echo "ln -si ${Repo}atom/.atom/snippets.cson"
+# ln -si "${Repo}atom/.atom/snippets.cson" ~/.atom/snippets.cson
 
-echo "ln -si ${Repo}atom/.atom/init.coffee"
-ln -si "${Repo}atom/.atom/init.coffee" ~/.atom/init.coffee
+# echo "ln -si ${Repo}atom/.atom/init.coffee"
+# ln -si "${Repo}atom/.atom/init.coffee" ~/.atom/init.coffee
 
-echo "ln -si ${Repo}atom/.atom/styles.less"
-ln -si "${Repo}atom/.atom/styles.less" ~/.atom/styles.less
+# echo "ln -si ${Repo}atom/.atom/styles.less"
+# ln -si "${Repo}atom/.atom/styles.less" ~/.atom/styles.less
 
 # echo "ln -si ${Repo}atom/atom_merge"
 # ln -si "${Repo}atom/atom_merge" /usr/local/bin
@@ -152,7 +152,7 @@ brew install neovim
 
 brew tap phinze/homebrew-cask
 brew install brew-cask
-brew cask install atom
+# brew cask install atom
 brew cask install iterm2
 brew cask install google-chrome
 # brew cask install macvim
