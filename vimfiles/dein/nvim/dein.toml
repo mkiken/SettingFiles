@@ -34,3 +34,6 @@ repo = 'rickhowe/diffchar.vim'
 
 [[plugins]]
 repo = 'AndrewRadev/linediff.vim'
+
+[[plugins]]
+repo = 'tpope/vim-surround'
