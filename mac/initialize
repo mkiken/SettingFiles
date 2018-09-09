@@ -1,64 +1,41 @@
 #!/bin/sh
 
+function make_symlink () {
+  echo "ln -si $1 $2"
+  ln -si $1 $2
+}
+
 # set Repo "$HOME/Desktop/repository/SettingFiles/"
 Repo="`pwd | sed -e \"s/.\{3\}$//\"`"
 Repo_shell="${Repo}shell/"
 # set Repo "$SET/"
 
-echo "ln -si ${Repo_shell}.aliases ~/.aliases"
-ln -si "${Repo_shell}.aliases" ~/.aliases
+make_symlink ${Repo_shell}.aliases ~/.aliases
 
-echo "ln -si ${Repo}gitfiles/.gitconfig ~/.gitconfig"
-ln -si "${Repo}gitfiles/.gitconfig" ~/.gitconfig
+make_symlink ${Repo}gitfiles/.gitconfig ~/.gitconfig
 
-echo "ln -si ${Repo}gitfiles/.gitignore_global ~/.gitignore"
-ln -si "${Repo}gitfiles/.gitignore_global" ~/.gitignore
+make_symlink ${Repo}gitfiles/.gitignore_global ~/.gitignore
 
-echo "ln -si ${Repo}gitfiles/.git_template ~"
-ln -si "${Repo}gitfiles/.git_template" ~
-
-# echo "ln -si ${Repo}vimfiles/.gvimrc ~/.gvimrc"
-# ln -si "${Repo}vimfiles/.gvimrc" ~/.gvimrc
-
-# echo "ln -si ${Repo}vimfiles/.vimrc ~/.vimrc"
-# ln -si "${Repo}vimfiles/.vimrc" ~/.vimrc
+make_symlink ${Repo}gitfiles/.git_template ~
 
 mkdir -p ~/.config
-echo "ln -si ${Repo}vimfiles/nvim ~/.config"
-ln -si "${Repo}vimfiles/nvim" ~/.config
+make_symlink ${Repo}vimfiles/nvim ~/.config
 
-echo "ln -si ${Repo_shell}.zshrc ~/.zshrc"
-ln -si "${Repo_shell}.zshrc" ~/.zshrc
-# mkdir -p ~/.config/fish
-# echo "ln -si ${Repo}config.fish ~/.config/fish/config.fish"
-# ln -si ${Repo}config.fish ~/.config/fish/config.fish
+# for nyaovim
+mkdir -p ~/.config/nyaovim
 
-echo "ln -si ${Repo}.tigrc ~/.tigrc"
-ln -si "${Repo}.tigrc" ~/.tigrc
+make_symlink ${Repo}vimfiles/nyaovim/nyaovimrc.html ~/.config/nyaovim/nyaovimrc.html
+make_symlink ${Repo}vimfiles/nyaovim/browser-config.json ~/.config/nyaovim/browser-config.json
 
-# echo "ln -si ${Repo}.emacs.d ~"
-# ln -si "${Repo}.emacs.d" ~
+make_symlink ${Repo_shell}.zshrc ~/.zshrc
 
-# echo "ln -si ${Repo}vimfiles/.vim ~"
-# ln -si "${Repo}vimfiles/.vim" ~
+make_symlink ${Repo}.tigrc ~/.tigrc
 
-# echo "ln -si ${Repo}SublimeTextFiles/2/user_OSX.sublime-keymap"
-# ln -si "${Repo}SublimeTextFiles/2/user_OSX.sublime-keymap" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/User/Default\ \(OSX\).sublime-keymap
-#
-# echo "ln -si ${Repo}SublimeTextFiles/2/default_OSX.sublime-keymap"
-# ln -si "${Repo}SublimeTextFiles/2/default_OSX.sublime-keymap" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/Default/Default\ \(OSX\).sublime-keymap
-#
-# echo "ln -si ${Repo}SublimeTextFiles/2/Preferences.sublime-settings"
-# ln -si "${Repo}SublimeTextFiles/2/Preferences.sublime-settings" ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/User/Preferences.sublime-settings
+make_symlink ${Repo}.jshintrc ~/.jshintrc
 
-echo "ln -si ${Repo}.jshintrc"
-ln -si "${Repo}.jshintrc" ~/.jshintrc
+make_symlink ${Repo}.jsbeautifyrc ~/.jsbeautifyrc
 
-echo "ln -si ${Repo}.jsbeautifyrc"
-ln -si "${Repo}.jsbeautifyrc" ~/.jsbeautifyrc
-
-echo "ln -si ${Repo}.agignore"
-ln -si "${Repo}.agignore" ~/.agignore
+make_symlink ${Repo}.agignore ~/.agignore
 
 # echo "ln -si ${Repo}atom/.atom/config.cson"
 # ln -si "${Repo}atom/.atom/config.cson" ~/.atom/config.cson
@@ -78,21 +55,13 @@ ln -si "${Repo}.agignore" ~/.agignore
 # echo "ln -si ${Repo}atom/atom_merge"
 # ln -si "${Repo}atom/atom_merge" /usr/local/bin
 
-# echo "ln -si ${Repo}.tmux.conf"
-ln -si "${Repo}.tmux.conf" ~/.tmux.conf
+make_symlink ${Repo}.tmux.conf ~/.tmux.conf
 
-# echo "ln -si ${Repo}.peco"
-# ln -si "${Repo}.peco" ~
+make_symlink ${Repo}.ideavimrc ~/.ideavimrc
 
-echo "ln -si ${Repo}.ideavimrc ~/.ideavimrc"
-ln -si "${Repo}.ideavimrc" ~/.ideavimrc
+make_symlink ${Repo}vscode/settings.json ~/Library/Application\ Support/Code/User/settings.json
 
-echo "ln -si ${Repo}vscode/settings.json"
-ln -si "${Repo}vscode/settings.json" ~/Library/Application\ Support/Code/User/settings.json
-
-echo "ln -si ${Repo}vscode/keybindings.json"
-ln -si "${Repo}vscode/keybindings.json" ~/Library/Application\ Support/Code/User/keybindings.json
-
+make_symlink ${Repo}vscode/keybindings.json ~/Library/Application\ Support/Code/User/keybindings.json
 
 # touch ~/.gitconfig.local
 cp -i "${Repo}gitfiles/.gitconfig.local_mac" ~/.gitconfig.local
@@ -100,10 +69,6 @@ echo "You can write LOCAL settings for git to '~/.gitconfig.local'."
 
 echo 'symbolic links created.'
 
-
-# mkdir -p ~/.backup
-# mkdir -p ~/.backup/emacs/backup
-# mkdir -p ~/.backup/emacs/autosave
 mkdir -p ~/.backup/vim/backup
 mkdir -p ~/.backup/vim/swap
 mkdir -p ~/.backup/vim/undo
@@ -123,11 +88,8 @@ brew install git
 brew install zsh
 # brew install fish
 brew install rmtrash
-# brew install node
+brew install node
 # brew install tree
-# brew install --cocoa --srgb --with-gnutls --japanese emacs -v
-# brew install --cocoa --srgb --japanese emacs -v
-# brew install vim --devel --with-lua
 brew install rlwrap
 # brew install z
 brew install tmux
@@ -179,35 +141,15 @@ massren --config editor "nvim"
 # http://qiita.com/Ys_Jn/items/f7ff03f7a890329c3e2a
 xcode-select --install
 
-# source ~/.zshrc
-# A="${SET}submodules/auto-fu.zsh/auto-fu.zsh" ; (zsh -c "source $A ; auto-fu-zcompile $A ~/.zsh")
-
-
 # for Tmux Plugin Manager
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-
-# ./update
-
-# ビルド
-# cd "${Repo}vimfiles/dein/vim/bundle/repos/github.com/Valloric/YouCompleteMe"
-# git submodule update --init --recursive
-# ./install.py --clang-completer
-# cd $OLDPWD
-
-# cd "${Repo}vimfiles/dein/vim/bundle/repos/github.com/nixprime/cpsm"
-# ./install.sh
-# cd $OLDPWD
 
 # shell setting
 sudo chsh -s /usr/local/bin/zsh
 # chsh -s $(`which fish`) $USER
 
-# fish initialize
-# fish
-# chsh -s (which fish) $USER
-# curl -Lo ~/.config/fish/functions/fisher.fish --create-dirs git.io/fisher
-# fisher install 0rax/fish-bd
+npm install -g nyaovim
 
-apm stars --install
+# apm stars --install
 
-echo "Please setting zsh!"
+# echo "Please setting zsh!"
