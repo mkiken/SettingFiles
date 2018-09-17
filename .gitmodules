@@ -1,6 +1,3 @@
-[submodule "submodules/auto-fu.zsh"]
-	path = submodules/auto-fu.zsh
-	url = https://github.com/hchbaw/auto-fu.zsh
 [submodule "submodules/used-mem"]
 	path = submodules/used-mem
 	url = https://github.com/yonchu/used-mem.git
@@ -10,9 +7,6 @@
 [submodule "submodules/zsh-bd"]
 	path = submodules/zsh-bd
 	url = https://github.com/Tarrasch/zsh-bd
-[submodule "submodules/php-short-array-syntax-converter"]
-	path = submodules/php-short-array-syntax-converter
-	url = https://github.com/thomasbachem/php-short-array-syntax-converter
 [submodule "submodules/zaw"]
 	path = submodules/zaw
 	url = https://github.com/zsh-users/zaw
