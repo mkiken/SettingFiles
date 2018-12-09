@@ -166,6 +166,9 @@ setopt pushd_ignore_dups # 同じディレクトリは追加しない
 # command correct edition before each completion attempt
 setopt correct
 
+# GLOBDOTS lets files beginning with a . be matched without explicitly specifying the dot.
+setopt globdots
+
 # compacked complete list display
 setopt list_packed
 
@@ -202,6 +205,9 @@ setopt share_history        # share command history data
 #http://qiita.com/items/f2971728c845c75e9967
 autoload -U compinit -u && compinit -u
 compinit -u
+
+# 隠しファイルも補完候補に追加する
+_comp_options+=(globdots)
 
 #autoload predict-on
 #predict-on

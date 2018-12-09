@@ -189,3 +189,20 @@ if &diff
     " autocmd VimEnter * execute "%TDChar"
   augroup END
 endif
+
+" anzu.vim
+" mapping
+nmap n nzz<Plug>(anzu-update-search-status)<Plug>(anzu-echo-search-status)
+nmap N Nzz<Plug>(anzu-update-search-status)<Plug>(anzu-echo-search-status)
+nmap * *zz<Plug>(anzu-update-search-status)<Plug>(anzu-echo-search-status)
+nmap # #zz<Plug>(anzu-update-search-status)<Plug>(anzu-echo-search-status)
+" clear status
+nmap <Esc><Esc> :nohl<CR> <Plug>(anzu-clear-search-status)
+" statusline
+" set statusline=%{anzu#search_status()}
+augroup vim-anzu
+" 一定時間キー入力がないとき、ウインドウを移動したとき、タブを移動したときに
+" 検索ヒット数の表示を消去する
+    autocmd!
+    autocmd CursorHold,CursorHoldI,WinLeave,TabLeave * call anzu#clear_search_status()
+augroup END

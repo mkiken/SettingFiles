@@ -1,5 +1,5 @@
 #!/bin/sh
-EDIT_COMMAND='nyaovim'
+EDIT_COMMAND='atom'
 
 #expanded command
 case "${OSTYPE}" in
@@ -14,7 +14,7 @@ alias -g L='| less'
 #MacVim on CUI
 alias -g VI='mvim --remote-tab-silent'
 # alias vi='mvim --remote-tab-silent'
-alias vi='nyaovim'
+alias vi='nv'
 # alias vim-orig='vim -u NONE --noplugin'
 alias nvim-orig='nvim -u NONE --noplugin'
 alias nv='nvim'

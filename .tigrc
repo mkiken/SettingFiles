@@ -1,6 +1,9 @@
 # main viewの左端にコミットIDを表示する
 set main-view = id date author commit-title:graph=yes,refs=yes
 
+# 高速化のためdefaultにする
+set commit-order = default
+
 # Whether to show staged and unstaged changes in the main view.
 set show-changes = true
 
