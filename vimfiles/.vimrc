@@ -63,6 +63,7 @@ augroup MyAutoCmd
 augroup END
 
 
+if 1
 let s:dein_dir = g:vim_dir_path . '/dein/vim'
 " プラグインが実際にインストールされるディレクトリ
 let s:dein_bundle_dir = s:dein_dir . '/bundle'
@@ -100,7 +101,6 @@ if dein#check_install()
   call dein#install()
 endif
 
-if 1
 " if dein#tap('unite.vim')
   " 実行すべき関数
   " function! s:unite_on_source() abort
@@ -165,7 +165,6 @@ if 1
   " execute 'autocmd MyAutoCmd User' 'dein#source#unite.vim'
         " \ 'call s:unite_on_source()'
   " call dein#set_hook('unite.vim', 'hook_post_source', function('s:unite_on_source'))
-endif
 
 " tagbar
   nn <silent> <leader>t :TagbarToggle<CR>
@@ -183,6 +182,7 @@ let g:EasyMotion_grouping=1
 let g:EasyMotion_smartcase = 1
 let g:EasyMotion_use_migemo = 1
 let g:EasyMotion_startofline=0
+endif
 
 " vimrcをリロード
 " http://whileimautomaton.net/2008/07/20150335
