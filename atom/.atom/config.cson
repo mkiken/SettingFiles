@@ -3,19 +3,19 @@
     confirmCompletion: "enter"
   core:
     allowPendingPaneItems: false
+    automaticallyUpdate: false
     closeDeletedFileTabs: true
     disabledPackages: [
       "about"
-      "go-plus"
-      "go-debug"
       "welcome"
-      "go-signature-statusbar"
       "github"
       "open-on-github"
       "narrow"
     ]
+    openEmptyEditorOnStart: false
     packagesWithKeymapsDisabled: []
     restorePreviousWindowsOnStart: "no"
+    telemetryConsent: "no"
     themes: [
       "one-dark-ui"
       "atom-dark-syntax"
