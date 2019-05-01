@@ -43,3 +43,6 @@ repo = 'kana/vim-textobj-user'
 
 [[plugins]]
 repo = 'osyo-manga/vim-anzu'
+
+[[plugins]]
+repo = 'vim-airline/vim-airline'
