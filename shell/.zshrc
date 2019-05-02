@@ -2,8 +2,9 @@ REPO="${HOME}/Desktop/repository/"
 SET="${REPO}SettingFiles/"
 SUBMODULE_DIR="${SET}submodules/"
 # MACVIM="/Applications/MacVim.app/Contents/MacOS"
-BREW_CASKROOM="$(brew --prefix)/Caskroom"
-BREW_CELLAR="$(brew --prefix)/Cellar"
+BREW_PREFIX="$(brew --prefix)"
+BREW_CASKROOM="$BREW_PREFIX/Caskroom"
+BREW_CELLAR="$BREW_PREFIX/Cellar"
 FILTER_TOOL='fzf-tmux'
 FILTER_COMMAND='${FILTER_TOOL} -d 30% --cycle --exit-0'
 
@@ -32,10 +33,10 @@ case "${OSTYPE}" in
   darwin*)
   # http://please-sleep.cou929.nu/git-completion-and-prompt.html
   if which brew > /dev/null; then
-    fpath=($(brew --prefix)/share/zsh/site-functions(N-/) $fpath)
+    fpath=($BREW_PREFIX/share/zsh/site-functions(N-/) $fpath)
     # http://d.hatena.ne.jp/sugyan/20130319/1363689394
     # _Z_CMD=j
-    # source $(brew --prefix)/etc/profile.d/z.sh
+    # source $BREW_PREFIX/etc/profile.d/z.sh
   else
     fpath=(~/.zsh/completion(N-/) $fpath)
   fi
@@ -81,14 +82,63 @@ function my-git-status {
 export GOPATH=$HOME
 export PATH=$PATH:$GOPATH/bin
 
+# powerlevel9kのプロンプト設定
+# https://github.com/bhilburn/powerlevel9k#customizing-prompt-segments
+
+source $BREW_PREFIX/opt/powerlevel9k/powerlevel9k.zsh-theme
+
+# 今のshellの履歴数
+function my_history_count {
+  echo '%i'
+}
+POWERLEVEL9K_CUSTOM_MY_HISTORY_COUNT="my_history_count"
+POWERLEVEL9K_CUSTOM_MY_HISTORY_COUNT_BACKGROUND="grey50"
+POWERLEVEL9K_CUSTOM_MY_HISTORY_COUNT_FOREGROUND="$DEFAULT_COLOR"
+
+# レポジトリ名
+function get_git_repo_name {
+	# http://stackoverflow.com/questions/15715825/how-do-you-get-git-repos-name-in-some-git-repository
+	local tmp_path=$(git rev-parse --show-toplevel 2>/dev/null)
+	if [ -n "$tmp_path" ]; then
+		echo `basename $tmp_path`
+	fi
+}
+POWERLEVEL9K_CUSTOM_GIT_REPO_NAME="get_git_repo_name"
+POWERLEVEL9K_CUSTOM_GIT_REPO_NAME_BACKGROUND="green"
+POWERLEVEL9K_CUSTOM_GIT_REPO_NAME_FOREGROUND="$DEFAULT_COLOR"
+
+# ブランチ名
+# レポジトリ名
+function get_git_branch_name {
+	# http://stackoverflow.com/questions/15715825/how-do-you-get-git-repos-name-in-some-git-repository
+	local tmp_name=`fish_style_git_branch`
+	if [ -n "$tmp_name" ]; then
+		echo "$tmp_path`git_prompt_stash_count`"
+	fi
+}
+POWERLEVEL9K_CUSTOM_GIT_BRANCH_NAME="get_git_branch_name"
+POWERLEVEL9K_CUSTOM_GIT_BRANCH_NAME_BACKGROUND="yellow"
+POWERLEVEL9K_CUSTOM_GIT_BRANCH_NAME_FOREGROUND="$DEFAULT_COLOR"
+
+POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir custom_git_repo_name custom_git_branch_name)
+POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status command_execution_time background_jobs custom_my_history_count time)
+#
+POWERLEVEL9K_SHORTEN_DIR_LENGTH=1
+POWERLEVEL9K_SHORTEN_DELIMITER=""
+POWERLEVEL9K_SHORTEN_STRATEGY="truncate_from_right"
+
+# POWERLEVEL9K_VCS_GIT_HOOKS=(vcs-detect-changes git-untracked git-aheadbehind git-stash git-remotebranch git-tagname)
+# POWERLEVEL9K_VCS_GIT_HOOKS=(git-stash)
+# POWERLEVEL9K_VCS_SHOW_SUBMODULE_DIRTY=false
+
 #from http://news.mynavi.jp/column/zsh/index.html
-case ${UID} in
-	0) #for super user
-		RPROMPT='[%F{yellow}%D{%T}%f]'
-		;;
-	*)
-    RPROMPT='[%F{blue}%D{%T}%f]'
-esac
+# case ${UID} in
+	# 0) #for super user
+		# RPROMPT='[%F{yellow}%D{%T}%f]'
+		# ;;
+	# *)
+    # RPROMPT='[%F{blue}%D{%T}%f]'
+# esac
 
 function precmd_prompt () {
   # https://github.com/sorin-ionescu/prezto/issues/290
@@ -97,7 +147,7 @@ function precmd_prompt () {
   PROMPT="%{%(?.$fg[green].$fg[red])%}%U$fish_style_pwd%u%{$reset_color%} $(my-git-status) %{$fg[cyan]%}%i%{$reset_color%} %{%}%#%{%}%(1j.%j.) "
   # PROMPT="%{%(?.$fg[green].$fg[red])%}%n%{$reset_color%} [%F{cyan}%(5~,%-2~/../%2~,%~)%f] %{%}%#%{%}%(1j.%j.) "
 }
-precmd_functions=(precmd_prompt)
+# precmd_functions=(precmd_prompt)
 
 # http://qiita.com/yuyuchu3333/items/b10542db482c3ac8b059
 function chpwd() { pwd;ls_abbrev }

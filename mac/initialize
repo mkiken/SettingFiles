@@ -22,10 +22,10 @@ mkdir -p ~/.config
 make_symlink ${Repo}vimfiles/nvim ~/.config
 
 # for nyaovim
-mkdir -p ~/.config/nyaovim
+# mkdir -p ~/.config/nyaovim
 
-make_symlink ${Repo}vimfiles/nyaovim/nyaovimrc.html ~/.config/nyaovim/nyaovimrc.html
-make_symlink ${Repo}vimfiles/nyaovim/browser-config.json ~/.config/nyaovim/browser-config.json
+# make_symlink ${Repo}vimfiles/nyaovim/nyaovimrc.html ~/.config/nyaovim/nyaovimrc.html
+# make_symlink ${Repo}vimfiles/nyaovim/browser-config.json ~/.config/nyaovim/browser-config.json
 
 make_symlink ${Repo_shell}.zshrc ~/.zshrc
 
@@ -98,7 +98,7 @@ brew install reattach-to-user-namespace
 # brew install peco
 brew install fzf
 brew install ag
-brew install ripgrep
+# brew install ripgrep
 # brew install icdiff
 brew install gnu-sed
 brew install source-highlight
@@ -127,6 +127,8 @@ brew cask install boostnote
 
 sudo easy_install Pygments
 
+brew tap sambadevi/powerlevel9k && brew install powerlevel9k
+
 # touch ~/.z
 touch ~/.cd_history_file
 
@@ -148,8 +150,18 @@ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 sudo chsh -s /usr/local/bin/zsh
 # chsh -s $(`which fish`) $USER
 
-npm install -g nyaovim
+# npm install -g nyaovim
 
 # apm stars --install
 
 # echo "Please setting zsh!"
+
+# powerline用のfontを入れる
+# https://mitubaex.hatenablog.com/entry/2018/04/23/044455
+git clone https://github.com/powerline/fonts.git --depth=1
+# install
+cd fonts
+./install.sh
+# clean-up a bit
+cd ..
+rm -rf fonts
