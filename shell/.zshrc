@@ -110,10 +110,12 @@ POWERLEVEL9K_CUSTOM_GIT_REPO_NAME_FOREGROUND="$DEFAULT_COLOR"
 # ブランチ名
 # レポジトリ名
 function get_git_branch_name {
-	# http://stackoverflow.com/questions/15715825/how-do-you-get-git-repos-name-in-some-git-repository
-	local tmp_name=`fish_style_git_branch`
-	if [ -n "$tmp_name" ]; then
-		echo "$tmp_path`git_prompt_stash_count`"
+	local tmp_path=$(git rev-parse --show-toplevel 2>/dev/null)
+	if [ -n "$tmp_path" ]; then
+	  local tmp_name=`fish_style_git_branch`
+	  if [ -n "$tmp_name" ]; then
+		  echo "${tmp_name}`git_prompt_stash_count`"
+	  fi
 	fi
 }
 POWERLEVEL9K_CUSTOM_GIT_BRANCH_NAME="get_git_branch_name"
