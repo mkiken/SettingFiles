@@ -206,8 +206,7 @@ autocmd vimrc BufWritePre * if index(remove_dust_blacklist, &ft) < 0 | call <SID
 " autocmd BufWritePre * call <SID>remove_dust()
 
 
-" http://vim-users.jp/2009/09/hack69/
-" set autochdir
+set autochdir
 
 " http://d.hatena.ne.jp/thata/20100606/1275796513
 "カーソルを表示行で移動する。物理行移動は<C-n>,<C-p>

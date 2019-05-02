@@ -46,3 +46,12 @@ repo = 'osyo-manga/vim-anzu'
 
 [[plugins]]
 repo = 'vim-airline/vim-airline'
+
+[[plugins]]
+repo = 'LeafCage/yankround.vim'
+
+[[plugins]]
+repo = 'tpope/vim-abolish'
+
+[[plugins]]
+repo = 'bronson/vim-visual-star-search'
