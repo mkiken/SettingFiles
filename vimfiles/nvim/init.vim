@@ -126,7 +126,7 @@ let g:netrw_altv = 1
 " " 'o'でファイルを開くときは下側に開く。(デフォルトが上側なので入れ替え)
 let g:netrw_alto = 1
 nnoremap <Leader>f :Ve<CR>
-inoremap <Leader>f <ESC>:Ve<CR>
+" inoremap <Leader>f <ESC>:Ve<CR>
 
 " Theme設定
 " syntax enable
