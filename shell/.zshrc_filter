@@ -72,7 +72,6 @@ alias fcd='filter_cd_history'
 
 
 alias fgco='filter_git_command_fmt git checkout'
-alias fgcob='fgco -b'
 alias fgmg='filter_git_command git merge'
 alias fgmgs='fgmg --squash'
 alias fgpl='filter_git_command_fmt git pull origin'
@@ -100,6 +99,15 @@ alias fghq='save_history cd $(ghq root)/$(ghq list | filter)'
 
 function fcat(){
   cat -n $@ | filter
+}
+
+# git checkout -b by branch filter
+function fgcob(){
+  local temp=`br_fmt | xargs echo`
+  if [[ -n $temp ]]
+  then
+    save_history gcob "$@" "$temp"
+  fi
 }
 
 # Gitのブランチをfilter toolで扱えるように整形(remote文字列を削る)
