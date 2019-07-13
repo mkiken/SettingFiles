@@ -71,28 +71,22 @@ alias fcd='filter_cd_history'
 # }}}
 
 
-alias fgco='filter_git_command git checkout'
+alias fgco='filter_git_command_fmt git checkout'
 alias fgcob='fgco -b'
 alias fgmg='filter_git_command git merge'
 alias fgmgs='fgmg --squash'
-alias fgpl='filter_git_command git pull origin'
-alias fgps='filter_git_command git push origin'
-alias fgbd='filter_git_command git branch -d'
-alias fgbD='filter_git_command git branch -D'
+alias fgpl='filter_git_command_fmt git pull origin'
+alias fgps='filter_git_command_fmt git push origin'
+alias fgbd='filter_git_command_fmt git branch -d'
+alias fgbD='filter_git_command_fmt git branch -D'
 alias fgb='git branch -a | filter'
-alias fgbd_remote='filter_git_command git push --delete origin'
-alias fgrb='filter_git_command git pull --rebase origin'
+alias fgbd_remote='filter_git_command_fmt git push --delete origin'
+alias fgrb='filter_git_command_fmt git pull --rebase origin'
 alias fgl='filter_git_command git log'
 alias fglp='fgl -p'
 alias fgd='filter_git_command git diff'
-
-alias fgmg-remote='filter_git_command_remote git merge'
-alias fgmgs-remote='fgmg-remote --squash'
-alias fgl-remote='filter_git_command_remote git log'
-alias fglp-remote='fgl-remote -p'
-alias fglst-remote='fgl-remote --stat'
-alias fgd-remote='filter_git_command_remote git diff'
-alias fgdn-remote='fgd-remote --name-status'
+alias fgdn='fgd --name-status'
+alias fglst='fgl --stat'
 
 alias fls='ls -AaR | filter'
 alias ffind='find -L . -name "*" | filter'
@@ -108,9 +102,14 @@ function fcat(){
   cat -n $@ | filter
 }
 
-# Gitのブランチをfilter toolで扱えるように整形
+# Gitのブランチをfilter toolで扱えるように整形(remote文字列を削る)
 function br_fmt(){
-  git branch -a | filter | xargs echo | sed -e 's/\*//' | sed -e 's/remotes\/origin\///'
+  br_org | sed -e 's/remotes\/origin\///'
+}
+
+# Gitのブランチをfilter toolで扱えるように整形
+function br_org(){
+  git branch -a | filter | xargs echo | sed -e 's/\*//'
 }
 
 # br_fmtのリモート対象版
@@ -137,12 +136,11 @@ function filter_find_command(){
 
 # ブランチをfilter toolで絞ってgitコマンドを実行する
 function filter_git_command(){
-  local cmd="$@ $(br_fmt)"
+  local cmd="$@ $(br_org)"
   save_history $cmd
 }
-
-function filter_git_command_remote(){
-  local cmd="$@ $(br_fmt_remote)"
+function filter_git_command_fmt(){
+  local cmd="$@ $(br_fmt)"
   save_history $cmd
 }
 
