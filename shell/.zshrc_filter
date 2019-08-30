@@ -103,7 +103,7 @@ function fcat(){
 
 # git checkout -b by branch filter
 function fgcob(){
-  local temp=`br_fmt | xargs echo`
+  local temp=`br_org | xargs echo`
   if [[ -n $temp ]]
   then
     save_history gcob "$@" "$temp"
