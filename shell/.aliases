@@ -1,5 +1,6 @@
 #!/bin/sh
 EDIT_COMMAND='atom'
+export VISUAL='nvim'
 
 #expanded command
 case "${OSTYPE}" in
