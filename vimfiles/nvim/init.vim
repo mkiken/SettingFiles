@@ -225,15 +225,17 @@ augroup vim-anzu
     autocmd CursorHold,CursorHoldI,WinLeave,TabLeave * call anzu#clear_search_status()
 augroup END
 
-" yankround
-nmap p <Plug>(yankround-p)
-xmap p <Plug>(yankround-p)
-" nmap P <Plug>(yankround-P)
-nmap gp <Plug>(yankround-gp)
-xmap gp <Plug>(yankround-gp)
-nmap gP <Plug>(yankround-gP)
-" M-p
-nmap π <Plug>(yankround-prev)
- " M-n
-nmap ˜ <Plug>(yankround-next)
-
+" vimRだとpをマッピングするとMacのクリップボードと連携できないっぽい
+if !has("gui_vimr")
+  " yankround
+  nmap p <Plug>(yankround-p)
+  xmap p <Plug>(yankround-p)
+  " nmap P <Plug>(yankround-P)
+  nmap gp <Plug>(yankround-gp)
+  xmap gp <Plug>(yankround-gp)
+  nmap gP <Plug>(yankround-gP)
+  " M-p
+  nmap π <Plug>(yankround-prev)
+  " M-n
+  nmap ˜ <Plug>(yankround-next)
+endif
