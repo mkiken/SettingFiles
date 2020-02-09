@@ -126,56 +126,37 @@
 # git add/checkout -p時に，エンターでの決定を省略する
 	singlekey = true
 	diffFilter = diff-highlight
-
-; http://d.hatena.ne.jp/z3100/20120505/1336203155
-[include]
-	path = .gitconfig.local
 [diff]
-	; tool = p4mergetool
-  # tool = mvimdiff
   tool = nvim
     ; http://qiita.com/takaakikasai/items/3d4f8a4867364a46dfa3
     algorithm = histogram
 	compactionHeuristic = true
-[difftool "mvimdiff"]
-    cmd = mvim -f -d \"$LOCAL\" \"$REMOTE\"
+; [difftool "mvimdiff"]
+    ; cmd = mvim -f -d \"$LOCAL\" \"$REMOTE\"
 [difftool "nvim"]
     cmd = nvim -f -d \"$LOCAL\" \"$REMOTE\"
-[difftool "sourcetree"]
-	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path =
+
 [merge]
-	# tool = atom
-	; tool = p4mergetool
-  # tool = mvimdiff
-  # tool = vimdiff
-  # tool = p4merge
 	tool = nvim
-	# tool = diffmerge
-  # tool = vim
-[mergetool "mvimdiff"]
-  cmd = mvim -f -d \"$LOCAL\" \"$MERGED\" \"$REMOTE\"
-[mergetool "atom"]
-  cmd = atom_merge $MERGED
+[mergetool]
+	keepBackup = false
+; [mergetool "mvimdiff"]
+  ; cmd = mvim -f -d \"$LOCAL\" \"$MERGED\" \"$REMOTE\"
+; [mergetool "atom"]
+  ; cmd = atom_merge $MERGED
 [mergetool "nvim"]
   # 2-way
   cmd = nvim -c '2wincmd w | diffthis | 3wincmd w | diffthis | 1wincmd w | wincmd J' -O $MERGED $LOCAL $REMOTE
 
   # 3-way
   # cmd = nvim -f -d -c 'wincmd J' \"$MERGED\" \"$LOCAL\" \"$BASE\" \"$REMOTE\"
-[mergetool "vim"]
+; [mergetool "vim"]
   # 2-way
-  cmd = vim -f -d -c 'wincmd J' \"$MERGED\" \"$LOCAL\" \"$REMOTE\"
+  ; cmd = vim -f -d -c 'wincmd J' \"$MERGED\" \"$LOCAL\" \"$REMOTE\"
   # 3-way
   # cmd = vim -f -d -c 'wincmd J' \"$MERGED\" \"$LOCAL\" \"$BASE\" \"$REMOTE\"
-[mergetool "p4merge"]
-  cmd = /Applications/p4merge.app/Contents/Resources/launchp4merge "\"$PWD/$BASE\"" "\"$PWD/$REMOTE\"" "\"$PWD/$LOCAL\"" "\"$PWD/$MERGED\""
-  keepTemporaries = false
-  trustExitCode = false
 [i18n]
 	commitencoding = utf-8
-[mergetool]
-	keepBackup = false
 [user]
 	name =
 	email =
@@ -193,14 +174,6 @@
   stage = <Ctrl-p> :?^@@
 [init]
 	templatedir = ~/.git_template
-[mergetool "sourcetree"]
-	cmd = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
-	trustExitCode = true
-[mergetool "p4mergetool"]
-	cmd = /Applications/p4merge.app/Contents/Resources/launchp4merge $PWD/$BASE $PWD/$REMOTE $PWD/$LOCAL $PWD/$MERGED
-	trustExitCode = false
-[difftool "p4mergetool"]
-	cmd = /Applications/p4merge.app/Contents/Resources/launchp4merge $LOCAL $REMOTE
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
@@ -208,6 +181,7 @@
 	required = true
 [lfs]
 	concurrenttransfers = 100
-[mergetool "diffmerge"]
-	cmd = "diffmerge --merge --result=\"$MERGED\" \"$LOCAL\" \"$(if test -f \"$BASE\"; then echo \"$BASE\"; else echo \"$LOCAL\"; fi)\" \"$REMOTE\""
-	trustExitCode = true
+
+; http://d.hatena.ne.jp/z3100/20120505/1336203155
+[include]
+	path = .os.gitconfig
