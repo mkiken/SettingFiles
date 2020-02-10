@@ -80,9 +80,6 @@ echo 'backup directory for vim made.'
 # install commands
 
 ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-# for permission of Homebrew
-sudo chown -R $USER /usr/local/
-sudo chown -R $USER /Library/Caches/Homebrew/
 
 brew install git
 brew install zsh
