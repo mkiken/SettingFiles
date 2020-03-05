@@ -100,6 +100,9 @@ brew install ag
 brew install gnu-sed
 brew install source-highlight
 brew install tig
+brew install bat
+brew install exa
+brew install dust
 
 brew tap laurent22/massren
 brew install massren

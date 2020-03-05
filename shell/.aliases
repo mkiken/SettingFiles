@@ -7,10 +7,10 @@ case "${OSTYPE}" in
 # --------------- Mac(Unix) ---------------
 darwin*)
 # ここに設定
-alias ls='ls -G'
-alias la='ls -A'
-alias ll='ls -AFThl'
-alias lsg='ls | grep'
+# alias ls='ls -G'
+# alias la='ls -A'
+alias la='exa -a'
+alias ll='la -lm --git'
 alias -g L='| less'
 #MacVim on CUI
 alias -g VI='mvim --remote-tab-silent'
@@ -37,6 +37,10 @@ alias agq='ag -Q' # 正規表現を無視
 
 alias br='brew'
 alias cask='brew cask'
+alias cat='bat -p'
+alias ls='exa'
+alias tree='exa -T'
+alias du='dust'
 
 # alias at='atom'
 
@@ -88,7 +92,7 @@ alias reload='zcompile ~/.zshrc;source ~/.zshrc;echo "zshrc reloaded.";zcompile 
 
 alias pyserv='python -m SimpleHTTPServer'
 
-alias l='ls'
+alias l='exa'
 alias le='less'
 
 #cd
@@ -129,7 +133,7 @@ alias gaa='ga .'
 alias gcm='gci -m'
 alias gci='git commit'
 alias gca='gci --amend'
-alias gps='git push'
+alias gps='git push -u'
 alias gps-dry-run='git push -n'
 # alias gpl='git current-branch | git pull origin'
 alias gd='git diff'
