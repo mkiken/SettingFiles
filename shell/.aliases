@@ -9,7 +9,9 @@ darwin*)
 # ここに設定
 # alias ls='ls -G'
 # alias la='ls -A'
-alias la='exa -a'
+alias ls='exa --time-style=long-iso -g'
+alias tree='exa -T'
+alias la='ls -a'
 alias ll='la -lm --git'
 alias -g L='| less'
 #MacVim on CUI
@@ -38,8 +40,6 @@ alias agq='ag -Q' # 正規表現を無視
 alias br='brew'
 alias cask='brew cask'
 alias cat='bat -p'
-alias ls='exa'
-alias tree='exa -T'
 alias du='dust'
 
 # alias at='atom'
