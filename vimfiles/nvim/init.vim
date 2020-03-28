@@ -239,3 +239,10 @@ if !has("gui_vimr")
   " M-n
   nmap ˜ <Plug>(yankround-next)
 endif
+
+if exists('g:vv')
+  VVset fontsize=13
+  VVset lineheight=1.3
+  VVset reloadchanged=1
+  VVset fontfamily='Monaco'
+endif
