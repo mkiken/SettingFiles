@@ -1,5 +1,5 @@
 #!/bin/sh
-EDIT_COMMAND='vimr'
+EDIT_COMMAND='vv'
 export VISUAL='nvim'
 
 #expanded command
