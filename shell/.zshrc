@@ -26,7 +26,7 @@ typeset -U path
 # http://www.emacswiki.org/emacs/ColorThemeQuestions
 export TERM=xterm-256color
 
-export LESS='-R --no-init --RAW-CONTROL-CHARS -N -M'
+export LESS='-R --no-init --RAW-CONTROL-CHARS -N -M -i'
 
 case "${OSTYPE}" in
   # --------------- Mac(Unix) ---------------
