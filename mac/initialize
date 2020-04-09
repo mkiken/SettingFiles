@@ -125,7 +125,7 @@ brew cask install vv
 brew cask install alfred
 brew cask install dropbox
 brew cask install clipy
-brew cask install karabiner-elements
+# brew cask install karabiner-elements
 brew cask install boostnote
 
 sudo easy_install Pygments
@@ -168,3 +168,5 @@ cd fonts
 # clean-up a bit
 cd ..
 rm -rf fonts
+
+git submodule update --init
