@@ -10,8 +10,7 @@ echo "start brew update."
 brew update -v
 brew upgrade -v
 brew cleanup -s
-# brew reinstall --HEAD neovim
-# brew reinstall --HEAD fzf
+brew bundle
 echo "end brew update."
 
 # $CD_HISTORY_FILEを軽量化
