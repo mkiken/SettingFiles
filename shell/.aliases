@@ -1,5 +1,5 @@
 #!/bin/sh
-EDIT_COMMAND='vv'
+EDIT_COMMAND='gv'
 export VISUAL='nvim'
 
 #expanded command
@@ -15,9 +15,10 @@ alias la='ls -a'
 alias ll='la -lm --git'
 alias -g L='| less'
 #MacVim on CUI
-alias -g VI='mvim --remote-tab-silent'
+# alias -g VI='mvim --remote-tab-silent'
 # alias vi='mvim --remote-tab-silent'
 alias vi='nv'
+alias gv='open -a /Applications/goneovim.app'
 # alias vim-orig='vim -u NONE --noplugin'
 alias nvim-orig='nvim -u NONE --noplugin'
 alias nv='nvim'
@@ -64,12 +65,8 @@ alias allfile='defaults write com.apple.finder AppleShowAllFiles'
 
 # for server
 alias ap='sudo apachectl'
-alias phpini='$EDIT_COMMAND /etc/php.ini'
-alias phpini2='sudo $EDIT_COMMAND /etc/php.ini'
 alias cdphp='cd /Library/WebServer/Documents/'
 alias cdphpl='cd /Users/${USER}/Sites'
-alias httpdconf='$EDIT_COMMAND /private/etc/apache2/httpd.conf'
-alias httpdconf2='sudo $EDIT_COMMAND /private/etc/apache2/httpd.conf'
 alias -g pc='pbcopy'
 alias -g pp='pbpaste'
 ;;
@@ -101,27 +98,27 @@ alias cdrepo='cd ${REPO}'
 alias cds='cd ${SET}'
 
 #shortcut for setting files
-alias bashrc='$EDIT_COMMAND ~/.bashrc'
-alias zshrc='$EDIT_COMMAND ${SET}/shell/.zshrc'
-alias filterconfig='$EDIT_COMMAND ${SET}/shell/.zshrc_filter'
-alias aliases='$EDIT_COMMAND ${SET}/shell/.aliases'
-# alias vimrc='$EDIT_COMMAND ~/.vimrc'
-# alias gvimrc='$EDIT_COMMAND ~/.gvimrc'
-alias nviminit='$EDIT_COMMAND ${SET}/vimfiles/nvim/init.vim'
-alias vimrc_common='$EDIT_COMMAND ${SET}/vimfiles/.vimrc.common'
-alias gitconfig='$EDIT_COMMAND ${SET}/gitfiles/.gitconfig'
-alias zshenv='$EDIT_COMMAND ~/.zshenv'
-alias zprofile='$EDIT_COMMAND ~/.zprofile'
-alias jshintrc='$EDIT_COMMAND ~/.jshintrc'
-alias jsbeautifyrc='$EDIT_COMMAND ~/.jsbeautifyrc'
-alias editorconfig='$EDIT_COMMAND ~/.editorconfig'
-alias tmuxconf='$EDIT_COMMAND ${SET}/.tmux.conf'
-alias macinit='$EDIT_COMMAND ${SET}/mac/initialize'
-alias macupdate='$EDIT_COMMAND ${SET}/mac/update'
-alias submoduleconf='$EDIT_COMMAND ${SET}/.gitmodules'
-alias tigrc='$EDIT_COMMAND ${SET}/.tigrc'
-alias dein='$EDIT_COMMAND ${SET}/vimfiles/dein/nvim/dein.toml'
-alias dein_lazy='$EDIT_COMMAND ${SET}/vimfiles/dein/nvim/dein_lazy.toml'
+alias bashrc="$EDIT_COMMAND ~/.bashrc"
+alias zshrc="$EDIT_COMMAND ${SET}/shell/.zshrc"
+alias filterconfig="$EDIT_COMMAND ${SET}/shell/.zshrc_filter"
+alias aliases="$EDIT_COMMAND ${SET}/shell/.aliases"
+# alias vimrc="$EDIT_COMMAND ~/.vimrc"
+# alias gvimrc="$EDIT_COMMAND ~/.gvimrc"
+alias nviminit="$EDIT_COMMAND ${SET}/vimfiles/nvim/init.vim"
+alias vimrc_common="$EDIT_COMMAND ${SET}/vimfiles/.vimrc.common"
+alias gitconfig="$EDIT_COMMAND ${SET}/gitfiles/.gitconfig"
+alias zshenv="$EDIT_COMMAND ~/.zshenv"
+alias zprofile="$EDIT_COMMAND ~/.zprofile"
+alias jshintrc="$EDIT_COMMAND ~/.jshintrc"
+alias jsbeautifyrc="$EDIT_COMMAND ~/.jsbeautifyrc"
+alias editorconfig="$EDIT_COMMAND ~/.editorconfig"
+alias tmuxconf="$EDIT_COMMAND ${SET}/.tmux.conf"
+alias macinit="$EDIT_COMMAND ${SET}/mac/initialize"
+alias macupdate="$EDIT_COMMAND ${SET}/mac/update"
+alias submoduleconf="$EDIT_COMMAND ${SET}/.gitmodules"
+alias tigrc="$EDIT_COMMAND ${SET}/.tigrc"
+alias dein="$EDIT_COMMAND ${SET}/vimfiles/dein/nvim/dein.toml"
+alias dein_lazy="$EDIT_COMMAND ${SET}/vimfiles/dein/nvim/dein_lazy.toml"
 # alias atomconfig='$EDIT_COMMAND ${SET}/atom/.atom/config.cson'
 
 #shortcut for git
