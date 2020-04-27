@@ -66,6 +66,7 @@
   '-': 'toggle:there'
   'g p': 'clip-history:paste'
   'g @': 'clip-history:paste-newer'
+  '-': 'toggle:there'
 
 'atom-text-editor.vim-mode-plus.insert-mode':
   'space': 'custom:key-with-mode-change'

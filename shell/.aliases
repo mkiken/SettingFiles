@@ -1,5 +1,5 @@
 #!/bin/sh
-EDIT_COMMAND='gv'
+EDIT_COMMAND='at'
 export VISUAL='nvim'
 
 #expanded command
@@ -18,7 +18,6 @@ alias -g L='| less'
 # alias -g VI='mvim --remote-tab-silent'
 # alias vi='mvim --remote-tab-silent'
 alias vi='nv'
-alias gv='open -a /Applications/goneovim.app'
 # alias vim-orig='vim -u NONE --noplugin'
 alias nvim-orig='nvim -u NONE --noplugin'
 alias nv='nvim'
@@ -43,7 +42,7 @@ alias cask='brew cask'
 alias cat='bat -p'
 alias du='dust'
 
-# alias at='atom'
+alias at='atom'
 
 alias karabiner-export='/Applications/Karabiner.app/Contents/Library/bin/karabiner export > ${SET}mac/karabiner-setting.sh'
 alias karabiner-import='sh ${SET}mac/karabiner-setting.sh'

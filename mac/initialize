@@ -37,23 +37,23 @@ make_symlink ${Repo}.jsbeautifyrc ~/.jsbeautifyrc
 
 make_symlink ${Repo}.agignore ~/.agignore
 
-# echo "ln -si ${Repo}atom/.atom/config.cson"
-# ln -si "${Repo}atom/.atom/config.cson" ~/.atom/config.cson
+echo "ln -si ${Repo}atom/.atom/config.cson"
+ln -si "${Repo}atom/.atom/config.cson" ~/.atom/config.cson
 
-# echo "ln -si ${Repo}atom/.atom/keymap.cson"
-# ln -si "${Repo}atom/.atom/keymap.cson" ~/.atom/keymap.cson
+echo "ln -si ${Repo}atom/.atom/keymap.cson"
+ln -si "${Repo}atom/.atom/keymap.cson" ~/.atom/keymap.cson
 
-# echo "ln -si ${Repo}atom/.atom/snippets.cson"
-# ln -si "${Repo}atom/.atom/snippets.cson" ~/.atom/snippets.cson
+echo "ln -si ${Repo}atom/.atom/snippets.cson"
+ln -si "${Repo}atom/.atom/snippets.cson" ~/.atom/snippets.cson
 
-# echo "ln -si ${Repo}atom/.atom/init.coffee"
-# ln -si "${Repo}atom/.atom/init.coffee" ~/.atom/init.coffee
+echo "ln -si ${Repo}atom/.atom/init.coffee"
+ln -si "${Repo}atom/.atom/init.coffee" ~/.atom/init.coffee
 
-# echo "ln -si ${Repo}atom/.atom/styles.less"
-# ln -si "${Repo}atom/.atom/styles.less" ~/.atom/styles.less
+echo "ln -si ${Repo}atom/.atom/styles.less"
+ln -si "${Repo}atom/.atom/styles.less" ~/.atom/styles.less
 
-# echo "ln -si ${Repo}atom/atom_merge"
-# ln -si "${Repo}atom/atom_merge" /usr/local/bin
+echo "ln -si ${Repo}atom/atom_merge"
+ln -si "${Repo}atom/atom_merge" /usr/local/bin
 
 make_symlink ${Repo}.tmux.conf ~/.tmux.conf
 
@@ -118,3 +118,5 @@ cd ..
 rm -rf fonts
 
 git submodule update --init
+
+echo "Please execute 'apm stars --install' after install apm."

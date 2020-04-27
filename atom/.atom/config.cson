@@ -1,18 +1,41 @@
 "*":
+  "advanced-open-file":
+    fuzzyMatch: true
+    helmDirSwitch: true
   "autocomplete-plus":
     confirmCompletion: "enter"
   core:
     allowPendingPaneItems: false
-    automaticallyUpdate: false
-    closeDeletedFileTabs: true
     disabledPackages: [
       "about"
       "welcome"
       "github"
       "open-on-github"
       "narrow"
+      "background-tips"
+      "autocomplete-atom-api"
+      "autoflow"
+      "language-clojure"
+      "language-coffee-script"
+      "language-csharp"
+      "language-go"
+      "language-java"
+      "language-less"
+      "language-mustache"
+      "language-objective-c"
+      "language-perl"
+      "language-property-list"
+      "language-ruby-on-rails"
+      "language-python"
+      "language-make"
+      "language-rust-bundled"
+      "language-sass"
+      "language-toml"
+      "language-typescript"
+      "package-generator"
+      "styleguide"
+      "language-c"
     ]
-    openEmptyEditorOnStart: false
     packagesWithKeymapsDisabled: []
     restorePreviousWindowsOnStart: "no"
     telemetryConsent: "no"
@@ -22,8 +45,9 @@
     ]
   editor:
     fontFamily: "Monaco"
-    fontSize: 11
+    fontSize: 13
     scrollPastEnd: true
+    showIndentGuide: true
     showInvisibles: true
     softWrap: true
   "ex-mode":
@@ -37,7 +61,8 @@
     highContrast: true
   linter:
     lintOnChangeInterval: 1000
-  "linter-ui-default": {}
+  "linter-ui-default":
+    showPanel: true
   "open-recent":
     ignoredNames: false
   tabs:

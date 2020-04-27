@@ -25,6 +25,7 @@ brew "tmux"
 brew "zsh"
 
 cask "alfred"
+cask "atom"
 cask "boostnote"
 cask "clipy"
 cask "dropbox"
