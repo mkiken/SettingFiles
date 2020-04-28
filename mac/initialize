@@ -77,8 +77,6 @@ make_symlink ${Repo}atom/.atom/styles.less ~/.atom/styles.less
 
 make_symlink ${Repo}atom/atom_merge /usr/local/bin
 
-pip3 install neovim
-
 # touch ~/.z
 touch ~/.cd_history_file
 
