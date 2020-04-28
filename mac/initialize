@@ -65,6 +65,8 @@ ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/
 
 brew bundle
 
+mkdir -p ~/.atom
+
 make_symlink ${Repo}atom/.atom/config.cson ~/.atom/config.cson
 
 make_symlink ${Repo}atom/.atom/keymap.cson ~/.atom/keymap.cson
