@@ -1,0 +1,8 @@
+#!/bin/bash -e
+
+apm update
+apm upgrade
+cat apm_packages \
+  | while read package ; do \
+      apm install $package
+    done

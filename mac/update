@@ -23,7 +23,7 @@ fi
 nvim -c "call dein#update()" -c qa
 
 # apmアップデート
-apm update
-apm upgrade
-apm stars --install
+cd ../atom
+./apm_update
+cd $OLDPWD
 zcompile ~/.zshrc

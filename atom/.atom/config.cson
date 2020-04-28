@@ -35,6 +35,10 @@
       "package-generator"
       "styleguide"
       "language-c"
+      "clang-format"
+      "linter"
+      "linter-clang"
+      "linter-ui-default"
     ]
     packagesWithKeymapsDisabled: []
     restorePreviousWindowsOnStart: "no"
@@ -47,7 +51,6 @@
     fontFamily: "Monaco"
     fontSize: 13
     scrollPastEnd: true
-    showIndentGuide: true
     showInvisibles: true
     softWrap: true
   "ex-mode":
@@ -60,6 +63,7 @@
     fontSize: 0.9
     highContrast: true
   linter:
+    ignoreGlob: "**/!*.min.{js,css}"
     lintOnChangeInterval: 1000
   "linter-ui-default":
     showPanel: true

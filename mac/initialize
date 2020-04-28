@@ -113,4 +113,4 @@ rm -rf fonts
 
 git submodule update --init
 
-echo "Please execute 'apm stars --install' after install apm."
+echo "Please install atom packages after install apm at ../atom."
