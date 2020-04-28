@@ -37,31 +37,13 @@ make_symlink ${Repo}.jsbeautifyrc ~/.jsbeautifyrc
 
 make_symlink ${Repo}.agignore ~/.agignore
 
-echo "ln -si ${Repo}atom/.atom/config.cson"
-ln -si "${Repo}atom/.atom/config.cson" ~/.atom/config.cson
-
-echo "ln -si ${Repo}atom/.atom/keymap.cson"
-ln -si "${Repo}atom/.atom/keymap.cson" ~/.atom/keymap.cson
-
-echo "ln -si ${Repo}atom/.atom/snippets.cson"
-ln -si "${Repo}atom/.atom/snippets.cson" ~/.atom/snippets.cson
-
-echo "ln -si ${Repo}atom/.atom/init.coffee"
-ln -si "${Repo}atom/.atom/init.coffee" ~/.atom/init.coffee
-
-echo "ln -si ${Repo}atom/.atom/styles.less"
-ln -si "${Repo}atom/.atom/styles.less" ~/.atom/styles.less
-
-echo "ln -si ${Repo}atom/atom_merge"
-ln -si "${Repo}atom/atom_merge" /usr/local/bin
-
 make_symlink ${Repo}.tmux.conf ~/.tmux.conf
 
 make_symlink ${Repo}.ideavimrc ~/.ideavimrc
 
-make_symlink ${Repo}vscode/settings.json ~/Library/Application\ Support/Code/User/settings.json
+# make_symlink ${Repo}vscode/settings.json ~/Library/Application\ Support/Code/User/settings.json
 
-make_symlink ${Repo}vscode/keybindings.json ~/Library/Application\ Support/Code/User/keybindings.json
+# make_symlink ${Repo}vscode/keybindings.json ~/Library/Application\ Support/Code/User/keybindings.json
 
 # touch ~/.gitconfig.local
 cp -i "${Repo}gitfiles/.gitconfig.local_mac" ~/.os.gitconfig
@@ -82,6 +64,18 @@ echo 'backup directory for vim made.'
 ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 
 brew bundle
+
+make_symlink ${Repo}atom/.atom/config.cson ~/.atom/config.cson
+
+make_symlink ${Repo}atom/.atom/keymap.cson ~/.atom/keymap.cson
+
+make_symlink ${Repo}atom/.atom/snippets.cson ~/.atom/snippets.cson
+
+make_symlink ${Repo}atom/.atom/init.coffee ~/.atom/init.coffee
+
+make_symlink ${Repo}atom/.atom/styles.less ~/.atom/styles.less
+
+make_symlink ${Repo}atom/atom_merge /usr/local/bin
 
 pip3 install neovim
 
