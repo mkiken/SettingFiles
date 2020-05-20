@@ -470,6 +470,9 @@ augroup END
 " 画面再描画
 nnoremap <Leader>r <C-l>
 
+nnoremap <Leader><Left> <C-o>
+nnoremap <Leader><Right> <C-i>
+
 " vimdiffの色設定
 " http://qiita.com/takaakikasai/items/b46a0b8c94e476e57e31
 highlight DiffAdd    cterm=bold ctermfg=10 ctermbg=22
