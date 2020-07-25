@@ -65,6 +65,8 @@ ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/
 
 brew bundle
 
+pip3 install pynvim
+
 mkdir -p ~/.atom
 
 make_symlink ${Repo}atom/.atom/config.cson ~/.atom/config.cson
