@@ -8,7 +8,6 @@ function make_symlink () {
 # set Repo "$HOME/Desktop/repository/SettingFiles/"
 Repo="`pwd | sed -e \"s/.\{3\}$//\"`"
 Repo_shell="${Repo}shell/"
-# set Repo "$SET/"
 
 make_symlink ${Repo_shell}.aliases ~/.aliases
 
@@ -20,12 +19,6 @@ make_symlink ${Repo}gitfiles/.git_template ~
 
 mkdir -p ~/.config
 make_symlink ${Repo}vimfiles/nvim ~/.config
-
-# for nyaovim
-# mkdir -p ~/.config/nyaovim
-
-# make_symlink ${Repo}vimfiles/nyaovim/nyaovimrc.html ~/.config/nyaovim/nyaovimrc.html
-# make_symlink ${Repo}vimfiles/nyaovim/browser-config.json ~/.config/nyaovim/browser-config.json
 
 make_symlink ${Repo_shell}.zshrc ~/.zshrc
 
@@ -41,9 +34,9 @@ make_symlink ${Repo}.tmux.conf ~/.tmux.conf
 
 make_symlink ${Repo}.ideavimrc ~/.ideavimrc
 
-# make_symlink ${Repo}vscode/settings.json ~/Library/Application\ Support/Code/User/settings.json
+ln -si ${Repo}vscode/settings.json ~/Library/Application\ Support/Code/User/settings.json
 
-# make_symlink ${Repo}vscode/keybindings.json ~/Library/Application\ Support/Code/User/keybindings.json
+ln -si ${Repo}vscode/keybindings.json ~/Library/Application\ Support/Code/User/keybindings.json
 
 # touch ~/.gitconfig.local
 cp -i "${Repo}gitfiles/.gitconfig.local_mac" ~/.os.gitconfig

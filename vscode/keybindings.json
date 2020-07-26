@@ -1,33 +1,3 @@
-// 既定値を上書きするには、このファイル内にキー バインドを挿入します
+// Place your key bindings in this file to override the defaults
 [
-    {
-        "key": "ctrl+i",
-        "command": "editor.action.formatDocument",
-        "when": "editorHasDocumentFormattingProvider && editorTextFocus && !editorReadonly"
-    },
-    {
-        "key": "ctrl+f",
-        "command": "cursorRight",
-        "when": "editorTextFocus && vim.mode == 'Insert'"
-    },
-    {
-        "key": "ctrl+b",
-        "command": "cursorLeft",
-        "when": "editorTextFocus && vim.mode == 'Insert'"
-    },
-    {
-        "key": "ctrl+a",
-        "command": "cursorHome",
-        "when": "editorTextFocus && vim.mode == 'Insert'"
-    },
-    {
-        "key": "ctrl+e",
-        "command": "cursorEnd",
-        "when": "editorTextFocus && vim.mode == 'Insert'"
-    }
-    {
-        "key": "ctrl+d",
-        "command": "deleteRight",
-        "when": "editorTextFocus && vim.mode == 'Insert'"
-    }
 ]

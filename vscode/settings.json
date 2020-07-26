@@ -1,16 +1,40 @@
-// Place your settings in this file to overwrite the default settings
 {
-    "editor.renderWhitespace": "boundary",
-    "editor.wordWrap": "on",
-     "editor.wrappingIndent": "none",
-    "editor.rulers": [
-        80
-    ],
-    "editor.renderIndentGuides": true,
-    "editor.minimap.enabled": true,
-    "window.openFilesInNewWindow": "default",
-    // "window.showFullPath": true,
-    "vim.hlsearch": true,
+    "workbench.startupEditor": "newUntitledFile",
     "files.hotExit": "off",
-    "workbench.colorTheme": "Quiet Light"
+    "workbench.list.openMode": "doubleClick",
+    "workbench.list.smoothScrolling": true,
+    "workbench.editor.highlightModifiedTabs": true,
+    "editor.wordWrap": "on",
+    "vim.camelCaseMotion.enable": true,
+    "vim.gdefault": true,
+    "vim.enableNeovim": true,
+    "vim.highlightedyank.enable": true,
+    "vim.hlsearch": true,
+    "vim.insertModeKeyBindings": [
+        {
+            "before": ["<C-a>"],
+            "commands": [
+                "cursorLineStart",
+            ]
+        },
+        {
+            "before": ["<C-d>"],
+            "commands": [
+                "deleteRight",
+            ]
+        },
+        {
+            "before": ["<C-e>"],
+            "commands": [
+                "cursorLineEnd",
+            ]
+        },
+        {
+            "before": ["<C-n>"],
+            "commands": [
+                "cursorDown",
+            ]
+        },
+    ],
+    "vim.neovimPath": "/usr/local/bin//nvim"
 }
