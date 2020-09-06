@@ -36,5 +36,14 @@
             ]
         },
     ],
-    "vim.neovimPath": "/usr/local/bin//nvim"
+    "vim.neovimPath": "/usr/local/bin//nvim",
+    "vim.normalModeKeyBindings": [
+
+    ],
+    "vim.normalModeKeyBindingsNonRecursive": [
+        {
+            "before": ["<Esc>"],
+            "commands": [":nohl"]
+        }
+    ]
 }
