@@ -45,5 +45,6 @@
             "before": ["<Esc>"],
             "commands": [":nohl"]
         }
-    ]
+    ],
+    "window.zoomLevel": 0
 }
