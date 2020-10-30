@@ -9,6 +9,7 @@
 [pull]
   default = current
   prune = true
+  ff = only
 
 ; https://blogs.atlassian.com/2013/06/git-diff/
 [alias]
@@ -109,7 +110,22 @@
   ; http://qiita.com/kaneshin/items/9b22088f24d060ab034c
   alias = !git config --list | grep 'alias\\.' | sed 's/alias\\.\\([^=]*\\)=\\(.*\\)/\\1\\\t => \\2/' | sort
 
-	repository = rev-parse --show-toplevel
+  repository = rev-parse --show-toplevel
+
+  # 最新のcommitと現在の状態の差分を表示する
+  diff-latest = !"git diff-index --quiet HEAD -- || clear; git --no-pager diff --patch-with-stat"
+
+  # 特定のcommitを含むブランチの検索(find branch)
+  find-branch-by-commit = "!f() { git branch -a --contains $1; }; f"
+
+  # ソースコードでlogを検索(find by code)
+  find-log-by-code = "!f() { git log --pretty=format:'%C(yellow)%h  %Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --decorate --date=short -S$1; }; f"
+
+  # commit messageでlogを検索(find by message)
+  find-log-by-message = "!f() { git log --pretty=format:'%C(yellow)%h  %Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --decorate --date=short --grep=$1; }; f"
+
+  # masterにmerge済みのブランチ削除(delete merged)
+  delete-merged-branches = "!git branch --merged | grep -v '\\*' | xargs -n 1 git branch -d"
 
 [color]
 	ui = auto
