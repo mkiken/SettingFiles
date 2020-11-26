@@ -39,7 +39,7 @@ alias agq='ag -Q' # 正規表現を無視
 
 alias br='brew'
 alias cask='brew cask'
-alias cat='bat -p'
+alias cat='bat --style=plain'
 alias du='dust'
 
 alias at='atom'
