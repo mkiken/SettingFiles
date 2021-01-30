@@ -2,7 +2,7 @@
 
 while read local_ref local_sha1 remote_ref remote_sha1
 do
-  for branch in "master" "develop"; do
+  for branch in "master" "develop" "main"; do
     if [[ "${remote_ref##refs/heads/}" = "${branch}" ]]; then
       echo "Warning: push to remote ${branch}, continue? [y/N]"
 
