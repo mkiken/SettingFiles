@@ -212,21 +212,6 @@ if &diff
   augroup END
 endif
 
-" vimRだとpをマッピングするとMacのクリップボードと連携できないっぽい
-if !has("gui_vimr")
-  " yankround
-  nmap p <Plug>(yankround-p)
-  xmap p <Plug>(yankround-p)
-  " nmap P <Plug>(yankround-P)
-  nmap gp <Plug>(yankround-gp)
-  xmap gp <Plug>(yankround-gp)
-  nmap gP <Plug>(yankround-gP)
-  " M-p
-  nmap π <Plug>(yankround-prev)
-  " M-n
-  nmap ˜ <Plug>(yankround-next)
-endif
-
 if exists('g:vv')
   VVset fontsize=13
   VVset lineheight=1.3
