@@ -30,5 +30,10 @@ on_ft = ['snippet']
 depends = ['neosnippet-snippets']
 
 [[plugins]]
-repo      = 'vim-scripts/occur.vim'
-on_cmd    = ['Occur']
+repo      = 'mileszs/ack.vim'
+on_cmd    = ['Ack']
+hook_source = '''
+if executable('ag')
+  let g:ackprg = 'ag --vimgrep'
+endif
+'''

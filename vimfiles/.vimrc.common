@@ -329,6 +329,8 @@ inoremap <C-r> <C-o><C-r>
 " noremap! <C-y> <C-o>P
 " noremap! ∆ <C-o>O
 
+imap jj <Esc>
+
 " http://tech.toshiya240.com/articles/2014/06/matchit-vim/
 :source $VIMRUNTIME/macros/matchit.vim
 augroup matchit

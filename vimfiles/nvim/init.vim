@@ -37,6 +37,7 @@ if dein#load_state(s:dein_bundle_dir)
   " 設定終了
   call dein#end()
   call dein#save_state()
+  " call dein#call_hook('source')
 endif
 
 " もし、未インストールものものがあったらインストール

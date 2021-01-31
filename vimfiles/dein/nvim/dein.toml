@@ -58,20 +58,23 @@ repo = 'bronson/vim-visual-star-search'
 
 [[plugins]]
 repo = 'rhysd/committia.vim'
-hook_source = '''
-function! g:committia_hooks.edit_open(info)
-    " Additional settings
-    setlocal spell
-    setlocal spelllang+=cjk
 
-    " If no commit message, start with insert mode
-    if a:info.vcs ==# 'git' && getline(1) ==# ''
-        startinsert
-    end
+[[plugins]]
+repo = 'RRethy/vim-illuminate'
 
-    " Scroll the diff window from insert mode
-    " Map <C-n> and <C-p>
-    imap <buffer><C-n> <Plug>(committia-scroll-diff-down-half)
-    imap <buffer><C-p> <Plug>(committia-scroll-diff-up-half)
-endfunction
+# [[plugins]]
+# repo = 'kien/rainbow_parentheses.vim'
+# hook_add = '''
+# au VimEnter * RainbowParenthesesToggle
+# au Syntax * RainbowParenthesesLoadRound
+# au Syntax * RainbowParenthesesLoadSquare
+# au Syntax * RainbowParenthesesLoadBraces
+# au Syntax * RainbowParenthesesLoadChevrons
+# '''
+
+[[plugins]]
+repo      = 'luochen1990/rainbow'
+hook_add = '''
+let g:rainbow_active = 1
 '''
+
