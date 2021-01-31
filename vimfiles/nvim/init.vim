@@ -159,6 +159,14 @@ endif
 nnoremap <Leader>s  :<C-u>source ~/.config/nvim/init.vim <Return>
 " command! ReloadVimrc  :source ~/.vimrc
 
+function! DeinCacheClear()
+  :call map(dein#check_clean(), "delete(v:val, 'rf')")
+  :call dein#recache_runtimepath()
+  :echo 'dein cache cleared!'
+endfunction
+command! DeinCacheClear :call DeinCacheClear()
+nnoremap <silent> <Leader>c :call DeinCacheClear()<CR>
+
 " Denite
 nnoremap    [denite]   <Nop>
 nmap    <Leader>d [denite]

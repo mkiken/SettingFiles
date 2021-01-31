@@ -62,19 +62,8 @@ repo = 'rhysd/committia.vim'
 [[plugins]]
 repo = 'RRethy/vim-illuminate'
 
-# [[plugins]]
-# repo = 'kien/rainbow_parentheses.vim'
-# hook_add = '''
-# au VimEnter * RainbowParenthesesToggle
-# au Syntax * RainbowParenthesesLoadRound
-# au Syntax * RainbowParenthesesLoadSquare
-# au Syntax * RainbowParenthesesLoadBraces
-# au Syntax * RainbowParenthesesLoadChevrons
-# '''
-
 [[plugins]]
 repo      = 'luochen1990/rainbow'
 hook_add = '''
 let g:rainbow_active = 1
 '''
-
