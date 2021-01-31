@@ -18,6 +18,12 @@ repo      = 'Shougo/neoyank.vim'
 repo = 'neomake/neomake'
 hook_add = '''
 autocmd! BufWritePost * Neomake
+
+let g:neomake_open_list = 2
+let g:neomake_cpp_enabled_makers = ['clang']
+let g:neomake_cpp_clang_maker = {
+    \ 'args': ['-std=c++14']
+    \ }
 '''
 
 [[plugins]]

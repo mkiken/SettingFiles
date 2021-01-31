@@ -48,16 +48,6 @@ endif
 " for NERDCommenter
 filetype plugin on
 
-" neomake
-let g:neomake_open_list = 2
-let g:neomake_cpp_enabled_makers = ['clang']
-" let g:neomake_cpp_clang_maker = {
-    " \ 'args': ['-std=c++14', '-Wall', '-Wextra', '-Weverything', '-pedantic']
-    " \ }
-let g:neomake_cpp_clang_maker = {
-    \ 'args': ['-std=c++14']
-    \ }
-
 " 改行で自動コメントアウトを無効にする
 set formatoptions-=ro
 
@@ -137,12 +127,11 @@ syntax on
  " set termguicolors
 " endif
 " colorscheme OceanicNext
-colorscheme molokai
-" colorscheme kalisi
+" colorscheme molokai
+colorscheme kalisi
 
 " キーバインド
 " NEDRCommenter
-let NERDSpaceDelims = 1
 nmap ,, <Plug>NERDCommenterToggle
 vmap ,, <Plug>NERDCommenterToggle
 

@@ -58,7 +58,9 @@ ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/
 
 brew bundle
 
-pip3 install pynvim
+# pip3 install pynvim
+python3 -m pip install --upgrade pip
+python3 -m pip install --user --upgrade pynvim
 
 mkdir -p ~/.atom
 
