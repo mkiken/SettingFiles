@@ -47,5 +47,7 @@
         }
     ],
     "window.zoomLevel": 0,
-    "workbench.editor.enablePreview": false
+    "workbench.editor.enablePreview": false,
+    "javascript.updateImportsOnFileMove.enabled": "always",
+    "gitlens.hovers.currentLine.over": "line"
 }
