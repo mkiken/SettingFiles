@@ -14,13 +14,31 @@ let g:neomake_cpp_clang_maker = {
 repo      = 'cohama/lexima.vim'
 
 [[plugins]]
-repo      = 'flazz/vim-colorschemes'
+repo      = 'rafi/awesome-vim-colorschemes'
 
 [[plugins]]
 repo = 'Shougo/neosnippet-snippets'
 
 [[plugins]]
 repo = 'rickhowe/diffchar.vim'
+hook_add = '''
+" vimdiff設定
+" let g:DiffUnit = 'Word3' " \< or \> character class boundaries
+let g:DiffUnit = 'Char' " any single character
+let g:DiffColors = 3 " 16 colors in fixed order
+
+" let g:DiffModeSync = 0
+if &diff
+  augroup enable_diffchar
+    " diffが見やすいカラースキームを指定しておく
+    " colorscheme molokai
+    autocmd!
+    autocmd VimEnter * execute "echom 'To word-diff be enabled, press <F7>.'"
+    " neovimだと効かないのでコメントアウト(  ；∀；)
+    " autocmd VimEnter * execute "%TDChar"
+  augroup END
+endif
+'''
 
 [[plugins]]
 repo = 'AndrewRadev/linediff.vim'

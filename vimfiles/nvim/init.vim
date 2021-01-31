@@ -126,7 +126,8 @@ syntax on
 " if (has("termguicolors"))
  " set termguicolors
 " endif
-colorscheme molokai
+" colorscheme molokai
+colorscheme solarized8
 
 " キーバインド
 " NEDRCommenter
@@ -153,23 +154,6 @@ function! DeinCacheClear()
 endfunction
 command! DeinCacheClear :call DeinCacheClear()
 nnoremap <silent> <Leader>c :call DeinCacheClear()<CR>
-
-" vimdiff設定
-" let g:DiffUnit = 'Word3' " \< or \> character class boundaries
-let g:DiffUnit = 'Char' " any single character
-let g:DiffColors = 3 " 16 colors in fixed order
-
-" let g:DiffModeSync = 0
-if &diff
-  augroup enable_diffchar
-    " diffが見やすいカラースキームを指定しておく
-    " colorscheme molokai
-    autocmd!
-    autocmd VimEnter * execute "echom 'To word-diff be enabled, press <F7>.'"
-    " neovimだと効かないのでコメントアウト(  ；∀；)
-    " autocmd VimEnter * execute "%TDChar"
-  augroup END
-endif
 
 if exists('g:vv')
   VVset fontsize=13
