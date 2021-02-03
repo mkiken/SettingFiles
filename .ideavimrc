@@ -9,16 +9,36 @@ set smartcase
 
 " キーワードのセパレータ追加
 " set iskeyword-=_
-
+"
 set incsearch
-
 set matchpairs+=<:>
+
+" Escの2回押しでハイライト消去
+nnoremap <Esc><Esc> :nohlsearch<CR><ESC>
+
+" 対応する括弧やブレースを表示
+set showmatch matchtime=1
+
+" 行末のスペースを可視化
+set listchars=tab:^\ ,trail:~
 
 " message on status line to show current mode
 set showmode
 
-" enable vim-surround plugin.
-set surround
+" メッセージ表示欄を2行確保
+set cmdheight=2
+
+" ステータス行を常に表示
+set laststatus=2
+
+" ウィンドウの右下にまだ実行していない入力中のコマンドを表示
+set showcmd
+
+" 省略されずに表示
+set display=lastline
+
+" 行をまたいで移動
+set whichwrap=b,s,h,l,<,>,[,],~
 
 "インサートモードで bash 風キーマップ
 inoremap <C-a> <C-o>^
@@ -32,19 +52,21 @@ inoremap <C-d> <Del>
 inoremap <C-k> <C-o>D<Right>
 inoremap <C-u> <C-o>d^
 inoremap <C-w> <C-o>db
-
 " Moving blocks of text in visual mode
 vnoremap < <gv
 vnoremap > >gv
-
 " Reload .ideavimrc
 nnoremap <Space>s :source ~/.ideavimrc<CR>
-
 " ============================================================================
 " IDE actions
 " ============================================================================
-
 " nnoremap / :action Find<CR>
 " nnoremap n :action FindNext<CR>
 " nnoremap N :action FindPrevious<CR>
+"
 set ideajoin
+set highlightedyank
+set argtextobj
+
+" enable vim-surround plugin.
+set surround
