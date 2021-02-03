@@ -108,3 +108,9 @@ let g:rainbow_active = 1
 
 [[plugins]]
 repo = 'yuttie/comfortable-motion.vim'
+
+[[plugins]]
+repo = 'machakann/vim-highlightedyank'
+
+[[plugins]]
+repo = 'vim-scripts/argtextobj.vim'
