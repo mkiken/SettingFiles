@@ -96,6 +96,10 @@ repo = 'bronson/vim-visual-star-search'
 
 [[plugins]]
 repo = 'rhysd/committia.vim'
+hook_add = '''
+" If the value is 'always', committia.vim always employs single column mode.
+let g:committia_use_singlecolumn = 'always'
+'''
 
 [[plugins]]
 repo = 'RRethy/vim-illuminate'
