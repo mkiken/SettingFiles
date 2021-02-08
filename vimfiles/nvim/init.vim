@@ -135,10 +135,10 @@ nmap ,, <Plug>NERDCommenterToggle
 vmap ,, <Plug>NERDCommenterToggle
 
 " vimでファイルを開いたときに、tmuxのwindow名にファイル名を表示
-if exists('$TMUX') && !exists('$NORENAME')
-  au BufEnter * if empty(&buftype) | call system('tmux rename-window "[vim]"'.expand('%:t:S')) | endif
-  au VimLeave * call system('tmux set-window automatic-rename on')
-endif
+" if exists('$TMUX') && !exists('$NORENAME')
+  " au BufEnter * if empty(&buftype) | call system('tmux rename-window "[vim]"'.expand('%:t:S')) | endif
+  " au VimLeave * call system('tmux set-window automatic-rename on')
+" endif
 
 " vimrcをリロード
 " http://whileimautomaton.net/2008/07/20150335
