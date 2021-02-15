@@ -22,11 +22,11 @@ hook_source = '''
   imap <C-s> <Plug>(neosnippet_expand_or_jump)
   smap <C-s> <Plug>(neosnippet_expand_or_jump)
   xmap <C-s> <Plug>(neosnippet_expand_target)
-# JSONでダブルクォートが消えるので削除
-# https://qiita.com/yamamuteki/items/8d37c754ff52657c8e8b
-  # if has('conceal')
-    # set conceallevel=2 concealcursor=niv
-  # endif
+" JSONでダブルクォートが消えるので削除
+" https://qiita.com/yamamuteki/items/8d37c754ff52657c8e8b
+  " if has('conceal')
+    " set conceallevel=2 concealcursor=niv
+  " endif
 '''
 on_i  = 1
 on_ft = ['snippet']
