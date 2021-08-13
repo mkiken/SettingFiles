@@ -22,6 +22,8 @@ make_symlink ${Repo}vimfiles/nvim ~/.config
 
 make_symlink ${Repo_shell}.zshrc ~/.zshrc
 
+make_symlink ${Repo_shell}.p10k.zsh ~/.p10k.zsh
+
 make_symlink ${Repo}.tigrc ~/.tigrc
 
 make_symlink ${Repo}.jshintrc ~/.jshintrc

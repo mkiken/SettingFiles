@@ -1,3 +1,10 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
 REPO="${HOME}/Desktop/repository/"
 SET="${REPO}SettingFiles/"
 SUBMODULE_DIR="${SET}submodules/"
@@ -82,10 +89,13 @@ function my-git-status {
 export GOPATH=$HOME
 export PATH=$PATH:$GOPATH/bin
 
-# powerlevel9kのプロンプト設定
-# https://github.com/bhilburn/powerlevel9k#customizing-prompt-segments
+# powerlevel10kのプロンプト設定
 
 source $BREW_PREFIX/opt/powerlevel10k/powerlevel10k.zsh-theme
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
 
 # 今のshellの履歴数
 function my_history_count {
@@ -105,7 +115,7 @@ function get_git_repo_name {
 }
 POWERLEVEL9K_CUSTOM_GIT_REPO_NAME="get_git_repo_name"
 POWERLEVEL9K_CUSTOM_GIT_REPO_NAME_BACKGROUND="green"
-POWERLEVEL9K_CUSTOM_GIT_REPO_NAME_FOREGROUND="$DEFAULT_COLOR"
+# POWERLEVEL9K_CUSTOM_GIT_REPO_NAME_FOREGROUND="$DEFAULT_COLOR"
 
 # ブランチ名
 # レポジトリ名
@@ -120,7 +130,7 @@ function get_git_branch_name {
 }
 POWERLEVEL9K_CUSTOM_GIT_BRANCH_NAME="get_git_branch_name"
 POWERLEVEL9K_CUSTOM_GIT_BRANCH_NAME_BACKGROUND="yellow"
-POWERLEVEL9K_CUSTOM_GIT_BRANCH_NAME_FOREGROUND="$DEFAULT_COLOR"
+# POWERLEVEL9K_CUSTOM_GIT_BRANCH_NAME_FOREGROUND="$DEFAULT_COLOR"
 
 POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir custom_git_repo_name custom_git_branch_name)
 POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status command_execution_time background_jobs custom_my_history_count time)
