@@ -6,6 +6,7 @@
     confirmCompletion: "enter"
   core:
     allowPendingPaneItems: false
+    closeDeletedFileTabs: true
     disabledPackages: [
       "about"
       "welcome"
@@ -48,6 +49,7 @@
     fontFamily: "Monaco"
     fontSize: 13
     scrollPastEnd: true
+    showIndentGuide: true
     showInvisibles: true
     softWrap: true
   "ex-mode":

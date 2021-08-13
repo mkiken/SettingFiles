@@ -46,8 +46,16 @@
             "commands": [":nohl"]
         }
     ],
-    "window.zoomLevel": 0,
     "workbench.editor.enablePreview": false,
     "javascript.updateImportsOnFileMove.enabled": "always",
-    "gitlens.hovers.currentLine.over": "line"
+    "gitlens.hovers.currentLine.over": "line",
+    "ruby.lint": {
+        "rubocop": true
+      },
+      "[ruby]": {
+        "editor.formatOnSave": true
+      },
+      "ruby.format": "rubocop",
+    "editor.formatOnSaveTimeout": 5000,
+    "editor.formatOnSave": true
 }
