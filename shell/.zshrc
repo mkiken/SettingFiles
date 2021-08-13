@@ -85,7 +85,7 @@ export PATH=$PATH:$GOPATH/bin
 # powerlevel9kのプロンプト設定
 # https://github.com/bhilburn/powerlevel9k#customizing-prompt-segments
 
-source $BREW_PREFIX/opt/powerlevel9k/powerlevel9k.zsh-theme
+source $BREW_PREFIX/opt/powerlevel10k/powerlevel10k.zsh-theme
 
 # 今のshellの履歴数
 function my_history_count {
