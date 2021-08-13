@@ -83,9 +83,6 @@ ln -si /usr/local/share/git-core/contrib/diff-highlight/diff-highlight  /usr/loc
 
 ln -si "${Repo}submodules/used-mem/used-mem" /usr/local/bin/used-mem
 
-# massren --config editor "mvim"
-massren --config editor "nvim"
-
 # El Capitanにアップデートした後、gitコマンドが以下のエラーを吐いて動かなくなる問題
 # http://qiita.com/Ys_Jn/items/f7ff03f7a890329c3e2a
 xcode-select --install
