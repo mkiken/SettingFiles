@@ -81,8 +81,6 @@ make_symlink ${Repo}atom/atom_merge /usr/local/bin
 # touch ~/.z
 touch ~/.cd_history_file
 
-ln -si /usr/local/share/git-core/contrib/diff-highlight/diff-highlight  /usr/local/bin
-
 ln -si "${Repo}submodules/used-mem/used-mem" /usr/local/bin/used-mem
 
 # El Capitanにアップデートした後、gitコマンドが以下のエラーを吐いて動かなくなる問題
@@ -110,3 +108,6 @@ rm -rf fonts
 git submodule update --init
 
 echo "Please install atom packages after install apm at ../atom."
+
+echo "make symlink to diff-highlight. 'ln -si /XXXXX/share/git-core/contrib/diff-highlight/diff-highlight  /usr/local/bin'"
+
