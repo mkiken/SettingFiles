@@ -47,8 +47,7 @@ alias at='atom'
 alias karabiner-export='/Applications/Karabiner.app/Contents/Library/bin/karabiner export > ${SET}mac/karabiner-setting.sh'
 alias karabiner-import='sh ${SET}mac/karabiner-setting.sh'
 
-# http://tukaikta.blog135.fc2.com/blog-entry-214.html
-alias rm='rmtrash'
+alias rm='trash'
 
 # 事故死予防
 alias cp='cp -i'
