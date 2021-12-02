@@ -86,9 +86,6 @@ function my-git-status {
 
 }
 
-export GOPATH=$HOME
-export PATH=$PATH:$GOPATH/bin
-
 # powerlevel10kのプロンプト設定
 
 source $BREW_PREFIX/opt/powerlevel10k/powerlevel10k.zsh-theme
