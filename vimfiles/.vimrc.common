@@ -354,6 +354,13 @@ inoremap <Space> <Space><C-g>u
 autocmd FileType smarty setlocal omnifunc=htmlcomplete#CompleteTags
 autocmd FileType html,smarty inoremap <silent> <buffer> </ </<C-x><C-o>
 
+" ファイルを開いたときに自動でカーソルが前回あった位置に移動
+" https://zenn.dev/4513echo/articles/2021-12-11-vim-restore-cursor-ext
+autocmd BufReadPost *
+      \ if line("'\"") >= 1 && line("'\"") <= line("$")
+      \ |   exe "normal! g`\""
+      \ | endif
+
 " smartinputによって顔文字が入力できないことがあるので、回避策
 nnoremap <F5> :<C-u>setlocal imdisable!<CR>
 inoremap <F5> <C-O>:setlocal imdisable!<CR>
