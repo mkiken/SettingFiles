@@ -32,7 +32,7 @@
 	st = stash
 	bl = blame
 	; cl = clone
-	cl = clean
+	cl = clean -d
 	cp = cherry-pick
 	rl = reflog
 	rv = revert
