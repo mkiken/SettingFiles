@@ -10,9 +10,6 @@
 [submodule "submodules/zaw"]
 	path = submodules/zaw
 	url = https://github.com/zsh-users/zaw
-[submodule "vimfiles/.vim/bundle/neobundle.vim"]
-	path = vimfiles/.vim/bundle/neobundle.vim
-	url = https://github.com/Shougo/neobundle.vim
 [submodule "submodules/zsh-autosuggestions"]
 	path = submodules/zsh-autosuggestions
 	url = https://github.com/zsh-users/zsh-autosuggestions
