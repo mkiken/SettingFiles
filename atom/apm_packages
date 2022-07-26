@@ -12,6 +12,5 @@ open-recent
 sort-lines
 split-diff
 toggle
-url-utils
 vim-mode-plus
 vim-mode-plus-keymaps-for-surround
