@@ -58,7 +58,7 @@ echo 'backup directory for vim made.'
 
 # install commands
 
-ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 brew bundle
 
@@ -112,4 +112,3 @@ git submodule update --init
 echo "Please install atom packages after install apm at ../atom."
 
 echo "make symlink to diff-highlight. 'ln -si /XXXXX/share/git-core/contrib/diff-highlight/diff-highlight  /usr/local/bin'"
-
