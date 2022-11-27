@@ -89,3 +89,5 @@
     useSmartcaseForSearch: true
     useSmartcaseForSearchCurrentWord: true
     wrapLeftRightMotion: true
+  wordcount:
+    noextension: true
