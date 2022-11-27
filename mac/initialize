@@ -18,7 +18,8 @@ make_symlink ${Repo}gitfiles/.gitignore_global ~/.gitignore
 make_symlink ${Repo}gitfiles/.git_template ~
 
 mkdir -p ~/.config
-make_symlink ${Repo}vimfiles/nvim ~/.config
+# make_symlink ${Repo}vimfiles/nvim ~/.config
+make_symlink ${Repo}vimfiles/nvchad/custom ~/.config/nvim/lua
 
 make_symlink ${Repo}ranger ~/.config
 
@@ -48,12 +49,12 @@ echo "You can write LOCAL settings for git to '~/.gitconfig.local'."
 
 echo 'symbolic links created.'
 
-mkdir -p ~/.backup/vim/backup
-mkdir -p ~/.backup/vim/swap
-mkdir -p ~/.backup/vim/undo
+# mkdir -p ~/.backup/vim/backup
+# mkdir -p ~/.backup/vim/swap
+# mkdir -p ~/.backup/vim/undo
 
 # echo 'backup directory for emacs and vim made.'
-echo 'backup directory for vim made.'
+# echo 'backup directory for vim made.'
 
 
 # install commands
@@ -65,6 +66,10 @@ brew bundle
 # pip3 install pynvim
 python3 -m pip install --upgrade pip
 python3 -m pip install --user --upgrade pynvim
+
+# for NvChad
+git clone https://github.com/NvChad/NvChad ~/.config/nvim
+nvim +'hi NormalFloat guibg=#1e222a' +PackerSync
 
 mkdir -p ~/.atom
 
