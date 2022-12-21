@@ -259,12 +259,15 @@ bindkey "^N" history-beginning-search-forward-end
 
 ## Command history configuration
 #
-HISTFILE=~/.zsh_history
-HISTSIZE=10000
-SAVEHIST=10000
-setopt hist_ignore_dups     # ignore duplication command history list
-setopt hist_ignore_all_dups
-setopt share_history        # share command history data
+export HISTFILE=$HOME/.zsh_history
+export HISTSIZE=100000        # メモリ上の履歴リストに保存されるイベントの最大数
+export SAVEHIST=100000        # 履歴ファイルに保存されるイベントの最大数
+
+setopt hist_expire_dups_first # 履歴を切り詰める際に、重複する最も古いイベントから消す
+setopt hist_ignore_all_dups   # 履歴が重複した場合に古い履歴を削除する
+setopt hist_ignore_dups       # 前回のイベントと重複する場合、履歴に保存しない
+setopt hist_save_no_dups      # 履歴ファイルに書き出す際、新しいコマンドと重複する古いコマンドは切り捨てる
+setopt share_history          # 全てのセッションで履歴を共有する
 
 ## Completion configuration
 #http://qiita.com/items/f2971728c845c75e9967
@@ -531,7 +534,8 @@ function zaw-src-gitdir-cd () {
 }
 zaw-register-src -n gitdir zaw-src-gitdir
 
-bindkey '^R' zaw-history
+# bindkey '^R' zaw-history
+bindkey '^R' select-history
 bindkey '^X^F' zaw-git-files
 bindkey '^X^B' zaw-git-branches
 bindkey '^X^S' zaw-ssh-hosts

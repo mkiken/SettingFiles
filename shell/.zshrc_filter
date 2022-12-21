@@ -7,24 +7,6 @@ if [ -z "$FILTER_COMMAND" ]; then
   return;
 fi
 
-# http://www.pupha.net/archives/2267/
-# function filter_select_history() {
-#   # local filter_cmd="$(history -500 | tail -r | filter)"
-#   local cmd="$(history -500 | tail -r | filter | sed -e 's/^[ ]*//' | cut -d ' ' -f 1)"
-#   # echo ${filter_cmd}
-#   # local cmd="$(echo ${filter_cmd} | sed -e 's/^[<space><tab>]*//' | cut -d ' ' -f 1)"
-#   if [ "${cmd}" != "" ]; then
-#     BUFFER="!${cmd}"
-#     CURSOR=${#BUFFER}
-#     zle reset-prompt
-#     return 0;
-#   fi
-#   return -1;
-# }
-# zle -N filter_select_history
-# alias fhist='filter_select_history'
-# bindkey '^r' filter_select_history
-
 alias -g F='| filter'
 
 # http://stillpedant.hatenablog.com/entry/percol-cd-history
@@ -69,6 +51,14 @@ alias fcd='filter_cd_history'
 # zle -N filter_insert_history
 # alias pins='filter_insert_history'
 # }}}
+
+# https://mogulla3.tech/articles/2021-09-06-search-command-history-with-incremental-search/
+function select-history() {
+  BUFFER=$(history -n -r 1 | fzf --exact --reverse --query="$LBUFFER" --prompt="History > ")
+  CURSOR=${#BUFFER}
+  # zle accept-line # 選択した履歴を即座に実行
+}
+zle -N select-history
 
 
 alias fgco='filter_git_command_fmt git checkout'
