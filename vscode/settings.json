@@ -57,5 +57,7 @@
       },
       "ruby.format": "rubocop",
     "editor.formatOnSaveTimeout": 5000,
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "workbench.iconTheme": "vscode-icons",
+    "workbench.colorTheme": "Atom One Dark"
 }
