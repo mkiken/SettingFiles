@@ -4,10 +4,10 @@ return {
   ["NvChad/ui"] = {
     override_options = {
       tabufline = {
-        enabled = false,
-        lazyload = true,
-        overriden_modules = nil,
+        -- enabled = true,
+        lazyload = false,
+        -- overriden_modules = nil,
       },
     },
-},
+  },
 }
