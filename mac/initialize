@@ -117,3 +117,5 @@ git submodule update --init
 echo "Please install atom packages after install apm at ../atom."
 
 echo "make symlink to diff-highlight. 'ln -si /XXXXX/share/git-core/contrib/diff-highlight/diff-highlight  /usr/local/bin'"
+
+echo "please install Sauce Code Pro Nerd Font Complete.ttf at https://www.nerdfonts.com/font-downloads"
