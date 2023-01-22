@@ -59,5 +59,9 @@
     "editor.formatOnSaveTimeout": 5000,
     "editor.formatOnSave": true,
     "workbench.iconTheme": "vscode-icons",
-    "workbench.colorTheme": "Atom One Dark"
+    "workbench.colorTheme": "Atom One Dark",
+    "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
+    "editor.linkedEditing": true,
+    "files.autoSave": "onFocusChange",
+    "trailing-spaces.trimOnSave": true
 }
