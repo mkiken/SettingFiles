@@ -37,10 +37,6 @@ make_symlink ${Repo}.tmux.conf ~/.tmux.conf
 
 make_symlink ${Repo}.ideavimrc ~/.ideavimrc
 
-ln -si ${Repo}vscode/settings.json ~/Library/Application\ Support/Code/User/settings.json
-
-ln -si ${Repo}vscode/keybindings.json ~/Library/Application\ Support/Code/User/keybindings.json
-
 # touch ~/.gitconfig.local
 cp -i "${Repo}gitfiles/.gitconfig.local_mac" ~/.os.gitconfig
 echo "You can write LOCAL settings for git to '~/.gitconfig.local'."
