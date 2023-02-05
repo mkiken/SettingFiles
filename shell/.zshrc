@@ -495,15 +495,8 @@ if exists ${FILTER_TOOL}; then
   source "${SET}shell/.zshrc_filter"
 fi
 
-# if exists fzf; then
-#   source "${SET}.zshrc_fzf"
-#   export FZF_DEFAULT_OPTS="--extended --cycle --reverse --no-sort --multi"
-#   [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-# fi
-
-# zle -N zle-keymap-select auto-fu-zle-keymap-select
-if [ -f ${SUBMODULE_DIR}zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
-  source ${SUBMODULE_DIR}zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+if [ -f ${SUBMODULE_DIR}f-sy-h/F-Sy-H.plugin.zsh ]; then
+  source ${SUBMODULE_DIR}f-sy-h/F-Sy-H.plugin.zsh
 fi
 
 source ${SUBMODULE_DIR}zsh-bd/bd.zsh

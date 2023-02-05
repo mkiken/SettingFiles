@@ -1,9 +1,6 @@
 [submodule "submodules/used-mem"]
 	path = submodules/used-mem
 	url = https://github.com/yonchu/used-mem.git
-[submodule "submodules/zsh-syntax-highlighting"]
-	path = submodules/zsh-syntax-highlighting
-	url = https://github.com/zsh-users/zsh-syntax-highlighting.git
 [submodule "submodules/zsh-bd"]
 	path = submodules/zsh-bd
 	url = https://github.com/Tarrasch/zsh-bd
@@ -13,3 +10,6 @@
 [submodule "submodules/zsh-autosuggestions"]
 	path = submodules/zsh-autosuggestions
 	url = https://github.com/zsh-users/zsh-autosuggestions
+[submodule "submodules/f-sy-h"]
+	path = submodules/f-sy-h
+	url = https://github.com/z-shell/F-Sy-H
