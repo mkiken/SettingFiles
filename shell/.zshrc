@@ -495,9 +495,12 @@ if exists ${FILTER_TOOL}; then
   source "${SET}shell/.zshrc_filter"
 fi
 
-if [ -f ${SUBMODULE_DIR}f-sy-h/F-Sy-H.plugin.zsh ]; then
-  source ${SUBMODULE_DIR}f-sy-h/F-Sy-H.plugin.zsh
-fi
+local plugins=("${SUBMODULE_DIR}f-sy-h/F-Sy-H.plugin.zsh" "${SUBMODULE_DIR}zsh-background-notify/bgnotify.plugin.zsh")
+for plugin in $plugins; do
+  if [ -f ${plugin} ]; then
+    source ${plugin}
+  fi
+done
 
 source ${SUBMODULE_DIR}zsh-bd/bd.zsh
 
