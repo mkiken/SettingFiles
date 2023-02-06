@@ -84,8 +84,6 @@ make_symlink ${Repo}atom/atom_merge /usr/local/bin
 # touch ~/.z
 touch ~/.cd_history_file
 
-ln -si "${Repo}submodules/used-mem/used-mem" /usr/local/bin/used-mem
-
 # El Capitanにアップデートした後、gitコマンドが以下のエラーを吐いて動かなくなる問題
 # http://qiita.com/Ys_Jn/items/f7ff03f7a890329c3e2a
 xcode-select --install
@@ -110,8 +108,10 @@ rm -rf fonts
 
 git submodule update --init
 
-echo "Please install atom packages after install apm at ../atom."
+make_symlink "${Repo}submodules/used-mem/used-mem" /usr/local/bin/used-mem
 
 echo "make symlink to diff-highlight. 'ln -si /XXXXX/share/git-core/contrib/diff-highlight/diff-highlight  /usr/local/bin'"
 
-echo "please install Sauce Code Pro Nerd Font Complete.ttf at https://www.nerdfonts.com/font-downloads"
+echo "please install Sauce Code Pro Nerd Font Complete.ttf at https://www.nerdfonts.com/font-downloads."
+
+echo "please press ^T-I in tmux to install tmux plugins."
