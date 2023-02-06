@@ -97,7 +97,6 @@ git submodule update --init
 make_symlink "${Repo}submodules/used-mem/used-mem" /usr/local/bin/used-mem
 
 echo "make symlink to diff-highlight. 'ln -si /XXXXX/share/git-core/contrib/diff-highlight/diff-highlight  /usr/local/bin'"
-
 echo "please install Sauce Code Pro Nerd Font Complete.ttf at https://www.nerdfonts.com/font-downloads."
-
 echo "please press ^T-I in tmux to install tmux plugins."
+echo "please install vimr command from vimr app."
