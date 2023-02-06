@@ -4,17 +4,10 @@ local M = {}
 -- add this table only when you want to disable default keys
 -- 無効化するデフォルトのキーマッピング
 M.disabled = {
-  -- i = { -- インサートモードに関するキーマッピング
-  --   ["<C-b>"] = "", -- { "<ESC>^i", "beginning of line" },
-  --   ["<C-e>"] = "", -- { "<End>", "end of line" },
-  --   ["<C-h>"] = "", -- { "<Left>", "move left" },
-  --   ["<C-l>"] = "", -- { "<Right>", "move right" },
-  --   ["<C-j>"] = "", -- { "<Down>", "move down" },
-  --   ["<C-k>"] = "", -- { "<Up>", "move up" },
-  -- }
-
   n = { -- ノーマルモードに関するキーマッピング
     ["<C-s>"] = "", -- { "<cmd> w <CR>", "save file" },
+    ["<TAB>"] = "", -- tabにマッピングするとC-iも引きずられるので無効化する
+    ["<S-TAB>"] = "", -- tabと整合性を合わせる
   }
 }
 
@@ -94,4 +87,35 @@ M.comment = {
   },
 }
 
+M.tabufline = {
+  plugin = true,
+
+  n = {
+    -- cycle through buffers
+    ["<leader><right>"] = {
+      function()
+        require("nvchad_ui.tabufline").tabuflineNext()
+      end,
+      "goto next buffer",
+    },
+
+    ["<leader><left>"] = {
+      function()
+        require("nvchad_ui.tabufline").tabuflinePrev()
+      end,
+      "goto prev buffer",
+    },
+
+    -- pick buffers via numbers
+    ["<leader>l"] = { "<cmd> TbufPick <CR>", "Pick buffer" },
+
+    -- close buffer + hide terminal buffer
+    ["<leader>w"] = {
+      function()
+        require("nvchad_ui.tabufline").close_buffer()
+      end,
+      "close buffer",
+    },
+  },
+}
 return M
