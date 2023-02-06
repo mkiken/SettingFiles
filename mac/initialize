@@ -67,20 +67,6 @@ nvim +'hi NormalFloat guibg=#1e222a' +PackerSync
 # make_symlink ${Repo}vimfiles/nvim ~/.config
 make_symlink ${Repo}vimfiles/nvchad/custom ~/.config/nvim/lua
 
-mkdir -p ~/.atom
-
-make_symlink ${Repo}atom/.atom/config.cson ~/.atom/config.cson
-
-make_symlink ${Repo}atom/.atom/keymap.cson ~/.atom/keymap.cson
-
-make_symlink ${Repo}atom/.atom/snippets.cson ~/.atom/snippets.cson
-
-make_symlink ${Repo}atom/.atom/init.coffee ~/.atom/init.coffee
-
-make_symlink ${Repo}atom/.atom/styles.less ~/.atom/styles.less
-
-make_symlink ${Repo}atom/atom_merge /usr/local/bin
-
 # touch ~/.z
 touch ~/.cd_history_file
 

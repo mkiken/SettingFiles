@@ -20,10 +20,6 @@ if [ -n "$CD_HISTORY_FILE" ]; then
 fi
 
 # deinのアップデート
-nvim -c "call dein#update()" -c qa
+nvim +'hi NormalFloat guibg=#1e222a' +PackerSync
 
-# apmアップデート
-cd ../atom
-./apm_update
-cd $OLDPWD
 zcompile ~/.zshrc

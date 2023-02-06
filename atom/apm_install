@@ -1,6 +1,0 @@
-#!/bin/bash -e
-
-cat apm_packages \
-  | while read package ; do \
-      apm install $package
-    done
