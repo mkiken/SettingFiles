@@ -54,7 +54,7 @@ alias fcd='filter_cd_history'
 
 # https://mogulla3.tech/articles/2021-09-06-search-command-history-with-incremental-search/
 function select-history() {
-  BUFFER=$(history -n -r 1 | fzf --exact --reverse --query="$LBUFFER" --prompt="History > ")
+  BUFFER=$(history -n -r 1 | fzf --exact --reverse --no-sort --query="$LBUFFER" --cycle --prompt="History > ")
   CURSOR=${#BUFFER}
   # zle accept-line # 選択した履歴を即座に実行
 }
