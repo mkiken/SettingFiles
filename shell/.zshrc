@@ -555,6 +555,11 @@ bindkey '^X^O' zaw-open-file
 # bindkey '^X^X' zaw-cdr
 bindkey '^X^D' zaw-gitdir
 
+# Return key in completion menu & history menu:
+bindkey -M menuselect '\r' accept-line
+# .accept-line: Accept command line.
+# accept-line:  Accept selection and exit menu.
+
 # 自動コンパイル
 # http://blog.n-z.jp/blog/2013-12-10-auto-zshrc-recompile.html
 if [ ! -f ~/.zshrc.zwc -o ~/.zshrc -nt ~/.zshrc.zwc ]; then
