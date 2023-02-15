@@ -7,12 +7,12 @@
 [submodule "submodules/zaw"]
 	path = submodules/zaw
 	url = https://github.com/zsh-users/zaw
-[submodule "submodules/zsh-autosuggestions"]
-	path = submodules/zsh-autosuggestions
-	url = https://github.com/zsh-users/zsh-autosuggestions
 [submodule "submodules/f-sy-h"]
 	path = submodules/f-sy-h
 	url = https://github.com/z-shell/F-Sy-H
 [submodule "submodules/zsh-background-notify"]
 	path = submodules/zsh-background-notify
 	url = https://github.com/t413/zsh-background-notify.git
+[submodule "submodules/zsh-snap"]
+	path = submodules/zsh-snap
+	url = https://github.com/marlonrichert/zsh-snap.git

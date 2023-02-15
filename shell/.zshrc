@@ -495,6 +495,16 @@ if exists ${FILTER_TOOL}; then
   source "${SET}shell/.zshrc_filter"
 fi
 
+zstyle ':autocomplete:*' widget-style menu-select
+# complete-word: (Shift-)Tab inserts the top (bottom) completion.
+# menu-complete: Press again to cycle to next (previous) completion.
+# menu-select:   Same as `menu-complete`, but updates selection in menu.
+
+source ${SUBMODULE_DIR}/zsh-snap/znap.zsh  # Start Znap
+# `znap source` automatically downloads and starts your plugins.
+znap source marlonrichert/zsh-autocomplete
+znap source zsh-users/zsh-autosuggestions
+
 local plugins=("${SUBMODULE_DIR}f-sy-h/F-Sy-H.plugin.zsh" "${SUBMODULE_DIR}zsh-background-notify/bgnotify.plugin.zsh")
 for plugin in $plugins; do
   if [ -f ${plugin} ]; then
@@ -544,11 +554,6 @@ bindkey '^X^O' zaw-open-file
 # http://qiita.com/scalper/items/4728afaac9962bf91bfa
 # bindkey '^X^X' zaw-cdr
 bindkey '^X^D' zaw-gitdir
-
-if [ -z "$LOAD_COMPLETE" ]; then
-  # 再読み込みすると落ちるので1回のみロード
-  source ${SUBMODULE_DIR}/zsh-autosuggestions/zsh-autosuggestions.zsh
-fi
 
 # 自動コンパイル
 # http://blog.n-z.jp/blog/2013-12-10-auto-zshrc-recompile.html
