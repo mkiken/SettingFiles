@@ -1,9 +1,11 @@
 tap "homebrew/bundle"
 tap "homebrew/cask"
 tap "neovim/neovim"
+tap d12frosted/emacs-plus
 
 brew "bat"
 brew "dust"
+brew "emacs-plus", args: ["with-spacemacs-icon"]
 brew "exa"
 brew "fzf"
 brew "git"
@@ -26,4 +28,3 @@ cask "clipy"
 cask "google-chrome"
 cask "iterm2"
 cask "obsidian"
-cask "vimr"
