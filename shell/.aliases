@@ -22,8 +22,12 @@ alias vi='nv'
 alias nvim-orig='nvim -u NONE --noplugin'
 alias nv='nvim'
 
-alias es='emacs'
-alias ec='emacsclient'
+function es(){
+  emacs $@ &
+}
+function ec(){
+  emacsclient $@ &
+}
 # alias visp='mvim -o'
 # alias vivsp='mvim -O'
 alias pg='sudo purge'
