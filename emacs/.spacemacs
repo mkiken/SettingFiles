@@ -563,6 +563,10 @@ If you are unsure, try setting them in `dotspacemacs/user-config' first."
 
   ;; 行数表示
   (global-linum-mode t)
+
+  ;; 日本語の文字化け防止
+  ;; https://qiita.com/artoshimitsu/items/1ca1debba943f3ab7d39
+  (set-language-environment "Japanese")
 )
 
 
