@@ -582,6 +582,9 @@ Put your configuration code here, except for variables that should be set
 before packages are loaded."
   (bind-key "C-h" 'delete-backward-char)
 
+  ;; C-cをESCのようにする
+  (define-key evil-hybrid-state-map (kbd "C-c") 'evil-normal-state)
+
   ;; Spacemacsのstartup画面抑制
   ;; https://github.com/syl20bnr/spacemacs/issues/6899
   (kill-buffer "*spacemacs*")
