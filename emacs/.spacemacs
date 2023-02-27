@@ -225,11 +225,11 @@ It should only modify the values of Spacemacs settings."
 
    ;; If non-nil, *scratch* buffer will be persistent. Things you write down in
    ;; *scratch* buffer will be saved and restored automatically.
-   dotspacemacs-scratch-buffer-persistent nil
+   dotspacemacs-scratch-buffer-persistent t
 
    ;; If non-nil, `kill-buffer' on *scratch* buffer
    ;; will bury it instead of killing.
-   dotspacemacs-scratch-buffer-unkillable nil
+   dotspacemacs-scratch-buffer-unkillable t
 
    ;; Initial message in the scratch buffer, such as "Welcome to Spacemacs!"
    ;; (default nil)
@@ -568,6 +568,10 @@ If you are unsure, try setting them in `dotspacemacs/user-config' first."
   ;; 日本語の文字化け防止
   ;; https://qiita.com/artoshimitsu/items/1ca1debba943f3ab7d39
   (set-language-environment "Japanese")
+
+  ;; tab
+  (centaur-tabs-headline-match)
+  ;; (setq centaur-tabs-style "chamfer")
 )
 
 
@@ -593,6 +597,11 @@ before packages are loaded."
   ;; Spacemacsのstartup画面抑制
   ;; https://github.com/syl20bnr/spacemacs/issues/6899
   (kill-buffer "*spacemacs*")
+
+  ;; tab
+  (setq centaur-tabs-gray-out-icons 'buffer)
+  (setq centaur-tabs-set-modified-marker t)
+  (setq centaur-tabs-modified-marker "●")
 )
 
 
