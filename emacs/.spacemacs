@@ -248,7 +248,7 @@ It should only modify the values of Spacemacs settings."
    ;; refer to the DOCUMENTATION.org for more info on how to create your own
    ;; spaceline theme. Value can be a symbol or list with additional properties.
    ;; (default '(spacemacs :separator wave :separator-scale 1.5))
-   dotspacemacs-mode-line-theme '(spacemacs :separator wave :separator-scale 1.5)
+   dotspacemacs-mode-line-theme '(all-the-icons :separator arrow :separator-scale 1.5)
 
    ;; If non-nil the cursor color matches the state color in GUI Emacs.
    ;; (default t)
@@ -421,7 +421,7 @@ It should only modify the values of Spacemacs settings."
    ;;   :size-limit-kb 1000)
    ;; When used in a plist, `visual' takes precedence over `relative'.
    ;; (default nil)
-   dotspacemacs-line-numbers t
+   dotspacemacs-line-numbers nil
 
    ;; Code folding method. Possible values are `evil', `origami' and `vimish'.
    ;; (default 'evil)
@@ -563,6 +563,7 @@ If you are unsure, try setting them in `dotspacemacs/user-config' first."
 
   ;; 行数表示
   (global-linum-mode t)
+  (setq linum-format "%4d ")
 
   ;; 日本語の文字化け防止
   ;; https://qiita.com/artoshimitsu/items/1ca1debba943f3ab7d39
