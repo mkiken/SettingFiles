@@ -602,6 +602,7 @@ before packages are loaded."
   (setq centaur-tabs-gray-out-icons 'buffer)
   (setq centaur-tabs-set-modified-marker t)
   (setq centaur-tabs-modified-marker "●")
+  (centaur-tabs-change-fonts "Source Code Pro" 130)
 )
 
 
