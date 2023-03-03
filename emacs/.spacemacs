@@ -596,6 +596,8 @@ before packages are loaded."
 
   (define-key evil-normal-state-map (kbd "C-a") 'evil-numbers/inc-at-pt)
   (define-key evil-normal-state-map (kbd "C-x") 'evil-numbers/dec-at-pt)
+  (define-key evil-normal-state-map (kbd ",,") 'evilnc-comment-or-uncomment-lines)
+  (define-key evil-visual-state-map (kbd ",,") 'evilnc-comment-or-uncomment-lines)
 
   (define-key global-map (kbd "M-t") 'treemacs)
 
