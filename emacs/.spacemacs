@@ -248,7 +248,9 @@ It should only modify the values of Spacemacs settings."
    ;; refer to the DOCUMENTATION.org for more info on how to create your own
    ;; spaceline theme. Value can be a symbol or list with additional properties.
    ;; (default '(spacemacs :separator wave :separator-scale 1.5))
-   dotspacemacs-mode-line-theme '(all-the-icons :separator arrow :separator-scale 1.5)
+   ;; dotspacemacs-mode-line-theme '(all-the-icons :separator arrow :separator-scale 1.5)
+   ;; dotspacemacs-mode-line-theme '(spacemacs :separator wave :separator-scale 1.1)
+   dotspacemacs-mode-line-theme '(doom :separator arrow :separator-scale 1.5)
 
    ;; If non-nil the cursor color matches the state color in GUI Emacs.
    ;; (default t)
@@ -612,6 +614,13 @@ before packages are loaded."
   (setq centaur-tabs-set-modified-marker t)
   (setq centaur-tabs-modified-marker "●")
   (centaur-tabs-change-fonts "Source Code Pro" 130)
+
+  ;; doom-modeline
+  ;; https://seagle0128.github.io/doom-modeline/
+  ;; If non-nil, a word count will be added to the selection-info modeline segment.
+  (setq doom-modeline-enable-word-count t)
+  ;; Whether display the indentation information.
+  (setq doom-modeline-indent-info t)
 )
 
 
