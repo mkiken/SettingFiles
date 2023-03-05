@@ -605,6 +605,11 @@ before packages are loaded."
 
   (define-key global-map (kbd "M-t") 'treemacs)
 
+  ;; visual modeのSの挙動をvimに合わせる
+  ;; https://github.com/emacs-evil/evil-surround/pull/48
+  (evil-define-key 'visual evil-surround-mode-map "S" 'evil-surround-region)
+  (evil-define-key 'visual evil-surround-mode-map "s" 'evil-substitute)
+
   ;; Spacemacsのstartup画面抑制
   ;; https://github.com/syl20bnr/spacemacs/issues/6899
   (kill-buffer "*spacemacs*")
