@@ -19,7 +19,7 @@ if [ -n "$CD_HISTORY_FILE" ]; then
    echo $contents > $CD_HISTORY_FILE
 fi
 
-# deinのアップデート
-nvim +'hi NormalFloat guibg=#1e222a' +PackerSync
+# NvChadのアップデート
+nvim +'hi NormalFloat guibg=#1e222a' +NvChadUpdate +PackerSync
 
 zcompile ~/.zshrc
