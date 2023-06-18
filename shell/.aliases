@@ -348,7 +348,7 @@ alias vd='vimdiff'
 
 
 # util
-alias sz='du -ch -d 1'
+alias sz='dust -d 1 -Dr'
 
 # tmux
 alias tm='tmux'
