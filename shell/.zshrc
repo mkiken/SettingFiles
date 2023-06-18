@@ -59,12 +59,13 @@ esac
 function fish_style_git_branch {
   local git_branch=$(git current-branch)
     if [ -n "$git_branch" ]; then
-      local fish_style_git_branch="${${(M)git_branch:#[/~]}:-${${(@j:/:M)${(@s:/:)git_branch}##.#?}:h}/${git_branch:t}}"
-      # ./masterとなるのでmasterにする
-      if [[ "$fish_style_git_branch" =~ "^\./.*" ]]; then
-        fish_style_git_branch="${fish_style_git_branch#./}"
-      fi
-      echo $fish_style_git_branch
+      # local fish_style_git_branch="${${(M)git_branch:#[/~]}:-${${(@j:/:M)${(@s:/:)git_branch}##.#?}:h}/${git_branch:t}}"
+      # # ./masterとなるのでmasterにする
+      # if [[ "$fish_style_git_branch" =~ "^\./.*" ]]; then
+      #   fish_style_git_branch="${fish_style_git_branch#./}"
+      # fi
+      # echo $fish_style_git_branch
+      echo $git_branch
     fi
 }
 
@@ -74,16 +75,6 @@ function git_prompt_stash_count {
   if [ "$COUNT" -gt 0 ]; then
     echo "($COUNT)"
   fi
-}
-
-function my-git-status {
-	# http://stackoverflow.com/questions/15715825/how-do-you-get-git-repos-name-in-some-git-repository
-	local tmp_path=$(git rev-parse --show-toplevel 2>/dev/null)
-	if [ -n "$tmp_path" ]; then
-		local repo_name=`basename $tmp_path`
-		echo "[%F{yellow}${repo_name}%f:%F{magenta}$(fish_style_git_branch)%f$(git_prompt_stash_count)]"
-	fi
-
 }
 
 # powerlevel10kのプロンプト設定
@@ -141,28 +132,6 @@ POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status command_execution_time background_job
 POWERLEVEL9K_SHORTEN_DIR_LENGTH=1
 POWERLEVEL9K_SHORTEN_DELIMITER=""
 POWERLEVEL9K_SHORTEN_STRATEGY="truncate_from_right"
-
-# POWERLEVEL9K_VCS_GIT_HOOKS=(vcs-detect-changes git-untracked git-aheadbehind git-stash git-remotebranch git-tagname)
-# POWERLEVEL9K_VCS_GIT_HOOKS=(git-stash)
-# POWERLEVEL9K_VCS_SHOW_SUBMODULE_DIRTY=false
-
-#from http://news.mynavi.jp/column/zsh/index.html
-# case ${UID} in
-	# 0) #for super user
-		# RPROMPT='[%F{yellow}%D{%T}%f]'
-		# ;;
-	# *)
-    # RPROMPT='[%F{blue}%D{%T}%f]'
-# esac
-
-function precmd_prompt () {
-  # https://github.com/sorin-ionescu/prezto/issues/290
-  local pwd="${PWD/#$HOME/~}"
-  local fish_style_pwd="${${(M)pwd:#[/~]}:-${${(@j:/:M)${(@s:/:)pwd}##.#?}:h}/${pwd:t}}"
-  PROMPT="%{%(?.$fg[green].$fg[red])%}%U$fish_style_pwd%u%{$reset_color%} $(my-git-status) %{$fg[cyan]%}%i%{$reset_color%} %{%}%#%{%}%(1j.%j.) "
-  # PROMPT="%{%(?.$fg[green].$fg[red])%}%n%{$reset_color%} [%F{cyan}%(5~,%-2~/../%2~,%~)%f] %{%}%#%{%}%(1j.%j.) "
-}
-# precmd_functions=(precmd_prompt)
 
 # http://qiita.com/yuyuchu3333/items/b10542db482c3ac8b059
 function chpwd() { pwd;ls_abbrev }
