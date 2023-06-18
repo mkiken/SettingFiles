@@ -45,27 +45,6 @@ M.nvimtree = {
    },
 }
 
--- M.tabufline = {
---   plugin = false,
---
---   n = {
---     -- cycle through buffers
---     ["gt"] = {
---       function()
---         require("nvchad_ui.tabufline").tabuflineNext()
---       end,
---       "goto next buffer",
---     },
---
---     ["gT"] = {
---       function()
---         require("nvchad_ui.tabufline").tabuflinePrev()
---       end,
---       "goto prev buffer",
---     },
---   },
--- }
-
 M.comment = {
   plugin = true,
 

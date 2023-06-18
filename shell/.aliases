@@ -268,7 +268,7 @@ alias ccp='noglob ccp'
 alias zmv='noglob zmv -W'
 alias zcp='zmv -C'
 
-alias vimdiff='nvim -d'
+alias vimdiff='nvim-orig -d'
 alias vd='vimdiff'
 
 # util
