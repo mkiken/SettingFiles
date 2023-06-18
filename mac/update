@@ -22,4 +22,6 @@ fi
 # NvChadのアップデート
 nvim +'hi NormalFloat guibg=#1e222a' +NvChadUpdate +PackerSync
 
+znap pull
+
 zcompile ~/.zshrc

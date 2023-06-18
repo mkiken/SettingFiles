@@ -464,20 +464,11 @@ if exists ${FILTER_TOOL}; then
   source "${SET}shell/.zshrc_filter"
 fi
 
-zstyle ':autocomplete:*' min-delay 0.30  # seconds (float)
 # Wait this many seconds for typing to stop, before showing completions.
+zstyle ':autocomplete:*' delay 0.3  # seconds (float)
 
 zstyle ':autocomplete:*' min-input 3  # characters (int)
 # Wait until this many characters have been typed, before showing completions.
-
-zstyle ':autocomplete:*' fzf-completion yes
-# no:  Tab uses Zsh's completion system only.
-# yes: Tab first tries Fzf's completion, then falls back to Zsh's.
-
-zstyle ':autocomplete:*' widget-style menu-select
-# complete-word: (Shift-)Tab inserts the top (bottom) completion.
-# menu-complete: Press again to cycle to next (previous) completion.
-# menu-select:   Same as `menu-complete`, but updates selection in menu.
 
 source ${SUBMODULE_DIR}/zsh-snap/znap.zsh  # Start Znap
 # `znap source` automatically downloads and starts your plugins.
