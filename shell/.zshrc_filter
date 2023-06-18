@@ -61,7 +61,7 @@ function select-history() {
 zle -N select-history
 
 
-alias fgco='filter_git_command_fmt git checkout'
+alias fgsw='filter_git_command_fmt git switch'
 alias fgmg='filter_git_command git merge'
 alias fgmgs='fgmg --squash'
 alias fgpl='filter_git_command_fmt git pull origin'
@@ -76,6 +76,7 @@ alias fglp='fgl -p'
 alias fgd='filter_git_command git diff'
 alias fgdn='fgd --name-status'
 alias fglst='fgl --stat'
+# alias fgsw-pr='gh pr list | awk \\'{print $(NF-1)}\\' | filter | xargs git switch'
 
 alias fls='ls -AaR | filter'
 alias ffind='find -L . -name "*" | filter'
@@ -91,12 +92,12 @@ function fcat(){
   cat -n $@ | filter
 }
 
-# git checkout -b by branch filter
-function fgcob(){
+# git switch -c by branch filter
+function fgswc(){
   local temp=`br_org | xargs echo`
   if [[ -n $temp ]]
   then
-    save_history gcob "$@" "$temp"
+    save_history gswc "$@" "$temp"
   fi
 }
 
@@ -153,14 +154,7 @@ function fgsf-remote(){
   save_history git show "remotes/origin/${temp}":"$@"
 }
 
-# filter tool git checkout file
-function fgcof(){
-  local temp=`br_fmt | xargs echo`
-  save_history gco "${temp}" -- "$@"
-}
+function fgsw-pr(){
+  gh pr list | awk '{print $3}' | filter | xargs git switch
 
-# filter tool git checkout directory
-function fgcod(){
-  local temp=`br_fmt | xargs echo`
-  save_history gco "${temp}" "$@"
 }

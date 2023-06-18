@@ -40,6 +40,7 @@
 	dt = difftool
 	add-cancel = reset HEAD
 	bs = bisect
+	sw = switch
 
 	; http://qiita.com/peccul/items/90dd469e2f72babbc106
 	today = log --oneline --since='12 hour ago'
