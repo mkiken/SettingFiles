@@ -334,11 +334,11 @@ function ghca(){
 # tmuxで新しくペインを作成してコマンドを実行
 # 水平分割
 function sp() {
-  _sp "exec $*"
+  _sp "$*"
 }
 # 水平分割してless
 function spl() {
-  _sp "exec $* | less"
+  _sp "$* | less"
 }
 
 function _sp() {
@@ -347,12 +347,12 @@ function _sp() {
 
 # 垂直分割
 function vsp() {
-  _vsp "exec $*"
+  _vsp "$*"
 }
 
 # 垂直分割してless
 function vspl() {
-  _vsp "exec $* | less"
+  _vsp "$* | less"
 }
 
 function _vsp() {
