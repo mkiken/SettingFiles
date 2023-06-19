@@ -468,6 +468,10 @@ zstyle ':autocomplete:*' delay 0.3  # seconds (float)
 zstyle ':autocomplete:*' min-input 3  # characters (int)
 # Wait until this many characters have been typed, before showing completions.
 
+# Znap automatically enables git maintenance in each repo that it manages.
+# This automatically optimizes your repos in the background, so that your git and znap commands will run faster.
+zstyle ':znap:*:*' git-maintenance off
+
 source ${SUBMODULE_DIR}/zsh-snap/znap.zsh  # Start Znap
 # `znap source` automatically downloads and starts your plugins.
 znap source marlonrichert/zsh-autocomplete
