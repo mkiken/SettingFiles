@@ -342,7 +342,6 @@ function spl() {
 }
 
 function _sp() {
-  eval server=\${$#}
   tmux split-window "$*"
 }
 
@@ -357,7 +356,6 @@ function vspl() {
 }
 
 function _vsp() {
-  eval server=\${$#}
   tmux split-window -h "$*"
 }
 
