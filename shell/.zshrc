@@ -239,9 +239,7 @@ setopt hist_save_no_dups      # 履歴ファイルに書き出す際、新しい
 setopt share_history          # 全てのセッションで履歴を共有する
 
 ## Completion configuration
-#http://qiita.com/items/f2971728c845c75e9967
-autoload -U compinit -u && compinit -u
-compinit -u
+autoload -Uz compinit && compinit -i
 
 # 隠しファイルも補完候補に追加する
 _comp_options+=(globdots)
