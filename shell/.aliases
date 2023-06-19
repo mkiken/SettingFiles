@@ -19,8 +19,8 @@ alias -g L='| less'
 # alias vi='mvim --remote-tab-silent'
 alias vi='nv'
 # alias vim-orig='vim -u NONE --noplugin'
-alias nvim-orig='nvim -u NONE --noplugin'
-alias nv='nvim'
+alias -g nvim-orig='nvim -u NONE --noplugin'
+alias -g nv='nvim'
 
 function es(){
   emacs $@ &
@@ -331,36 +331,34 @@ function ghca(){
                 fi
 }
 
-# http://blog.repl.info/2011/12/03/ssh-with-tmux-and-zsh/
-# tmuxの中でmanを実行した場合，新しくペインを作成する
-function sp-man() {
-  eval server=\${$#}
-  tmux split-window "exec man $@"
+# tmuxで新しくペインを作成してコマンドを実行
+# 水平分割
+function sp() {
+  _sp "exec $*"
+}
+# 水平分割してless
+function spl() {
+  _sp "exec $* | less"
 }
 
-function sp-gs() {
+function _sp() {
   eval server=\${$#}
-  tmux split-window "exec git s | less"
+  tmux split-window "$*"
 }
 
-function sp-gmd() {
-  eval server=\${$#}
-  tmux split-window "exec git modified"
+# 垂直分割
+function vsp() {
+  _vsp "exec $*"
 }
 
-function sp-ag() {
-  eval server=\${$#}
-  tmux split-window "exec ag -S --stats -m 100000 --color $@ | less"
+# 垂直分割してless
+function vspl() {
+  _vsp "exec $* | less"
 }
 
-function sp-find() {
+function _vsp() {
   eval server=\${$#}
-  tmux split-window "exec find $@ | less"
-}
-
-function sp-tig() {
-  eval server=\${$#}
-  tmux split-window "exec tig"
+  tmux split-window -h "$*"
 }
 
 # ファイル名で絞って検索
