@@ -94,44 +94,25 @@ POWERLEVEL9K_CUSTOM_MY_HISTORY_COUNT_BACKGROUND="grey50"
 POWERLEVEL9K_CUSTOM_MY_HISTORY_COUNT_FOREGROUND="$DEFAULT_COLOR"
 
 # レポジトリ名
-function get_git_repo_name {
-	# http://stackoverflow.com/questions/15715825/how-do-you-get-git-repos-name-in-some-git-repository
-	local tmp_path=$(git rev-parse --show-toplevel 2>/dev/null)
-	if [ -n "$tmp_path" ]; then
-		echo `basename $tmp_path`
-	fi
-}
-POWERLEVEL9K_CUSTOM_GIT_REPO_NAME="get_git_repo_name"
-POWERLEVEL9K_CUSTOM_GIT_REPO_NAME_BACKGROUND="green"
+# function get_git_repo_name {
+# 	# http://stackoverflow.com/questions/15715825/how-do-you-get-git-repos-name-in-some-git-repository
+# 	local tmp_path=$(git rev-parse --show-toplevel 2>/dev/null)
+# 	if [ -n "$tmp_path" ]; then
+# 		echo `basename $tmp_path`
+# 	fi
+# }
+# POWERLEVEL9K_CUSTOM_GIT_REPO_NAME="get_git_repo_name"
+# POWERLEVEL9K_CUSTOM_GIT_REPO_NAME_BACKGROUND="green"
 # POWERLEVEL9K_CUSTOM_GIT_REPO_NAME_FOREGROUND="$DEFAULT_COLOR"
 
-# ブランチ名
-function get_git_branch_name {
-	local tmp_path=$(git rev-parse --show-toplevel 2>/dev/null)
-	if [ -n "$tmp_path" ]; then
-	  local tmp_name=`fish_style_git_branch`
-	  if [ -n "$tmp_name" ]; then
-		  echo "${tmp_name}`git_prompt_stash_count`"
-	  fi
-	fi
-}
-POWERLEVEL9K_CUSTOM_GIT_BRANCH_NAME="get_git_branch_name"
-POWERLEVEL9K_CUSTOM_GIT_BRANCH_NAME_BACKGROUND="yellow"
-# POWERLEVEL9K_CUSTOM_GIT_BRANCH_NAME_FOREGROUND="$DEFAULT_COLOR"
+# POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir custom_git_repo_name vcs)
+POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir vcs)
+POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status command_execution_time background_jobs custom_my_history_count time load ram)
 
-# ranger subshell count
-# https://github-wiki-see.page/m/gokcehan/lf/wiki/Tips
-function prompt_ranger_subshell_count() {
-    # p10k segment -f 208 -i '📂' -t "$RANGER_LEVEL" -c "$RANGER_LEVEL"
-    p10k segment -f 208 -b 207 -i '📂' -t "" -c "$RANGER_LEVEL"
-  }
-
-POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir custom_git_repo_name custom_git_branch_name ranger_subshell_count)
-POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status command_execution_time background_jobs custom_my_history_count time)
-#
-POWERLEVEL9K_SHORTEN_DIR_LENGTH=3
-POWERLEVEL9K_SHORTEN_DELIMITER=""
-POWERLEVEL9K_SHORTEN_STRATEGY="truncate_from_right"
+# ディレクトリ名表示
+POWERLEVEL9K_SHORTEN_DIR_LENGTH=2
+# POWERLEVEL9K_SHORTEN_DELIMITER=""
+# POWERLEVEL9K_SHORTEN_STRATEGY=truncate_from_right
 
 # http://qiita.com/yuyuchu3333/items/b10542db482c3ac8b059
 function chpwd() { pwd;ls_abbrev }
