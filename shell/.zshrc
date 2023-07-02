@@ -129,7 +129,7 @@ function prompt_ranger_subshell_count() {
 POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir custom_git_repo_name custom_git_branch_name ranger_subshell_count)
 POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status command_execution_time background_jobs custom_my_history_count time)
 #
-POWERLEVEL9K_SHORTEN_DIR_LENGTH=1
+POWERLEVEL9K_SHORTEN_DIR_LENGTH=3
 POWERLEVEL9K_SHORTEN_DELIMITER=""
 POWERLEVEL9K_SHORTEN_STRATEGY="truncate_from_right"
 
