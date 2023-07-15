@@ -1,6 +1,3 @@
-[submodule "submodules/used-mem"]
-	path = submodules/used-mem
-	url = https://github.com/yonchu/used-mem.git
 [submodule "submodules/zsh-bd"]
 	path = submodules/zsh-bd
 	url = https://github.com/Tarrasch/zsh-bd
