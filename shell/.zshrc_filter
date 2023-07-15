@@ -68,7 +68,7 @@ alias fgpl='filter_git_command_fmt git pull origin'
 alias fgps='filter_git_command_fmt git push origin'
 alias fgbd='filter_git_command_fmt git branch -d'
 alias fgbD='filter_git_command_fmt git branch -D'
-alias fgb='git branch -a | filter'
+alias fgb='br_org'
 alias fgbd_remote='filter_git_command_fmt git push --delete origin'
 alias fgrb='filter_git_command_fmt git pull --rebase origin'
 alias fgl='filter_git_command git log'
@@ -108,7 +108,8 @@ function br_fmt(){
 
 # Gitのブランチをfilter toolで扱えるように整形
 function br_org(){
-  git branch -a | filter | xargs echo | sed -e 's/\*//'
+  # 取り込まれたコミットのタイムスタンプを降順（-）でソート
+  git branch -a --sort=-committerdate | filter | xargs echo | sed -e 's/\*//'
 }
 
 # br_fmtのリモート対象版
