@@ -1,6 +1,5 @@
 #!/bin/zsh
-# FILTER_COMMAND='peco'
-alias filter='eval ${FILTER_COMMAND}'
+alias filter="${FILTER_COMMAND}"
 
 if [ -z "$FILTER_COMMAND" ]; then
   echo "FILTER_COMMAND variable is empty;"
