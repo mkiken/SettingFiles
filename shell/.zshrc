@@ -442,11 +442,6 @@ function exists { which $1 &> /dev/null }
 if exists ${FILTER_TOOL}; then
   source "${SET}shell/.zshrc_filter"
 fi
-
-# Wait this many seconds for typing to stop, before showing completions.
-zstyle ':autocomplete:*' delay 0.3  # seconds (float)
-
-zstyle ':autocomplete:*' min-input 3  # characters (int)
 # Wait until this many characters have been typed, before showing completions.
 
 # Znap automatically enables git maintenance in each repo that it manages.
@@ -455,7 +450,6 @@ zstyle ':znap:*:*' git-maintenance off
 
 source ${SUBMODULE_DIR}/zsh-snap/znap.zsh  # Start Znap
 # `znap source` automatically downloads and starts your plugins.
-znap source marlonrichert/zsh-autocomplete
 znap source zsh-users/zsh-autosuggestions
 
 local plugins=("${SUBMODULE_DIR}f-sy-h/F-Sy-H.plugin.zsh" "${SUBMODULE_DIR}zsh-background-notify/bgnotify.plugin.zsh")
