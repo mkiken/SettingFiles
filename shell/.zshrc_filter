@@ -108,7 +108,9 @@ function br_fmt(){
 # Gitのブランチをfilter toolで扱えるように整形
 function br_org(){
   # 取り込まれたコミットのタイムスタンプを降順（-）でソート
-  git branch -a -vv --sort=-committerdate | filter --preview "echo {} | sed -e 's/\*//' | awk '{print \$1}' | xargs git log" \
+  # ログをいい感じに表示 https://zenn.dev/yamo/articles/5c90852c9c64ab
+  git branch -a -vv --sort=-committerdate --color \
+    | filter --preview "echo {} | sed -e 's/\*//' | awk '{print \$1}' | xargs git log --color --graph --decorate --abbrev-commit --format=format:'%C(blue)%h%C(reset) - %C(green)(%ar)%C(reset)%C(yellow)%d%C(reset)\n  %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'" \
     | xargs echo | sed -e 's/\*//' | awk '{print $1}'
 }
 
