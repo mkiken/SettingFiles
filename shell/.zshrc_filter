@@ -77,13 +77,14 @@ alias fgdn='fgd --name-status'
 alias fglst='fgl --stat'
 # alias fgsw-pr='gh pr list | awk \\'{print $(NF-1)}\\' | filter | xargs git switch'
 
-alias fls='ls -AaR | filter'
-alias ffind='find -L . -name "*" | filter'
+alias fls='ls -aR | filter --preview "bat --color=always --style=header,grid {}"'
+alias ffind='find -L . -name "*" | filter --preview "bat --color=always --style=header,grid {}"'
 alias fps='ps aux | filter'
 alias fkill='ps ax | filter | awk "{ print $1 }" | xargs kill'
 alias fopen='filter_find_command open'
 # alias fless='ffind | xargs less'
 alias fless='filter_find_command less'
+alias fnvim='filter_find_command nvim'
 # http://qiita.com/itkrt2y/items/0671d1f48e66f21241e2
 alias fghq='save_history cd $(ghq root)/$(ghq list | filter)'
 
@@ -160,4 +161,29 @@ function fgsf-remote(){
 function fgsw-pr(){
   gh pr list | awk '{print $3}' | filter | xargs git switch
 
+}
+
+# fcd-down - cd to selected directory
+# https://qiita.com/kamykn/items/aa9920f07487559c0c7e
+function fcd-down() {
+  local dir
+  dir=$(find ${1:-.} -path '*/\.*' -prune \
+                  -o -type d -print 2> /dev/null | filter +m) &&
+  cd "$dir"
+}
+
+# fzfでdockerコンテナに入る
+# https://yiskw713.hatenablog.com/entry/2022/01/12/200000#fgc-%E3%82%A4%E3%83%B3%E3%82%BF%E3%83%A9%E3%82%AF%E3%83%86%E3%82%A3%E3%83%96%E3%81%ABgit-checkout%E3%81%99%E3%82%8B
+function fdocker-container() {
+  local cid
+  cid=$(docker ps | sed 1d | fzf -q "$1" | awk '{print $1}')
+  [ -n "$cid" ] && docker exec -it "$cid" sh
+}
+
+# fzfでdockerのログを取得
+# https://yiskw713.hatenablog.com/entry/2022/01/12/200000#fgc-%E3%82%A4%E3%83%B3%E3%82%BF%E3%83%A9%E3%82%AF%E3%83%86%E3%82%A3%E3%83%96%E3%81%ABgit-checkout%E3%81%99%E3%82%8B
+function fdocker-log() {
+  local cid
+  cid=$(docker ps -a | sed 1d | fzf -q "$1" | awk '{print $1}')
+  [ -n "$cid" ] && docker logs -f --tail=200 "$cid"
 }
