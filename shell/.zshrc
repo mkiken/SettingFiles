@@ -499,7 +499,7 @@ bindkey '^X^F' zaw-git-files
 bindkey '^X^B' zaw-git-branches
 bindkey '^X^S' zaw-ssh-hosts
 bindkey '^X^P' zaw-process
-bindkey '^X^T' zaw-tmux
+bindkey '^X^X' zaw-tmux
 bindkey '^X^A' zaw-applications
 bindkey '^X^O' zaw-open-file
 # bindkey '^X?'  zaw-print-src
