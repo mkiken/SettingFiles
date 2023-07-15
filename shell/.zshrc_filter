@@ -108,7 +108,8 @@ function br_fmt(){
 # Gitのブランチをfilter toolで扱えるように整形
 function br_org(){
   # 取り込まれたコミットのタイムスタンプを降順（-）でソート
-  git branch -a -vv --sort=-committerdate | filter | xargs echo | sed -e 's/\*//' | awk '{print $1}'
+  git branch -a -vv --sort=-committerdate | filter --preview "echo {} | sed -e 's/\*//' | awk '{print \$1}' | xargs git log" \
+    | xargs echo | sed -e 's/\*//' | awk '{print $1}'
 }
 
 # br_fmtのリモート対象版
