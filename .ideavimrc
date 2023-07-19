@@ -60,6 +60,10 @@ vnoremap < <gv
 vnoremap > >gv
 " Reload .ideavimrc
 nnoremap <Space>s :source ~/.ideavimrc<CR>
+
+" set <leader> to <space>
+let mapleader = " "
+
 " ============================================================================
 " IDE actions
 " ============================================================================
@@ -67,9 +71,12 @@ nnoremap <Space>s :source ~/.ideavimrc<CR>
 " nnoremap n :action FindNext<CR>
 " nnoremap N :action FindPrevious<CR>
 "
-set ideajoin
-set highlightedyank
 set argtextobj
-
-" enable vim-surround plugin.
+set easymotion
+set highlightedyank
+set ideajoin
+set multicursor
+set sneak
 set surround
+
+nmap <leader>e <Plug>(easymotion-s2)
