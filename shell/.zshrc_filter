@@ -110,7 +110,7 @@ function br_fmt(){
 function br_org(){
   # 取り込まれたコミットのタイムスタンプを降順（-）でソート
   # ログをいい感じに表示 https://zenn.dev/yamo/articles/5c90852c9c64ab
-  git branch -a -vv --sort=-committerdate --color \
+  git branch -a -v --sort=-committerdate --color \
     | filter --preview "echo {} | sed -e 's/\*//' | awk '{print \$1}' | xargs git log --color --graph --decorate --abbrev-commit --format=format:'%C(blue)%h%C(reset) - %C(green)(%ar)%C(reset)%C(yellow)%d%C(reset)\n  %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'" \
     | xargs echo | sed -e 's/\*//' | awk '{print $1}'
 }
