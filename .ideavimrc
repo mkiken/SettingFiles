@@ -76,7 +76,6 @@ set easymotion
 set highlightedyank
 set ideajoin
 set multicursor
-set sneak
 set surround
 
 nmap <leader>e <Plug>(easymotion-s2)
