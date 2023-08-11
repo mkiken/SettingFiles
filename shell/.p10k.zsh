@@ -361,6 +361,21 @@
   # Change the value of this parameter to show a different icon.
   typeset -g POWERLEVEL9K_VCS_UNTRACKED_ICON='?'
 
+  # スラッシュ区切りの最後以外の部分を2文字に短縮する
+  function shorten_branch_name {
+    string=$1
+    array=("${(s:/:)string}")
+    result=""
+
+    for ((i = 1; i <= ${#array[@]} - 1; i++)); do
+      result="${result}${array[i]:0:2}/"
+    done
+
+    result="${result}${array[-1]}"
+    echo $result
+  }
+
+
   # Formatter for Git status.
   #
   # Example output: master wip ⇣42⇡42 *42 merge ~42 +42 !42 ?42.
@@ -390,6 +405,8 @@
 
     if [[ -n $VCS_STATUS_LOCAL_BRANCH ]]; then
       local branch=${(V)VCS_STATUS_LOCAL_BRANCH}
+      branch=`shorten_branch_name $branch`
+
       # If local branch name is at most 32 characters long, show it in full.
       # Otherwise show the first 12 … the last 12.
       # Tip: To always show local branch name in full without truncation, delete the next line.
