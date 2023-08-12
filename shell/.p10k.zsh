@@ -361,14 +361,18 @@
   # Change the value of this parameter to show a different icon.
   typeset -g POWERLEVEL9K_VCS_UNTRACKED_ICON='?'
 
-  # スラッシュ区切りの最後以外の部分を2文字に短縮する
+  # スラッシュ区切りの最後から2つ目以外の部分を2文字に短縮する
   function shorten_branch_name {
     string=$1
     array=("${(s:/:)string}")
     result=""
 
     for ((i = 1; i <= ${#array[@]} - 1; i++)); do
-      result="${result}${array[i]:0:2}/"
+      if [[ i -le (${#array[@]}-2) ]] then
+        result="${result}${array[i]:0:2}/"
+      else
+        result="${result}${array[i]}/"
+      fi
     done
 
     result="${result}${array[-1]}"
