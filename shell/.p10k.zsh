@@ -424,6 +424,7 @@
           && -z $VCS_STATUS_LOCAL_BRANCH  # <-- this line
         ]]; then
       local tag=${(V)VCS_STATUS_TAG}
+      tag=`shorten_branch_name $tag`
       # If tag name is at most 32 characters long, show it in full.
       # Otherwise show the first 12 … the last 12.
       # Tip: To always show tag name in full without truncation, delete the next line.
@@ -438,7 +439,9 @@
 
     # Show tracking branch name if it differs from local branch.
     if [[ -n ${VCS_STATUS_REMOTE_BRANCH:#$VCS_STATUS_LOCAL_BRANCH} ]]; then
-      res+="${meta}:${clean}${(V)VCS_STATUS_REMOTE_BRANCH//\%/%%}"
+      local remote_branch=${(V)VCS_STATUS_REMOTE_BRANCH}
+      remote_branch=`shorten_branch_name $remote_branch`
+      res+="${meta}:${clean}${remote_branch//\%/%%}"
     fi
 
     # Display "wip" if the latest commit's summary contains "wip" or "WIP".
