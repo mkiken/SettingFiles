@@ -25,7 +25,7 @@ brew "tmux"
 brew "trash"
 brew "zsh"
 
-cask "clipy"
 cask "google-chrome"
 cask "iterm2"
 cask "obsidian"
+cask "raycast"
