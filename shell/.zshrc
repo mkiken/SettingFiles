@@ -1,3 +1,8 @@
+# https://github.com/romkatv/powerlevel10k/issues/1203
+if [ -z "$TMUX" ]; then
+  exec tmux new-session -A -s tmux
+fi
+
 # Fig pre block. Keep at the top of this file.
 [[ -f "$HOME/.fig/shell/zshrc.pre.zsh" ]] && builtin source "$HOME/.fig/shell/zshrc.pre.zsh"
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
