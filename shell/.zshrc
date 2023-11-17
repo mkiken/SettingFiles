@@ -1,6 +1,6 @@
 # https://github.com/romkatv/powerlevel10k/issues/1203
 if [ -z "$TMUX" ]; then
-  exec tmux new-session -A -s tmux
+  tmux new-session -A -s tmux
 fi
 
 # Fig pre block. Keep at the top of this file.
