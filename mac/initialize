@@ -62,10 +62,11 @@ python3 -m pip install --upgrade pip
 python3 -m pip install --user --upgrade pynvim
 
 # for NvChad
-git clone https://github.com/NvChad/NvChad ~/.config/nvim
-nvim +'hi NormalFloat guibg=#1e222a' +PackerSync
-# make_symlink ${Repo}vimfiles/nvim ~/.config
-make_symlink ${Repo}vimfiles/nvchad/custom ~/.config/nvim/lua
+# git clone https://github.com/NvChad/NvChad ~/.config/nvim
+# nvim +'hi NormalFloat guibg=#1e222a' +PackerSync
+# make_symlink ${Repo}vimfiles/nvchad/custom ~/.config/nvim/lua
+
+make_symlink ${Repo}vimfiles/nvim ~/.config
 
 
 # for spacemacs

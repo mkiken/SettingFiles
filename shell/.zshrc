@@ -86,7 +86,7 @@ function git_prompt_stash_count {
 
 # powerlevel10kのプロンプト設定
 
-source $BREW_PREFIX/opt/powerlevel10k/powerlevel10k.zsh-theme
+source $BREW_PREFIX/opt/powerlevel10k/share/powerlevel10k/powerlevel10k.zsh-theme
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
