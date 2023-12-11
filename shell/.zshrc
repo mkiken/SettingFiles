@@ -42,6 +42,9 @@ export TERM=xterm-256color
 
 export LESS='-R --no-init --RAW-CONTROL-CHARS -M -i'
 
+# https://www.damonde9.com/less%E3%81%A7%E6%96%87%E5%AD%97%E5%8C%96%E3%81%91%E3%81%99%E3%82%8B%E6%99%82%E3%81%AE%E5%AF%BE%E5%BF%9C%E6%96%B9%E6%B3%95/
+export LESSCHARSET=utf-8
+
 case "${OSTYPE}" in
   # --------------- Mac(Unix) ---------------
   darwin*)
