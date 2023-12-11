@@ -7,7 +7,6 @@ brew "bat"
 brew "dust"
 brew "emacs-plus", args: ["with-spacemacs-icon"]
 brew "exa"
-brew "fig"
 brew "fzf"
 brew "gh"
 brew "git"
