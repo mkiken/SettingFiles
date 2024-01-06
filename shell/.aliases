@@ -1,5 +1,5 @@
 #!/bin/sh
-EDIT_COMMAND='at'
+EDIT_COMMAND='cursor'
 export VISUAL='nvim'
 
 #expanded command
@@ -22,12 +22,12 @@ alias vi='nv'
 alias -g nvim-orig='nvim -u NONE --noplugin'
 alias -g nv='nvim'
 
-function es(){
-  emacs $@ &
-}
-function ec(){
-  emacsclient $@ &
-}
+# function es(){
+#   emacs $@ &
+# }
+# function ec(){
+#   emacsclient $@ &
+# }
 # alias visp='mvim -o'
 # alias vivsp='mvim -O'
 alias pg='sudo purge'
