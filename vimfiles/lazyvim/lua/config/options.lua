@@ -4,3 +4,8 @@
 local opt = vim.opt
 
 opt.relativenumber = false -- Relative line numbers
+
+-- クリップボードはvimとOSは分ける
+vim.opt.clipboard = ""
+
+vim.opt.gdefault = true
