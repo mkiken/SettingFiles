@@ -1,4 +1,9 @@
 #!/bin/zsh
+#
+REPO="${HOME}/Desktop/repository/"
+SET="${REPO}SettingFiles/"
+SUBMODULE_DIR="${SET}submodules/"
+
 
 echo "start git submodule setting."
 git submodule sync
@@ -25,6 +30,7 @@ nvim -c "call dein#update()" -c qa
 # NvChadのアップデート
 # nvim +'hi NormalFloat guibg=#1e222a' +NvChadUpdate +PackerSync
 
+source ${SUBMODULE_DIR}/zsh-snap/znap.zsh  # Start Znap
 znap pull
 
 zcompile ~/.zshrc
