@@ -1,5 +1,6 @@
 tap "homebrew/bundle"
 tap "homebrew/cask"
+tap "homebrew/cask-fonts"
 
 brew "bat"
 brew "dust"
@@ -21,6 +22,7 @@ brew "trash"
 brew "zsh"
 
 cask "cursor"
+cask "font-sauce-code-pro-nerd-font"
 cask "google-chrome"
 cask "iterm2"
 cask "obsidian"
