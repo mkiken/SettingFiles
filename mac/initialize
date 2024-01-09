@@ -59,8 +59,8 @@ echo 'symbolic links created.'
 brew bundle
 
 # pip3 install pynvim
-python3 -m pip install --upgrade pip
-python3 -m pip install --user --upgrade pynvim
+# python3 -m pip install --upgrade pip
+# python3 -m pip install --user --upgrade pynvim
 
 # for NvChad
 # git clone https://github.com/NvChad/NvChad ~/.config/nvim
@@ -72,6 +72,7 @@ python3 -m pip install --user --upgrade pynvim
 # for LazyVim
 git clone https://github.com/LazyVim/starter ~/.config/nvim
 rm -rf ~/.config/nvim/.git
+rm -rf ~/.config/nvim/lua
 make_symlink ${Repo}vimfiles/lazyvim/lua ~/.config/nvim
 
 # for spacemacs
