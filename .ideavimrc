@@ -40,6 +40,15 @@ set display=lastline
 " 行をまたいで移動
 set whichwrap=b,s,h,l,<,>,[,],~
 
+" 自動インデント
+set autoindent
+
+set keep-english-in-normal
+
+set scrolloff=5
+
+set ideajoin
+
 "インサートモードで bash 風キーマップ
 inoremap <C-a> <C-o>^
 inoremap <C-e> <C-o>$<Right>
@@ -76,10 +85,16 @@ let mapleader = " "
 " nnoremap N :action FindPrevious<CR>
 "
 set argtextobj
+set commentary
 set easymotion
 set highlightedyank
-set ideajoin
+set matchit
 set multicursor
 set surround
+set textobj-indent
+set vim-paragraph-motion
+
+""" Plugin settings -------------------------
+let g:argtextobj_pairs="[:],(:),<:>"
 
 nmap <leader>e <Plug>(easymotion-s2)
