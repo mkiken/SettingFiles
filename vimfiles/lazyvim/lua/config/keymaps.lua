@@ -32,3 +32,7 @@ vim.keymap.del("v", "s")
 
 vim.keymap.set("v", "<leader>x", '"+x', { desc = "他のアプリケーションとのコピー" })
 vim.keymap.set("v", "<leader>y", '"+y', { desc = "他のアプリケーションとのコピー" })
+vim.keymap.set("v", "<C-o>", "<C-c><C-o>", { desc = "" })
+-- C-iとTABは同じ
+-- https://github.com/neovim/neovim/issues/20126
+vim.keymap.set("v", "<TAB>", "<C-c><C-i>", { desc = "" })
