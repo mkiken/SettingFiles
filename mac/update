@@ -24,8 +24,8 @@ if [ -n "$CD_HISTORY_FILE" ]; then
    echo $contents > $CD_HISTORY_FILE
 fi
 
-# Lazyのアップデート
-nvim --headless "+Lazy! sync" +qa
+# Lazy + tree-sitterののアップデート
+nvim --headless "+Lazy! sync | TSUpdate" +qa
 
 # NvChadのアップデート
 # nvim +'hi NormalFloat guibg=#1e222a' +NvChadUpdate +PackerSync
