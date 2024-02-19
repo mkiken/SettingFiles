@@ -9,8 +9,8 @@ darwin*)
 # ここに設定
 # alias ls='ls -G'
 # alias la='ls -A'
-alias ls='exa --time-style=long-iso -g'
-alias tree='exa -T'
+alias ls='eza --time-style=long-iso -g'
+alias tree='eza -T'
 alias la='ls -a'
 alias ll='la -lm --git'
 alias -g L='| less'
@@ -94,7 +94,7 @@ alias reload='zcompile ~/.zshrc;source ~/.zshrc;echo "zshrc reloaded.";zcompile 
 
 alias pyserv='python -m SimpleHTTPServer'
 
-alias l='exa'
+alias l='eza'
 alias le='less'
 
 #cd

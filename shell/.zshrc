@@ -26,7 +26,7 @@ source ~/.aliases
 
 # パスの設定
 path=(/usr/local/bin(N-/) $path)
-# path=($MACVIM(N-/) $path)
+path=($BREW_PREFIX/bin(N-/) $path)
 
 autoload -U colors
 colors

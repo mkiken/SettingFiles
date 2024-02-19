@@ -58,6 +58,8 @@ echo 'symbolic links created.'
 
 brew bundle
 
+make_symlink ${BREW_PREFIX}/share/git-core/contrib/diff-highlight/diff-highlight /usr/local/bin
+
 # pip3 install pynvim
 # python3 -m pip install --upgrade pip
 # python3 -m pip install --user --upgrade pynvim
