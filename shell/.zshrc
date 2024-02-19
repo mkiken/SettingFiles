@@ -18,7 +18,7 @@ BREW_PREFIX="$(brew --prefix)"
 BREW_CASKROOM="$BREW_PREFIX/Caskroom"
 BREW_CELLAR="$BREW_PREFIX/Cellar"
 FILTER_TOOL='fzf-tmux'
-FILTER_COMMAND='${FILTER_TOOL} -d 30% --cycle --exit-0 --ansi'
+FILTER_COMMAND='${FILTER_TOOL} --cycle --exit-0 --ansi'
 
 #read Aliases
 source ~/.aliases
