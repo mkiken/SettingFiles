@@ -430,6 +430,55 @@ function g-delete-remote-branches-by-word() {
   g-remote-branches-by-word-fmt $1 | xargs -I% git push origin :% 2>&1 | tee -a ~/Desktop/delete_branches.log
 }
 
+function g-delete-branch-not-in-remote-interactive() {
+  # ディレクトリ移動
+  # cd $1
+
+  # レポジトリ名確認
+  local tmp_path=$(git rev-parse --show-toplevel 2>/dev/null)
+  if [ -n "$tmp_path" ]; then
+    local repo_name=`basename $tmp_path`
+    echo "repository is '$repo_name'."
+  else
+    echo "$1 is not git repository."
+    return 1
+  fi
+
+  # 最新のリモート情報をフェッチ
+  git fetch --prune
+
+  # ローカルブランチ（現在のブランチは除外）
+  local local_branches=( $(git branch | grep -v '*' -p) )  # リモートブランチ（「origin/HEAD -> origin/master」の行を除外し、「origin/」を消す）
+  local remote_branches=( $(git branch -r | grep -v '\->' -p | sed -e 's/origin\///') )
+  for local_branch in $local_branches
+  do
+    # ローカルブランチがリモートにあるか確認
+    local is_in_remote=false
+    for remote_branch in $remote_branches
+    do
+      if [[ "$local_branch" = "$remote_branch" ]]; then
+        is_in_remote=true
+        break
+      fi
+    done
+
+    # リモートになかったら確認プロンプトを出す
+    if [[ $is_in_remote = false ]]; then
+      echo "branch '$local_branch' is not in remote. delete it? [y/N]"
+
+      read -r ANSWER
+
+      # 「Y」、「y」などであれば削除
+      case $ANSWER in
+        "Y" | "y" | "yes" | "Yes" | "YES" ) git branch -D $local_branch;;
+        * ) echo "not delete branch '$local_branch'.";;
+      esac
+    fi
+  done
+
+  # cd $OLDPWD
+}
+
 function fullpath(){
   echo "${PWD}/${1}"
 }
