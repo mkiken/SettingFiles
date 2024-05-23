@@ -1,11 +1,10 @@
 #!/bin/sh
 
-if [ -z `git name` ] || [ -z `git email` ]
-then
-	cat <<\EOF
+if [ -z "$(git name)" ] || [ -z $(git email) ]; then
+  cat <<\EOF
 Error: Your name or email address is empty.
 commit fails.
 
 EOF
-	exit 1
+  exit 1
 fi
