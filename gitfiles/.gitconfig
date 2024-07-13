@@ -202,3 +202,5 @@
 ; http://d.hatena.ne.jp/z3100/20120505/1336203155
 [include]
 	path = .os.gitconfig
+[rerere]
+	enabled = true
