@@ -22,8 +22,13 @@
   "theme": {
     "mode": "system",
     "light": "One Light",
-    "dark": "One Dark"
+    "dark": "Atelier Cave Dark"
   },
   "ui_font_size": 16,
+  "vim": {
+    "use_system_clipboard": "never",
+    "use_multiline_find": true,
+    "use_smartcase_find": true
+  },
   "vim_mode": true
 }

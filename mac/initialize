@@ -61,6 +61,7 @@ brew bundle
 make_symlink ${BREW_PREFIX}/share/git-core/contrib/diff-highlight/diff-highlight /usr/local/bin
 
 mkdir -p ~/.config/zed
+make_symlink ${Repo}/zed/keymap.json ~/.config/zed
 make_symlink ${Repo}/zed/settings.json ~/.config/zed
 
 # pip3 install pynvim
