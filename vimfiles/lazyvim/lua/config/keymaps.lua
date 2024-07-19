@@ -7,9 +7,6 @@ vim.keymap.set("n", "<leader>x", '"+x', { desc = "他のアプリケーション
 vim.keymap.set("n", "<leader>y", '"+y', { desc = "他のアプリケーションとのコピー" })
 vim.keymap.set("n", "<leader>p", '"+p', { desc = "他のアプリケーションとのペースト" })
 
--- cはnvimのデフォルトの挙動にしたい
-vim.keymap.del("n", "c")
-
 ---- インサートモード ----
 -- emacs的な挙動
 vim.keymap.set("i", "<C-a>", "<Home>", { desc = "beginning of line" })
