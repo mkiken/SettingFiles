@@ -38,6 +38,9 @@ make_symlink ${Repo}.tmux.conf ~/.tmux.conf
 
 make_symlink ${Repo}.ideavimrc ~/.ideavimrc
 
+mkdir -p ~/.config/zed
+make_symlink ${Repo}/zed/settings.json ~/.config/zed
+
 # touch ~/.gitconfig.local
 cp -i "${Repo}gitfiles/.gitconfig.local_mac" ~/.os.gitconfig
 echo "You can write LOCAL settings for git to '~/.gitconfig.local'."
