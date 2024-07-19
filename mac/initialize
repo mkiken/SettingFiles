@@ -38,9 +38,6 @@ make_symlink ${Repo}.tmux.conf ~/.tmux.conf
 
 make_symlink ${Repo}.ideavimrc ~/.ideavimrc
 
-mkdir -p ~/.config/zed
-make_symlink ${Repo}/zed/settings.json ~/.config/zed
-
 # touch ~/.gitconfig.local
 cp -i "${Repo}gitfiles/.gitconfig.local_mac" ~/.os.gitconfig
 echo "You can write LOCAL settings for git to '~/.gitconfig.local'."
@@ -62,6 +59,9 @@ echo 'symbolic links created.'
 brew bundle
 
 make_symlink ${BREW_PREFIX}/share/git-core/contrib/diff-highlight/diff-highlight /usr/local/bin
+
+mkdir -p ~/.config/zed
+make_symlink ${Repo}/zed/settings.json ~/.config/zed
 
 # pip3 install pynvim
 # python3 -m pip install --upgrade pip
@@ -97,24 +97,8 @@ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 # shell setting
 sudo chsh -s /usr/local/bin/zsh
 
-# echo "Please setting zsh!"
-
-# powerline用のfontを入れる
-# https://mitubaex.hatenablog.com/entry/2018/04/23/044455
-git clone https://github.com/powerline/fonts.git --depth=1
-# install
-cd fonts
-./install.sh
-# clean-up a bit
-cd ..
-rm -rf fonts
 
 git submodule update --init
 
-make_symlink "${Repo}submodules/used-mem/used-mem" /usr/local/bin/used-mem
-
-echo "make symlink to diff-highlight. 'ln -si /XXXXX/share/git-core/contrib/diff-highlight/diff-highlight  /usr/local/bin'"
 echo "please install Sauce Code Pro Nerd Font Complete.ttf at https://www.nerdfonts.com/font-downloads."
 echo "please press ^T-I in tmux to install tmux plugins."
-echo "for spacemacs, install Source Code Pro. https://github.com/adobe-fonts/source-code-pro/blob/release/OTF/SourceCodePro-Regular.otf"
-echo " and 'ln -si ${Repo}emacs/.spacemacs ~/'"
