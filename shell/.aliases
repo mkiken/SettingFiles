@@ -1,5 +1,5 @@
 #!/bin/sh
-EDIT_COMMAND='cursor'
+EDIT_COMMAND='zed'
 export VISUAL='nvim'
 
 #expanded command

@@ -22,7 +22,6 @@ brew "trash"
 brew "yarn"
 brew "zsh"
 
-cask "cursor"
 cask "discord"
 cask "docker"
 cask "dropbox"
