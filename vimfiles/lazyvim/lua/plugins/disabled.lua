@@ -10,4 +10,5 @@ if vim.g.vscode then
   }
 else
   -- ordinary Neovim
+  return {}
 end
