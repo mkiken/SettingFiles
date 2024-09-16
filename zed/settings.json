@@ -11,6 +11,19 @@
   "buffer_font_family": "Monaco",
   "buffer_font_size": 14,
   "soft_wrap": "editor_width",
+  "ui_font_size": 16,
+  "vim_mode": true,
+  // Inlay hint related settings
+  "inlay_hints": {
+    // Global switch to toggle hints on and off, switched off by default.
+    "enabled": true,
+    // Time to wait after editing the buffer, before requesting the hints,
+    // set to 0 to disable debouncing.
+    "edit_debounce_ms": 1000,
+    // Time to wait after scrolling the buffer, before requesting the hints,
+    // set to 0 to disable debouncing.
+    "scroll_debounce_ms": 100
+  },
   "tab_bar": {
     // Whether or not to show the navigation history buttons.
     "show_nav_history_buttons": false
@@ -24,11 +37,9 @@
     "light": "One Light",
     "dark": "Atelier Cave Dark"
   },
-  "ui_font_size": 16,
   "vim": {
     "use_system_clipboard": "never",
     "use_multiline_find": true,
     "use_smartcase_find": true
-  },
-  "vim_mode": true
+  }
 }
