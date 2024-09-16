@@ -1,6 +1,6 @@
 [
   {
-    "context": "VimControl && !menu",
+    "context": "VimControl && !menu && vim_mode != operator",
     "bindings": {
       "w": "vim::NextSubwordStart",
       "b": "vim::PreviousSubwordStart",
