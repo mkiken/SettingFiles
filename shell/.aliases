@@ -49,8 +49,6 @@ alias cask='brew cask'
 alias cat='bat --style=plain'
 alias du='dust'
 
-alias at='atom'
-
 alias karabiner-export='/Applications/Karabiner.app/Contents/Library/bin/karabiner export > ${SET}mac/karabiner-setting.sh'
 alias karabiner-import='sh ${SET}mac/karabiner-setting.sh'
 
@@ -284,8 +282,7 @@ alias tmks='tm kill-server'
 alias tmss='tm start-server'
 
 #tig/gitui
-alias t='gitui'
-# alias ta='tig --all'
+alias t='lazygit'
 
 alias -g V='| view -'
 

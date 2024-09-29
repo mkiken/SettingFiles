@@ -25,7 +25,8 @@ make_symlink ${Repo_shell}.zshrc ~/.zshrc
 
 make_symlink ${Repo_shell}.p10k.zsh ~/.p10k.zsh
 
-make_symlink ${Repo}gitfiles/gitui $HOME/.config
+make_symlink ${Repo}gitfiles/lazygit/config.yml $HOME/.config/lazygit/config.yml
+# make_symlink ${Repo}gitfiles/gitui $HOME/.config
 # make_symlink ${Repo}.tigrc ~/.tigrc
 
 make_symlink ${Repo}.jshintrc ~/.jshintrc
