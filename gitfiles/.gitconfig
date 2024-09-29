@@ -13,8 +13,6 @@
 
 ; https://blogs.atlassian.com/2013/06/git-diff/
 [alias]
-# assumes git.git clone at ~/src/git
-; diff-highlight = /usr/local/Cellar/git/1.8.4.3/share/git-core/contrib/diff-highlight/diff-highlight
   ad = add
 	co = checkout
 	br = -c color.branch=always branch
@@ -60,7 +58,6 @@
 	flog  = log -p
 	; http://qiita.com/yuyuchu3333/items/a30387bdd6a0afc1185c
 	rso  = remote show origin
-; diff-highlight = "!f() { git diff \"$@\" | /usr/local/Cellar/git/contrib/diff-highlight/diff-highlight; }; f"
   smpull = submodule foreach 'git pull origin master'
   smupdate = submodule update --init --recursive
 
@@ -131,6 +128,7 @@
 [color]
 	ui = auto
 [core]
+  pager = delta
 	autocrlf = false
 	; editor = mvim
 	# editor = vim --noplugin
@@ -142,14 +140,18 @@
 [interactive]
 # git add/checkout -p時に，エンターでの決定を省略する
 	singlekey = true
-	diffFilter = diff-highlight
+  diffFilter = delta --color-only
+	; diffFilter = diff-highlight
+[delta]
+  line-numbers = true
+  side-by-side = true
+  navigate = true    # use n and N to move between diff sections
 [diff]
+  colorMoved = default
   tool = nvim
     ; http://qiita.com/takaakikasai/items/3d4f8a4867364a46dfa3
     algorithm = histogram
 	compactionHeuristic = true
-; [difftool "mvimdiff"]
-    ; cmd = mvim -f -d \"$LOCAL\" \"$REMOTE\"
 [difftool "nvim"]
     cmd = nvim -f -d \"$LOCAL\" \"$REMOTE\"
 
@@ -182,13 +184,6 @@
   prune = true
 
 ; http://qiita.com/yuku_t/items/04853c9aecb40edadbb2
-[tig "bind"]
-  diff = <Ctrl-n> :/^@@
-  diff = <Ctrl-p> :?^@@
-  log = <Ctrl-n> :/^commit
-  log = <Ctrl-p> :?^commit
-  stage = <Ctrl-n> :/^@@
-  stage = <Ctrl-p> :?^@@
 [init]
 	templatedir = ~/.git_template
 [filter "lfs"]
