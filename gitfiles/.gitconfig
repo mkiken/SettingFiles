@@ -143,10 +143,26 @@
   diffFilter = delta --color-only
 	; diffFilter = diff-highlight
 [delta]
+  features = unobtrusive-line-numbers decorations
   line-numbers = true
   side-by-side = true
   navigate = true    # use n and N to move between diff sections
   diff-so-fancy = true
+  whitespace-error-style = 22 reverse
+[delta "unobtrusive-line-numbers"]
+    line-numbers = true
+    line-numbers-left-format = "{nm:>4}┊"
+    line-numbers-right-format = "{np:>4}┊"
+    line-numbers-left-style = blue
+    line-numbers-right-style = blue
+[delta "decorations"]
+  # https://github.com/dandavison/delta/blob/main/themes.gitconfig
+  commit-decoration-style = overline bold yellow ul
+  file-style = bold purple ul
+  file-decoration-style = underline box blue
+  hunk-header-style = line-number syntax
+  line-numbers-plus-style = green
+  line-numbers-minus-style = red
 [diff]
   colorMoved = default
   tool = nvim
