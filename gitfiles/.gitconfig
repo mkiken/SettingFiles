@@ -14,50 +14,50 @@
 ; https://blogs.atlassian.com/2013/06/git-diff/
 [alias]
   ad = add
-	co = checkout
-	br = -c color.branch=always branch
-	ci = commit
-	s = -c color.status=always status -bs
-	ft = fetch
-	ps = push
-	pl = pull
-	df = -c color.diff=always diff
-	sm = submodule
-	# http://qiita.com/hash/items/1f01aa09ccf148542f21
-	lg = log --stat --pretty=format:'%Cblue%h %Cgreen%ar %Cred%an %Creset%s %Cred%d'
-	gr = log --graph --date-order --pretty=format:'%Cblue%h %Cgreen%ci %Cred%an %Cblue%m %Creset%s %Cred%d'
-	rb = rebase
-	st = stash
-	bl = blame
-	; cl = clone
-	cl = clean -d
-	cp = cherry-pick
-	rl = reflog
-	rv = revert
-	mt = mergetool
-	dt = difftool
-	add-cancel = reset HEAD
-	bs = bisect
-	sw = switch
+  co = checkout
+  br = -c color.branch=always branch
+  ci = commit
+  s = -c color.status=always status -bs
+  ft = fetch
+  ps = push
+  pl = pull
+  df = -c color.diff=always diff
+  sm = submodule
+  # http://qiita.com/hash/items/1f01aa09ccf148542f21
+  lg = log --stat --pretty=format:'%Cblue%h %Cgreen%ar %Cred%an %Creset%s %Cred%d'
+  gr = log --graph --date-order --pretty=format:'%Cblue%h %Cgreen%ci %Cred%an %Cblue%m %Creset%s %Cred%d'
+  rb = rebase
+  st = stash
+  bl = blame
+  ; cl = clone
+  cl = clean -d
+  cp = cherry-pick
+  rl = reflog
+  rv = revert
+  mt = mergetool
+  dt = difftool
+  add-cancel = reset HEAD
+  bs = bisect
+  sw = switch
 
-	; http://qiita.com/peccul/items/90dd469e2f72babbc106
-	today = log --oneline --since='12 hour ago'
-	hisback = reset --soft HEAD^
-	back = reset --hard HEAD^
-	zip = archive --format=zip --prefix=archive/ HEAD^ -o archive.zip
-	; http://qiita.com/usamik26/items/bfc2196f510d68b3c2cc
-	modified = diff --diff-filter=M
-	added = diff --diff-filter=A
-	deleted = diff --diff-filter=D
-	; http://qiita.com/sonots/items/fbbcfdba6d7d016fbadb
-	current-branch = rev-parse --abbrev-ref HEAD
-	pull-dry-run  = !"git fetch origin; B=$(git rev-parse --abbrev-ref HEAD); git diff --stat --summary ${B}..origin/${B}"
+  ; http://qiita.com/peccul/items/90dd469e2f72babbc106
+  today = log --oneline --since='12 hour ago'
+  hisback = reset --soft HEAD^
+  back = reset --hard HEAD^
+  zip = archive --format=zip --prefix=archive/ HEAD^ -o archive.zip
+  ; http://qiita.com/usamik26/items/bfc2196f510d68b3c2cc
+  modified = diff --diff-filter=M
+  added = diff --diff-filter=A
+  deleted = diff --diff-filter=D
+  ; http://qiita.com/sonots/items/fbbcfdba6d7d016fbadb
+  current-branch = rev-parse --abbrev-ref HEAD
+  pull-dry-run  = !"git fetch origin; B=$(git rev-parse --abbrev-ref HEAD); git diff --stat --summary ${B}..origin/${B}"
 ; http://qiita.com/shim0mura/items/4363769faf25ce485b89
-	rma  = rm `git ls-files --deleted`
+  rma  = rm `git ls-files --deleted`
 ; http://lynn1985.blog.shinobi.jp/%E5%8B%89%E5%BC%B7%E3%83%A1%E3%83%A2/git%20%E7%89%B9%E5%AE%9A%E3%81%AE%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB%E3%81%AE%E5%A4%89%E6%9B%B4%E5%B1%A5%E6%AD%B4%E3%82%92%E8%A6%8B%E3%82%8B
-	flog  = log -p
-	; http://qiita.com/yuyuchu3333/items/a30387bdd6a0afc1185c
-	rso  = remote show origin
+  flog  = log -p
+  ; http://qiita.com/yuyuchu3333/items/a30387bdd6a0afc1185c
+  rso  = remote show origin
   smpull = submodule foreach 'git pull origin master'
   smupdate = submodule update --init --recursive
 
@@ -91,10 +91,10 @@
   upsync = "!f_upsync () { git fetch upstream; git rebase upstream/master;};f_upsync"
 
   vdf= difftool --tool=vimdiff --no-prompt --dir-diff
-	vmodified = difftool --tool=vimdiff --no-prompt --dir-diff --diff-filter=M
+  vmodified = difftool --tool=vimdiff --no-prompt --dir-diff --diff-filter=M
 
-	remoterm = push --delete origin
-	conflicts = !git ls-files -u | cut -f 2 | sort -u
+  remoterm = push --delete origin
+  conflicts = !git ls-files -u | cut -f 2 | sort -u
 
   merged-branches = branch --merged
   merged-remote-branches = !git branch -a --merged | grep -v \\* | grep -v master | grep remotes/origin/ | sed -e 's%remotes/origin/%%g'
@@ -126,22 +126,22 @@
   delete-merged-branches = "!git branch --merged | grep -v '\\*' | xargs -n 1 git branch -d"
 
 [color]
-	ui = auto
+  ui = auto
 [core]
   pager = delta
-	autocrlf = false
-	; editor = mvim
-	# editor = vim --noplugin
-	editor = nvim
-	quotepath = false
-	ignorecase = false
-	excludesfile = ~/.gitignore
-	; http://qiita.com/yaotti/items/2361768b6ed781e87780
+  autocrlf = false
+  ; editor = mvim
+  # editor = vim --noplugin
+  editor = nvim
+  quotepath = false
+  ignorecase = false
+  excludesfile = ~/.gitignore
+  ; http://qiita.com/yaotti/items/2361768b6ed781e87780
 [interactive]
 # git add/checkout -p時に，エンターでの決定を省略する
-	singlekey = true
+  singlekey = true
   diffFilter = delta --color-only
-	; diffFilter = diff-highlight
+  ; diffFilter = diff-highlight
 [delta]
   features = unobtrusive-line-numbers decorations
   line-numbers = true
@@ -150,11 +150,11 @@
   diff-so-fancy = true
   whitespace-error-style = 22 reverse
 [delta "unobtrusive-line-numbers"]
-    line-numbers = true
-    line-numbers-left-format = "{nm:>4}┊"
-    line-numbers-right-format = "{np:>4}┊"
-    line-numbers-left-style = blue
-    line-numbers-right-style = blue
+  line-numbers = true
+  line-numbers-left-format = "{nm:>4}┊"
+  line-numbers-right-format = "{np:>4}┊"
+  line-numbers-left-style = blue
+  line-numbers-right-style = blue
 [delta "decorations"]
   # https://github.com/dandavison/delta/blob/main/themes.gitconfig
   commit-decoration-style = overline bold yellow ul
@@ -167,15 +167,15 @@
   colorMoved = default
   tool = nvim
     ; http://qiita.com/takaakikasai/items/3d4f8a4867364a46dfa3
-    algorithm = histogram
-	compactionHeuristic = true
+  algorithm = histogram
+  compactionHeuristic = true
 [difftool "nvim"]
-    cmd = nvim -f -d \"$LOCAL\" \"$REMOTE\"
+  cmd = nvim -f -d \"$LOCAL\" \"$REMOTE\"
 
 [merge]
-	tool = nvim
+  tool = nvim
 [mergetool]
-	keepBackup = false
+  keepBackup = false
 ; [mergetool "mvimdiff"]
   ; cmd = mvim -f -d \"$LOCAL\" \"$MERGED\" \"$REMOTE\"
 ; [mergetool "atom"]
@@ -192,27 +192,27 @@
   # 3-way
   # cmd = vim -f -d -c 'wincmd J' \"$MERGED\" \"$LOCAL\" \"$BASE\" \"$REMOTE\"
 [i18n]
-	commitencoding = utf-8
+  commitencoding = utf-8
 [user]
-	name =
-	email =
+  name =
+  email =
 
 [fetch]
   prune = true
 
 ; http://qiita.com/yuku_t/items/04853c9aecb40edadbb2
 [init]
-	templatedir = ~/.git_template
+  templatedir = ~/.git_template
 [filter "lfs"]
-	clean = git-lfs clean -- %f
-	smudge = git-lfs smudge -- %f
-	process = git-lfs filter-process
-	required = true
+  clean = git-lfs clean -- %f
+  smudge = git-lfs smudge -- %f
+  process = git-lfs filter-process
+  required = true
 [lfs]
-	concurrenttransfers = 100
+  concurrenttransfers = 100
 
 ; http://d.hatena.ne.jp/z3100/20120505/1336203155
 [include]
-	path = .os.gitconfig
+  path = .os.gitconfig
 [rerere]
-	enabled = true
+  enabled = true
