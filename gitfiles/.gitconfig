@@ -146,6 +146,7 @@
   line-numbers = true
   side-by-side = true
   navigate = true    # use n and N to move between diff sections
+  diff-so-fancy = true
 [diff]
   colorMoved = default
   tool = nvim
