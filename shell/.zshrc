@@ -161,21 +161,6 @@ function ls_abbrev() {
     fi
 }
 
-# http://qiita.com/takc923/items/be459e2962aa11e33d12
-function command_not_found_handler() {
-    if [ $# != 1 ]; then
-        return 127
-    # elif [ -d $0 ]; then
-        # ls -la $0
-        # return 0
-    elif  [ -f $0 ]; then
-        less $0
-        return 0
-    else
-        return 127
-    fi
-}
-
 # http://hagetak.hatenablog.com/entry/2014/07/17/093750
 function mkcd(){
   mkdir $1 && cd $1
