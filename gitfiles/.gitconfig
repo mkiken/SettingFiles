@@ -16,7 +16,7 @@
   ad = add
   co = checkout
   br = -c color.branch=always branch
-  ci = commit
+  ci = commit -v
   s = -c color.status=always status -bs
   ft = fetch
   ps = push
