@@ -16,7 +16,7 @@
   ad = add
   co = checkout
   br = -c color.branch=always branch
-  ci = commit -v
+  ci = commit
   s = -c color.status=always status -bs
   ft = fetch
   ps = push
@@ -216,3 +216,5 @@
   path = .os.gitconfig
 [rerere]
   enabled = true
+[commit]
+	verbose = true
