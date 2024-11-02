@@ -25,10 +25,7 @@ make_symlink ${Repo_shell}.zshrc ~/.zshrc
 
 make_symlink ${Repo_shell}.p10k.zsh ~/.p10k.zsh
 
-mkdir -p ~/.config/lazygit
-make_symlink ${Repo}gitfiles/lazygit/config.yml $HOME/.config/lazygit/config.yml
-# make_symlink ${Repo}gitfiles/gitui $HOME/.config
-# make_symlink ${Repo}.tigrc ~/.tigrc
+make_symlink ${Repo}gitfiles/gitui $HOME/.config
 
 make_symlink ${Repo}.jshintrc ~/.jshintrc
 
@@ -46,13 +43,6 @@ echo "You can write LOCAL settings for git to '~/.gitconfig.local'."
 
 echo 'symbolic links created.'
 
-# mkdir -p ~/.backup/vim/backup
-# mkdir -p ~/.backup/vim/swap
-# mkdir -p ~/.backup/vim/undo
-
-# echo 'backup directory for emacs and vim made.'
-# echo 'backup directory for vim made.'
-
 
 # install commands
 
@@ -62,30 +52,7 @@ brew bundle
 
 make_symlink ${BREW_PREFIX}/share/git-core/contrib/diff-highlight/diff-highlight /usr/local/bin
 
-# mkdir -p ~/.config/zed
-# make_symlink ${Repo}/zed/keymap.json ~/.config/zed
-# make_symlink ${Repo}/zed/settings.json ~/.config/zed
-
-# pip3 install pynvim
-# python3 -m pip install --upgrade pip
-# python3 -m pip install --user --upgrade pynvim
-
-# for NvChad
-# git clone https://github.com/NvChad/NvChad ~/.config/nvim
-# nvim +'hi NormalFloat guibg=#1e222a' +PackerSync
-# make_symlink ${Repo}vimfiles/nvchad/custom ~/.config/nvim/lua
-
-# make_symlink ${Repo}vimfiles/nvim ~/.config
-
-# for LazyVim
-git clone https://github.com/LazyVim/starter ~/.config/nvim
-rm -rf ~/.config/nvim/.git
-rm -rf ~/.config/nvim/lua
-make_symlink ${Repo}vimfiles/lazyvim/lua ~/.config/nvim
-
-# for spacemacs
-# make_symlink /usr/local/opt/emacs-plus/Emacs.app /Applications
-# git clone https://github.com/syl20bnr/spacemacs ~/.emacs.d
+make_symlink ${Repo}vimfiles/nvim ~/.config
 
 # touch ~/.z
 touch ~/.cd_history_file
