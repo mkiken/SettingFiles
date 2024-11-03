@@ -210,10 +210,16 @@ set autochdir
 
 " http://d.hatena.ne.jp/thata/20100606/1275796513
 "カーソルを表示行で移動する。物理行移動は<C-n>,<C-p>
-nnoremap j gj
-nnoremap k gk
-nnoremap gj j
-nnoremap gk k
+if exists('g:vscode')
+  " vscode-neovimでgj, gkが独自定義されてるのでnnoremapだと上書きできない
+  nmap j gj
+  nmap k gk
+else
+  nnoremap j gj
+  nnoremap k gk
+  nnoremap gj j
+  nnoremap gk k
+endif
 nnoremap <Down> gj
 nnoremap <Up>   gk
 
