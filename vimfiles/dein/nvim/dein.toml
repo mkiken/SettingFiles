@@ -58,12 +58,14 @@ nmap * *zz<Plug>(anzu-update-search-status)<Plug>(anzu-echo-search-status)
 nmap # #zz<Plug>(anzu-update-search-status)<Plug>(anzu-echo-search-status)
 " clear status
 nmap <Esc><Esc> :nohl<CR> <Plug>(anzu-clear-search-status)
-augroup vim-anzu
-" 一定時間キー入力がないとき、ウインドウを移動したとき、タブを移動したときに
-" 検索ヒット数の表示を消去する
-    autocmd!
-    autocmd CursorHold,CursorHoldI,WinLeave,TabLeave * call anzu#clear_search_status()
-augroup END
+if exists('g:vscode')
+  augroup vim-anzu
+  " 一定時間キー入力がないとき、ウインドウを移動したとき、タブを移動したときに
+  " 検索ヒット数の表示を消去する
+      autocmd!
+      autocmd CursorHold,CursorHoldI,WinLeave,TabLeave * call anzu#clear_search_status()
+  augroup END
+endif
 '''
 
 [[plugins]]
