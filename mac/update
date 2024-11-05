@@ -25,13 +25,13 @@ if [ -n "$CD_HISTORY_FILE" ]; then
 fi
 
 # Lazy + tree-sitterののアップデート
-nvim --headless "+Lazy! sync | TSUpdate" +qa
+# nvim --headless "+Lazy! sync | TSUpdate" +qa
 
 # NvChadのアップデート
 # nvim +'hi NormalFloat guibg=#1e222a' +NvChadUpdate +PackerSync
 
 # deinのアップデート
-# nvim -c "call dein#update()" -c qa
+nvim -c "call dein#update()" -c qa
 
 source ${SUBMODULE_DIR}/zsh-snap/znap.zsh  # Start Znap
 znap pull
