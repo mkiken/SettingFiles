@@ -18,6 +18,7 @@ alias top='glances'
 alias wget='aria2c'
 alias curl='https'
 alias -g L='| less'
+alias -g LC='| lessc'
 #MacVim on CUI
 # alias -g VI='mvim --remote-tab-silent'
 # alias vi='mvim --remote-tab-silent'
