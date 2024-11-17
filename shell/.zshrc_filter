@@ -8,49 +8,6 @@ fi
 
 alias -g F='| filter'
 
-# http://stillpedant.hatenablog.com/entry/percol-cd-history
-typeset -U chpwd_functions
-export CD_HISTORY_FILE=${HOME}/.cd_history_file # cd 履歴の記録先ファイル
-function chpwd_record_history() {
-  echo $PWD >> ${CD_HISTORY_FILE}
-}
-chpwd_functions=($chpwd_functions chpwd_record_history)
-
-  # filter toolを使って cd 履歴の中からディレクトリを選択
-  # 過去の訪問回数が多いほど選択候補の上に来る
-function filter_get_destination_from_history() {
-  sort ${CD_HISTORY_FILE} | uniq -c | sort -r | \
-  sed -e 's/^[ ]*[0-9]*[ ]*//' | \
-  sed -e s"/^${HOME//\//\\/}/~/" | \
-  filter | xargs echo
-}
-
-# filter tool を使って cd 履歴の中からディレクトリを選択し cd するウィジェット
-function filter_cd_history() {
-  local destination=$(filter_get_destination_from_history)
-  if [ "${destination}" != "" ]; then
-    save_history cd ${destination/#\~/${HOME}}
-    return 0;
-  fi
-  return -1;
-}
-zle -N filter_cd_history
-alias fcd='filter_cd_history'
-
-# filter tool を使って cd 履歴の中からディレクトリを選択し，現在のカーソル位置に挿入するウィジェット
-# function filter_insert_history() {
-# local destination=$(filter_get_destination_from_history)
-# if [ $? -eq 0 ]; then
-#   local new_left="${LBUFFER} ${destination} "
-#   BUFFER=${new_left}${RBUFFER}
-#   CURSOR=${#new_left}
-# fi
-# zle -N reset-prompt
-# }
-# zle -N filter_insert_history
-# alias pins='filter_insert_history'
-# }}}
-
 # https://mogulla3.tech/articles/2021-09-06-search-command-history-with-incremental-search/
 function select-history() {
   BUFFER=$(history -n -r 1 | fzf --exact --reverse --no-sort --query="$LBUFFER" --cycle --prompt="History > ")
