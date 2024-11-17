@@ -500,6 +500,9 @@ bindkey -M menuselect '\r' accept-line
 # .accept-line: Accept command line.
 # accept-line:  Accept selection and exit menu.
 
+# https://github.com/ajeetdsouza/zoxide
+eval "$(zoxide init zsh --cmd cd)"
+
 # 自動コンパイル
 # http://blog.n-z.jp/blog/2013-12-10-auto-zshrc-recompile.html
 if [ ! -f ~/.zshrc.zwc -o ~/.zshrc -nt ~/.zshrc.zwc ]; then
