@@ -9,6 +9,9 @@ auto-save-list
 npm-debug.log
 texput.log
 vimfiles/.vim/bundle/
+vimfiles/nvim/.backup
+vimfiles/nvim/.swp
+vimfiles/nvim/.undo
 vimfiles/dein/nvim/bundle/
 vimfiles/dein/vim/bundle/
 submodules/*
