@@ -1,3 +1,6 @@
+-- リーダーキーを設定
+vim.g.mapleader = " "
+
 -- カーソルを表示行で移動する。物理行移動は <C-n>, <C-p>
 if vim.g.vscode then
   -- vscode-neovimで gj, gk が独自定義されているので map で上書き

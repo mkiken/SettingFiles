@@ -108,13 +108,3 @@ vim.opt.colorcolumn = '80'
 
 -- スクロール時の余白を5行に
 vim.opt.scrolloff = 5
-
--- http://rbtnn.hateblo.jp/entry/2014/11/30/17474
--- autocmd グループを定義
-vim.api.nvim_create_augroup("vimrc", { clear = true })
-
--- リーダーキーを設定
-vim.g.mapleader = " "
-
--- 現在のディレクトリを自動変更
-vim.opt.autochdir = true
