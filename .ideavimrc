@@ -72,6 +72,7 @@ imap jj <Esc>
 vnoremap < <gv
 vnoremap > >gv
 " Reload .ideavimrc
+" なぜか<leader>sだとだめ
 nnoremap <Space>s :source ~/.ideavimrc<CR>
 
 " set <leader> to <space>
@@ -84,20 +85,22 @@ let mapleader = " "
 " nnoremap n :action FindNext<CR>
 " nnoremap N :action FindPrevious<CR>
 "
+
+
+""" Plugin settings -------------------------
+
 set NERDTree
 set ReplaceWithRegister
 set argtextobj
 set commentary
 set easymotion
+set exchange
 set highlightedyank
 set matchit
 set multiple-cursors
 set surround
 set textobj-indent
 set vim-paragraph-motion
-
-
-""" Plugin settings -------------------------
 let g:argtextobj_pairs="[:],(:),<:>"
 
 nmap <leader>e <Plug>(easymotion-s2)
