@@ -8,8 +8,8 @@ set ignorecase
 set smartcase
 
 " キーワードのセパレータ追加
-" set iskeyword-=_
-"
+set iskeyword-=_
+
 set incsearch
 set matchpairs+=<:>
 
@@ -84,17 +84,38 @@ let mapleader = " "
 " nnoremap n :action FindNext<CR>
 " nnoremap N :action FindPrevious<CR>
 "
+set NERDTree
+set ReplaceWithRegister
 set argtextobj
 set commentary
 set easymotion
 set highlightedyank
 set matchit
-set multicursor
+set multiple-cursors
 set surround
 set textobj-indent
 set vim-paragraph-motion
+
 
 """ Plugin settings -------------------------
 let g:argtextobj_pairs="[:],(:),<:>"
 
 nmap <leader>e <Plug>(easymotion-s2)
+
+" Remap multiple-cursors shortcuts to match terryma/vim-multiple-cursors
+nmap <leader>n <Plug>NextWholeOccurrence
+xmap <leader>n <Plug>NextWholeOccurrence
+nmap g<leader>n <Plug>NextOccurrence
+xmap g<leader>n <Plug>NextOccurrence
+xmap <leader>x <Plug>SkipOccurrence
+xmap <leader>p <Plug>RemoveOccurrence
+
+" Note that the default <A-n> and g<A-n> shortcuts don't work on Mac due to dead keys.
+" <A-n> is used to enter accented text e.g. ñ
+" Feel free to pick your own mappings that are not affected. I like to use <leader>
+nmap <leader><C-n> <Plug>AllWholeOccurrences
+xmap <leader><C-n> <Plug>AllWholeOccurrences
+nmap <leader>g<C-n> <Plug>AllOccurrences
+xmap <leader>g<C-n> <Plug>AllOccurrences
+
+nnoremap <leader>t :NERDTreeFocus<CR>
