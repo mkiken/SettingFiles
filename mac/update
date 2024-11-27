@@ -7,8 +7,7 @@ SUBMODULE_DIR="${SET}submodules/"
 
 echo "start git submodule setting."
 git submodule sync
-git submodule update --recursive
-git submodule foreach 'git pull origin master'
+git submodule update --recursive --remote
 echo "end git submodule setting."
 
 echo "start brew update."
