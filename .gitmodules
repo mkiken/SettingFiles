@@ -2,10 +2,6 @@
 	path = submodules/zsh-bd
 	url = https://github.com/Tarrasch/zsh-bd
   ignore = untracked
-[submodule "submodules/zaw"]
-	path = submodules/zaw
-	url = https://github.com/zsh-users/zaw
-  ignore = untracked
 [submodule "submodules/f-sy-h"]
 	path = submodules/f-sy-h
 	url = https://github.com/z-shell/F-Sy-H

@@ -466,7 +466,6 @@ done
 
 source_and_zcompile_if_needed "${SUBMODULE_DIR}zsh-bd/bd.zsh"
 
-source_and_zcompile_if_needed "${SUBMODULE_DIR}zaw/zaw.zsh"
 # zstyle ':filter-select:highlight' selected fg=black,bg=white,standout
 zstyle ':filter-select:highlight' matched fg=yellow,standout
 zstyle ':filter-select' max-lines 20 # use 10 lines for filter-select
@@ -475,37 +474,7 @@ zstyle ':filter-select' case-insensitive yes # enable case-insensitive search
 zstyle ':filter-select' extended-search yes # see below
 zstyle ':filter-select' hist-find-no-dups yes # ignore duplicates in history source
 
-function zaw-src-gitdir () {
-  _dir=$(git rev-parse --show-cdup 2>/dev/null)
-  if [ $? -eq 0 ]
-  then
-    candidates=( $(git ls-files ${_dir} | perl -MFile::Basename -nle \
-                                               '$a{dirname $_}++; END{delete $a{"."}; print for sort keys %a}') )
-  fi
-  actions=("zaw-src-gitdir-cd")
-  act_descriptions=("change directory in git repos")
-}
-
-function zaw-src-gitdir-cd () {
-  BUFFER="cd $1"
-  zle accept-line
-}
-zaw-register-src -n gitdir zaw-src-gitdir
-
-# bindkey '^R' zaw-history
 bindkey '^R' select-history
-bindkey '^X^F' zaw-git-files
-bindkey '^X^B' zaw-git-branches
-bindkey '^X^S' zaw-ssh-hosts
-bindkey '^X^P' zaw-process
-bindkey '^X^X' zaw-tmux
-bindkey '^X^A' zaw-applications
-bindkey '^X^O' zaw-open-file
-# bindkey '^X?'  zaw-print-src
-
-# http://qiita.com/scalper/items/4728afaac9962bf91bfa
-# bindkey '^X^X' zaw-cdr
-bindkey '^X^D' zaw-gitdir
 
 # Return key in completion menu & history menu:
 bindkey -M menuselect '\r' accept-line
