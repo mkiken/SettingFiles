@@ -26,11 +26,17 @@ vim.api.nvim_set_keymap('o', 'G', 'G<End>', { noremap = true, silent = true })
 
 -- 他のアプリケーションとのコピー＆ペースト
 -- Visualモードでカット
-vim.api.nvim_set_keymap('v', '<Leader>x', '"+x', { noremap = true, silent = true })
--- Visualモードでコピー
-vim.api.nvim_set_keymap('v', '<Leader>y', '"+y', { noremap = true, silent = true })
--- ノーマルモードでペースト
+vim.api.nvim_set_keymap('n', '<Leader>x', '"+x', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('x', '<Leader>x', '"+x', { noremap = true, silent = true })
+-- コピー
+vim.api.nvim_set_keymap('n', '<Leader>y', '"+y', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<Leader>yy', '"+yy', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('x', '<Leader>y', '"+y', { noremap = true, silent = true })
+-- ペースト
 vim.api.nvim_set_keymap('n', '<Leader>p', '"+p', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<Leader>P', '"+P', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('x', '<Leader>p', '"+p', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('x', '<Leader>P', '"+P', { noremap = true, silent = true })
 
 -- Visualモードで選択してからのインデント調整後に選択範囲を保持
 vim.api.nvim_set_keymap('v', '>', '>gv', { noremap = true, silent = true })
