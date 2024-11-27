@@ -19,8 +19,21 @@ BREW_CELLAR="$BREW_PREFIX/Cellar"
 FILTER_TOOL='fzf-tmux'
 FILTER_COMMAND='${FILTER_TOOL} --cycle --exit-0 --ansi'
 
+function zcompile_if_needed() {
+    local file="$1"
+    if [ ! -f "${file}.zwc" -o "$file" -nt "${file}.zwc" ]; then
+        zcompile "$file"
+    fi
+}
+
+function source_and_zcompile_if_needed() {
+    local file="$1"
+    zcompile_if_needed "$file"
+    source "$file"
+}
+
 #read Aliases
-source ~/.aliases
+source_and_zcompile_if_needed "${SET}shell/.aliases"
 
 
 # パスの設定
@@ -84,25 +97,12 @@ function git_prompt_stash_count {
   fi
 }
 
-function zcompile_if_needed() {
-    local file="$1"
-    if [ ! -f "${file}.zwc" -o "$file" -nt "${file}.zwc" ]; then
-        zcompile "$file"
-    fi
-}
-
-function source_and_zcompile_if_needed() {
-    local file="$1"
-    zcompile_if_needed "$file"
-    source "$file"
-}
-
 # powerlevel10kのプロンプト設定
 
 source $BREW_PREFIX/opt/powerlevel10k/share/powerlevel10k/powerlevel10k.zsh-theme
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+source_and_zcompile_if_needed "${SET}shell/.p10k.zsh"
 
 
 # 今のshellの履歴数

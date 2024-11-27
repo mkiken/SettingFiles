@@ -9,8 +9,6 @@ function make_symlink () {
 Repo="`pwd | sed -e \"s/.\{3\}$//\"`"
 Repo_shell="${Repo}shell/"
 
-make_symlink ${Repo_shell}.aliases ~/.aliases
-
 make_symlink ${Repo}gitfiles/.gitconfig ~/.gitconfig
 
 make_symlink ${Repo}gitfiles/.gitignore_global ~/.gitignore
@@ -24,8 +22,6 @@ make_symlink ${Repo}ranger ~/.config
 make_symlink ${Repo_shell}.zprofile ~/.zprofile
 
 make_symlink ${Repo_shell}.zshrc ~/.zshrc
-
-make_symlink ${Repo_shell}.p10k.zsh ~/.p10k.zsh
 
 make_symlink ${Repo}gitfiles/gitui $HOME/.config
 
