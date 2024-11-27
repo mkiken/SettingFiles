@@ -7,9 +7,6 @@ set ignorecase
 "検索時に大文字を含んでいたら大/小を区別
 set smartcase
 
-" キーワードのセパレータ追加
-set iskeyword-=_
-
 set incsearch
 set matchpairs+=<:>
 

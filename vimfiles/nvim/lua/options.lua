@@ -97,9 +97,6 @@ vim.o.showtabline = 2
 vim.o.splitbelow = true
 -- vim.o.splitright = true
 
--- _でも単語区切り
-vim.opt.iskeyword:remove('_')
-
 -- ambiwidth の設定
 vim.opt.ambiwidth = 'double'
 
