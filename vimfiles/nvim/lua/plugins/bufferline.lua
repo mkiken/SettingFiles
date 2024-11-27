@@ -1,3 +1,3 @@
-return {{
+return {
   'akinsho/bufferline.nvim'
-}}
+}

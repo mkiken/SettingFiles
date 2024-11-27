@@ -1,4 +1,4 @@
-return {{
+return {
   'yamatsum/nvim-cursorline',
   config = function()
     require('nvim-cursorline').setup {
@@ -14,4 +14,4 @@ return {{
       }
     }
   end
-}}
+}
