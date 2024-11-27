@@ -9,3 +9,11 @@ vim.api.nvim_create_autocmd("FileType", {
       vim.opt_local.formatoptions:remove({ "c", "r", "o" })
   end,
 })
+
+-- yank時にハイライト
+-- https://neovim.io/doc/user/lua.html#lua-highlight
+vim.api.nvim_create_autocmd('TextYankPost', {
+    callback = function()
+        vim.highlight.on_yank({ higroup = 'Visual', timeout = 300 })
+    end,
+})
