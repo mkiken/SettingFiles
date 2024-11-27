@@ -15,3 +15,4 @@ vimfiles/nvim/.undo
 vimfiles/dein/nvim/bundle/
 vimfiles/dein/vim/bundle/
 submodules/*
+*.zwc

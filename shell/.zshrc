@@ -84,11 +84,17 @@ function git_prompt_stash_count {
   fi
 }
 
-zcompile_if_needed() {
+function zcompile_if_needed() {
     local file="$1"
     if [ ! -f "${file}.zwc" -o "$file" -nt "${file}.zwc" ]; then
         zcompile "$file"
     fi
+}
+
+function source_and_zcompile_if_needed() {
+    local file="$1"
+    zcompile_if_needed "$file"
+    source "$file"
 }
 
 # powerlevel10kのプロンプト設定
@@ -439,7 +445,7 @@ man() {
 function exists { which $1 &> /dev/null }
 
 if exists ${FILTER_TOOL}; then
-  source "${SET}shell/.zshrc_filter"
+  source_and_zcompile_if_needed "${SET}shell/.zshrc_filter"
 fi
 # Wait until this many characters have been typed, before showing completions.
 
@@ -509,7 +515,7 @@ bindkey -M menuselect '\r' accept-line
 # https://github.com/ajeetdsouza/zoxide
 eval "$(zoxide init zsh --cmd cd)"
 
-[[ ! -f ~/.zshrc_local ]] || source ~/.zshrc_local
+[[ ! -f ~/.zshrc_local ]] || source_and_zcompile_if_needed ~/.zshrc_local
 
 # 自動コンパイル
 # http://blog.n-z.jp/blog/2013-12-10-auto-zshrc-recompile.html
