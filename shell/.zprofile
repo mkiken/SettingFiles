@@ -1,6 +1,5 @@
-# https://github.com/romkatv/powerlevel10k/issues/1203
 if [ -z "$TMUX" ]; then
-  tmux new-session -A -s tmux
+  exit
 fi
 
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
@@ -513,5 +512,3 @@ fi
 if [ ! -f ~/.zshrc.zwc -o ~/.zshrc -nt ~/.zshrc.zwc ]; then
    zcompile ~/.zshrc
 fi
-
-LOAD_COMPLETE=`date`
