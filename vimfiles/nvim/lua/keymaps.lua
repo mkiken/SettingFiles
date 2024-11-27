@@ -25,7 +25,11 @@ vim.api.nvim_set_keymap('v', 'G', 'G<End>', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('o', 'G', 'G<End>', { noremap = true, silent = true })
 
 -- 他のアプリケーションとのコピー＆ペースト
--- Visualモードでカット
+-- カット
+vim.api.nvim_set_keymap('n', '<Leader>c', '"+c', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('x', '<Leader>c', '"+c', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<Leader>d', '"+d', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('x', '<Leader>d', '"+d', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<Leader>x', '"+x', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('x', '<Leader>x', '"+x', { noremap = true, silent = true })
 -- コピー
