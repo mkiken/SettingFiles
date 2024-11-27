@@ -2,23 +2,6 @@ if [ -z "$TMUX" ]; then
   exit
 fi
 
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-
-REPO="${HOME}/Desktop/repository/"
-SET="${REPO}SettingFiles/"
-SUBMODULE_DIR="${SET}submodules/"
-# MACVIM="/Applications/MacVim.app/Contents/MacOS"
-BREW_PREFIX="$(brew --prefix)"
-BREW_CASKROOM="$BREW_PREFIX/Caskroom"
-BREW_CELLAR="$BREW_PREFIX/Cellar"
-FILTER_TOOL='fzf-tmux'
-FILTER_COMMAND='${FILTER_TOOL} --cycle --exit-0 --ansi'
-
 function zcompile_if_needed() {
     local file="$1"
     if [ ! -f "${file}.zwc" -o "$file" -nt "${file}.zwc" ]; then
@@ -31,6 +14,23 @@ function source_and_zcompile_if_needed() {
     zcompile_if_needed "$file"
     source "$file"
 }
+
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source_and_zcompile_if_needed "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+REPO="${HOME}/Desktop/repository/"
+SET="${REPO}SettingFiles/"
+SUBMODULE_DIR="${SET}submodules/"
+# MACVIM="/Applications/MacVim.app/Contents/MacOS"
+BREW_PREFIX="$(brew --prefix)"
+BREW_CASKROOM="$BREW_PREFIX/Caskroom"
+BREW_CELLAR="$BREW_PREFIX/Cellar"
+FILTER_TOOL='fzf-tmux'
+FILTER_COMMAND='${FILTER_TOOL} --cycle --exit-0 --ansi'
 
 #read Aliases
 source_and_zcompile_if_needed "${SET}shell/.aliases"
@@ -99,7 +99,7 @@ function git_prompt_stash_count {
 
 # powerlevel10kのプロンプト設定
 
-source $BREW_PREFIX/opt/powerlevel10k/share/powerlevel10k/powerlevel10k.zsh-theme
+source_and_zcompile_if_needed "${BREW_PREFIX}/opt/powerlevel10k/share/powerlevel10k/powerlevel10k.zsh-theme"
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 source_and_zcompile_if_needed "${SET}shell/.p10k.zsh"
@@ -453,20 +453,20 @@ fi
 # This automatically optimizes your repos in the background, so that your git and znap commands will run faster.
 zstyle ':znap:*:*' git-maintenance off
 
-source ${SUBMODULE_DIR}/zsh-snap/znap.zsh  # Start Znap
+source_and_zcompile_if_needed "${SUBMODULE_DIR}/zsh-snap/znap.zsh"  # Start Znap
 # `znap source` automatically downloads and starts your plugins.
 znap source zsh-users/zsh-autosuggestions
 
 local plugins=("${SUBMODULE_DIR}f-sy-h/F-Sy-H.plugin.zsh" "${SUBMODULE_DIR}zsh-background-notify/bgnotify.plugin.zsh")
 for plugin in $plugins; do
   if [ -f ${plugin} ]; then
-    source ${plugin}
+    source_and_zcompile_if_needed ${plugin}
   fi
 done
 
-source ${SUBMODULE_DIR}zsh-bd/bd.zsh
+source_and_zcompile_if_needed "${SUBMODULE_DIR}zsh-bd/bd.zsh"
 
-source ${SUBMODULE_DIR}zaw/zaw.zsh
+source_and_zcompile_if_needed "${SUBMODULE_DIR}zaw/zaw.zsh"
 # zstyle ':filter-select:highlight' selected fg=black,bg=white,standout
 zstyle ':filter-select:highlight' matched fg=yellow,standout
 zstyle ':filter-select' max-lines 20 # use 10 lines for filter-select
