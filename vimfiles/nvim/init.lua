@@ -10,4 +10,5 @@ require('keymaps')
 require('api')
 
 -- プラグインの設定
-require('plugins')
+require("config.lazy")
+
