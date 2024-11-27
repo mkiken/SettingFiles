@@ -504,8 +504,8 @@ bindkey -M menuselect '\r' accept-line
 eval "$(zoxide init zsh --cmd cd)"
 
 
-if exists ~/.zshrc_local; then
-  source ~/.zshrc_local
+if exists ~/.zprofile_local; then
+  source ~/.zprofile_local
 fi
 
 # 自動コンパイル
