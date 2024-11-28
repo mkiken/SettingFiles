@@ -1,4 +1,5 @@
 if [ -z "$TMUX" ]; then
+  tmux new-session -A -s tmux
   exit
 fi
 
