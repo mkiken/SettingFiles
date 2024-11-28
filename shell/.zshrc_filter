@@ -1,4 +1,11 @@
 #!/bin/zsh
+FILTER_TOOL='fzf-tmux'
+
+if ! exists ${FILTER_TOOL}; then
+  exit
+fi
+
+FILTER_COMMAND='${FILTER_TOOL} --cycle --exit-0 --ansi'
 alias filter="${FILTER_COMMAND}"
 
 if [ -z "$FILTER_COMMAND" ]; then

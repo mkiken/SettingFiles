@@ -30,8 +30,6 @@ SUBMODULE_DIR="${SET}submodules/"
 BREW_PREFIX="$(brew --prefix)"
 BREW_CASKROOM="$BREW_PREFIX/Caskroom"
 BREW_CELLAR="$BREW_PREFIX/Cellar"
-FILTER_TOOL='fzf-tmux'
-FILTER_COMMAND='${FILTER_TOOL} --cycle --exit-0 --ansi'
 
 #read Aliases
 source_and_zcompile_if_needed "${SET}shell/.aliases"
@@ -445,9 +443,8 @@ man() {
 
 function exists { which $1 &> /dev/null }
 
-if exists ${FILTER_TOOL}; then
-  source_and_zcompile_if_needed "${SET}shell/.zshrc_filter"
-fi
+source_and_zcompile_if_needed "${SET}shell/.zshrc_filter"
+
 # Wait until this many characters have been typed, before showing completions.
 
 # Znap automatically enables git maintenance in each repo that it manages.
