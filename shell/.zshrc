@@ -1,3 +1,8 @@
+# https://intellij-support.jetbrains.com/hc/en-us/articles/15268184143890-Shell-Environment-Loading
+if [[ $INTELLIJ_ENVIRONMENT_READER ]]; then
+  return
+fi
+
 if [ -z "$TMUX" ]; then
   tmux new-session -A -s tmux
   exit
