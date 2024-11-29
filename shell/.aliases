@@ -17,6 +17,7 @@ alias df='duf'
 alias top='glances'
 alias wget='aria2c'
 alias curl='https'
+alias find='fd'
 alias -g L='| less'
 alias -g LC='| lessc'
 #MacVim on CUI
