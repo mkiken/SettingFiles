@@ -449,7 +449,7 @@ man() {
 function exists { which $1 &> /dev/null }
 
 # zcompileしたいが、エラーになるのでいったんそのままsourceする
-source "${SET}shell/.zshrc_filter"
+source_and_zcompile_if_needed "${SET}shell/.zshrc_filter"
 
 # Wait until this many characters have been typed, before showing completions.
 
