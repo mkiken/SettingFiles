@@ -5,7 +5,7 @@ fi
 
 if [ -z "$TMUX" ]; then
   tmux new-session -A -s tmux
-  exit
+  return
 fi
 
 function zcompile_if_needed() {
