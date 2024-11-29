@@ -37,18 +37,6 @@ alias -g nv='nvim'
 # alias visp='mvim -o'
 # alias vivsp='mvim -O'
 alias pg='sudo purge'
-alias ag='ag -S --stats -m 100000 --color'
-alias agh='ag --hidden'
-alias agl='ag -l'
-# http://shigemk2.hatenablog.com/entry/2014/09/08/find%E3%81%A8silver_searcher%E3%82%92%E7%B5%84%E3%81%BF%E5%90%88%E3%82%8F%E3%81%9B%E3%81%A6%E3%80%81%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB%E5%90%8D%E3%82%92%E6%A4%9C%E7%B4%A2%E3%81%99%E3%82%8B
-alias agf='find . -type f | ag'
-alias agd='find . -type d | ag'
-alias agn='find . | ag'
-alias agu='ag -u' # 隠しファイルおよび無視リストも対象
-alias agp='ag --pager="less -R"'
-alias agg='ag --hidden -g' # ファイル名で検索（隠しファイル含む）
-alias agga='ag -u -g' # ファイル名で検索（全てのファイル）
-alias agq='ag -Q' # 正規表現を無視
 
 alias br='brew'
 alias cask='brew cask'
@@ -361,15 +349,6 @@ function _vsp() {
   tmux split-window -h "$*"
 }
 
-# ファイル名で絞って検索
-function agG() {
-	if test $# -lt 2; then
-		echo "need at least 2 argument."
-		return 1
-  fi
-	ag $1 -G $2
-}
-
 # http://stackoverflow.com/questions/5349718/how-can-i-repeat-a-character-in-bash
 function up() {
 	if test $# -lt 1; then
@@ -391,7 +370,6 @@ function ranger() {
         exit
     fi
 }
-alias rg='ranger'
 
 
 # function dirdiff(){
