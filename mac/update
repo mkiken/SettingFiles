@@ -4,7 +4,6 @@ REPO="${HOME}/Desktop/repository/"
 SET="${REPO}SettingFiles/"
 SUBMODULE_DIR="${SET}submodules/"
 
-
 echo "start git submodule setting."
 git submodule sync
 git submodule update --recursive --remote
@@ -17,20 +16,8 @@ brew cleanup -s
 brew bundle
 echo "end brew update."
 
-# $CD_HISTORY_FILEを軽量化
-if [ -n "$CD_HISTORY_FILE" ]; then
-   local contents="$(cat $CD_HISTORY_FILE | sort | uniq)"
-   echo $contents > $CD_HISTORY_FILE
-fi
-
-# Lazy + tree-sitterののアップデート
-# nvim --headless "+Lazy! sync | TSUpdate" +qa
-
-# NvChadのアップデート
-# nvim +'hi NormalFloat guibg=#1e222a' +NvChadUpdate +PackerSync
-
-# deinのアップデート
-nvim -c "call dein#update()" -c qa
+# Lazy + tree-sitterのアップデート
+nvim --headless "+Lazy! sync | TSUpdate" +qa
 
 source ${SUBMODULE_DIR}/zsh-snap/znap.zsh  # Start Znap
 znap pull
