@@ -361,14 +361,15 @@
   # Change the value of this parameter to show a different icon.
   typeset -g POWERLEVEL9K_VCS_UNTRACKED_ICON='?'
 
-  # スラッシュ区切りの最後から2つ目以外の部分を2文字に短縮する
+  # スラッシュ区切りの最後からlength目以外の部分を2文字に短縮する
   function shorten_branch_name {
     string=$1
+    length=$2
     array=("${(s:/:)string}")
     result=""
 
     for ((i = 1; i <= ${#array[@]} - 1; i++)); do
-      if [[ i -le (${#array[@]}-2) ]] then
+      if [[ i -le (${#array[@]}-${length}) ]] then
         result="${result}${array[i]:0:2}/"
       else
         result="${result}${array[i]}/"
@@ -409,7 +410,7 @@
 
     if [[ -n $VCS_STATUS_LOCAL_BRANCH ]]; then
       local branch=${(V)VCS_STATUS_LOCAL_BRANCH}
-      branch=`shorten_branch_name $branch`
+      branch=`shorten_branch_name $branch 2`
 
       # If local branch name is at most 32 characters long, show it in full.
       # Otherwise show the first 12 … the last 12.
@@ -424,7 +425,7 @@
           && -z $VCS_STATUS_LOCAL_BRANCH  # <-- this line
         ]]; then
       local tag=${(V)VCS_STATUS_TAG}
-      tag=`shorten_branch_name $tag`
+      tag=`shorten_branch_name $tag 1`
       # If tag name is at most 32 characters long, show it in full.
       # Otherwise show the first 12 … the last 12.
       # Tip: To always show tag name in full without truncation, delete the next line.
@@ -440,7 +441,8 @@
     # Show tracking branch name if it differs from local branch.
     if [[ -n ${VCS_STATUS_REMOTE_BRANCH:#$VCS_STATUS_LOCAL_BRANCH} ]]; then
       local remote_branch=${(V)VCS_STATUS_REMOTE_BRANCH}
-      remote_branch=`shorten_branch_name $remote_branch`
+      remote_branch=`shorten_branch_name $remote_branch 1`
+      (( $#remote_branch > 32 )) && remote_branch[13,-13]="…"  # <-- this line
       res+="${meta}:${clean}${remote_branch//\%/%%}"
     fi
 
