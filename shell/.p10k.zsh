@@ -369,7 +369,7 @@
     result=""
 
     for ((i = 1; i <= ${#array[@]} - 1; i++)); do
-      if [[ i -le (${#array[@]}-${length}) ]] then
+      if [[ i -le ${#array[@]}-$length ]] then
         result="${result}${array[i]:0:2}/"
       else
         result="${result}${array[i]}/"
