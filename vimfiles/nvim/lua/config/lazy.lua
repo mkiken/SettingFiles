@@ -21,11 +21,19 @@ vim.opt.rtp:prepend(lazypath)
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 
+local plugins
+  -- VSCode用設定
+if vim.g.vscode then
+  plugins = { import = "plugins_vscode" }
+else
+  -- 通常のNeovim用設定
+  plugins = { import = "plugins" }
+end
 -- Setup lazy.nvim
 require("lazy").setup({
   spec = {
     -- import your plugins
-    { import = "plugins" },
+    plugins
   },
   -- Configure any other settings here. See the documentation for more details.
   -- colorscheme that will be used when installing plugins.
