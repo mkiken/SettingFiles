@@ -1,5 +1,5 @@
 #!/bin/sh
-EDIT_COMMAND='zed'
+EDIT_COMMAND='cursor'
 export VISUAL='nvim'
 
 #expanded command
@@ -18,30 +18,21 @@ alias top='glances'
 alias wget='aria2c'
 alias curl='https'
 alias find='fd'
+alias cat='bat --style=plain'
+alias du='dust'
+
+alias l='ls'
+
 alias -g L='| less'
 alias -g LC='| lessc'
 #MacVim on CUI
-# alias -g VI='mvim --remote-tab-silent'
-# alias vi='mvim --remote-tab-silent'
 alias vi='nv'
-# alias vim-orig='vim -u NONE --noplugin'
 alias -g nvim-orig='nvim -u NONE --noplugin'
 alias -g nv='nvim'
 
-# function es(){
-#   emacs $@ &
-# }
-# function ec(){
-#   emacsclient $@ &
-# }
-# alias visp='mvim -o'
-# alias vivsp='mvim -O'
 alias pg='sudo purge'
 
-alias br='brew'
 alias cask='brew cask'
-alias cat='bat --style=plain'
-alias du='dust'
 
 alias karabiner-export='/Applications/Karabiner.app/Contents/Library/bin/karabiner export > ${SET}mac/karabiner-setting.sh'
 alias karabiner-import='sh ${SET}mac/karabiner-setting.sh'
@@ -60,12 +51,9 @@ alias ng='noglob'
 #display all files,End with true or false
 alias allfile='defaults write com.apple.finder AppleShowAllFiles'
 
-# for server
-alias ap='sudo apachectl'
-alias cdphp='cd /Library/WebServer/Documents/'
-alias cdphpl='cd /Users/${USER}/Sites'
 alias -g pc='pbcopy'
 alias -g pp='pbpaste'
+
 ;;
 
 # --------------- Linux ---------------
@@ -84,11 +72,6 @@ esac
 #alias refresh='source ~/.bashrc'
 alias reload='zcompile ~/.zshrc;source ~/.zshrc;echo "zshrc reloaded.";zcompile ~/.zprofile;source ~/.zprofile;echo "zprofile reloaded."'
 
-alias pyserv='python -m SimpleHTTPServer'
-
-alias l='eza'
-alias le='less'
-
 #cd
 alias cdd='cd ~/Desktop'
 alias cdrepo='cd ${REPO}'
@@ -99,8 +82,6 @@ alias bashrc="$EDIT_COMMAND ~/.bashrc"
 alias zshrc="$EDIT_COMMAND ${SET}/shell/.zshrc"
 alias filterconfig="$EDIT_COMMAND ${SET}/shell/.zshrc_filter"
 alias aliases="$EDIT_COMMAND ${SET}/shell/.aliases"
-# alias vimrc="$EDIT_COMMAND ~/.vimrc"
-# alias gvimrc="$EDIT_COMMAND ~/.gvimrc"
 alias nviminit="$EDIT_COMMAND ${SET}/vimfiles/nvim/init.vim"
 alias vimrc_common="$EDIT_COMMAND ${SET}/vimfiles/.vimrc.common"
 alias gitconfig="$EDIT_COMMAND ${SET}/gitfiles/.gitconfig"
@@ -113,26 +94,16 @@ alias tmuxconf="$EDIT_COMMAND ${SET}/.tmux.conf"
 alias macinit="$EDIT_COMMAND ${SET}/mac/initialize"
 alias macupdate="$EDIT_COMMAND ${SET}/mac/update"
 alias submoduleconf="$EDIT_COMMAND ${SET}/.gitmodules"
-# alias tigrc="$EDIT_COMMAND ${SET}/.tigrc"
-alias dein="$EDIT_COMMAND ${SET}/vimfiles/dein/nvim/dein.toml"
-alias dein_lazy="$EDIT_COMMAND ${SET}/vimfiles/dein/nvim/dein_lazy.toml"
-# alias atomconfig='$EDIT_COMMAND ${SET}/atom/.atom/config.cson'
 
 #shortcut for git
 alias cdgr='cd `g repository`'
 alias g='noglob git'
 alias ga='git add'
 alias gaa='ga .'
-alias gac='git add reset HEAD'
-alias gad='git added'
 alias gb='git branch'
 alias gbD='gb -D'
 alias gba='gb -a'
 alias gbd='gb -d'
-alias gbrsync='git fetch --prune'
-alias gbs='g bs'
-alias gbsb='g bs bad'
-alias gbsg='g bs good'
 alias gca='gci --amend'
 alias gcb='git current-branch'
 alias gcf='g conflicts'
@@ -146,57 +117,22 @@ alias gcot='gco --theirs'
 alias gcp='g cp'
 alias gd='git diff'
 alias gdc='gd --cached'
-alias gdel='git deleted'
-alias gdfw='git wdf'
 alias gdn='gd --name-status'
-alias gdp='ng git diff HEAD^ HEAD'
-alias gdt='g dt'
 alias gfp='git fetch --all --prune'
-alias gft='git fetch'
-alias ggr='git gr'
-alias ghb='git hisback'
-alias gl1='gl --oneline'
 alias gl='git log'
-alias glg='git lg'
 alias gln='gl --name-only'
 alias glns='gl --name-status'
 alias glp='gl -p'
-alias glst='gl --stat'
-alias gmd='git modified'
 alias gmg='git merge'
 alias gmgs='gmg --squash'
-alias gmt='g mt'
-alias gmv='g mv'
-alias gpl-dry-run='git pull-dry-run'
 alias gpl='g pl'
-alias gps-dry-run='git push -n'
 alias gps='git push -u'
-alias gr0='g r0'
-alias grb='git rb'
-alias grba='grb --abort'
-alias grbc='grb --continue'
-alias grbi='grb -i'
-alias grl='g rl'
 alias grm='g rm'
-alias grn='basename `g repository`'
-alias grp='git remote prune origin'
 alias grv='g rv'
 alias gs='git s'
 alias gsa='g s -s | grep "A"'
 alias gsd='g s -s | grep "D"'
 alias gsm='g s -s | grep "M"'
-alias gsms='g sm status'
-alias gsmu='g smupdate'
-alias gst='git st'
-alias gstd='gst drop'
-alias gstp='gst pop'
-alias gsts='gst show'
-alias gstu='gst -u'
-alias gsu='g s -s | grep "U"'
-alias gsuu='g s -s | grep "UU"'
-alias gtr='git tree'
-alias gvdf='git vdf'
-alias gvmd='git vmodified'
 alias gsw='g sw'
 alias gswc='g sw -c'
 
@@ -215,13 +151,8 @@ function gbl(){
   g bl $@ | gsed -f "${SET}sedfiles/colorize_git_blame.sed" | less
 }
 
-function tflog(){
+function tf(){
   tail -f $@ | gsed -f "${SET}sedfiles/colorize_log.sed"
-}
-
-function gdfb(){
-  branch=`g current-branch`
-  g df $1 "${branch}" $2
 }
 
 function gprb(){
@@ -232,29 +163,8 @@ function gprb(){
 
 function gbm(){
   branch=`g current-branch`
-  gb -m "${branch}" $@
+  g branch -m "${branch}" $@
 }
-
-function gd-file(){
-	if test $# -eq 0
-	then
-		echo "no argument found."
-		return 1
-	fi
-  my_branch=`g current-branch`
-	if test $# -eq 1
-	then
-		gd master $my_branch $1
-		return 0
-	fi
-  gd $1 $my_branch $2
-}
-
-#shortcut for Application
-alias e='./a.out'
-# alias cot='open -a CotEditor'
-# alias aq='aquamacs'
-alias ccp='noglob ccp'
 
 alias zmv='noglob zmv -W'
 alias zcp='zmv -C'
@@ -267,59 +177,10 @@ alias sz='dust -d 1 -Dr'
 
 # tmux
 alias tm='tmux'
-alias tma='tm a -t'
-alias tmn='tm new'
-alias tmc='tm new -s'
-alias tmr='tm rename-session -t'
-alias tmk='tm kill-session -t'
 alias tmks='tm kill-server'
-alias tmss='tm start-server'
 
 #tig/gitui
 alias t='lazygit'
-
-alias -g V='| view -'
-
-alias php-syntax-check='find . -name "*.php" -exec php -l {} \; | grep -v "No syntax errors detected in"'
-alias php-syntax-check-full='find . -name "*.php" -exec php -l {} \;'
-
-# 現在のディレクトリ以下の当てはまるファイルを全て削除する
-# http://www.omnioo.com/omnioolab/2012/07/find.php
-alias rrm='noglob _rrm'
-function _rrm(){
-  opt=""
-  rmopt=""
-  while getopts "i" flag; do
-    case $flag in
-      \?) arg+=$flag; break;;
-      i) opt+="i";rmopt+="i";;
-    esac
-  done
-  shift $(( $OPTIND - 1 ))
-
-  find -L . "-${opt}name" "*${@}*"
-  echo "remove all above? [y/N]"
-  read ANSWER
-  case $ANSWER in
-      "Y" | "y" | "yes" | "Yes" | "YES" )
-          find -L . "-${opt}name" "*${@}*" -exec rm "-r${rmopt}" {} \;;
-          echo "$@ removed recursively.";;
-      * ) echo "rrm canceled.";;
-  esac
-}
-
-# Haskellのファイルをa.outでコンパイルする
-# その際、オブジェクトファイル(.o)とインターフェースファイル(.hi)を削除
-function ghca(){
-    ghc $1 -o a.out
-        ret=$?
-        if test ${ret} -eq 0
-            then
-                fname=`echo $1 | sed -e "s/\.[^.]*$//"`
-                rm ${fname}.hi
-                rm ${fname}.o
-                fi
-}
 
 # tmuxで新しくペインを作成してコマンドを実行
 # 水平分割
@@ -370,11 +231,6 @@ function ranger() {
         exit
     fi
 }
-
-
-# function dirdiff(){
-  # vim -c DirDiff $1 $2
-# }
 
 # http://shigemk2.hatenablog.com/entry/20130629/1372463353
 # 現在の作業ブランチにマージしていないブランチを削除
@@ -456,8 +312,6 @@ function g-delete-branch-not-in-remote-interactive() {
       esac
     fi
   done
-
-  # cd $OLDPWD
 }
 
 function fullpath(){
