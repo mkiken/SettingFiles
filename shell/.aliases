@@ -136,6 +136,7 @@ alias gsd='g s -s | grep "D"'
 alias gsm='g s -s | grep "M"'
 alias gsw='g sw'
 alias gswc='g sw -c'
+alias gmt='g mt'
 
 alias gh-pr-create='gh pr create --web'
 alias gh-pr-view='gh pr view --web'
