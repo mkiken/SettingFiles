@@ -41,7 +41,6 @@ alias fglp='fgl -p'
 alias fgd='filter_git_command git diff'
 alias fgdn='fgd --name-status'
 alias fglst='fgl --stat'
-# alias fgsw-pr='gh pr list | awk \\'{print $(NF-1)}\\' | filter | xargs git switch'
 
 alias fls='ls -aR | filter --preview "bat --color=always --style=header,grid {}"'
 alias ffind='find -L . -name "*" | filter --preview "bat --color=always --style=header,grid {}"'
@@ -52,7 +51,7 @@ alias fopen='filter_find_command open'
 alias fless='filter_find_command less'
 alias fnvim='filter_find_command nvim'
 # http://qiita.com/itkrt2y/items/0671d1f48e66f21241e2
-alias fghq='save_history cd $(ghq root)/$(ghq list | filter)'
+# alias fghq='save_history cd $(ghq root)/$(ghq list | filter)'
 
 function fcat(){
   cat -n $@ | filter
@@ -129,6 +128,9 @@ function fgsf-remote(){
   local temp=`br_fmt | xargs echo`
   save_history git show "remotes/origin/${temp}":"$@"
 }
+
+# github cli
+alias fghpc='br_fmt | xargs gh pr create --web --base'
 
 function gh-pr-fgsw(){
   gh pr list | awk '{print $3}' | filter | xargs git switch
