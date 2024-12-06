@@ -81,6 +81,7 @@ alias cds='cd ${SET}'
 #shortcut for setting files
 alias bashrc="$EDIT_COMMAND ~/.bashrc"
 alias zshrc="$EDIT_COMMAND ${SET}/shell/.zshrc"
+alias zshrc_local="$EDIT_COMMAND ~/.zshrc_local"
 alias filterconfig="$EDIT_COMMAND ${SET}/shell/.zshrc_filter"
 alias aliases="$EDIT_COMMAND ${SET}/shell/.aliases"
 alias nviminit="$EDIT_COMMAND ${SET}/vimfiles/nvim/init.vim"
