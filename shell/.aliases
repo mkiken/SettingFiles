@@ -9,6 +9,7 @@ darwin*)
 # ここに設定
 # alias ls='ls -G'
 # alias la='ls -A'
+alias c='cursor'
 alias ls='eza --time-style=long-iso -g'
 alias tree='eza -T'
 alias la='ls -a'
@@ -144,10 +145,12 @@ alias gstp='gst pop'
 alias gsts='gst show'
 alias gstu='gst -u'
 
-alias gh-pr-create='gh pr create --web'
-alias gh-pr-view='gh pr view --web'
-alias ghpc='gh-pr-create'
-alias ghpv='gh-pr-view'
+# github cli
+alias ghb='gh browse'
+alias ghpc='gh pr create --web'
+alias ghpv='gh pr view --web'
+alias ghpl='gh pr list'
+alias ghco='gh co'
 
 function lessc(){
 	export LESSOPEN='| /usr/local/bin/src-hilite-lesspipe.sh %s'

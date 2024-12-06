@@ -113,6 +113,12 @@ function filter_git_command_fmt(){
   save_history $cmd
 }
 
+# filter git diff for file
+function fgd-file(){
+  local temp=`br_fmt | xargs echo`
+  save_history git diff "${temp}" -- "$@"
+}
+
 # filter tool git show file
 function fgsf(){
   local temp=`br_fmt | xargs echo`
@@ -124,7 +130,7 @@ function fgsf-remote(){
   save_history git show "remotes/origin/${temp}":"$@"
 }
 
-function fgsw-pr(){
+function gh-pr-fgsw(){
   gh pr list | awk '{print $3}' | filter | xargs git switch
 
 }
