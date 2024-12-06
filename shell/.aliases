@@ -167,7 +167,7 @@ alias vless="$VIMRUNTIME/macros/less.sh"
 
 
 function gbl(){
-  g bl $@ | gsed -f "${SET}sedfiles/colorize_git_blame.sed" | less
+  git bl $@ | gsed -f "${SET}sedfiles/colorize_git_blame.sed" | less
 }
 
 function tf(){
@@ -175,14 +175,14 @@ function tf(){
 }
 
 function gprb(){
-  branch=`g current-branch`
-  remote=`g remote`
-  g pl --rebase "${remote}" "${branch}"
+  branch=`git current-branch`
+  remote=`git remote`
+  git pl --rebase "${remote}" "${branch}"
 }
 
 function gbm(){
-  branch=`g current-branch`
-  g branch -m "${branch}" $@
+  branch=`git current-branch`
+  git branch -m "${branch}" $@
 }
 
 alias zmv='noglob zmv -W'
