@@ -130,11 +130,22 @@ function fgsf-remote(){
 }
 
 # github cli
+# マージ先ブランチを選んでPRを作成
 alias fghpc='br_fmt | xargs gh pr create --web --base'
 
-function gh-pr-fgsw(){
-  gh pr list | awk '{print $3}' | filter | xargs git switch
+# PR一覧からブラウザで開く
+function fghpv(){
+  gh pr list | filter | awk '{print $1}' | xargs gh pr view --web
+}
 
+# 自分のPR一覧からブラウザで開く
+function fghpvm(){
+  gh pr list --author @me | filter | awk '{print $1}' | xargs gh pr view --web
+}
+
+# PR一覧からチェックアウト
+function fghpco(){
+  gh pr list | filter | awk '{print $1}' | xargs gh co
 }
 
 # fcd-down - cd to selected directory

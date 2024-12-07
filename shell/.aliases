@@ -153,8 +153,8 @@ alias ghpc='gh pr create --web'
 alias ghpv='gh pr view --web'
 alias ghpl='gh pr list'
 alias ghplm='gh pr list --author @me'
+alias ghplmw='gh pr list --web --author @me'
 alias ghplw='gh pr list --web'
-alias ghplwm='gh pr list --web --author @me'
 alias ghco='gh co'
 
 function lessc(){
