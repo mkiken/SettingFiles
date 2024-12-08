@@ -148,6 +148,11 @@ function fghpco(){
   gh pr list | filter | awk '{print $1}' | xargs gh co
 }
 
+# 自分のPR一覧からチェックアウト
+function fghpcom(){
+  gh pr list --author @me | filter | awk '{print $1}' | xargs gh co
+}
+
 # fcd-down - cd to selected directory
 # https://qiita.com/kamykn/items/aa9920f07487559c0c7e
 function fcd-down() {
