@@ -26,7 +26,6 @@ alias l='ls'
 
 alias -g less='vless'
 alias -g L='| less'
-alias -g LC='| lessc'
 #MacVim on CUI
 alias vi='nv'
 alias -g nvim-orig='nvim -u NONE --noplugin'
@@ -157,11 +156,6 @@ alias ghplmw='gh pr list --web --author @me'
 alias ghplw='gh pr list --web'
 alias ghco='gh co'
 
-function lessc(){
-	export LESSOPEN='| /usr/local/bin/src-hilite-lesspipe.sh %s'
-	less $1
-	LESSOPEN=''
-}
 VIMRUNTIME=$(nvim --clean --headless --cmd 'echo $VIMRUNTIME|q' 2>&1)
 alias vless="$VIMRUNTIME/macros/less.sh"
 
