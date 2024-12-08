@@ -453,11 +453,12 @@ source_and_zcompile_if_needed "${SET}shell/.zshrc_filter"
 
 # Wait until this many characters have been typed, before showing completions.
 
+source_and_zcompile_if_needed "${SUBMODULE_DIR}/zsh-snap/znap.zsh"  # Start Znap
+
 # Znap automatically enables git maintenance in each repo that it manages.
 # This automatically optimizes your repos in the background, so that your git and znap commands will run faster.
 zstyle ':znap:*:*' git-maintenance off
 
-source_and_zcompile_if_needed "${SUBMODULE_DIR}/zsh-snap/znap.zsh"  # Start Znap
 # `znap source` automatically downloads and starts your plugins.
 znap source zsh-users/zsh-autosuggestions
 
