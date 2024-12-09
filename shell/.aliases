@@ -149,11 +149,12 @@ gh config set editor "nvim"
 
 alias ghb='gh browse'
 alias ghpc='gh pr create --web'
-alias ghpv='gh pr view --web'
-alias ghpl='gh pr list'
-alias ghplm='gh pr list --author @me'
-alias ghplmw='gh pr list --web --author @me'
-alias ghplw='gh pr list --web'
+alias -g ghpv='gh pr view --web'
+# デフォルトの30件だと少ないので100件取得
+alias ghpl='gh pr list -L 100'
+alias ghplm='ghpl --author @me'
+alias ghplw='ghpl --web'
+alias ghplmw='ghplw --author @me'
 alias ghco='gh co'
 
 VIMRUNTIME=$(nvim --clean --headless --cmd 'echo $VIMRUNTIME|q' 2>&1)
