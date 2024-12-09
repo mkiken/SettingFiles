@@ -11,7 +11,7 @@ fi
 function zcompile_if_needed() {
     local file="$1"
     if [ ! -f "${file}.zwc" -o "$file" -nt "${file}.zwc" ]; then
-        zcompile "$file"
+        zcompile -ca "$file"
     fi
 }
 
