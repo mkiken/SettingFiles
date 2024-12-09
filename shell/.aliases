@@ -150,12 +150,13 @@ gh config set editor "nvim"
 alias ghb='gh browse'
 alias ghpc='gh pr create --web'
 alias -g ghpv='gh pr view --web'
+alias -g ghco='gh co'
+
 # デフォルトの30件だと少ないので100件取得
 alias ghpl='gh pr list -L 100'
 alias ghplm='ghpl --author @me'
 alias ghplw='ghpl --web'
 alias ghplmw='ghplw --author @me'
-alias ghco='gh co'
 
 VIMRUNTIME=$(nvim --clean --headless --cmd 'echo $VIMRUNTIME|q' 2>&1)
 alias vless="$VIMRUNTIME/macros/less.sh"
