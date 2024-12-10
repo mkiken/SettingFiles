@@ -24,6 +24,7 @@ function select-history() {
   # zle accept-line # 選択した履歴を即座に実行
 }
 zle -N select-history
+bindkey '^R' select-history
 
 
 alias fgsw='filter_git_command_fmt git switch'

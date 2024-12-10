@@ -11,6 +11,8 @@ fi
 function zcompile_if_needed() {
     local file="$1"
     if [ ! -f "${file}.zwc" -o "$file" -nt "${file}.zwc" ]; then
+        # -caをつけないとなぜか関数内のaliasがnot foundと言われる。ただ、zcompileしなおされると初回起動でtmuxのpaneが死ぬ。zcompile中に落ちる？
+        # https://zsh.sourceforge.io/Doc/Release/Shell-Builtin-Commands.html#index-zcompile
         zcompile -ca "$file"
     fi
 }
@@ -326,7 +328,7 @@ setopt ignore_eof
 # WORDCHARS=${WORDCHARS:s,/,,}
 WORDCHARS='*?[]~&!#$%^(){}<>'
 
-# http://mba-hack.blogspot.jp/2012/11/zsh.html
+# コマンドを一時保存する
 show_buffer_stack() {
   POSTDISPLAY="
 stack: $LBUFFER"
@@ -448,7 +450,6 @@ man() {
 
 function exists { which $1 &> /dev/null }
 
-# zcompileしたいが、エラーになるのでいったんそのままsourceする
 source_and_zcompile_if_needed "${SET}shell/.zshrc_filter"
 
 # Wait until this many characters have been typed, before showing completions.
@@ -478,8 +479,6 @@ zstyle ':filter-select' rotate-list yes # enable rotation for filter-select
 zstyle ':filter-select' case-insensitive yes # enable case-insensitive search
 zstyle ':filter-select' extended-search yes # see below
 zstyle ':filter-select' hist-find-no-dups yes # ignore duplicates in history source
-
-bindkey '^R' select-history
 
 # Return key in completion menu & history menu:
 bindkey -M menuselect '\r' accept-line
