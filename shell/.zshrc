@@ -452,6 +452,9 @@ function exists { which $1 &> /dev/null }
 
 source_and_zcompile_if_needed "${SET}shell/.zshrc_filter"
 
+# znapよりも先に読み込まないと上位ディレクトリの補完が効かない
+source_and_zcompile_if_needed "${SUBMODULE_DIR}zsh-bd/bd.zsh"
+
 # Wait until this many characters have been typed, before showing completions.
 
 source_and_zcompile_if_needed "${SUBMODULE_DIR}/zsh-snap/znap.zsh"  # Start Znap
@@ -469,8 +472,6 @@ for plugin in $plugins; do
     source_and_zcompile_if_needed ${plugin}
   fi
 done
-
-source_and_zcompile_if_needed "${SUBMODULE_DIR}zsh-bd/bd.zsh"
 
 # zstyle ':filter-select:highlight' selected fg=black,bg=white,standout
 zstyle ':filter-select:highlight' matched fg=yellow,standout
