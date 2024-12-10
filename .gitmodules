@@ -2,10 +2,6 @@
 	path = submodules/zsh-bd
 	url = https://github.com/Tarrasch/zsh-bd
   ignore = untracked
-[submodule "submodules/zsh-background-notify"]
-	path = submodules/zsh-background-notify
-	url = https://github.com/t413/zsh-background-notify.git
-  ignore = untracked
 [submodule "submodules/zsh-snap"]
 	path = submodules/zsh-snap
 	url = https://github.com/marlonrichert/zsh-snap.git
