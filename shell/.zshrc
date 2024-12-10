@@ -465,8 +465,9 @@ zstyle ':znap:*:*' git-maintenance off
 
 # `znap source` automatically downloads and starts your plugins.
 znap source zsh-users/zsh-autosuggestions
+znap source z-shell/F-Sy-H
 
-local plugins=("${SUBMODULE_DIR}f-sy-h/F-Sy-H.plugin.zsh" "${SUBMODULE_DIR}zsh-background-notify/bgnotify.plugin.zsh")
+local plugins=("${SUBMODULE_DIR}zsh-background-notify/bgnotify.plugin.zsh")
 for plugin in $plugins; do
   if [ -f ${plugin} ]; then
     source_and_zcompile_if_needed ${plugin}
