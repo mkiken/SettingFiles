@@ -56,7 +56,7 @@ alias fnvim='filter_find_command nvim'
 
 # 直近移動したブランチ一覧からgit switchする
 function fgbh(){
-  git --no-pager reflog | awk '$3 == "checkout:" && /moving from/ {print $8}' | uniq | head -30 | fzf | xargs git switch
+  git --no-pager reflog | awk '$3 == "checkout:" && /moving from/ {print $8}' | awk '!seen[$0]++' | head -30 | fzf | xargs git switch
 }
 
 function fcat(){
