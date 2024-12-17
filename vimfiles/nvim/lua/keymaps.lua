@@ -67,6 +67,9 @@ vim.api.nvim_set_keymap('i', '<C-r>', '<C-o><C-r>', { noremap = true, silent = t
 -- http://haya14busa.com/vim-break-undo-sequence-in-insertmode/
 vim.api.nvim_set_keymap('i', '<Space>', '<Space><C-g>u', { noremap = true, silent = true })
 
+-- Escapeを2回押して:nohlsearch
+vim.api.nvim_set_keymap('n', '<Esc><Esc>', ':nohlsearch<CR>', { noremap = true, silent = true })
+
 -- 設定ファイルの再読み込みキーマッピング
 vim.keymap.set('n', '<Leader>s', function()
   vim.cmd('source ~/.config/nvim/init.lua')
