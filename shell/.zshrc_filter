@@ -44,13 +44,12 @@ alias fgdn='fgd --name-status'
 alias fglst='fgl --stat'
 
 alias fls='ls -aR | filter --preview "bat --color=always --style=header,grid {}"'
-alias ffind='find -L . -name "*" | filter --preview "bat --color=always --style=header,grid {}"'
+alias ffind='finda | filter --preview "bat --color=always --style=header,grid {}"'
 alias fps='ps aux | filter'
 alias fkill='ps ax | filter | awk "{ print $1 }" | xargs kill'
 alias fopen='filter_find_command open'
-# alias fless='ffind | xargs less'
 alias fless='filter_find_command less'
-alias fnvim='filter_find_command nvim'
+alias fnv='filter_find_command nvim'
 # http://qiita.com/itkrt2y/items/0671d1f48e66f21241e2
 # alias fghq='save_history cd $(ghq root)/$(ghq list | filter)'
 
@@ -159,12 +158,12 @@ function fghpcom(){
   ghplm | filter | awk '{print $1}' | xargs ghco
 }
 
+alias fcdd='fcd-down'
 # fcd-down - cd to selected directory
 # https://qiita.com/kamykn/items/aa9920f07487559c0c7e
 function fcd-down() {
   local dir
-  dir=$(find ${1:-.} -path '*/\.*' -prune \
-                  -o -type d -print 2> /dev/null | filter +m) &&
+  dir=$(findd | filter +m) &&
   cd "$dir"
 }
 
