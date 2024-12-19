@@ -194,7 +194,6 @@ setopt nolistbeep
 setopt NO_beep
 
 ## Keybind configuration
-# emacs like keybind (e.x. Ctrl-a goes to head of a line and Ctrl-e goes to end of it)
 bindkey -v
 
 
@@ -345,12 +344,12 @@ pbcopy-buffer(){
 }
 
 zle -N pbcopy-buffer
-bindkey '^xp' pbcopy-buffer
+bindkey '^xy' pbcopy-buffer
 
 # http://qiita.com/mollifier/items/7b1cfe609a7911a69706
 autoload -Uz edit-command-line
 zle -N edit-command-line
-bindkey '^xe' edit-command-line
+bindkey '^v' edit-command-line
 
 # http://qiita.com/mollifier/items/33bda290fe3c0ae7b3bb
 zstyle ':completion:*:processes' command "ps -u $USER -o pid,stat,%cpu,%mem,cputime,command"
@@ -382,9 +381,6 @@ function google () {
 #zmv
 #http://mollifier.hatenablog.com/entry/20101227/p1
 autoload -Uz zmv
-
-# http://qiita.com/mollifier/items/9258c8fd8b59894b1bcd
-bindkey '^J' self-insert
 
 # http://mollifier.hatenablog.com/entry/20081210/1228917616
 # http://mollifier.hatenablog.com/entry/20090414/1239634907
