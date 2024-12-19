@@ -382,21 +382,8 @@ function google () {
 #http://mollifier.hatenablog.com/entry/20101227/p1
 autoload -Uz zmv
 
-# http://mollifier.hatenablog.com/entry/20081210/1228917616
-# http://mollifier.hatenablog.com/entry/20090414/1239634907
-autoload smart-insert-last-word
-zle -N insert-last-word smart-insert-last-word
-bindkey '^O' insert-last-word
-
-#http://qiita.com/items/156464de9caf64338b17
-bindkey "^[u" undo
-bindkey "^[r" redo
-# bindkey "^?" redo
-
-# altで単語移動
-# http://superuser.com/questions/301029/problem-with-ctrl-left-right-bindings-in-oh-my-zsh
-bindkey "[C" emacs-forward-word   #control left
-bindkey "[D" emacs-backward-word        #control right
+bindkey "^xu" undo
+bindkey "^xr" redo
 
 # http://mollifier.hatenablog.com/entry/20081214/1229229752
 function _kill-backward-blank-word() {
