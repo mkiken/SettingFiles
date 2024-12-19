@@ -211,6 +211,54 @@ setopt NO_beep
 # emacs like keybind (e.x. Ctrl-a goes to head of a line and Ctrl-e goes to end of it)
 bindkey -e
 
+# --------------------------------
+# zshにviのモードを表示する
+# --------------------------------
+# https://zenn.dev/nabezokodaikon/articles/41b92074b2e22f
+PROMPT_INS="%{${fg[blue]}%}[%n@%m] %~%{${reset_color}%}
+[INS]$ "
+PROMPT_NOR="%{${fg[blue]}%}[%n@%m] %~%{${reset_color}%}
+[NOR]$ "
+PROMPT_VIS="%{${fg[blue]}%}[%n@%m] %~%{${reset_color}%}
+[VIS]$ "
+
+PROMPT=$PROMPT_INS
+
+function zle-line-pre-redraw {
+    if [[ $REGION_ACTIVE -ne 0 ]]; then
+        NEW_PROMPT=$PROMPT_VIS
+    elif [[ $KEYMAP = vicmd ]]; then
+        NEW_PROMPT=$PROMPT_NOR
+    elif [[ $KEYMAP = main ]]; then
+        NEW_PROMPT=$PROMPT_INS
+    fi
+
+    if [[ $PROMPT = $NEW_PROMPT ]]; then
+        return
+    fi
+
+    PROMPT=$NEW_PROMPT
+
+    zle reset-prompt
+}
+
+function zle-keymap-select zle-line-init {
+    case $KEYMAP in
+        vicmd)
+            PROMPT=$PROMPT_NOR
+            ;;
+        main|viins)
+            PROMPT=$PROMPT_INS
+            ;;
+    esac
+
+    zle reset-prompt
+}
+
+zle -N zle-line-init
+zle -N zle-keymap-select
+zle -N zle-line-pre-redraw
+
 # historical backward/forward search with linehead string binded to ^P/^N
 # autoload history-search-end
 # zle -N history-beginning-search-backward-end history-search-end
@@ -468,6 +516,7 @@ zstyle ':znap:*:*' git-maintenance off
 znap source zsh-users/zsh-autosuggestions
 znap source z-shell/F-Sy-H
 znap source marzocchi/zsh-notify
+znap source jeffreytse/zsh-vi-mode
 
 zstyle ':notify:*' command-complete-timeout 6
 
