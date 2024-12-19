@@ -119,26 +119,11 @@ POWERLEVEL9K_CUSTOM_MY_HISTORY_COUNT="my_history_count"
 POWERLEVEL9K_CUSTOM_MY_HISTORY_COUNT_BACKGROUND="grey50"
 POWERLEVEL9K_CUSTOM_MY_HISTORY_COUNT_FOREGROUND="$DEFAULT_COLOR"
 
-# レポジトリ名
-# function get_git_repo_name {
-# 	# http://stackoverflow.com/questions/15715825/how-do-you-get-git-repos-name-in-some-git-repository
-# 	local tmp_path=$(git rev-parse --show-toplevel 2>/dev/null)
-# 	if [ -n "$tmp_path" ]; then
-# 		echo `basename $tmp_path`
-# 	fi
-# }
-# POWERLEVEL9K_CUSTOM_GIT_REPO_NAME="get_git_repo_name"
-# POWERLEVEL9K_CUSTOM_GIT_REPO_NAME_BACKGROUND="green"
-# POWERLEVEL9K_CUSTOM_GIT_REPO_NAME_FOREGROUND="$DEFAULT_COLOR"
-
-# POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir custom_git_repo_name vcs)
-POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir vcs)
-POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status command_execution_time background_jobs custom_my_history_count time load ram)
+POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir vcs vi_mode)
+POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status command_execution_time background_jobs custom_my_history_count time)
 
 # ディレクトリ名表示
 POWERLEVEL9K_SHORTEN_DIR_LENGTH=2
-# POWERLEVEL9K_SHORTEN_DELIMITER=""
-# POWERLEVEL9K_SHORTEN_STRATEGY=truncate_from_right
 
 # http://qiita.com/yuyuchu3333/items/b10542db482c3ac8b059
 function chpwd() { pwd;ls_abbrev }
@@ -209,62 +194,28 @@ setopt NO_beep
 
 ## Keybind configuration
 # emacs like keybind (e.x. Ctrl-a goes to head of a line and Ctrl-e goes to end of it)
-bindkey -e
+bindkey -v
+
 
 # --------------------------------
 # zshにviのモードを表示する
 # --------------------------------
-# https://zenn.dev/nabezokodaikon/articles/41b92074b2e22f
-PROMPT_INS="%{${fg[blue]}%}[%n@%m] %~%{${reset_color}%}
-[INS]$ "
-PROMPT_NOR="%{${fg[blue]}%}[%n@%m] %~%{${reset_color}%}
-[NOR]$ "
-PROMPT_VIS="%{${fg[blue]}%}[%n@%m] %~%{${reset_color}%}
-[VIS]$ "
+# https://github.com/romkatv/powerlevel10k/issues/396
+POWERLEVEL9K_VI_INSERT_MODE_STRING=INS
+POWERLEVEL9K_VI_MODE_INSERT_BACKGROUND=cyan
+POWERLEVEL9K_VI_MODE_INSERT_FOREGROUND=black
 
-PROMPT=$PROMPT_INS
+POWERLEVEL9K_VI_COMMAND_MODE_STRING=NOR
+POWERLEVEL9K_VI_MODE_NORMAL_BACKGROUND=green
+POWERLEVEL9K_VI_MODE_NORMAL_FOREGROUND=black
 
-function zle-line-pre-redraw {
-    if [[ $REGION_ACTIVE -ne 0 ]]; then
-        NEW_PROMPT=$PROMPT_VIS
-    elif [[ $KEYMAP = vicmd ]]; then
-        NEW_PROMPT=$PROMPT_NOR
-    elif [[ $KEYMAP = main ]]; then
-        NEW_PROMPT=$PROMPT_INS
-    fi
+POWERLEVEL9K_VI_VISUAL_MODE_STRING=VIS
+POWERLEVEL9K_VI_MODE_VISUAL_BACKGROUND=purple
+POWERLEVEL9K_VI_MODE_VISUAL_FOREGROUND=black
 
-    if [[ $PROMPT = $NEW_PROMPT ]]; then
-        return
-    fi
-
-    PROMPT=$NEW_PROMPT
-
-    zle reset-prompt
-}
-
-function zle-keymap-select zle-line-init {
-    case $KEYMAP in
-        vicmd)
-            PROMPT=$PROMPT_NOR
-            ;;
-        main|viins)
-            PROMPT=$PROMPT_INS
-            ;;
-    esac
-
-    zle reset-prompt
-}
-
-zle -N zle-line-init
-zle -N zle-keymap-select
-zle -N zle-line-pre-redraw
-
-# historical backward/forward search with linehead string binded to ^P/^N
-# autoload history-search-end
-# zle -N history-beginning-search-backward-end history-search-end
-# zle -N history-beginning-search-forward-end history-search-end
-# bindkey "^P" history-beginning-search-backward-end
-# bindkey "^N" history-beginning-search-forward-end
+POWERLEVEL9K_VI_OVERWRITE_MODE_STRING=OVERTYPE
+POWERLEVEL9K_VI_MODE_OVERWRITE_BACKGROUND=blue
+POWERLEVEL9K_VI_MODE_OVERWRITE_FOREGROUND=white
 
 ## Command history configuration
 #
