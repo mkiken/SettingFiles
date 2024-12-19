@@ -145,6 +145,7 @@ alias gstd='gst drop'
 alias gstp='gst pop'
 alias gsts='gst show'
 alias gstu='gst -u'
+alias gprb='gpl --rebase'
 
 # github cli
 gh config set editor "nvim"
@@ -170,12 +171,6 @@ function gbl(){
 
 function tf(){
   tail -f $@ | gsed -f "${SET}sedfiles/colorize_log.sed"
-}
-
-function gprb(){
-  branch=`git current-branch`
-  remote=`git remote`
-  git pl --rebase "${remote}" "${branch}"
 }
 
 function gbm(){
