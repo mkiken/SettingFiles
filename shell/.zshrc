@@ -347,10 +347,6 @@ pbcopy-buffer(){
 zle -N pbcopy-buffer
 bindkey '^xp' pbcopy-buffer
 
-# http://qiita.com/yoshikaw/items/fe4aca1110979e223f7e
-bindkey '^]'   vi-find-next-char
-bindkey '^[^]' vi-find-prev-char
-
 # http://qiita.com/mollifier/items/7b1cfe609a7911a69706
 autoload -Uz edit-command-line
 zle -N edit-command-line
@@ -452,6 +448,12 @@ man() {
 function exists { which $1 &> /dev/null }
 
 source_and_zcompile_if_needed "${SET}shell/.zshrc_filter"
+
+# zsh-vi-modeにkeybindを上書きされないよう、このメソッドで設定
+# https://github.com/jeffreytse/zsh-vi-mode/issues/296
+function zvm_after_init() {
+  filter-bindkey
+}
 
 # znapよりも先に読み込まないと上位ディレクトリの補完が効かない
 source_and_zcompile_if_needed "${SUBMODULE_DIR}zsh-bd/bd.zsh"
