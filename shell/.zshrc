@@ -37,6 +37,7 @@ SUBMODULE_DIR="${SET}submodules/"
 BREW_PREFIX="$(brew --prefix)"
 BREW_CASKROOM="$BREW_PREFIX/Caskroom"
 BREW_CELLAR="$BREW_PREFIX/Cellar"
+EDITOR=nvim
 
 #read Aliases
 source_and_zcompile_if_needed "${SET}shell/.aliases"
