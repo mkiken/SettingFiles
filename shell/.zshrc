@@ -436,6 +436,7 @@ source_and_zcompile_if_needed "${SET}shell/.zshrc_filter"
 # https://github.com/jeffreytse/zsh-vi-mode/issues/296
 function zvm_after_init() {
   filter-bindkey
+  bindkey '^D' delete-char-or-list # デフォルトと同じだが、なぜか効かなくなるので再定義
 }
 
 # znapよりも先に読み込まないと上位ディレクトリの補完が効かない
