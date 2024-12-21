@@ -65,6 +65,7 @@ sudo chsh -s /usr/local/bin/zsh
 
 # for gh
 gh extension install dlvhdr/gh-dash
+gh extension install gennaro-tedesco/gh-f
 
 git submodule update --init
 
