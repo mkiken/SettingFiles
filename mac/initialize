@@ -63,6 +63,8 @@ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 # shell setting
 sudo chsh -s /usr/local/bin/zsh
 
+# for gh
+gh extension install dlvhdr/gh-dash
 
 git submodule update --init
 

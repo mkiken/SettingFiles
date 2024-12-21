@@ -154,6 +154,7 @@ alias ghb='gh browse'
 alias ghpc='gh pr create --web'
 alias -g ghpv='gh pr view --web'
 alias -g ghco='gh co'
+alias ghd='gh dash'
 
 # デフォルトの30件だと少ないので100件取得
 alias ghpl='gh pr list -L 100'
