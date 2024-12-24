@@ -19,7 +19,7 @@ alias -g F='| filter'
 
 # https://mogulla3.tech/articles/2021-09-06-search-command-history-with-incremental-search/
 function select-history() {
-  BUFFER=$(history -n -r 1 | fzf --exact --reverse --no-sort --query="$LBUFFER" --cycle --prompt="History > ")
+  BUFFER=$(history -n -r 1 | awk '!seen[$0]++' | fzf --exact --reverse --no-sort --query="$LBUFFER" --cycle --prompt="History > ")
   CURSOR=${#BUFFER}
   # zle accept-line # 選択した履歴を即座に実行
 }
@@ -58,7 +58,7 @@ alias fnv='filter_find_command nvim'
 
 # 直近移動したブランチ一覧からgit switchする
 function fgbh(){
-  git --no-pager reflog | awk '$3 == "checkout:" && /moving from/ {print $8}' | awk '!seen[$0]++' | head -30 | fzf | xargs git switch
+  git --no-pager reflog | awk '$3 == "checkout:" && /moving from/ {print $8}' | awk '!seen[$0]++' | head -30 | filter | xargs git switch
 }
 
 function fcat(){
