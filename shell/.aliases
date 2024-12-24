@@ -97,6 +97,7 @@ alias editorconfig="$EDIT_COMMAND ~/.editorconfig"
 alias tmuxconf="$EDIT_COMMAND ${SET}/.tmux.conf"
 alias macinit="$EDIT_COMMAND ${SET}/mac/initialize"
 alias macupdate="$EDIT_COMMAND ${SET}/mac/update"
+alias macbrewfile="$EDIT_COMMAND ${SET}/mac/Brewfile"
 alias submoduleconf="$EDIT_COMMAND ${SET}/.gitmodules"
 
 #shortcut for git
