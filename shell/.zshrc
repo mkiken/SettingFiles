@@ -1,3 +1,4 @@
+
 # https://intellij-support.jetbrains.com/hc/en-us/articles/15268184143890-Shell-Environment-Loading
 if [[ $INTELLIJ_ENVIRONMENT_READER ]]; then
   return
@@ -23,6 +24,12 @@ function source_and_zcompile_if_needed() {
     source "$file"
 }
 
+# 自動コンパイル
+# http://blog.n-z.jp/blog/2013-12-10-auto-zshrc-recompile.html
+zcompile_if_needed ~/.zshrc
+
+[[ ! -f ~/.zshrc_local ]] || source_and_zcompile_if_needed ~/.zshrc_local
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
@@ -41,7 +48,6 @@ EDITOR=nvim
 
 #read Aliases
 source_and_zcompile_if_needed "${SET}shell/.aliases"
-
 
 # パスの設定
 path=(/usr/local/bin(N-/) $path)
@@ -473,9 +479,3 @@ bindkey -M menuselect '\r' accept-line
 
 # https://github.com/ajeetdsouza/zoxide
 eval "$(zoxide init zsh --cmd cd)"
-
-[[ ! -f ~/.zshrc_local ]] || source_and_zcompile_if_needed ~/.zshrc_local
-
-# 自動コンパイル
-# http://blog.n-z.jp/blog/2013-12-10-auto-zshrc-recompile.html
-zcompile_if_needed ~/.zshrc
