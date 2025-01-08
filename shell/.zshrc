@@ -37,7 +37,6 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source_and_zcompile_if_needed "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-[[ -f /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
 
 REPO="${HOME}/Desktop/repository/"
 SET="${REPO}SettingFiles/"
@@ -436,7 +435,7 @@ man() {
 		man "$@"
 }
 
-function exists { which $1 &> /dev/null }
+function exists() { which $1 &> /dev/null }
 
 source_and_zcompile_if_needed "${SET}shell/.zshrc_filter"
 

@@ -4,6 +4,7 @@ function make_symlink () {
   echo "ln -si $1 $2"
   ln -si $1 $2
 }
+function exists() { which $1 &> /dev/null }
 
 # set Repo "$HOME/Desktop/repository/SettingFiles/"
 Repo="`pwd | sed -e \"s/.\{3\}$//\"`"
@@ -44,7 +45,12 @@ echo 'symbolic links created.'
 
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-[[ -f /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
+
+if ! exists brew; then
+  [[ -f /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
+    echo >> $HOME/.zprofile
+    echo '[[ -f /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"' >> $HOME/.zprofile
+fi
 
 brew bundle
 
