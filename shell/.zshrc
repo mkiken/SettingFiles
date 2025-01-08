@@ -435,8 +435,6 @@ man() {
 		man "$@"
 }
 
-function exists() { which $1 &> /dev/null }
-
 source_and_zcompile_if_needed "${SET}shell/.zshrc_filter"
 
 # zsh-vi-modeにkeybindを上書きされないよう、このメソッドで設定

@@ -1,7 +1,7 @@
 #!/bin/zsh
 FILTER_TOOL='fzf-tmux'
 
-if ! exists ${FILTER_TOOL}; then
+if ! command -v ${FILTER_TOOL} > /dev/null 2>&1; then
   exit
 fi
 
