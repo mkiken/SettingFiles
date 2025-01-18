@@ -3,7 +3,7 @@ return {
   config = function()
     require("scrollbar.handlers.search").setup({
       require('hlslens').setup({
-        calm_down = true,
+        calm_down = false,
         nearest_only = true,
       })
     })
