@@ -152,12 +152,12 @@ function fghpvm(){
 }
 
 # PR一覧からチェックアウト
-function fghpco(){
+function fghco(){
   ghpl | filter | awk '{print $1}' | xargs ghco
 }
 
 # 自分のPR一覧からチェックアウト
-function fghpcom(){
+function fghcom(){
   ghplm | filter | awk '{print $1}' | xargs ghco
 }
 
