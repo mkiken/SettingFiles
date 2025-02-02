@@ -19,6 +19,9 @@ mkdir -p ~/.config
 
 make_symlink ${Repo}ranger ~/.config
 
+mkdir -p ~/.config/karabiner
+make_symlink ${Repo}mac/karabiner.json ~/.config/karabiner
+
 make_symlink ${Repo_shell}.zshrc ~/.zshrc
 
 make_symlink ${Repo}gitfiles/gitui $HOME/.config
