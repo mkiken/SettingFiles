@@ -1,0 +1,1 @@
+../plugins/yanky-nvim.lua
