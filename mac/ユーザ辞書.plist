@@ -4,48 +4,6 @@
 <array>
 	<dict>
 		<key>phrase</key>
-		<string>mori_kensuke@ab.auone-net.jp</string>
-		<key>shortcut</key>
-		<string>#maila</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>mori_kensuke@cyberagent.co.jp</string>
-		<key>shortcut</key>
-		<string>#mailc</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>mori_kensuke@griphone.co.jp</string>
-		<key>shortcut</key>
-		<string>#mailcg</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>mkiken0@gmail.com</string>
-		<key>shortcut</key>
-		<string>#mailgm</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>mori_kensuke@griphone.co.jp</string>
-		<key>shortcut</key>
-		<string>#mailgr</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>to_rest_is_to_rust@ezweb.ne.jp</string>
-		<key>shortcut</key>
-		<string>#mailm</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
-		<string>ken.mori523@siren.ocn.ne.jp</string>
-		<key>shortcut</key>
-		<string>#mailo</string>
-	</dict>
-	<dict>
-		<key>phrase</key>
 		<string>(∩ﾟдﾟ)ｱｰｱｰきこえなーい</string>
 		<key>shortcut</key>
 		<string>あーあー</string>
