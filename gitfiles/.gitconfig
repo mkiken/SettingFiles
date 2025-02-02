@@ -152,6 +152,7 @@
   navigate = true    # use n and N to move between diff sections
   diff-so-fancy = true
   whitespace-error-style = 22 reverse
+  paging = always
 [delta "unobtrusive-line-numbers"]
   line-numbers = true
   line-numbers-left-format = "{nm:>4}┊"
