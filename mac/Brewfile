@@ -34,7 +34,6 @@ brew "zsh"
 
 cask "alt-tab"
 cask "cursor"
-cask "dimentium/autoraise/autoraiseapp"
 cask "discord"
 cask "docker"
 cask "dropbox"
