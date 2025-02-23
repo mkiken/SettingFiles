@@ -237,6 +237,17 @@ setopt share_history          # 全てのセッションで履歴を共有する
 setopt hist_reduce_blanks     # 余分な空白は詰めて記録
 setopt hist_find_no_dups      # 履歴検索中、(連続してなくとも)重複を飛ばす
 
+# Completions should be configured before compinit
+
+# set list-colors to enable filename colorizing
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+# force zsh not to show completion menu, which allows fzf-tab to capture the unambiguous prefix
+zstyle ':completion:*' menu no
+# preview directory's content with eza when completing cd
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
+# we provide a script ftb-tmux-popup to make full use of it's "popup" feature.
+zstyle ':fzf-tab:*' fzf-command ftb-tmux-popup
+
 ## Completion configuration
 autoload -Uz compinit && compinit -i
 
@@ -456,6 +467,8 @@ source_and_zcompile_if_needed "${SUBMODULE_DIR}/zsh-snap/znap.zsh"  # Start Znap
 zstyle ':znap:*:*' git-maintenance off
 
 # `znap source` automatically downloads and starts your plugins.
+# fzf-tab needs to be loaded after compinit, but before plugins which will wrap widgets, such as zsh-autosuggestions or fast-syntax-highlighting
+znap source Aloxaf/fzf-tab
 znap source zsh-users/zsh-autosuggestions
 znap source z-shell/F-Sy-H
 znap source marzocchi/zsh-notify
