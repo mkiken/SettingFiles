@@ -250,6 +250,9 @@ zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
 # we provide a script ftb-tmux-popup to make full use of it's "popup" feature.
 zstyle ':fzf-tab:*' fzf-command ftb-tmux-popup
 
+# apply to all command
+zstyle ':fzf-tab:*' popup-min-size 80 12
+
 #from http://qiita.com/items/ed2d36698a5cc314557d
 zstyle ':completion:*:default' menu select=2
 zstyle ':completion:*' verbose yes
