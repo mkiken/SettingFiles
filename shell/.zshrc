@@ -237,6 +237,7 @@ setopt share_history          # 全てのセッションで履歴を共有する
 setopt hist_reduce_blanks     # 余分な空白は詰めて記録
 setopt hist_find_no_dups      # 履歴検索中、(連続してなくとも)重複を飛ばす
 
+## Completion configuration
 # Completions should be configured before compinit
 
 # ファイル補完候補に色を付ける
@@ -248,20 +249,6 @@ zstyle ':completion:*' menu no
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
 # we provide a script ftb-tmux-popup to make full use of it's "popup" feature.
 zstyle ':fzf-tab:*' fzf-command ftb-tmux-popup
-
-## Completion configuration
-autoload -Uz compinit && compinit -i
-
-# 隠しファイルも補完候補に追加する
-_comp_options+=(globdots)
-
-#autoload predict-on
-#predict-on
-
-setopt complete_aliases # aliased ls needs if file/dir completions work
-
-# http://blog.mkt-sys.jp/2014/06/fix-zsh-env.html
-setopt no_flow_control
 
 #from http://qiita.com/items/ed2d36698a5cc314557d
 zstyle ':completion:*:default' menu select=2
@@ -283,6 +270,34 @@ zstyle ':completion:*:manuals' separate-sections true
 # 補完機能で大文字小文字を区別しないよう(case insensitive)にする
 #http://nukesaq88.hatenablog.com/entry/2013/04/18/183335
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+
+# manの補完をセクション番号別に表示させる
+zstyle ':completion:*:manuals' separate-sections true
+
+# 変数の添字を補完する
+zstyle ':completion:*:*:-subscript-:*' tag-order indexes parameters
+
+# http://qiita.com/mollifier/items/33bda290fe3c0ae7b3bb
+zstyle ':completion:*:processes' command "ps -u $USER -o pid,stat,%cpu,%mem,cputime,command"
+
+#cdは親ディレクトリからカレントディレクトリを選択しないので表示させないようにする (例: cd ../<TAB>):
+#zstyle ':completion:*:cd:*' ignore-parents parent pwd
+
+# オブジェクトファイルとか中間ファイルとかはfileとして補完させない
+# zstyle ':completion:*:*files' ignored-patterns '*?.o' '*?~' '*\#'
+
+autoload -Uz compinit && compinit -i
+
+# 隠しファイルも補完候補に追加する
+_comp_options+=(globdots)
+
+#autoload predict-on
+#predict-on
+
+setopt complete_aliases # aliased ls needs if file/dir completions work
+
+# http://blog.mkt-sys.jp/2014/06/fix-zsh-env.html
+setopt no_flow_control
 
 # 名前で色を付けるようにする
 autoload colors
@@ -317,18 +332,6 @@ bindkey "^I" menu-complete   # 展開する前に補完候補を出させる(Ctr
 # 例 : mkdir {1-3} で フォルダ1, 2, 3を作れる
 setopt brace_ccl
 
-# manの補完をセクション番号別に表示させる
-zstyle ':completion:*:manuals' separate-sections true
-
-# 変数の添字を補完する
-zstyle ':completion:*:*:-subscript-:*' tag-order indexes parameters
-
-
-#cdは親ディレクトリからカレントディレクトリを選択しないので表示させないようにする (例: cd ../<TAB>):
-#zstyle ':completion:*:cd:*' ignore-parents parent pwd
-
-# オブジェクトファイルとか中間ファイルとかはfileとして補完させない
-# zstyle ':completion:*:*files' ignored-patterns '*?.o' '*?~' '*\#'
 
 ## 辞書順ではなく数字順に並べる
 setopt numeric_glob_sort
@@ -366,9 +369,6 @@ bindkey '^xy' pbcopy-buffer
 autoload -Uz edit-command-line
 zle -N edit-command-line
 bindkey '^v' edit-command-line
-
-# http://qiita.com/mollifier/items/33bda290fe3c0ae7b3bb
-zstyle ':completion:*:processes' command "ps -u $USER -o pid,stat,%cpu,%mem,cputime,command"
 
 # http://qiita.com/items/55651f44f91123f1881c
 # url: $1, delimiter: $2, prefix: $3, words: $4..
