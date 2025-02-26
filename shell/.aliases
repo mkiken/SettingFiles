@@ -100,7 +100,9 @@ alias macupdate="$EDIT_COMMAND ${SET}/mac/update"
 alias macbrewfile="$EDIT_COMMAND ${SET}/mac/Brewfile"
 alias submoduleconf="$EDIT_COMMAND ${SET}/.gitmodules"
 
+# shortcut for docker
 alias d='docker'
+alias dps='d ps'
 
 #shortcut for git
 alias cdgr='cd `g repository`'
