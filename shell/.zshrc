@@ -236,6 +236,7 @@ setopt hist_save_no_dups      # 履歴ファイルに書き出す際、新しい
 setopt share_history          # 全てのセッションで履歴を共有する
 setopt hist_reduce_blanks     # 余分な空白は詰めて記録
 setopt hist_find_no_dups      # 履歴検索中、(連続してなくとも)重複を飛ばす
+setopt inc_append_history     # コマンド実行時にすぐ履歴ファイルに追記
 
 ## Completion configuration
 # Completions should be configured before compinit
