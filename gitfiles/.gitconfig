@@ -161,7 +161,7 @@
   line-numbers-right-style = blue
 [delta "decorations"]
   # https://github.com/dandavison/delta/blob/main/themes.gitconfig
-  commit-decoration-style = overline bold yellow ul
+  commit-decoration-style = box bold orange ul
   file-style = bold purple ul
   file-decoration-style = underline box blue
   hunk-header-style = line-number syntax
