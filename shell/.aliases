@@ -54,7 +54,7 @@ alias ng='noglob'
 #display all files,End with true or false
 alias allfile='defaults write com.apple.finder AppleShowAllFiles'
 
-alias -g pc='pbcopy'
+alias -g pc='tee >(pbcopy)'
 alias -g pp='pbpaste'
 
 ;;
