@@ -56,9 +56,13 @@ alias fnv='filter_find_command nvim'
 # http://qiita.com/itkrt2y/items/0671d1f48e66f21241e2
 # alias fghq='save_history cd $(ghq root)/$(ghq list | filter)'
 
+function _fgbh(){
+  git --no-pager reflog | awk '$3 == "checkout:" && /moving from/ {print $8}' | awk '!seen[$0]++' | grep -Fx -f <(git branch --format='%(refname:short)') | head -30 | filter
+}
+
 # 直近移動したブランチ一覧からgit switchする
 function fgbh(){
-  git --no-pager reflog | awk '$3 == "checkout:" && /moving from/ {print $8}' | awk '!seen[$0]++' | grep -Fx -f <(git branch --format='%(refname:short)') | head -30 | filter | xargs git switch
+  _fgbh | xargs git switch
 }
 
 function fcat(){
@@ -140,6 +144,12 @@ function fgsf-remote(){
 # github cli
 # マージ先ブランチを選んでPRを作成
 alias fghpc='br_fmt | xargs gh pr create --web --base'
+alias fghpch='_fgbh | xargs gh pr create --web --base'
+
+# 直近移動したブランチ一覧からgit switchする
+function fgbh(){
+  git --no-pager reflog | awk '$3 == "checkout:" && /moving from/ {print $8}' | awk '!seen[$0]++' | grep -Fx -f <(git branch --format='%(refname:short)') | head -30 | filter | xargs git switch
+}
 
 # PR一覧からブラウザで開く
 function fghpv(){
