@@ -310,8 +310,9 @@ colors
 # LS_COLORSを設定しておく
 export LS_COLORS='di=34:ln=35:so=32:pi=33:ex=31:bd=46;34:cd=43;34:su=41;30:sg=46;30:tw=42;30:ow=43;30'
 
-# http://www.spookies.co.jp/blog/zsh-5-0-0-%E3%81%AE%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89%E3%83%A9%E3%82%A4%E3%83%B3%E3%83%8F%E3%82%A4%E3%83%A9%E3%82%A4%E3%83%88%E3%82%92%E4%BD%BF%E3%81%86
-zle_highlight=(region:standout special:standout suffix:fg=blue,bold isearch:fg=magenta,underline)
+# paste:noneでペースト時のハイライトをなくす
+# https://github.com/zdharma-continuum/fast-syntax-highlighting/issues/25#issuecomment-1094035433
+zle_highlight=(region:standout special:standout suffix:fg=blue,bold isearch:fg=magenta,underline paste:none)
 
 # 補完に関するオプション
 # http://voidy21.hatenablog.jp/entry/20090902/1251918174
