@@ -26,7 +26,6 @@ alias du='dust'
 
 alias l='ls'
 
-alias -g less='vless'
 alias -g L='| less'
 #MacVim on CUI
 alias vi='nv'
@@ -180,7 +179,7 @@ alias ghplmw='ghplw --author @me'
 alias -g rg='RIPGREP_CONFIG_PATH=$SET/configs/.ripgreprc rg'
 
 VIMRUNTIME=$(nvim --clean --headless --cmd 'echo $VIMRUNTIME|q' 2>&1)
-alias vless="$VIMRUNTIME/macros/less.sh"
+alias vless="$VIMRUNTIME/scripts/less.sh"
 
 
 function gbl(){
