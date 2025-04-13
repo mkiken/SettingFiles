@@ -70,6 +70,10 @@ vim.api.nvim_set_keymap('i', '<Space>', '<Space><C-g>u', { noremap = true, silen
 -- Escapeを2回押して:nohlsearch
 vim.api.nvim_set_keymap('n', '<Esc><Esc>', ':nohlsearch<CR>', { noremap = true, silent = true })
 
+-- バッファ移動
+vim.api.nvim_set_keymap('n', 'ge', ':bnext<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', 'gE', ':bprev<CR>', { noremap = true, silent = true })
+
 -- 設定ファイルの再読み込みキーマッピング
 vim.keymap.set('n', '<Leader>s', function()
   vim.cmd('source ~/.config/nvim/init.lua')
