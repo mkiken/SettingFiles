@@ -46,6 +46,12 @@ set scrolloff=5
 
 set ideajoin
 
+" Maps Vim's global marks to IDE bookmarks.
+set ideamarks
+
+" A comma-separated list of additional buffers or locations where IdeaVim should be enabled
+set ideavimsupport=dialog,singleline
+
 "インサートモードで bash 風キーマップ
 inoremap <C-a> <C-o>^
 inoremap <C-e> <C-o>$<Right>
@@ -98,6 +104,7 @@ set multiple-cursors
 set surround
 set textobj-indent
 set vim-paragraph-motion
+set switch
 let g:argtextobj_pairs="[:],(:),<:>"
 
 nmap <leader>e <Plug>(easymotion-s2)
@@ -119,3 +126,11 @@ nmap <leader>g<C-n> <Plug>AllOccurrences
 xmap <leader>g<C-n> <Plug>AllOccurrences
 
 nnoremap <leader>t :NERDTreeFocus<CR>
+
+" for switch
+" Or use - and +
+nnoremap - :Switch<CR>
+nnoremap + :SwitchReverse<CR>
+
+" Enable all patterns from multiple groups
+let g:switch_definitions = 'group:basic,group:javascript,group:markdown,group:ruby'
