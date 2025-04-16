@@ -1,10 +1,16 @@
-
 # https://intellij-support.jetbrains.com/hc/en-us/articles/15268184143890-Shell-Environment-Loading
 if [[ $INTELLIJ_ENVIRONMENT_READER ]]; then
   return
 fi
 
-if [ -z "$TMUX" ]; then
+# vscodeの判定を変数化
+if [[ "$TERM_PROGRAM" == "vscode" ]]; then
+  IS_VSCODE=true
+else
+  IS_VSCODE=false
+fi
+
+if [[ -z "$TMUX" ]] && ! $IS_VSCODE; then
   tmux new-session -A -s tmux
   return
 fi
@@ -474,7 +480,11 @@ zstyle ':znap:*:*' git-maintenance off
 znap source Aloxaf/fzf-tab
 znap source zsh-users/zsh-autosuggestions
 znap source z-shell/F-Sy-H
-znap source marzocchi/zsh-notify
+
+if ! $IS_VSCODE; then
+  # VSCodeでは「zsh-notify: unsupported environment」となる
+  znap source marzocchi/zsh-notify
+fi
 znap source jeffreytse/zsh-vi-mode
 
 zstyle ':notify:*' command-complete-timeout 6
@@ -494,3 +504,8 @@ bindkey -M menuselect '\r' accept-line
 
 # https://github.com/ajeetdsouza/zoxide
 eval "$(zoxide init zsh --cmd cd)"
+
+# [Clineが実行したコマンドの結果がCline自身で読み込めない場合の対処法](https://zenn.dev/razokulover/articles/e0e3ae3cbab03d)
+if $IS_VSCODE; then
+  . "$(code --locate-shell-integration-path zsh)"
+fi
