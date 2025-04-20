@@ -16,4 +16,15 @@ do
       exit 0
     fi
   done
+
+  # 別名ブランチにpushしないようにする
+  branch_name=$(git rev-parse --symbolic --abbrev-ref $local_ref)
+  remote_branch=$(echo $remote_ref | sed 's/refs\/heads\///')
+
+  if [ "$branch_name" != "$remote_branch" ]; then
+    echo "ERROR: You are trying to push branch '$branch_name' to remote branch '$remote_branch'."
+    echo "Please verify the target branch before pushing."
+    exit 1
+  fi
+
 done
