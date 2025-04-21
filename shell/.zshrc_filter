@@ -141,15 +141,45 @@ function fgsf-remote(){
   save_history git show "remotes/origin/${temp}":"$@"
 }
 
-# github cli
-# マージ先ブランチを選んでPRを作成
-alias fghpc='br_fmt | xargs gh pr create --web --base'
-alias fghpch='_fgbh | xargs gh pr create --web --base'
+# GitHubのPRのようなブランチ間差分表示（共通祖先からの差分）
+function fgd_pr(){
+  local base=`br_org`
+	if test $? -ne 0
+	then
+		return 1
+	fi
+  local compare=`br_org`
+	if test $? -ne 0
+	then
+		return 1
+	fi
+  save_history git diff $@ $base...$compare
+}
+
+# GitHubのPRのようなブランチ間ログ表示（共通祖先からの差分）
+function fgl_pr(){
+  local base=`br_org`
+	if test $? -ne 0
+	then
+		return 1
+	fi
+  local compare=`br_org`
+	if test $? -ne 0
+	then
+		return 1
+	fi
+  save_history git log $@ $base..$compare
+}
 
 # 直近移動したブランチ一覧からgit switchする
 function fgbh(){
   git --no-pager reflog | awk '$3 == "checkout:" && /moving from/ {print $8}' | awk '!seen[$0]++' | grep -Fx -f <(git branch --format='%(refname:short)') | head -30 | filter | xargs git switch
 }
+
+# github cli
+# マージ先ブランチを選んでPRを作成
+alias fghpc='br_fmt | xargs gh pr create --web --base'
+alias fghpch='_fgbh | xargs gh pr create --web --base'
 
 # PR一覧からブラウザで開く
 function fghpv(){

@@ -206,6 +206,9 @@ setopt nolistbeep
 # ビープ音を鳴らさないようにする
 setopt NO_beep
 
+# コマンドが途中で失敗したら失敗にする
+setopt pipefail
+
 ## Keybind configuration
 bindkey -v
 
