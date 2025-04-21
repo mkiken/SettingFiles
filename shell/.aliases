@@ -347,6 +347,39 @@ function fullpath(){
   echo "${PWD}/${1}"
 }
 
+# gitのリポジトリルートからの相対パス
+relpath() {
+  file="$1"
+  if [[ -z "$file" ]]; then
+      echo "Usage: $0 <file>"
+      return 1
+  fi
+
+  git_root=$(git rev-parse --show-toplevel 2>/dev/null)
+  if [[ $? -ne 0 ]]; then
+      echo "Error: Not in a Git repository." >&2
+      return 1
+  fi
+
+  file_abs=$(realpath "$file" 2>/dev/null)
+  if [[ -z "$file_abs" ]]; then
+      echo "Error: File '$file' not found." >&2
+      return 1
+  fi
+
+  git_root="${git_root%/}"
+  if [[ "$file_abs" != "$git_root"/* ]]; then
+      echo "Error: File is not inside the Git repository." >&2
+      return 1
+  fi
+
+  rel_path="${file_abs#$git_root/}"
+  echo "$rel_path"
+}
+
+alias fp='fullpath'
+alias rp='relpath'
+
 # IntelliJでファイルを開く
 function ij(){
     /Applications/IntelliJ\ IDEA.app/Contents/MacOS/idea `fullpath $1`
