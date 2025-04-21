@@ -62,7 +62,13 @@ function _fgbh(){
 
 # 直近移動したブランチ一覧からgit switchする
 function fgbh(){
-  _fgbh | xargs git switch
+  local temp=`_fgbh | xargs echo`
+  if [[ -n $temp ]]
+  then
+    save_history git switch $temp
+  else
+    return 1
+  fi
 }
 
 function fcat(){
@@ -169,11 +175,6 @@ function fgl_pr(){
 		return 1
 	fi
   save_history git log $@ $base..$compare
-}
-
-# 直近移動したブランチ一覧からgit switchする
-function fgbh(){
-  git --no-pager reflog | awk '$3 == "checkout:" && /moving from/ {print $8}' | awk '!seen[$0]++' | grep -Fx -f <(git branch --format='%(refname:short)') | head -30 | filter | xargs git switch
 }
 
 # github cli
