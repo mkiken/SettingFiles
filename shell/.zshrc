@@ -26,7 +26,13 @@ function zcompile_if_needed() {
 
 function source_and_zcompile_if_needed() {
     local file="$1"
-    zcompile_if_needed "$file"
+    if [[ ! -r "$file" ]]; then
+      return 1
+    fi
+    if ! zcompile_if_needed "$file"; then
+      return 1
+    fi
+
     source "$file"
 }
 
@@ -34,14 +40,12 @@ function source_and_zcompile_if_needed() {
 # http://blog.n-z.jp/blog/2013-12-10-auto-zshrc-recompile.html
 zcompile_if_needed ~/.zshrc
 
-[[ ! -f ~/.zshrc_local ]] || source_and_zcompile_if_needed ~/.zshrc_local
+source_and_zcompile_if_needed ~/.zshrc_local
 
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source_and_zcompile_if_needed "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
+source_and_zcompile_if_needed "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 
 
 REPO="${HOME}/Desktop/repository/"
