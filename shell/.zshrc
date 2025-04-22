@@ -36,10 +36,6 @@ function source_and_zcompile_if_needed() {
     source "$file"
 }
 
-# 自動コンパイル
-# http://blog.n-z.jp/blog/2013-12-10-auto-zshrc-recompile.html
-zcompile_if_needed ~/.zshrc
-
 source_and_zcompile_if_needed ~/.zshrc_local
 
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
@@ -516,3 +512,7 @@ eval "$(zoxide init zsh --cmd cd)"
 if $IS_VSCODE; then
   . "$(code --locate-shell-integration-path zsh)"
 fi
+
+# 自動コンパイル
+# http://blog.n-z.jp/blog/2013-12-10-auto-zshrc-recompile.html
+zcompile_if_needed ~/.zshrc
