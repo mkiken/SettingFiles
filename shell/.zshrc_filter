@@ -148,7 +148,7 @@ function fgsf-remote(){
 }
 
 # GitHubのPRのようなブランチ間差分表示（共通祖先からの差分）
-function fgd_pr(){
+function fgd2(){
   local base=`br_org`
 	if test $? -ne 0
 	then
@@ -163,7 +163,7 @@ function fgd_pr(){
 }
 
 # GitHubのPRのようなブランチ間ログ表示（共通祖先からの差分）
-function fgl_pr(){
+function fgl2(){
   local base=`br_org`
 	if test $? -ne 0
 	then
@@ -175,6 +175,55 @@ function fgl_pr(){
 		return 1
 	fi
   save_history git log $@ $base..$compare
+}
+
+function ghpl_branch() {
+ ghpl --json number,title,author,baseRefName,headRefName \
+    | jq -r '.[] | [.number, .title, .author.login, .baseRefName, .headRefName] | @tsv' \
+    | filter --height 40% --layout reverse --info inline --border \
+        --header $'Number\tTitle\tAuthor\tBase\tHead' \
+        --delimiter $'\t' --with-nth 1,2,3,4,5
+}
+
+# GitHubのPR一覧からブランチ間差分表示（共通祖先からの差分）
+function fgd_pr() {
+  # GitHubのプルリクエスト一覧をTSV形式で取得
+  selected_pr=$(ghpl_branch)
+
+  # PRが選択された場合
+  if [ -z "$selected_pr" ]; then
+    return 1
+  fi
+
+  # 変数に分解
+  IFS=$'\t' read pr_number title author base_ref head_ref <<< "$selected_pr"
+
+  # リモートブランチをフェッチ
+  git fetch origin "${base_ref}" "${head_ref}"
+
+  # 差分を表示
+  save_history git diff $@ "origin/${base_ref}...origin/${head_ref}"
+}
+
+# GitHubのPR一覧からブランチ間ログ表示（共通祖先からの差分）
+function fgl_pr() {
+  # GitHubのプルリクエスト一覧をTSV形式で取得
+  selected_pr=$(ghpl_branch)
+
+  # PRが選択された場合
+  if [ -z "$selected_pr" ]; then
+
+    return 1
+  fi
+
+  # 変数に分解
+  IFS=$'\t' read pr_number title author base_ref head_ref <<< "$selected_pr"
+
+  # リモートブランチをフェッチ
+  git fetch origin "${base_ref}" "${head_ref}"
+
+  # ログを表示
+  save_history git log $@ "origin/${base_ref}..origin/${head_ref}"
 }
 
 # github cli
