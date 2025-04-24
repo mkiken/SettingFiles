@@ -299,7 +299,7 @@ zstyle ':completion:*:processes' command "ps -u $USER -o pid,stat,%cpu,%mem,cput
 # オブジェクトファイルとか中間ファイルとかはfileとして補完させない
 # zstyle ':completion:*:*files' ignored-patterns '*?.o' '*?~' '*\#'
 
-autoload -Uz compinit && compinit -i
+autoload -Uz compinit && compinit -C -i
 
 # 隠しファイルも補完候補に追加する
 _comp_options+=(globdots)
