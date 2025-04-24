@@ -25,13 +25,6 @@ make_symlink ${Repo}mac/karabiner.json ~/.config/karabiner
 make_symlink ${Repo_shell}.zshrc ~/.zshrc
 
 make_symlink ${Repo}gitfiles/gitui $HOME/.config
-
-make_symlink ${Repo}.jshintrc ~/.jshintrc
-
-make_symlink ${Repo}.jsbeautifyrc ~/.jsbeautifyrc
-
-make_symlink ${Repo}.agignore ~/.agignore
-
 make_symlink ${Repo}.tmux.conf ~/.tmux.conf
 
 make_symlink ${Repo}.ideavimrc ~/.ideavimrc
