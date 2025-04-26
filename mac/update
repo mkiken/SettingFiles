@@ -22,4 +22,6 @@ nvim --headless "+Lazy! sync | TSUpdate" +qa
 source ${SUBMODULE_DIR}/zsh-snap/znap.zsh  # Start Znap
 znap pull
 
+gh extension upgrade --all
+
 zcompile ~/.zshrc
