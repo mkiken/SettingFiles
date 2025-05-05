@@ -177,6 +177,23 @@ function fgl2(){
   save_history git log $@ $base..$compare
 }
 
+# ブランチを指定してGitHubのcompare urlを開く
+function fgh_compare_url(){
+  local base=`br_fmt`
+	if test $? -ne 0
+	then
+		return 1
+	fi
+  local compare=`br_fmt`
+	if test $? -ne 0
+	then
+		return 1
+	fi
+
+  gh_compare_url $base $compare
+}
+
+# マージ先のブランチ名を表示するPR一覧
 function ghpl_branch() {
  ghpl --json number,title,author,baseRefName,headRefName \
     | jq -r '.[] | [.number, .title, .author.login, .baseRefName, .headRefName] | @tsv' \
@@ -249,6 +266,22 @@ function fghco(){
 # 自分のPR一覧からチェックアウト
 function fghcom(){
   ghplm | filter | awk '{print $1}' | xargs ghco
+}
+
+# 2ブランチを指定してGitHubのPR作成urlを開く
+function fghpc2(){
+  local base=`br_fmt`
+	if test $? -ne 0
+	then
+		return 1
+	fi
+  local compare=`br_fmt`
+	if test $? -ne 0
+	then
+		return 1
+	fi
+
+  ghpc --base $base --head $compare
 }
 
 alias fcdd='fcd-down'
