@@ -98,7 +98,7 @@ alias macinit='${EDIT_COMMAND} ${SET}/mac/initialize'
 alias macupdate='${EDIT_COMMAND} ${SET}/mac/update'
 alias macbrewfile='${EDIT_COMMAND} ${SET}/mac/Brewfile'
 alias submoduleconf='${EDIT_COMMAND} ${SET}/.gitmodules'
-alias setting='${EDIT_COMMAND} ${SET}/.gitmodules'
+alias setting='${EDIT_COMMAND} ${SET}'
 
 # shortcut for docker
 alias d='docker'
