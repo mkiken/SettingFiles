@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 EDIT_COMMAND='cursor'
 export VISUAL='nvim'
 
@@ -63,7 +63,7 @@ linux*)
 # ここに設定
   alias ls='ls --color=auto'
   function vi(){
-	  gvim -f --remote-tab-silent $@ &
+	  gvim -f --remote-tab-silent "${@}" &
   }
 ;;
 esac
@@ -80,24 +80,25 @@ alias cdrepo='cd ${REPO}'
 alias cds='cd ${SET}'
 
 #shortcut for setting files
-alias bashrc="$EDIT_COMMAND ~/.bashrc"
-alias zshrc="$EDIT_COMMAND ${SET}/shell/.zshrc"
-alias zshrc_local="$EDIT_COMMAND ~/.zshrc_local"
-alias zshrc_filter="$EDIT_COMMAND ${SET}/shell/.zshrc_filter"
-alias aliases="$EDIT_COMMAND ${SET}/shell/.aliases"
-alias nviminit="$EDIT_COMMAND ${SET}/vimfiles/nvim/init.vim"
-alias vimrc_common="$EDIT_COMMAND ${SET}/vimfiles/.vimrc.common"
-alias gitconfig="$EDIT_COMMAND ${SET}/gitfiles/.gitconfig"
-alias zshenv="$EDIT_COMMAND ~/.zshenv"
-alias zprofile="$EDIT_COMMAND ~/.zprofile"
-alias jshintrc="$EDIT_COMMAND ~/.jshintrc"
-alias jsbeautifyrc="$EDIT_COMMAND ~/.jsbeautifyrc"
-alias editorconfig="$EDIT_COMMAND ~/.editorconfig"
-alias tmuxconf="$EDIT_COMMAND ${SET}/.tmux.conf"
-alias macinit="$EDIT_COMMAND ${SET}/mac/initialize"
-alias macupdate="$EDIT_COMMAND ${SET}/mac/update"
-alias macbrewfile="$EDIT_COMMAND ${SET}/mac/Brewfile"
-alias submoduleconf="$EDIT_COMMAND ${SET}/.gitmodules"
+alias bashrc='${EDIT_COMMAND} ~/.bashrc'
+alias zshrc='${EDIT_COMMAND} ${SET}/shell/.zshrc'
+alias zshrc_local='${EDIT_COMMAND} ~/.zshrc_local'
+alias zshrc_filter='${EDIT_COMMAND} ${SET}/shell/.zshrc_filter'
+alias aliases='${EDIT_COMMAND} ${SET}/shell/.aliases'
+alias nviminit='${EDIT_COMMAND} ${SET}/vimfiles/nvim/init.vim'
+alias vimrc_common='${EDIT_COMMAND} ${SET}/vimfiles/.vimrc.common'
+alias gitconfig='${EDIT_COMMAND} ${SET}/gitfiles/.gitconfig'
+alias zshenv='${EDIT_COMMAND} ~/.zshenv'
+alias zprofile='${EDIT_COMMAND} ~/.zprofile'
+alias jshintrc='${EDIT_COMMAND} ~/.jshintrc'
+alias jsbeautifyrc='${EDIT_COMMAND} ~/.jsbeautifyrc'
+alias editorconfig='${EDIT_COMMAND} ~/.editorconfig'
+alias tmuxconf='${EDIT_COMMAND} ${SET}/.tmux.conf'
+alias macinit='${EDIT_COMMAND} ${SET}/mac/initialize'
+alias macupdate='${EDIT_COMMAND} ${SET}/mac/update'
+alias macbrewfile='${EDIT_COMMAND} ${SET}/mac/Brewfile'
+alias submoduleconf='${EDIT_COMMAND} ${SET}/.gitmodules'
+alias setting='${EDIT_COMMAND} ${SET}/.gitmodules'
 
 # shortcut for docker
 alias d='docker'
@@ -177,23 +178,23 @@ alias ghplm='ghpl --author @me'
 alias ghplw='ghpl --web'
 alias ghplmw='ghplw --author @me'
 
-alias -g rg='RIPGREP_CONFIG_PATH=$SET/configs/.ripgreprc rg'
+alias -g rg='RIPGREP_CONFIG_PATH=${SET}/configs/.ripgreprc rg'
 
 VIMRUNTIME=$(nvim --clean --headless --cmd 'echo $VIMRUNTIME|q' 2>&1)
-alias vless="$VIMRUNTIME/scripts/less.sh"
+alias vless="${VIMRUNTIME}/scripts/less.sh"
 
 
 function gbl(){
-  git bl $@ | gsed -f "${SET}sedfiles/colorize_git_blame.sed" | less
+  git bl "${@}" | gsed -f "${SET}sedfiles/colorize_git_blame.sed" | less
 }
 
 function tf(){
-  tail -f $@ | gsed -f "${SET}sedfiles/colorize_log.sed"
+  tail -f "${@}" | gsed -f "${SET}sedfiles/colorize_log.sed"
 }
 
 function gbm(){
   branch=`git current-branch`
-  git branch -m "${branch}" $@
+  git branch -m "${branch}" "${@}"
 }
 
 alias zmv='noglob zmv -W'
@@ -255,8 +256,8 @@ function up() {
 
 # rangerのサブシェルのネストを防止する
 function ranger() {
-    if [ -z "$RANGER_LEVEL" ]; then
-        $BREW_PREFIX/bin/ranger $@
+    if [ -z "${RANGER_LEVEL}" ]; then
+        ${BREW_PREFIX}/bin/ranger "${@}"
     else
         exit
     fi
@@ -303,9 +304,9 @@ function g-delete-branch-not-in-remote-interactive() {
 
   # レポジトリ名確認
   local tmp_path=$(git rev-parse --show-toplevel 2>/dev/null)
-  if [ -n "$tmp_path" ]; then
-    local repo_name=`basename $tmp_path`
-    echo "repository is '$repo_name'."
+  if [ -n "${tmp_path}" ]; then
+    local repo_name=`basename ${tmp_path}`
+    echo "repository is '${repo_name}'."
   else
     echo "$1 is not git repository."
     return 1
@@ -317,28 +318,28 @@ function g-delete-branch-not-in-remote-interactive() {
   # ローカルブランチ（現在のブランチは除外）
   local local_branches=( $(git branch | grep -v '*' -p) )  # リモートブランチ（「origin/HEAD -> origin/master」の行を除外し、「origin/」を消す）
   local remote_branches=( $(git branch -r | grep -v '\->' -p | sed -e 's/origin\///') )
-  for local_branch in $local_branches
+  for local_branch in ${local_branches}
   do
     # ローカルブランチがリモートにあるか確認
     local is_in_remote=false
-    for remote_branch in $remote_branches
+    for remote_branch in ${remote_branches}
     do
-      if [[ "$local_branch" = "$remote_branch" ]]; then
+      if [[ "${local_branch}" = "${remote_branch}" ]]; then
         is_in_remote=true
         break
       fi
     done
 
     # リモートになかったら確認プロンプトを出す
-    if [[ $is_in_remote = false ]]; then
-      echo "branch '$local_branch' is not in remote. delete it? [y/N]"
+    if [[ ${is_in_remote} = false ]]; then
+      echo "branch '${local_branch}' is not in remote. delete it? [y/N]"
 
       read -r ANSWER
 
       # 「Y」、「y」などであれば削除
-      case $ANSWER in
-        "Y" | "y" | "yes" | "Yes" | "YES" ) git branch -D $local_branch;;
-        * ) echo "not delete branch '$local_branch'.";;
+      case ${ANSWER} in
+        "Y" | "y" | "yes" | "Yes" | "YES" ) git branch -D ${local_branch};;
+        * ) echo "not delete branch '${local_branch}'.";;
       esac
     fi
   done
@@ -350,8 +351,8 @@ function fullpath(){
 
 # gitのリポジトリルートからの相対パス
 relpath() {
-  file="$1"
-  if [[ -z "$file" ]]; then
+  file="${1}"
+  if [[ -z "${file}" ]]; then
       echo "Usage: $0 <file>"
       return 1
   fi
@@ -362,20 +363,20 @@ relpath() {
       return 1
   fi
 
-  file_abs=$(realpath "$file" 2>/dev/null)
-  if [[ -z "$file_abs" ]]; then
-      echo "Error: File '$file' not found." >&2
+  file_abs=$(realpath "${file}" 2>/dev/null)
+  if [[ -z "${file_abs}" ]]; then
+      echo "Error: File '${file}' not found." >&2
       return 1
   fi
 
   git_root="${git_root%/}"
-  if [[ "$file_abs" != "$git_root"/* ]]; then
+  if [[ "${file_abs}" != "${git_root}"/* ]]; then
       echo "Error: File is not inside the Git repository." >&2
       return 1
   fi
 
-  rel_path="${file_abs#$git_root/}"
-  echo "$rel_path"
+  rel_path="${file_abs#${git_root}/}"
+  echo "${rel_path}"
 }
 
 alias fp='fullpath'
@@ -383,5 +384,5 @@ alias rp='relpath'
 
 # IntelliJでファイルを開く
 function ij(){
-    /Applications/IntelliJ\ IDEA.app/Contents/MacOS/idea `fullpath $1`
+    /Applications/IntelliJ\ IDEA.app/Contents/MacOS/idea `fullpath ${1}`
 }
