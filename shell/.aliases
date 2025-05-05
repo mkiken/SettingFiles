@@ -379,6 +379,20 @@ relpath() {
   echo "${rel_path}"
 }
 
+# 引数の2リビジョンを比較するGitHubのcompare urlを開く
+gh_compare_url() {
+  if [ $# -ne 2 ]; then
+    echo "Usage: git_compare_url BASE COMPARE"
+    return 1
+  fi
+
+  remote_url=$(git remote get-url origin)
+
+  repo_url=$(echo "${remote_url}" | sed -e 's/git@github.com:/https:\/\/github.com\//' -e 's/\.git$//')
+
+  save_history open "${repo_url}/compare/${1}...${2}"
+}
+
 alias fp='fullpath'
 alias rp='relpath'
 
