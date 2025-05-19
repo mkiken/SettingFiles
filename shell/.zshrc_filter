@@ -154,12 +154,12 @@ function fgsf-remote(){
 
 # GitHubのPRのようなブランチ間差分表示（共通祖先からの差分）
 function fgd2(){
-  local base=`br_org`
+  local base=`FZF_DEFAULT_OPTS="--prompt='base: ' --header='比較元ブランチを選択'" br_org`
 	if test $? -ne 0
 	then
 		return 1
 	fi
-  local compare=`br_org`
+  local compare=`FZF_DEFAULT_OPTS="--prompt='compare: ' --header='比較先ブランチを選択'" br_org`
 	if test $? -ne 0
 	then
 		return 1
@@ -169,12 +169,12 @@ function fgd2(){
 
 # GitHubのPRのようなブランチ間ログ表示（共通祖先からの差分）
 function fgl2(){
-  local base=`br_org`
+  local base=`FZF_DEFAULT_OPTS="--prompt='base: ' --header='比較元ブランチを選択'" br_org`
 	if test $? -ne 0
 	then
 		return 1
 	fi
-  local compare=`br_org`
+  local compare=`FZF_DEFAULT_OPTS="--prompt='compare: ' --header='比較先ブランチを選択'" br_org`
 	if test $? -ne 0
 	then
 		return 1
@@ -275,12 +275,12 @@ function fghcom(){
 
 # 2ブランチを指定してGitHubのPR作成urlを開く
 function fghpc2(){
-  local base=`br_fmt`
+  local base=`FZF_DEFAULT_OPTS="--prompt='base: ' --header='マージ先ブランチを選択'" br_fmt`
 	if test $? -ne 0
 	then
 		return 1
 	fi
-  local compare=`br_fmt`
+  local compare=`FZF_DEFAULT_OPTS="--prompt='compare: ' --header='マージブランチを選択'" br_fmt`
 	if test $? -ne 0
 	then
 		return 1
