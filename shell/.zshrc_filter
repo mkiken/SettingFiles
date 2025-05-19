@@ -154,31 +154,35 @@ function fgsf-remote(){
 
 # GitHubのPRのようなブランチ間差分表示（共通祖先からの差分）
 function fgd2(){
-  local base=`FZF_DEFAULT_OPTS="--prompt='base: ' --header='比較元ブランチを選択'" br_org`
-	if test $? -ne 0
-	then
-		return 1
-	fi
-  local compare=`FZF_DEFAULT_OPTS="--prompt='compare: ' --header='比較先ブランチを選択'" br_org`
-	if test $? -ne 0
-	then
-		return 1
-	fi
+  local base
+  base=$(FZF_DEFAULT_OPTS="--prompt='base: ' --header='比較元ブランチを選択'" br_org)
+  local ret=$?
+  if [[ $ret -ne 0 || -z $base ]]; then
+    return 1
+  fi
+  local compare
+  compare=$(FZF_DEFAULT_OPTS="--prompt='compare: ' --header='比較先ブランチを選択'" br_org)
+  ret=$?
+  if [[ $ret -ne 0 || -z $compare ]]; then
+    return 1
+  fi
   save_history git diff $@ $base...$compare
 }
 
 # GitHubのPRのようなブランチ間ログ表示（共通祖先からの差分）
 function fgl2(){
-  local base=`FZF_DEFAULT_OPTS="--prompt='base: ' --header='比較元ブランチを選択'" br_org`
-	if test $? -ne 0
-	then
-		return 1
-	fi
-  local compare=`FZF_DEFAULT_OPTS="--prompt='compare: ' --header='比較先ブランチを選択'" br_org`
-	if test $? -ne 0
-	then
-		return 1
-	fi
+  local base
+  base=$(FZF_DEFAULT_OPTS="--prompt='base: ' --header='比較元ブランチを選択'" br_org)
+  local ret=$?
+  if [[ $ret -ne 0 || -z $base ]]; then
+    return 1
+  fi
+  local compare
+  compare=$(FZF_DEFAULT_OPTS="--prompt='compare: ' --header='比較先ブランチを選択'" br_org)
+  ret=$?
+  if [[ $ret -ne 0 || -z $compare ]]; then
+    return 1
+  fi
   save_history git log $@ $base..$compare
 }
 
@@ -275,16 +279,19 @@ function fghcom(){
 
 # 2ブランチを指定してGitHubのPR作成urlを開く
 function fghpc2(){
-  local base=`FZF_DEFAULT_OPTS="--prompt='base: ' --header='マージ先ブランチを選択'" br_fmt`
-	if test $? -ne 0
-	then
-		return 1
-	fi
-  local compare=`FZF_DEFAULT_OPTS="--prompt='compare: ' --header='マージブランチを選択'" br_fmt`
-	if test $? -ne 0
-	then
-		return 1
-	fi
+  local base
+  base=$(FZF_DEFAULT_OPTS="--prompt='base: ' --header='マージ先ブランチを選択'" br_fmt)
+  local ret=$?
+  if [[ $ret -ne 0 || -z $base ]]; then
+    return 1
+  fi
+
+  local compare
+  compare=$(FZF_DEFAULT_OPTS="--prompt='compare: ' --header='マージブランチを選択'" br_fmt)
+  ret=$?
+  if [[ $ret -ne 0 || -z $compare ]]; then
+    return 1
+  fi
 
   ghpc --base $base --head $compare
 }
