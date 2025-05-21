@@ -62,7 +62,7 @@ alias fgcot='gcot $(fgcf)'
 # alias fghq='save_history cd $(ghq root)/$(ghq list | filter)'
 
 function _fgbh(){
-  git --no-pager reflog | awk '$3 == "checkout:" && /moving from/ {print $8}' | awk '!seen[$0]++' | grep -Fx -f <(git branch --format='%(refname:short)') | head -30 | filter
+  git --no-pager reflog | awk '$3 == "checkout:" && /moving from/ {print $8}' | awk '!seen[$0]++' | grep -Fx -f <(git branch --format='%(refname:short)') | head -30 | filter --preview "echo {} | sed -e 's/\*//' | awk '{print \$1}' | xargs git log --color --graph --decorate --abbrev-commit --format=format:'%C(blue)%h%C(reset) - %C(green)(%ar)%C(reset)%C(yellow)%d%C(reset)\n  %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'"
 }
 
 # 直近移動したブランチ一覧からgit switchする
