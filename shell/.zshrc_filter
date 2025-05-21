@@ -164,6 +164,34 @@ function fgd-file(){
   save_history git diff "$branch" -- "$target"
 }
 
+# コミットハッシュを指定して、ファイルやディレクトリをfilterで選んでdiffを表示
+function fgd-hash() {
+  local hash="$1"
+  if [[ -z $hash ]]; then
+    echo "コミットハッシュを引数で指定してください！例: fgd-hash <commit-hash>"
+    return 1
+  fi
+
+  # 現在のブランチ名を取得
+  local current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+  # ファイル＋ディレクトリ一覧をfilterで選択
+  local target=$(
+    {
+      git ls-tree -r --name-only "$hash"
+      git ls-tree -r --name-only "$hash" | grep -o '^.*/' | sort -u
+    } | sort -u | filter --prompt="file/dir: " --header="ファイルまたはディレクトリを選択" \
+      --preview="git diff --color=always $hash..$current_branch -- {}"
+  )
+  if [[ -z $target ]]; then
+    echo "ファイルまたはディレクトリが選択されていません。処理を中断します。"
+    return 1
+  fi
+
+  # diff実行
+  save_history git diff "$hash" -- "$target"
+}
+
 # filter tool git show file
 function fgsf(){
   local temp=`br_fmt | xargs echo`
