@@ -11,7 +11,7 @@ darwin*)
 # alias la='ls -A'
 alias c='cursor'
 alias ls='eza --time-style=long-iso -g'
-alias tree='eza -T'
+alias tree='eza -T --color=always'
 alias la='ls -a'
 alias ll='la -lm --git'
 alias df='duf'

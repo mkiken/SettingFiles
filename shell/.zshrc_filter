@@ -347,12 +347,12 @@ function fghpc2(){
   ghpc --base $base --head $compare
 }
 
-alias fcdd='fcd-down'
+alias fcd='fcd-down'
 # fcd-down - cd to selected directory
 # https://qiita.com/kamykn/items/aa9920f07487559c0c7e
 function fcd-down() {
   local dir
-  dir=$(findd | filter +m) &&
+  dir=$(fdd | filter --preview 'eza -T --color=always {} | head -100' +m) &&
   cd "$dir"
 }
 
