@@ -135,28 +135,32 @@ function filter_git_command_fmt(){
   save_history $cmd
 }
 
+# 指定したリファレンス（ブランチやハッシュ）からファイル/ディレクトリをfilterで選択
+# $1: 比較元（ブランチ名やハッシュ）
+# $2: 比較先（現在のブランチ名など）
+function filter_git_file_or_dir() {
+  local ref="$1"
+  local compare_ref="$2"
+  {
+    git ls-tree -r --name-only "$ref"
+    git ls-tree -r --name-only "$ref" | grep -o '^.*/' | sort -u
+  } | sort -u | filter --prompt="file/dir: " --header="ファイルまたはディレクトリを選択" \
+    --preview="git diff --color=always $ref..$compare_ref -- {}"
+}
+
 # filter git diff for file
-function fgd-file(){
+function fgd-branch-file(){
   # ブランチ選択
   local branch=$(FZF_DEFAULT_OPTS="--prompt='branch: ' --header='比較ブランチを選択'" br_fmt)
   if [[ -z $branch ]]; then
-    echo "ブランチが選択されていません。処理を中断します。"
+    echo "ブランチが選択されていません"
     return 1
   fi
 
-  # 現在のブランチ名を取得
-  local current_branch=$(git rev-parse --abbrev-ref HEAD)
-
   # ファイル＋ディレクトリ一覧を直接パイプでfilterに渡す
-  local target=$(
-    {
-      git ls-tree -r --name-only "$branch"
-      git ls-tree -r --name-only "$branch" | grep -o '^.*/' | sort -u
-    } | sort -u | filter --prompt="file/dir: " --header="ファイルまたはディレクトリを選択" \
-      --preview="git diff --color=always $branch..$current_branch -- {}"
-  )
+  local target=$(filter_git_file_or_dir "$branch" "$(git rev-parse --abbrev-ref HEAD)")
   if [[ -z $target ]]; then
-    echo "ファイルまたはディレクトリが選択されていません。処理を中断します。"
+    echo "ファイルまたはディレクトリが選択されていません"
     return 1
   fi
 
@@ -165,31 +169,61 @@ function fgd-file(){
 }
 
 # コミットハッシュを指定して、ファイルやディレクトリをfilterで選んでdiffを表示
-function fgd-hash() {
+function fgd-hash-file() {
   local hash="$1"
   if [[ -z $hash ]]; then
-    echo "コミットハッシュを引数で指定してください！例: fgd-hash <commit-hash>"
+    echo "コミットハッシュを引数で指定してください 例: fgd-hash-file <commit-hash>"
     return 1
   fi
 
-  # 現在のブランチ名を取得
-  local current_branch=$(git rev-parse --abbrev-ref HEAD)
-
   # ファイル＋ディレクトリ一覧をfilterで選択
-  local target=$(
-    {
-      git ls-tree -r --name-only "$hash"
-      git ls-tree -r --name-only "$hash" | grep -o '^.*/' | sort -u
-    } | sort -u | filter --prompt="file/dir: " --header="ファイルまたはディレクトリを選択" \
-      --preview="git diff --color=always $hash..$current_branch -- {}"
-  )
+  local target=$(filter_git_file_or_dir "$hash" "$(git rev-parse --abbrev-ref HEAD)")
   if [[ -z $target ]]; then
-    echo "ファイルまたはディレクトリが選択されていません。処理を中断します。"
+    echo "ファイルまたはディレクトリが選択されていません"
     return 1
   fi
 
   # diff実行
   save_history git diff "$hash" -- "$target"
+}
+
+# filter git checkout for file
+function fgco-branch-file(){
+  # ブランチ選択
+  local branch=$(FZF_DEFAULT_OPTS="--prompt='branch: ' --header='比較ブランチを選択'" br_fmt)
+  if [[ -z $branch ]]; then
+    echo "ブランチが選択されていません"
+    return 1
+  fi
+
+  # ファイル＋ディレクトリ一覧を直接パイプでfilterに渡す
+  local target=$(filter_git_file_or_dir "$(git rev-parse --abbrev-ref HEAD)" "$branch")
+  if [[ -z $target ]]; then
+    echo "ファイルまたはディレクトリが選択されていません"
+    return 1
+  fi
+
+  # diff実行
+  save_history git co "$branch" -- "$target"
+}
+
+# コミットハッシュを指定して、ファイルやディレクトリをfilterで選んでcheckoutを実行
+function fgco-hash-file() {
+  local hash="$1"
+  if [[ -z $hash ]]; then
+    echo "コミットハッシュを引数で指定してください 例: fgco-hash-file <commit-hash>"
+    return 1
+  fi
+
+  # ファイル＋ディレクトリ一覧をfilterで選択
+  local target=$(filter_git_file_or_dir "$(git rev-parse --abbrev-ref HEAD)" "$hash")
+  if [[ -z $target ]]; then
+    echo "ファイルまたはディレクトリが選択されていません"
+    return 1
+  fi
+
+  # diff実行
+  save_history git co "$hash" -- "$target"
 }
 
 # filter tool git show file
