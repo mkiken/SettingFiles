@@ -71,8 +71,12 @@ vim.api.nvim_set_keymap('i', '<Space>', '<Space><C-g>u', { noremap = true, silen
 vim.api.nvim_set_keymap('n', '<Esc><Esc>', ':nohlsearch<CR>', { noremap = true, silent = true })
 
 -- バッファ移動
-vim.api.nvim_set_keymap('n', 'ge', ':bnext<CR>', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', 'gE', ':bprev<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', 'gt', ':bnext<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', 'gT', ':bprev<CR>', { noremap = true, silent = true })
+
+-- タブ移動
+vim.api.nvim_set_keymap('n', 'ge', ':tabnext<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', 'gE', ':tabprev<CR>', { noremap = true, silent = true })
 
 -- 設定ファイルの再読み込みキーマッピング
 vim.keymap.set('n', '<Leader>s', function()
