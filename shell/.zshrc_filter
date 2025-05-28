@@ -248,7 +248,7 @@ function fgs-branch-file(){
 function fgs-hash-file() {
   local hash="$1"
   if [[ -z $hash ]]; then
-    echo "コミットハッシュを引数で指定してください 例: fgd-hash-file <commit-hash>"
+    echo "コミットハッシュを引数で指定してください 例: fgs-hash-file <commit-hash>"
     return 1
   fi
 
