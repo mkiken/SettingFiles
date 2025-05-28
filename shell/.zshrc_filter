@@ -226,15 +226,40 @@ function fgco-hash-file() {
   save_history git co "$hash" -- "$target"
 }
 
-# filter tool git show file
-function fgsf(){
-  local temp=`br_fmt | xargs echo`
-  save_history git show "${temp}":"$@"
+# filter git show for file
+function fgs-branch-file(){
+  # ブランチ選択
+  local branch=$(FZF_DEFAULT_OPTS="--prompt='branch: ' --header='比較ブランチを選択'" br_org)
+  if [[ -z $branch ]]; then
+    echo "ブランチが選択されていません"
+    return 1
+  fi
+
+  # ファイル＋ディレクトリ一覧を直接パイプでfilterに渡す
+  local target=$(filter_git_file_or_dir "$branch" "$(git rev-parse --abbrev-ref HEAD)")
+  if [[ -z $target ]]; then
+    echo "ファイルまたはディレクトリが選択されていません"
+    return 1
+  fi
+
+  save_history git show "${branch}":"$target"
 }
-# filter tool git show file
-function fgsf-remote(){
-  local temp=`br_fmt | xargs echo`
-  save_history git show "remotes/origin/${temp}":"$@"
+
+function fgs-hash-file() {
+  local hash="$1"
+  if [[ -z $hash ]]; then
+    echo "コミットハッシュを引数で指定してください 例: fgd-hash-file <commit-hash>"
+    return 1
+  fi
+
+  # ファイル＋ディレクトリ一覧をfilterで選択
+  local target=$(filter_git_file_or_dir "$hash" "$(git rev-parse --abbrev-ref HEAD)")
+  if [[ -z $target ]]; then
+    echo "ファイルまたはディレクトリが選択されていません"
+    return 1
+  fi
+
+  save_history git show "${hash}":"$target"
 }
 
 # GitHubのPRのようなブランチ間差分表示（共通祖先からの差分）
