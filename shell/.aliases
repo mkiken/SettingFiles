@@ -132,7 +132,7 @@ alias gdn='gd --name-status'
 alias gfp='git fetch --all --prune'
 alias gl='git log'
 alias gln='gl --name-status'
-alias gls='gl --stat'
+alias glst='gl --stat'
 alias glp='gl -p'
 # git log for code copy
 alias glpc='git -c delta.side-by-side=false -c delta.line-numbers=false log -p'
