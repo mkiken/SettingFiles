@@ -190,7 +190,7 @@ function gbl(){
   git bl "${@}" | gsed -f "${SET}sedfiles/colorize_git_blame.sed" | less
 }
 
-function tf(){
+function tailf(){
   tail -f "${@}" | gsed -f "${SET}sedfiles/colorize_log.sed"
 }
 
