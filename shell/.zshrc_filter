@@ -111,13 +111,14 @@ function br_fmt_remote(){
 
 # コマンドを履歴に残す
 function save_history(){
-  local cmd="$@"
-  eval $cmd
-	if test $? -ne 0
-	then
-		return 1
-	fi
-  print -s $cmd
+  "$@" # 受け取った引数をそのままコマンドとして実行
+  local ret=$? # コマンドの終了ステータスをキャプチャ
+  if [[ $ret -ne 0 ]]; then
+    return $ret # 元の終了ステータスを返す
+  fi
+  # 実行したコマンドを履歴に追加
+  # -- は、以降の引数がオプションとして解釈されるのを防ぐ
+  print -s -- "$@"
 }
 
 # findの結果をfilter toolで絞ってコマンドを実行する
@@ -294,7 +295,7 @@ function fgl2(){
   if [[ $ret -ne 0 || -z $compare ]]; then
     return 1
   fi
-  save_history git log $@ $base..$compare
+  save_history git log "$@" $base..$compare
 }
 
 # ブランチを指定してGitHubのcompare urlを開く
