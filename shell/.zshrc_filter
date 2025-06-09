@@ -118,7 +118,8 @@ function save_history(){
   fi
   # 実行したコマンドを履歴に追加
   # -- は、以降の引数がオプションとして解釈されるのを防ぐ
-  print -s -- "$@"
+  # (q-): Escaping of special characters, minimal quoting with single quotes
+  print -s -- ${(q-)@}
 }
 
 # findの結果をfilter toolで絞ってコマンドを実行する
