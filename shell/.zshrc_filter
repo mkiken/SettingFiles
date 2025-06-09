@@ -125,7 +125,7 @@ function save_history(){
 # findの結果をfilter toolで絞ってコマンドを実行する
 function filter_find_command(){
   local cmd="$(ffind)"
-  save_history $@ $cmd
+  save_history "$@" $cmd
 }
 
 # ブランチをfilter toolで絞ってgitコマンドを実行する
@@ -279,7 +279,7 @@ function fgd2(){
   if [[ $ret -ne 0 || -z $compare ]]; then
     return 1
   fi
-  save_history git diff $@ $base...$compare
+  save_history git diff "$@" $base...$compare
 }
 
 # GitHubのPRのようなブランチ間ログ表示（共通祖先からの差分）
@@ -341,7 +341,7 @@ function fgd_pr() {
   git fetch origin "${base_ref}" "${head_ref}"
 
   # 差分を表示
-  save_history git diff $@ "origin/${base_ref}...origin/${head_ref}"
+  save_history git diff "$@" "origin/${base_ref}...origin/${head_ref}"
 }
 
 # GitHubのPR一覧からブランチ間ログ表示（共通祖先からの差分）
@@ -362,7 +362,7 @@ function fgl_pr() {
   git fetch origin "${base_ref}" "${head_ref}"
 
   # ログを表示
-  save_history git log $@ "origin/${base_ref}..origin/${head_ref}"
+  save_history git log "$@" "origin/${base_ref}..origin/${head_ref}"
 }
 
 # github cli
