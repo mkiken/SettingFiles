@@ -148,7 +148,9 @@ alias gsd='g s -s --porcelain | grep "^ D"'
 alias gsm='g s -s --porcelain | grep "^ M"'
 alias gsu='g s -s --porcelain | grep "^?"'
 alias gsw='g sw'
-alias gswc='g sw --no-track -c'
+gswc() {
+  noglob git sw --no-track -c "$@"
+}
 alias gmt='g mt'
 alias gst='git st'
 alias gstd='gst drop'
