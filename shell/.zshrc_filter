@@ -85,7 +85,7 @@ function fgsw(){
   local temp=`br_org | xargs echo`
   if [[ -n $temp ]]
   then
-    save_history g sw "$@" "$temp"
+    save_history git sw "$@" "$temp"
   fi
 }
 
