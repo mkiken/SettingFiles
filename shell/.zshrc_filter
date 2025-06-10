@@ -138,12 +138,13 @@ function filter_find_command(){
 
 # ブランチをfilter toolで絞ってgitコマンドを実行する
 function filter_git_command(){
-  local cmd="$@ $(br_org)"
-  save_history $cmd
+  local branch=$(br_org)
+  save_history "$@" "$branch"
 }
+
 function filter_git_command_fmt(){
-  local cmd="$@ $(br_fmt)"
-  save_history $cmd
+  local branch=$(br_fmt)
+  save_history "$@" "$branch"
 }
 
 # 指定したリファレンス（ブランチやハッシュ）からファイル/ディレクトリをfilterで選択
