@@ -30,7 +30,6 @@ function filter-bindkey() {
 }
 
 
-alias fgsw='filter_git_command_fmt git switch'
 alias fgmg='filter_git_command git merge'
 alias fgmgs='fgmg --squash'
 alias fgpl='filter_git_command_fmt git pull origin'
@@ -79,6 +78,15 @@ function fgbh(){
 
 function fcat(){
   cat -n $@ | filter
+}
+
+# git switch by branch filter
+function fgsw(){
+  local temp=`br_org | xargs echo`
+  if [[ -n $temp ]]
+  then
+    save_history g sw "$@" "$temp"
+  fi
 }
 
 # git switch -c by branch filter
