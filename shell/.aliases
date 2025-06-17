@@ -197,7 +197,7 @@ function tailf(){
 }
 
 function gbm(){
-  branch=`git current-branch`
+  branch=$(git current-branch)
   git branch -m "${branch}" "${@}"
 }
 
@@ -253,15 +253,15 @@ function up() {
 		return 0
   fi
   tmp=''
-  repeat $1 tmp+='../'
-  cd "$tmp"
+  repeat "$1" tmp+='../'
+  cd "$tmp" || exit
 
 }
 
 # rangerのサブシェルのネストを防止する
 function ranger() {
     if [ -z "${RANGER_LEVEL}" ]; then
-        ${BREW_PREFIX}/bin/ranger "${@}"
+        "${BREW_PREFIX}"/bin/ranger "${@}"
     else
         exit
     fi
@@ -283,23 +283,23 @@ alias g-delete-merged-branches="g-merged-branches | xargs -I% git branch -d %"
 
 # 単語を使ってブランチを削除
 function g-remote-branches-by-word(){
-  git branch -a | grep -v '*' | grep -v master | grep $1 | grep remotes/origin/
+  git branch -a | grep -v '*' | grep -v master | grep "$1" | grep remotes/origin/
 }
 
 function g-remote-branches-by-word-fmt(){
-  g-remote-branches-by-word $1 | sed -e 's% *remotes/origin/%%'
+  g-remote-branches-by-word "$1" | sed -e 's% *remotes/origin/%%'
 }
 
 function g-delete-remote-branches-by-word-hash-check() {
-  g-remote-branches-by-word $1 | xargs -I{} sh -c 'echo {};git rev-parse {};echo ""' 2>&1 | tee -a ~/Desktop/delete_branches_hash_check.txt
+  g-remote-branches-by-word "$1" | xargs -I{} sh -c 'echo {};git rev-parse {};echo ""' 2>&1 | tee -a ~/Desktop/delete_branches_hash_check.txt
 }
 
 function g-delete-remote-branches-by-word-dry-run() {
-  g-remote-branches-by-word-fmt $1 | xargs -I% git push -n origin :% 2>&1 | tee -a ~/Desktop/delete_branches_dry_run.log
+  g-remote-branches-by-word-fmt "$1" | xargs -I% git push -n origin :% 2>&1 | tee -a ~/Desktop/delete_branches_dry_run.log
 }
 
 function g-delete-remote-branches-by-word() {
-  g-remote-branches-by-word-fmt $1 | xargs -I% git push origin :% 2>&1 | tee -a ~/Desktop/delete_branches.log
+  g-remote-branches-by-word-fmt "$1" | xargs -I% git push origin :% 2>&1 | tee -a ~/Desktop/delete_branches.log
 }
 
 function g-delete-branch-not-in-remote-interactive() {
@@ -309,7 +309,7 @@ function g-delete-branch-not-in-remote-interactive() {
   # レポジトリ名確認
   local tmp_path=$(git rev-parse --show-toplevel 2>/dev/null)
   if [ -n "${tmp_path}" ]; then
-    local repo_name=`basename ${tmp_path}`
+    local repo_name=$(basename "${tmp_path}")
     echo "repository is '${repo_name}'."
   else
     echo "$1 is not git repository."
@@ -342,7 +342,7 @@ function g-delete-branch-not-in-remote-interactive() {
 
       # 「Y」、「y」などであれば削除
       case ${ANSWER} in
-        "Y" | "y" | "yes" | "Yes" | "YES" ) git branch -D ${local_branch};;
+        "Y" | "y" | "yes" | "Yes" | "YES" ) git branch -D "${local_branch}";;
         * ) echo "not delete branch '${local_branch}'.";;
       esac
     fi
@@ -379,7 +379,7 @@ relpath() {
       return 1
   fi
 
-  rel_path="${file_abs#${git_root}/}"
+  rel_path="${file_abs#"${git_root}"/}"
   echo "${rel_path}"
 }
 
@@ -402,5 +402,5 @@ alias rp='relpath'
 
 # IntelliJでファイルを開く
 function ij(){
-    /Applications/IntelliJ\ IDEA.app/Contents/MacOS/idea `fullpath ${1}`
+    /Applications/IntelliJ\ IDEA.app/Contents/MacOS/idea $(fullpath "${1}")
 }
