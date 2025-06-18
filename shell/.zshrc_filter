@@ -82,7 +82,7 @@ function fcat(){
 
 # git switch by branch filter
 function fgsw(){
-  local temp=`br_org | xargs echo`
+  local temp=`br_fmt | xargs echo`
   if [[ -n $temp ]]
   then
     save_history git sw "$@" "$temp"
