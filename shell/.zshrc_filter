@@ -476,7 +476,14 @@ function fdocker-log() {
 # 関数・エイリアス名をfzfで選んで実行するウィジェット
 function falias() {
   local funcs aliases selected
-  funcs=$(print -l ${(k)functions})
+  funcs=$(print -l ${(k)functions} \
+    | grep -v "^_" \
+    | grep -v "^-" \
+    | grep -v "+" \
+    | grep -v "\." \
+    | grep -v "/" \
+    | grep -v ":" \
+    | grep -v "^falias")
   aliases=$(alias | cut -d'=' -f1)
   selected=$((echo "$funcs"; echo "$aliases") | sort | uniq | fzf --exact --reverse --no-sort --query="$LBUFFER" --cycle --prompt="関数/エイリアス > ")
   if [[ -z "$selected" ]]; then
