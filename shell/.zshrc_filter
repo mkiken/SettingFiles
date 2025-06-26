@@ -472,3 +472,17 @@ function fdocker-log() {
   cid=$(docker ps -a | sed 1d | fzf -q "$1" | awk '{print $1}')
   [ -n "$cid" ] && docker logs -f --tail=200 "$cid"
 }
+
+# 関数・エイリアス名をfzfで選んで実行するウィジェット
+function falias() {
+  local funcs aliases selected
+  funcs=$(print -l ${(k)functions})
+  aliases=$(alias | cut -d'=' -f1)
+  selected=$((echo "$funcs"; echo "$aliases") | sort | uniq | fzf --exact --reverse --no-sort --query="$LBUFFER" --cycle --prompt="関数/エイリアス > ")
+  if [[ -z "$selected" ]]; then
+    return 1
+  fi
+    save_history "$selected" "$@"
+}
+
+alias fa='falias'
