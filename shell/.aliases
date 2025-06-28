@@ -72,7 +72,7 @@ esac
 
 #make new alias
 #alias refresh='source ~/.bashrc'
-alias reload='zcompile ~/.zshrc;source ~/.zshrc;echo "zshrc reloaded.";zcompile ~/.zprofile;source ~/.zprofile;echo "zprofile reloaded."'
+alias reload='rm ~/*.zwc;rm ${SET}/shell/*.zwc;echo "zwc removed.";zcompile ~/.zshrc;source ~/.zshrc;echo "zshrc reloaded.";zcompile ~/.zprofile;source ~/.zprofile;echo "zprofile reloaded."'
 
 #cd
 alias cdd='cd ~/Desktop'
