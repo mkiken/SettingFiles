@@ -19,12 +19,11 @@ function zcompile_if_needed() {
     local file="$1"
     if [ ! -f "${file}.zwc" -o "$file" -nt "${file}.zwc" ]; then
         echo "zcompile $file start."
-        # -caをつけないとなぜか関数内のaliasがnot foundと言われる。ただ、zcompileしなおされると初回起動でtmuxのpaneが死ぬ。zcompile中に落ちる？
-        # https://zsh.sourceforge.io/Doc/Release/Shell-Builtin-Commands.html#index-zcompile
-        zcompile -ca "$file"
-        echo "wait 1 sec."
-        sleep 1
-        echo "zcompile $file end."
+        zcompile "$file"
+        # zcompile中のファイルを読み込んでエラーになることがあるようなのでちょっと待つ
+        echo "compiling... wait 2 sec."
+        sleep 2
+        echo "zcompile $file done!"
     fi
 }
 
