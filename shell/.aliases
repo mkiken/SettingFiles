@@ -71,8 +71,8 @@ esac
 # --------------- 共通設定 ---------------
 
 #make new alias
-#alias refresh='source ~/.bashrc'
-alias reload='rm ~/*.zwc;rm ${SET}/shell/*.zwc;echo "zwc removed.";zcompile ~/.zshrc;source ~/.zshrc;echo "zshrc reloaded.";zcompile ~/.zprofile;source ~/.zprofile;echo "zprofile reloaded."'
+alias reload='zcompile ~/.zshrc;source ~/.zshrc;echo "zshrc reloaded.";zcompile ~/.zprofile;source ~/.zprofile;echo "zprofile reloaded."'
+alias rm_zwc='rm ~/*.zwc;rm ${SET}/shell/*.zwc;echo "zwc removed."'
 
 #cd
 alias cdd='cd ~/Desktop'
