@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/zsh
+
 EDIT_COMMAND='cursor'
 export VISUAL='nvim'
 
@@ -18,9 +19,12 @@ alias df='duf'
 alias top='glances'
 alias wget='aria2c'
 alias curl='https'
-alias fda='fd -H'
-alias fdh='fda'
-alias fdd='fd -H --type=d'
+alias fda='fd -HI'
+alias fdh='fd -H'
+alias fdi='fd -I'
+alias fdad='fda --type=d'
+alias fdhd='fdh --type=d'
+alias fdhd='fdi --type=d'
 alias cat='bat --style=plain'
 alias du='dust'
 
