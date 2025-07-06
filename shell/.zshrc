@@ -13,11 +13,14 @@ else
 fi
 
 # Warpの判定を変数化
-if [[ "$TERM_PROGRAM" == "WarpTerminal" ]]; then
-  IS_WARP=true
-else
-  IS_WARP=false
+if [ -z "$IS_WARP" ]; then
+  if [[ "$TERM_PROGRAM" == "WarpTerminal" ]]; then
+    IS_WARP=true
+  else
+    IS_WARP=false
+  fi
 fi
+export IS_WARP
 
 if [[ -z "$TMUX" ]] && ! $IS_VSCODE && ! $IS_WARP; then
   tmux new-session -A -s tmux
