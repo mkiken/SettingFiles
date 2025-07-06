@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/zsh
 
 function make_symlink () {
   echo "ln -si $1 $2"
@@ -6,7 +6,7 @@ function make_symlink () {
 }
 
 # set Repo "$HOME/Desktop/repository/SettingFiles/"
-Repo="$(pwd | sed -e \"s/.\{3\}$//\")"
+Repo="`pwd | sed -e \"s/.\{3\}$//\"`"
 Repo_shell="${Repo}shell/"
 
 make_symlink "${Repo}"gitfiles/.gitconfig ~/.gitconfig
