@@ -10,7 +10,14 @@ else
   IS_VSCODE=false
 fi
 
-if [[ -z "$TMUX" ]] && ! $IS_VSCODE; then
+# Warpの判定を変数化
+if [[ "$TERM_PROGRAM" == "WarpTerminal" ]]; then
+  IS_WARP=true
+else
+  IS_WARP=false
+fi
+
+if [[ -z "$TMUX" ]] && ! $IS_VSCODE && ! $IS_WARP; then
   tmux new-session -A -s tmux
   return
 fi
@@ -492,7 +499,7 @@ znap source Aloxaf/fzf-tab
 znap source zsh-users/zsh-autosuggestions
 znap source z-shell/F-Sy-H
 
-if ! $IS_VSCODE; then
+if ! $IS_VSCODE && ! $IS_WARP; then
   # VSCodeでは「zsh-notify: unsupported environment」となる
   znap source marzocchi/zsh-notify
 fi
