@@ -435,7 +435,11 @@ function _kill-backward-blank-word() {
     zle kill-region
 }
 zle -N _kill-backward-blank-word
-bindkey '^J' _kill-backward-blank-word
+
+if ! $IS_WARP; then
+  # Warpだとコマンドの入力が無効になることがあるので無効にする
+  bindkey '^J' _kill-backward-blank-word
+fi
 
 # npmの補完は重すぎるので無効
 compdef -d npm
