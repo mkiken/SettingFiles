@@ -31,7 +31,7 @@ make_symlink "${Repo}".ideavimrc ~/.ideavimrc
 
 mkdir -p ~/.claude
 
-make_symlink "${Repo}"ai/claude/setting s.json ~/.claude
+make_symlink "${Repo}"ai/claude/settings.json ~/.claude
 
 # touch ~/.gitconfig.local
 cp -i "${Repo}gitfiles/.gitconfig.local_mac" ~/.os.gitconfig
