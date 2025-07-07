@@ -1,0 +1,5 @@
+---
+"editor_view:end": shift-cmd-}
+"editor_view:home": shift-cmd-{
+"workspace:activate_next_tab": cmd-right
+"workspace:activate_prev_tab": cmd-left

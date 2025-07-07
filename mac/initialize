@@ -33,6 +33,10 @@ mkdir -p ~/.claude
 
 make_symlink "${Repo}"ai/claude/settings.json ~/.claude
 
+mkdir -p ~/.warp
+
+make_symlink "${Repo}"warp/keybindings.yaml ~/.warp
+
 # touch ~/.gitconfig.local
 cp -i "${Repo}gitfiles/.gitconfig.local_mac" ~/.os.gitconfig
 echo "You can write LOCAL settings for git to '~/.gitconfig.local'."
