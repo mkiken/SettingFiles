@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-EDIT_COMMAND='cursor'
+EDIT_COMMAND='code'
 export VISUAL='nvim'
 
 #expanded command
@@ -10,6 +10,7 @@ darwin*)
 # ここに設定
 # alias ls='ls -G'
 # alias la='ls -A'
+alias v='code'
 alias c='cursor'
 alias ls='eza --time-style=long-iso -g'
 alias tree='eza -T --color=always'
