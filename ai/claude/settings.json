@@ -6,5 +6,18 @@
       "Bash(rm -rf ~/*)",
       "Bash(rm -rf /*)"
     ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/stop-send-notification.mjs"
+          }
+        ]
+      }
+    ]
   }
 }

@@ -32,8 +32,9 @@ make_symlink "${Repo}".ideavimrc ~/.ideavimrc
 mkdir -p ~/.claude
 
 make_symlink "${Repo}"ai/common/prompt.md ~/.claude/CLAUDE.md
-make_symlink "${Repo}"ai/claude/settings.json ~/.claude
-make_symlink "${Repo}"ai/claude/commands ~/.claude
+for item in settings.json commands hooks; do
+  make_symlink "${Repo}ai/claude/${item}" ~/.claude
+done
 
 mkdir -p ~/.roo/rules
 make_symlink "${Repo}"ai/common/prompt.md ~/.roo/rules/.roorules
