@@ -419,7 +419,7 @@ alias fcd='fcd-down'
 # https://qiita.com/kamykn/items/aa9920f07487559c0c7e
 function fcd-down() {
   local dir
-  dir=$(fdd | filter --preview 'eza -T --color=always {} | head -100' +m) &&
+  dir=$(fdad | filter --preview 'eza -T --color=always {} | head -100' +m) &&
   cd "$dir"
 }
 
