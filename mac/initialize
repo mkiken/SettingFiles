@@ -33,6 +33,7 @@ mkdir -p ~/.claude
 
 make_symlink "${Repo}"ai/common/prompt.md ~/.claude/CLAUDE.md
 make_symlink "${Repo}"ai/claude/settings.json ~/.claude
+make_symlink "${Repo}"ai/claude/commands ~/.claude
 
 mkdir -p ~/.roo/rules
 make_symlink "${Repo}"ai/common/prompt.md ~/.roo/rules/.roorules
