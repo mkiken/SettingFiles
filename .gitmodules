@@ -1,7 +1,3 @@
-[submodule "submodules/zsh-bd"]
-	path = submodules/zsh-bd
-	url = https://github.com/Tarrasch/zsh-bd
-  ignore = untracked
 [submodule "submodules/zsh-snap"]
 	path = submodules/zsh-snap
 	url = https://github.com/marlonrichert/zsh-snap.git

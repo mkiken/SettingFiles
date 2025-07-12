@@ -399,30 +399,6 @@ autoload -Uz edit-command-line
 zle -N edit-command-line
 bindkey '^v' edit-command-line
 
-# http://qiita.com/items/55651f44f91123f1881c
-# url: $1, delimiter: $2, prefix: $3, words: $4..
-function web_search {
-	local url=$1       && shift
-	local delimiter=$1 && shift
-	local prefix=$1    && shift
-	local query
-
-	while [ -n "$1" ]; do
-		if [ -n "$query" ]; then
-			query="${query}${delimiter}${prefix}$1"
-		else
-			query="${prefix}$1"
-		fi
-		shift
-	done
-
-	open "${url}${query}"
-}
-
-function google () {
-	web_search "https://www.google.co.jp/search?&q=" "+" "" $*
-}
-
 #zmv
 #http://mollifier.hatenablog.com/entry/20101227/p1
 autoload -Uz zmv
@@ -490,9 +466,6 @@ function zvm_after_init() {
   filter-bindkey
   bindkey '^D' delete-char-or-list # デフォルトと同じだが、なぜか効かなくなるので再定義
 }
-
-# znapよりも先に読み込まないと上位ディレクトリの補完が効かない
-source_and_zcompile_if_needed "${SUBMODULE_DIR}zsh-bd/bd.zsh"
 
 # Wait until this many characters have been typed, before showing completions.
 
