@@ -37,7 +37,7 @@ for item in settings.json commands hooks; do
   make_symlink "${Repo}ai/claude/${item}" ~/.claude
 done
 
-chmod +x ~/.claude/hooks/stop-send-notification.mjs
+chmod +x ~/.claude/hooks/stop-send-notification.sh
 
 mkdir -p ~/.roo/rules
 make_symlink "${Repo}"ai/common/prompt.md ~/.roo/rules/.roorules
