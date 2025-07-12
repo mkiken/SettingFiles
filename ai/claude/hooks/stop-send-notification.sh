@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# デバッグフラグ (true/false)
+DEBUG_ENABLED=false
+
 # デバッグ用ログファイル
 DEBUG_LOG="/tmp/claude-hook-debug.log"
 
@@ -8,7 +11,9 @@ set -e
 
 # デバッグ関数
 debug_log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "${DEBUG_LOG}"
+    if [[ "${DEBUG_ENABLED}" == "true" ]]; then
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "${DEBUG_LOG}"
+    fi
 }
 
 debug_log "=== Claude Stop Hook Started ==="
