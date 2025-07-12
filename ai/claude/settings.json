@@ -1,5 +1,9 @@
 {
   "permissions": {
+    "allow": [
+      "Read",
+      "LS"
+    ],
     "deny": [
       "Bash(rm -rf /)",
       "Bash(rm -rf ~)",
