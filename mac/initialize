@@ -29,12 +29,15 @@ make_symlink "${Repo}".tmux.conf ~/.tmux.conf
 
 make_symlink "${Repo}".ideavimrc ~/.ideavimrc
 
+# for Claude
 mkdir -p ~/.claude
 
 make_symlink "${Repo}"ai/common/prompt.md ~/.claude/CLAUDE.md
 for item in settings.json commands hooks; do
   make_symlink "${Repo}ai/claude/${item}" ~/.claude
 done
+
+chmod +x ~/.claude/hooks/stop-send-notification.mjs
 
 mkdir -p ~/.roo/rules
 make_symlink "${Repo}"ai/common/prompt.md ~/.roo/rules/.roorules
@@ -83,6 +86,9 @@ gh extension install dlvhdr/gh-dash
 gh extension install gennaro-tedesco/gh-f
 
 git submodule update --init
+
+# for Claude
+npm install -g ccusage
 
 echo "please install Sauce Code Pro Nerd Font Complete.ttf at https://www.nerdfonts.com/font-downloads."
 echo "please press ^T-I in tmux to install tmux plugins."
