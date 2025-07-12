@@ -28,7 +28,10 @@ alias fdhd='fdh --type=d'
 alias fdhd='fdi --type=d'
 alias cat='bat --style=plain'
 alias du='dust'
+
+# for Claude
 alias cl='claude'
+alias update-cc='npm i -g @anthropic-ai/claude-code'
 
 alias l='ls'
 
