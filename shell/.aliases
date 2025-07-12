@@ -93,8 +93,10 @@ alias setting='${EDIT_COMMAND} ${SET}'
 alias s='setting'
 
 # shortcut for docker
-alias d='docker'
-alias dps='d ps'
+alias do='docker'
+alias dps='do ps'
+
+alias di='npx difit'
 
 #shortcut for git
 alias cdgr='cd `g repository`'
