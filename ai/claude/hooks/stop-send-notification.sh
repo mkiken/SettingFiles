@@ -99,15 +99,15 @@ fi
 debug_log "Total user messages: ${#user_messages[@]}, assistant messages: ${#assistant_messages[@]}"
 
 # タスクの種類を推測
-task_type="💬 一般的な質問"
+task_type="💬" # 一般的な質問
 if [[ "$first_user_message" =~ (実装|コード|プログラム|関数|バグ|修正|追加|作成) ]]; then
-    task_type="💻 コーディング"
+    task_type="💻" # コーディング
 elif [[ "$first_user_message" =~ (検索|調べ|探し|find|grep|確認) ]]; then
-    task_type="🔍 検索・調査"
+    task_type="🔍" # 検索・調査
 elif [[ "$first_user_message" =~ (説明|教え|解説|どう|なぜ|what|how) ]]; then
-    task_type="📚 説明・学習"
+    task_type="📚" # 説明・学習
 elif [[ "$first_user_message" =~ (テスト|test|チェック|確認) ]]; then
-    task_type="🧪 テスト・検証"
+    task_type="🧪" # テスト・検証
 fi
 
 # 概要を作成
@@ -125,9 +125,9 @@ if [[ ${user_count} -gt 0 ]]; then
     fi
 
     if [[ ${user_count} -eq 1 ]]; then
-        summary="${task_type}\n${first_message_short}"
+        summary="${task_type} ${first_message_short}"
     else
-        summary="${task_type} (${user_count}回のやり取り)\n${first_message_short}"
+        summary="${task_type}(${user_count}回) ${first_message_short}"
     fi
 else
     summary="💭 セッションが開始されましたが、メッセージはありませんでした"
