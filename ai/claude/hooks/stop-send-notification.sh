@@ -6,8 +6,10 @@ DEBUG_ENABLED=false
 # デバッグ用ログファイル
 DEBUG_LOG="/tmp/claude-hook-debug.log"
 
-# エラーハンドリング設定
-set -e
+# エラーハンドリング設定（配列アクセスエラーを回避するため-eは使わない）
+if [[ "${DEBUG_ENABLED}" == "true" ]]; then
+    set -e
+fi
 
 # デバッグ関数
 debug_log() {
@@ -109,17 +111,23 @@ elif [[ "$first_user_message" =~ (テスト|test|チェック|確認) ]]; then
 fi
 
 # 概要を作成
-if [[ ${#user_messages[@]} -gt 0 ]]; then
+# 配列の安全な長さチェック
+user_count=0
+if [[ -n "${user_messages[*]:-}" ]]; then
+    user_count=${#user_messages[@]}
+fi
+
+if [[ ${user_count} -gt 0 ]]; then
     # 最初のメッセージから要約を作成（80文字まで）
-    first_message_short=$(echo "$first_user_message" | head -c 80)
+    first_message_short=$(echo "${first_user_message}" | head -c 80)
     if [[ ${#first_user_message} -gt 80 ]]; then
         first_message_short="${first_message_short}..."
     fi
 
-    if [[ ${#user_messages[@]} -eq 1 ]]; then
+    if [[ ${user_count} -eq 1 ]]; then
         summary="${task_type}\n${first_message_short}"
     else
-        summary="${task_type} (${#user_messages[@]}回のやり取り)\n${first_message_short}"
+        summary="${task_type} (${user_count}回のやり取り)\n${first_message_short}"
     fi
 else
     summary="💭 セッションが開始されましたが、メッセージはありませんでした"
