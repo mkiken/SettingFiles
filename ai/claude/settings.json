@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Read",
-      "LS"
+      "LS",
+      "Bash(ls:*)",
+      "Bash(find:*)"
     ],
     "deny": [
       "Bash(rm -rf /)",
