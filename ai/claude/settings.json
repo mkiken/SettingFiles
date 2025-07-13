@@ -3,8 +3,16 @@
     "allow": [
       "Read",
       "LS",
+      // ファイル操作
       "Bash(ls:*)",
-      "Bash(find:*)"
+      "Bash(cat:*)",
+      "Bash(pwd:*)",
+      "Bash(cd:*)",
+
+      // 検索系
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)"     // ripgrep（高速検索）
     ],
     "deny": [
       "Bash(rm -rf /)",
