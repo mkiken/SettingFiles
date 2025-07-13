@@ -15,4 +15,4 @@ description: "Generate comprehensive PR body content using gh command for specif
   - **Review Focus Points**: Areas requiring special attention during review
   - **Breaking Changes**: Any breaking changes or migration requirements
   - **Additional Notes**: Any other relevant information for reviewers
-- **Output to file**: Save the generated PR body content to `/tmp/pr-body-$ARGUMENTS.md` for future reference and easy copying
+- **Output to file**: Ask the user if they want to save the generated PR body content to a file for future reference and easy copying. If yes, save to `/tmp/pr-body-$ARGUMENTS.md`
