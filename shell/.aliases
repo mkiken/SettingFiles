@@ -410,7 +410,7 @@ function ij(){
 }
 
 # コミットハッシュからPR情報を検索（マージ先ブランチ付き）
-function ghpr_from_commit() {
+function ghpl_from_commit() {
     if [ $# -ne 1 ]; then
         echo "Usage: ghpr_from_commit <commit-hash>"
         return 1

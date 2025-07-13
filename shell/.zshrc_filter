@@ -379,6 +379,16 @@ function fghpv(){
   ghpl | filter | awk '{print $1}' | xargs ghpv
 }
 
+# コミットハッシュからPR検索してブラウザで開く
+function fghpv_from_commit(){
+  local commit_hash="${1}"
+  if [[ -z $commit_hash ]]; then
+    echo "Usage: fghpv_from_commit <commit-hash>"
+    return 1
+  fi
+  ghpl_from_commit "$commit_hash" | filter | awk '{print $1}' | xargs ghpv
+}
+
 # 自分のPR一覧からブラウザで開く
 function fghpvm(){
   ghplm | filter | awk '{print $1}' | xargs ghpv
