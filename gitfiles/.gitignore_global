@@ -1,3 +1,6 @@
+# [Hidden Files Not Displayed with '@.hidden' Command · Issue #2336 · anthropics/claude-code](https://github.com/anthropics/claude-code/issues/2336)
+!.*
+
 .DS_Store
 a.out
 *.class
