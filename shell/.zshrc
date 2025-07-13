@@ -488,6 +488,8 @@ fi
 znap source jeffreytse/zsh-vi-mode
 
 zstyle ':notify:*' command-complete-timeout 6
+zstyle ':notify:*' always-notify-on-failure no # 失敗時に毎回通知しないようにする
+
 
 # zstyle ':filter-select:highlight' selected fg=black,bg=white,standout
 zstyle ':filter-select:highlight' matched fg=yellow,standout
