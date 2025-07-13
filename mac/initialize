@@ -39,6 +39,10 @@ done
 
 chmod +x ~/.claude/hooks/stop-send-notification.sh
 
+# for Gemini
+mkdir -p ~/.gemini
+make_symlink "${Repo}"ai/common/prompt.md ~/.gemini/GEMINI.md
+
 mkdir -p ~/.roo/rules
 make_symlink "${Repo}"ai/common/prompt.md ~/.roo/rules/.roorules
 
@@ -90,6 +94,9 @@ git submodule update --init
 # for Claude
 npm install -g @anthropic-ai/claude-code
 npm install -g ccusage
+
+#for Gemini
+npm install -g @google/gemini-cli
 
 echo "please install Sauce Code Pro Nerd Font Complete.ttf at https://www.nerdfonts.com/font-downloads."
 echo "please press ^T-I in tmux to install tmux plugins."
