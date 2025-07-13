@@ -323,7 +323,6 @@ function fgh_compare_url(){
 # マージ先のブランチ名を表示するPR一覧
 function fghpl_branch() {
  ghpl_branch \
-    | jq -r '.[] | [.number, .title, .author.login, .baseRefName, .headRefName] | @tsv' \
     | filter --height 40% --layout reverse --info inline --border \
         --header $'Number\tTitle\tAuthor\tBase\tHead' \
         --delimiter $'\t' --with-nth 1,2,3,4,5

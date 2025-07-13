@@ -174,12 +174,17 @@ alias ghf-logs='gh f -l'
 alias ghf-prs='gh f -p'
 
 # デフォルトの30件だと少ないので増やして取得
-alias ghpl='gh pr list -L 200'
+function ghpl(){
+  gh pr list -L 200 "${@}"
+}
 alias ghplm='ghpl --author @me'
 alias ghplw='ghpl --web'
 alias ghplmw='ghplw --author @me'
 # マージ先のブランチ名を表示するPR一覧
-alias ghpl_branch='ghpl --json number,title,author,baseRefName,headRefName'
+function ghpl_branch(){
+  ghpl --json number,title,author,baseRefName,headRefName "${@}" \
+  | jq -r '.[] | [.number, .title, .author.login, .baseRefName, .headRefName] | @tsv'
+}
 
 alias -g rg='RIPGREP_CONFIG_PATH=${SET}/configs/.ripgreprc rg'
 
