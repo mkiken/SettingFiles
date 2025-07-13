@@ -321,8 +321,8 @@ function fgh_compare_url(){
 }
 
 # マージ先のブランチ名を表示するPR一覧
-function ghpl_branch() {
- ghpl --json number,title,author,baseRefName,headRefName \
+function fghpl_branch() {
+ ghpl_branch \
     | jq -r '.[] | [.number, .title, .author.login, .baseRefName, .headRefName] | @tsv' \
     | filter --height 40% --layout reverse --info inline --border \
         --header $'Number\tTitle\tAuthor\tBase\tHead' \
@@ -332,7 +332,7 @@ function ghpl_branch() {
 # GitHubのPR一覧からブランチ間差分表示（共通祖先からの差分）
 function fgd_pr() {
   # GitHubのプルリクエスト一覧をTSV形式で取得
-  selected_pr=$(ghpl_branch)
+  selected_pr=$(fghpl_branch)
 
   # PRが選択された場合
   if [ -z "$selected_pr" ]; then
@@ -352,7 +352,7 @@ function fgd_pr() {
 # GitHubのPR一覧からブランチ間ログ表示（共通祖先からの差分）
 function fgl_pr() {
   # GitHubのプルリクエスト一覧をTSV形式で取得
-  selected_pr=$(ghpl_branch)
+  selected_pr=$(fghpl_branch)
 
   # PRが選択された場合
   if [ -z "$selected_pr" ]; then
