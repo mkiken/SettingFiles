@@ -2,9 +2,9 @@
 allowed-tools: Bash(gh:*)
 description: "Generate comprehensive PR body content using gh command for specified PR number"
 ---
+ultrathink
 
 ## Instructions
-
 - Use the gh command to fetch and analyze PR #$ARGUMENTS
   - Generate content suitable for PR body
   - Exclude template sections

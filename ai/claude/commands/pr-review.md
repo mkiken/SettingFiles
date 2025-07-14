@@ -2,6 +2,7 @@
 allowed-tools: Bash(gh:*)
 description: "Comprehensive PR review using gh command for specified PR number"
 ---
+ultrathink
 
 ## Instructions
 
