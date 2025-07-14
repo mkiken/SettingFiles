@@ -371,8 +371,21 @@ function fgl_pr() {
 
 # github cli
 # マージ先ブランチを選んでPRを作成
-alias fghpc='br_fmt | xargs gh pr create --web --base'
-alias fghpch='_fgbh | xargs gh pr create --web --base'
+function fghpc() {
+  local branch=$(br_fmt)
+  if [[ -z $branch ]]; then
+    return 1
+  fi
+  gh pr create --web --body="" --base "$branch" "$@"
+}
+
+function fghpch() {
+  local branch=$(_fgbh)
+  if [[ -z $branch ]]; then
+    return 1
+  fi
+  gh pr create --web --body="" --base "$branch" "$@"
+}
 
 # PR一覧からブラウザで開く
 function fghpv(){

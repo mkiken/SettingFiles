@@ -159,7 +159,9 @@ alias gprb='gpl --rebase'
 gh config set editor "nvim"
 
 alias ghb='gh browse'
-alias ghpc='gh pr create --web'
+function ghpc() {
+  gh pr create --web --body="" "$@"
+}
 alias -g ghpv='gh pr view --web'
 alias -g ghco='gh co'
 alias gh-dash='gh dash'
