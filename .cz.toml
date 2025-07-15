@@ -29,9 +29,24 @@ choices = [
 ]
 
 [[tool.commitizen.customize.questions]]
-type = "input"
+type = "list"
 name = "scope"
-message = "What is the scope of this change? (class or file name): (press [enter] to skip)"
+message = "What is the scope of this change? (select directory): (press [enter] to skip)"
+choices = [
+    {value = "ai", name = "ai: AI assistant configurations"},
+    {value = "bin", name = "bin: Binary files and executables"},
+    {value = "commitizen", name = "commitizen: Commitizen Configuration"},
+    {value = "configs", name = "configs: Configuration files"},
+    {value = "gitfiles", name = "gitfiles: Git tools configurations"},
+    {value = "mac", name = "mac: macOS-specific configurations"},
+    {value = "ranger", name = "ranger: File manager configurations"},
+    {value = "sedfiles", name = "sedfiles: Sed scripts and utilities"},
+    {value = "shell", name = "shell: Shell configurations"},
+    {value = "submodules", name = "submodules: Git submodules"},
+    {value = "vimfiles", name = "vimfiles: Vim/Neovim configurations"},
+    {value = "warp", name = "warp: Warp terminal settings"},
+    {value = "windows", name = "windows: Windows-specific configurations"}
+]
 
 [[tool.commitizen.customize.questions]]
 type = "input"
