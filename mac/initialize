@@ -46,11 +46,15 @@ make_symlink "${Repo}"ai/common/prompt.md ~/.gemini/GEMINI.md
 mkdir -p ~/.roo/rules
 make_symlink "${Repo}"ai/common/prompt.md ~/.roo/rules/.roorules
 
+echo 'symbolic links created.'
+
 # touch ~/.gitconfig.local
 cp -i "${Repo}gitfiles/.gitconfig.local_mac" ~/.os.gitconfig
 echo "You can write LOCAL settings for git to '~/.gitconfig.local'."
 
-echo 'symbolic links created.'
+cp -i "${Repo}gitfiles/hooks/commit-msg" ${Repo}.git/hooks
+
+echo 'files copied.'
 
 
 # install commands
