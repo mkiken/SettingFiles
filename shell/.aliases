@@ -29,6 +29,9 @@ alias fdhd='fdi --type=d'
 alias cat='bat --style=plain'
 alias du='dust'
 
+# for commitizen
+alias czc='cz commit'
+
 # for Claude
 alias cl='claude'
 alias update-cc='npm i -g @anthropic-ai/claude-code'
