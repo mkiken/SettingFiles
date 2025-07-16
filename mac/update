@@ -1,5 +1,5 @@
 #!/bin/zsh
-#
+
 REPO="${HOME}/Desktop/repository/"
 SET="${REPO}SettingFiles/"
 SUBMODULE_DIR="${SET}submodules/"
@@ -15,6 +15,9 @@ brew upgrade -v
 brew cleanup -s
 brew bundle
 echo "end brew update."
+
+# for Claude
+npm i -g @anthropic-ai/claude-code
 
 # Lazy + tree-sitterのアップデート
 nvim --headless "+Lazy! sync | TSUpdate" +qa
