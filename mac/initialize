@@ -37,6 +37,8 @@ for item in settings.json commands hooks; do
   make_symlink "${Repo}ai/claude/${item}" ~/.claude
 done
 
+make_symlink "${Repo}"ai/claude/claude_desktop_config.json ~/Library/Application\ Support/Claude
+
 chmod +x ~/.claude/hooks/stop-send-notification.sh
 
 # for Gemini
