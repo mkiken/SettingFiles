@@ -7,25 +7,25 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 echo "Starting macOS initialization..."
 
 # Execute all initialization scripts in order
-echo "\n[1/7] Setting up Git configuration..."
-source "${SCRIPT_DIR}/git_setup.sh"
 
-echo "\n[2/7] Setting up development tools..."
-source "${SCRIPT_DIR}/dev_tools.sh"
-
-echo "\n[3/7] Setting up AI assistants..."
-source "${SCRIPT_DIR}/ai_setup.sh"
-
-echo "\n[4/7] Copying configuration files..."
+echo "\n[1/6] Copying configuration files..."
 source "${SCRIPT_DIR}/copy_files.sh"
 
-echo "\n[5/7] Installing Homebrew and packages..."
+echo "\n[2/6] Installing Homebrew and packages..."
 source "${SCRIPT_DIR}/homebrew.sh"
 
-echo "\n[6/7] Installing AI tools..."
-source "${SCRIPT_DIR}/ai_tools.sh"
+echo "\n[3/6] Setting up development tools..."
+source "${SCRIPT_DIR}/dev_tools.sh"
 
-echo "\n[7/7] System setup..."
+echo "\n[4/6] Setting up Git configuration..."
+source "${SCRIPT_DIR}/git_setup.sh"
+
+echo "\n[5/6] System setup..."
 source "${SCRIPT_DIR}/system_setup.sh"
+
+echo "\n[6/6] Setting up AI assistants..."
+source "${SCRIPT_DIR}/ai/claude.sh"
+source "${SCRIPT_DIR}/ai/gemini.sh"
+source "${SCRIPT_DIR}/ai/other.sh"
 
 echo "\nmacOS initialization completed!"
