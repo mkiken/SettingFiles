@@ -65,7 +65,7 @@ BREW_CELLAR="$BREW_PREFIX/Cellar"
 EDITOR=nvim
 
 #read Aliases
-source_and_zcompile_if_needed "${SET}shell/.aliases"
+source_and_zcompile_if_needed "${SET}shell/zsh/.aliases.zsh"
 
 # パスの設定
 path=(/usr/local/bin(N-/) $path)
@@ -103,7 +103,7 @@ case "${OSTYPE}" in
 esac
 
 # powerlevel10kのプロンプト設定
-source_and_zcompile_if_needed "${SET}shell/p10k/config.sh"
+source_and_zcompile_if_needed "${SET}shell/zsh/p10k/config.zsh"
 
 
 # http://qiita.com/yuyuchu3333/items/b10542db482c3ac8b059
@@ -374,7 +374,7 @@ man() {
 		man "$@"
 }
 
-source_and_zcompile_if_needed "${SET}shell/.zshrc_filter"
+source_and_zcompile_if_needed "${SET}shell/zsh/.zshrc_filter.zsh"
 
 function filter-bindkey() {
   zle -N select-history
@@ -389,7 +389,7 @@ function zvm_after_init() {
 }
 
 # プラグイン設定を読み込み
-source_and_zcompile_if_needed "${SET}shell/plugin.sh"
+source_and_zcompile_if_needed "${SET}shell/zsh/plugin.zsh"
 
 # Return key in completion menu & history menu:
 bindkey -M menuselect '\r' accept-line

@@ -7,4 +7,4 @@ function make_symlink () {
 
 # set Repo "$HOME/Desktop/repository/SettingFiles/"
 Repo="$(dirname "$(dirname "$(dirname "$(realpath "$0")")")")/"
-Repo_shell="${Repo}/shell/"
+Repo_shell="${Repo}/shell/zsh/"
