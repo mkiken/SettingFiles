@@ -1,0 +1,15 @@
+#!/bin/zsh
+
+# Main initialization script that calls all sub-scripts
+
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+
+echo "Starting macOS initialization..."
+
+# Execute all initialization scripts in order
+source "${SCRIPT_DIR}/symlinks.sh"
+source "${SCRIPT_DIR}/copy_files.sh"
+source "${SCRIPT_DIR}/homebrew.sh"
+source "${SCRIPT_DIR}/other_setup.sh"
+
+echo "macOS initialization completed!"
