@@ -299,12 +299,6 @@ function zvm_after_init() {
 # プラグイン設定を読み込み
 source_and_zcompile_if_needed "${SET}shell/zsh/plugin.zsh"
 
-# Return key in completion menu & history menu:
-bindkey -M menuselect '\r' accept-line
-# .accept-line: Accept command line.
-# accept-line:  Accept selection and exit menu.
-
-
 # https://github.com/ajeetdsouza/zoxide
 eval "$(zoxide init zsh --cmd cd)"
 
