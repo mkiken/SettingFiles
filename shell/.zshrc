@@ -106,7 +106,6 @@ esac
 source_and_zcompile_if_needed "${SET}shell/p10k/config.sh"
 
 
-
 # http://qiita.com/yuyuchu3333/items/b10542db482c3ac8b059
 function chpwd() { pwd;ls_abbrev }
 
@@ -180,8 +179,6 @@ setopt pipefail
 ## Keybind configuration
 bindkey -v
 
-
-
 ## Command history configuration
 #
 export HISTFILE=$HOME/.zsh_history
@@ -201,16 +198,6 @@ setopt inc_append_history     # コマンド実行時にすぐ履歴ファイル
 
 # ファイル補完候補に色を付ける
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-
-# force zsh not to show completion menu, which allows fzf-tab to capture the unambiguous prefix
-zstyle ':completion:*' menu no
-# preview directory's content with eza when completing cd
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
-# we provide a script ftb-tmux-popup to make full use of it's "popup" feature.
-zstyle ':fzf-tab:*' fzf-command ftb-tmux-popup
-
-# apply to all command
-zstyle ':fzf-tab:*' popup-min-size 80 12
 
 #from http://qiita.com/items/ed2d36698a5cc314557d
 zstyle ':completion:*:default' menu select=2
@@ -401,37 +388,8 @@ function zvm_after_init() {
   bindkey '^D' delete-char-or-list # デフォルトと同じだが、なぜか効かなくなるので再定義
 }
 
-# Wait until this many characters have been typed, before showing completions.
-
-source_and_zcompile_if_needed "${SUBMODULE_DIR}/zsh-snap/znap.zsh"  # Start Znap
-
-# Znap automatically enables git maintenance in each repo that it manages.
-# This automatically optimizes your repos in the background, so that your git and znap commands will run faster.
-zstyle ':znap:*:*' git-maintenance off
-
-# `znap source` automatically downloads and starts your plugins.
-# fzf-tab needs to be loaded after compinit, but before plugins which will wrap widgets, such as zsh-autosuggestions or fast-syntax-highlighting
-znap source Aloxaf/fzf-tab
-znap source zsh-users/zsh-autosuggestions
-znap source z-shell/F-Sy-H
-
-if ! $IS_VSCODE && ! $IS_WARP; then
-  # VSCodeでは「zsh-notify: unsupported environment」となる
-  znap source marzocchi/zsh-notify
-fi
-znap source jeffreytse/zsh-vi-mode
-
-zstyle ':notify:*' command-complete-timeout 6
-zstyle ':notify:*' always-notify-on-failure no # 失敗時に毎回通知しないようにする
-
-
-# zstyle ':filter-select:highlight' selected fg=black,bg=white,standout
-zstyle ':filter-select:highlight' matched fg=yellow,standout
-zstyle ':filter-select' max-lines 20 # use 10 lines for filter-select
-zstyle ':filter-select' rotate-list yes # enable rotation for filter-select
-zstyle ':filter-select' case-insensitive yes # enable case-insensitive search
-zstyle ':filter-select' extended-search yes # see below
-zstyle ':filter-select' hist-find-no-dups yes # ignore duplicates in history source
+# プラグイン設定を読み込み
+source_and_zcompile_if_needed "${SET}shell/plugin.sh"
 
 # Return key in completion menu & history menu:
 bindkey -M menuselect '\r' accept-line
