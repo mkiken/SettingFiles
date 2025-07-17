@@ -35,6 +35,7 @@ message = "What is the scope of this change? (select directory): (press [enter] 
 choices = [
     {value = "ai", name = "ai: AI assistant configurations"},
     {value = "bin", name = "bin: Binary files and executables"},
+    {value = "chezmoi", name = "chezmoi: chezmoi configurations"},
     {value = "commitizen", name = "commitizen: Commitizen Configuration"},
     {value = "configs", name = "configs: Configuration files"},
     {value = "gitfiles", name = "gitfiles: Git tools configurations"},

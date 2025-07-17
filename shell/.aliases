@@ -226,6 +226,9 @@ alias tmks='tm kill-server'
 #tig/gitui
 alias t='lazygit'
 
+# chezmoi
+alias ch='chezmoi'
+
 # tmuxで新しくペインを作成してコマンドを実行
 # 水平分割
 function sp() {
