@@ -102,32 +102,6 @@ case "${OSTYPE}" in
 
 esac
 
-# http://qiita.com/Cside_/items/13f85c11d3d0aa35d7ef
-# setopt prompt_subst
-# autoload -Uz VCS_INFO_get_data_git; VCS_INFO_get_data_git 2> /dev/null
-
-# git stash (fish style)
-function fish_style_git_branch {
-  local git_branch=$(git current-branch)
-    if [ -n "$git_branch" ]; then
-      # local fish_style_git_branch="${${(M)git_branch:#[/~]}:-${${(@j:/:M)${(@s:/:)git_branch}##.#?}:h}/${git_branch:t}}"
-      # # ./masterとなるのでmasterにする
-      # if [[ "$fish_style_git_branch" =~ "^\./.*" ]]; then
-      #   fish_style_git_branch="${fish_style_git_branch#./}"
-      # fi
-      # echo $fish_style_git_branch
-      echo $git_branch
-    fi
-}
-
-# git stash count
-function git_prompt_stash_count {
-  local COUNT=$(git stash list 2>/dev/null | wc -l | tr -d ' ')
-  if [ "$COUNT" -gt 0 ]; then
-    echo "($COUNT)"
-  fi
-}
-
 # powerlevel10kのプロンプト設定
 source_and_zcompile_if_needed "${SET}shell/p10k/config.sh"
 
