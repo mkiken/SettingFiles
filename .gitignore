@@ -1,8 +1,9 @@
+*.zwc
 .DS_Store
+.claude
 npm-debug.log
 submodules/*
 vimfiles/nvim/.backup
 vimfiles/nvim/.swp
 vimfiles/nvim/.undo
 vimfiles/nvim/lazy-lock.json
-*.zwc

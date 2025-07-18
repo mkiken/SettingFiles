@@ -44,6 +44,7 @@ choices = [
     {value = "gitfiles", name = "gitfiles: Git tools configurations"},
     {value = "mac", name = "mac: macOS-specific configurations"},
     {value = "ranger", name = "ranger: File manager configurations"},
+    {value = "repository", name = "repository: For this repository"},
     {value = "sedfiles", name = "sedfiles: Sed scripts and utilities"},
     {value = "shell", name = "shell: Shell configurations"},
     {value = "submodules", name = "submodules: Git submodules"},
