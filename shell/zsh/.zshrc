@@ -282,7 +282,7 @@ man() {
 		man "$@"
 }
 
-source_and_zcompile_if_needed "${SET}shell/zsh/.zshrc_filter.zsh"
+source_and_zcompile_if_needed "${SET}shell/zsh/filter/main.zsh"
 
 function filter-bindkey() {
   zle -N select-history

@@ -1,31 +1,5 @@
 #!/usr/local/bin/zsh
 
-FILTER_TOOL='fzf-tmux'
-
-if ! command -v ${FILTER_TOOL} > /dev/null 2>&1; then
-  exit
-fi
-
-FILTER_COMMAND="${FILTER_TOOL} --cycle --exit-0 --ansi"
-function filter(){
-  ${=FILTER_COMMAND} $@
-}
-
-if [ -z "$FILTER_COMMAND" ]; then
-  echo "FILTER_COMMAND variable is empty;"
-  return;
-fi
-
-alias -g F='| filter'
-
-# https://mogulla3.tech/articles/2021-09-06-search-command-history-with-incremental-search/
-function select-history() {
-  BUFFER=$(history -n -r 1 | awk '!seen[$0]++' | fzf --exact --reverse --no-sort --query="$LBUFFER" --cycle --prompt="History > ")
-  CURSOR=${#BUFFER}
-  # zle accept-line # 選択した履歴を即座に実行
-}
-
-
 alias fgmg='filter_git_command git merge'
 alias fgmgs='fgmg --squash'
 alias fgpl='filter_git_command_fmt git pull origin'
@@ -42,20 +16,11 @@ alias fgd='filter_git_command git diff'
 alias fgdn='fgd --name-status'
 alias fgls='fgl --stat'
 
-alias fls='ls -aR | filter --preview "bat --color=always --style=header,grid {}"'
-alias ffind='fda | filter --preview "bat --color=always --style=header,grid {}"'
-alias fps='ps aux | filter'
-alias fkill='ps ax | filter | awk "{ print $1 }" | xargs kill'
-alias fopen='filter_find_command open'
-alias fless='filter_find_command less'
-alias fnv='filter_find_command nvim'
 alias fgcf='gcf | filter'
 alias fgmt='gmt $(fgcf)'
 alias fga='ga $(fgcf)'
 alias fgcoo='gcoo $(fgcf)'
 alias fgcot='gcot $(fgcf)'
-# http://qiita.com/itkrt2y/items/0671d1f48e66f21241e2
-# alias fghq='save_history cd $(ghq root)/$(ghq list | filter)'
 
 function _fgbh(){
   git --no-pager reflog | awk '$3 == "checkout:" && /moving from/ {print $8}' | awk '!seen[$0]++' | grep -Fx -f <(git branch --format='%(refname:short)') | head -30 | filter --preview "echo {} | sed -e 's/\*//' | awk '{print \$1}' | xargs git log --color --graph --decorate --abbrev-commit --format=format:'%C(blue)%h%C(reset) - %C(green)(%ar)%C(reset)%C(yellow)%d%C(reset)\n  %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'"
@@ -70,10 +35,6 @@ function fgbh(){
   else
     return 1
   fi
-}
-
-function fcat(){
-  cat -n $@ | filter
 }
 
 # git switch by branch filter
@@ -111,25 +72,6 @@ function br_org(){
 # br_fmtのリモート対象版
 function br_fmt_remote(){
   br_fmt | xargs echo | awk '{printf("%s%s\n", "remotes/origin/", $0)}'
-}
-
-# コマンドを履歴に残す
-function save_history(){
-  "$@" # 受け取った引数をそのままコマンドとして実行
-  local ret=$? # コマンドの終了ステータスをキャプチャ
-  if [[ $ret -ne 0 ]]; then
-    return $ret # 元の終了ステータスを返す
-  fi
-  # 実行したコマンドを履歴に追加
-  # -- は、以降の引数がオプションとして解釈されるのを防ぐ
-  # (q-): Escaping of special characters, minimal quoting with single quotes
-  print -s -- ${(q-)@}
-}
-
-# findの結果をfilter toolで絞ってコマンドを実行する
-function filter_find_command(){
-  local cmd="$(ffind)"
-  save_history "$@" $cmd
 }
 
 # ブランチをfilter toolで絞ってgitコマンドを実行する
@@ -304,147 +246,6 @@ function fgl2(){
   save_history git log "$@" $base..$compare
 }
 
-# ブランチを指定してGitHubのcompare urlを開く
-function fgh_compare_url(){
-  local base=`br_fmt`
-	if test $? -ne 0
-	then
-		return 1
-	fi
-  local compare=`br_fmt`
-	if test $? -ne 0
-	then
-		return 1
-	fi
-
-  gh_compare_url $base $compare
-}
-
-# マージ先のブランチ名を表示するPR一覧
-function fghpl_branch() {
- ghpl_branch \
-    | filter --height 40% --layout reverse --info inline --border \
-        --header $'Number\tTitle\tAuthor\tBase\tHead' \
-        --delimiter $'\t' --with-nth 1,2,3,4,5
-}
-
-# GitHubのPR一覧からブランチ間差分表示（共通祖先からの差分）
-function fgd_pr() {
-  # GitHubのプルリクエスト一覧をTSV形式で取得
-  selected_pr=$(fghpl_branch)
-
-  # PRが選択された場合
-  if [ -z "$selected_pr" ]; then
-    return 1
-  fi
-
-  # 変数に分解
-  IFS=$'\t' read pr_number title author base_ref head_ref <<< "$selected_pr"
-
-  # リモートブランチをフェッチ
-  git fetch origin "${base_ref}" "${head_ref}"
-
-  # 差分を表示
-  save_history git diff "$@" "origin/${base_ref}...origin/${head_ref}"
-}
-
-# GitHubのPR一覧からブランチ間ログ表示（共通祖先からの差分）
-function fgl_pr() {
-  # GitHubのプルリクエスト一覧をTSV形式で取得
-  selected_pr=$(fghpl_branch)
-
-  # PRが選択された場合
-  if [ -z "$selected_pr" ]; then
-
-    return 1
-  fi
-
-  # 変数に分解
-  IFS=$'\t' read pr_number title author base_ref head_ref <<< "$selected_pr"
-
-  # リモートブランチをフェッチ
-  git fetch origin "${base_ref}" "${head_ref}"
-
-  # ログを表示
-  save_history git log "$@" "origin/${base_ref}..origin/${head_ref}"
-}
-
-# github cli
-# マージ先ブランチを選んでPRを作成
-function fghpc() {
-  local branch=$(br_fmt)
-  if [[ -z $branch ]]; then
-    return 1
-  fi
-  gh pr create --web --body="" --base "$branch" "$@"
-}
-
-function fghpch() {
-  local branch=$(_fgbh)
-  if [[ -z $branch ]]; then
-    return 1
-  fi
-  gh pr create --web --body="" --base "$branch" "$@"
-}
-
-# PR一覧からブラウザで開く
-function fghpv(){
-  ghpl | filter | awk '{print $1}' | xargs ghpv
-}
-
-# コミットハッシュからPR検索してブラウザで開く
-function fghpv_from_commit(){
-  local commit_hash="${1}"
-  if [[ -z $commit_hash ]]; then
-    echo "Usage: fghpv_from_commit <commit-hash>"
-    return 1
-  fi
-  ghpl_from_commit "$commit_hash" | filter | awk '{print $1}' | xargs ghpv
-}
-
-# 自分のPR一覧からブラウザで開く
-function fghpvm(){
-  ghplm | filter | awk '{print $1}' | xargs ghpv
-}
-
-# PR一覧からチェックアウト
-function fghco(){
-  ghpl | filter | awk '{print $1}' | xargs ghco
-}
-
-# 自分のPR一覧からチェックアウト
-function fghcom(){
-  ghplm | filter | awk '{print $1}' | xargs ghco
-}
-
-# 2ブランチを指定してGitHubのPR作成urlを開く
-function fghpc2(){
-  local base
-  base=$(FZF_DEFAULT_OPTS="--prompt='base: ' --header='マージ先ブランチを選択'" br_fmt)
-  local ret=$?
-  if [[ $ret -ne 0 || -z $base ]]; then
-    return 1
-  fi
-
-  local compare
-  compare=$(FZF_DEFAULT_OPTS="--prompt='compare: ' --header='マージブランチを選択'" br_fmt)
-  ret=$?
-  if [[ $ret -ne 0 || -z $compare ]]; then
-    return 1
-  fi
-
-  ghpc --base $base --head $compare
-}
-
-alias fcd='fcd-down'
-# fcd-down - cd to selected directory
-# https://qiita.com/kamykn/items/aa9920f07487559c0c7e
-function fcd-down() {
-  local dir
-  dir=$(fdad | filter --preview 'eza -T --color=always {} | head -100' +m) &&
-  cd "$dir"
-}
-
 # 差分のあるファイルを選択してdiffを表示
 function fgds() {
   # 変更のあるファイルとディレクトリのリストを生成
@@ -474,40 +275,3 @@ if [ -n "$selection" ]; then
     git diff --color=always -- "$selection" | less -R
 fi
 }
-
-# fzfでdockerコンテナに入る
-# https://yiskw713.hatenablog.com/entry/2022/01/12/200000#fgc-%E3%82%A4%E3%83%B3%E3%82%BF%E3%83%A9%E3%82%AF%E3%83%86%E3%82%A3%E3%83%96%E3%81%ABgit-checkout%E3%81%99%E3%82%8B
-function fdocker-container() {
-  local cid
-  cid=$(docker ps | sed 1d | fzf -q "$1" | awk '{print $1}')
-  [ -n "$cid" ] && docker exec -it "$cid" sh
-}
-
-# fzfでdockerのログを取得
-# https://yiskw713.hatenablog.com/entry/2022/01/12/200000#fgc-%E3%82%A4%E3%83%B3%E3%82%BF%E3%83%A9%E3%82%AF%E3%83%86%E3%82%A3%E3%83%96%E3%81%ABgit-checkout%E3%81%99%E3%82%8B
-function fdocker-log() {
-  local cid
-  cid=$(docker ps -a | sed 1d | fzf -q "$1" | awk '{print $1}')
-  [ -n "$cid" ] && docker logs -f --tail=200 "$cid"
-}
-
-# 関数・エイリアス名をfzfで選んで実行するウィジェット
-function falias() {
-  local funcs aliases selected
-  funcs=$(print -l ${(k)functions} \
-    | grep -v "^_" \
-    | grep -v "^-" \
-    | grep -v "+" \
-    | grep -v "\." \
-    | grep -v "/" \
-    | grep -v ":" \
-    | grep -v "^falias")
-  aliases=$(alias | cut -d'=' -f1)
-  selected=$((echo "$funcs"; echo "$aliases") | sort | uniq | fzf --exact --reverse --no-sort --query="$LBUFFER" --cycle --prompt="関数/エイリアス > ")
-  if [[ -z "$selected" ]]; then
-    return 1
-  fi
-    save_history "$selected" "$@"
-}
-
-alias fa='falias'
