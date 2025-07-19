@@ -1,6 +1,7 @@
 ---
 allowed-tools: Bash(gh:*)
 description: "Generate comprehensive PR body content using gh command for specified PR number"
+argument-hint: [prNumber]
 ---
 ultrathink
 

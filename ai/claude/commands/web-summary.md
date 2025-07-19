@@ -1,6 +1,7 @@
 ---
 allowed-tools: WebFetch(*)
 description: "Generate comprehensive web page summary using WebFetch for specified URL"
+argument-hint: [url]
 ---
 ## Instructions
 - Use the WebFetch tool to fetch and analyze the web page at $ARGUMENTS

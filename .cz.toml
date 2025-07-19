@@ -39,6 +39,7 @@ use_jk_keys = false
 choices = [
     {value = "ai", name = "ai: AI assistant configurations"},
     {value = "bin", name = "bin: Binary files and executables"},
+    {value = "claude", name = "claude: Claude configurations"},
     {value = "commitizen", name = "commitizen: Commitizen Configuration"},
     {value = "configs", name = "configs: Configuration files"},
     {value = "gitfiles", name = "gitfiles: Git tools configurations"},
