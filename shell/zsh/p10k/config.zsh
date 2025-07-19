@@ -1,5 +1,8 @@
 #!/usr/local/bin/zsh
 
+# 起動時に文字出力があるとwarningで出るのを抑える
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=off
+
 source_and_zcompile_if_needed "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 
 # powerlevel10k theme loading
