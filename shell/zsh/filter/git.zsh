@@ -18,7 +18,7 @@ alias fgls='fgl --stat'
 
 alias fgcf='gcf | filter'
 alias fgmt='gmt $(fgcf)'
-alias fga='ga $(fgcf)'
+alias fgcfa='ga $(fgcf)'
 alias fgcoo='gcoo $(fgcf)'
 alias fgcot='gcot $(fgcf)'
 
@@ -272,20 +272,46 @@ function filter_git_changed_files() {
 function fgds() {
   local selection=$(filter_git_changed_files)
 
-  # 選択されたものがあれば処理を続行
-  if [ -n "$selection" ]; then
-      git diff --color=always -- "$selection" | less -R
+  # 選択されたものがなければ早期リターン
+  if [ -z "$selection" ]; then
+      return 1
   fi
+  git diff --color=always -- "$selection" | less -R
+}
+
+# 差分のあるファイルを選択してdiffを表示
+function fgds() {
+  local selection=$(filter_git_changed_files)
+
+  # 選択されたものがなければ早期リターン
+  if [ -z "$selection" ]; then
+      return 1
+  fi
+  save_history git diff --color=always -- "$selection" | less -R
 }
 
 # 選択したファイル・ディレクトリをstashする
 function fgst(){
   local selection=$(filter_git_changed_files)
-  if [[ -n "$selection" ]]; then
-    local stash_message="${selection}"
-    git stash push -m "$stash_message" -- $selection
-    echo "Stashed selected files with message: $stash_message"
-  else
-    echo "No files selected"
+
+  # 選択されたものがなければ早期リターン
+  if [ -z "$selection" ]; then
+      return 1
   fi
+
+  local stash_message="${selection}"
+  save_history git stash push -m "$stash_message" -- $selection
+  echo "Stashed selected files with message: $stash_message"
+}
+
+# 選択したファイル・ディレクトリをaddする
+function fga(){
+  local selection=$(filter_git_changed_files)
+
+  # 選択されたものがなければ早期リターン
+  if [ -z "$selection" ]; then
+      return 1
+  fi
+
+  save_history git add $selection
 }
