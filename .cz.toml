@@ -33,7 +33,7 @@ choices = [
 [[tool.commitizen.customize.questions]]
 type = "list"
 name = "scope"
-message = "What is the scope of this change? (select directory): (press [enter] to skip)"
+message = "What is the scope of this change?:"
 use_search_filter = true
 use_jk_keys = false
 choices = [
@@ -44,6 +44,7 @@ choices = [
     {value = "configs", name = "configs: Configuration files"},
     {value = "gitfiles", name = "gitfiles: Git tools configurations"},
     {value = "mac", name = "mac: macOS-specific configurations"},
+    {value = "other", name = "other: Items that do not fit into any other category"},
     {value = "ranger", name = "ranger: File manager configurations"},
     {value = "repository", name = "repository: For this repository"},
     {value = "sedfiles", name = "sedfiles: Sed scripts and utilities"},
