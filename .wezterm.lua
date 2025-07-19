@@ -19,6 +19,7 @@ config.default_cursor_style = 'BlinkingBar'
 
 config.enable_tab_bar = false
 
-config.notification_handling = "AlwaysShow"
+-- https://wezterm.org/config/lua/config/notification_handling.html
+config.notification_handling = "SuppressFromFocusedTab"
 
 return config
