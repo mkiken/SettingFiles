@@ -65,7 +65,7 @@ BREW_CELLAR="$BREW_PREFIX/Cellar"
 EDITOR=nvim
 
 #read Aliases
-source_and_zcompile_if_needed "${SET}shell/zsh/.aliases.zsh"
+source_and_zcompile_if_needed "${SET}shell/zsh/alias/main.zsh"
 
 # パスの設定
 path=(/usr/local/bin(N-/) $path)
