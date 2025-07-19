@@ -52,6 +52,7 @@ choices = [
     {value = "submodules", name = "submodules: Git submodules"},
     {value = "vimfiles", name = "vimfiles: Vim/Neovim configurations"},
     {value = "warp", name = "warp: Warp terminal settings"},
+    {value = "wezterm", name = "wezterm: wezterm configurations"},
     {value = "windows", name = "windows: Windows-specific configurations"}
 ]
 

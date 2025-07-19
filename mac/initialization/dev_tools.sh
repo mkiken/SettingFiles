@@ -26,6 +26,9 @@ make_symlink "${Repo}mac/karabiner.json" ~/.config/karabiner
 make_symlink "${Repo_shell}bash/.bashrc" ~/
 make_symlink "${Repo_shell}zsh/.zshrc" ~/
 
+# wezterm
+make_symlink "${Repo}.wezterm.lua" ~/
+
 # History file
 touch ~/.cd_history_file
 
