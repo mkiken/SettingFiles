@@ -23,7 +23,8 @@ mkdir -p ~/.config/karabiner
 make_symlink "${Repo}mac/karabiner.json" ~/.config/karabiner
 
 # Shell
-make_symlink "${Repo_shell}.zshrc" ~/.zshrc
+make_symlink "${Repo_shell}bash/.bashrc" ~/
+make_symlink "${Repo_shell}zsh/.zshrc" ~/
 
 # History file
 touch ~/.cd_history_file
