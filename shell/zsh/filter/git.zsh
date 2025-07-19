@@ -246,10 +246,8 @@ function fgl2(){
   save_history git log "$@" $base..$compare
 }
 
-# 差分のあるファイルを選択してdiffを表示
-function fgds() {
-  # 変更のあるファイルとディレクトリのリストを生成
-selection=$(
+# Git管理下の変更ファイル・ディレクトリをfzfで選択する汎用関数
+function filter_git_changed_files() {
   {
     # 変更のあるファイルを取得
     git ls-files --modified --others --exclude-standard
@@ -268,10 +266,26 @@ selection=$(
       git diff --color=always -- {1}
     fi
   '
-)
+}
 
-# 選択されたものがあれば処理を続行
-if [ -n "$selection" ]; then
-    git diff --color=always -- "$selection" | less -R
-fi
+# 差分のあるファイルを選択してdiffを表示
+function fgds() {
+  local selection=$(filter_git_changed_files)
+
+  # 選択されたものがあれば処理を続行
+  if [ -n "$selection" ]; then
+      git diff --color=always -- "$selection" | less -R
+  fi
+}
+
+# 選択したファイル・ディレクトリをstashする
+function fgst(){
+  local selection=$(filter_git_changed_files)
+  if [[ -n "$selection" ]]; then
+    local stash_message="${selection}"
+    git stash push -m "$stash_message" -- $selection
+    echo "Stashed selected files with message: $stash_message"
+  else
+    echo "No files selected"
+  fi
 }
