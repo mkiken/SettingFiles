@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/local/bin/zsh
 # Git aliases
 
 alias cdgr='cd `g repository`'

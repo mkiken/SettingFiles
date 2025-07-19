@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/local/bin/zsh
 # Other aliases
 
 EDIT_COMMAND='code'

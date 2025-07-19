@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/local/bin/zsh
 
 # https://intellij-support.jetbrains.com/hc/en-us/articles/15268184143890-Shell-Environment-Loading
 if [[ $INTELLIJ_ENVIRONMENT_READER ]]; then

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/local/bin/zsh
 
 # This is a wrapper that calls the actual initialize script in the initialization directory
 exec "$(dirname "$(realpath "$0")")/initialization/initialize" "$@"

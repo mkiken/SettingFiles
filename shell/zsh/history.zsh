@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/local/bin/zsh
 # History configuration for zsh
 
 ## Command history configuration

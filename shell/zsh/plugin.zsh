@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/local/bin/zsh
 
 # znapプラグイン設定ファイル
 # znapを使用したプラグインの管理とその設定

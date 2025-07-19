@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/local/bin/zsh
 
 source "$(dirname "$0")/../common.sh"
 

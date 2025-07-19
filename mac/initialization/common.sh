@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/local/bin/zsh
 
 function make_symlink () {
   echo "ln -si $1 $2"

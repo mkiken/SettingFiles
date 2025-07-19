@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/local/bin/zsh
 # Linux specific aliases
 
 alias ls='ls --color=auto'

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/local/bin/zsh
 
 REPO="${HOME}/Desktop/repository/"
 SET="${REPO}SettingFiles/"
@@ -17,7 +17,7 @@ brew bundle
 echo "end brew update."
 
 # for Claude
-npm i -g @anthropic-ai/claude-code
+update-cc
 
 # Lazy + tree-sitterのアップデート
 nvim --headless "+Lazy! sync | TSUpdate" +qa

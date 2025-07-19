@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/local/bin/zsh
 # tmux aliases
 
 alias tm='tmux'

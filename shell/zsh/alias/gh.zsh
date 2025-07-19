@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/local/bin/zsh
 # GitHub CLI aliases
 
 gh config set editor "nvim"
