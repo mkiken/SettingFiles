@@ -50,8 +50,8 @@ choices = [
     {value = "sedfiles", name = "sedfiles: Sed scripts and utilities"},
     {value = "shell", name = "shell: Shell configurations"},
     {value = "submodules", name = "submodules: Git submodules"},
+    {value = "terminal", name = "terminal: Terminal settings"},
     {value = "vimfiles", name = "vimfiles: Vim/Neovim configurations"},
-    {value = "warp", name = "warp: Warp terminal settings"},
     {value = "wezterm", name = "wezterm: wezterm configurations"},
     {value = "windows", name = "windows: Windows-specific configurations"}
 ]
