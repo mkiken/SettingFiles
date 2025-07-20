@@ -27,12 +27,4 @@ znap source Aloxaf/fzf-tab
 znap source zsh-users/zsh-autosuggestions
 znap source z-shell/F-Sy-H
 
-if ! $IS_VSCODE && ! $IS_WARP; then
-  # VSCodeでは「zsh-notify: unsupported environment」となる
-  znap source marzocchi/zsh-notify
-fi
 znap source jeffreytse/zsh-vi-mode
-
-# zsh-notifyの設定
-zstyle ':notify:*' command-complete-timeout 6
-zstyle ':notify:*' always-notify-on-failure no # 失敗時に毎回通知しないようにする
