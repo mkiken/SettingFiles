@@ -22,6 +22,9 @@ config.enable_tab_bar = false
 -- https://wezterm.org/config/lua/config/notification_handling.html
 config.notification_handling = "AlwaysShow"
 
+-- [Is it possible to quit wezterm without asking? · wezterm/wezterm · Discussion #5189](https://github.com/wezterm/wezterm/discussions/5189)
+config.window_close_confirmation = 'NeverPrompt'
+
 -- システムベル音を有効化（Claude Codeのタスク完了通知用）
 config.audible_bell = "SystemBeep"
 
@@ -51,7 +54,7 @@ config.keys = {
 
 -- Notification when the configuration is reloaded
 local function toast(window, message)
- window:toast_notification('wezterm', message .. ' - ' .. os.date('%I:%M:%S %p'), nil, 1000)
+ window:toast_notification('wezterm', message .. ' - ' .. os.date('%I:%M:%S %p'), nil, 4000)
 end
 
 wezterm.on('window-config-reloaded', function(window, pane)
