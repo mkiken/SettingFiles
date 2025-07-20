@@ -1,72 +1,26 @@
 local wezterm = require "wezterm"
 local config = wezterm.config_builder()
-local action = wezterm.action
 
--- config.color_scheme = "Catppuccin Mocha"
--- config.color_scheme = 'iceberg'
--- config.color_scheme = 'Tomorrow Night'
--- config.color_scheme = 'Tomorrow Night Bright'
-config.color_scheme = 'Tomorrow Night Eighties'
--- config.color_scheme = 'Molokai'
--- config.color_scheme = 'Monokai Remastered'
--- config.color_scheme = 'Monokai Soda'
--- config.color_scheme = 'Monokai Vivid'
+-- Get the actual directory of this config file
+-- Use wezterm's executable path to find the real config location
+local handle = io.popen("readlink -f " .. wezterm.config_file .. " 2>/dev/null || echo " .. wezterm.config_file)
+local real_config_path = handle:read("*a"):gsub("\n", "")
+handle:close()
 
-config.font = wezterm.font_with_fallback {
-  'SauceCodePro Nerd Font',
-  'ヒラギノ角ゴシック',
-  'Apple Color Emoji',
-}
-config.font_size = 12.5
-config.line_height = 1.0
-config.window_background_opacity = 0.85
-config.macos_window_background_blur = 5
+local config_dir = real_config_path:match("(.*/)")
 
-config.window_padding = { left = '0.5cell', right = '0.5cell', top = '0.5cell', bottom = '0.5cell' }
-config.default_cursor_style = 'BlinkingBar'
+-- Load modules from the same directory
+package.path = config_dir .. "?.lua;" .. package.path
 
-config.enable_tab_bar = false
+local appearance = require "appearance"
+local keybinding = require "keybinding"
+local notification = require "notification"
+local other = require "other"
 
--- https://wezterm.org/config/lua/config/notification_handling.html
-config.notification_handling = "AlwaysShow"
-
--- [Is it possible to quit wezterm without asking? · wezterm/wezterm · Discussion #5189](https://github.com/wezterm/wezterm/discussions/5189)
-config.window_close_confirmation = 'NeverPrompt'
-
--- システムベル音を有効化（Claude Codeのタスク完了通知用）
-config.audible_bell = "SystemBeep"
-
--- Alt+Enter for Claude Code newline
-config.keys = {
-  {
-    key = 'Enter',
-    mods = 'ALT',
-    action = wezterm.action.SendString('\n')
-  },
-  {
-    key = 'Enter',
-    mods = 'SHIFT',
-    action = wezterm.action.SendString('\n')
-  },
-  {
-    key = 'Enter',
-    mods = 'SUPER',
-    action = wezterm.action.ToggleFullScreen,
-  },
-  {
-    key = 'h',
-    mods = 'CTRL',
-    action = wezterm.action.DisableDefaultAssignment,
-  },
-}
-
--- Notification when the configuration is reloaded
-local function toast(window, message)
- window:toast_notification('wezterm', message .. ' - ' .. os.date('%I:%M:%S %p'), nil, 4000)
-end
-
-wezterm.on('window-config-reloaded', function(window, pane)
- toast(window, 'Configuration reloaded!')
-end)
+-- Apply configurations from each module
+appearance.setup(config)
+keybinding.setup(config)
+notification.setup(config)
+other.setup(config)
 
 return config
