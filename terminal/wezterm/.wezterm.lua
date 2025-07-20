@@ -1,13 +1,9 @@
 local wezterm = require "wezterm"
 local config = wezterm.config_builder()
 
--- Get the actual directory of this config file
--- Use wezterm's executable path to find the real config location
-local handle = io.popen("readlink -f " .. wezterm.config_file .. " 2>/dev/null || echo " .. wezterm.config_file)
-local real_config_path = handle:read("*a"):gsub("\n", "")
-handle:close()
-
-local config_dir = real_config_path:match("(.*/)")
+-- Get home directory and set the actual config directory path
+local home = os.getenv("HOME") or os.getenv("USERPROFILE")
+local config_dir = home .. "/Desktop/repository/SettingFiles/terminal/wezterm/"
 
 -- Load modules from the same directory
 package.path = config_dir .. "?.lua;" .. package.path
