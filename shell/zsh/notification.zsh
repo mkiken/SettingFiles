@@ -13,13 +13,25 @@ function preexec() {
 
 # precmd: コマンド実行後、プロンプト表示前に呼ばれる
 function precmd() {
+  # コマンドの成功・失敗判定
+  local exit_code=$?
+  local status_icon
+  local status_title
+  if [[ $exit_code -eq 0 ]]; then
+    status_icon="✅"  # 成功
+    status_title="Command Completed"
+  else
+    status_icon="❌"  # 失敗
+    status_title="Command Failed"
+  fi
+
   if (( _cmd_start_time > 0 )); then
     local elapsed=$(($SECONDS - _cmd_start_time))
     if (( elapsed >= 5 )); then
       # terminal-notifierがインストールされている場合のみ通知
       if command -v terminal-notifier >/dev/null 2>&1; then
-        terminal-notifier -title "Command Complete" \
-          -message "${_cmd_name} finished (${elapsed}s)" \
+        terminal-notifier -title "${status_icon} ${status_title}" \
+          -message "${_cmd_name} finished (${elapsed}s) - Exit code: ${exit_code}" \
           -sound default
       fi
     fi
