@@ -27,7 +27,7 @@ make_symlink "${Repo_shell}bash/.bashrc" ~/
 make_symlink "${Repo_shell}zsh/.zshrc" ~/
 
 # wezterm
-make_symlink "${Repo}.wezterm.lua" ~/
+make_symlink "${Repo}terminal/wezterm/.wezterm.lua" ~/
 
 # History file
 touch ~/.cd_history_file
