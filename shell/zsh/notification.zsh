@@ -5,14 +5,14 @@
 _cmd_start_time=0
 _cmd_name=""
 
-# preexec: コマンド実行前に呼ばれる
-function preexec() {
+# コマンド実行前のフック関数
+function _notification_preexec() {
   _cmd_start_time=$SECONDS
   _cmd_name="$1"
 }
 
-# precmd: コマンド実行後、プロンプト表示前に呼ばれる
-function precmd() {
+# プロンプト表示前のフック関数
+function _notification_precmd() {
   # コマンドの成功・失敗判定
   local exit_code=$?
   local status_icon
@@ -39,3 +39,7 @@ function precmd() {
   _cmd_start_time=0
   _cmd_name=""
 }
+
+# フックを登録
+add-zsh-hook preexec _notification_preexec
+add-zsh-hook precmd _notification_precmd
