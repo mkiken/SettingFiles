@@ -19,7 +19,7 @@ alias pv='popd'
 alias ng='noglob'
 
 # Commitizen
-alias czc='cz commit'
+alias czc='git --no-pager diff --cached --name-status && echo && cz commit'
 
 # difit
 alias di='npx difit'
