@@ -17,21 +17,26 @@ function _notification_precmd() {
   local exit_code=$?
   local status_icon
   local status_title
-  if [[ $exit_code -eq 0 ]]; then
-    status_icon="✅"  # 成功
-    status_title="Command Completed"
-  else
-    status_icon="❌"  # 失敗
-    status_title="Command Failed"
-  fi
 
   if (( _cmd_start_time > 0 )); then
     local elapsed=$(($SECONDS - _cmd_start_time))
     if (( elapsed >= 5 )); then
+      # メッセージを成功・失敗に応じて設定
+      local message
+      if [[ $exit_code -eq 0 ]]; then
+        status_icon="✅"  # 成功
+        status_title="Command Completed"
+        message="${_cmd_name} (${elapsed}s)"
+      else
+        status_icon="❌"  # 失敗
+        status_title="Command Failed"
+        message="${_cmd_name} (${elapsed}s) - Exit code: ${exit_code}"
+      fi
+
       # terminal-notifierがインストールされている場合のみ通知
       if command -v terminal-notifier >/dev/null 2>&1; then
         terminal-notifier -title "${status_icon} ${status_title}" \
-          -message "${_cmd_name} finished (${elapsed}s) - Exit code: ${exit_code}" \
+          -message "${message}" \
           -sound default
       fi
     fi
