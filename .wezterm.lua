@@ -20,8 +20,22 @@ config.default_cursor_style = 'BlinkingBar'
 config.enable_tab_bar = false
 
 -- https://wezterm.org/config/lua/config/notification_handling.html
-config.notification_handling = "SuppressFromFocusedTab"
+config.notification_handling = "AlwaysShow"
 
+
+-- Alt+Enter for Claude Code newline
+config.keys = {
+  {
+    key = 'Enter',
+    mods = 'ALT',
+    action = wezterm.action.SendString('\n')
+  },
+  {
+    key = 'Enter',
+    mods = 'SHIFT',
+    action = wezterm.action.SendString('\n')
+  },
+}
 
 -- Notification when the configuration is reloaded
 local function toast(window, message)
