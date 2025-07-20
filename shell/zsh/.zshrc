@@ -307,6 +307,9 @@ if $IS_VSCODE; then
   . "$(code --locate-shell-integration-path zsh)"
 fi
 
+# 長時間実行コマンドの通知設定
+source_and_zcompile_if_needed "${SET}shell/zsh/notification.zsh"
+
 # 自動コンパイル
 # http://blog.n-z.jp/blog/2013-12-10-auto-zshrc-recompile.html
 zcompile_if_needed ~/.zshrc
