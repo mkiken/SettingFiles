@@ -22,6 +22,8 @@ config.enable_tab_bar = false
 -- https://wezterm.org/config/lua/config/notification_handling.html
 config.notification_handling = "AlwaysShow"
 
+-- システムベル音を有効化（Claude Codeのタスク完了通知用）
+config.audible_bell = "SystemBeep"
 
 -- Alt+Enter for Claude Code newline
 config.keys = {
