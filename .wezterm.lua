@@ -2,8 +2,16 @@ local wezterm = require "wezterm"
 local config = wezterm.config_builder()
 local action = wezterm.action
 
-config.color_scheme = "Catppuccin Mocha"
+-- config.color_scheme = "Catppuccin Mocha"
 -- config.color_scheme = 'iceberg'
+-- config.color_scheme = 'Tomorrow Night'
+-- config.color_scheme = 'Tomorrow Night Bright'
+config.color_scheme = 'Tomorrow Night Eighties'
+-- config.color_scheme = 'Molokai'
+-- config.color_scheme = 'Monokai Remastered'
+-- config.color_scheme = 'Monokai Soda'
+-- config.color_scheme = 'Monokai Vivid'
+
 config.font = wezterm.font_with_fallback {
   'SauceCodePro Nerd Font',
   'ヒラギノ角ゴシック',
