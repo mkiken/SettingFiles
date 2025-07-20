@@ -37,6 +37,16 @@ config.keys = {
     mods = 'SHIFT',
     action = wezterm.action.SendString('\n')
   },
+  {
+    key = 'Enter',
+    mods = 'SUPER',
+    action = wezterm.action.ToggleFullScreen,
+  },
+  {
+    key = 'h',
+    mods = 'CTRL',
+    action = wezterm.action.DisableDefaultAssignment,
+  },
 }
 
 -- Notification when the configuration is reloaded
