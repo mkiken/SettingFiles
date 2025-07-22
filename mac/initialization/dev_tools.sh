@@ -6,9 +6,6 @@ source "$(dirname "$0")/common.sh"
 make_symlink "${Repo_shell}bash/.bash_profile" ~/
 make_symlink "${Repo_shell}zsh/.zshrc" ~/
 
-# wezterm
-make_symlink "${Repo}terminal/wezterm/.wezterm.lua" ~/
-
 # Ghostty
 mkdir -p ~/.config/ghostty
 make_symlink "${Repo}terminal/ghostty/config" ~/.config/ghostty
