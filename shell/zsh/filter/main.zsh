@@ -1,4 +1,4 @@
-#!/usr/local/bin/zsh
+#!/bin/zsh
 
 # Filter設定ファイルのディレクトリ
 FILTER_DIR="${0:A:h}"

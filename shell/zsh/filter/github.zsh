@@ -1,4 +1,4 @@
-#!/usr/local/bin/zsh
+#!/bin/zsh
 
 # ブランチを指定してGitHubのcompare urlを開く
 function fgh_compare_url(){

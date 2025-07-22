@@ -1,4 +1,4 @@
-#!/usr/local/bin/zsh
+#!/bin/zsh
 
 REPO="${HOME}/Desktop/repository/"
 SET="${REPO}SettingFiles/"

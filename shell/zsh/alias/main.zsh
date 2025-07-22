@@ -1,4 +1,4 @@
-#!/usr/local/bin/zsh
+#!/bin/zsh
 # Main alias loader - loads all alias files
 
 # OSごとのalias読み込み

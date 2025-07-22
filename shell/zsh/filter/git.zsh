@@ -1,4 +1,4 @@
-#!/usr/local/bin/zsh
+#!/bin/zsh
 
 alias fgmg='filter_git_command git merge'
 alias fgmgs='fgmg --squash'

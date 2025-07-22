@@ -1,4 +1,4 @@
-#!/usr/local/bin/zsh
+#!/bin/zsh
 
 # 起動時に文字出力があるとwarningで出るのを抑える
 typeset -g POWERLEVEL9K_INSTANT_PROMPT=off

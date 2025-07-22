@@ -1,4 +1,4 @@
-#!/usr/local/bin/zsh
+#!/bin/zsh
 
 ## Completion configuration
 # Completions should be configured before compinit

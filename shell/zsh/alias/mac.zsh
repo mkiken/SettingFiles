@@ -1,4 +1,4 @@
-#!/usr/local/bin/zsh
+#!/bin/zsh
 # Mac specific aliases
 
 # エディタ関連

@@ -1,4 +1,4 @@
-#!/usr/local/bin/zsh
+#!/bin/zsh
 
 alias fls='ls -aR | filter --preview "bat --color=always --style=header,grid {}"'
 alias ffind='fda | filter --preview "bat --color=always --style=header,grid {}"'

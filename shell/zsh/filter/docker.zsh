@@ -1,4 +1,4 @@
-#!/usr/local/bin/zsh
+#!/bin/zsh
 
 # fzfでdockerコンテナに入る
 # https://yiskw713.hatenablog.com/entry/2022/01/12/200000#fgc-%E3%82%A4%E3%83%B3%E3%82%BF%E3%83%A9%E3%82%AF%E3%83%86%E3%82%A3%E3%83%96%E3%81%ABgit-checkout%E3%81%99%E3%82%8B

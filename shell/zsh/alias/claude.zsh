@@ -1,4 +1,4 @@
-#!/usr/local/bin/zsh
+#!/bin/zsh
 # Claude aliases - Load from common file
 
 # Load common Claude aliases
