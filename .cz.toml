@@ -43,6 +43,7 @@ choices = [
     {value = "commitizen", name = "commitizen: Commitizen Configuration"},
     {value = "configs", name = "configs: Configuration files"},
     {value = "gitfiles", name = "gitfiles: Git tools configurations"},
+    {value = "ghostty", name = "ghostty: Ghostty configurations"},
     {value = "mac", name = "mac: macOS-specific configurations"},
     {value = "other", name = "other: Items that do not fit into any other category"},
     {value = "ranger", name = "ranger: File manager configurations"},

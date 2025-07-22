@@ -2,6 +2,17 @@
 
 source "$(dirname "$0")/common.sh"
 
+# Shell
+make_symlink "${Repo_shell}bash/.bash_profile" ~/
+make_symlink "${Repo_shell}zsh/.zshrc" ~/
+
+# wezterm
+make_symlink "${Repo}terminal/wezterm/.wezterm.lua" ~/
+
+# Ghostty
+mkdir -p ~/.config/ghostty
+make_symlink "${Repo}terminal/ghostty/config" ~/.config/ghostty
+
 # Vim/Neovim
 make_symlink "${Repo}vimfiles/nvim" ~/.config
 
@@ -21,13 +32,6 @@ make_symlink "${Repo}ranger" ~/.config
 # Karabiner
 mkdir -p ~/.config/karabiner
 make_symlink "${Repo}mac/karabiner.json" ~/.config/karabiner
-
-# Shell
-make_symlink "${Repo_shell}bash/.bash_profile" ~/
-make_symlink "${Repo_shell}zsh/.zshrc" ~/
-
-# wezterm
-make_symlink "${Repo}terminal/wezterm/.wezterm.lua" ~/
 
 # History file
 touch ~/.cd_history_file
