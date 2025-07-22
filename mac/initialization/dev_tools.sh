@@ -23,7 +23,7 @@ mkdir -p ~/.config/karabiner
 make_symlink "${Repo}mac/karabiner.json" ~/.config/karabiner
 
 # Shell
-make_symlink "${Repo_shell}bash/.bashrc" ~/
+make_symlink "${Repo_shell}bash/.bash_profile" ~/
 make_symlink "${Repo_shell}zsh/.zshrc" ~/
 
 # wezterm
