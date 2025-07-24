@@ -7,11 +7,7 @@
     "scope": "What is the scope of this change?",
     "customScope": "Denote the SCOPE of this change:",
     "subject": "Write a short, imperative tense description of the change:\n",
-    "body": "Provide additional contextual information about the code changes: (press [enter] to skip)\n",
-    "breaking": "List any BREAKING CHANGES (optional). Use \"|\" to break new line:\n",
-    "footerPrefixesSelect": "Select the ISSUES type of changeList by this change (optional):",
-    "customFooterPrefix": "Input ISSUES prefix:",
-    "footer": "List any ISSUES by this change. E.g.: #31, #34:\n",
+    "body": "Provide additional contextual information about the code changes. Use \"|\" to break new line: (press [enter] to skip)\n",
     "confirmCommit": "Are you sure you want to proceed with the commit above?"
   },
   "types": [
@@ -147,7 +143,7 @@
     }
   ],
   "allowCustomScopes": true,
-  "allowEmptyScopes": true,
+  "allowEmptyScopes": false,
   "customScopesAlign": "bottom",
   "customScopesAlias": "custom",
   "emptyScopesAlias": "empty",
