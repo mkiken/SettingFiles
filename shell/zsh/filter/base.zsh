@@ -61,7 +61,7 @@ function falias() {
   aliases=$(alias | cut -d'=' -f1)
   selected=$((echo "$funcs"; echo "$aliases") | sort | uniq | fzf --exact --reverse --no-sort --query="$LBUFFER" --cycle --prompt="関数/エイリアス > ")
   if [[ -z "$selected" ]]; then
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
     save_history "$selected" "$@"
 }

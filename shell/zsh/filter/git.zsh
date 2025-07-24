@@ -33,26 +33,26 @@ function fgbh(){
   then
     save_history git switch $temp
   else
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
 }
 
 # git switch by branch filter
 function fgsw(){
   local temp=`br_fmt | xargs echo`
-  if [[ -n $temp ]]
-  then
-    save_history git sw "$@" "$temp"
+  if [[ -z $temp ]]; then
+    return $EXIT_CODE_SIGINT
   fi
+  save_history git sw "$@" "$temp"
 }
 
 # git switch -c by branch filter
 function fgswc(){
   local temp=`br_org | xargs echo`
-  if [[ -n $temp ]]
-  then
-    save_history gswc "$@" "$temp"
+  if [[ -z $temp ]]; then
+    return $EXIT_CODE_SIGINT
   fi
+  save_history gswc "$@" "$temp"
 }
 
 # Gitのブランチをfilter toolで扱えるように整形(remote文字列を削る)
@@ -104,14 +104,14 @@ function fgd-branch-file(){
   local branch=$(FZF_DEFAULT_OPTS="--prompt='branch: ' --header='比較ブランチを選択'" br_fmt)
   if [[ -z $branch ]]; then
     echo "ブランチが選択されていません"
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
 
   # ファイル＋ディレクトリ一覧を直接パイプでfilterに渡す
   local target=$(filter_git_file_or_dir "$branch" "$(git rev-parse --abbrev-ref HEAD)")
   if [[ -z $target ]]; then
     echo "ファイルまたはディレクトリが選択されていません"
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
 
   # diff実行
@@ -123,14 +123,14 @@ function fgd-hash-file() {
   local hash="$1"
   if [[ -z $hash ]]; then
     echo "コミットハッシュを引数で指定してください 例: fgd-hash-file <commit-hash>"
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
 
   # ファイル＋ディレクトリ一覧をfilterで選択
   local target=$(filter_git_file_or_dir "$hash" "$(git rev-parse --abbrev-ref HEAD)")
   if [[ -z $target ]]; then
     echo "ファイルまたはディレクトリが選択されていません"
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
 
   # diff実行
@@ -143,14 +143,14 @@ function fgco-branch-file(){
   local branch=$(FZF_DEFAULT_OPTS="--prompt='branch: ' --header='比較ブランチを選択'" br_fmt)
   if [[ -z $branch ]]; then
     echo "ブランチが選択されていません"
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
 
   # ファイル＋ディレクトリ一覧を直接パイプでfilterに渡す
   local target=$(filter_git_file_or_dir "$(git rev-parse --abbrev-ref HEAD)" "$branch")
   if [[ -z $target ]]; then
     echo "ファイルまたはディレクトリが選択されていません"
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
 
   # diff実行
@@ -162,14 +162,14 @@ function fgco-hash-file() {
   local hash="$1"
   if [[ -z $hash ]]; then
     echo "コミットハッシュを引数で指定してください 例: fgco-hash-file <commit-hash>"
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
 
   # ファイル＋ディレクトリ一覧をfilterで選択
   local target=$(filter_git_file_or_dir "$(git rev-parse --abbrev-ref HEAD)" "$hash")
   if [[ -z $target ]]; then
     echo "ファイルまたはディレクトリが選択されていません"
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
 
   # diff実行
@@ -182,14 +182,14 @@ function fgs-branch-file(){
   local branch=$(FZF_DEFAULT_OPTS="--prompt='branch: ' --header='比較ブランチを選択'" br_org)
   if [[ -z $branch ]]; then
     echo "ブランチが選択されていません"
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
 
   # ファイル＋ディレクトリ一覧を直接パイプでfilterに渡す
   local target=$(filter_git_file_or_dir "$branch" "$(git rev-parse --abbrev-ref HEAD)")
   if [[ -z $target ]]; then
     echo "ファイルまたはディレクトリが選択されていません"
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
 
   save_history git show "${branch}":"$target"
@@ -199,14 +199,14 @@ function fgs-hash-file() {
   local hash="$1"
   if [[ -z $hash ]]; then
     echo "コミットハッシュを引数で指定してください 例: fgs-hash-file <commit-hash>"
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
 
   # ファイル＋ディレクトリ一覧をfilterで選択
   local target=$(filter_git_file_or_dir "$hash" "$(git rev-parse --abbrev-ref HEAD)")
   if [[ -z $target ]]; then
     echo "ファイルまたはディレクトリが選択されていません"
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
 
   save_history git show "${hash}":"$target"
@@ -218,13 +218,13 @@ function fgd2(){
   base=$(FZF_DEFAULT_OPTS="--prompt='base: ' --header='比較元ブランチを選択'" br_org)
   local ret=$?
   if [[ $ret -ne 0 || -z $base ]]; then
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
   local compare
   compare=$(FZF_DEFAULT_OPTS="--prompt='compare: ' --header='比較先ブランチを選択'" br_org)
   ret=$?
   if [[ $ret -ne 0 || -z $compare ]]; then
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
   save_history git diff "$@" $base...$compare
 }
@@ -235,13 +235,13 @@ function fgl2(){
   base=$(FZF_DEFAULT_OPTS="--prompt='base: ' --header='比較元ブランチを選択'" br_org)
   local ret=$?
   if [[ $ret -ne 0 || -z $base ]]; then
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
   local compare
   compare=$(FZF_DEFAULT_OPTS="--prompt='compare: ' --header='比較先ブランチを選択'" br_org)
   ret=$?
   if [[ $ret -ne 0 || -z $compare ]]; then
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
   save_history git log "$@" $base..$compare
 }
@@ -274,7 +274,7 @@ function fgds() {
 
   # 選択されたものがなければ早期リターン
   if [ -z "$selection" ]; then
-      return 1
+      return $EXIT_CODE_SIGINT
   fi
   git diff --color=always -- "$selection" | less -R
 }
@@ -285,7 +285,7 @@ function fgds() {
 
   # 選択されたものがなければ早期リターン
   if [ -z "$selection" ]; then
-      return 1
+      return $EXIT_CODE_SIGINT
   fi
   save_history git diff --color=always -- "$selection" | less -R
 }
@@ -296,7 +296,7 @@ function fgst(){
 
   # 選択されたものがなければ早期リターン
   if [ -z "$selection" ]; then
-      return 1
+      return $EXIT_CODE_SIGINT
   fi
 
   local stash_message="${selection}"
@@ -310,7 +310,7 @@ function fga(){
 
   # 選択されたものがなければ早期リターン
   if [ -z "$selection" ]; then
-      return 1
+      return $EXIT_CODE_SIGINT
   fi
 
   save_history git add $selection
@@ -319,7 +319,7 @@ function fga(){
 function fghq() {
   local src=$(ghq list | fzf --preview "bat --color=always --style=header,grid --line-range :80 $(ghq root)/{}/README.*")
   if [ -z "$src" ]; then
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
   cd $(ghq root)/$src
 }

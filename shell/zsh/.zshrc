@@ -64,6 +64,10 @@ BREW_CASKROOM="$BREW_PREFIX/Caskroom"
 BREW_CELLAR="$BREW_PREFIX/Cellar"
 EDITOR=nvim
 
+# Exit codes for signal handling
+readonly EXIT_CODE_SIGINT=130    # Ctrl+C interruption
+readonly EXIT_CODE_SIGPIPE=141   # Broken pipe (e.g., pager termination)
+
 #read Aliases
 source_and_zcompile_if_needed "${SET}shell/zsh/alias/main.zsh"
 

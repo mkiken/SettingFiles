@@ -36,8 +36,8 @@ function _notification_precmd() {
   fi
 
   # ユーザーによる中断の場合は早期リターン（通知しない）
-  # 130 (SIGINT/Ctrl+C), 141 (SIGPIPE/git logなどの無限ストリームのページャー終了等)
-  if [[ $exit_code -eq 130 || $exit_code -eq 141 ]]; then
+  # SIGINT/Ctrl+C, SIGPIPE/git logなどの無限ストリームのページャー終了等
+  if [[ $exit_code -eq $EXIT_CODE_SIGINT || $exit_code -eq $EXIT_CODE_SIGPIPE ]]; then
     _notification_reset
     return
   fi

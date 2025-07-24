@@ -5,12 +5,12 @@ function fgh_compare_url(){
   local base=`br_fmt`
 	if test $? -ne 0
 	then
-		return 1
+		return $EXIT_CODE_SIGINT
 	fi
   local compare=`br_fmt`
 	if test $? -ne 0
 	then
-		return 1
+		return $EXIT_CODE_SIGINT
 	fi
 
   gh_compare_url $base $compare
@@ -31,7 +31,7 @@ function fgd_pr() {
 
   # PRが選択された場合
   if [ -z "$selected_pr" ]; then
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
 
   # 変数に分解
@@ -52,7 +52,7 @@ function fgl_pr() {
   # PRが選択された場合
   if [ -z "$selected_pr" ]; then
 
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
 
   # 変数に分解
@@ -70,7 +70,7 @@ function fgl_pr() {
 function fghpc() {
   local branch=$(br_fmt)
   if [[ -z $branch ]]; then
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
   gh pr create --web --body="" --base "$branch" "$@"
 }
@@ -78,7 +78,7 @@ function fghpc() {
 function fghpch() {
   local branch=$(_fgbh)
   if [[ -z $branch ]]; then
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
   gh pr create --web --body="" --base "$branch" "$@"
 }
@@ -93,7 +93,7 @@ function fghpv_from_commit(){
   local commit_hash="${1}"
   if [[ -z $commit_hash ]]; then
     echo "Usage: fghpv_from_commit <commit-hash>"
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
   ghpl_from_commit "$commit_hash" | filter | awk '{print $1}' | xargs ghpv
 }
@@ -119,14 +119,14 @@ function fghpc2(){
   base=$(FZF_DEFAULT_OPTS="--prompt='base: ' --header='マージ先ブランチを選択'" br_fmt)
   local ret=$?
   if [[ $ret -ne 0 || -z $base ]]; then
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
 
   local compare
   compare=$(FZF_DEFAULT_OPTS="--prompt='compare: ' --header='マージブランチを選択'" br_fmt)
   ret=$?
   if [[ $ret -ne 0 || -z $compare ]]; then
-    return 1
+    return $EXIT_CODE_SIGINT
   fi
 
   ghpc --base $base --head $compare
