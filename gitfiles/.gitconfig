@@ -207,6 +207,7 @@
 ; http://qiita.com/yuku_t/items/04853c9aecb40edadbb2
 [init]
   templatedir = ~/.git_template
+  defaultBranch = main
 [filter "lfs"]
   clean = git-lfs clean -- %f
   smudge = git-lfs smudge -- %f
