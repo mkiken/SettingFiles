@@ -223,3 +223,5 @@
   enabled = true
 [commit]
 	verbose = true
+[ghq]
+	root = ~/Desktop/repository

@@ -315,3 +315,11 @@ function fga(){
 
   save_history git add $selection
 }
+
+function fghq() {
+  local src=$(ghq list | fzf --preview "bat --color=always --style=header,grid --line-range :80 $(ghq root)/{}/README.*")
+  if [ -z "$src" ]; then
+    return 1
+  fi
+  cd $(ghq root)/$src
+}
