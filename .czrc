@@ -67,6 +67,8 @@
       "emoji": "⏪"
     }
   ],
+  "typesSearchValue": false,
+  "enableMultipleScopes": true,
   "useEmoji": true,
   "emojiAlign": "center",
   "useAI": false,
@@ -175,7 +177,7 @@
   "confirmColorize": true,
   "maxHeaderLength": null,
   "maxSubjectLength": 50,
-  "minSubjectLength": 0,
+  "minSubjectLength": 1,
   "scopeOverrides": null,
   "defaultBody": "",
   "defaultIssues": "",
