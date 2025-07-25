@@ -1,0 +1,112 @@
+{
+  "alias": {
+    "fd": "docs: fix typos"
+  },
+  "messages": {
+    "type": "Select the type of change you are committing:",
+    "scope": "What is the scope of this change?",
+    "customScope": "Denote the SCOPE of this change:",
+    "subject": "Write a short, imperative tense description of the change:\n",
+    "body": "Provide additional contextual information about the code changes. Use \"|\" to break new line: (press [enter] to skip)\n",
+    "confirmCommit": "Are you sure you want to proceed with the commit above?"
+  },
+  "types": [
+    {
+      "value": "refactor",
+      "name": "refactor: A code change that neither fixes a bug nor adds a feature",
+      "emoji": "♻️"
+    },
+    {
+      "value": "feat",
+      "name": "feat:     A new feature",
+      "emoji": "✨"
+    },
+    {
+      "value": "fix",
+      "name": "fix:      A bug fix",
+      "emoji": "🐛"
+    },
+    {
+      "value": "docs",
+      "name": "docs:     Documentation only changes",
+      "emoji": "📝"
+    },
+    {
+      "value": "style",
+      "name": "style:    Changes that do not affect the meaning of the code",
+      "emoji": "💄"
+    },
+    {
+      "value": "perf",
+      "name": "perf:     A code change that improves performance",
+      "emoji": "⚡"
+    },
+    {
+      "value": "test",
+      "name": "test:     Adding missing tests or correcting existing tests",
+      "emoji": "✅"
+    },
+    {
+      "value": "build",
+      "name": "build:    Changes that affect the build system or external dependencies",
+      "emoji": "📦"
+    },
+    {
+      "value": "ci",
+      "name": "ci:       Changes to our CI configuration files and scripts",
+      "emoji": "🎡"
+    },
+    {
+      "value": "chore",
+      "name": "chore:    Other changes that don't modify src or test files",
+      "emoji": "🔨"
+    },
+    {
+      "value": "revert",
+      "name": "revert:   Reverts a previous commit",
+      "emoji": "⏪"
+    }
+  ],
+  "typesSearchValue": false,
+  "enableMultipleScopes": false,
+  "useEmoji": true,
+  "emojiAlign": "center",
+  "useAI": false,
+  "aiNumber": 1,
+  "themeColorCode": "",
+  "allowCustomScopes": false,
+  "customScopesAlign": "bottom",
+  "customScopesAlias": "custom",
+  "emptyScopesAlias": "empty",
+  "upperCaseSubject": false,
+  "markBreakingChangeMode": false,
+  "allowBreakingChanges": [
+    "feat",
+    "fix"
+  ],
+  "breaklineNumber": 100,
+  "breaklineChar": "|",
+  "skipQuestions": [
+    "breaking",
+    "footerPrefix",
+    "footer",
+    "confirmCommit"
+  ],
+  "issuePrefixes": [
+    {
+      "value": "closed",
+      "name": "closed:   ISSUES has been processed"
+    }
+  ],
+  "customIssuePrefixAlign": "top",
+  "emptyIssuePrefixAlias": "skip",
+  "customIssuePrefixAlias": "custom",
+  "allowCustomIssuePrefix": true,
+  "allowEmptyIssuePrefix": true,
+  "confirmColorize": true,
+  "scopeOverrides": null,
+  "defaultBody": "",
+  "defaultIssues": "",
+  "defaultScope": "",
+  "defaultSubject": ""
+}

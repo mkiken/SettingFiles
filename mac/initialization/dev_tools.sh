@@ -33,4 +33,7 @@ make_symlink "${Repo}mac/karabiner.json" ~/.config/karabiner
 # History file
 touch ~/.cd_history_file
 
+# commitlint
+npm install -g @commitlint/config-conventional
+
 echo 'Development tools configured.'
