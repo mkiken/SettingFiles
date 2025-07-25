@@ -74,7 +74,7 @@
   "useAI": false,
   "aiNumber": 1,
   "themeColorCode": "",
-  "allowCustomScopes": true,
+  "allowCustomScopes": false,
   "customScopesAlign": "bottom",
   "customScopesAlias": "custom",
   "emptyScopesAlias": "empty",
