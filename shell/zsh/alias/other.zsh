@@ -22,9 +22,6 @@ alias ng='noglob'
 alias c='git --no-pager diff --cached --name-status && echo && czg'
 alias cc='c checkbox'
 
-# difit
-alias di='npx difit'
-
 # ripgrep
 alias -g rg='RIPGREP_CONFIG_PATH=${SET}/configs/.ripgreprc rg'
 

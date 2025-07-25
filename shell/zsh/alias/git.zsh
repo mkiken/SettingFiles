@@ -142,3 +142,13 @@ function g-delete-branch-not-in-remote-interactive() {
     fi
   done
 }
+
+# difit
+difit() {
+  npx difit "$@"
+}
+di() {
+  difit "$@"
+}
+alias diw='di working'
+alias dis='di staged'
