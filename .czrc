@@ -12,6 +12,11 @@
   },
   "types": [
     {
+      "value": "refactor",
+      "name": "refactor: A code change that neither fixes a bug nor adds a feature",
+      "emoji": "♻️"
+    },
+    {
       "value": "feat",
       "name": "feat:     A new feature",
       "emoji": "✨"
@@ -30,11 +35,6 @@
       "value": "style",
       "name": "style:    Changes that do not affect the meaning of the code",
       "emoji": "💄"
-    },
-    {
-      "value": "refactor",
-      "name": "refactor: A code change that neither fixes a bug nor adds a feature",
-      "emoji": "♻️"
     },
     {
       "value": "perf",
@@ -68,7 +68,7 @@
     }
   ],
   "typesSearchValue": false,
-  "enableMultipleScopes": true,
+  "enableMultipleScopes": false,
   "useEmoji": true,
   "emojiAlign": "center",
   "useAI": false,
