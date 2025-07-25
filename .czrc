@@ -149,10 +149,18 @@
   "emptyScopesAlias": "empty",
   "upperCaseSubject": false,
   "markBreakingChangeMode": false,
-  "allowBreakingChanges": ["feat", "fix"],
+  "allowBreakingChanges": [
+    "feat",
+    "fix"
+  ],
   "breaklineNumber": 100,
   "breaklineChar": "|",
-  "skipQuestions": [],
+  "skipQuestions": [
+    "breaking",
+    "footerPrefix",
+    "footer",
+    "confirmCommit"
+  ],
   "issuePrefixes": [
     {
       "value": "closed",
