@@ -18,8 +18,8 @@ alias mv='mv -i'
 alias pv='popd'
 alias ng='noglob'
 
-# Commitizen
-alias czc='git --no-pager diff --cached --name-status && echo && cz commit'
+# czg
+alias c='git --no-pager diff --cached --name-status && echo && czg'
 
 # difit
 alias di='npx difit'

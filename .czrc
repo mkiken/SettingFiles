@@ -74,78 +74,7 @@
   "useAI": false,
   "aiNumber": 1,
   "themeColorCode": "",
-  "scopes": [
-    {
-      "name": "ai",
-      "description": "AI assistant configurations"
-    },
-    {
-      "name": "bin",
-      "description": "Binary files and executables"
-    },
-    {
-      "name": "claude",
-      "description": "Claude configurations"
-    },
-    {
-      "name": "czg",
-      "description": "cz-git Configuration"
-    },
-    {
-      "name": "configs",
-      "description": "Configuration files"
-    },
-    {
-      "name": "gitfiles",
-      "description": "Git tools configurations"
-    },
-    {
-      "name": "ghostty",
-      "description": "Ghostty configurations"
-    },
-    {
-      "name": "mac",
-      "description": "macOS-specific configurations"
-    },
-    {
-      "name": "other",
-      "description": "Items that do not fit into any other category"
-    },
-    {
-      "name": "ranger",
-      "description": "File manager configurations"
-    },
-    {
-      "name": "repository",
-      "description": "For this repository"
-    },
-    {
-      "name": "sedfiles",
-      "description": "Sed scripts and utilities"
-    },
-    {
-      "name": "shell",
-      "description": "Shell configurations"
-    },
-    {
-      "name": "submodules",
-      "description": "Git submodules"
-    },
-    {
-      "name": "terminal",
-      "description": "Terminal settings"
-    },
-    {
-      "name": "vimfiles",
-      "description": "Vim/Neovim configurations"
-    },
-    {
-      "name": "windows",
-      "description": "Windows-specific configurations"
-    }
-  ],
   "allowCustomScopes": true,
-  "allowEmptyScopes": false,
   "customScopesAlign": "bottom",
   "customScopesAlias": "custom",
   "emptyScopesAlias": "empty",
@@ -175,9 +104,6 @@
   "allowCustomIssuePrefix": true,
   "allowEmptyIssuePrefix": true,
   "confirmColorize": true,
-  "maxHeaderLength": null,
-  "maxSubjectLength": 50,
-  "minSubjectLength": 1,
   "scopeOverrides": null,
   "defaultBody": "",
   "defaultIssues": "",

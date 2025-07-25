@@ -1,3 +1,4 @@
 #!/bin/bash
-MSG_FILE=$1
-cz check --allow-abort --commit-msg-file "$MSG_FILE"
+# MSG_FILE=$1
+# cz check --allow-abort --commit-msg-file "$MSG_FILE"
+npx commitlint -e
