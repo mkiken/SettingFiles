@@ -1,13 +1,14 @@
 {
+  "globalShortcut": "",
   "mcpServers": {
+    "Context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
     "sequential-thinking": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
-      ]
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
     }
   },
-  "globalShortcut": "Shift+Alt+Space",
   "isUsingBuiltInNodeForMcp": false
 }
