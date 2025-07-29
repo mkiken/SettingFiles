@@ -314,6 +314,11 @@ fi
 # 長時間実行コマンドの通知設定
 source_and_zcompile_if_needed "${SET}shell/zsh/notification.zsh"
 
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+
 # 自動コンパイル
 # http://blog.n-z.jp/blog/2013-12-10-auto-zshrc-recompile.html
 zcompile_if_needed ~/.zshrc
