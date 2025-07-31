@@ -8,7 +8,7 @@ echo "Setting up Claude..."
 mkdir -p ~/.claude
 
 make_symlink "${Repo}ai/common/prompt.md" ~/.claude/CLAUDE.md
-for item in settings.json commands hooks; do
+for item in settings.json agents commands hooks; do
   make_symlink "${Repo}ai/claude/${item}" ~/.claude
 done
 
@@ -25,5 +25,6 @@ npm install -g @sasazame/ccresume
 
 claude mcp add sequential-thinking -s user -- npx -y @modelcontextprotocol/server-sequential-thinking
 claude mcp add context7 -s user -- npx -y @upstash/context7-mcp
+claude mcp add serena --scope "user" -- uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context ide-assistant
 
 echo 'Claude setup and tools installation completed.'

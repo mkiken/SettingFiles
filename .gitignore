@@ -1,6 +1,7 @@
 *.zwc
 .DS_Store
 .claude
+.serena
 npm-debug.log
 submodules/*
 vimfiles/nvim/.backup
