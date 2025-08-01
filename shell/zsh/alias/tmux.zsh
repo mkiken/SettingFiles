@@ -3,6 +3,7 @@
 
 alias tm='tmux'
 alias tmks='tm kill-server'
+alias tms='tmux-snap'
 
 # tmuxで新しくペインを作成してコマンドを実行
 # 水平分割
@@ -30,4 +31,11 @@ function vspl() {
 
 function _vsp() {
   tmux split-window -h "$*"
+}
+
+# tmuxペインのスナップショットを撮る
+function tmux-snap() {
+  local filename="tmux-snapshot-$(date '+%Y%m%d%H%M%S').txt"
+  tmux capture-pane -pS - > "$filename"
+  echo "スナップショットを保存しました: $filename"
 }

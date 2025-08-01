@@ -12,11 +12,6 @@
   },
   "types": [
     {
-      "value": "refactor",
-      "name": "refactor: A code change that neither fixes a bug nor adds a feature",
-      "emoji": "♻️"
-    },
-    {
       "value": "feat",
       "name": "feat:     A new feature",
       "emoji": "✨"
@@ -25,6 +20,11 @@
       "value": "fix",
       "name": "fix:      A bug fix",
       "emoji": "🐛"
+    },
+    {
+      "value": "refactor",
+      "name": "refactor: A code change that neither fixes a bug nor adds a feature",
+      "emoji": "♻️"
     },
     {
       "value": "docs",
