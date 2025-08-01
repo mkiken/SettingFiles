@@ -17,6 +17,10 @@
         "serena",
         "start-mcp-server"
       ]
+    },
+    "gitmcp": {
+      "command": "npx",
+      "args": ["mcp-remote", "https://gitmcp.io/docs"]
     }
   },
   "isUsingBuiltInNodeForMcp": false

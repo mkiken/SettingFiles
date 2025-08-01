@@ -26,5 +26,6 @@ npm install -g @sasazame/ccresume
 claude mcp add sequential-thinking -s user -- npx -y @modelcontextprotocol/server-sequential-thinking
 claude mcp add context7 -s user -- npx -y @upstash/context7-mcp
 claude mcp add serena --scope "user" -- uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context ide-assistant
+claude mcp add gitmcp -s user -- npx mcp-remote https://gitmcp.io/docs
 
 echo 'Claude setup and tools installation completed.'
