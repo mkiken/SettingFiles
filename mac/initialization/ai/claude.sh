@@ -28,5 +28,7 @@ claude mcp add sequential-thinking -s user -- npx -y @modelcontextprotocol/serve
 claude mcp add context7 -s user -- npx -y @upstash/context7-mcp
 claude mcp add serena --scope "user" -- uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context ide-assistant
 claude mcp add gitmcp -s user -- npx mcp-remote https://gitmcp.io/docs
+claude mcp add obsidian -s user -- npx -y mcp-obsidian "$HOME/Library/CloudStorage/Dropbox/Obsidian"
+
 
 echo 'Claude setup and tools installation completed.'
