@@ -9,13 +9,16 @@
       "Bash(cd:*)",
       "Bash(find:*)",
       "Bash(grep:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "WebFetch(domain:*)",
+      "WebSearch(domain:*)"
     ],
     "deny": [
       "Bash(rm -rf /)",
       "Bash(rm -rf ~)",
       "Bash(rm -rf ~/*)",
-      "Bash(rm -rf /*)"
+      "Bash(rm -rf /*)",
+      "Bash(sudo *)"
     ]
   },
   "model": "sonnet",
