@@ -15,6 +15,6 @@ if ! command -v brew > /dev/null 2>&1; then
   fi
 fi
 
-brew bundle
+brew bundle -v
 
 make_symlink "${BREW_PREFIX}/share/git-core/contrib/diff-highlight/diff-highlight" /usr/local/bin

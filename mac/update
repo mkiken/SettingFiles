@@ -13,7 +13,7 @@ echo "start brew update."
 brew update -v
 brew upgrade -v
 brew cleanup -s
-brew bundle
+brew bundle -v
 echo "end brew update."
 
 # for Claude
