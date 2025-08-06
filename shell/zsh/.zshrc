@@ -96,13 +96,9 @@ case "${OSTYPE}" in
   # http://please-sleep.cou929.nu/git-completion-and-prompt.html
   if which brew > /dev/null; then
     fpath=($BREW_PREFIX/share/zsh/site-functions(N-/) $fpath)
-    # http://d.hatena.ne.jp/sugyan/20130319/1363689394
-    # _Z_CMD=j
-    # source $BREW_PREFIX/etc/profile.d/z.sh
   else
     fpath=(~/.zsh/completion(N-/) $fpath)
   fi
-  path=($HOME/.nodebrew/current/bin(N-/) $path)
 
 esac
 
