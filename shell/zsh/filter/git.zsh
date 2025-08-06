@@ -76,13 +76,21 @@ function br_fmt_remote(){
 
 # ブランチをfilter toolで絞ってgitコマンドを実行する
 function filter_git_command(){
-  local branch=$(br_org)
-  save_history "$@" "$branch"
+  local branch
+  if branch=$(br_org); then
+    save_history "$@" "$branch"
+  else
+    return $?
+  fi
 }
 
 function filter_git_command_fmt(){
-  local branch=$(br_fmt)
-  save_history "$@" "$branch"
+  local branch
+  if branch=$(br_fmt); then
+    save_history "$@" "$branch"
+  else
+    return $?
+  fi
 }
 
 # 指定したリファレンス（ブランチやハッシュ）からファイル/ディレクトリをfilterで選択
