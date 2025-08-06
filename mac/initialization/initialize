@@ -29,3 +29,5 @@ source "${SCRIPT_DIR}/ai/gemini.sh"
 source "${SCRIPT_DIR}/ai/other.sh"
 
 echo "\nmacOS initialization completed!"
+
+cat "${SCRIPT_DIR}/NOTES.md"
