@@ -144,7 +144,6 @@
 # git add/checkout -p時に，エンターでの決定を省略する
   singlekey = true
   diffFilter = delta --color-only
-  ; diffFilter = diff-highlight
 [delta]
   features = unobtrusive-line-numbers decorations
   line-numbers = true
