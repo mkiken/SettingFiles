@@ -17,13 +17,14 @@ brew "hadolint"
 brew "httpie"
 brew "lazydocker"
 brew "lazygit"
+brew "mas"
 brew "neovim"
 brew "nvm"
+brew "powerlevel10k"
 brew "ranger"
 brew "reattach-to-user-namespace"
 brew "ripgrep"
 brew "rlwrap"
-brew "powerlevel10k"
 brew "terminal-notifier"
 brew "tldr"
 brew "tmux"
@@ -46,3 +47,20 @@ cask "obsidian"
 cask "raycast"
 cask "simplenote"
 cask "slack"
+
+vscode "alefragnani.bookmarks"
+vscode "anthropic.claude-code"
+vscode "asvetliakov.vscode-neovim"
+vscode "eamodio.gitlens"
+vscode "ionutvmi.path-autocomplete"
+vscode "jgclark.vscode-todo-highlight"
+vscode "mads-hartmann.bash-ide-vscode"
+vscode "timonwong.shellcheck"
+vscode "usernamehw.errorlens"
+vscode "voidei.vscode-vimrc"
+
+mas "CompareMerge2", id: 1459748650
+mas "LINE", id: 539883307
+mas "Simplenote", id: 692867256
+mas "Toggl Track", id: 1291898086
+mas "Tot", id: 1491071483
