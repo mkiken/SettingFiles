@@ -7,7 +7,7 @@ source "$(dirname "$0")/common.sh"
 xcode-select --install
 
 # Shell setting
-sudo chsh -s /usr/local/bin/zsh
+sudo chsh -s /bin/zsh
 
 echo "please install Sauce Code Pro Nerd Font Complete.ttf at https://www.nerdfonts.com/font-downloads."
 echo "please press ^T-I in tmux to install tmux plugins."
