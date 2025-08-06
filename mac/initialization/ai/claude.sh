@@ -12,7 +12,8 @@ for item in settings.json agents commands hooks; do
   make_symlink "${Repo}ai/claude/${item}" ~/.claude
 done
 
-make_symlink "${Repo}ai/claude/claude_desktop_config.json" ~/Library/Application\ Support/Claude
+mkdir -p ~/Library/Application\ Support/Claude
+make_symlink "${Repo}ai/claude/claude_desktop_config.json" ~/Library/Application\ Support/Claude/
 make_symlink "~/Library/CloudStorage/Dropbox/Obsidian/.obsidian/plugins/mcp-tools/bin/mcp-server" /usr/local/bin
 
 chmod +x ~/.claude/hooks/stop-send-notification.sh
