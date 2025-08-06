@@ -5,15 +5,12 @@ source "$(dirname "$0")/../common.sh"
 echo "Setting up Claude..."
 
 # Claude setup
-mkdir -p ~/.claude
-
 make_symlink "${Repo}ai/common/prompt.md" ~/.claude/CLAUDE.md
 for item in settings.json agents commands hooks; do
   make_symlink "${Repo}ai/claude/${item}" ~/.claude
 done
 
-mkdir -p ~/Library/Application\ Support/Claude
-make_symlink "${Repo}ai/claude/claude_desktop_config.json" ~/Library/Application\ Support/Claude/
+make_symlink "${Repo}ai/claude/claude_desktop_config.json" ~/Library/Application\ Support/Claude/claude_desktop_config.json
 make_symlink "~/Library/CloudStorage/Dropbox/Obsidian/.obsidian/plugins/mcp-tools/bin/mcp-server" /usr/local/bin
 sudo make_symlink "~/Library/CloudStorage/Dropbox/Obsidian/.obsidian/plugins/mcp-tools/bin/mcp-server" /usr/local/bin
 

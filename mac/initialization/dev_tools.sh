@@ -7,8 +7,7 @@ make_symlink "${Repo_shell}bash/.bash_profile" ~/
 make_symlink "${Repo_shell}zsh/.zshrc" ~/
 
 # Ghostty
-mkdir -p ~/.config/ghostty
-make_symlink "${Repo}terminal/ghostty/config" ~/.config/ghostty
+make_symlink "${Repo}terminal/ghostty/config" ~/.config/ghostty/config
 
 # Vim/Neovim
 make_symlink "${Repo}vimfiles/nvim" ~/.config
@@ -23,12 +22,10 @@ make_symlink "${Repo}.tmux.conf" ~/.tmux.conf
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
 # Ranger
-mkdir -p ~/.config
-make_symlink "${Repo}ranger" ~/.config
+make_symlink "${Repo}ranger" ~/.config/ranger
 
 # Karabiner
-mkdir -p ~/.config/karabiner
-make_symlink "${Repo}mac/karabiner.json" ~/.config/karabiner
+make_symlink "${Repo}mac/karabiner.json" ~/.config/karabiner/karabiner.json
 
 # History file
 touch ~/.cd_history_file
