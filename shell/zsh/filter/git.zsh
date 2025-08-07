@@ -343,7 +343,7 @@ function fghq() {
   if [ -z "$src" ]; then
     return $EXIT_CODE_SIGINT
   fi
-  cd $(ghq root)/$src
+  save_history cd $(ghq root)/$src
 }
 
 # [difit と fzf を合わせてみた](https://zenn.dev/whatasoda/articles/6e7b921bfbc968)
