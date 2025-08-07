@@ -23,7 +23,19 @@ alias fgcoo='gcoo $(fgcf)'
 alias fgcot='gcot $(fgcf)'
 
 function _fgbh(){
-  git --no-pager reflog | awk '$3 == "checkout:" && /moving from/ {print $8}' | awk '!seen[$0]++' | grep -Fx -f <(git branch --format='%(refname:short)') | head -30 | filter --preview "echo {} | sed -e 's/\*//' | awk '{print \$1}' | xargs git log --color --graph --decorate --abbrev-commit --format=format:'%C(blue)%h%C(reset) - %C(green)(%ar)%C(reset)%C(yellow)%d%C(reset)\n  %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'"
+  local branches=$(git --no-pager reflog \
+    | awk '$3 == "checkout:" && /moving from/ {print $8}' \
+    | awk '!seen[$0]++' \
+    | grep -Fx -f <(git branch --format='%(refname:short)') \
+    | head -30)
+  if [[ -z $branches ]]; then
+    echo "最近移動したブランチが見つかりませんでした"
+    return $EXIT_CODE_SIGINT
+  fi
+  echo "$branches" \
+    | filter --preview "echo {} | sed -e 's/\*//' | awk '{print \$1}' \
+      | xargs git log --color --graph --decorate --abbrev-commit \
+        --format=format:'%C(blue)%h%C(reset) - %C(green)(%ar)%C(reset)%C(yellow)%d%C(reset)\n  %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'"
 }
 
 # 直近移動したブランチ一覧からgit switchする
@@ -65,7 +77,9 @@ function br_org(){
   # 取り込まれたコミットのタイムスタンプを降順（-）でソート
   # ログをいい感じに表示 https://zenn.dev/yamo/articles/5c90852c9c64ab
   git branch -a --sort=-committerdate --color \
-    | filter --preview "echo {} | sed -e 's/\*//' | awk '{print \$1}' | xargs git log --color --graph --decorate --abbrev-commit --format=format:'%C(blue)%h%C(reset) - %C(green)(%ar)%C(reset)%C(yellow)%d%C(reset)\n  %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'" \
+    | filter --preview "echo {} | sed -e 's/\*//' | awk '{print \$1}' \
+      | xargs git log --color --graph --decorate --abbrev-commit \
+        --format=format:'%C(blue)%h%C(reset) - %C(green)(%ar)%C(reset)%C(yellow)%d%C(reset)\n  %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'" \
     | xargs echo | sed -e 's/\*//' | awk '{print $1}'
 }
 
