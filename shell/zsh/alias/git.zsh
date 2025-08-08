@@ -1,6 +1,9 @@
 #!/bin/zsh
 # Git aliases
 
+# Disable Side-by-side
+alias -g DS='GIT_PAGER="delta --no-gitconfig --diff-so-fancy --paging=always"'
+
 alias cdgr='cd `g repository`'
 alias g='noglob git'
 alias ga='git add'
