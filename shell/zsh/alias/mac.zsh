@@ -37,6 +37,7 @@ alias allfile='defaults write com.apple.finder AppleShowAllFiles'
 
 # pbcopy/pbpaste
 alias -g pc='tee >(pbcopy)'
+alias -g C='| pc'
 alias -g pp='pbpaste'
 
 # ranger
