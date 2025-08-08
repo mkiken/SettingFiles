@@ -16,7 +16,7 @@ function M.setup(config)
 
   -- Font settings
   config.font = wezterm.font_with_fallback {
-    'SauceCodePro Nerd Font',
+    'Moralerspace',
     'ヒラギノ角ゴシック',
     'Apple Color Emoji',
   }

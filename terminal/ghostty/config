@@ -1,10 +1,11 @@
 # Theme
-theme = Tomorrow Night Eighties
-# theme = catppuccin-mocha
+# theme = Tomorrow Night Eighties
+theme = catppuccin-mocha
 # theme = iceberg-dark
 
 # Font
-font-family = JetBrainsMonoNL Nerd Font Mono
+# font-family = JetBrainsMonoNL Nerd Font Mono
+font-family = Moralerspace
 font-feature = -dlig
 font-size = 13
 
