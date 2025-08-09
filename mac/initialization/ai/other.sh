@@ -11,4 +11,7 @@ if ! eval "$cmd"; then
     echo "\nWarning: ~/.serena/serena_config.yml already exists. Please remove it first.\n"
 fi
 
+# for Roo
+make_symlink "${Repo}ai/common/prompt.md" ~/.roo/rules/.roorules
+
 echo 'Other AI assistants setup completed.'
