@@ -35,7 +35,7 @@ function _vsp() {
 
 # tmuxペインのスナップショットを撮る
 function tmux-snap() {
-  local filename="tmux-snapshot-$(date '+%Y%m%d%H%M%S').txt"
+  local filename="/tmp/tmux-snapshot-$(date '+%Y%m%d%H%M%S').txt"
   tmux capture-pane -pS - > "$filename"
   echo "スナップショットを保存しました: $filename"
 }
