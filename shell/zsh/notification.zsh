@@ -17,6 +17,7 @@ function _notification_reset() {
   _cmd_name=""
 }
 
+
 # プロンプト表示前のフック関数
 function _notification_precmd() {
   # コマンドの成功・失敗判定
@@ -42,12 +43,6 @@ function _notification_precmd() {
     return
   fi
 
-  # terminal-notifierがない場合は早期リターン
-  if ! command -v terminal-notifier >/dev/null 2>&1; then
-    _notification_reset
-    return
-  fi
-
   # 通知メッセージを設定
   local status_icon
   local status_title
@@ -64,9 +59,7 @@ function _notification_precmd() {
   fi
 
   # 通知を送信
-  terminal-notifier -title "${status_icon} ${status_title}" \
-    -message "${message}" \
-    -sound default
+  notify "${status_icon} ${status_title}" "${message}"
 
   # 最後に初期化
   _notification_reset

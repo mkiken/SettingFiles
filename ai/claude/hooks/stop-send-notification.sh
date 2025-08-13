@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# notification関数を読み込み
+source "${SET}shell/zsh/alias/notification.zsh"
+
 # デバッグフラグ (true/false)
 DEBUG_ENABLED=false
 
@@ -26,7 +29,7 @@ debug_log "Hook input received: ${hook_input}"
 
 # jqが利用可能かチェック
 if ! command -v jq &> /dev/null; then
-    terminal-notifier -title '🤖 Claude Code終了' -message 'jqが見つかりません' -sound Submarine
+    notify '🤖 Claude Code終了' 'jqが見つかりません' 'Submarine'
     exit 1
 fi
 
@@ -37,14 +40,14 @@ debug_log "Transcript path extracted: ${transcript_path}"
 # transcript_pathが取得できているかチェック
 if [[ -z "${transcript_path}" || "${transcript_path}" == "null" ]]; then
     debug_log "No transcript path found"
-    terminal-notifier -title '🤖 Claude Code終了' -message 'transcript pathが見つかりません' -sound Submarine
+    notify '🤖 Claude Code終了' 'transcript pathが見つかりません' 'Submarine'
     exit 0
 fi
 
 # transcriptファイルが存在するかチェック
 if [[ ! -f "${transcript_path}" ]]; then
     debug_log "Transcript file not found: ${transcript_path}"
-    terminal-notifier -title '🤖 Claude Code終了' -message 'セッションが終了しました' -sound Submarine
+    notify '🤖 Claude Code終了' 'セッションが終了しました' 'Submarine'
     exit 0
 fi
 
@@ -135,9 +138,6 @@ fi
 
 # 通知を送信
 debug_log "Sending notification: title='🤖 Claude Code終了 (${total_messages}メッセージ)', message='${summary}'"
-terminal-notifier \
-    -title "🤖 Claude Code終了 (${total_messages}メッセージ)" \
-    -message "${summary}" \
-    -sound Submarine
+notify "🤖 Claude Code終了 (${total_messages}メッセージ)" "${summary}" "Submarine"
 
 debug_log "=== Claude Stop Hook Completed ==="
