@@ -34,6 +34,9 @@ function tailf(){
   tail -f "${@}" | gsed -f "${SET}sedfiles/colorize_log.sed"
 }
 
+# jqで解析できるものだけ整形する
+alias -g J='| jq -R --null-input "inputs | try (fromjson | .) catch (\"⚠️ \" + .)"'
+
 # zmv
 alias zmv='noglob zmv -W'
 alias zcp='zmv -C'
