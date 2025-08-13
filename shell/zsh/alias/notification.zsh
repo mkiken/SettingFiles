@@ -10,5 +10,7 @@ function notify() {
 
   terminal-notifier -title "$title" \
     -message "$message" \
-    -sound "$sound"
+    -sound "$sound" \
+    -execute "open -a Ghostty" \
+    -ignoreDnD
 }
