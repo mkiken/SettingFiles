@@ -14,3 +14,8 @@ function notify() {
     -execute "open -a Ghostty" \
     -ignoreDnD
 }
+
+# 通知を無効化してコマンドを実行する汎用関数
+no_notify() {
+    export _DISABLE_NOTIFY_FOR_CURRENT_CMD=1 && "$@"
+}

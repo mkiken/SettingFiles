@@ -6,10 +6,10 @@ export VISUAL='nvim'
 
 # General aliases
 alias l='ls'
-alias -g L='| less'
+alias -g L='| no_notify less'
 alias vi='nv'
 alias -g nvim-orig='nvim -u NONE --noplugin'
-alias -g nv='nvim'
+alias -g nv='no_notify nvim'
 
 # 事故死予防
 alias cp='cp -i'
@@ -19,7 +19,7 @@ alias pv='popd'
 alias ng='noglob'
 
 # czg
-alias c='git --no-pager diff --cached --name-status && echo && czg'
+alias c='no_notify git --no-pager diff --cached --name-status && echo && czg'
 alias cc='c checkbox'
 
 # ripgrep
@@ -27,7 +27,7 @@ alias -g rg='RIPGREP_CONFIG_PATH=${SET}/configs/.ripgreprc rg'
 
 # Vim runtime
 VIMRUNTIME=$(nvim --clean --headless --cmd 'echo $VIMRUNTIME|q' 2>&1)
-alias vless="${VIMRUNTIME}/scripts/less.sh"
+alias vless="no_notify ${VIMRUNTIME}/scripts/less.sh"
 
 # tail with color
 function tailf(){
@@ -45,13 +45,13 @@ alias zcp='zmv -C'
 
 # vimdiff
 alias vimdiff='nvim-orig -d'
-alias vd='vimdiff'
+alias vd='no_notify vimdiff'
 
 # util
 alias sz='dust -d 1 -Dr'
 
 # tig/gitui/lazygit
-alias t='lazygit'
+alias t='no_notify lazygit'
 
 # up command
 function up() {

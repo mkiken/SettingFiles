@@ -1,8 +1,9 @@
 #!/bin/bash
 # Claude aliases - Common for bash and zsh
 
+
 cl() {
-    claude --verbose "$@"
+    no_notify claude --verbose "$@"
 }
 
 clo() {
