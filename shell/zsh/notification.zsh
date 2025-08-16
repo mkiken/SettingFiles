@@ -1,7 +1,16 @@
 #!/bin/zsh
 
 # 通知を無効化するコマンドのリスト
-export NOTIFY_COMMAND_EXCLUDE=(nvim less claude tail vi vim vimdiff top)
+export NOTIFY_COMMAND_EXCLUDE=(
+  claude
+  less
+  nvim
+  tail
+  top
+  vi
+  vim
+  vimdiff
+)
 
 # 長時間実行コマンドの通知設定
 # コマンド実行開始時間を記録
