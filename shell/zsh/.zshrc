@@ -1,5 +1,6 @@
 #!/bin/zsh
 
+
 # https://intellij-support.jetbrains.com/hc/en-us/articles/15268184143890-Shell-Environment-Loading
 if [[ $INTELLIJ_ENVIRONMENT_READER ]]; then
   return
@@ -12,6 +13,13 @@ else
   IS_VSCODE=false
 fi
 
+# IDEの判定を統合（IntelliJまたはVSCodeの場合true）
+if [[ $INTELLIJ_ENVIRONMENT_READER ]] || $IS_VSCODE; then
+  IS_IDE=true
+else
+  IS_IDE=false
+fi
+
 # Warpの判定を変数化
 if [ -z "$IS_WARP" ]; then
   if [[ "$TERM_PROGRAM" == "WarpTerminal" ]]; then
@@ -22,7 +30,7 @@ if [ -z "$IS_WARP" ]; then
 fi
 export IS_WARP
 
-if [[ -z "$TMUX" ]] && ! $IS_VSCODE && ! $IS_WARP; then
+if [[ -z "$TMUX" ]] && ! $IS_IDE && ! $IS_WARP; then
   tmux new-session -A -s tmux
   return
 fi
@@ -102,8 +110,10 @@ case "${OSTYPE}" in
 
 esac
 
+if ! $IS_IDE; then
 # powerlevel10kのプロンプト設定
 source_and_zcompile_if_needed "${SET}shell/zsh/p10k/config.zsh"
+fi
 
 
 # http://qiita.com/yuyuchu3333/items/b10542db482c3ac8b059
@@ -301,11 +311,6 @@ source_and_zcompile_if_needed "${SET}shell/zsh/plugin.zsh"
 
 # https://github.com/ajeetdsouza/zoxide
 eval "$(zoxide init zsh --cmd cd)"
-
-# [Clineが実行したコマンドの結果がCline自身で読み込めない場合の対処法](https://zenn.dev/razokulover/articles/e0e3ae3cbab03d)
-if $IS_VSCODE; then
-  . "$(code --locate-shell-integration-path zsh)"
-fi
 
 # 長時間実行コマンドの通知設定
 source_and_zcompile_if_needed "${SET}shell/zsh/notification.zsh"
