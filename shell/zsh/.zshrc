@@ -110,10 +110,8 @@ case "${OSTYPE}" in
 
 esac
 
-if ! $IS_IDE; then
 # powerlevel10kのプロンプト設定
 source_and_zcompile_if_needed "${SET}shell/zsh/p10k/config.zsh"
-fi
 
 
 # http://qiita.com/yuyuchu3333/items/b10542db482c3ac8b059
