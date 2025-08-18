@@ -1,0 +1,64 @@
+{
+  "workbench.startupEditor": "newUntitledFile",
+  "files.hotExit": "off",
+  "workbench.list.openMode": "doubleClick",
+  "workbench.list.smoothScrolling": true,
+  "workbench.editor.highlightModifiedTabs": true,
+  "editor.wordWrap": "on",
+  "gitlens.hovers.currentLine.over": "line",
+  "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
+  "editor.linkedEditing": true,
+  "trailing-spaces.trimOnSave": true,
+  "editor.guides.bracketPairs": false,
+  "vsicons.dontShowNewVersionMessage": true,
+  "window.title": "${activeEditorMedium}${separator}${rootName} ${dirty}",
+  "terminal.integrated.sendKeybindingsToShell": true,
+  "terminal.integrated.cursorBlinking": true,
+  "terminal.integrated.fontFamily": "MesloLGS NF",
+  "git.openRepositoryInParentFolders": "never",
+  "editor.fontSize": 13,
+  "editor.defaultColorDecorators": "auto",
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.fixAll.eslint": "explicit",
+    "source.fixAll.shellcheck": "explicit"
+  },
+  "editor.tabSize": 2,
+  "extensions.autoUpdate": "onlyEnabledExtensions",
+  "workbench.editor.enablePreview": false,
+  "files.autoSave": "onFocusChange",
+  "editor.minimap.enabled": false,
+  "vscode-neovim.logOutputToConsole": true,
+  "vscode-neovim.revealCursorScrollLine": true,
+  "editor.inlayHints.enabled": "off",
+  "errorLens.delay": 1500,
+  "errorLens.onSaveTimeout": 2000,
+  "editor.rulers": [
+    80,
+    120
+  ],
+  "workbench.tree.renderIndentGuides": "none",
+  "editor.guides.highlightActiveIndentation": false,
+  "editor.guides.indentation": false,
+  "workbench.editor.wrapTabs": true,
+  "editor.stickyScroll.enabled": true,
+  "editor.stickyScroll.defaultModel": "foldingProviderModel",
+  "accessibility.signals.lineHasError": {
+    "sound": "off"
+  },
+  "editor.inlineCompletionsAccessibilityVerbose": true,
+  "terminal.integrated.macOptionClickForcesSelection": true,
+  "accessibility.signalOptions.volume": 0,
+  "accessibility.signals.codeActionApplied": {
+    "sound": "off"
+  },
+  "accessibility.signals.codeActionTriggered": {
+    "sound": "off"
+  },
+  "editor.accessibilitySupport": "off",
+  "chat.editor.wordWrap": "on",
+  "cline.preferredLanguage": "Japanese - 日本語",
+  "diffEditor.codeLens": true,
+  "diffEditor.hideUnchangedRegions.enabled": true,
+  "terminal.integrated.shellIntegration.enabled": true
+}

@@ -27,6 +27,9 @@ make_symlink "${Repo}ranger" ~/.config/ranger
 # Karabiner
 make_symlink "${Repo}mac/karabiner.json" ~/.config/karabiner/karabiner.json
 
+# VSCode
+copy_if_not_exists "${Repo}vscode/base_setting.json" ~/Library/Application\ Support/Code/User/settings.json
+
 # History file
 touch ~/.cd_history_file
 
