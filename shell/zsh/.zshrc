@@ -1,11 +1,5 @@
 #!/bin/zsh
 
-
-# https://intellij-support.jetbrains.com/hc/en-us/articles/15268184143890-Shell-Environment-Loading
-if [[ $INTELLIJ_ENVIRONMENT_READER ]]; then
-  return
-fi
-
 # vscodeの判定を変数化
 if [[ "$TERM_PROGRAM" == "vscode" ]]; then
   IS_VSCODE=true
@@ -14,7 +8,7 @@ else
 fi
 
 # IDEの判定を統合（IntelliJまたはVSCodeの場合true）
-if [[ $INTELLIJ_ENVIRONMENT_READER ]] || $IS_VSCODE; then
+if [[ $JETBRAINS_INTELLIJ_ZSH_DIR ]] || $IS_VSCODE; then
   IS_IDE=true
 else
   IS_IDE=false

@@ -1,5 +1,5 @@
 #!/bin/zsh
 # Docker aliases
 
-alias do='docker'
-alias dps='do ps'
+alias d='docker'
+alias dps='d ps'
