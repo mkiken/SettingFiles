@@ -7,7 +7,6 @@ brew "duf"
 brew "dust"
 brew "eza"
 brew "fd"
-brew "font-meslo-for-powerlevel10k"
 brew "fzf"
 brew "gh"
 brew "ghq"
@@ -39,6 +38,7 @@ cask "claude"
 cask "cursor"
 cask "docker"
 cask "dropbox"
+cask "font-meslo-for-powerlevel10k"
 cask "font-moralerspace"
 cask "ghostty"
 cask "google-chrome"
@@ -61,7 +61,6 @@ vscode "usernamehw.errorlens"
 vscode "voidei.vscode-vimrc"
 
 mas "CompareMerge2", id: 1459748650
-mas "LINE", id: 539883307
 mas "Simplenote", id: 692867256
 mas "Toggl Track", id: 1291898086
 mas "Tot", id: 1491071483
