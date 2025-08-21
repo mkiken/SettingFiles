@@ -27,7 +27,7 @@ function select-history() {
 
 # コマンドを履歴に残す
 function save_history(){
-  "$@" # 受け取った引数をそのままコマンドとして実行
+  no_notify "$@" # 受け取った引数をそのままコマンドとして実行
   local ret=$? # コマンドの終了ステータスをキャプチャ
   if [[ $ret -ne 0 ]]; then
     return $ret # 元の終了ステータスを返す
