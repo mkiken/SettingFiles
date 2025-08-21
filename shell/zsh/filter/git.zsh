@@ -268,7 +268,7 @@ function fgl2(){
   save_history git log "$@" $base..$compare
 }
 
-# Git管理下の変更ファイル・ディレクトリをfzfで選択する汎用関数
+# Git管理下の変更ファイル・ディレクトリをfilterで選択する汎用関数
 function filter_git_changed_files() {
   {
     # 変更のあるファイルを取得
@@ -279,7 +279,7 @@ function filter_git_changed_files() {
       grep -o "^.*/" |
       sort -u
   } |
-  fzf --preview '
+  filter --preview '
     if [[ -d {1} ]]; then
       # ディレクトリの場合はそのディレクトリ内の変更ファイル一覧を表示
       git diff --name-status -- {1}
@@ -339,7 +339,7 @@ function fga(){
 }
 
 function fghq() {
-  local src=$(ghq list | fzf --preview "bat --color=always --style=header,grid --line-range :80 $(ghq root)/{}/README.*")
+  local src=$(ghq list | filter --preview "bat --color=always --style=header,grid --line-range :80 $(ghq root)/{}/README.*")
   if [ -z "$src" ]; then
     return $EXIT_CODE_SIGINT
   fi
@@ -351,7 +351,7 @@ fdifit() {
   local from_commit to_commit from_hash to_hash
 
   from_commit=$(git log --oneline --decorate -100 --color=always | \
-    fzf \
+    filter \
       --ansi \
       --header "> difit \$TO \$FROM~1" \
       --prompt "Select \$FROM>" \
@@ -361,7 +361,7 @@ fdifit() {
   from_hash="${from_commit%% *}"
 
   to_commit=$(git log --oneline --decorate -100 --color=always $from_hash~1.. | \
-    fzf \
+    filter \
       --ansi \
       --header "> difit \$TO $from_hash~1" \
       --prompt "Select \$TO>" \

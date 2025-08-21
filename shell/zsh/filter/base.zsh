@@ -8,7 +8,7 @@ fi
 
 FILTER_COMMAND="${FILTER_TOOL} --cycle --exit-0 --ansi"
 function filter(){
-  ${=FILTER_COMMAND} $@
+  no_notify ${=FILTER_COMMAND} $@
 }
 
 if [ -z "$FILTER_COMMAND" ]; then
@@ -20,7 +20,7 @@ alias -g F='| filter'
 
 # https://mogulla3.tech/articles/2021-09-06-search-command-history-with-incremental-search/
 function select-history() {
-  BUFFER=$(history -n -r 1 | awk '!seen[$0]++' | fzf --exact --reverse --no-sort --query="$LBUFFER" --cycle --prompt="History > ")
+  BUFFER=$(history -n -r 1 | awk '!seen[$0]++' | filter --exact --reverse --no-sort --query="$LBUFFER" --cycle --prompt="History > ")
   CURSOR=${#BUFFER}
   # zle accept-line # 選択した履歴を即座に実行
 }
@@ -47,7 +47,7 @@ function fcd-down() {
   cd "$dir"
 }
 
-# 関数・エイリアス名をfzfで選んで実行するウィジェット
+# 関数・エイリアス名をfilterで選んで実行するウィジェット
 function falias() {
   local funcs aliases selected
   funcs=$(print -l ${(k)functions} \
@@ -59,7 +59,7 @@ function falias() {
     | grep -v ":" \
     | grep -v "^falias")
   aliases=$(alias | cut -d'=' -f1)
-  selected=$((echo "$funcs"; echo "$aliases") | sort | uniq | fzf --exact --reverse --no-sort --query="$LBUFFER" --cycle --prompt="関数/エイリアス > ")
+  selected=$((echo "$funcs"; echo "$aliases") | sort | uniq | filter --exact --reverse --no-sort --query="$LBUFFER" --cycle --prompt="関数/エイリアス > ")
   if [[ -z "$selected" ]]; then
     return $EXIT_CODE_SIGINT
   fi
