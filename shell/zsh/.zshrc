@@ -273,7 +273,7 @@ fi
 # http://kaworu.jpn.org/kaworu/2012-05-02-1.php
 export MANPAGER='less -R'
 man() {
-	env \
+	no_notify env \
 		LESS_TERMCAP_mb=$(printf "\e[1;31m") \
 		LESS_TERMCAP_md=$(printf "\e[1;31m") \
 		LESS_TERMCAP_me=$(printf "\e[0m") \
