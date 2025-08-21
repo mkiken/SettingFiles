@@ -31,7 +31,15 @@ alias vless="no_notify ${VIMRUNTIME}/scripts/less.sh"
 
 # tail with color
 function tailf(){
-  tail -f "${@}" | gsed -f "${SET}sedfiles/colorize_log.sed"
+  no_notify tail -f "${@}" | gsed -f "${SET}sedfiles/colorize_log.sed"
+}
+
+less() {
+    no_notify command less "$@"
+}
+
+delta() {
+    no_notify command delta "$@"
 }
 
 # jqで解析できる行はJSONとして出力し、そうでない行は素通し（1行ずつ処理・コンパクト）
