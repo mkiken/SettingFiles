@@ -47,8 +47,8 @@ function _notification_precmd() {
   fi
 
   local elapsed=$(($SECONDS - _cmd_start_time))
-  # 5秒未満の場合は早期リターン
-  if (( elapsed < 5 )); then
+  # 一定秒未満の場合は早期リターン
+  if (( elapsed < 11 )); then
     _notification_reset
     return
   fi
