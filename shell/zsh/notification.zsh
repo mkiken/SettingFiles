@@ -2,6 +2,8 @@
 
 # 通知を無効化するコマンドのリスト
 export NOTIFY_COMMAND_EXCLUDE=(
+  ccresume
+  ccusage
   claude
   less
   nvim
