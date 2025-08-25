@@ -7,8 +7,14 @@ else
   IS_VSCODE=false
 fi
 
+if [[ "$TERM_PROGRAM" == "kiro" ]]; then
+  IS_KIRO=true
+else
+  IS_KIRO=false
+fi
+
 # IDEの判定を統合（IntelliJまたはVSCodeの場合true）
-if [[ $JETBRAINS_INTELLIJ_ZSH_DIR ]] || $IS_VSCODE; then
+if [[ $JETBRAINS_INTELLIJ_ZSH_DIR ]] || $IS_VSCODE || $IS_KIRO; then
   IS_IDE=true
 else
   IS_IDE=false
@@ -310,6 +316,10 @@ source_and_zcompile_if_needed "${SET}shell/zsh/notification.zsh"
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+$IS_VSCODE && . "$(code --locate-shell-integration-path zsh)"
+
+$IS_KIRO && . "$(kiro --locate-shell-integration-path zsh)"
 
 
 # 自動コンパイル
