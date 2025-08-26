@@ -6,6 +6,7 @@ echo "Setting up Claude..."
 
 # Claude setup
 make_symlink "${Repo}ai/common/prompt.md" ~/.claude/CLAUDE.md
+make_symlink "${Repo}ai/claude/statusline-custom.sh" ~/.claude/statusline-custom.sh
 for item in settings.json agents commands hooks; do
   make_symlink "${Repo}ai/claude/${item}" ~/.claude
 done
