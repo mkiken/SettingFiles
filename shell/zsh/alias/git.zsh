@@ -146,10 +146,13 @@ function g-delete-branch-not-in-remote-interactive() {
 
 # difit
 difit() {
-  npx difit "$@"
+  no_notify npx difit "$@"
 }
+
 di() {
   difit "$@"
 }
+
+alias diu='di .'
 alias diw='di working'
 alias dis='di staged'
