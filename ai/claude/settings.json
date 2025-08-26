@@ -22,6 +22,10 @@
     ]
   },
   "model": "sonnet",
+  "statusLine": {
+    "type": "command",
+    "command": "input=$(cat); user=$(whoami); host=$(hostname -s); current_dir=$(echo \"$input\" | jq -r '.workspace.current_dir'); model=$(echo \"$input\" | jq -r '.model.display_name'); if [ -d \"$current_dir/.git\" ]; then cd \"$current_dir\" && branch=$(git symbolic-ref --short HEAD 2>/dev/null || git describe --tags --exact-match 2>/dev/null || git rev-parse --short HEAD 2>/dev/null); status=$(git status --porcelain 2>/dev/null); if [ -n \"$status\" ]; then git_status=\" *\"; else git_status=\"\"; fi; git_info=\" (${branch}${git_status})\"; else git_info=\"\"; fi; printf \"\\033[36m%s\\033[0m@\\033[32m%s\\033[0m:\\033[34m%s\\033[0m%s \\033[35m[%s]\\033[0m\" \"$user\" \"$host\" \"$(basename \"$current_dir\")\" \"$git_info\" \"$model\""
+  },
   "hooks": {
     "Stop": [
       {
