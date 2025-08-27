@@ -13,7 +13,6 @@ done
 
 make_symlink "${Repo}ai/claude/claude_desktop_config.json" ~/Library/Application\ Support/Claude/claude_desktop_config.json
 make_symlink "~/Library/CloudStorage/Dropbox/Obsidian/.obsidian/plugins/mcp-tools/bin/mcp-server" /usr/local/bin
-sudo make_symlink "~/Library/CloudStorage/Dropbox/Obsidian/.obsidian/plugins/mcp-tools/bin/mcp-server" /usr/local/bin
 
 chmod +x ~/.claude/hooks/stop-send-notification.sh
 
