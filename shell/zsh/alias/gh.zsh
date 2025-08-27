@@ -9,8 +9,8 @@ function ghpc() {
 }
 alias -g ghpv='gh pr view --web'
 alias -g ghco='gh co'
-alias gh-dash='gh dash'
-alias ghd='no_notify gh-dash'
+alias gh-dash='no_notify gh dash'
+alias ghd='gh-dash'
 alias ghf='no-notify gh f'
 alias ghf-gha='ghf -r'
 alias ghf-grep-file-history='ghf -g'
