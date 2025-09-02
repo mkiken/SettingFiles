@@ -110,8 +110,14 @@ case "${OSTYPE}" in
 
 esac
 
-# powerlevel10kのプロンプト設定
-source_and_zcompile_if_needed "${SET}shell/zsh/p10k/config.zsh"
+# Cursorでコマンドが止まる問題の対応
+# [Cursor agent mode - when running terminal commands often hangs up the terminal, requiring a click to pop it out in order to continue commands - Bug Reports - Cursor - Community Forum](https://forum.cursor.com/t/cursor-agent-mode-when-running-terminal-commands-often-hangs-up-the-terminal-requiring-a-click-to-pop-it-out-in-order-to-continue-commands/59969/16)
+if [[ -n "$CURSOR_AGENT" ]]; then
+  # 互換性向上のためテーマ初期化をスキップ
+else
+  # powerlevel10kのプロンプト設定
+  source_and_zcompile_if_needed "${SET}shell/zsh/p10k/config.zsh"
+fi
 
 
 # http://qiita.com/yuyuchu3333/items/b10542db482c3ac8b059
