@@ -11,14 +11,14 @@
       "Bash(grep:*)",
       "Bash(rg:*)",
       "WebFetch(domain:*)",
-      "WebSearch(domain:*)"
+      "WebSearch"
     ],
     "deny": [
       "Bash(rm -rf /)",
       "Bash(rm -rf ~)",
       "Bash(rm -rf ~/*)",
       "Bash(rm -rf /*)",
-      "Bash(sudo *)"
+      "Bash(sudo :*)"
     ]
   },
   "model": "opusplan",
