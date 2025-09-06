@@ -1,6 +1,7 @@
 brew "actionlint"
 brew "aria2"
 brew "bat"
+brew "claude-squad"
 brew "commitlint"
 brew "czg"
 brew "duf"
