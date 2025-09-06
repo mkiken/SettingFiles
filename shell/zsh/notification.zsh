@@ -3,6 +3,8 @@
 # 通知を無効化するコマンドのリスト
 export NOTIFY_COMMAND_EXCLUDE=(
   ccexp
+  cclog
+  cclogt
   ccresume
   ccusage
   claude

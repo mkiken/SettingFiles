@@ -24,6 +24,7 @@ npm install -g ccexp
 npm install -g ccusage
 npm install -g @sasazame/ccresume
 pipx install SuperClaude && SuperClaude install
+pipx install claude-code-log
 
 claude mcp add sequential-thinking -s user -- npx -y @modelcontextprotocol/server-sequential-thinking
 claude mcp add context7 -s user -- npx -y @upstash/context7-mcp

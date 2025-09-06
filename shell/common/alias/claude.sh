@@ -22,4 +22,16 @@ cl-pr-body() {
     clo "/pr-body $*"
 }
 
+cclog() {
+     claude-code-log "$@"
+}
+
+cclogt() {
+     cclog --tui "$@"
+}
+
+cclogb() {
+     cclog --open-browser "$@"
+}
+
 alias update-cc='npm i -g @anthropic-ai/claude-code'
