@@ -20,6 +20,7 @@ echo "Installing Claude tools..."
 
 # Claude tools
 npm install -g @anthropic-ai/claude-code
+npm install -g ccexp
 npm install -g ccusage
 npm install -g @sasazame/ccresume
 
