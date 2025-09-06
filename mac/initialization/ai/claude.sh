@@ -20,9 +20,10 @@ echo "Installing Claude tools..."
 
 # Claude tools
 npm install -g @anthropic-ai/claude-code
+npm install -g @pimzino/claude-code-spec-workflow
+npm install -g @sasazame/ccresume
 npm install -g ccexp
 npm install -g ccusage
-npm install -g @sasazame/ccresume
 pipx install SuperClaude && SuperClaude install
 pipx install claude-code-log
 
