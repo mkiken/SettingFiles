@@ -17,10 +17,10 @@ alias fgdn='fgd --name-status'
 alias fgls='fgl --stat'
 
 alias fgcf='gcf | filter'
-alias fgmt='gmt $(fgcf)'
-alias fgcfa='ga $(fgcf)'
-alias fgcoo='gcoo $(fgcf)'
-alias fgcot='gcot $(fgcf)'
+alias fgmt='gmt "$(fgcf)"'
+alias fgcfa='ga "$(fgcf)"'
+alias fgcoo='gcoo "$(fgcf)"'
+alias fgcot='gcot "$(fgcf)"'
 
 function _fgbh(){
   local branches=$(git --no-pager reflog \
@@ -322,7 +322,7 @@ function fgst(){
   fi
 
   local stash_message="${selection}"
-  save_history git stash push -m "$stash_message" -- $selection
+  save_history git stash push -m "$stash_message" -- "$selection"
   echo "Stashed selected files with message: $stash_message"
 }
 
@@ -335,7 +335,7 @@ function fga(){
       return $EXIT_CODE_SIGINT
   fi
 
-  save_history git add $selection
+  save_history git add "$selection"
 }
 
 function fghq() {
@@ -343,7 +343,7 @@ function fghq() {
   if [ -z "$src" ]; then
     return $EXIT_CODE_SIGINT
   fi
-  save_history cd $(ghq root)/$src
+  save_history cd "$(ghq root)/$src"
 }
 
 # [difit と fzf を合わせてみた](https://zenn.dev/whatasoda/articles/6e7b921bfbc968)
