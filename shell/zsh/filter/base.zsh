@@ -29,13 +29,17 @@ function select-history() {
 function save_history(){
   no_notify "$@" # 受け取った引数をそのままコマンドとして実行
   local ret=$? # コマンドの終了ステータスをキャプチャ
-  if [[ $ret -ne 0 ]]; then
-    return $ret # 元の終了ステータスを返す
+
+  # 成功時またはSIGINT/SIGPIPEの場合は履歴に保存
+  if [[ $ret -eq 0 || $ret -eq $EXIT_CODE_SIGINT || $ret -eq $EXIT_CODE_SIGPIPE ]]; then
+    # 実行したコマンドを履歴に追加
+    # -- は、以降の引数がオプションとして解釈されるのを防ぐ
+    # (q-): Escaping of special characters, minimal quoting with single quotes
+    print -s -- ${(q-)@}
   fi
-  # 実行したコマンドを履歴に追加
-  # -- は、以降の引数がオプションとして解釈されるのを防ぐ
-  # (q-): Escaping of special characters, minimal quoting with single quotes
-  print -s -- ${(q-)@}
+
+  # 元の終了ステータスを返す（0以外の場合も含む）
+  return $ret
 }
 
 alias fcd='fcd-down'
