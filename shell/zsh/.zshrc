@@ -112,7 +112,7 @@ esac
 
 # Cursorでコマンドが止まる問題の対応
 # [Cursor agent mode - when running terminal commands often hangs up the terminal, requiring a click to pop it out in order to continue commands - Bug Reports - Cursor - Community Forum](https://forum.cursor.com/t/cursor-agent-mode-when-running-terminal-commands-often-hangs-up-the-terminal-requiring-a-click-to-pop-it-out-in-order-to-continue-commands/59969/16)
-if [[ -n "$CURSOR_AGENT" ]]; then
+if [[ -n "$CURSOR_AGENT" ]] || $IS_KIRO; then
   # 互換性向上のためテーマ初期化をスキップ
 else
   # powerlevel10kのプロンプト設定
