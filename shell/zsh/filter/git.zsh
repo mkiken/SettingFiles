@@ -7,7 +7,7 @@ alias fgps='filter_git_command_fmt git push origin'
 alias fgbd='filter_git_command_fmt git branch -d'
 alias fgbD='filter_git_command_fmt git branch -D'
 alias fgb='br_org'
-alias fgbd-remote='filter_git_command_fmt git push --delete --no-verify origin'
+alias fgbd-remote='filter_git_command_remote git push --delete --no-verify origin'
 alias fgrb='filter_git_command_fmt git pull --rebase origin'
 alias fgl='filter_git_command git log'
 alias fgln='fgl --name-status'
@@ -76,7 +76,19 @@ function br_fmt(){
 function br_org(){
   # 取り込まれたコミットのタイムスタンプを降順（-）でソート
   # ログをいい感じに表示 https://zenn.dev/yamo/articles/5c90852c9c64ab
-  git branch -a --sort=-committerdate --color \
+  git branch -a --sort=-committerdate --color | grep -v "\->" \
+    | filter --preview "echo {} | sed -e 's/\*//' | awk '{print \$1}' \
+      | xargs git log --color --graph --decorate --abbrev-commit \
+        --format=format:'%C(blue)%h%C(reset) - %C(green)(%ar)%C(reset)%C(yellow)%d%C(reset)\n  %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'" \
+    | xargs echo | sed -e 's/\*//' | awk '{print $1}'
+}
+
+# Gitのブランチをfilter toolで扱えるように整形
+function br_remote(){
+  # 取り込まれたコミットのタイムスタンプを降順（-）でソート
+  # ログをいい感じに表示 https://zenn.dev/yamo/articles/5c90852c9c64ab
+  git branch -r --sort=-committerdate --color \
+    | grep -v "\->" | sed -e 's/origin\///' \
     | filter --preview "echo {} | sed -e 's/\*//' | awk '{print \$1}' \
       | xargs git log --color --graph --decorate --abbrev-commit \
         --format=format:'%C(blue)%h%C(reset) - %C(green)(%ar)%C(reset)%C(yellow)%d%C(reset)\n  %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'" \
@@ -101,6 +113,15 @@ function filter_git_command(){
 function filter_git_command_fmt(){
   local branch
   if branch=$(br_fmt); then
+    save_history "$@" "$branch"
+  else
+    return $?
+  fi
+}
+
+function filter_git_command_remote(){
+  local branch
+  if branch=$(br_remote); then
     save_history "$@" "$branch"
   else
     return $?
