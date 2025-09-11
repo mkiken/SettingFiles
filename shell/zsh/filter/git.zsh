@@ -394,3 +394,53 @@ fdifit() {
   difit "$to_hash" "$from_hash~1"
 }
 alias fdi='fdigit'
+
+# fzfを使用してコミットを選択し、選択されたコミットをrevertする
+function fgrv() {
+  # gitリポジトリ検証
+  if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    echo "エラー: 現在のディレクトリはgitリポジトリではありません"
+    return 1
+  fi
+
+  # コミット取得と検証（要件通りの形式：ハッシュ6文字、作成者、日付、メッセージ）
+  local commits
+  commits=$(git log --pretty=format:"%C(yellow)%h%C(reset) %C(blue)%an%C(reset) %C(green)%ad%C(reset) %s" --date=short -30 --color=always 2>/dev/null)
+  if [[ -z $commits ]]; then
+    echo "revertできるコミットが見つかりませんでした"
+    return $EXIT_CODE_SIGINT
+  fi
+
+  # fzfでコミット選択（プレビュー付き、新しいコミットが上に表示され、初期選択も新しいコミット）
+  local selected_commit
+  selected_commit=$(echo "$commits" | \
+    filter \
+      --ansi \
+      --layout=reverse \
+      --header "revertするコミットを選択してください" \
+      --prompt "commit> " \
+      --preview 'git show --color=always {1}' \
+      --preview-window=right:60%:wrap
+  )
+
+  # ユーザーキャンセル時の適切な終了処理
+  if [[ -z $selected_commit ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  # 選択されたコミットハッシュを抽出（最初の6文字のハッシュ部分）
+  local commit_hash
+  commit_hash=$(echo "$selected_commit" | awk '{print $1}' | sed 's/\x1b\[[0-9;]*m//g')
+  
+  if [[ -z $commit_hash ]]; then
+    echo "エラー: コミットハッシュの抽出に失敗しました"
+    return 1
+  fi
+
+  # git revert実行（gitのネイティブエラーハンドリングに委ねる）
+  echo "コミット $commit_hash をrevertしています..."
+  git revert "$commit_hash"
+  
+  # git revertの終了コードをそのまま返す
+  return $?
+}
