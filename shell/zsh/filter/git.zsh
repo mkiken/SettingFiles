@@ -481,3 +481,38 @@ function fgrv() {
   # git revertの終了コードをそのまま返す
   return $?
 }
+
+# fzfを使用してコミットを選択し、選択されたコミットまでrollback（reset --hard）する
+function fg-rollback() {
+  # gitリポジトリ検証
+  if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    echo "エラー: 現在のディレクトリはgitリポジトリではありません"
+    return 1
+  fi
+
+  # 統合関数を使用してコミットを選択
+  local commit_hash
+  commit_hash=$(_select_commit_hash "rollback（reset --hard）するコミットを選択してください" 30)
+
+  # キャンセルまたはエラー時は統合関数の戻り値をそのまま返す
+  if [[ $? -ne 0 ]]; then
+    return $?
+  fi
+
+  # 警告メッセージ表示
+  echo "⚠️  警告: この操作は作業ディレクトリとステージングエリアの変更を全て破棄し、"
+  echo "    コミット $commit_hash の状態に戻します。"
+  echo "    この操作は取り消しできません。"
+  echo -n "本当にrollbackしますか？ (y/N): "
+  read -r response
+
+  # 明示的にyまたはYの場合のみ実行
+  if [[ "$response" =~ ^[yY]$ ]]; then
+    echo "コミット $commit_hash にrollbackしています..."
+    git rollback "$commit_hash"
+    return $?
+  else
+    echo "rollbackをキャンセルしました"
+    return $EXIT_CODE_SIGINT
+  fi
+}
