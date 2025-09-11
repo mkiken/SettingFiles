@@ -22,6 +22,68 @@ alias fgcfa='ga "$(fgcf)"'
 alias fgcoo='gcoo "$(fgcf)"'
 alias fgcot='gcot "$(fgcf)"'
 
+# gitコミット一覧を取得する共通関数
+# 引数: limit (デフォルト: 30)
+function _get_git_commits() {
+  local limit=${1:-30}
+  git log --pretty=format:"%C(yellow)%h%C(reset) %C(blue)%an%C(reset) %C(green)%ad%C(reset) %s" --date=short -"$limit" --color=always 2>/dev/null
+}
+
+# フィルター選択されたコミットからハッシュを抽出する共通関数
+# 引数: selected_commit (フィルター結果の文字列)
+function _extract_commit_hash() {
+  local selected_commit="$1"
+  if [[ -z "$selected_commit" ]]; then
+    return 1
+  fi
+  echo "$selected_commit" | awk '{print $1}' | sed 's/\x1b\[[0-9;]*m//g'
+}
+
+# コミット選択UI全体の統合関数
+# 引数1: header_message (フィルターのヘッダーメッセージ)
+# 引数2: limit (コミット数の上限、デフォルト: 30)
+# 戻り値: 選択されたコミットハッシュ（標準出力）、キャンセル時は $EXIT_CODE_SIGINT で終了
+function _select_commit_hash() {
+  local header_message="$1"
+  local limit="${2:-30}"
+
+  # コミット取得と検証
+  local commits
+  commits=$(_get_git_commits "$limit")
+  if [[ -z $commits ]]; then
+    echo "コミットが見つかりませんでした" >&2
+    return $EXIT_CODE_SIGINT
+  fi
+
+  # フィルターでコミット選択
+  local selected_commit
+  selected_commit=$(echo "$commits" | \
+    filter \
+      --ansi \
+      --layout=reverse \
+      --header "$header_message" \
+      --prompt "commit> " \
+      --preview 'git show --color=always {1}' \
+      --preview-window=right:60%:wrap
+  )
+
+  # ユーザーキャンセル時の適切な終了処理
+  if [[ -z $selected_commit ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  # 選択されたコミットハッシュを抽出
+  local commit_hash
+  commit_hash=$(_extract_commit_hash "$selected_commit")
+
+  if [[ -z $commit_hash ]]; then
+    echo "エラー: コミットハッシュの抽出に失敗しました" >&2
+    return 1
+  fi
+
+  echo "$commit_hash"
+}
+
 function _fgbh(){
   local branches=$(git --no-pager reflog \
     | awk '$3 == "checkout:" && /moving from/ {print $8}' \
@@ -403,44 +465,19 @@ function fgrv() {
     return 1
   fi
 
-  # コミット取得と検証（要件通りの形式：ハッシュ6文字、作成者、日付、メッセージ）
-  local commits
-  commits=$(git log --pretty=format:"%C(yellow)%h%C(reset) %C(blue)%an%C(reset) %C(green)%ad%C(reset) %s" --date=short -30 --color=always 2>/dev/null)
-  if [[ -z $commits ]]; then
-    echo "revertできるコミットが見つかりませんでした"
-    return $EXIT_CODE_SIGINT
-  fi
-
-  # fzfでコミット選択（プレビュー付き、新しいコミットが上に表示され、初期選択も新しいコミット）
-  local selected_commit
-  selected_commit=$(echo "$commits" | \
-    filter \
-      --ansi \
-      --layout=reverse \
-      --header "revertするコミットを選択してください" \
-      --prompt "commit> " \
-      --preview 'git show --color=always {1}' \
-      --preview-window=right:60%:wrap
-  )
-
-  # ユーザーキャンセル時の適切な終了処理
-  if [[ -z $selected_commit ]]; then
-    return $EXIT_CODE_SIGINT
-  fi
-
-  # 選択されたコミットハッシュを抽出（最初の6文字のハッシュ部分）
+  # 統合関数を使用してコミットを選択
   local commit_hash
-  commit_hash=$(echo "$selected_commit" | awk '{print $1}' | sed 's/\x1b\[[0-9;]*m//g')
-  
-  if [[ -z $commit_hash ]]; then
-    echo "エラー: コミットハッシュの抽出に失敗しました"
-    return 1
+  commit_hash=$(_select_commit_hash "revertするコミットを選択してください" 30)
+
+  # キャンセルまたはエラー時は統合関数の戻り値をそのまま返す
+  if [[ $? -ne 0 ]]; then
+    return $?
   fi
 
   # git revert実行（gitのネイティブエラーハンドリングに委ねる）
   echo "コミット $commit_hash をrevertしています..."
   git revert "$commit_hash"
-  
+
   # git revertの終了コードをそのまま返す
   return $?
 }
