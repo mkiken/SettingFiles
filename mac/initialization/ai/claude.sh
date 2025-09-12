@@ -22,7 +22,6 @@ echo "Installing Claude tools..."
 npm install -g @anthropic-ai/claude-code
 npm install -g @pimzino/claude-code-spec-workflow
 npm install -g @sasazame/ccresume
-npm install -g cc-sdd
 npm install -g ccexp
 npm install -g ccusage
 pipx install SuperClaude && SuperClaude install
@@ -33,9 +32,6 @@ claude mcp add context7 -s user -- npx -y @upstash/context7-mcp
 claude mcp add serena --scope "user" -- uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context ide-assistant
 claude mcp add gitmcp -s user -- npx mcp-remote https://gitmcp.io/docs
 claude mcp add obsidian -s user -- npx -y mcp-obsidian "$HOME/Library/CloudStorage/Dropbox/Obsidian"
-
-cc-sdd --lang ja --os mac
-claude-code-spec-workflow
 
 
 echo 'Claude setup and tools installation completed.'
