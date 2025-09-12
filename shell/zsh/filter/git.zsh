@@ -23,10 +23,21 @@ alias fgcoo='gcoo "$(fgcf)"'
 alias fgcot='gcot "$(fgcf)"'
 
 # gitコミット一覧を取得する共通関数
-# 引数: limit (デフォルト: 30)
+# 引数: limit (デフォルト: 30), branch (オプショナル)
 function _get_git_commits() {
   local limit=${1:-30}
-  git log --pretty=format:"%C(yellow)%h%C(reset) %C(blue)%an%C(reset) %C(green)%ad%C(reset) %s" --date=short -"$limit" --color=always 2>/dev/null
+  local branch=${2:-}
+
+  # ブランチが指定されている場合はブランチの存在確認
+  if [[ -n "$branch" ]]; then
+    if ! git rev-parse --verify "$branch" >/dev/null 2>&1; then
+      echo "エラー: ブランチ '$branch' が見つかりません" >&2
+      return 1
+    fi
+    git log --pretty=format:"%C(yellow)%h%C(reset) %C(blue)%an%C(reset) %C(green)%ad%C(reset) %s" --date=short -"$limit" --color=always "$branch" 2>/dev/null
+  else
+    git log --pretty=format:"%C(yellow)%h%C(reset) %C(blue)%an%C(reset) %C(green)%ad%C(reset) %s" --date=short -"$limit" --color=always 2>/dev/null
+  fi
 }
 
 # フィルター選択されたコミットからハッシュを抽出する共通関数
@@ -42,15 +53,17 @@ function _extract_commit_hash() {
 # コミット選択UI全体の統合関数
 # 引数1: header_message (フィルターのヘッダーメッセージ)
 # 引数2: limit (コミット数の上限、デフォルト: 30)
+# 引数3: branch (オプショナル: 特定のブランチのコミットを取得)
 # 戻り値: 選択されたコミットハッシュ（標準出力）、キャンセル時は $EXIT_CODE_SIGINT で終了
 function _select_commit_hash() {
   local header_message="$1"
   local limit="${2:-30}"
+  local branch="${3:-}"
 
   # コミット取得と検証
   local commits
-  commits=$(_get_git_commits "$limit")
-  if [[ -z $commits ]]; then
+  commits=$(_get_git_commits "$limit" "$branch")
+  if [[ $? -ne 0 ]] || [[ -z $commits ]]; then
     echo "コミットが見つかりませんでした" >&2
     return $EXIT_CODE_SIGINT
   fi
@@ -515,4 +528,48 @@ function fg-rollback() {
     echo "rollbackをキャンセルしました"
     return $EXIT_CODE_SIGINT
   fi
+}
+
+# fzfを使用してブランチとコミットを選択し、cherry-pickを実行する
+# 既存のbr_org()とenhanced _select_commit_hash()を活用したインタラクティブなcherry-pick
+function fgcp() {
+  # gitリポジトリ検証
+  if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    echo "エラー: 現在のディレクトリはgitリポジトリではありません"
+    return 1
+  fi
+
+  # ブランチ選択（br_org()関数を活用）
+  local selected_branch
+  selected_branch=$(br_org)
+
+  # ユーザーキャンセル時または選択失敗時の適切な処理
+  if [[ $? -ne 0 ]] || [[ -z "$selected_branch" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  # コミット選択（拡張された_select_commit_hash()にブランチパラメータを渡す）
+  local commit_hash
+  commit_hash=$(_select_commit_hash "cherry-pickするコミットを選択してください" 30 "$selected_branch")
+
+  # キャンセルまたはエラー時は統合関数の戻り値をそのまま返す
+  if [[ $? -ne 0 ]]; then
+    return $?
+  fi
+
+  # git cherry-pick実行（gitのネイティブエラーハンドリングに委ねる）
+  echo "ブランチ '$selected_branch' からコミット $commit_hash をcherry-pickしています..."
+  git cherry-pick "$commit_hash"
+  local cherry_pick_result=$?
+
+  # コマンド履歴保存（成功・失敗に関わらず履歴に記録）
+  save_history git cherry-pick "$commit_hash"
+
+  # 成功時のメッセージ表示
+  if [[ $cherry_pick_result -eq 0 ]]; then
+    echo "✅ cherry-pickが正常に完了しました"
+  fi
+
+  # gitの終了コードをそのまま返す（コンフリクト時はgitの標準処理に委ねる）
+  return $cherry_pick_result
 }
