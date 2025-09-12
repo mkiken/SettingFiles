@@ -30,7 +30,13 @@ if [ -z "$IS_WARP" ]; then
 fi
 export IS_WARP
 
-if [[ -z "$TMUX" ]] && ! $IS_IDE && ! $IS_WARP; then
+# tmuxを使うべきかを判定する関数
+should_use_tmux() {
+    # IDEまたはWarpターミナルの場合は使わない
+    ! $IS_IDE && ! $IS_WARP
+}
+
+if [[ -z "$TMUX" ]] && should_use_tmux; then
   tmux new-session -A -s tmux
   return
 fi

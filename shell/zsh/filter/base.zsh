@@ -1,6 +1,11 @@
 #!/bin/zsh
 
-FILTER_TOOL='fzf-tmux'
+# tmuxを使うべきかでフィルターツールを選択
+if should_use_tmux; then
+  FILTER_TOOL='fzf-tmux'
+else
+  FILTER_TOOL='fzf'
+fi
 
 if ! command -v ${FILTER_TOOL} > /dev/null 2>&1; then
   exit
