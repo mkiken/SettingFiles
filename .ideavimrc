@@ -107,6 +107,7 @@ set vim-paragraph-motion
 set switch "needs plugin install
 set functiontextobj "needs plugin install
 set which-key "needs plugin install
+set peekaboo "needs plugin install
 
 " for Which Key
 " disable the timeout option
