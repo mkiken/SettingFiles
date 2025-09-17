@@ -96,7 +96,6 @@ set NERDTree
 set ReplaceWithRegister
 set argtextobj
 set commentary
-set easymotion "needs plugin install
 set exchange
 set highlightedyank
 set matchit
@@ -115,9 +114,6 @@ set notimeout
 
 " for ArgTextObj
 let g:argtextobj_pairs="[:],(:),<:>"
-
-" for EasyMotion
-nmap <leader>e <Plug>(easymotion-s2)
 
 " Remap multiple-cursors shortcuts to match terryma/vim-multiple-cursors
 nmap <leader>n <Plug>NextWholeOccurrence
