@@ -96,7 +96,7 @@ set NERDTree
 set ReplaceWithRegister
 set argtextobj
 set commentary
-set easymotion
+set easymotion "needs plugin install
 set exchange
 set highlightedyank
 set matchit
@@ -104,9 +104,18 @@ set multiple-cursors
 set surround
 set textobj-indent
 set vim-paragraph-motion
-set switch
+set switch "needs plugin install
+set functiontextobj "needs plugin install
+set which-key "needs plugin install
+
+" for Which Key
+" disable the timeout option
+set notimeout
+
+" for ArgTextObj
 let g:argtextobj_pairs="[:],(:),<:>"
 
+" for EasyMotion
 nmap <leader>e <Plug>(easymotion-s2)
 
 " Remap multiple-cursors shortcuts to match terryma/vim-multiple-cursors
@@ -134,3 +143,24 @@ nnoremap + :SwitchReverse<CR>
 
 " Enable all patterns from multiple groups
 let g:switch_definitions = 'group:basic,group:javascript,group:markdown,group:ruby'
+
+" for Vim-Flash
+" enhance vim f (find for char in characters to the right of the current cursor)
+nmap f <Action>(flash.find)
+xmap f <Action>(flash.find)
+" enhance vim F (find for char in characters to the left of the current cursor)
+nmap F <Action>(flash.find_backward)
+xmap F <Action>(flash.find_backward)
+" enhance vim t (till for char in characters to the right of the current cursor)
+nmap t <Action>(flash.till)
+xmap t <Action>(flash.till)
+" enhance vim T (till for char in characters to the left of the current cursor)
+nmap T <Action>(flash.till_backward)
+xmap T <Action>(flash.till_backward)
+" enhance vim ; (Repeat the last f/F/t/T search)
+nmap ; <Action>(flash.repeat)
+xmap ; <Action>(flash.repeat)
+" enhance vim , (Repeat the last f/F/t/T search backward)
+nmap , <Action>(flash.repeat_backward)
+xmap , <Action>(flash.repeat_backward)
+map <leader>f <Action>(flash.search)
