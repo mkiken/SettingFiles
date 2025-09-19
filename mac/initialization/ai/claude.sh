@@ -7,8 +7,20 @@ echo "Setting up Claude..."
 # Claude setup
 make_symlink "${Repo}ai/common/prompt.md" ~/.claude/CLAUDE.md
 make_symlink "${Repo}ai/claude/statusline-custom.sh" ~/.claude/statusline-custom.sh
-for item in settings.json agents commands hooks; do
+# settings.jsonとhooksはsymlink
+for item in settings.json hooks; do
   make_symlink "${Repo}ai/claude/${item}" ~/.claude
+done
+
+# agentsとcommandsはディレクトリ内のファイルをコピー
+for item in agents commands; do
+  for file in "${Repo}ai/claude/${item}"/*; do
+    if [[ -f "$file" ]]; then
+      make_symlink "$file" ~/.claude/${item}/$(basename "$file")
+    else
+      echo "⚠️  Warning: $(basename "$file") is not a regular file, skipping..."
+    fi
+  done
 done
 
 make_symlink "${Repo}ai/claude/claude_desktop_config.json" ~/Library/Application\ Support/Claude/claude_desktop_config.json
@@ -24,7 +36,7 @@ npm install -g @pimzino/claude-code-spec-workflow
 npm install -g @sasazame/ccresume
 npm install -g ccexp
 npm install -g ccusage
-pipx install SuperClaude && SuperClaude install
+pipx install SuperClaude && SuperClaude install --verbose --yes
 pipx install claude-code-log
 
 claude mcp add sequential-thinking -s user -- npx -y @modelcontextprotocol/server-sequential-thinking
