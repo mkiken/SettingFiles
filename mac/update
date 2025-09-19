@@ -18,6 +18,7 @@ echo "end brew update."
 
 # for Claude
 update-cc
+SuperClaude update --verbose
 
 # Lazy + tree-sitterのアップデート
 nvim --headless "+Lazy! sync | TSUpdate" +qa
@@ -25,7 +26,7 @@ nvim --headless "+Lazy! sync | TSUpdate" +qa
 source ${SUBMODULE_DIR}/zsh-snap/znap.zsh  # Start Znap
 znap pull
 
-gh extension upgrade --all
+gh extension upgrade --all --yes
 
 # p10kのファイルはシンボリックリンクにできないので、更新されてたらここで更新をリポジトリに取り込む
 cp -i ~/.p10k.zsh  ${SET}shell/zsh/p10k
