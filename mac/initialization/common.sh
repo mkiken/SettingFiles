@@ -24,6 +24,15 @@ function copy_if_not_exists() {
         return 1
     fi
 
+    # コピー先のディレクトリを取得
+    local target_dir="$(dirname "$dst")"
+
+    # ディレクトリが存在しない場合は作成
+    if [[ ! -d "$target_dir" ]]; then
+        echo "mkdir -p $target_dir"
+        mkdir -p "$target_dir"
+    fi
+
     local cmd="cp -n \"$src\" \"$dst\""
     echo "$cmd"
     if eval "$cmd"; then
