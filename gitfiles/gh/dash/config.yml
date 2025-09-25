@@ -2,6 +2,9 @@ prSections:
 - title: My Pull Requests
   filters: is:open author:@me
   type: null
+- title: Assigned
+  filters: is:open assignee:@me
+  type: null
 - title: Needs My Review
   filters: is:open review-requested:@me
   type: null
