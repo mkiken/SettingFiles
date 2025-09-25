@@ -10,6 +10,10 @@ clo() {
     cl --model opus "$@"
 }
 
+clp() {
+    cl --permission-mode plan "$@"
+}
+
 cl-web-summary() {
     clo "/web-summary $*"
 }
