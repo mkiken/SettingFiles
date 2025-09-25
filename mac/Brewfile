@@ -1,4 +1,5 @@
 brew "actionlint"
+brew "aku11i/tap/phantom"
 brew "aria2"
 brew "bat"
 brew "claude-squad"
