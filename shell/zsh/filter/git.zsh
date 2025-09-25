@@ -402,17 +402,6 @@ function fgds() {
   if [ -z "$selection" ]; then
       return $EXIT_CODE_SIGINT
   fi
-  git diff --color=always -- "$selection" | less -R
-}
-
-# 差分のあるファイルを選択してdiffを表示
-function fgds() {
-  local selection=$(filter_git_changed_files)
-
-  # 選択されたものがなければ早期リターン
-  if [ -z "$selection" ]; then
-      return $EXIT_CODE_SIGINT
-  fi
   save_history git diff --color=always -- "$selection" | less -R
 }
 
