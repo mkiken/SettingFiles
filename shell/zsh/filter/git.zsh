@@ -1,5 +1,12 @@
 #!/bin/zsh
 
+# gitブランチ表記をクリーンアップする共通関数
+# `*` (現在のブランチ) と `+` (worktreeで使用中のブランチ) をフィルター
+function _clean_git_branch_markers() {
+  sed -e 's/[*+]//'
+}
+
+
 alias fgmg='filter_git_command git merge'
 alias fgmgs='fgmg --squash'
 alias fgpl='filter_git_command_fmt git pull origin'
@@ -108,7 +115,7 @@ function _fgbh(){
     return $EXIT_CODE_SIGINT
   fi
   echo "$branches" \
-    | filter --preview "echo {} | sed -e 's/\*//' | awk '{print \$1}' \
+    | filter --preview "echo {} | sed -e 's/[*+]//' | awk '{print \$1}' \
       | xargs git log --color --graph --decorate --abbrev-commit \
         --format=format:'%C(blue)%h%C(reset) - %C(green)(%ar)%C(reset)%C(yellow)%d%C(reset)\n  %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'"
 }
@@ -152,10 +159,10 @@ function br_org(){
   # 取り込まれたコミットのタイムスタンプを降順（-）でソート
   # ログをいい感じに表示 https://zenn.dev/yamo/articles/5c90852c9c64ab
   git branch -a --sort=-committerdate --color | grep -v "\->" \
-    | filter --preview "echo {} | sed -e 's/\*//' | awk '{print \$1}' \
+    | filter --preview "echo {} | sed -e 's/[*+]//' | awk '{print \$1}' \
       | xargs git log --color --graph --decorate --abbrev-commit \
         --format=format:'%C(blue)%h%C(reset) - %C(green)(%ar)%C(reset)%C(yellow)%d%C(reset)\n  %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'" \
-    | xargs echo | sed -e 's/\*//' | awk '{print $1}'
+    | xargs echo | _clean_git_branch_markers | awk '{print $1}'
 }
 
 # Gitのブランチをfilter toolで扱えるように整形
@@ -164,10 +171,10 @@ function br_remote(){
   # ログをいい感じに表示 https://zenn.dev/yamo/articles/5c90852c9c64ab
   git branch -r --sort=-committerdate --color \
     | grep -v "\->" | sed -e 's/origin\///' \
-    | filter --preview "echo {} | sed -e 's/\*//' | awk '{print \$1}' \
+    | filter --preview "echo {} | sed -e 's/[*+]//' | awk '{print \$1}' \
       | xargs git log --color --graph --decorate --abbrev-commit \
         --format=format:'%C(blue)%h%C(reset) - %C(green)(%ar)%C(reset)%C(yellow)%d%C(reset)\n  %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'" \
-    | xargs echo | sed -e 's/\*//' | awk '{print $1}'
+    | xargs echo | _clean_git_branch_markers | awk '{print $1}'
 }
 
 # br_fmtのリモート対象版
