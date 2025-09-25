@@ -7,6 +7,7 @@ make_symlink "${Repo}gitfiles/.gitconfig" ~/.gitconfig
 make_symlink "${Repo}gitfiles/.gitignore_global" ~/.gitignore
 make_symlink "${Repo}gitfiles/.git_template" ~
 make_symlink "${Repo}gitfiles/gitui" "$HOME/.config"
+make_symlink "${Repo}gitfiles/gh/dash/config.yml" "$HOME/.config/gh-dash/config.yml"
 
 # Git extensions
 gh extension install dlvhdr/gh-dash
