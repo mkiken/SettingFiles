@@ -1,15 +1,21 @@
 prSections:
-- title: My Pull Requests
-  filters: is:open author:@me
+- title: Opened
+  filters: sort:updated-desc is:open author:@me
   type: null
 - title: Assigned
-  filters: is:open assignee:@me
+  filters: sort:updated-desc is:open assignee:@me
+  type: null
+- title: Merged
+  filters: >-
+    sort:updated-desc
+    author:@me
+    is:merged
   type: null
 - title: Needs My Review
-  filters: is:open review-requested:@me
+  filters: sort:updated-desc is:open review-requested:@me
   type: null
 - title: Involved
-  filters: is:open involves:@me -author:@me
+  filters: sort:updated-desc is:open involves:@me -author:@me
   type: null
 issuesSections:
 - title: My Issues
