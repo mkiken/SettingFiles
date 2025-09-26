@@ -13,6 +13,7 @@ esac
 
 # 共通alias読み込み
 source_and_zcompile_if_needed "${SET}shell/zsh/alias/other.zsh"
+source_and_zcompile_if_needed "${SET}shell/zsh/alias/ai.zsh"
 source_and_zcompile_if_needed "${SET}shell/zsh/alias/claude.zsh"
 source_and_zcompile_if_needed "${SET}shell/zsh/alias/git.zsh"
 source_and_zcompile_if_needed "${SET}shell/zsh/alias/gh.zsh"

@@ -16,8 +16,9 @@ brew cleanup -s
 brew bundle -v
 echo "end brew update."
 
+npm update -g
+
 # for Claude
-update-cc
 SuperClaude update --verbose --yes
 
 # Lazy + tree-sitterのアップデート
