@@ -5,7 +5,12 @@ source "$(dirname "$0")/../common.sh"
 echo "Setting up Claude..."
 
 # Claude setup
-make_symlink "${Repo}ai/common/prompt.md" ~/.claude/CLAUDE.md
+# 共通プロンプトとClaude専用プロンプトを結合してCLAUDE.mdを生成
+cat "${Repo}ai/common/prompt_base.md" <(echo) <(echo) "${Repo}ai/claude/claude_prompt.md" > "${Repo}ai/claude/CLAUDE.md"
+echo "UPDATE ${Repo}ai/claude/CLAUDE.md!"
+
+make_symlink "${Repo}ai/claude/CLAUDE.md" ~/.claude/CLAUDE.md
+
 make_symlink "${Repo}ai/claude/statusline-custom.sh" ~/.claude/statusline-custom.sh
 # settings.jsonとhooksはsymlink
 for item in settings.json hooks; do

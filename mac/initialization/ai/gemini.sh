@@ -5,7 +5,10 @@ source "$(dirname "$0")/../common.sh"
 echo "Setting up Gemini..."
 
 # Gemini setup
-make_symlink "${Repo}ai/common/prompt.md" ~/.gemini/GEMINI.md
+cat "${Repo}ai/common/prompt_base.md" > "${Repo}ai/gemini/GEMINI.md"
+echo "UPDATE ${Repo}ai/gemini/GEMINI.md!"
+
+make_symlink "${Repo}ai/gemini/GEMINI.md" ~/.gemini/GEMINI.md
 
 echo "Installing Gemini tools..."
 
