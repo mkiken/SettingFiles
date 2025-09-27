@@ -1,6 +1,7 @@
 ---
 allowed-tools: Bash(gh:*)
 description: "Comprehensive PR review using gh command for specified PR number"
+model: claude-opus-4-1
 argument-hint: [prNumber]
 ---
 ultrathink
