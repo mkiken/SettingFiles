@@ -32,8 +32,7 @@ check_gemini_symlink() {
 
                 # どちらの場合でも最終的にシンボリックリンクに変換
                 echo "  🔗 Converting to symlink..."
-                rm "${GEMINI_SETTINGS}"
-                ln -s "${GEMINI_SOURCE}" "${GEMINI_SETTINGS}"
+                make_symlink "${GEMINI_SOURCE}" "${GEMINI_SETTINGS}"
                 echo "  ✅ Converted to symlink"
             fi
         else
@@ -45,8 +44,7 @@ check_gemini_symlink() {
                 echo "  Expected: ${GEMINI_SOURCE}"
 
                 # 間違ったシンボリックリンクを削除して、正しいシンボリックリンクを作成
-                rm "${GEMINI_SETTINGS}"
-                ln -s "${GEMINI_SOURCE}" "${GEMINI_SETTINGS}"
+                make_symlink "${GEMINI_SOURCE}" "${GEMINI_SETTINGS}"
                 echo "✅ Fixed symlink target"
             else
                 echo "✅ Gemini settings.json symlink is correctly configured"
@@ -55,8 +53,7 @@ check_gemini_symlink() {
     else
         echo "⚠️  Gemini settings.json(${GEMINI_SETTINGS}) does not exist."
         echo "  Creating directory and symlink..."
-        mkdir -p "${HOME}/.gemini"
-        ln -s "${GEMINI_SOURCE}" "${GEMINI_SETTINGS}"
+        make_symlink "${GEMINI_SOURCE}" "${GEMINI_SETTINGS}"
         echo "✅ Created Gemini settings.json symlink"
     fi
 }
