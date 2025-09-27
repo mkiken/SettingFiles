@@ -59,3 +59,4 @@ cursor-opacity = 0.8
 # Other
 mouse-hide-while-typing = true
 resize-overlay = never
+keybind = shift+enter=text:\x1b\r
