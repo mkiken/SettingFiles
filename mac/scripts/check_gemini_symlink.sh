@@ -50,7 +50,7 @@ check_gemini_symlink() {
             fi
         fi
     else
-        echo "⚠️  Gemini settings.json does not exist."
+        echo "⚠️  Gemini settings.json(${GEMINI_SETTINGS}) does not exist."
         echo "  Creating directory and symlink..."
         mkdir -p "${HOME}/.gemini"
         ln -s "${GEMINI_SOURCE}" "${GEMINI_SETTINGS}"

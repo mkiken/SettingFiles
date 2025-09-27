@@ -65,6 +65,7 @@ source_and_zcompile_if_needed ~/.zshrc_local
 
 REPO="${HOME}/Desktop/repository/"
 SET="${REPO}SettingFiles/"
+export SET
 SUBMODULE_DIR="${SET}submodules/"
 # MACVIM="/Applications/MacVim.app/Contents/MacOS"
 BREW_PREFIX="$(brew --prefix)"
