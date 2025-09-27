@@ -9,6 +9,7 @@ cat "${Repo}ai/common/prompt_base.md" > "${Repo}ai/gemini/_GEMINI.md"
 echo "UPDATE ${Repo}ai/gemini/_GEMINI.md!"
 
 make_symlink "${Repo}ai/gemini/_GEMINI.md" ~/.gemini/GEMINI.md
+make_symlink "${Repo}ai/gemini/settings.json" ~/.gemini/settings.json
 
 echo "Installing Gemini tools..."
 

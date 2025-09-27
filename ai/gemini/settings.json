@@ -1,0 +1,36 @@
+{
+  "tools": {
+    "autoAccept": false,
+    "exclude": [
+      "dangerous_tool"
+    ],
+    "sandbox": true
+  },
+  "privacy": {
+    "usageStatisticsEnabled": false
+  },
+  "general": {
+    "checkpointing": {
+      "enabled": true
+    }
+  },
+  "context": {
+    "fileFiltering": {
+      "respectGitIgnore": true,
+      "enableRecursiveFileSearch": true
+    }
+  },
+  "ide": {
+    "enabled": true
+  },
+  "security": {
+    "auth": {
+      "selectedType": "oauth-personal"
+    }
+  },
+  "ui": {
+    "theme": "Default",
+    "hideBanner": true,
+    "hideTips": false
+  }
+}
