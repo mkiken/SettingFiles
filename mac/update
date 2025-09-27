@@ -18,6 +18,13 @@ echo "end brew update."
 
 npm update -g
 
+# Geminiのシンボリックリンクチェック
+if [[ -f "${SET}mac/scripts/check_gemini_symlink.sh" ]]; then
+    source "${SET}mac/scripts/check_gemini_symlink.sh"
+else
+    echo "⚠️  Gemini symlink check script not found"
+fi
+
 # for Claude
 SuperClaude update --verbose --yes
 
