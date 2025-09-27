@@ -1,5 +1,8 @@
 #!/bin/zsh
 
+# common.shをsource
+source "$(dirname "$0")/common.sh"
+
 # Geminiのsettings.jsonがシンボリックリンクになっているかチェック
 # （Geminiがsettings.jsonを更新するとsettings.json.origに移動されてしまう）
 check_gemini_symlink() {

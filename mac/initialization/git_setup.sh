@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-source "$(dirname "$0")/common.sh"
+source "$(dirname "$0")/../scripts/common.sh"
 
 # Git symlinks
 make_symlink "${Repo}gitfiles/.gitconfig" ~/.gitconfig
