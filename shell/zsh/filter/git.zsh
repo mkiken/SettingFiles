@@ -338,6 +338,104 @@ function fgs-hash-file() {
   save_history git show "${hash}":"$target"
 }
 
+# git管理されているファイル・ディレクトリ一覧をfilterで選択する汎用関数
+function _filter_git_managed_files() {
+  {
+    # git管理下の全ファイルを取得
+    git ls-files
+
+    # ディレクトリも追加（重複を排除）
+    git ls-files | grep -o "^.*/" | sort -u
+  } | sort -u | filter \
+    --prompt="file/dir: " \
+    --header="git管理されているファイルまたはディレクトリを選択" \
+    --preview='
+      if [[ -d {1} ]]; then
+        echo "ディレクトリ: {1}"
+        echo "----"
+        git log --oneline --color=always -10 -- {1}
+      else
+        echo "ファイル: {1}"
+        echo "----"
+        git log --oneline --color=always -10 -- {1}
+      fi
+    '
+}
+
+# 選択したファイル・ディレクトリの履歴からコミットハッシュを選択する関数
+function _select_commit_hash_for_file() {
+  local file_path="$1"
+  local header_message="$2"
+  local limit="${3:-30}"
+
+  # ファイル・ディレクトリの履歴を取得（最新コミットを除外）
+  local commits
+  commits=$(git log --pretty=format:"%C(yellow)%h%C(reset) %C(blue)%an%C(reset) %C(green)%ad%C(reset) %s" --date=short -"$limit" --color=always --skip=1 -- "$file_path" 2>/dev/null)
+
+  if [[ $? -ne 0 ]] || [[ -z $commits ]]; then
+    echo "ファイル '$file_path' の履歴が見つかりませんでした（最新コミット以外）" >&2
+    return $EXIT_CODE_SIGINT
+  fi
+
+  # フィルターでコミット選択
+  local selected_commit
+  selected_commit=$(echo "$commits" | \
+    filter \
+      --ansi \
+      --layout=reverse \
+      --header "$header_message" \
+      --prompt "commit> " \
+      --preview "git diff --color=always HEAD..{1} -- '$file_path'" \
+      --preview-window=right:60%:wrap
+  )
+
+  # ユーザーキャンセル時の適切な終了処理
+  if [[ -z $selected_commit ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  # 選択されたコミットハッシュを抽出
+  local commit_hash
+  commit_hash=$(_extract_commit_hash "$selected_commit")
+
+  if [[ -z $commit_hash ]]; then
+    echo "エラー: コミットハッシュの抽出に失敗しました" >&2
+    return 1
+  fi
+
+  echo "$commit_hash"
+}
+
+# git管理されているファイル・ディレクトリから履歴を選んでcheckoutする
+function fgco-file() {
+  # gitリポジトリ検証
+  if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    echo "エラー: 現在のディレクトリはgitリポジトリではありません"
+    return 1
+  fi
+
+  # ファイル・ディレクトリ選択
+  local target_file
+  target_file=$(_filter_git_managed_files)
+  if [[ -z $target_file ]]; then
+    echo "ファイルまたはディレクトリが選択されていません"
+    return $EXIT_CODE_SIGINT
+  fi
+
+  # コミット選択
+  local commit_hash
+  commit_hash=$(_select_commit_hash_for_file "$target_file" "ファイル '$target_file' をcheckoutするコミットを選択してください" 30)
+
+  # キャンセルまたはエラー時は適切な終了処理
+  if [[ $? -ne 0 ]]; then
+    return $?
+  fi
+
+  # git checkout実行
+  echo "ファイル '$target_file' を $commit_hash の状態にcheckoutしています..."
+  save_history git checkout "$commit_hash" -- "$target_file"
+}
+
 # GitHubのPRのようなブランチ間差分表示（共通祖先からの差分）
 function fgd2(){
   local base
