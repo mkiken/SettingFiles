@@ -29,7 +29,7 @@ for item in agents commands; do
 done
 
 make_symlink "${Repo}ai/claude/claude_desktop_config.json" ~/Library/Application\ Support/Claude/claude_desktop_config.json
-make_symlink "~/Library/CloudStorage/Dropbox/Obsidian/.obsidian/plugins/mcp-tools/bin/mcp-server" /usr/local/bin
+make_symlink "${HOME}/Dropbox/Obsidian/.obsidian/plugins/mcp-tools/bin/mcp-server" /usr/local/bin/mcp-server
 
 chmod +x ~/.claude/hooks/stop-send-notification.sh
 
