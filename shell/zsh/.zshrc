@@ -83,6 +83,7 @@ source_and_zcompile_if_needed "${SET}shell/zsh/alias/main.zsh"
 # パスの設定
 path=(/usr/local/bin(N-/) $path)
 path=($BREW_PREFIX/bin(N-/) $path)
+path=($HOME/.local/bin(N-/) $path) # pipxのパス
 
 autoload -U colors
 colors
