@@ -4,7 +4,7 @@
     "exclude": [
       "dangerous_tool"
     ],
-    "sandbox": true
+    "sandbox": false
   },
   "privacy": {
     "usageStatisticsEnabled": false
@@ -31,7 +31,7 @@
   "ui": {
     "theme": "Default",
     "hideBanner": true,
-    "hideTips": false
+    "hideTips": true
   },
   "mcpServers": {
     "Context7": {
