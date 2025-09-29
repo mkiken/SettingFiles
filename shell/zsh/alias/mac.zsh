@@ -39,17 +39,3 @@ alias allfile='defaults write com.apple.finder AppleShowAllFiles'
 alias -g pc='tee >(pbcopy)'
 alias -g C='| pc'
 alias -g pp='pbpaste'
-
-# ranger
-function ranger() {
-    if [ -z "${RANGER_LEVEL}" ]; then
-        "${BREW_PREFIX}"/bin/ranger "${@}"
-    else
-        exit
-    fi
-}
-
-# IntelliJ
-function ij(){
-    /Applications/IntelliJ\ IDEA.app/Contents/MacOS/idea $(fullpath "${1}")
-}

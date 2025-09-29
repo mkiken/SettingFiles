@@ -21,9 +21,6 @@ make_symlink "${Repo}.tmux.conf" ~/.tmux.conf
 # Tmux Plugin Manager
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
-# Ranger
-make_symlink "${Repo}ranger" ~/.config/ranger
-
 # Karabiner
 make_symlink "${Repo}mac/karabiner.json" ~/.config/karabiner/karabiner.json
 

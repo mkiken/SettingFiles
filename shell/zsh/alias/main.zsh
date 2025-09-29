@@ -12,6 +12,7 @@ case "${OSTYPE}" in
 esac
 
 # 共通alias読み込み
+source_and_zcompile_if_needed "${SET}shell/zsh/alias/ranger.zsh"
 source_and_zcompile_if_needed "${SET}shell/zsh/alias/other.zsh"
 source_and_zcompile_if_needed "${SET}shell/zsh/alias/ai/claude.zsh"
 source_and_zcompile_if_needed "${SET}shell/zsh/alias/ai/gemini.zsh"
