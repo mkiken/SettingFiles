@@ -60,5 +60,8 @@
   "cline.preferredLanguage": "Japanese - 日本語",
   "diffEditor.codeLens": true,
   "diffEditor.hideUnchangedRegions.enabled": true,
-  "terminal.integrated.shellIntegration.enabled": true
+  "terminal.integrated.shellIntegration.enabled": true,
+  "extensions.experimental.affinity": {
+    "asvetliakov.vscode-neovim": 1
+  }
 }
