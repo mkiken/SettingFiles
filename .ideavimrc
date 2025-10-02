@@ -11,7 +11,8 @@ set incsearch
 set matchpairs+=<:>
 
 " Escの2回押しでハイライト消去
-nnoremap <Esc><Esc> :nohlsearch<CR><ESC>
+" ※ which-keyが有効だと<Esc><Esc>が効かないので、<Esc>に変更
+nnoremap <Esc> :nohlsearch<CR><Esc>
 
 " 対応する括弧やブレースを表示
 set showmatch matchtime=1
