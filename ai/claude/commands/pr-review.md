@@ -21,6 +21,14 @@ Review thoroughly from the following perspectives:
 - **Security**: Security vulnerabilities and sensitive data handling
 - **Maintainability**: Future change flexibility, avoiding technical debt
 
+**IMPORTANT**: For each review comment, specify the file path and line number(s) in the following format:
+- `[filename.ext:line]` for single line comments
+- `[filename.ext:startLine-endLine]` for multi-line comments
+
+Example format:
+- **[src/auth.ts:42]** Bug Risk: Potential null pointer exception when user.email is undefined
+- **[components/Button.tsx:15-20]** Readability: Consider extracting this logic into a separate function
+
 ### **Review Focus Points**
 - Areas requiring special attention
 - Regions needing additional testing
