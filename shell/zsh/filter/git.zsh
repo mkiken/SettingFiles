@@ -18,8 +18,8 @@ alias fgmg='filter_git_command git merge'
 alias fgmgs='fgmg --squash'
 alias fgpl='filter_git_command_fmt git pull origin'
 alias fgps='filter_git_command_fmt git push origin'
-alias fgbd='filter_git_command_fmt git branch -d'
-alias fgbD='filter_git_command_fmt git branch -D'
+alias fgbd='filter_git_command_local git branch -d'
+alias fgbD='filter_git_command_local git branch -D'
 alias fgb='br_org'
 alias fgbd-remote='filter_git_command_remote git push --delete --no-verify origin'
 alias fgrb='filter_git_command_fmt git pull --rebase origin'
@@ -161,9 +161,17 @@ function br_fmt(){
 
 # Gitのブランチをfilter toolで扱えるように整形
 function br_org(){
-  # 取り込まれたコミットのタイムスタンプを降順（-）でソート
+  # 取り込まれたコミットのタイムスタンプを降順(-)でソート
   # ログをいい感じに表示 https://zenn.dev/yamo/articles/5c90852c9c64ab
   git branch -a --sort=-committerdate --color | grep -v "\->" \
+    | filter --preview "$(_git_branch_preview_command)" \
+    | xargs echo | _clean_git_branch_markers | awk '{print $1}'
+}
+
+# Gitのローカルブランチのみをfilter toolで扱えるように整形
+function br_local(){
+  # 取り込まれたコミットのタイムスタンプを降順(-)でソート
+  git branch --sort=-committerdate --color | grep -v "\->" \
     | filter --preview "$(_git_branch_preview_command)" \
     | xargs echo | _clean_git_branch_markers | awk '{print $1}'
 }
@@ -205,6 +213,15 @@ function filter_git_command_fmt(){
 function filter_git_command_remote(){
   local branch
   if branch=$(br_remote); then
+    save_history "$@" "$branch"
+  else
+    return $?
+  fi
+}
+
+function filter_git_command_local(){
+  local branch
+  if branch=$(br_local); then
     save_history "$@" "$branch"
   else
     return $?
