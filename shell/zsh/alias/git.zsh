@@ -1,6 +1,12 @@
 #!/bin/zsh
 # Git aliases
 
+# gitブランチ表記をクリーンアップする共通関数
+# `*` (現在のブランチ) と `+` (worktreeで使用中のブランチ) をフィルター
+function _clean_git_branch_markers() {
+  sed -e 's/[*+]//'
+}
+
 # Disable Side-by-side
 alias -g DS='GIT_PAGER="delta --no-gitconfig --diff-so-fancy --paging=always"'
 
@@ -114,8 +120,9 @@ function g-delete-branch-not-in-remote-interactive() {
   # 最新のリモート情報をフェッチ
   git fetch --prune
 
-  # ローカルブランチ（現在のブランチは除外）
-  local local_branches=( $(git branch | grep -v '*' -p) )  # リモートブランチ（「origin/HEAD -> origin/master」の行を除外し、「origin/」を消す）
+  # ローカルブランチ（現在のブランチとworktreeブランチは除外）
+  local local_branches=( $(git branch | _clean_git_branch_markers) )
+  # リモートブランチ（「origin/HEAD -> origin/master」の行を除外し、「origin/」を消す）
   local remote_branches=( $(git branch -r | grep -v '\->' -p | sed -e 's/origin\///') )
 
   # 削除候補を収集

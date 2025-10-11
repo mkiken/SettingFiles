@@ -1,11 +1,5 @@
 #!/bin/zsh
 
-# gitブランチ表記をクリーンアップする共通関数
-# `*` (現在のブランチ) と `+` (worktreeで使用中のブランチ) をフィルター
-function _clean_git_branch_markers() {
-  sed -e 's/[*+]//'
-}
-
 # gitブランチのプレビューコマンドを生成する共通関数
 function _git_branch_preview_command() {
   echo "echo {} | sed -e 's/[*+]//' | awk '{print \$1}' \
