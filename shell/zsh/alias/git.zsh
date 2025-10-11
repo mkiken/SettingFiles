@@ -47,7 +47,7 @@ alias gsw='g sw'
 gswc() {
   noglob git sw --no-track -c "$@"
 }
-alias gmt='g mt'
+alias gmt='no_notify g mt'
 alias gst='git st'
 alias gstd='gst drop'
 alias gstp='gst pop'
