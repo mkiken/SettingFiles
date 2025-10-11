@@ -19,3 +19,6 @@ dump.rdb
 
 #IntelliJ
 .idea
+
+# Spec Kit
+.specify

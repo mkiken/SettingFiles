@@ -13,4 +13,7 @@ make_symlink "${Repo}ai/common/prompt.md" ~/.roo/rules/.roorules
 # for Cursor
 make_symlink "${Repo}ai/common/mcp.json" ~/.cursor/mcp.json
 
+# for Spec Kit
+uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
+
 echo 'Other AI assistants setup completed.'
