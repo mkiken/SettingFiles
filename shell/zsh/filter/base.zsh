@@ -51,7 +51,7 @@ function fcd-down() {
   cd "$dir"
 }
 
-# 関数・エイリアス名をfilterで選んで実行するウィジェット
+# 関数・エイリアス名をfilterで選んでコマンドラインに挿入する
 function falias() {
   local funcs aliases selected
   funcs=$(print -l ${(k)functions} \
@@ -63,11 +63,10 @@ function falias() {
     | grep -v ":" \
     | grep -v "^falias")
   aliases=$(alias | cut -d'=' -f1)
-  selected=$((echo "$funcs"; echo "$aliases") | sort | uniq | filter --exact --reverse --no-sort --query="$LBUFFER" --cycle --prompt="関数/エイリアス > ")
-  if [[ -z "$selected" ]]; then
-    return $EXIT_CODE_SIGINT
+  selected=$((echo "$funcs"; echo "$aliases") | sort | uniq | filter --exact --reverse --no-sort --cycle --prompt="関数/エイリアス > ")
+  if [[ -n "$selected" ]]; then
+    print -z "$selected"
   fi
-    save_history "$selected" "$@"
 }
 
 alias fa='falias'
