@@ -36,7 +36,4 @@ znap pull
 
 gh extension upgrade --all
 
-# p10kのファイルはシンボリックリンクにできないので、更新されてたらここで更新をリポジトリに取り込む
-cp -i ~/.p10k.zsh  ${SET}shell/zsh/p10k
-
 zcompile ~/.zshrc
