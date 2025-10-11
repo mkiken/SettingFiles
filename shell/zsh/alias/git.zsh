@@ -117,6 +117,9 @@ function g-delete-branch-not-in-remote-interactive() {
   # ローカルブランチ（現在のブランチは除外）
   local local_branches=( $(git branch | grep -v '*' -p) )  # リモートブランチ（「origin/HEAD -> origin/master」の行を除外し、「origin/」を消す）
   local remote_branches=( $(git branch -r | grep -v '\->' -p | sed -e 's/origin\///') )
+
+  # 削除候補を収集
+  local branches_to_delete=()
   for local_branch in ${local_branches}
   do
     # ローカルブランチがリモートにあるか確認
@@ -129,18 +132,41 @@ function g-delete-branch-not-in-remote-interactive() {
       fi
     done
 
-    # リモートになかったら確認プロンプトを出す
+    # リモートになかったら削除候補に追加
     if [[ ${is_in_remote} = false ]]; then
-      echo "branch '${local_branch}' is not in remote. delete it? [y/N]"
-
-      read -r ANSWER
-
-      # 「Y」、「y」などであれば削除
-      case ${ANSWER} in
-        "Y" | "y" | "yes" | "Yes" | "YES" ) git branch -D "${local_branch}";;
-        * ) echo "not delete branch '${local_branch}'.";;
-      esac
+      branches_to_delete+=("${local_branch}")
     fi
+  done
+
+  # 候補がなければ終了
+  if [[ ${#branches_to_delete[@]} -eq 0 ]]; then
+    echo "No branches to delete."
+    return 0
+  fi
+
+  # 削除候補を一覧表示
+  echo ""
+  echo "=== Branches not in remote (${#branches_to_delete[@]} branches) ==="
+  for branch in ${branches_to_delete}
+  do
+    echo "  - ${branch}"
+  done
+  echo ""
+
+  # 個別に確認
+  for branch in ${branches_to_delete}
+  do
+    echo "Delete branch '${branch}'? [y/N]"
+    read -r ANSWER
+
+    case ${ANSWER} in
+      "Y" | "y" | "yes" | "Yes" | "YES" )
+        git branch -D "${branch}"
+        ;;
+      * )
+        echo "Skipped: ${branch}"
+        ;;
+    esac
   done
 }
 
