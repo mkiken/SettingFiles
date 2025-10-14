@@ -12,13 +12,13 @@ echo "UPDATE ${Repo}ai/claude/_CLAUDE.md!"
 make_symlink "${Repo}ai/claude/_CLAUDE.md" ~/.claude/CLAUDE.md
 
 make_symlink "${Repo}ai/claude/statusline-custom.sh" ~/.claude/statusline-custom.sh
-# settings.jsonとhooksはsymlink
-for item in settings.json hooks; do
+# settings.jsonはsymlink
+for item in settings.json; do
   make_symlink "${Repo}ai/claude/${item}" ~/.claude
 done
 
-# agentsとcommandsはディレクトリ内のファイルをコピー
-for item in agents commands; do
+# agents,commands,hooksはディレクトリ内のファイルをコピー
+for item in agents commands hooks; do
   for file in "${Repo}ai/claude/${item}"/*; do
     if [[ -f "$file" ]]; then
       make_symlink "$file" ~/.claude/${item}/$(basename "$file")
