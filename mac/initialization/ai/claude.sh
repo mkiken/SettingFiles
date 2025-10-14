@@ -50,7 +50,7 @@ claude mcp add serena --scope "user" -- uvx --from git+https://github.com/oraios
 claude mcp add gitmcp -s user -- npx mcp-remote https://gitmcp.io/docs
 claude mcp add obsidian -s user -- npx -y mcp-obsidian "$HOME/Library/CloudStorage/Dropbox/Obsidian"
 
-cd && claude-code-spec-workflow && cd $OLDPWD
+claude-code-spec-workflow setup --yes --project ~/
 
 
 echo 'Claude setup and tools installation completed.'
