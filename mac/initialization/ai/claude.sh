@@ -4,6 +4,9 @@ source "$(dirname "$0")/../../scripts/common.sh"
 
 echo "Setting up Claude..."
 
+# 既存の設定ファイル全部消すので先にやる
+claude-code-spec-workflow setup --yes --project ~/
+
 # Claude setup
 # 共通プロンプトとClaude専用プロンプトを結合してCLAUDE.mdを生成
 cat "${Repo}ai/common/prompt_base.md" <(echo) <(echo) "${Repo}ai/claude/claude_prompt.md" > "${Repo}ai/claude/_CLAUDE.md"
@@ -49,8 +52,6 @@ claude mcp add context7 -s user -- npx -y @upstash/context7-mcp
 claude mcp add serena --scope "user" -- uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context ide-assistant
 claude mcp add gitmcp -s user -- npx mcp-remote https://gitmcp.io/docs
 claude mcp add obsidian -s user -- npx -y mcp-obsidian "$HOME/Library/CloudStorage/Dropbox/Obsidian"
-
-claude-code-spec-workflow setup --yes --project ~/
 
 
 echo 'Claude setup and tools installation completed.'
