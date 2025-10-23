@@ -366,6 +366,22 @@
   # Change the value of this parameter to show a different icon.
   typeset -g POWERLEVEL9K_VCS_UNTRACKED_ICON='?'
 
+  # [powerlevel10k(p10k)でブランチ名表示をfish風に省略する #Git - Qiita](https://qiita.com/mkiken/items/779f543ce9b6c19d7cac)
+  function shorten_branch_name {
+    # 引数を/で分割
+    array=("${(s:/:)1}")
+    result=""
+
+    for ((i = 1; i <= ${#array[@]} - 1; i++)); do
+      # 初めの3文字だけ
+      result="${result}${array[i]:0:3}/"
+    done
+
+    # 最後の1つはそのまま
+    result="${result}${array[-1]}"
+    echo $result
+  }
+
   # Formatter for Git status.
   #
   # Example output: master wip ⇣42⇡42 *42 merge ~42 +42 !42 ?42.
@@ -395,6 +411,10 @@
 
     if [[ -n $VCS_STATUS_LOCAL_BRANCH ]]; then
       local branch=${(V)VCS_STATUS_LOCAL_BRANCH}
+
+      # ここでブランチ名の省略をする
+      branch=`shorten_branch_name $branch`
+
       # If local branch name is at most 32 characters long, show it in full.
       # Otherwise show the first 12 … the last 12.
       # Tip: To always show local branch name in full without truncation, delete the next line.
@@ -408,6 +428,10 @@
           && -z $VCS_STATUS_LOCAL_BRANCH  # <-- this line
         ]]; then
       local tag=${(V)VCS_STATUS_TAG}
+
+      # ここでタグ名の省略をする
+      tag=`shorten_branch_name $tag`
+
       # If tag name is at most 32 characters long, show it in full.
       # Otherwise show the first 12 … the last 12.
       # Tip: To always show tag name in full without truncation, delete the next line.
@@ -422,7 +446,12 @@
 
     # Show tracking branch name if it differs from local branch.
     if [[ -n ${VCS_STATUS_REMOTE_BRANCH:#$VCS_STATUS_LOCAL_BRANCH} ]]; then
-      res+="${meta}:${clean}${(V)VCS_STATUS_REMOTE_BRANCH//\%/%%}"
+      local remote_branch=${(V)VCS_STATUS_REMOTE_BRANCH}
+
+      # ここでブランチ名の省略をする
+      remote_branch=`shorten_branch_name $remote_branch`
+
+      res+="${meta}:${clean}${remote_branch//\%/%%}"
     fi
 
     # Display "wip" if the latest commit's summary contains "wip" or "WIP".
