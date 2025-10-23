@@ -18,6 +18,8 @@ echo "end brew update."
 
 npm update -g
 
+pipx upgrade-all -v
+
 # Geminiのシンボリックリンクチェック
 if [[ -f "${SET}mac/scripts/check_gemini_symlink.sh" ]]; then
     source "${SET}mac/scripts/check_gemini_symlink.sh"
