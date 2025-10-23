@@ -66,5 +66,6 @@
   },
   "shellcheck.exclude": [
     "1071"
-  ]
+  ],
+  "claude-code.useTerminal": true
 }
