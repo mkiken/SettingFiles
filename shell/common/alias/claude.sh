@@ -3,7 +3,7 @@
 
 
 cl() {
-    no_notify claude --verbose "$@"
+    no_notify claude "$@"
 }
 
 clo() {
