@@ -30,12 +30,15 @@ repo:
 defaults:
   preview:
     open: true
-    width: 50
+    width: 84
   prsLimit: 20
   issuesLimit: 20
   view: prs
   layout:
     prs:
+      title:
+        width: 15
+        grow: true
       updatedAt:
         width: 5
       repo:
