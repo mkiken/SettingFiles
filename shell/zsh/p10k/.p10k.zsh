@@ -368,18 +368,56 @@
 
   # [powerlevel10k(p10k)でブランチ名表示をfish風に省略する #Git - Qiita](https://qiita.com/mkiken/items/779f543ce9b6c19d7cac)
   function shorten_branch_name {
-    # 引数を/で分割
-    array=("${(s:/:)1}")
-    result=""
+    local input="$1"
+    local total_length=${#input}
 
-    for ((i = 1; i <= ${#array[@]} - 1; i++)); do
-      # 初めの3文字だけ
-      result="${result}${array[i]:0:3}/"
+    # 32文字以下ならそのまま返す
+    if [[ $total_length -le 32 ]]; then
+      echo "$input"
+      return
+    fi
+
+    # スラッシュで分割
+    local array=("${(s:/:)input}")
+    local num_parts=${#array[@]}
+
+    # 最後の要素は短縮しないので、それ以外の要素を対象にする
+    local current_length=$total_length
+    local result=""
+
+    # 前から順番に短縮していく
+    for ((i = 1; i <= $num_parts - 1; i++)); do
+      local part_length=${#array[i]}
+
+      # 3文字以下の要素は短縮できない
+      if [[ $part_length -le 3 ]]; then
+        result="${result}${array[i]}/"
+        continue
+      fi
+
+      # この要素を3文字に短縮した場合の削減文字数
+      local reduction=$((part_length - 3))
+
+      # 短縮後の全体長を計算
+      local new_total_length=$((current_length - reduction))
+
+      if [[ $new_total_length -le 32 ]]; then
+        # 32文字以下になるので、現在の要素を短縮して、これ以降は短縮しない
+        result="${result}${array[i]:0:3}/"
+        for ((j = i + 1; j <= $num_parts - 1; j++)); do
+          result="${result}${array[j]}/"
+        done
+        break
+      else
+        # まだ32文字を超えるので短縮
+        result="${result}${array[i]:0:3}/"
+        current_length=$new_total_length
+      fi
     done
 
-    # 最後の1つはそのまま
+    # 最後の要素を追加
     result="${result}${array[-1]}"
-    echo $result
+    echo "$result"
   }
 
   # Formatter for Git status.
