@@ -8,7 +8,11 @@ return {
       options = { theme = 'onedark' },
       sections = {
         lualine_c = {
-          { git_blame.get_current_blame_text, cond = git_blame.is_blame_text_available }
+          {
+            'filename',
+            path = 1,  -- 0: ファイル名のみ, 1: 相対パス, 2: 絶対パス, 3: 絶対パス(~付き)
+            shorting_target = 40,  -- パスを短縮する際の最小幅
+          },
         },
         lualine_x = {
           {
