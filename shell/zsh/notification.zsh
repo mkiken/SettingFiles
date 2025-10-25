@@ -6,6 +6,7 @@ export NOTIFY_COMMAND_EXCLUDE=(
   cclog
   cclogt
   ccresume
+  ccstatusline
   ccusage
   claude
   less

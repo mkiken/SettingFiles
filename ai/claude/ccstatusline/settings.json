@@ -1,0 +1,114 @@
+{
+  "version": 3,
+  "lines": [
+    [
+      {
+        "id": "5",
+        "type": "model",
+        "color": "magenta",
+        "rawValue": true
+      },
+      {
+        "id": "59759e10-3887-404a-9337-b7a68c0b7e03",
+        "type": "custom-text",
+        "customText": "|"
+      },
+      {
+        "id": "e81be3d2-bc98-475c-a642-55bd1742747a",
+        "type": "context-length",
+        "rawValue": true,
+        "metadata": {
+          "inverse": "false"
+        }
+      },
+      {
+        "id": "f699cd25-c455-4ff4-b211-d1a5e0eb3a41",
+        "type": "custom-text",
+        "customText": "("
+      },
+      {
+        "id": "cc9c7d4c-ea9d-473a-aba6-a8e3f9f2dab5",
+        "type": "context-percentage-usable",
+        "rawValue": true
+      },
+      {
+        "id": "bbac2238-c4fc-4387-b4fb-a4c521dab09f",
+        "type": "custom-text",
+        "customText": ")"
+      },
+      {
+        "id": "6",
+        "type": "custom-text",
+        "customText": "|"
+      },
+      {
+        "id": "aa77fd7d-8921-476e-912d-f29ee49f3f17",
+        "type": "session-clock",
+        "rawValue": true
+      },
+      {
+        "id": "b8bdeb31-529f-46f9-ad9c-b7a690f5ac9d",
+        "type": "custom-text",
+        "customText": "|"
+      },
+      {
+        "id": "7",
+        "type": "session-cost",
+        "color": "yellow",
+        "rawValue": true
+      }
+    ],
+    [
+      {
+        "id": "f4dbb0da-a54a-4e3b-b404-c709df92687d",
+        "type": "current-working-dir",
+        "rawValue": true,
+        "metadata": {
+          "fishStyle": "true"
+        }
+      },
+      {
+        "id": "957b3815-1467-46d5-bb8e-fe15f7b69dd7",
+        "type": "custom-text",
+        "customText": "|"
+      },
+      {
+        "id": "e98d47b9-930d-4a98-80bc-1d3d5430aa91",
+        "type": "git-branch",
+        "rawValue": true
+      },
+      {
+        "id": "c34699c1-72b1-4b7d-83d8-1cdb566205cc",
+        "type": "custom-text",
+        "customText": "("
+      },
+      {
+        "id": "a0e21e8e-c1f1-49b4-83ac-e1a404db5dba",
+        "type": "git-worktree",
+        "rawValue": true
+      },
+      {
+        "id": "0bee73cf-b166-4129-812e-b2fc9f855f7e",
+        "type": "custom-text",
+        "customText": ")"
+      }
+    ]
+  ],
+  "flexMode": "full",
+  "compactThreshold": 60,
+  "colorLevel": 2,
+  "inheritSeparatorColors": false,
+  "globalBold": false,
+  "powerline": {
+    "enabled": false,
+    "separators": [
+      ""
+    ],
+    "separatorInvertBackground": [
+      false
+    ],
+    "startCaps": [],
+    "endCaps": [],
+    "autoAlign": false
+  }
+}

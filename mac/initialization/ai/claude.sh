@@ -14,7 +14,8 @@ echo "UPDATE ${Repo}ai/claude/_CLAUDE.md!"
 
 make_symlink "${Repo}ai/claude/_CLAUDE.md" ~/.claude/CLAUDE.md
 
-make_symlink "${Repo}ai/claude/statusline-custom.sh" ~/.claude/statusline-custom.sh
+make_symlink "${Repo}ai/claude/ccstatusline/settings.json" ~/.config/ccstatusline/settings.json
+
 # settings.jsonはsymlink
 for item in settings.json; do
   make_symlink "${Repo}ai/claude/${item}" ~/.claude
@@ -44,6 +45,7 @@ npm install -g @pimzino/claude-code-spec-workflow
 npm install -g @sasazame/ccresume
 npm install -g ccexp
 npm install -g ccusage
+npm install -g ccstatusline@latest
 pipx install SuperClaude && SuperClaude install --verbose --yes
 pipx install claude-code-log
 
