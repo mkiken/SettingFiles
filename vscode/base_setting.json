@@ -67,5 +67,6 @@
   "shellcheck.exclude": [
     "1071"
   ],
-  "claudeCode.useTerminal": true
+  "claudeCode.useTerminal": true,
+  "geminicodeassist.displayInlineContextHint": false
 }
