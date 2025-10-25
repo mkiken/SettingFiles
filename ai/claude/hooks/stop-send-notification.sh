@@ -181,27 +181,33 @@ if [[ -n "${user_messages[*]:-}" ]]; then
 fi
 
 if [[ ${user_count} -gt 0 ]]; then
+    # サフィックス（統計情報）を作成
     if [[ ${user_count} -eq 1 ]]; then
         if [[ -n "${session_duration_formatted}" ]]; then
-            summary="${task_type} [x1(${session_duration_formatted})] ${first_user_message}"
+            suffix=" [x1(${session_duration_formatted})]"
         else
-            summary="${task_type} ${first_user_message}"
+            suffix=""
         fi
     else
         if [[ -n "${session_duration_formatted}" ]]; then
-            summary="${task_type} [x${user_count}(${session_duration_formatted})] ${first_user_message}"
+            suffix=" [x${user_count}(${session_duration_formatted})]"
         else
-            summary="${task_type} [x${user_count}] ${first_user_message}"
+            suffix=" [x${user_count}]"
         fi
+    fi
+
+    # メッセージとサフィックスを結合
+    summary="${task_type} ${first_user_message}${suffix}"
+
+    # 80文字を超える場合、メッセージ部分を短縮（サフィックスは保持）
+    if [[ ${#summary} -gt 80 ]]; then
+        # サフィックスと task_type を除いた、メッセージに使える文字数を計算
+        max_message_length=$((80 - ${#task_type} - 1 - ${#suffix} - 3))  # -3 for "..."
+        truncated_message=$(echo "${first_user_message}" | head -c ${max_message_length})
+        summary="${task_type} ${truncated_message}...${suffix}"
     fi
 else
     summary="💭 セッションが開始されましたが、メッセージはありませんでした"
-fi
-
-# summaryを80文字に短縮（最後に実行）
-if [[ ${#summary} -gt 80 ]]; then
-    summary=$(echo "${summary}" | head -c 80)
-    summary="${summary}..."
 fi
 
 # 通知を送信
