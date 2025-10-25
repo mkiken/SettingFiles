@@ -21,6 +21,22 @@ debug_log() {
     fi
 }
 
+# 秒数を人間が読みやすい形式に変換する関数
+format_duration() {
+    local total_seconds=$1
+    local hours=$((total_seconds / 3600))
+    local minutes=$(((total_seconds % 3600) / 60))
+    local seconds=$((total_seconds % 60))
+
+    if [[ ${hours} -gt 0 ]]; then
+        echo "${hours}h${minutes}m"
+    elif [[ ${minutes} -gt 0 ]]; then
+        echo "${minutes}m${seconds}s"
+    else
+        echo "${seconds}s"
+    fi
+}
+
 debug_log "=== Claude Stop Hook Started ==="
 
 # hookからJSONを読み取り
@@ -64,6 +80,14 @@ while IFS= read -r line; do
     if [[ -n "${line}" ]]; then
         # messageオブジェクトが存在するかチェック
         has_message=$(echo "${line}" | jq -r 'has("message")')
+        # サイドチェーンメッセージ（Warmupなど）はスキップ
+        is_sidechain=$(echo "${line}" | jq -r '.isSidechain // false')
+
+        if [[ "${is_sidechain}" == "true" ]]; then
+            debug_log "Skipping sidechain message"
+            continue
+        fi
+
         if [[ "${has_message}" == "true" ]]; then
             role=$(echo "${line}" | jq -r '.message.role // empty')
 
@@ -101,6 +125,42 @@ fi
 
 debug_log "Total user messages: ${#user_messages[@]}, assistant messages: ${#assistant_messages[@]}"
 
+# セッション時間を計算
+session_duration=""
+session_duration_formatted=""
+completion_time=""
+if [[ -f "${transcript_path}" ]]; then
+    # summaryタイプの行を除外したログデータを取得
+    filtered_log=$(grep -v '"type":"summary"' "${transcript_path}")
+
+    # 最初のタイムスタンプを取得
+    first_timestamp=$(echo "${filtered_log}" | head -1 | jq -r '.timestamp // empty')
+    # 最後のタイムスタンプを取得
+    last_timestamp=$(echo "${filtered_log}" | tail -1 | jq -r '.timestamp // empty')
+
+    debug_log "First timestamp: ${first_timestamp}"
+    debug_log "Last timestamp: ${last_timestamp}"
+
+    if [[ -n "${first_timestamp}" && "${first_timestamp}" != "null" && -n "${last_timestamp}" && "${last_timestamp}" != "null" ]]; then
+        # ISO 8601形式のタイムスタンプをエポック秒に変換
+        # macOSのdateコマンドは -j -f を使う
+        start_epoch=$(date -j -f "%Y-%m-%dT%H:%M:%S" "${first_timestamp%.*}" "+%s" 2>/dev/null)
+        end_epoch=$(date -j -f "%Y-%m-%dT%H:%M:%S" "${last_timestamp%.*}" "+%s" 2>/dev/null)
+
+        if [[ -n "${start_epoch}" && -n "${end_epoch}" ]]; then
+            session_duration=$((end_epoch - start_epoch))
+            session_duration_formatted=$(format_duration ${session_duration})
+            debug_log "Session duration: ${session_duration} seconds (${session_duration_formatted})"
+
+            # 完了時刻を日本時間（JST）でフォーマット（HH:MM:SS形式）
+            # UTC + 9時間 = JST
+            jst_epoch=$((end_epoch + 32400))  # 32400 = 9 * 3600秒
+            completion_time=$(date -r "${jst_epoch}" "+%H:%M:%S" 2>/dev/null)
+            debug_log "Completion time (JST): ${completion_time}"
+        fi
+    fi
+fi
+
 # タスクの種類を推測
 task_type="💬" # 一般的な質問
 if [[ "$first_user_message" =~ (実装|コード|プログラム|関数|バグ|修正|追加|作成) ]]; then
@@ -121,23 +181,40 @@ if [[ -n "${user_messages[*]:-}" ]]; then
 fi
 
 if [[ ${user_count} -gt 0 ]]; then
-    # 最初のメッセージから要約を作成（80文字まで）
-    first_message_short=$(echo "${first_user_message}" | head -c 80)
-    if [[ ${#first_user_message} -gt 80 ]]; then
-        first_message_short="${first_message_short}..."
-    fi
-
     if [[ ${user_count} -eq 1 ]]; then
-        summary="${task_type} ${first_message_short}"
+        if [[ -n "${session_duration_formatted}" ]]; then
+            summary="${task_type} [x1(${session_duration_formatted})] ${first_user_message}"
+        else
+            summary="${task_type} ${first_user_message}"
+        fi
     else
-        summary="${task_type}(${user_count}回) ${first_message_short}"
+        if [[ -n "${session_duration_formatted}" ]]; then
+            summary="${task_type} [x${user_count}(${session_duration_formatted})] ${first_user_message}"
+        else
+            summary="${task_type} [x${user_count}] ${first_user_message}"
+        fi
     fi
 else
     summary="💭 セッションが開始されましたが、メッセージはありませんでした"
 fi
 
+# summaryを80文字に短縮（最後に実行）
+if [[ ${#summary} -gt 80 ]]; then
+    summary=$(echo "${summary}" | head -c 80)
+    summary="${summary}..."
+fi
+
 # 通知を送信
-debug_log "Sending notification: title='🤖 Claude Code終了 (${total_messages}メッセージ)', message='${summary}'"
-notify "🤖 Claude Code終了 (${total_messages}メッセージ)" "${summary}" "Submarine"
+# 通知タイトルの設定
+if [[ -n "${completion_time}" ]]; then
+    notification_title="🤖 Claude Code終了 at ${completion_time}"
+else
+    # completion_timeが取得できない場合は現在時刻を使用
+    current_time=$(date "+%H:%M:%S")
+    notification_title="🤖 Claude Code終了 at 🕰️${current_time}"
+fi
+
+debug_log "Sending notification: title='${notification_title}', message='${summary}'"
+notify "${notification_title}" "${summary}" "Submarine"
 
 debug_log "=== Claude Stop Hook Completed ==="
