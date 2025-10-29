@@ -229,8 +229,8 @@ function filter_git_file_or_dir() {
   local ref="$1"
   local compare_ref="$2"
   {
-    git ls-tree -r --name-only "$ref"
-    git ls-tree -r --name-only "$ref" | grep -o '^.*/' | sort -u
+    git ls-tree -r --name-only "$compare_ref"
+    git ls-tree -r --name-only "$compare_ref" | grep -o '^.*/' | sort -u
   } | sort -u | filter --prompt="file/dir: " --header="ファイルまたはディレクトリを選択" \
     --preview="git diff --color=always $ref..$compare_ref -- {}"
 }
@@ -323,7 +323,7 @@ function fgs-branch-file(){
   fi
 
   # ファイル＋ディレクトリ一覧を直接パイプでfilterに渡す
-  local target=$(filter_git_file_or_dir "$branch" "$(git rev-parse --abbrev-ref HEAD)")
+  local target=$(filter_git_file_or_dir "$(git rev-parse --abbrev-ref HEAD)" "$branch")
   if [[ -z $target ]]; then
     echo "ファイルまたはディレクトリが選択されていません"
     return $EXIT_CODE_SIGINT
@@ -340,7 +340,7 @@ function fgs-hash-file() {
   fi
 
   # ファイル＋ディレクトリ一覧をfilterで選択
-  local target=$(filter_git_file_or_dir "$hash" "$(git rev-parse --abbrev-ref HEAD)")
+  local target=$(filter_git_file_or_dir "$(git rev-parse --abbrev-ref HEAD)" "$hash")
   if [[ -z $target ]]; then
     echo "ファイルまたはディレクトリが選択されていません"
     return $EXIT_CODE_SIGINT
