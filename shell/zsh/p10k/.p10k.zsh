@@ -370,6 +370,7 @@
   function shorten_branch_name {
     local input="$1"
     local total_length=${#input}
+    local short_length=4  # 省略時の文字数
 
     # 32文字以下ならそのまま返す
     if [[ $total_length -le 32 ]]; then
@@ -389,28 +390,28 @@
     for ((i = 1; i <= $num_parts - 1; i++)); do
       local part_length=${#array[i]}
 
-      # 3文字以下の要素は短縮できない
-      if [[ $part_length -le 3 ]]; then
+      # short_length文字以下の要素は短縮できない
+      if [[ $part_length -le $short_length ]]; then
         result="${result}${array[i]}/"
         continue
       fi
 
-      # この要素を3文字に短縮した場合の削減文字数
-      local reduction=$((part_length - 3))
+      # この要素をshort_length文字に短縮した場合の削減文字数
+      local reduction=$((part_length - short_length))
 
       # 短縮後の全体長を計算
       local new_total_length=$((current_length - reduction))
 
       if [[ $new_total_length -le 32 ]]; then
         # 32文字以下になるので、現在の要素を短縮して、これ以降は短縮しない
-        result="${result}${array[i]:0:3}/"
+        result="${result}${array[i]:0:$short_length}/"
         for ((j = i + 1; j <= $num_parts - 1; j++)); do
           result="${result}${array[j]}/"
         done
         break
       else
         # まだ32文字を超えるので短縮
-        result="${result}${array[i]:0:3}/"
+        result="${result}${array[i]:0:$short_length}/"
         current_length=$new_total_length
       fi
     done
