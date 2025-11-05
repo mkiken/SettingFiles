@@ -59,5 +59,15 @@
     "command": "ccstatusline",
     "padding": 0
   },
-  "alwaysThinkingEnabled": true
+  "alwaysThinkingEnabled": true,
+  "sandbox": {
+    // サンドボックス機能を有効にするかどうか。デフォルトは false
+    "enabled": true,
+    // サンドボックス環境内で実行されるコマンドを自動的に許可するかどうか。デフォルトは true
+    "autoAllowBashIfSandboxed": true,
+    // サンドボックス外で実行する必要があるコマンドのリスト
+    "excludedCommands": ["docker"],
+    // `dangerouslyDisableSandbox` コマンドを使用してサンドボックスを無効にすることを許可するかどうか。デフォルトは true
+    "allowUnsandboxedCommands": false
+  }
 }
