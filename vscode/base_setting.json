@@ -68,5 +68,9 @@
     "1071"
   ],
   "claudeCode.useTerminal": true,
-  "geminicodeassist.displayInlineContextHint": false
+  "geminicodeassist.displayInlineContextHint": false,
+  "biome.suggestInstallingGlobally": false,
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }
