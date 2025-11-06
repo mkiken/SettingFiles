@@ -11,7 +11,10 @@ if ! command -v jq &> /dev/null; then
 fi
 
 # Gemini setup
-cat "${Repo}ai/common/prompt_base.md" > "${Repo}ai/gemini/_GEMINI.md"
+cat "${Repo}ai/common/prompt_base.md" \
+    <(echo) <(echo) \
+    "${Repo}ai/common/characters/reimu.md" \
+    > "${Repo}ai/gemini/_GEMINI.md"
 echo "UPDATE ${Repo}ai/gemini/_GEMINI.md!"
 
 # JSONマージ処理
