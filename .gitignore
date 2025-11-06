@@ -1,6 +1,6 @@
 *.zwc
 .DS_Store
-.claude
+.claude/settings.local.json
 .serena
 npm-debug.log
 submodules/*
