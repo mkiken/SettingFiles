@@ -203,7 +203,7 @@ if [[ ${user_count} -gt 0 ]]; then
     if [[ ${#summary} -gt 80 ]]; then
         # サフィックスと task_type を除いた、メッセージに使える文字数を計算
         max_message_length=$((80 - ${#task_type} - 1 - ${#suffix} - 3))  # -3 for "..."
-        truncated_message=$(echo "${first_user_message}" | head -c ${max_message_length})
+        truncated_message=$(echo "${first_user_message}" | sed -E "s/^(.{0,${max_message_length}}).*/\1/")
         summary="${task_type} ${truncated_message}...${suffix}"
     fi
 else
