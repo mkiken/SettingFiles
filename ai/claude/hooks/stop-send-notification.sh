@@ -104,14 +104,35 @@ while IFS= read -r line; do
 
             debug_log "Found message: role=${role}, content_type=${content_type}, content_length=${#content}"
 
+            # システムメッセージかどうかを判定する関数
+            is_system_message() {
+                local msg="$1"
+
+                # HTMLタグが含まれている
+                if [[ "${msg}" =~ '<'[^'>']+'>' ]]; then
+                    return 0  # true
+                fi
+
+                # Caveatで始まる
+                if [[ "${msg}" =~ ^Caveat: ]]; then
+                    return 0
+                fi
+
+                # 空または短すぎる（10文字未満）
+                if [[ ${#msg} -lt 10 ]]; then
+                    return 0
+                fi
+
+                return 1  # false
+            }
+
             if [[ "${role}" == "user" && -n "${content}" && "${content}" != "null" ]]; then
-                # システムメッセージ（Caveat, command-message, system-reminderなど）はスキップ
-                if [[ ! "${content}" =~ ^(Caveat:|<command-message>|<system-reminder>) ]]; then
+                if ! is_system_message "${content}"; then
                     user_messages+=("${content}")
                     ((total_messages++))
                     debug_log "Added user message: ${#content} chars"
                 else
-                    debug_log "Skipping system message: ${content:0:50}..."
+                    debug_log "Skipping system message: ${content:0:100}..."
                 fi
             elif [[ "${role}" == "assistant" && -n "${content}" && "${content}" != "null" ]]; then
                 assistant_messages+=("${content}")
