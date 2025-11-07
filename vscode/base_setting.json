@@ -73,5 +73,6 @@
   "[jsonc]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "plantuml.java": "/opt/homebrew/bin/java"
+  "plantuml.java": "/opt/homebrew/bin/java",
+  "git.confirmSync": false
 }
