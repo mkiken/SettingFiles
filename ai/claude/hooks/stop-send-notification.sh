@@ -105,9 +105,14 @@ while IFS= read -r line; do
             debug_log "Found message: role=${role}, content_type=${content_type}, content_length=${#content}"
 
             if [[ "${role}" == "user" && -n "${content}" && "${content}" != "null" ]]; then
-                user_messages+=("${content}")
-                ((total_messages++))
-                debug_log "Added user message: ${#content} chars"
+                # システムメッセージ（Caveat, command-message, system-reminderなど）はスキップ
+                if [[ ! "${content}" =~ ^(Caveat:|<command-message>|<system-reminder>) ]]; then
+                    user_messages+=("${content}")
+                    ((total_messages++))
+                    debug_log "Added user message: ${#content} chars"
+                else
+                    debug_log "Skipping system message: ${content:0:50}..."
+                fi
             elif [[ "${role}" == "assistant" && -n "${content}" && "${content}" != "null" ]]; then
                 assistant_messages+=("${content}")
                 ((total_messages++))
