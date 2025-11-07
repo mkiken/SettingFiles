@@ -133,10 +133,10 @@ if [[ -f "${transcript_path}" ]]; then
     # summaryタイプの行を除外したログデータを取得
     filtered_log=$(grep -v '"type":"summary"' "${transcript_path}")
 
-    # 最初のタイムスタンプを取得
-    first_timestamp=$(echo "${filtered_log}" | head -1 | jq -r '.timestamp // empty')
-    # 最後のタイムスタンプを取得
-    last_timestamp=$(echo "${filtered_log}" | tail -1 | jq -r '.timestamp // empty')
+    # timestampがnullでない最初の行を取得
+    first_timestamp=$(echo "${filtered_log}" | jq -r 'select(.timestamp) | .timestamp' 2>/dev/null | grep -v '^null$' | head -1)
+    # timestampがnullでない最後の行を取得
+    last_timestamp=$(echo "${filtered_log}" | jq -r 'select(.timestamp) | .timestamp' 2>/dev/null | grep -v '^null$' | tail -1)
 
     debug_log "First timestamp: ${first_timestamp}"
     debug_log "Last timestamp: ${last_timestamp}"
