@@ -14,6 +14,8 @@ fi
 cat "${Repo}ai/common/prompt_base.md" \
     <(echo) <(echo) \
     "${Repo}ai/common/characters/reimu.md" \
+    <(echo) <(echo) \
+    "${Repo}ai/gemini/gemini_prompt.md" \
     > "${Repo}ai/gemini/_GEMINI.md"
 echo "UPDATE ${Repo}ai/gemini/_GEMINI.md!"
 
