@@ -94,7 +94,26 @@ while IFS= read -r line; do
             # contentが文字列か配列かをチェック
             content_type=$(echo "${line}" | jq -r '.message.content | type')
             if [[ "${content_type}" == "string" ]]; then
-                content=$(echo "${line}" | jq -r '.message.content // empty')
+                # 改行を除去してスペースに置換
+                content=$(echo "${line}" | jq -r '.message.content // empty' | tr '\n' ' ' | sed 's/  */ /g')
+
+                # slashコマンドの場合、<command-args>タグから引数を抽出
+                if [[ "${content}" =~ '<command-args>'([^'<']*)'</command-args>' ]]; then
+                    extracted_args="${BASH_REMATCH[1]}"
+                    debug_log "Found command-args tag, extracted: '${extracted_args}'"
+
+                    # 引数が空でない場合はそれを使用（改行も除去）
+                    if [[ -n "${extracted_args}" ]]; then
+                        content=$(echo "${extracted_args}" | tr '\n' ' ' | sed 's/  */ /g')
+                        debug_log "Using command args as content: ${content:0:100}"
+                    else
+                        # 引数が空の場合、<command-name>からコマンド名を取得
+                        if [[ "${BASH_REMATCH[0]}" =~ '<command-name>'([^'<']*)'</command-name>' ]] || [[ "$(echo "${line}" | jq -r '.message.content // empty')" =~ '<command-name>'([^'<']*)'</command-name>' ]]; then
+                            content="${BASH_REMATCH[1]}"
+                            debug_log "Using command name as content: ${content}"
+                        fi
+                    fi
+                fi
             elif [[ "${content_type}" == "array" ]]; then
                 # 配列の場合、textタイプの要素のみを抽出して結合
                 content=$(echo "${line}" | jq -r '.message.content[] | select(.type == "text") | .text' | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
@@ -115,6 +134,16 @@ while IFS= read -r line; do
 
                 # Caveatで始まる
                 if [[ "${msg}" =~ ^Caveat: ]]; then
+                    return 0
+                fi
+
+                # コマンド説明パターン (例: "# /sc:help - Command Reference")
+                if [[ "${msg}" =~ ^'#'[[:space:]]*'/'[a-z:-]+[[:space:]]*'-' ]]; then
+                    return 0
+                fi
+
+                # "ARGUMENTS:"で始まる（コマンド説明の一部）
+                if [[ "${msg}" =~ ^ARGUMENTS:[[:space:]] ]]; then
                     return 0
                 fi
 
@@ -222,15 +251,43 @@ if [[ ${user_count} -gt 0 ]]; then
         fi
     fi
 
+    # 最終的な改行除去（念のため）
+    first_user_message=$(echo "${first_user_message}" | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
+    debug_log "Final first_user_message after newline removal: ${first_user_message:0:100}"
+
     # メッセージとサフィックスを結合
     summary="${task_type} ${first_user_message}${suffix}"
 
     # 80文字を超える場合、メッセージ部分を短縮（サフィックスは保持）
-    if [[ ${#summary} -gt 80 ]]; then
-        # サフィックスと task_type を除いた、メッセージに使える文字数を計算
-        max_message_length=$((80 - ${#task_type} - 1 - ${#suffix} - 3))  # -3 for "..."
+    max_summary_length=80
+    if [[ ${#summary} -gt ${max_summary_length} ]]; then
+        # 絵文字のバイト長を考慮した計算
+        # UTF-8絵文字は通常4バイト、macOSの通知システムではさらに余裕を持たせる
+        emoji_display_length=2  # 絵文字の表示幅（安全マージン込み）
+        space_length=1
+        ellipsis_length=3  # "..." の長さ
+
+        # サフィックスと絵文字、スペース、省略記号を除いた、メッセージに使える文字数を計算
+        max_message_length=$((max_summary_length - emoji_display_length - space_length - ${#suffix} - ellipsis_length))
+
+        debug_log "Truncating message: original_length=${#summary}, max_allowed=${max_summary_length}, max_message=${max_message_length}"
+
+        # メッセージを切り詰め（マルチバイト文字対応）
         truncated_message=$(echo "${first_user_message}" | sed -E "s/^(.{0,${max_message_length}}).*/\1/")
         summary="${task_type} ${truncated_message}...${suffix}"
+
+        # 最終的な長さを検証（念のため再チェック）
+        final_length=${#summary}
+        debug_log "Final summary length: ${final_length}"
+
+        # まだ長すぎる場合、さらに調整
+        if [[ ${final_length} -gt ${max_summary_length} ]]; then
+            # 安全のため、さらに5文字短くする
+            max_message_length=$((max_message_length - 5))
+            truncated_message=$(echo "${first_user_message}" | sed -E "s/^(.{0,${max_message_length}}).*/\1/")
+            summary="${task_type} ${truncated_message}...${suffix}"
+            debug_log "Re-truncated to: ${#summary} chars"
+        fi
     fi
 else
     summary="💭 セッションが開始されましたが、メッセージはありませんでした"
