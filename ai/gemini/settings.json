@@ -12,7 +12,8 @@
   "general": {
     "checkpointing": {
       "enabled": true
-    }
+    },
+    "enablePromptCompletion": true
   },
   "context": {
     "fileFiltering": {
@@ -31,7 +32,8 @@
   "ui": {
     "theme": "Default",
     "hideBanner": true,
-    "hideTips": true
+    "hideTips": true,
+    "showStatusInTitle": true
   },
   "mcpServers": {
     "Context7": {
@@ -72,5 +74,8 @@
         "OBSIDIAN_API_KEY": "a29db6e38ed250507f1025f9e21ceb10fef2afbf0f0b58ecb7ba6fdca6b37945"
       }
     }
+  },
+  "output": {
+    "format": "text"
   }
 }

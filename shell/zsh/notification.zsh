@@ -9,6 +9,7 @@ export NOTIFY_COMMAND_EXCLUDE=(
   ccstatusline
   ccusage
   claude
+  gemini
   less
   nvim
   tail
