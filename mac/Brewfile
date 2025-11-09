@@ -52,7 +52,6 @@ cask "obsidian"
 cask "raycast"
 cask "simplenote"
 cask "slack"
-cask "vimmotion"
 
 vscode "alefragnani.bookmarks"
 vscode "anthropic.claude-code"
@@ -66,5 +65,6 @@ vscode "usernamehw.errorlens"
 vscode "voidei.vscode-vimrc"
 
 mas "CompareMerge2", id: 1459748650
+mas "rcmd - App Switcher", id: 1596283165
 mas "Toggl Track", id: 1291898086
 mas "Tot", id: 1491071483
