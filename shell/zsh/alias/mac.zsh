@@ -30,8 +30,6 @@ alias fdid='fdi --type=d'
 # Mac固有
 alias pg='sudo purge'
 alias cask='brew cask'
-alias karabiner-export='/Applications/Karabiner.app/Contents/Library/bin/karabiner export > ${SET}mac/karabiner-setting.sh'
-alias karabiner-import='sh ${SET}mac/karabiner-setting.sh'
 alias rm='trash'
 alias allfile='defaults write com.apple.finder AppleShowAllFiles'
 
