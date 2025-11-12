@@ -4,6 +4,8 @@ REPO="${HOME}/Desktop/repository/"
 SET="${REPO}SettingFiles/"
 SUBMODULE_DIR="${SET}submodules/"
 
+cp ~/.config/karabiner/karabiner.json "${SET}mac/karabiner.json"
+
 echo "start git submodule setting."
 git submodule sync
 git submodule update --recursive --remote
@@ -15,6 +17,8 @@ brew upgrade -v
 brew cleanup -s
 brew bundle -v
 echo "end brew update."
+
+
 
 npm update -g
 

@@ -22,7 +22,7 @@ make_symlink "${Repo}.tmux.conf" ~/.tmux.conf
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
 # Karabiner
-make_symlink "${Repo}mac/karabiner.json" ~/.config/karabiner/karabiner.json
+copy_if_not_exists "${Repo}mac/karabiner.json" ~/.config/karabiner/karabiner.json
 
 # VSCode
 make_symlink "${Repo}vscode/base_setting.json" ~/Library/Application\ Support/Code/User/settings.json
