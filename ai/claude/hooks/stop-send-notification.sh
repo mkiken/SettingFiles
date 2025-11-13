@@ -303,7 +303,13 @@ else
     notification_title="🤖 Claude Code終了 at 🕰️${current_time}"
 fi
 
+# IDE判定情報を取得
+detected_ide="${TERM_PROGRAM:-unknown}"
+
+debug_log "Detected IDE: ${detected_ide}"
 debug_log "Sending notification: title='${notification_title}', message='${summary}'"
-notify "${notification_title}" "${summary}" "Submarine"
+
+# notify関数の第4引数にIDEのヒントを渡す
+notify "${notification_title}" "${summary}" "Submarine" "${detected_ide}"
 
 debug_log "=== Claude Stop Hook Completed ==="
