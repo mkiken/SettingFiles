@@ -16,4 +16,6 @@ gh extension install gennaro-tedesco/gh-f
 # Git submodules
 git submodule update --init
 
+npm install -g difit
+
 echo 'Git configuration completed.'
