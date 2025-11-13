@@ -237,18 +237,10 @@ fi
 
 if [[ ${user_count} -gt 0 ]]; then
     # サフィックス（統計情報）を作成
-    if [[ ${user_count} -eq 1 ]]; then
-        if [[ -n "${session_duration_formatted}" ]]; then
-            suffix=" [x1(${session_duration_formatted})]"
-        else
-            suffix=""
-        fi
+    if [[ -n "${session_duration_formatted}" ]]; then
+        suffix=" [x${user_count}(${session_duration_formatted})]"
     else
-        if [[ -n "${session_duration_formatted}" ]]; then
-            suffix=" [x${user_count}(${session_duration_formatted})]"
-        else
-            suffix=" [x${user_count}]"
-        fi
+        suffix=" [x${user_count}]"
     fi
 
     # 最終的な改行除去（念のため）
