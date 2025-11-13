@@ -74,5 +74,8 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "plantuml.java": "/opt/homebrew/bin/java",
-  "git.confirmSync": false
+  "git.confirmSync": false,
+  "cSpell.userWords": [
+    "Gundam"
+  ]
 }
