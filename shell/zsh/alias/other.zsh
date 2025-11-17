@@ -73,6 +73,11 @@ function up() {
   cd "$tmp" || exit
 }
 
+# chpwd出力を抑制しながらディレクトリを変更する関数（quiet cd）
+function cdq() {
+    builtin cd -q "$@" 2>/dev/null
+}
+
 # Path functions
 function fullpath(){
   echo "${PWD}/${1}"
