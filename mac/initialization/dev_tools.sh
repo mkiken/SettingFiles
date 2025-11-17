@@ -25,7 +25,7 @@ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 smart_copy "${Repo}mac/karabiner.json" ~/.config/karabiner/karabiner.json
 
 # VSCode
-make_symlink "${Repo}vscode/base_setting.json" ~/Library/Application\ Support/Code/User/settings.json
+smart_copy "${Repo}vscode/base_setting.json" ~/Library/Application\ Support/Code/User/settings.json
 
 # History file
 touch ~/.cd_history_file
