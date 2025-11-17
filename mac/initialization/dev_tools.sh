@@ -26,6 +26,8 @@ smart_copy "${Repo}mac/karabiner.json" ~/.config/karabiner/karabiner.json
 
 # VSCode
 smart_copy "${Repo}vscode/base_setting.json" ~/Library/Application\ Support/Code/User/settings.json
+smart_copy "${Repo}vscode/base_keybindings.json" ~/Library/Application\ Support/Code/User/keybindings.json
+
 
 # History file
 touch ~/.cd_history_file

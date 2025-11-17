@@ -8,6 +8,7 @@ source "$(dirname "$0")/scripts/common.sh"
 
 smart_copy ~/.config/karabiner/karabiner.json "${SET}mac/karabiner.json"
 smart_copy ~/Library/Application\ Support/Code/User/settings.json "${Repo}vscode/base_setting.json"
+smart_copy ~/Library/Application\ Support/Code/User/keybindings.json "${Repo}vscode/base_keybindings.json"
 
 echo "start git submodule setting."
 git submodule sync

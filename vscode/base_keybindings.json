@@ -1,0 +1,179 @@
+[
+    {
+        "key": "ctrl+n",
+        "command": "selectNextSuggestion",
+        "when": "suggestWidgetMultipleSuggestions && suggestWidgetVisible && textInputFocus"
+    },
+    {
+        "key": "tab",
+        "command": "selectNextSuggestion",
+        "when": "suggestWidgetMultipleSuggestions && suggestWidgetVisible && textInputFocus"
+    },
+    {
+        "key": "shift+tab",
+        "command": "selectPrevSuggestion",
+        "when": "suggestWidgetMultipleSuggestions && suggestWidgetVisible && textInputFocus"
+    },
+    {
+        "key": "escape",
+        "command": "-cancelSelection",
+        "when": "editorHasSelection && textInputFocus"
+    },
+    {
+        "key": "tab",
+        "command": "editor.action.inlineSuggest.commit",
+        "when": "inlineSuggestionVisible && tabnine.tab-override && !editorTabMovesFocus"
+    },
+    {
+        "key": "tab",
+        "command": "-editor.action.inlineSuggest.commit",
+        "when": "inlineSuggestionVisible && tabnine.tab-override && !editorTabMovesFocus"
+    },
+    {
+        "key": "ctrl+tab",
+        "command": "Tabnine.applySuggestion"
+    },
+    {
+        "key": "f4",
+        "command": "bookmarks.jumpToNext",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "alt+cmd+l",
+        "command": "-bookmarks.jumpToNext",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "shift+f4",
+        "command": "bookmarks.jumpToPrevious",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "alt+cmd+j",
+        "command": "-bookmarks.jumpToPrevious",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "cmd+f4",
+        "command": "bookmarks.toggle",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "alt+cmd+k",
+        "command": "-bookmarks.toggle",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "shift+cmd+w",
+        "command": "-workbench.action.closeWindow"
+    },
+    {
+        "key": "shift+cmd+w",
+        "command": "workbench.action.closeEditorsInGroup"
+    },
+    {
+        "key": "cmd+k w",
+        "command": "-workbench.action.closeEditorsInGroup"
+    },
+    {
+        "key": "shift+cmd+c",
+        "command": "-workbench.action.terminal.openNativeConsole",
+        "when": "!terminalFocus"
+    },
+    {
+        "key": "shift+cmd+c",
+        "command": "copyRelativeFilePath",
+        "when": "editorFocus"
+    },
+    {
+        "key": "alt+cmd+w",
+        "command": "workbench.action.closeOtherEditors"
+    },
+    {
+        "key": "alt+cmd+w",
+        "command": "workbench.action.closeOtherEditors"
+    },
+    {
+        "key": "alt+cmd+g",
+        "command": "extension.openInGitHub"
+    },
+    {
+        "key": "cmd+r",
+        "command": "editor.action.startFindReplaceAction",
+        "when": "editorFocus || editorIsOpen"
+    },
+    {
+        "key": "alt+tab",
+        "command": "gemini.inlineSuggestion.showSuggestions"
+    },
+    {
+        "key": "alt+cmd+a",
+        "command": "claude-code.runClaude.keyboard",
+        "when": "claude-code.hasClaudeInPath"
+    },
+    {
+        "key": "cmd+escape",
+        "command": "-claude-code.runClaude.keyboard",
+        "when": "claude-code.hasClaudeInPath"
+    },
+    {
+        "key": "cmd+[IntlRo]",
+        "command": "-workbench.action.zoomOut"
+    },
+    {
+        "key": "ctrl+d",
+        "command": "-editor.action.addSelectionToNextFindMatch",
+        "when": "editorFocus && neovim.mode != 'insert'"
+    },
+    {
+        "key": "ctrl+u",
+        "command": "-cursorUndo",
+        "when": "editorFocus && neovim.mode != 'insert'"
+    },
+    {
+        "key": "ctrl+d",
+        "command": "vscode-neovim.send",
+        "args": "<C-d>",
+        "when": "editorFocus && neovim.mode != 'insert'"
+    },
+    {
+        "key": "ctrl+u",
+        "command": "vscode-neovim.send",
+        "args": "<C-u>",
+        "when": "editorFocus && neovim.mode != 'insert'"
+    },
+    {
+        "key": "ctrl+b",
+        "command": "-workbench.action.toggleSidebarVisibility",
+        "when": "editorFocus && neovim.mode != 'insert'"
+    },
+    {
+        "key": "ctrl+f",
+        "command": "-actions.find",
+        "when": "editorFocus && neovim.mode != 'insert'"
+    },
+    {
+        "key": "ctrl+b",
+        "command": "vscode-neovim.send",
+        "args": "<C-b>",
+        "when": "editorFocus && neovim.mode != 'insert'"
+    },
+    {
+        "key": "ctrl+f",
+        "command": "vscode-neovim.send",
+        "args": "<C-f>",
+        "when": "editorFocus && neovim.mode != 'insert'"
+    },
+    {
+        "key": "shift+enter",
+        "command": "workbench.action.terminal.sendSequence",
+        "args": {
+            "text": "\\\r\n"
+        },
+        "when": "terminalFocus"
+    },
+    {
+        "key": "cmd+e",
+        "command": "workbench.action.showAllEditorsByMostRecentlyUsed"
+    }
+]
