@@ -26,7 +26,7 @@ mv "${Repo}ai/gemini/settings.json.tmp" "${Repo}ai/gemini/settings.json"
 echo "MCP configuration merged successfully!"
 
 make_symlink "${Repo}ai/gemini/_GEMINI.md" ~/.gemini/GEMINI.md
-make_symlink "${Repo}ai/gemini/settings.json" ~/.gemini/settings.json
+smart_copy "${Repo}ai/gemini/settings.json" ~/.gemini/settings.json
 
 echo "Installing Gemini tools..."
 
