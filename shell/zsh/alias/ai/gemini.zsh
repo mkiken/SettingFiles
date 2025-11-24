@@ -13,3 +13,15 @@ gmf() {
 gmp() {
     gm --model pro "$@"
 }
+
+gm-pr-review() {
+    gmp "/pr-review $*"
+}
+
+gm-pr-body() {
+    gmp "/pr-body $*"
+}
+
+gm-pr-comment-review() {
+    gmp "/pr-comment-review $*"
+}

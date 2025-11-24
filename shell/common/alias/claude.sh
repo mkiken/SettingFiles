@@ -22,6 +22,14 @@ cl-pr-review() {
     clo "/pr-review $*"
 }
 
+cl-pr-comment-review() {
+    clo "/pr-comment-review $*"
+}
+
+cl-pr-comment-implement() {
+    clo "/pr-comment-implement $*"
+}
+
 cl-pr-body() {
     clo "/pr-body $*"
 }
