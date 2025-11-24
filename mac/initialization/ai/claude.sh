@@ -38,7 +38,6 @@ for item in agents commands hooks; do
 done
 
 make_symlink "${Repo}ai/claude/claude_desktop_config.json" ~/Library/Application\ Support/Claude/claude_desktop_config.json
-make_symlink "${HOME}/Dropbox/Obsidian/.obsidian/plugins/mcp-tools/bin/mcp-server" /usr/local/bin/mcp-server
 
 chmod +x ~/.claude/hooks/stop-send-notification.sh
 
@@ -58,7 +57,6 @@ claude mcp add sequential-thinking -s user -- npx -y @modelcontextprotocol/serve
 claude mcp add context7 -s user -- npx -y @upstash/context7-mcp
 claude mcp add serena --scope "user" -- uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context ide-assistant
 claude mcp add gitmcp -s user -- npx mcp-remote https://gitmcp.io/docs
-claude mcp add obsidian -s user -- npx -y mcp-obsidian "$HOME/Library/CloudStorage/Dropbox/Obsidian"
 
 
 echo 'Claude setup and tools installation completed.'

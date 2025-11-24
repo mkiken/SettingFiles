@@ -30,12 +30,6 @@
         "mcp-remote",
         "https://gitmcp.io/docs"
       ]
-    },
-    "obsidian-mcp-tools": {
-      "command": "/usr/local/bin/mcp-server",
-      "env": {
-        "OBSIDIAN_API_KEY": "a29db6e38ed250507f1025f9e21ceb10fef2afbf0f0b58ecb7ba6fdca6b37945"
-      }
     }
   },
   "isUsingBuiltInNodeForMcp": false
