@@ -85,9 +85,52 @@
       "env": {
         "OBSIDIAN_API_KEY": "a29db6e38ed250507f1025f9e21ceb10fef2afbf0f0b58ecb7ba6fdca6b37945"
       }
+    },
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ]
+    },
+    "magic": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@21st-dev/magic"
+      ],
+      "env": {
+        "TWENTYFIRST_API_KEY": ""
+      }
+    },
+    "morphllm-fast-apply": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@morph-llm/morph-fast-apply",
+        "/home/"
+      ],
+      "env": {
+        "MORPH_API_KEY": "",
+        "ALL_TOOLS": "true"
+      }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ]
+    },
+    "superagent": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@superclaude-org/superagent"
+      ]
     }
   },
   "output": {
     "format": "text"
-  }
+  },
+  "_disabledMcpServers": {}
 }

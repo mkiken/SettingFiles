@@ -44,4 +44,6 @@ echo "Installing Gemini tools..."
 # Gemini tools
 npm install -g @google/gemini-cli
 
+pipx install SuperGemini && SuperGemini install --verbose --yes
+
 echo 'Gemini setup and tools installation completed.'
