@@ -1,18 +1,12 @@
 {
   "mcpServers": {
-    "Context7": {
+    "context7": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@upstash/context7-mcp"
-      ]
+      "args": ["-y", "@upstash/context7-mcp@latest"]
     },
     "sequential-thinking": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
-      ]
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
     },
     "serena": {
       "command": "/usr/local/bin/uvx",
@@ -27,10 +21,7 @@
     },
     "gitmcp": {
       "command": "npx",
-      "args": [
-        "mcp-remote",
-        "https://gitmcp.io/docs"
-      ]
+      "args": ["mcp-remote", "https://gitmcp.io/docs"]
     }
   }
 }
