@@ -11,7 +11,7 @@ claude-code-spec-workflow setup --yes --project ~/
 # 共通プロンプトとClaude専用プロンプトを結合してCLAUDE.mdを生成
 cat "${Repo}ai/common/prompt_base.md" \
     <(echo) <(echo) \
-    "${Repo}ai/common/characters/hestia.md" \
+    "${Repo}ai/common/characters/reimu.md" \
     <(echo) <(echo) \
     "${Repo}ai/claude/claude_prompt.md" \
     > "${Repo}ai/claude/_CLAUDE.md"

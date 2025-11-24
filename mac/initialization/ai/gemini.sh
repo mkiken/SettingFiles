@@ -13,7 +13,7 @@ fi
 # Gemini setup
 cat "${Repo}ai/common/prompt_base.md" \
     <(echo) <(echo) \
-    "${Repo}ai/common/characters/reimu.md" \
+    "${Repo}ai/common/characters/nyaruko.md" \
     <(echo) <(echo) \
     "${Repo}ai/gemini/gemini_prompt.md" \
     > "${Repo}ai/gemini/_GEMINI.md"
