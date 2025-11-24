@@ -4,7 +4,10 @@
     "exclude": [
       "dangerous_tool"
     ],
-    "sandbox": false
+    "sandbox": false,
+    "shell": {
+      "showColor": true
+    }
   },
   "privacy": {
     "usageStatisticsEnabled": false
@@ -13,7 +16,8 @@
     "checkpointing": {
       "enabled": true
     },
-    "enablePromptCompletion": true
+    "enablePromptCompletion": true,
+    "previewFeatures": false
   },
   "context": {
     "fileFiltering": {
@@ -30,10 +34,18 @@
     }
   },
   "ui": {
-    "theme": "Default",
+    "theme": "Atom One",
     "hideBanner": true,
     "hideTips": true,
-    "showStatusInTitle": true
+    "showStatusInTitle": true,
+    "footer": {
+      "hideContextPercentage": false,
+      "hideSandboxStatus": true
+    },
+    "showModelInfoInChat": true,
+    "showMemoryUsage": true,
+    "showLineNumbers": true,
+    "showCitations": true
   },
   "mcpServers": {
     "Context7": {
