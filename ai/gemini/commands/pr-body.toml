@@ -1,0 +1,27 @@
+description = "Generate comprehensive PR body content using gh command for specified PR number"
+prompt = """Generate a comprehensive PR body for {{args}}.
+
+CRITICAL: Run ONLY these commands FIRST:
+!{gh pr view {{args}} --json number,url,title,body,author,headRefName,baseRefName}
+!{gh pr diff {{args}}}
+
+Create a PR body with:
+## Summary
+Brief overview of changes and motivation
+
+## Changes
+- Key modifications with bullet points
+- Technical approach taken
+
+## Testing
+Testing approach and verification steps
+
+## Screenshots
+If UI changes: before/after comparisons
+
+## Checklist
+- [ ] Tests pass
+- [ ] Documentation updated
+- [ ] Breaking changes documented
+
+Keep it concise and focused on what reviewers need to know."""

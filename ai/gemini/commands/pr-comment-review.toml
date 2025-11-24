@@ -1,0 +1,34 @@
+description = "Analyzes PR review comments based on user instructions"
+prompt = """Analyze PR review comments for {{args}}.
+
+IMPORTANT: Extract the PR comment URL from the first argument and use it with gh command.
+
+First, run this command to fetch the PR comments:
+!{gh pr view {{args}} --comments}
+
+Analyze the review comments and output a detailed analysis in Japanese with the following structure:
+
+### **Review Comment Summary**
+- Summarize the overall trend of comments, key points, and discussion status.
+
+### **Key Points of Discussion**
+- Identify and list important points based on the user's instructions.
+- For each point, clarify:
+  - **Author**: The user who commented
+  - **Comment**: Summary of the comment
+  - **Location**: The code section being discussed
+  - **Priority**: (High/Medium/Low)
+
+### **Points of Contention**
+- Identify areas with differing opinions or active debate.
+- For each point, organize and present different views and proposals.
+
+### **Recommended Actions**
+- Based on the analysis, suggest next steps for PR author and reviewers.
+- (e.g., address specific feedback, provide additional clarification, schedule meeting)
+
+### **Additional Notes**
+- Include any other important information to share.
+
+After analysis, ask if the user wants to save the review.
+If yes, save to: /tmp/pr-comment-review-[pr-number].md"""

@@ -1,0 +1,15 @@
+description = "Comprehensive PR review using gh command for specified PR number"
+prompt = """Perform a comprehensive PR review for {{args}}.
+
+CRITICAL: Run ONLY this command FIRST:
+!{gh pr view {{args}} --json number,url,title,body,author,headRefName,baseRefName,isDraft,mergeable,state,commits,additions,deletions,changedFiles,files}
+
+Review requirements:
+1. Summary - Main changes
+2. Code Quality - Architecture, patterns, maintainability
+3. Suggestions - Specific improvements with code examples
+4. Risks - Security, performance, compatibility issues
+5. Testing - Coverage gaps and test suggestions
+
+Format output as structured markdown with clear sections.
+Focus on actionable feedback with specific line references where applicable."""

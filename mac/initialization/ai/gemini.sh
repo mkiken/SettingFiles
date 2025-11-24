@@ -28,6 +28,17 @@ echo "MCP configuration merged successfully!"
 make_symlink "${Repo}ai/gemini/_GEMINI.md" ~/.gemini/GEMINI.md
 smart_copy "${Repo}ai/gemini/settings.json" ~/.gemini/settings.json
 
+# commandsはディレクトリ内のファイルをコピー
+for item in commands; do
+  for file in "${Repo}ai/gemini/${item}"/*; do
+    if [[ -f "$file" ]]; then
+      make_symlink "$file" ~/.gemini/${item}/$(basename "$file")
+    else
+      echo "⚠️  Warning: $(basename "$file") is not a regular file, skipping..."
+    fi
+  done
+done
+
 echo "Installing Gemini tools..."
 
 # Gemini tools
