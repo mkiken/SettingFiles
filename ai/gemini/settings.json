@@ -80,16 +80,6 @@
         "@upstash/context7-mcp@latest"
       ]
     },
-    "magic": {
-      "type": "stdio",
-      "command": "npx",
-      "args": [
-        "@21st-dev/magic"
-      ],
-      "env": {
-        "TWENTYFIRST_API_KEY": ""
-      }
-    },
     "morphllm-fast-apply": {
       "command": "npx",
       "args": [
