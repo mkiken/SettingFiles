@@ -25,3 +25,7 @@ gm-pr-body() {
 gm-pr-comment-review() {
     gmp "/pr-comment-review $*"
 }
+
+gm-web-summary() {
+    gmp "/web-summary $*"
+}

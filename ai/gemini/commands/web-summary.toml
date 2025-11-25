@@ -1,0 +1,16 @@
+description = "Generate comprehensive web page summary for specified URL"
+prompt = """Fetch and analyze the web page at {{args}}.
+
+Requirements:
+1. Generate comprehensive summary in **Japanese** regardless of original language
+2. Format in markdown with bullet points
+
+Include these sections:
+- **Page Title**: The title of the web page
+- **Summary**: Comprehensive overview of the main content
+- **Key Points**: Important information and takeaways
+- **Technical Details**: Any technical specifications, APIs, or implementation details mentioned
+- **Links/References**: Important links or references found in the content
+- **Additional Notes**: Any other relevant information or observations
+
+After generating the summary, ask if the user wants to save it to a file."""
