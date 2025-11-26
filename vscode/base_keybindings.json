@@ -175,5 +175,14 @@
     {
         "key": "cmd+e",
         "command": "workbench.action.showAllEditorsByMostRecentlyUsed"
-    }
+    },
+    {
+        "key": "shift+alt+d",
+        "command": "plantuml.preview"
+    },
+    {
+        "key": "alt+cmd+t",
+        "command": "csv.toggleExtension"
+    },
+
 ]
