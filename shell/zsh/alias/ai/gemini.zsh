@@ -15,17 +15,17 @@ gmp() {
 }
 
 gm-pr-review() {
-    gmp "/pr-review $*"
+    gmp -i "/pr-review $*"
 }
 
 gm-pr-body() {
-    gmp "/pr-body $*"
+    gmp -i "/pr-body $*"
 }
 
 gm-pr-comment-review() {
-    gmp "/pr-comment-review $*"
+    gmp -i "/pr-comment-review $*"
 }
 
 gm-web-summary() {
-    gmp "/web-summary $*"
+    gmp --allowed-tools "WebFetchTool" -i "/web-summary $*"
 }

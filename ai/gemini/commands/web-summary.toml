@@ -2,8 +2,10 @@ description = "Generate comprehensive web page summary for specified URL"
 prompt = """Fetch and analyze the web page at {{args}}.
 
 Requirements:
-1. Generate comprehensive summary in **Japanese** regardless of original language
-2. Format in markdown with bullet points
+- Fetch the content of the URL at {{args}} using the Web Fetch Tool (web_fetch).
+  - Generate comprehensive summary in **Japanese** regardless of original language
+  - Extract key information and main points
+- Format in markdown with bullet points
 
 Include these sections:
 - **Page Title**: The title of the web page
