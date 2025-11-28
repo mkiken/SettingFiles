@@ -10,6 +10,12 @@ return {
       uppercase = false,
     },
   },
+  config = function(_, opts)
+    -- カスタムハイライトグループを定義
+    vim.api.nvim_set_hl(0, "FlashLabelPrimary", { fg = "#ff007c", bold = true })
+    vim.api.nvim_set_hl(0, "FlashLabelSecondary", { fg = "#7aa2f7" })
+    require("flash").setup(opts)
+  end,
   -- stylua: ignore
   keys = {
     {
@@ -21,15 +27,22 @@ return {
         -- 2文字ラベル用フォーマット
         local function format_double(opts)
           return {
-            { opts.match.label1, "FlashMatch" },
-            { opts.match.label2, "FlashLabel" },
+            { opts.match.label1, "FlashLabelPrimary" },   -- 次に押すキー（目立つピンク）
+            { opts.match.label2, "FlashLabelSecondary" }, -- 後で押すキー（控えめな青）
+          }
+        end
+
+        -- 1文字ラベル用フォーマット
+        local function format_one(opts)
+          return {
+            { opts.match.label, "FlashLabelPrimary" },
           }
         end
 
         -- 2回目ジャンプ用（label2のみ）
         local function format_single(opts)
           return {
-            { opts.match.label2, "FlashLabel" },
+            { opts.match.label2, "FlashLabelPrimary" },
           }
         end
 
@@ -45,6 +58,7 @@ return {
               for i, match in ipairs(matches) do
                 match.label = labels[i]
               end
+              state.opts.label.format = format_one
             else
               -- マッチ数が多い場合は2文字ラベル
               for i, match in ipairs(matches) do
