@@ -26,7 +26,18 @@ mv "${Repo}ai/gemini/settings.json.tmp" "${Repo}ai/gemini/settings.json"
 echo "MCP configuration merged successfully!"
 
 make_symlink "${Repo}ai/gemini/_GEMINI.md" ~/.gemini/GEMINI.md
-smart_copy "${Repo}ai/gemini/settings.json" ~/.gemini/settings.json
+
+# ローカルMCP設定があれば一時ファイルにマージしてコピー
+LOCAL_MCP="${Repo}ai/common/mcp.local.json"
+if [[ -f "$LOCAL_MCP" ]]; then
+    echo "Found local MCP config, merging..."
+    MERGED_TMP=$(mktemp)
+    jq -s '.[0] * .[1]' "${Repo}ai/gemini/settings.json" "$LOCAL_MCP" > "$MERGED_TMP"
+    smart_copy "$MERGED_TMP" ~/.gemini/settings.json
+    rm -f "$MERGED_TMP"
+else
+    smart_copy "${Repo}ai/gemini/settings.json" ~/.gemini/settings.json
+fi
 
 # commandsはディレクトリ内のファイルをコピー
 for item in commands; do

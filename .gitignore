@@ -8,3 +8,4 @@ vimfiles/nvim/.backup
 vimfiles/nvim/.swp
 vimfiles/nvim/.undo
 vimfiles/nvim/lazy-lock.json
+ai/common/mcp.local.json
