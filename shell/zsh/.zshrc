@@ -256,7 +256,7 @@ bindkey '^xy' pbcopy-buffer
 # http://qiita.com/mollifier/items/7b1cfe609a7911a69706
 autoload -Uz edit-command-line
 zle -N edit-command-line
-bindkey '^v' edit-command-line
+bindkey '^xe' edit-command-line
 
 #zmv
 #http://mollifier.hatenablog.com/entry/20101227/p1
