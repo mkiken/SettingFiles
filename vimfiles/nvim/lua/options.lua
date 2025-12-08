@@ -1,6 +1,7 @@
 -- カラーリング
 vim.opt.syntax = 'enable'
 vim.opt.hlsearch = true
+vim.opt.termguicolors = true
 
 vim.opt.encoding = 'utf-8'
 
