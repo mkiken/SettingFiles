@@ -306,6 +306,9 @@ function filter-bindkey() {
 function zvm_after_init() {
   filter-bindkey
   bindkey '^D' delete-char-or-list # デフォルトと同じだが、なぜか効かなくなるので再定義
+  # 履歴の行頭マッチ検索を有効化
+  bindkey '^P' history-beginning-search-backward
+  bindkey '^N' history-beginning-search-forward
 }
 
 # プラグイン設定を読み込み
