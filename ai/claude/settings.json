@@ -18,7 +18,8 @@
       "Bash(rm -rf ~)",
       "Bash(rm -rf ~/*)",
       "Bash(rm -rf /*)",
-      "Bash(sudo :*)"
+      "Bash(sudo :*)",
+      "NotebookEdit"
     ]
   },
   "model": "opusplan",
