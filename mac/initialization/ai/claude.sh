@@ -50,7 +50,7 @@ npm install -g @sasazame/ccresume
 npm install -g ccexp
 npm install -g ccusage
 npm install -g ccstatusline@latest
-pipx install SuperClaude && SuperClaude install --verbose --yes
+pipx install SuperClaude && SuperClaude install
 pipx install claude-code-log
 
 claude mcp add sequential-thinking -s user -- npx -y @modelcontextprotocol/server-sequential-thinking
