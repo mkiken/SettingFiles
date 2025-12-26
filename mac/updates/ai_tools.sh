@@ -8,6 +8,6 @@ smart_copy ~/.gemini/settings.json "${SET}ai/gemini/settings.json"
 
 # Claude更新
 echo "Updating Claude tools..."
-SuperClaude update --verbose --yes
+SuperClaude update
 
 echo "AI tools update completed."
