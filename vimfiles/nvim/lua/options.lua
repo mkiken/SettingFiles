@@ -61,8 +61,8 @@ vim.o.textwidth = 0
 -- 閉じ括弧が入力されたとき、対応する括弧を表示する
 vim.o.showmatch = true
 
--- % で移動する括弧の構成に <> を追加する
-vim.o.matchpairs = vim.o.matchpairs .. ",<:>"
+-- % で移動する括弧の構成を追加
+vim.o.matchpairs = vim.o.matchpairs .. ",<:>,「:」,（:）,『:』,【:】,《:》,〈:〉,｛:｝,［:］"
 
 -- カーソルを行頭、行末で止まらないようにする
 vim.o.whichwrap = "b,s,h,l,<,>,[,]"

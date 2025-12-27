@@ -8,7 +8,7 @@ set ignorecase
 set smartcase
 
 set incsearch
-set matchpairs+=<:>
+set matchpairs+=<:>,「:」,（:）,『:』,【:】,《:》,〈:〉,｛:｝,［:］
 
 " Escの2回押しでハイライト消去
 " ※ which-keyが有効だと<Esc><Esc>が効かないので、<Esc>に変更
