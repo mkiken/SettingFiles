@@ -16,7 +16,19 @@ alias cp='cp -i'
 alias mv='mv -i'
 
 alias pv='popd'
-alias ng='noglob'
+
+# noglob wrapper for both bash and zsh
+ng() {
+    if [ -n "$ZSH_VERSION" ]; then
+        noglob "$@"
+    else
+        set -f
+        "$@"
+        local ret=$?
+        set +f
+        return $ret
+    fi
+}
 
 # czg
 alias c='no_notify git --no-pager diff --cached --name-status && echo && czg'

@@ -1,7 +1,6 @@
 #!/bin/bash
 # Claude aliases - Common for bash and zsh
 
-
 cl() {
     no_notify claude "$@"
 }
@@ -22,11 +21,11 @@ cl-pr-review() {
     clo "/my:pr-review $*"
 }
 
-cl-pr-comment-review() {
+_cl-pr-comment-review() {
     clo "/my:pr-comment-review $*"
 }
 
-cl-pr-comment-implement() {
+_cl-pr-comment-implement() {
     clo "/my:pr-comment-implement $*"
 }
 
