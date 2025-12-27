@@ -75,5 +75,6 @@
   "geminicodeassist.codeGenerationPaneViewEnabled": true,
   "geminicodeassist.enableTelemetry": false,
   "geminicodeassist.inlineSuggestions.nextEditPredictions": true,
-  "csv.enabled": true
+  "csv.enabled": true,
+  "http.systemCertificatesNode": true
 }

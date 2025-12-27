@@ -80,18 +80,6 @@
         "@upstash/context7-mcp@latest"
       ]
     },
-    "morphllm-fast-apply": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@morph-llm/morph-fast-apply",
-        "/home/"
-      ],
-      "env": {
-        "MORPH_API_KEY": "",
-        "ALL_TOOLS": "true"
-      }
-    },
     "playwright": {
       "command": "npx",
       "args": [
