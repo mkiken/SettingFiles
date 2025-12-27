@@ -4,8 +4,16 @@ source "$(dirname "$0")/../../scripts/common.sh"
 
 echo "Setting up Claude..."
 
-# 既存の設定ファイル全部消すので先にやる
-claude-code-spec-workflow setup --yes --project ~/
+# claude-code-spec-workflow setupは既存の設定ファイルを削除するため確認を求める
+echo "⚠️  claude-code-spec-workflow setup は既存のClaude設定ファイルをバックアップにします"
+echo -n "続行しますか？ [y/N]: "
+read -r confirm
+
+if [[ "$confirm" =~ ^[Yy]$ ]]; then
+    claude-code-spec-workflow setup --yes --project ~/
+else
+    echo "スキップしました"
+fi
 
 # Claude setup
 # 共通プロンプトとClaude専用プロンプトを結合してCLAUDE.mdを生成
