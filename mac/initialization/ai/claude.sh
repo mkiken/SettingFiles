@@ -28,9 +28,17 @@ done
 
 # agents,commands,hooksはディレクトリ内のファイルをコピー
 for item in agents commands hooks; do
+  if [[ "$item" == "commands" ]]; then
+    dest_dir=~/.claude/commands/my
+  else
+    dest_dir=~/.claude/${item}
+  fi
+
+  mkdir -p "$dest_dir"
+
   for file in "${Repo}ai/claude/${item}"/*; do
     if [[ -f "$file" ]]; then
-      make_symlink "$file" ~/.claude/${item}/$(basename "$file")
+      make_symlink "$file" "${dest_dir}/$(basename "$file")"
     else
       echo "⚠️  Warning: $(basename "$file") is not a regular file, skipping..."
     fi

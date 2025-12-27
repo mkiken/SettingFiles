@@ -15,23 +15,23 @@ clp() {
 }
 
 cl-web-summary() {
-    clo "/web-summary $*"
+    clo "/my:web-summary $*"
 }
 
 cl-pr-review() {
-    clo "/pr-review $*"
+    clo "/my:pr-review $*"
 }
 
 cl-pr-comment-review() {
-    clo "/pr-comment-review $*"
+    clo "/my:pr-comment-review $*"
 }
 
 cl-pr-comment-implement() {
-    clo "/pr-comment-implement $*"
+    clo "/my:pr-comment-implement $*"
 }
 
 cl-pr-body() {
-    clo "/pr-body $*"
+    clo "/my:pr-body $*"
 }
 
 cclog() {
