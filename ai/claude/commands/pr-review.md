@@ -1,7 +1,6 @@
 ---
-allowed-tools: Bash(gh:*)
+allowed-tools: Bash(gh pr view *)
 description: "Comprehensive PR review using gh command for specified PR number"
-model: claude-opus-4-1
 argument-hint: [prNumber]
 ---
 ultrathink
@@ -21,13 +20,13 @@ Review thoroughly from the following perspectives:
 - **Security**: Security vulnerabilities and sensitive data handling
 - **Maintainability**: Future change flexibility, avoiding technical debt
 
-**IMPORTANT**: For each review comment, specify the file path and line number(s) in the following format:
-- `[filename.ext:line]` for single line comments
-- `[filename.ext:startLine-endLine]` for multi-line comments
+**IMPORTANT**: For each review comment, specify the full file path (relative to repository root) and line number(s) in the following format:
+- `[path/to/file.ext:line]` for single line comments
+- `[path/to/file.ext:startLine-endLine]` for multi-line comments
 
 Example format:
-- **[src/auth.ts:42]** Bug Risk: Potential null pointer exception when user.email is undefined
-- **[components/Button.tsx:15-20]** Readability: Consider extracting this logic into a separate function
+- **[src/services/auth.ts:42]** Bug Risk: Potential null pointer exception when user.email is undefined
+- **[src/components/ui/Button.tsx:15-20]** Readability: Consider extracting this logic into a separate function
 
 ### **Review Focus Points**
 - Areas requiring special attention

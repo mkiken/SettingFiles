@@ -1,7 +1,6 @@
 ---
 allowed-tools: Bash(gh:*), Read, Edit, Write, Bash(git:*)
 description: "Implement code changes based on PR review comments, with design review phase before implementation."
-model: claude-opus-4-1
 argument-hint: [prCommentUrl] [instructions...]
 ---
 ultrathink

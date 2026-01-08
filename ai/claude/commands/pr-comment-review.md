@@ -1,37 +1,69 @@
 ---
-allowed-tools: Bash(gh:*)
+allowed-tools: Bash(gh pr view *), Bash(gh api *)
 description: "Analyzes PR review comments based on user instructions."
-model: claude-opus-4-1
 argument-hint: [prCommentUrl] [instructions...]
 ---
 ultrathink
 
 ## Instructions
-- Interpret the first argument from `$ARGUMENTS` as the PR comment URL (`$PR_URL`) and the rest as user instructions (`$PROMPT`).
-- Use `gh pr view $PR_URL --comments` to fetch and analyze the review comments. The `gh` command automatically resolves the PR from the comment URL.
-- Analyze the review comments based on the user's instructions in `$PROMPT`.
+- Interpret the first argument from `$ARGUMENTS` as the PR comment URL (`$COMMENT_URL`) and the rest as user instructions (`$PROMPT`).
+
+### Step 1: Parse the Comment URL
+- Extract the comment type and ID from `$COMMENT_URL`:
+  - If URL contains `#issuecomment-{id}` → Issue Comment (comment on PR as a whole)
+  - If URL contains `#discussion_r{id}` → Review Comment (comment on code lines)
+- Extract `owner`, `repo`, and `pull_number` from the URL path (format: `https://github.com/{owner}/{repo}/pull/{pull_number}#...`).
+
+### Step 2: Fetch the Target Comment
+- For Issue Comment:
+  ```bash
+  gh api repos/{owner}/{repo}/issues/comments/{comment_id}
+  ```
+- For Review Comment:
+  ```bash
+  gh api repos/{owner}/{repo}/pulls/comments/{comment_id}
+  ```
+
+### Step 3: Fetch Thread Context
+- For Review Comment, fetch full review thread:
+  ```bash
+  gh api repos/{owner}/{repo}/pulls/{pull_number}/comments
+  ```
+  Filter by `in_reply_to_id` to reconstruct thread containing target comment.
+
+- For Issue Comment, target is typically standalone.
+
+### Step 4: Focused Analysis
+- Analyze primarily based on the **target comment** specified by the URL.
+- Use related comments only as supplementary context.
 - Output a detailed analysis in Japanese using the following structure.
 
-### **Review Comment Summary**
-- Summarize the overall trend of comments, key points, and discussion status.
+---
 
-### **Key Points of Discussion**
-- Identify and list important points based on the `$PROMPT`.
-- For each point, clarify the following:
-  - **Author**: The user who commented.
-  - **Comment**: A summary of the comment.
-  - **Location**: The part of the code being discussed.
-  - **Priority**: (High/Medium/Low)
+### **Target Comment Details**
+- **Author**: Comment author
+- **Posted at**: Timestamp
+- **Location**: Code location (for Review Comment: file path, line number)
+- **Content**: Full comment text
 
-### **Points of Contention**
-- Identify areas with differing opinions or active debate.
-- For each point, organize and present the different views and proposals.
+### **Deep Analysis**
+Based on `$PROMPT`, provide in-depth analysis of the target comment:
+- Intent and purpose of the comment
+- Detailed issues pointed out
+- Technical background and reasoning
+- Recommended response methods
+
+### **Related Discussion**
+- If there are comments in the same thread, summarize the discussion flow
+- Clarify relationship to the target comment
 
 ### **Recommended Actions**
-- Based on the analysis, suggest the next steps for the PR author and reviewers.
-- (e.g., address specific feedback, provide additional clarification, schedule a meeting).
+- Specific actions based on the target comment
+- Priority and direction
 
 ### **Additional Notes**
-- Include any other important information to share.
+- Other important information
 
-- **Output to file**: Ask the user if they want to save the generated review. If yes, save it to `/tmp/pr-comment-review-$(basename "$PR_URL" | cut -d'#' -f1 | sed 's|.*/||').md`.
+---
+
+- **Output**: Ask user to save to `/tmp/pr-comment-review-{comment_id}.md` if desired.
