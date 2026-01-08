@@ -60,5 +60,5 @@
     "command": "ccstatusline",
     "padding": 0
   },
-  "alwaysThinkingEnabled": true
+  "language": "japanese"
 }
