@@ -6,6 +6,11 @@ Always respond in Japanese.
 - When deleting existing files, show the file to be deleted first, then confirm with the user before execution
 - No confirmation needed for creating new files
 
+# Code Comments
+- Never reference line numbers or positions that change when code is modified
+- Reference by symbol name, file path, or concept instead of location
+- Write comments that remain valid after refactoring
+
 # Command Usage
 When using shell commands via Bash tool, be aware that this environment has command aliases that override standard commands:
 - `ls` is aliased to `eza` (different options available)
