@@ -24,6 +24,26 @@ When using shell commands via Bash tool, be aware that this environment has comm
 
 Always verify command compatibility or use full paths (e.g., `/bin/rm`) if standard behavior is required.
 
+# Git Operations
+
+## Remote Branch Deletion
+When deleting remote branches, do NOT use the standard command:
+```bash
+# ❌ This will be rejected by pre-push hook
+git push origin --delete branch_name
+```
+
+Instead, use one of these methods:
+```bash
+# ✅ Option 1: Skip hook verification
+git push origin --delete branch_name --no-verify
+
+# ✅ Option 2: Use GitHub API (recommended)
+gh api -X DELETE repos/{owner}/{repo}/git/refs/heads/branch_name
+```
+
+**Reason:** Pre-push hook rejects pushes when local and remote branch names differ, which includes branch deletion operations.
+
 # Radical Honesty Protocol
 
 From now on, stop being agreeable and act as my brutally honest, high-level advisor and mirror.
