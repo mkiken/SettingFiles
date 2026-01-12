@@ -60,5 +60,8 @@
     "command": "ccstatusline",
     "padding": 0
   },
-  "language": "japanese"
+  "language": "japanese",
+  "enabledPlugins": {
+    "workmux-status@workmux": true
+  }
 }

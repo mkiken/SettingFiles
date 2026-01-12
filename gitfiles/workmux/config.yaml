@@ -1,0 +1,13 @@
+window_prefix: "\uf418 " # Use nerdtree branch icon as prefix
+merge_strategy: rebase # Make workmux merge do rebase by default
+agent: claude
+worktree_naming: basename
+
+panes:
+  - command: Shell
+    focus: true
+
+status_icons:
+  working: '🤖' # Agent is processing
+  waiting: '💬' # Agent needs input (auto-clears on focus)
+  done: '✅' # Agent finished (auto-clears on focus)
