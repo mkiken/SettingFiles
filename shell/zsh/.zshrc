@@ -231,6 +231,10 @@ REPORTTIME=5
 ## ^Dでログアウトしないようにする
 setopt ignore_eof
 
+## globでマッチしなかった場合にエラーにしない
+## [zsh: no matches found: #Zsh - Qiita](https://qiita.com/ponsuke0531/items/8dd9ba566a13edc03fe2)
+setopt nonomatch
+
 ## 「/」も単語区切りとみなす
 # WORDCHARS=${WORDCHARS:s,/,,}
 WORDCHARS='*?[]~&!#$%^(){}<>'
