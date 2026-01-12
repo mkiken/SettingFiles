@@ -679,3 +679,41 @@ function fgcp() {
   # gitの終了コードをそのまま返す（コンフリクト時はgitの標準処理に委ねる）
   return $cherry_pick_result
 }
+
+# workmux listからworktree名をfilterで選択する内部関数
+# 戻り値: 選択されたworktree名（ディレクトリ名）、キャンセル時は $EXIT_CODE_SIGINT で終了
+function _filter_workmux_worktree() {
+  local worktrees
+  worktrees=$(wml | tail -n +2 | grep -v '(here)')
+
+  if [[ -z "$worktrees" ]]; then
+    echo "選択可能なworktreeがありません" >&2
+    return $EXIT_CODE_SIGINT
+  fi
+
+  local selected
+  selected=$(echo "$worktrees" | filter \
+    --header "worktreeを選択" \
+    --prompt "worktree> " \
+    --preview 'echo {} | awk "{print \$4}" | xargs -I{} git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"'
+  )
+
+  if [[ -z "$selected" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  # PATH列（4番目）からディレクトリ名を抽出
+  echo "$selected" | awk '{print $4}' | xargs basename
+}
+
+# filterでworktreeを選択してworkmux openを実行
+function fwmo() {
+  local worktree_name
+  worktree_name=$(_filter_workmux_worktree)
+
+  if [[ $? -ne 0 ]] || [[ -z "$worktree_name" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  save_history wmo "$worktree_name"
+}

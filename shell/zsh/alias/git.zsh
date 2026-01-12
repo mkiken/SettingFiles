@@ -186,10 +186,14 @@ alias diw='di working'
 alias dis='di staged'
 
 # workmux
-alias wm='workmux'
 alias wma='wm add'
 alias wmm='wm merge'
 alias wmr='wm remove'
 alias wml='wm list'
-alias wmo='wm open'
 alias wmd='wm dashboard'
+wm() {
+  workmux "$@"
+}
+wmo() {
+  wm open "$@"
+}
