@@ -188,7 +188,6 @@ alias dis='di staged'
 # workmux
 alias wma='wm add'
 alias wmm='wm merge'
-alias wmr='wm remove'
 alias wml='wm list'
 alias wmd='wm dashboard'
 wm() {
@@ -196,4 +195,7 @@ wm() {
 }
 wmo() {
   wm open "$@"
+}
+wmr() {
+  wm remove "$@"
 }

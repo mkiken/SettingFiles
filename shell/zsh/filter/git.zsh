@@ -717,3 +717,15 @@ function fwmo() {
 
   save_history wmo "$worktree_name"
 }
+
+# filterでworktreeを選択してworkmux removeを実行
+function fwmr() {
+  local worktree_name
+  worktree_name=$(_filter_workmux_worktree)
+
+  if [[ $? -ne 0 ]] || [[ -z "$worktree_name" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  save_history wmr "$worktree_name"
+}
