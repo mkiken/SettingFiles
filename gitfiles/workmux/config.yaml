@@ -6,8 +6,3 @@ worktree_naming: basename
 panes:
   - command: Shell
     focus: true
-
-status_icons:
-  working: '🤖' # Agent is processing
-  waiting: '💬' # Agent needs input (auto-clears on focus)
-  done: '✅' # Agent finished (auto-clears on focus)

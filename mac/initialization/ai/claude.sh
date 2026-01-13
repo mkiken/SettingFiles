@@ -74,9 +74,4 @@ claude mcp add context7 -s user -- npx -y @upstash/context7-mcp
 claude mcp add serena --scope "user" -- uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context ide-assistant
 claude mcp add gitmcp -s user -- npx mcp-remote https://gitmcp.io/docs
 
-# for workmux
-claude plugin marketplace add raine/workmux
-claude plugin install workmux-status
-
-
 echo 'Claude setup and tools installation completed.'
