@@ -353,6 +353,43 @@ if [[ -s "$NVM_DIR/nvm.sh" ]]; then
     [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
     npx "$@"
   }
+
+  # .nvmrc自動読み込み機能(遅延ロード対応版)
+  load-nvmrc() {
+    local nvmrc_path="$(find . -maxdepth 1 -name .nvmrc 2>/dev/null)"
+
+    if [[ -n "$nvmrc_path" ]]; then
+      # .nvmrcが存在する場合、nvmを実行して遅延ロードを発動
+      local nvmrc_version="$(cat "$nvmrc_path")"
+
+      # nvmが関数として定義されているか確認
+      if typeset -f nvm >/dev/null 2>&1; then
+        # まだ遅延ロード状態なら、一度呼び出して実体を読み込む
+        nvm --version >/dev/null 2>&1
+      fi
+
+      # nvmが読み込まれていれば、nvm_find_nvmrcとnvm versionが使える
+      if command -v nvm >/dev/null 2>&1; then
+        local node_version="$(nvm version)"
+        local nvmrc_node_version="$(nvm version "$nvmrc_version")"
+
+        if [[ "$nvmrc_node_version" == "N/A" ]]; then
+          echo "Installing Node.js version from .nvmrc: $nvmrc_version"
+          nvm install "$nvmrc_version"
+        elif [[ "$nvmrc_node_version" != "$node_version" ]]; then
+          echo "Switching to Node.js version from .nvmrc: $nvmrc_version"
+          nvm use "$nvmrc_version"
+        fi
+      fi
+    fi
+  }
+
+  # chpwd_functionsに登録
+  autoload -U add-zsh-hook
+  add-zsh-hook chpwd load-nvmrc
+
+  # 初回読み込み時にも実行
+  load-nvmrc
 fi
 
 if $IS_VSCODE && command -v code >/dev/null 2>&1; then
