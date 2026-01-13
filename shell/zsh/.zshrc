@@ -59,28 +59,30 @@ function source_and_zcompile_if_needed() {
     source "$file"
 }
 
-REPO="${HOME}/Desktop/repository/"
-SET="${REPO}SettingFiles/"
-export SET
-SUBMODULE_DIR="${SET}submodules/"
+readonly REPO="${HOME}/Desktop/repository/"
+readonly SET="${REPO}SettingFiles/"
+readonly SUBMODULE_DIR="${SET}submodules/"
 # MACVIM="/Applications/MacVim.app/Contents/MacOS"
-BREW_PREFIX="$(brew --prefix)"
-BREW_CASKROOM="$BREW_PREFIX/Caskroom"
-BREW_CELLAR="$BREW_PREFIX/Cellar"
-EDITOR=nvim
+if command -v brew >/dev/null 2>&1; then
+  readonly BREW_PREFIX="$(brew --prefix)"
+  readonly BREW_CASKROOM="$BREW_PREFIX/Caskroom"
+  readonly BREW_CELLAR="$BREW_PREFIX/Cellar"
+fi
+export EDITOR=nvim
 
 # Exit codes for signal handling
 [[ -z "${EXIT_CODE_SIGINT:-}" ]] && readonly EXIT_CODE_SIGINT=130    # Ctrl+C interruption
 [[ -z "${EXIT_CODE_SIGPIPE:-}" ]] && readonly EXIT_CODE_SIGPIPE=141   # Broken pipe (e.g., pager termination)
 
 #read Aliases
-source_and_zcompile_if_needed "${SET}shell/zsh/alias/main.zsh"
+source_and_zcompile_if_needed "${SET}shell/zsh/alias/main.zsh" || echo "Warning: Failed to load aliases" >&2
 
 # パスの設定
 path=(/usr/local/bin(N-/) $path)
 path=($BREW_PREFIX/bin(N-/) $path)
 path=($HOME/.local/bin(N-/) $path) # pipxのパス
 
+# 名前で色を付けるようにする
 autoload -U colors
 colors
 
@@ -89,7 +91,8 @@ typeset -U path
 
 # emacsのthemeが読み込める
 # http://www.emacswiki.org/emacs/ColorThemeQuestions
-export TERM=xterm-256color
+# TERMが未設定またはdumbの場合のみ設定
+[[ -z "$TERM" || "$TERM" == "dumb" ]] && export TERM=xterm-256color
 
 export LESS='-R --no-init --RAW-CONTROL-CHARS -M -i'
 
@@ -114,7 +117,7 @@ if [[ -n "$CURSOR_AGENT" ]] || $IS_KIRO; then
   # 互換性向上のためテーマ初期化をスキップ
 else
   # powerlevel10kのプロンプト設定
-  source_and_zcompile_if_needed "${SET}shell/zsh/p10k/config.zsh"
+  source_and_zcompile_if_needed "${SET}shell/zsh/p10k/config.zsh" || echo "Warning: Failed to load powerlevel10k config" >&2
 fi
 
 
@@ -159,7 +162,7 @@ function ls_abbrev() {
 
 # http://hagetak.hatenablog.com/entry/2014/07/17/093750
 function mkcd(){
-  mkdir $1 && cd $1
+  mkdir -p "$1" && cd "$1" || return 1
 }
 
 # auto directory pushd that you can get dirs list by cd -[tab]
@@ -192,17 +195,13 @@ setopt pipefail
 bindkey -v
 
 # Read history configuration
-source_and_zcompile_if_needed "${SET}shell/zsh/history.zsh"
+source_and_zcompile_if_needed "${SET}shell/zsh/history.zsh" || echo "Warning: Failed to load history config" >&2
 
 # Read completion configuration
-source_and_zcompile_if_needed "${SET}shell/zsh/completion.zsh"
+source_and_zcompile_if_needed "${SET}shell/zsh/completion.zsh" || echo "Warning: Failed to load completion config" >&2
 
 # http://blog.mkt-sys.jp/2014/06/fix-zsh-env.html
 setopt no_flow_control
-
-# 名前で色を付けるようにする
-autoload colors
-colors
 
 # LS_COLORSを設定しておく
 export LS_COLORS='di=34:ln=35:so=32:pi=33:ex=31:bd=46;34:cd=43;34:su=41;30:sg=46;30:tw=42;30:ow=43;30'
@@ -213,8 +212,6 @@ zle_highlight=(region:standout special:standout suffix:fg=blue,bold isearch:fg=m
 
 setopt print_eight_bit  #日本語ファイル名等8ビットを通す
 setopt extended_glob  # 拡張グロブで補完(~とか^とか。例えばless *.txt~memo.txt ならmemo.txt 以外の *.txt にマッチ)
-setopt globdots # 明確なドットの指定なしで.から始まるファイルをマッチ
-
 
 # 範囲指定できるようにする
 # 例 : mkdir {1-3} で フォルダ1, 2, 3を作れる
@@ -298,7 +295,7 @@ man() {
 		man "$@"
 }
 
-source_and_zcompile_if_needed "${SET}shell/zsh/filter/main.zsh"
+source_and_zcompile_if_needed "${SET}shell/zsh/filter/main.zsh" || echo "Warning: Failed to load filter config" >&2
 
 function filter-bindkey() {
   zle -N select-history
@@ -316,22 +313,51 @@ function zvm_after_init() {
 }
 
 # プラグイン設定を読み込み
-source_and_zcompile_if_needed "${SET}shell/zsh/plugin.zsh"
+source_and_zcompile_if_needed "${SET}shell/zsh/plugin.zsh" || echo "Warning: Failed to load plugins" >&2
 
 # https://github.com/ajeetdsouza/zoxide
 eval "$(zoxide init zsh --cmd cd)"
 
 # 長時間実行コマンドの通知設定
-source_and_zcompile_if_needed "${SET}shell/zsh/notification.zsh"
+source_and_zcompile_if_needed "${SET}shell/zsh/notification.zsh" || echo "Warning: Failed to load notification config" >&2
 
+# NVM遅延ロード設定
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+  # nvmコマンドを遅延ロード用の関数で置き換え
+  nvm() {
+    unset -f nvm node npm npx
+    source "$NVM_DIR/nvm.sh"
+    [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
+    nvm "$@"
+  }
 
-$IS_VSCODE && . "$(code --locate-shell-integration-path zsh)"
+  # node, npm, npxも同様に遅延ロード
+  node() {
+    unset -f nvm node npm npx
+    source "$NVM_DIR/nvm.sh"
+    [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
+    node "$@"
+  }
 
-$IS_KIRO && . "$(kiro --locate-shell-integration-path zsh)"
+  npm() {
+    unset -f nvm node npm npx
+    source "$NVM_DIR/nvm.sh"
+    [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
+    npm "$@"
+  }
 
+  npx() {
+    unset -f nvm node npm npx
+    source "$NVM_DIR/nvm.sh"
+    [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
+    npx "$@"
+  }
+fi
+
+if $IS_VSCODE && command -v code >/dev/null 2>&1; then
+  . "$(code --locate-shell-integration-path zsh)" 2>/dev/null || true
+fi
 
 # 自動コンパイル
 # http://blog.n-z.jp/blog/2013-12-10-auto-zshrc-recompile.html
