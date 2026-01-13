@@ -125,36 +125,21 @@ fi
 function chpwd() { pwd;ls_abbrev }
 
 function ls_abbrev() {
-    if [[ ! -r $PWD ]]; then
-        return
+    [[ ! -r $PWD ]] && return 0
+
+    # ezaが使える場合は使用、なければ従来のls
+    if command -v eza >/dev/null 2>&1; then
+        local ls_result="$(eza -a --color=always --grid 2>/dev/null)"
+    else
+        local ls_result="$(ls -ACF --color=always 2>/dev/null || ls -ACFG 2>/dev/null)"
     fi
-    # -a : Do not ignore entries starting with ..
-    # -C : Force multi-column output.
-    # -F : Append indicator (one of */=>@|) to entries.
-    local cmd_ls='ls'
-    local -a opt_ls
-    opt_ls=('-aCF' '--color=always')
-    case "${OSTYPE}" in
-        freebsd*|darwin*)
-            if type gls > /dev/null 2>&1; then
-                cmd_ls='gls'
-            else
-                # -G : Enable colorized output.
-                opt_ls=('-aCFG')
-            fi
-            ;;
-    esac
 
-    local ls_result
-    ls_result=$(CLICOLOR_FORCE=1 COLUMNS=$COLUMNS command $cmd_ls ${opt_ls[@]} | sed $'/^\e\[[0-9;]*m$/d')
-
-    local ls_lines=$(echo "$ls_result" | wc -l | tr -d ' ')
-
-    if [ $ls_lines -gt 10 ]; then
-        echo "$ls_result" | head -n 5
+    local ls_lines=$(echo "$ls_result" | wc -l)
+    if [[ $ls_lines -gt 10 ]]; then
+        echo "$ls_result" | head -5
         echo '...'
-        echo "$ls_result" | tail -n 5
-        echo "$(command ls -1 -A | wc -l | tr -d ' ') files exist"
+        echo "$ls_result" | tail -5
+        echo "$ls_lines files exist"
     else
         echo "$ls_result"
     fi
@@ -324,63 +309,35 @@ source_and_zcompile_if_needed "${SET}shell/zsh/notification.zsh" || echo "Warnin
 # NVM遅延ロード設定
 export NVM_DIR="$HOME/.nvm"
 if [[ -s "$NVM_DIR/nvm.sh" ]]; then
-  # nvmコマンドを遅延ロード用の関数で置き換え
-  nvm() {
-    unset -f nvm node npm npx
+  # 共通の初期化関数
+  _lazy_load_nvm() {
+    unset -f nvm node npm npx _lazy_load_nvm
     source "$NVM_DIR/nvm.sh"
     [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
-    nvm "$@"
   }
 
-  # node, npm, npxも同様に遅延ロード
-  node() {
-    unset -f nvm node npm npx
-    source "$NVM_DIR/nvm.sh"
-    [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
-    node "$@"
-  }
-
-  npm() {
-    unset -f nvm node npm npx
-    source "$NVM_DIR/nvm.sh"
-    [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
-    npm "$@"
-  }
-
-  npx() {
-    unset -f nvm node npm npx
-    source "$NVM_DIR/nvm.sh"
-    [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
-    npx "$@"
-  }
+  # 遅延ロード用のラッパー関数
+  nvm() { _lazy_load_nvm && nvm "$@" }
+  node() { _lazy_load_nvm && node "$@" }
+  npm() { _lazy_load_nvm && npm "$@" }
+  npx() { _lazy_load_nvm && npx "$@" }
 
   # .nvmrc自動読み込み機能(遅延ロード対応版)
   load-nvmrc() {
-    local nvmrc_path="$(find . -maxdepth 1 -name .nvmrc 2>/dev/null)"
+    [[ ! -f .nvmrc ]] && return 0
 
-    if [[ -n "$nvmrc_path" ]]; then
-      # .nvmrcが存在する場合、nvmを実行して遅延ロードを発動
-      local nvmrc_version="$(cat "$nvmrc_path")"
+    # nvmが遅延ロード状態なら初期化
+    typeset -f _lazy_load_nvm >/dev/null 2>&1 && _lazy_load_nvm
 
-      # nvmが関数として定義されているか確認
-      if typeset -f nvm >/dev/null 2>&1; then
-        # まだ遅延ロード状態なら、一度呼び出して実体を読み込む
-        nvm --version >/dev/null 2>&1
-      fi
+    local required_version="$(cat .nvmrc)"
+    local current_version="$(nvm version 2>/dev/null)"
+    local installed_version="$(nvm version "$required_version" 2>/dev/null)"
 
-      # nvmが読み込まれていれば、nvm_find_nvmrcとnvm versionが使える
-      if command -v nvm >/dev/null 2>&1; then
-        local node_version="$(nvm version)"
-        local nvmrc_node_version="$(nvm version "$nvmrc_version")"
-
-        if [[ "$nvmrc_node_version" == "N/A" ]]; then
-          echo "Installing Node.js version from .nvmrc: $nvmrc_version"
-          nvm install "$nvmrc_version"
-        elif [[ "$nvmrc_node_version" != "$node_version" ]]; then
-          echo "Switching to Node.js version from .nvmrc: $nvmrc_version"
-          nvm use "$nvmrc_version"
-        fi
-      fi
+    if [[ "$installed_version" == "N/A" ]]; then
+      echo "Installing Node.js version from .nvmrc: $required_version"
+      nvm install "$required_version"
+    elif [[ "$installed_version" != "$current_version" ]]; then
+      nvm use "$required_version" >/dev/null 2>&1
     fi
   }
 
