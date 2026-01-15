@@ -63,7 +63,3 @@ Based on `$PROMPT`, provide in-depth analysis of the target comment:
 
 ### **Additional Notes**
 - Other important information
-
----
-
-- **Output**: Ask user to save to `/tmp/pr-comment-review-{comment_id}.md` if desired.

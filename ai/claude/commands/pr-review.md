@@ -36,5 +36,3 @@ Example format:
 ### **Recommendations**
 - Specific improvement suggestions
 - Alternative implementation approaches (if needed)
-
-- **Output to file**: Ask the user if they want to save the generated review content to a file for future reference and easy copying. If yes, save to `/tmp/pr-review-$ARGUMENTS.md`

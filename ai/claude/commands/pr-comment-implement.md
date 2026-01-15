@@ -82,8 +82,6 @@ Provide a summary including:
 - Commit hash and message
 - Next steps (if any)
 
-**Output to file**: Ask the user if they want to save the implementation log. If yes, save to `/tmp/pr-comment-implement-$(basename "$PR_URL" | cut -d'#' -f1 | sed 's|.*/||').md`.
-
 ## Notes
 - Always prioritize user approval on the design before implementation
 - If user requests design changes, revise and re-present for approval

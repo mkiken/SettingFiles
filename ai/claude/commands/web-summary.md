@@ -18,4 +18,3 @@ ultrathink
   - **Technical Details**: Any technical specifications, APIs, or implementation details mentioned
   - **Links/References**: Important links or references found in the content
   - **Additional Notes**: Any other relevant information or observations
-- **Output to file**: Ask the user if they want to save the generated summary to a file for future reference. If yes, save to `/tmp/web-summary-$(date +%Y%m%d-%H%M%S).md`
