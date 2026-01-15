@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a personal dotfiles repository for managing development environment configurations across Mac and Windows platforms. It uses symbolic links to synchronize settings across various tools.
+Personal dotfiles repository for managing development environment configurations across Mac and Windows. Uses symbolic links to synchronize settings.
 
 ## Key Commands
 
@@ -28,41 +28,68 @@ cd windows
 ./update.ps1
 ```
 
-### Git Submodules Management
+### Homebrew Package Management
 ```bash
-# Update all submodules
+# Install packages from Brewfile
+cd mac && brew bundle
+
+# Add new package: edit mac/Brewfile, then run brew bundle
+```
+
+### Git Submodules
+```bash
 git submodule update --init --recursive
 ```
 
 ## Architecture
 
 ### Directory Structure
-- `/ai/` - AI assistant configurations (Claude, Cursor/Roo)
-  - `common/prompt.md` - Shared character prompt (symlinked to ~/.claude/CLAUDE.md)
-  - `claude/settings.json` - Claude-specific settings
-- `/mac/` - macOS-specific configurations and scripts
-  - `initialize` - Sets up symlinks, installs Homebrew packages, configures tools
-  - `update` - Updates packages, plugins, and submodules
-- `/windows/` - Windows-specific configurations and scripts
-- `/vimfiles/` - Vim/Neovim configurations (standard, LazyVim, NvChad variants)
-- `/shell/` - Fish shell configuration
-- `/submodules/` - Zsh plugins managed as git submodules
-- `/gitfiles/` - Git tools configurations (gitui, lazygit)
+- `/ai/` - AI assistant configurations
+  - `common/prompt_base.md` - Shared base prompt
+  - `common/characters/` - Character prompts (reimu.md for Claude, nyaruko.md for Gemini)
+  - `common/mcp.json` - MCP server settings
+  - `claude/` - Claude Code settings, commands, hooks
+  - `gemini/` - Gemini CLI settings, commands
+  - `serena/serena_config.yml` - Serena MCP configuration
+- `/mac/` - macOS configurations and scripts
+  - `initialize` → `initialization/initialize` (6-step setup)
+  - `update` - Package/plugin update script
+  - `Brewfile` - Homebrew package declarations
+- `/windows/` - Windows configurations and scripts
+- `/vimfiles/nvim/` - Neovim configuration (lazy.nvim)
+- `/shell/zsh/` - Zsh configuration with znap plugin manager
+- `/submodules/` - Git submodule-managed Zsh plugins
+- `/gitfiles/` - Git configurations (gitui, lazygit, gh-dash, workmux)
+- `/terminal/` - Terminal emulator configs (ghostty, etc.)
 
 ### Symlink Strategy
-The initialize scripts create symbolic links from this repository to system locations:
-- AI configs: `ai/common/prompt.md` → `~/.claude/CLAUDE.md` and `~/.roo/rules/.roorules`
-- Shell configs: Repository files → Home directory dotfiles
-- Editor configs: Repository files → Application config directories
+Initialize scripts create symbolic links from repository to system locations:
+- AI configs: `ai/claude/_CLAUDE.md` → `~/.claude/CLAUDE.md`
+- Shell configs: `shell/zsh/.zshrc` → `~/.zshrc`
+- Editor configs: `vimfiles/nvim` → `~/.config/nvim`
+- Git configs: `gitfiles/.gitconfig` → `~/.gitconfig`
 
-### Vim Plugin Management
-- Standard Vim: Uses Vundle (`:BundleInstall` to update)
-- LazyVim: Modern Neovim configuration with lazy.nvim
-- NvChad: Feature-rich Neovim configuration
+### AI Configuration Generation
+Claude prompt is assembled from multiple sources:
+- `ai/common/prompt_base.md` + `ai/common/characters/reimu.md` + `ai/claude/claude_prompt.md` → `ai/claude/_CLAUDE.md`
+- The generated `_CLAUDE.md` is symlinked to `~/.claude/CLAUDE.md`
+- Same pattern for Gemini with `nyaruko.md` character
+
+### Plugin Management
+
+**Zsh (znap)**:
+- Config: `shell/zsh/plugin.zsh`
+- Plugins: fzf-tab, zsh-autosuggestions, F-Sy-H, zsh-vi-mode
+
+**Neovim (lazy.nvim)**:
+- Config: `vimfiles/nvim/lua/config/lazy.lua`
+- Plugins: `vimfiles/nvim/lua/plugins/`
+- VSCode Neovim uses separate plugin set: `plugins_vscode/`
+- Versions locked in `lazy-lock.json`
 
 ## Important Notes
 
-1. **Symlinks are critical** - The repository works by creating symbolic links. Don't copy files manually.
-2. **Platform-specific scripts** - Use the appropriate initialize/update scripts for your OS.
-3. **Git submodules** - Many Zsh plugins are managed as submodules. Always update recursively.
-4. **AI character prompt** - The repository includes a Nyaruko-san character prompt that affects AI assistant behavior.
+1. **Symlinks are critical** - Don't copy files manually; the repository works via symbolic links
+2. **Platform-specific scripts** - Use appropriate initialize/update scripts for your OS
+3. **Git submodules** - Zsh plugins managed as submodules; always update recursively
+4. **AI prompts include character settings** - 博麗霊夢 (Hakurei Reimu) character for Claude

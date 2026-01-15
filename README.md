@@ -25,19 +25,8 @@ PowerShellで
     ./update.ps1
 
 ##エディタプラグインの更新
-####Vim
-Vimコマンドで
+####Neovim
+プラグインはlazy.nvimで自動管理されます。
+手動更新が必要な場合はNeovimで
 
-    :BundleInstall
-
-####Emacs
-./.emacs.d/package-initialize.elをEmacsで開いて
-
-    M-x eval-buffer
-
-####Sublime Text 2
-./SublimeTextFiles/2/initialize.txt
-
-
-####Atom
-./.atom/atom_packages.txt
+    :Lazy update
