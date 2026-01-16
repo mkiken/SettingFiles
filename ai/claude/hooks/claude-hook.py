@@ -9,9 +9,9 @@ from enum import Enum
 
 
 class HookStatus(Enum):
-    COMPLETED = "🟢"
-    NOTIFICATION = "🔴"
-    ONGOING = "🟡"
+    COMPLETED = "✅"
+    NOTIFICATION = "✋"
+    ONGOING = "🤖"
 
     @classmethod
     def get_emoji_pattern(cls) -> str:
