@@ -83,6 +83,17 @@
           }
         ]
       }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/claude-hook.py"
+          }
+        ]
+      }
     ]
   },
   "statusLine": {

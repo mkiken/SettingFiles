@@ -30,6 +30,7 @@ def main():
     handlers = {
         "Notification": handle_notification_hook,
         "PostToolUse": handle_post_tool_use_hook,
+        "SessionEnd": handle_session_end_hook,
         "Stop": handle_stop_hook,
         "UserPromptSubmit": handle_user_prompt_submit_hook,
     }
@@ -55,6 +56,11 @@ def handle_user_prompt_submit_hook(_: dict):
 
 def handle_stop_hook(_: dict):
     update_tmux_window_name(HookStatus.COMPLETED)
+
+
+def handle_session_end_hook(_: dict):
+    """セッション終了時にtmuxウィンドウ名からアイコンを削除"""
+    remove_tmux_window_icon()
 
 
 def update_tmux_window_name(status: HookStatus):
@@ -94,6 +100,45 @@ def update_tmux_window_name(status: HookStatus):
         subprocess.run(["tmux", "rename-window", "-t", window_id, new_name], check=True)
     except Exception:
         pass  # tmux環境外やエラーは無視
+
+
+def remove_tmux_window_icon():
+    """tmuxウィンドウ名から状態アイコンを削除"""
+    try:
+        pane_id = os.environ.get("TMUX_PANE")
+        if not pane_id:
+            return
+
+        # ウィンドウIDを取得
+        result = subprocess.run(
+            ["tmux", "display-message", "-p", "-t", pane_id, "#I"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        window_id = result.stdout.strip()
+
+        # 現在のウィンドウ名を取得
+        result = subprocess.run(
+            ["tmux", "display-message", "-p", "-t", window_id, "#W"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        current_name = result.stdout.strip()
+
+        # 先頭の絵文字パターンを削除
+        emoji_pattern = HookStatus.get_emoji_pattern()
+        new_name = re.sub(rf"^[{emoji_pattern}]+", "", current_name)
+
+        # 名前が変わった場合のみ更新
+        if new_name != current_name:
+            subprocess.run(
+                ["tmux", "rename-window", "-t", window_id, new_name],
+                check=True
+            )
+    except Exception:
+        pass
 
 
 if __name__ == "__main__":
