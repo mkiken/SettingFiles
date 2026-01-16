@@ -1,30 +1,13 @@
 # Theme
-# theme = Andromeda
-# theme = Catppuccin Mocha
-# theme = Iceberg Dark
 theme = Mariana
-# theme = Tomorrow Night Eighties
 
 # Font
-# font-family = JetBrainsMonoNL Nerd Font Mono
-# font-family = Moralerspace
 font-family = Monaco
-# 日本語用fallback
-font-family = Osaka
+font-family = Osaka  # 日本語用fallback
 font-feature = -dlig
 font-size = 13
 
-font-style-bold = false
-font-style-italic = false
-font-style-bold-italic = false
-
-# font-thicken = true
-# font-thicken-strength = 1
-
 alpha-blending = linear
-
-# adjust-cell-width = -1
-# adjust-cell-height = 2
 
 window-theme = ghostty
 background-opacity = 0.85
@@ -44,7 +27,6 @@ macos-non-native-fullscreen = true
 
 # Window
 window-padding-x = 3
-# window-padding-y = 5
 window-padding-balance = true
 
 # Shell
@@ -59,4 +41,5 @@ cursor-opacity = 0.8
 # Other
 mouse-hide-while-typing = true
 resize-overlay = never
+# Shift+Enter で改行（tmux内でも機能）
 keybind = shift+enter=text:\x1b\r
