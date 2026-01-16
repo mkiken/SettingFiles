@@ -12,6 +12,7 @@ export NOTIFY_COMMAND_EXCLUDE=(
   gemini
   less
   nvim
+  ssh
   tail
   top
   vi
