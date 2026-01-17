@@ -4,5 +4,4 @@ agent: claude
 worktree_naming: basename
 
 panes:
-  - command: Shell
-    focus: true
+  - focus: true
