@@ -209,9 +209,6 @@
 [branch]
   sort = -committerdate
 
-[help]
-  autocorrect = 10
-
 [rebase]
   autoStash = true
 
