@@ -111,6 +111,7 @@ set NERDTree
 set ReplaceWithRegister
 set argtextobj
 set commentary
+set dial
 set exchange
 set highlightedyank
 set matchit
@@ -118,10 +119,16 @@ set multiple-cursors
 set surround
 set textobj-indent
 set vim-paragraph-motion
-set switch "needs plugin install
 set functiontextobj "needs plugin install
 set which-key "needs plugin install
 set peekaboo "needs plugin install
+
+" for Dial plugin
+" Map Ctrl+A to increment
+nnoremap <C-a> :DialIncrement<cr>
+
+" Map Ctrl+X to decrement
+nnoremap <C-x> :DialDecrement<cr>
 
 " for Which Key
 " disable the timeout option
@@ -147,14 +154,6 @@ nmap <leader>g<C-n> <Plug>AllOccurrences
 xmap <leader>g<C-n> <Plug>AllOccurrences
 
 nnoremap <leader>t :NERDTreeFocus<CR>
-
-" for switch
-" Or use - and +
-nnoremap - :Switch<CR>
-nnoremap + :SwitchReverse<CR>
-
-" Enable all patterns from multiple groups
-let g:switch_definitions = 'group:basic,group:javascript,group:markdown,group:ruby'
 
 " for Vim-Flash
 " enhance vim f (find for char in characters to the right of the current cursor)
