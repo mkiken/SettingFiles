@@ -5,11 +5,13 @@
   ; email = mkiken0@gmail.com
 [push]
   default = current
+  autoSetupRemote = true
 
 [pull]
   default = current
   prune = true
   ff = only
+  rebase = true
 
 ; https://blogs.atlassian.com/2013/06/git-diff/
 [alias]
@@ -80,7 +82,7 @@
 
   rollback = reset --hard
 
-  sdf = diff —name-status
+  sdf = diff --name-status
 
   r0 = checkout HEAD
   r1 = checkout HEAD~
@@ -168,6 +170,7 @@
   line-numbers-minus-style = red
 [diff]
   colorMoved = default
+  colorMovedWS = allow-indentation-change
   tool = nvim
     ; http://qiita.com/takaakikasai/items/3d4f8a4867364a46dfa3
   algorithm = histogram
@@ -202,6 +205,15 @@
 
 [fetch]
   prune = true
+
+[branch]
+  sort = -committerdate
+
+[help]
+  autocorrect = 10
+
+[rebase]
+  autoStash = true
 
 ; http://qiita.com/yuku_t/items/04853c9aecb40edadbb2
 [init]
