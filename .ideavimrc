@@ -43,7 +43,7 @@ set autoindent
 
 set keep-english-in-normal
 
-set scrolloff=5
+set scrolloff=10
 
 set ideajoin
 
@@ -52,6 +52,10 @@ set ideamarks
 
 " A comma-separated list of additional buffers or locations where IdeaVim should be enabled
 set ideavimsupport=dialog,singleline
+
+" エラー時のビープ音を視覚的なフラッシュに変更
+set visualbell
+set noerrorbells
 
 "インサートモードで bash 風キーマップ
 inoremap <C-a> <C-o>^
@@ -77,7 +81,7 @@ vnoremap < <gv
 vnoremap > >gv
 " Reload .ideavimrc
 " なぜか<leader>sだとだめ
-nnoremap <Space>s :source ~/.ideavimrc<CR>
+nnoremap <Space>s :source ~/.ideavimrc<CR>:echo "✓ ideavimrc successfully reloaded"<CR>
 
 " set <leader> to <space>
 let mapleader = " "
@@ -85,10 +89,20 @@ let mapleader = " "
 " ============================================================================
 " IDE actions
 " ============================================================================
-" nnoremap / :action Find<CR>
-" nnoremap n :action FindNext<CR>
-" nnoremap N :action FindPrevious<CR>
-"
+" リファクタリング
+nnoremap <leader>rn :action RenameElement<CR>
+nnoremap <leader>rf :action ReformatCode<CR>
+
+" ナビゲーション
+nnoremap gd :action GotoDeclaration<CR>
+nnoremap gi :action GotoImplementation<CR>
+nnoremap gu :action FindUsages<CR>
+nnoremap gs :action SearchEverywhere<CR>
+nnoremap go :action SearchEverywhere<CR>
+
+" エラー移動
+nnoremap ]d :action GotoNextError<CR>
+nnoremap [d :action GotoPreviousError<CR>
 
 
 """ Plugin settings -------------------------
