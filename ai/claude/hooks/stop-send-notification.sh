@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# notification関数を読み込み
-source "${SET}shell/zsh/alias/notification.zsh"
+# notification関数を読み込み (SETが未定義の場合はHOMEから解決)
+source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/alias/notification.zsh"
 
 # デバッグフラグ (true/false)
 DEBUG_ENABLED=false
@@ -38,6 +38,7 @@ format_duration() {
 }
 
 debug_log "=== Claude Stop Hook Started ==="
+debug_log "Environment __CFBundleIdentifier='${__CFBundleIdentifier}'"
 
 # hookからJSONを読み取り
 hook_input=$(cat)
