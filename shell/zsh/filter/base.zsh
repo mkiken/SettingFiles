@@ -25,7 +25,7 @@ alias -g F='| filter'
 # 参考: https://mogulla3.tech/articles/2021-09-06-search-command-history-with-incremental-search/
 function select-history() {
   local max_history=${FILTER_HISTORY_LIMIT:-5000}
-  BUFFER=$(history -n -r -${max_history} 0 | awk '!seen[$0]++' | filter --exact --reverse --no-sort --query="$LBUFFER" --cycle --prompt="History > ")
+  BUFFER=$(history -n -r -${max_history} | awk '!seen[$0]++' | filter --exact --reverse --no-sort --query="$LBUFFER" --cycle --prompt="History > ")
   CURSOR=${#BUFFER}
   # zle accept-line # 選択した履歴を即座に実行
 }
