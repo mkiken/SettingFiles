@@ -4,8 +4,6 @@ description: "Generate comprehensive PR body content using gh command for specif
 argument-hint: [prNumber]
 ---
 
-ultrathink
-
 ## Instructions
 
 - First, fetch and review the existing PR body using `gh pr view $ARGUMENTS --json body`

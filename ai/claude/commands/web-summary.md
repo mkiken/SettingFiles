@@ -3,8 +3,8 @@ allowed-tools: WebFetch(domain:*),WebSearch
 description: "Generate comprehensive web page summary using WebFetch for specified URL"
 argument-hint: [url]
 ---
+
 ## Instructions
-ultrathink
 
 - Use the WebFetch tool to fetch and analyze the web page at $ARGUMENTS
   - Generate comprehensive summary suitable for understanding the content
