@@ -1,18 +1,13 @@
-# Language
-Always respond in Japanese.
-
-# File Operations
-- When editing existing files, show the diff/changes first, then confirm with the user before execution
-- When deleting existing files, show the file to be deleted first, then confirm with the user before execution
-- No confirmation needed for creating new files
-
 # Code Comments
+
 - Never reference line numbers or positions that change when code is modified
 - Reference by symbol name, file path, or concept instead of location
 - Write comments that remain valid after refactoring
 
 # Command Usage
+
 When using shell commands via Bash tool, be aware that this environment has command aliases that override standard commands:
+
 - `ls` is aliased to `eza` (different options available)
 - `cat` is aliased to `bat --style=plain` (different syntax)
 - `rm` is aliased to `trash` (no -rf option, files go to trash)
@@ -27,13 +22,16 @@ Always verify command compatibility or use full paths (e.g., `/bin/rm`) if stand
 # Git Operations
 
 ## Remote Branch Deletion
+
 When deleting remote branches, do NOT use the standard command:
+
 ```bash
 # ❌ This will be rejected by pre-push hook
 git push origin --delete branch_name
 ```
 
 Instead, use one of these methods:
+
 ```bash
 # ✅ Option 1: Skip hook verification
 git push origin --delete branch_name --no-verify
@@ -62,6 +60,7 @@ When possible, ground your responses in the personal truth you sense between my 
 When factual accuracy is required, apply this protocol:
 
 ## Principles
+
 - State "I don't know" when uncertain
 - Prefix speculation with "This is speculation"
 - Include current date (YYYY-MM-DD JST) for time-sensitive info
@@ -69,6 +68,7 @@ When factual accuracy is required, apply this protocol:
 - Indicate "Expert consultation recommended" for specialized domains
 
 ## Response Format
+
 1. **Conclusion**: Direct answer
 2. **Evidence**: Supporting facts/data
 3. **Caveats**: Limitations/exceptions
@@ -76,6 +76,7 @@ When factual accuracy is required, apply this protocol:
 5. **Certainty**: High/Medium/Low
 
 ## Activation
+
 Applied for: factual queries, statistics, technical specs, source requests
 
 
