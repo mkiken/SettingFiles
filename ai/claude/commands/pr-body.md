@@ -3,9 +3,14 @@ allowed-tools: Bash(gh:*)
 description: "Generate comprehensive PR body content using gh command for specified PR number"
 argument-hint: [prNumber]
 ---
+
 ultrathink
 
 ## Instructions
+
+- First, fetch and review the existing PR body using `gh pr view $ARGUMENTS --json body`
+  - If the existing body contains meaningful information (not just template text), preserve and incorporate it
+  - Template-only content (placeholders, empty sections) can be discarded
 - Use the gh command to fetch and analyze PR #$ARGUMENTS
   - Generate content suitable for PR body
   - Exclude template sections
@@ -19,7 +24,9 @@ ultrathink
   - Wrap the PR body output with ``` code blocks
 
 ## Confirmation Flow
+
 After generating the PR body content:
+
 1. Display the generated body in a code block
 2. Use AskUserQuestion to confirm: "このPR bodyをPR #$ARGUMENTS に反映しますか？"
    - Options: "はい、反映する" / "いいえ、表示のみ"
@@ -30,6 +37,7 @@ After generating the PR body content:
    - End process (user can manually copy the displayed content)
 
 ## Implementation Notes
+
 - Create temporary file for body content to avoid shell escaping issues
 - Clean up temporary file after use
 - Verify gh pr edit command success and show appropriate feedback
