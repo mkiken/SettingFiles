@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(gh pr view *), Bash(gh api *)
+allowed-tools: Bash(gh pr view *), Bash(gh api *), Bash(gh pr checkout *), Bash(git status *), Bash(git stash *)
 description: "Analyzes PR review comments based on user instructions."
 argument-hint: [prCommentUrl] [instructions...]
 ---
@@ -75,3 +75,15 @@ Based on `$PROMPT`, provide in-depth analysis of the target comment:
 ### **Additional Notes**
 
 - Other important information
+
+### **Local Checkout for Detailed Review**
+
+When comment context requires deeper code understanding:
+
+1. Check working files with `git status --porcelain`
+2. If working files exist, ask user to choose:
+   - Stash then checkout
+   - Checkout anyway (may lose changes)
+   - Cancel checkout
+3. After approval, run `gh pr checkout <PR#>` (run `git stash` first if stash chosen)
+4. Read local code for detailed analysis
