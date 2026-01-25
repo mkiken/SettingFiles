@@ -60,7 +60,7 @@ chmod +x ~/.claude/hooks/stop-send-notification.sh
 echo "Installing Claude tools..."
 
 # Claude tools
-npm install -g @anthropic-ai/claude-code
+'curl' -fsSL https://claude.ai/install.sh | zsh
 npm install -g @pimzino/claude-code-spec-workflow
 npm install -g @sasazame/ccresume
 npm install -g ccexp
