@@ -87,6 +87,15 @@ Claude prompt is assembled from multiple sources:
 - VSCode Neovim uses separate plugin set: `plugins_vscode/`
 - Versions locked in `lazy-lock.json`
 
+## AI Prompt File Editing
+
+When editing AI prompt files in this repository:
+
+- **Default to English** for new content and modifications
+  - Reason: Reduces token consumption for efficiency
+- **Exception**: If the original file uses a different language, follow that language
+  - Example: Japanese character dialogue examples should remain in Japanese
+
 ## Important Notes
 
 1. **Symlinks are critical** - Don't copy files manually; the repository works via symbolic links
