@@ -4,17 +4,6 @@ source "$(dirname "$0")/../../scripts/common.sh"
 
 echo "Setting up Claude..."
 
-# claude-code-spec-workflow setupは既存の設定ファイルを削除するため確認を求める
-echo "⚠️  claude-code-spec-workflow setup は既存のClaude設定ファイルをバックアップにします"
-echo -n "続行しますか？ [y/N]: "
-read -r confirm
-
-if [[ "$confirm" =~ ^[Yy]$ ]]; then
-    claude-code-spec-workflow setup --yes --project ~/
-else
-    echo "スキップしました"
-fi
-
 # Claude setup
 # 共通プロンプトとClaude専用プロンプトを結合してCLAUDE.mdを生成
 cat "${Repo}ai/common/prompt_base.md" \
@@ -61,7 +50,6 @@ echo "Installing Claude tools..."
 
 # Claude tools
 'curl' -fsSL https://claude.ai/install.sh | zsh
-npm install -g @pimzino/claude-code-spec-workflow
 npm install -g @sasazame/ccresume
 npm install -g ccexp
 npm install -g ccusage
@@ -73,5 +61,9 @@ claude mcp add sequential-thinking -s user -- npx -y @modelcontextprotocol/serve
 claude mcp add context7 -s user -- npx -y @upstash/context7-mcp
 claude mcp add serena --scope "user" -- uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context ide-assistant
 claude mcp add gitmcp -s user -- npx mcp-remote https://gitmcp.io/docs
+
+cd ~/
+npx cc-sdd@latest --claude-agent --lang ja
+cd $OLDPWD
 
 echo 'Claude setup and tools installation completed.'
