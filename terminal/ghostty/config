@@ -2,10 +2,11 @@
 theme = Mariana
 
 # Font
-font-family = Monaco
-font-family = Osaka  # 日本語用fallback
+font-family = Menlo
+# 日本語用fallback
+font-family = Hiragino Sans W4
 font-feature = -dlig
-font-size = 13
+font-size = 14
 
 alpha-blending = linear
 
