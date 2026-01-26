@@ -84,49 +84,59 @@ function fghpch() {
 }
 
 # PR一覧からブラウザで開く
-function fghpv(){
+function _fghpv_impl(){
   local pr_number=$(ghpl | filter | awk '{print $1}')
-  if [[ -n "$pr_number" ]]; then
-    no_notify ghpv "$pr_number"
+  if [[ -z "$pr_number" ]]; then
+    return $EXIT_CODE_SIGINT
   fi
+  ghpv "$pr_number"
 }
+alias fghpv='no_notify _fghpv_impl'
 
 # コミットハッシュからPR検索してブラウザで開く
-function fghpv_from_commit(){
+function _fghpv_from_commit_impl(){
   local commit_hash="${1}"
   if [[ -z $commit_hash ]]; then
     echo "Usage: fghpv_from_commit <commit-hash>"
     return $EXIT_CODE_SIGINT
   fi
   local pr_number=$(ghpl_from_commit "$commit_hash" | filter | awk '{print $1}')
-  if [[ -n "$pr_number" ]]; then
-    no_notify ghpv "$pr_number"
+  if [[ -z "$pr_number" ]]; then
+    return $EXIT_CODE_SIGINT
   fi
+  ghpv "$pr_number"
 }
+alias fghpv_from_commit='no_notify _fghpv_from_commit_impl'
 
 # 自分のPR一覧からブラウザで開く
-function fghpvm(){
+function _fghpvm_impl(){
   local pr_number=$(ghplm | filter | awk '{print $1}')
-  if [[ -n "$pr_number" ]]; then
-    no_notify ghpv "$pr_number"
+  if [[ -z "$pr_number" ]]; then
+    return $EXIT_CODE_SIGINT
   fi
+  ghpv "$pr_number"
 }
+alias fghpvm='no_notify _fghpvm_impl'
 
 # PR一覧からチェックアウト
-function fghco(){
+function _fghco_impl(){
   local pr_number=$(ghpl | filter | awk '{print $1}')
-  if [[ -n "$pr_number" ]]; then
-    no_notify gh co "$pr_number"
+  if [[ -z "$pr_number" ]]; then
+    return $EXIT_CODE_SIGINT
   fi
+  gh co "$pr_number"
 }
+alias fghco='no_notify _fghco_impl'
 
 # 自分のPR一覧からチェックアウト
-function fghcom(){
+function _fghcom_impl(){
   local pr_number=$(ghplm | filter | awk '{print $1}')
-  if [[ -n "$pr_number" ]]; then
-    no_notify gh co "$pr_number"
+  if [[ -z "$pr_number" ]]; then
+    return $EXIT_CODE_SIGINT
   fi
+  gh co "$pr_number"
 }
+alias fghcom='no_notify _fghcom_impl'
 
 # 2ブランチを指定してGitHubのPR作成urlを開く
 function fghpc2(){
