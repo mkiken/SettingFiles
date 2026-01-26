@@ -26,12 +26,26 @@ argument-hint: [prNumber]
 After generating the PR body content:
 
 1. Display the generated body in a code block
-2. Use AskUserQuestion to confirm: "このPR bodyをPR #$ARGUMENTS に反映しますか？"
+
+2. **Display visual diff** between existing body and new body:
+   - Show section header: "### 既存body → 新bodyの変更差分"
+   - Use `diff` code block format for color-highlighted diff:
+     ```diff
+     - removed line (shown in red)
+     + added line (shown in green)
+       unchanged line
+     ```
+   - If existing body is empty/template-only: display "(既存bodyは空またはテンプレートのみのため、全て新規追加)"
+   - Keep diff concise: for very large changes, summarize with key sections
+
+3. Use AskUserQuestion to confirm: "このPR bodyをPR #$ARGUMENTS に反映しますか？"
    - Options: "はい、反映する" / "いいえ、表示のみ"
-3. If user confirms:
+
+4. If user confirms:
    - Execute `gh pr edit $ARGUMENTS --body-file <temp-file>` to apply the body
    - Show success message with PR URL
-4. If user declines:
+
+5. If user declines:
    - End process (user can manually copy the displayed content)
 
 ## Implementation Notes
