@@ -21,7 +21,7 @@
   "editor.codeActionsOnSave": {
     "source.fixAll": "explicit",
     "source.fixAll.eslint": "explicit",
-    "source.fixAll.shellcheck": "explicit"
+    "source.fixAll.shellcheck": "explicit",
   },
   "editor.tabSize": 2,
   "extensions.autoUpdate": "onlyEnabledExtensions",
@@ -41,16 +41,16 @@
   "editor.stickyScroll.enabled": true,
   "editor.stickyScroll.defaultModel": "foldingProviderModel",
   "accessibility.signals.lineHasError": {
-    "sound": "off"
+    "sound": "off",
   },
   "editor.inlineCompletionsAccessibilityVerbose": true,
   "terminal.integrated.macOptionClickForcesSelection": true,
   "accessibility.signalOptions.volume": 0,
   "accessibility.signals.codeActionApplied": {
-    "sound": "off"
+    "sound": "off",
   },
   "accessibility.signals.codeActionTriggered": {
-    "sound": "off"
+    "sound": "off",
   },
   "editor.accessibilitySupport": "off",
   "chat.editor.wordWrap": "on",
@@ -59,14 +59,13 @@
   "diffEditor.hideUnchangedRegions.enabled": true,
   "terminal.integrated.shellIntegration.enabled": true,
   "extensions.experimental.affinity": {
-    "asvetliakov.vscode-neovim": 1
+    "asvetliakov.vscode-neovim": 1,
   },
   "shellcheck.exclude": ["1071"],
-  "claudeCode.useTerminal": true,
   "geminicodeassist.displayInlineContextHint": false,
   "biome.suggestInstallingGlobally": false,
   "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
   },
   "plantuml.java": "/opt/homebrew/bin/java",
   "git.confirmSync": false,
@@ -76,5 +75,10 @@
   "geminicodeassist.enableTelemetry": false,
   "geminicodeassist.inlineSuggestions.nextEditPredictions": true,
   "csv.enabled": true,
-  "http.systemCertificatesNode": true
+  "http.systemCertificatesNode": true,
+  "github.copilot.nextEditSuggestions.enabled": false,
+  "claudeCode.preferredLocation": "panel",
+  "claudeCode.useCtrlEnterToSend": true,
+  "chat.useAgentSkills": true,
+  "claudeCode.useTerminal": true,
 }
