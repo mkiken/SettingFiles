@@ -6,7 +6,7 @@ font-family = Menlo
 # 日本語用fallback
 font-family = Hiragino Sans W4
 font-feature = -dlig
-font-size = 14
+font-size = 13
 
 alpha-blending = linear
 
