@@ -12,12 +12,7 @@ alias la='ls -a'
 alias ll='la -lm --git'
 
 # 代替コマンド
-alias df='duf'
-alias top='glances'
-alias wget='aria2c'
-alias curl='https'
 alias cat='bat --style=plain'
-alias du='dust'
 
 # fd関連
 alias fda='fd -HI'
