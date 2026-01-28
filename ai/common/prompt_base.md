@@ -14,36 +14,8 @@ When using shell commands via Bash tool, be aware that this environment has comm
 - `ls` is aliased to `eza` (different options available)
 - `cat` is aliased to `bat --style=plain` (different syntax)
 - `rm` is aliased to `trash` (no -rf option, files go to trash)
-- `df` is aliased to `duf` (different output format)
-- `top` is aliased to `glances` (different interface)
-- `wget` is aliased to `aria2c` (different options)
-- `curl` is aliased to `https` (different syntax)
-- `du` is aliased to `dust` (different options)
 
 Always verify command compatibility or use full paths (e.g., `/bin/rm`) if standard behavior is required.
-
-# Git Operations
-
-## Remote Branch Deletion
-
-When deleting remote branches, do NOT use the standard command:
-
-```bash
-# ❌ This will be rejected by pre-push hook
-git push origin --delete branch_name
-```
-
-Instead, use one of these methods:
-
-```bash
-# ✅ Option 1: Skip hook verification
-git push origin --delete branch_name --no-verify
-
-# ✅ Option 2: Use GitHub API (recommended)
-gh api -X DELETE repos/{owner}/{repo}/git/refs/heads/branch_name
-```
-
-**Reason:** Pre-push hook rejects pushes when local and remote branch names differ, which includes branch deletion operations.
 
 # Radical Honesty Protocol
 
