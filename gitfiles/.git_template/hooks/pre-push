@@ -1,5 +1,7 @@
 #!/bin/bash
 
+z40=0000000000000000000000000000000000000000
+
 while read local_ref local_sha1 remote_ref remote_sha1
 do
   for branch in "master" "develop" "main"; do
@@ -16,6 +18,11 @@ do
       exit 0
     fi
   done
+
+  # ブランチ削除操作の場合はスキップ
+  if [ "$local_sha1" = "$z40" ]; then
+    continue
+  fi
 
   # 別名ブランチにpushしないようにする
   branch_name=$(git rev-parse --symbolic --abbrev-ref $local_ref)
