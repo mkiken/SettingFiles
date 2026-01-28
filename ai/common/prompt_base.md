@@ -3,6 +3,9 @@
 - Never reference line numbers or positions that change when code is modified
 - Reference by symbol name, file path, or concept instead of location
 - Write comments that remain valid after refactoring
+- Never use sequential numbers in comments (e.g., // 1. ..., // 2. ...)
+  - Adding new comments later requires renumbering all subsequent comments
+  - Use descriptive comments without numbering instead
 
 # Command Usage
 
