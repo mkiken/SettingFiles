@@ -28,14 +28,17 @@ vim.api.nvim_set_keymap('o', 'G', 'G<End>', { noremap = true, silent = true })
 -- カット
 vim.api.nvim_set_keymap('n', '<Leader>c', '"+c', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('x', '<Leader>c', '"+c', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<Leader>C', '"+C', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<Leader>d', '"+d', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('x', '<Leader>d', '"+d', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<Leader>D', '"+D', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<Leader>x', '"+x', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('x', '<Leader>x', '"+x', { noremap = true, silent = true })
 -- コピー
 vim.api.nvim_set_keymap('n', '<Leader>y', '"+y', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<Leader>yy', '"+yy', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('x', '<Leader>y', '"+y', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<Leader>Y', '"+y$', { noremap = true, silent = true })
 -- ペースト
 vim.api.nvim_set_keymap('n', '<Leader>p', '"+p', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<Leader>P', '"+P', { noremap = true, silent = true })
