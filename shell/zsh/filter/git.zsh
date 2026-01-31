@@ -706,8 +706,46 @@ function _filter_workmux_worktree() {
   echo "$selected" | awk '{print $4}' | xargs basename
 }
 
-# filterでworktreeを選択してworkmux openを実行
+# workmux listからworktreeのフルパスをfilterで選択する内部関数
+# 戻り値: 選択されたworktreeのフルパス、キャンセル時は $EXIT_CODE_SIGINT で終了
+function _filter_workmux_worktree_path() {
+  local worktrees
+  worktrees=$(wml | tail -n +2 | grep -v '(here)')
+
+  if [[ -z "$worktrees" ]]; then
+    echo "選択可能なworktreeがありません" >&2
+    return $EXIT_CODE_SIGINT
+  fi
+
+  local selected
+  selected=$(echo "$worktrees" | filter \
+    --header "worktreeを選択" \
+    --prompt "worktree> " \
+    --preview 'echo {} | awk "{print \$4}" | xargs -I{} git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"'
+  )
+
+  if [[ -z "$selected" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  # PATH列（4番目）からフルパスを抽出
+  echo "$selected" | awk '{print $4}'
+}
+
+# filterでworktreeを選択して現在のpaneでcdする
 function fwmo() {
+  local worktree_path
+  worktree_path=$(_filter_workmux_worktree_path)
+
+  if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  save_history cd "$worktree_path"
+}
+
+# filterでworktreeを選択して新しいウィンドウで開く（workmux open）
+function fwmon() {
   local worktree_name
   worktree_name=$(_filter_workmux_worktree)
 
@@ -716,6 +754,30 @@ function fwmo() {
   fi
 
   save_history wmo "$worktree_name"
+}
+
+# filterでworktreeを選択して水平分割（左右）して新しいpaneで開く
+function fwmoh() {
+  local worktree_path
+  worktree_path=$(_filter_workmux_worktree_path)
+
+  if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  tmux split-window -h -c "$worktree_path"
+}
+
+# filterでworktreeを選択して垂直分割（上下）して新しいpaneで開く
+function fwmov() {
+  local worktree_path
+  worktree_path=$(_filter_workmux_worktree_path)
+
+  if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  tmux split-window -v -c "$worktree_path"
 }
 
 # filterでworktreeを選択してworkmux removeを実行
