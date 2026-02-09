@@ -14,7 +14,7 @@ argument-hint: [prNumber]
   - Exclude template sections
 - Include the following sections:
   - **Summary**: Comprehensive overview grouped by logical changes
-  - **Files Changed Summary**: File-by-file breakdown of changes with brief descriptions
+  - **Files Changed Summary**: File-by-file breakdown with brief descriptions (DO NOT include line counts like +X/-Y)
   - **Review Focus Points**: Areas requiring special attention during review
   - **Breaking Changes**: Any breaking changes or migration requirements
   - **Additional Notes**: Any other relevant information for reviewers
