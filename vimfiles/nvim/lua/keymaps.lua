@@ -66,9 +66,21 @@ vim.api.nvim_set_keymap('i', '<C-u>', '<C-o>u', { noremap = true, silent = true 
 vim.api.nvim_set_keymap('i', '<C-]>', '<C-o>u', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('i', '<C-r>', '<C-o><C-r>', { noremap = true, silent = true })
 
--- undo を区切る
+-- undo を区切る(全部入り設定)
 -- http://haya14busa.com/vim-break-undo-sequence-in-insertmode/
-vim.api.nvim_set_keymap('i', '<Space>', '<Space><C-g>u', { noremap = true, silent = true })
+local undo_break_keys = {
+  '<Space>', '<CR>',            -- 基本
+  ',', '.', '!', '?',           -- 句読点・記号
+  '(', ')', '[', ']', '{', '}', -- 括弧類
+  '-', '_', ':', ';',           -- ハイフン/コロン類
+  '"', "'"                      -- 引用符
+}
+for _, key in ipairs(undo_break_keys) do
+  vim.keymap.set('i', key, key .. '<C-g>u', { noremap = true, silent = true })
+end
+
+-- Backspaceでもundo区切り(先にブレークポイントを挿入)
+vim.keymap.set('i', '<BS>', '<C-g>u<BS>', { noremap = true, silent = true })
 
 -- Escapeを2回押して:nohlsearch
 vim.api.nvim_set_keymap('n', '<Esc><Esc>', ':nohlsearch<CR>', { noremap = true, silent = true })
