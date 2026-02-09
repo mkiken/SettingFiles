@@ -22,8 +22,14 @@ gm-pr-body() {
     gmp -i "/pr-body $*"
 }
 
-gm-pr-comment-review() {
+alias gm-pr-comment-review='noglob _gm-pr-comment-review'
+_gm-pr-comment-review() {
     gmp -i "/pr-comment-review $*"
+}
+
+alias gm-pr-comment-implement='noglob _gm-pr-comment-implement'
+_gm-pr-comment-implement() {
+    gmp -i "/pr-comment-implement $*"
 }
 
 gm-web-summary() {

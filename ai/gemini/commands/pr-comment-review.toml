@@ -1,34 +1,94 @@
 description = "Analyzes PR review comments based on user instructions"
 prompt = """Analyze PR review comments for {{args}}.
 
-IMPORTANT: Extract the PR comment URL from the first argument and use it with gh command.
+**Arguments**: The first token in {{args}} is the PR comment URL ($COMMENT_URL), and the rest are user instructions ($PROMPT).
 
-First, run this command to fetch the PR comments:
-!{gh pr view {{args}} --comments}
+**IMPORTANT**: Always respond in Japanese regardless of the original language of the PR content.
 
-Analyze the review comments and output a detailed analysis in Japanese with the following structure:
+## Step 1: Parse the Comment URL
 
-### **Review Comment Summary**
-- Summarize the overall trend of comments, key points, and discussion status.
+Extract the comment type and ID from $COMMENT_URL:
+- If URL contains `#issuecomment-{id}` → Issue Comment (comment on PR as a whole)
+- If URL contains `#discussion_r{id}` → Review Comment (comment on code lines)
+- Extract `owner`, `repo`, and `pull_number` from the URL path (format: `https://github.com/{owner}/{repo}/pull/{pull_number}#...`)
 
-### **Key Points of Discussion**
-- Identify and list important points based on the user's instructions.
-- For each point, clarify:
-  - **Author**: The user who commented
-  - **Comment**: Summary of the comment
-  - **Location**: The code section being discussed
-  - **Priority**: (High/Medium/Low)
+## Step 2: Fetch Baseline Data
 
-### **Points of Contention**
-- Identify areas with differing opinions or active debate.
-- For each point, organize and present different views and proposals.
+First, run this command to fetch all PR comments as baseline:
+!{gh pr view <PR_NUMBER> --comments}
+
+## Step 3: Fetch the Target Comment
+
+During the conversation, you will need to execute the appropriate API call based on the parsed URL:
+
+- For Issue Comment:
+  ```bash
+  gh api repos/{owner}/{repo}/issues/comments/{comment_id}
+  ```
+- For Review Comment:
+  ```bash
+  gh api repos/{owner}/{repo}/pulls/comments/{comment_id}
+  ```
+
+Note: These dynamic API calls will require user confirmation during execution (Gemini CLI limitation).
+
+## Step 4: Fetch Thread Context
+
+For Review Comment, fetch full review thread:
+
+```bash
+gh api repos/{owner}/{repo}/pulls/{pull_number}/comments
+```
+
+Filter by `in_reply_to_id` to reconstruct thread containing target comment.
+
+For Issue Comment, target is typically standalone.
+
+## Step 5: Focused Analysis
+
+Analyze primarily based on the **target comment** specified by the URL.
+Use related comments only as supplementary context.
+
+Output a detailed analysis in Japanese using the following structure:
+
+### **Target Comment Details**
+
+- **Author**: Comment author
+- **Posted at**: Timestamp
+- **Location**: Code location (for Review Comment: file path, line number)
+- **Content**: Full comment text
+
+### **Deep Analysis**
+
+Based on $PROMPT, provide in-depth analysis of the target comment:
+
+- Intent and purpose of the comment
+- Detailed issues pointed out
+- Technical background and reasoning
+- Recommended response methods
+
+### **Related Discussion**
+
+- If there are comments in the same thread, summarize the discussion flow
+- Clarify relationship to the target comment
 
 ### **Recommended Actions**
-- Based on the analysis, suggest next steps for PR author and reviewers.
-- (e.g., address specific feedback, provide additional clarification, schedule meeting)
+
+- Specific actions based on the target comment
+- Priority and direction
 
 ### **Additional Notes**
-- Include any other important information to share.
 
-After analysis, ask if the user wants to save the review.
-If yes, save to: /tmp/pr-comment-review-[pr-number].md"""
+- Other important information
+
+## Local Checkout for Detailed Review
+
+When comment context requires deeper code understanding:
+
+1. Check working files with `git status --porcelain`
+2. If working files exist, ask user to choose:
+   - Stash then checkout
+   - Checkout anyway (may lose changes)
+   - Cancel checkout
+3. After approval, run `gh pr checkout <PR#>` (run `git stash` first if stash chosen)
+4. Read local code for detailed analysis"""

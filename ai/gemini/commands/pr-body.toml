@@ -1,27 +1,51 @@
 description = "Generate comprehensive PR body content using gh command for specified PR number"
 prompt = """Generate a comprehensive PR body for {{args}}.
 
-CRITICAL: Run ONLY these commands FIRST:
+CRITICAL: Run these commands FIRST:
 !{gh pr view {{args}} --json number,url,title,body,author,headRefName,baseRefName}
 !{gh pr diff {{args}}}
 
-Create a PR body with:
-## Summary
-Brief overview of changes and motivation
+**IMPORTANT**: Always respond in Japanese regardless of the original language of the PR content.
 
-## Changes
-- Key modifications with bullet points
-- Technical approach taken
+## Instructions
 
-## Testing
-Testing approach and verification steps
+- First, review the existing PR body from the fetched data
+  - If the existing body contains meaningful information (not just template text), preserve and incorporate it
+  - Template-only content (placeholders, empty sections) can be discarded
+- Generate comprehensive PR body content with the following sections:
+  - **Summary**: Comprehensive overview grouped by logical changes
+  - **Files Changed Summary**: File-by-file breakdown with brief descriptions (DO NOT include line counts like +X/-Y)
+  - **Review Focus Points**: Areas requiring special attention during review
+  - **Breaking Changes**: Any breaking changes or migration requirements
+  - **Additional Notes**: Any other relevant information for reviewers
+- Output **raw markdown format** that can be directly copied to PR body
+  - Wrap the PR body output with ``` code blocks
 
-## Screenshots
-If UI changes: before/after comparisons
+## Confirmation Flow
 
-## Checklist
-- [ ] Tests pass
-- [ ] Documentation updated
-- [ ] Breaking changes documented
+After generating the PR body content:
 
-Keep it concise and focused on what reviewers need to know."""
+1. Display the generated body in a code block
+
+2. **Display visual diff** between existing body and new body:
+   - Show section header: "### 既存body → 新bodyの変更差分"
+   - Use `diff` code block format for color-highlighted diff:
+     ```diff
+     - removed line (shown in red)
+     + added line (shown in green)
+       unchanged line
+     ```
+   - If existing body is empty/template-only: display "(既存bodyは空またはテンプレートのみのため、全て新規追加)"
+   - Keep diff concise: for very large changes, summarize with key sections
+
+3. Ask the user: "このPR bodyをPR #{{args}} に反映しますか？"
+   - Options: "はい、反映する" / "いいえ、表示のみ"
+
+4. If user confirms:
+   - Create temporary file with body content (to avoid shell escaping issues)
+   - Execute `gh pr edit {{args}} --body-file <temp-file>` to apply the body
+   - Clean up temporary file after use
+   - Show success message with PR URL
+
+5. If user declines:
+   - End process (user can manually copy the displayed content)"""
