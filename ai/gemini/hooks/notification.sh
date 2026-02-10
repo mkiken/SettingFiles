@@ -37,6 +37,18 @@ format_duration() {
 
 debug_log "=== Gemini Notification Hook Started ==="
 
+# Parse arguments
+EVENT_TYPE="after_agent"
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --event) EVENT_TYPE="$2"; shift ;;
+        *) ;;
+    esac
+    shift
+done
+
+debug_log "Event Type: ${EVENT_TYPE}"
+
 # hookからJSONを読み取り
 hook_input=$(cat)
 debug_log "Hook input received: ${hook_input}"
@@ -46,6 +58,24 @@ if ! command -v jq &> /dev/null; then
     debug_log "Error: jq not found"
     notify '🤖 Gemini CLI終了' 'jqが見つかりません' 'Submarine'
     exit 1
+fi
+
+if [[ "${EVENT_TYPE}" == "before_tool" ]]; then
+    # Extract tool name
+    TOOL_NAME=$(echo "${hook_input}" | jq -r '.tool // "Unknown Tool"')
+    
+    # Optional: Context for shell commands
+    MSG_BODY="Allow execution of ${TOOL_NAME}?"
+    if [[ "${TOOL_NAME}" == "run_shell_command" ]]; then
+        CMD=$(echo "${hook_input}" | jq -r '.args.command // ""')
+        if [[ ${#CMD} -gt 50 ]]; then
+            CMD="${CMD:0:47}..."
+        fi
+        MSG_BODY="Run: ${CMD}"
+    fi
+
+    notify "Action Required ⚠️" "${MSG_BODY}" "Glass"
+    exit 0
 fi
 
 # JSONからtranscript_pathを抽出

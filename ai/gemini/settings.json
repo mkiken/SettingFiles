@@ -104,7 +104,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.gemini/hooks/notification.sh"
+            "command": "~/.gemini/hooks/notification.sh --event after_agent"
+          }
+        ]
+      }
+    ],
+    "BeforeTool": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.gemini/hooks/notification.sh --event before_tool"
           }
         ]
       }
