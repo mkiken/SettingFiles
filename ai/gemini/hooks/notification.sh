@@ -65,16 +65,16 @@ if [[ "${EVENT_TYPE}" == "before_tool" ]]; then
     TOOL_NAME=$(echo "${hook_input}" | jq -r '.tool // "Unknown Tool"')
     
     # Optional: Context for shell commands
-    MSG_BODY="Allow execution of ${TOOL_NAME}?"
+    MSG_BODY="${TOOL_NAME} の実行を許可しますか？"
     if [[ "${TOOL_NAME}" == "run_shell_command" ]]; then
         CMD=$(echo "${hook_input}" | jq -r '.args.command // ""')
         if [[ ${#CMD} -gt 50 ]]; then
             CMD="${CMD:0:47}..."
         fi
-        MSG_BODY="Run: ${CMD}"
+        MSG_BODY="実行: ${CMD}"
     fi
 
-    notify "Action Required ⚠️" "${MSG_BODY}" "Glass"
+    notify "🤖 Gemini CLI: 承認待ち ⚠️" "${MSG_BODY}" "Glass"
     exit 0
 fi
 
