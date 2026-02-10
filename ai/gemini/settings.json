@@ -139,6 +139,17 @@
         ]
       }
     ],
+    "BeforeTool": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.gemini/hooks/gemini-hook.py BeforeTool"
+          }
+        ]
+      }
+    ],
     "SessionEnd": [
       {
         "matcher": "",
