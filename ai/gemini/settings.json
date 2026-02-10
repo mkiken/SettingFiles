@@ -97,5 +97,18 @@
   "output": {
     "format": "text"
   },
+  "hooks": {
+    "AfterAgent": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.gemini/hooks/notification.sh"
+          }
+        ]
+      }
+    ]
+  },
   "_disabledMcpServers": {}
 }
