@@ -110,21 +110,47 @@ if [[ -n "${START_TIME}" && "${START_TIME}" != "null" && -n "${END_TIME}" && "${
     fi
 fi
 
-# タスクの種類を推測
-task_type="💬" # 一般的な質問
-if [[ "${FIRST_MSG}" =~ (実装|コード|プログラム|関数|バグ|修正|追加|作成) ]]; then
-    task_type="💻" # コーディング
-elif [[ "${FIRST_MSG}" =~ (検索|調べ|探し|find|grep|確認) ]]; then
-    task_type="🔍" # 検索・調査
-elif [[ "${FIRST_MSG}" =~ (説明|教え|解説|どう|なぜ|what|how) ]]; then
-    task_type="📚" # 説明・学習
-elif [[ "${FIRST_MSG}" =~ (テスト|test|チェック|確認) ]]; then
-    task_type="🧪" # テスト・検証
-fi
-
 # 概要を作成
 summary=""
 if [[ ${USER_COUNT} -gt 0 ]]; then
+    # コマンド展開されたプロンプト（"# /"で始まるもの）の汎用的な処理
+    # 例: "# /sg:design - ..." のようなヘッダーで始まり、末尾にユーザー入力がある場合
+    if echo "${FIRST_MSG}" | grep -q "^[[:space:]]*# /"; then
+        # ヘッダーからコマンド名（例: /sg:design）を抽出
+        cmd_name=$(echo "${FIRST_MSG}" | grep "^[[:space:]]*# /" | head -n 1 | awk '{print $2}')
+        
+        # 最後の空行以外の行を抽出（ユーザー入力と仮定）
+        last_line=$(echo "${FIRST_MSG}" | grep -v "^[[:space:]]*$" | tail -n 1)
+        
+        # last_lineが取得でき、かつヘッダー行そのものでない場合
+        if [[ -n "${last_line}" && "${last_line}" != *"# /"* ]]; then
+             # ユーザー入力行にコマンド名が含まれていればそのまま、なければ付与
+             if [[ "${last_line}" == *"${cmd_name}"* ]]; then
+                 FIRST_MSG="${last_line}"
+             else
+                 FIRST_MSG="${cmd_name} ${last_line}"
+             fi
+        fi
+    fi
+
+    # タスクの種類を推測
+    task_type="💬" # 一般的な質問
+    if [[ "${FIRST_MSG}" == *"/sg:design"* ]]; then
+        task_type="🎨" # Design
+    elif [[ "${FIRST_MSG}" == *"/sg:analyze"* ]]; then
+        task_type="📊" # Analyze
+    elif [[ "${FIRST_MSG}" == *"/sg:"* ]]; then
+        task_type="⚡" # Generic SuperGemini
+    elif [[ "${FIRST_MSG}" =~ (実装|コード|プログラム|関数|バグ|修正|追加|作成) ]]; then
+        task_type="💻" # コーディング
+    elif [[ "${FIRST_MSG}" =~ (検索|調べ|探し|find|grep|確認) ]]; then
+        task_type="🔍" # 検索・調査
+    elif [[ "${FIRST_MSG}" =~ (説明|教え|解説|どう|なぜ|what|how) ]]; then
+        task_type="📚" # 説明・学習
+    elif [[ "${FIRST_MSG}" =~ (テスト|test|チェック|確認) ]]; then
+        task_type="🧪" # テスト・検証
+    fi
+
     # サフィックス（統計情報）を作成
     if [[ -n "${session_duration_formatted}" ]]; then
         suffix=" [x${USER_COUNT}(${session_duration_formatted})]"
