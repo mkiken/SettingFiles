@@ -98,6 +98,21 @@
     "format": "text"
   },
   "hooks": {
+    "Notification": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.gemini/hooks/notification.sh --event notification"
+          },
+          {
+            "type": "command",
+            "command": "python3 ~/.gemini/hooks/gemini-hook.py notification"
+          }
+        ]
+      }
+    ],
     "AfterAgent": [
       {
         "matcher": "",
@@ -109,21 +124,6 @@
           {
             "type": "command",
             "command": "python3 ~/.gemini/hooks/gemini-hook.py after_agent"
-          }
-        ]
-      }
-    ],
-    "BeforeTool": [
-      {
-        "matcher": ".*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.gemini/hooks/notification.sh --event before_tool"
-          },
-          {
-            "type": "command",
-            "command": "python3 ~/.gemini/hooks/gemini-hook.py before_tool"
           }
         ]
       }
