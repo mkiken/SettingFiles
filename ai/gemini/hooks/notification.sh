@@ -189,10 +189,25 @@ if [[ "${EVENT_TYPE}" == "notification" ]]; then
     NOTIFICATION_TYPE=$(echo "${hook_input}" | jq -r '.notification_type // ""')
 
     if [[ "${NOTIFICATION_TYPE}" == "ToolPermission" ]]; then
-        TOOL_NAME=$(echo "${hook_input}" | jq -r '.details.tool_name // .details.rootCommand // ""')
+        ACTION_DETAIL=$(echo "${hook_input}" | jq -r '
+            .details |
+            if (.type == "exec") then 
+                if (.rootCommand != null and .rootCommand != "") then ("Shell (" + .rootCommand + ")")
+                elif (.command != null and .command != "") then ("Shell (" + (.command | split(" ")[0]) + ")")
+                else "Shell" end
+            elif (.type == "edit") then
+                if (.fileName != null and .fileName != "") then ("Edit (" + .fileName + ")")
+                else "Edit" end
+            elif (.tool_name != null and .tool_name != "") then
+                 if (.rootCommand != null and .rootCommand != "") then (.tool_name + " (" + .rootCommand + ")")
+                 else .tool_name end
+            elif (.rootCommand != null and .rootCommand != "") then .rootCommand
+            elif (.title != null and .title != "") then .title
+            else "" end
+        ')
 
-        if [[ -n "${TOOL_NAME}" ]]; then
-            MSG_BODY="ユーザーの承認が必要です: ${TOOL_NAME}"
+        if [[ -n "${ACTION_DETAIL}" ]]; then
+            MSG_BODY="ユーザーの承認が必要です: ${ACTION_DETAIL}"
         else
             MSG_BODY="ユーザーの承認が必要です"
         fi
