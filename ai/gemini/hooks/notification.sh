@@ -187,17 +187,17 @@ fi
 
 if [[ "${EVENT_TYPE}" == "notification" ]]; then
     NOTIFICATION_TYPE=$(echo "${hook_input}" | jq -r '.notification_type // ""')
-    
+
     if [[ "${NOTIFICATION_TYPE}" == "ToolPermission" ]]; then
         MSG_BODY="ユーザーの承認が必要です"
-        
+
         # 要約を追記
         if [[ "${summary}" != "💭 メッセージなし" ]]; then
             MSG_BODY="${MSG_BODY}"$'\n'"${summary}"
         fi
 
         current_time=$(date "+%H:%M:%S")
-        notify "🤖 Gemini CLI: 承認待ち ⚠️ at 🕰️${current_time}" "${MSG_BODY}" "Glass"
+        notify "🤖 Gemini CLI承認待ち at 🕰️${current_time}" "${MSG_BODY}" "Glass"
     else
         debug_log "Ignoring notification type: ${NOTIFICATION_TYPE}"
     fi
