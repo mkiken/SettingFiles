@@ -1,9 +1,21 @@
 {
   "tools": {
     "autoAccept": false,
-    "exclude": [
-      "dangerous_tool"
+    "allowed": [
+      "run_shell_command(cat)",
+      "run_shell_command(gh pr checks)",
+      "run_shell_command(gh pr diff)",
+      "run_shell_command(gh pr list)",
+      "run_shell_command(gh pr view)",
+      "run_shell_command(git diff)",
+      "run_shell_command(git log)",
+      "run_shell_command(git show)",
+      "run_shell_command(git status)",
+      "run_shell_command(grep)",
+      "run_shell_command(head)",
+      "run_shell_command(tail)"
     ],
+    "exclude": ["dangerous_tool"],
     "sandbox": false,
     "shell": {
       "showColor": true
@@ -50,10 +62,7 @@
   "mcpServers": {
     "sequential-thinking": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
-      ]
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
     },
     "serena": {
       "command": "/usr/local/bin/uvx",
@@ -68,30 +77,19 @@
     },
     "gitmcp": {
       "command": "npx",
-      "args": [
-        "mcp-remote",
-        "https://gitmcp.io/docs"
-      ]
+      "args": ["mcp-remote", "https://gitmcp.io/docs"]
     },
     "context7": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@upstash/context7-mcp@latest"
-      ]
+      "args": ["-y", "@upstash/context7-mcp@latest"]
     },
     "playwright": {
       "command": "npx",
-      "args": [
-        "@playwright/mcp@latest"
-      ]
+      "args": ["@playwright/mcp@latest"]
     },
     "superagent": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@superclaude-org/superagent"
-      ]
+      "args": ["-y", "@superclaude-org/superagent"]
     }
   },
   "output": {
