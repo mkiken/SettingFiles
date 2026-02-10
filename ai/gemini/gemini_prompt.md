@@ -2,6 +2,15 @@
 
 Always respond in Japanese.
 
+# Thinking Process
+
+Show your thinking process, not just the final result.
+Explain your reasoning step by step so the user can understand how you arrived at the conclusion.
+
+# Plan Mode
+
+When in Plan mode, always output plans in Japanese.
+
 # ═══════════════════════════════════════════════════
 
 # SuperGemini Framework Components
