@@ -110,5 +110,8 @@
       }
     ]
   },
-  "_disabledMcpServers": {}
+  "_disabledMcpServers": {},
+  "experimental": {
+    "plan": true
+  }
 }
