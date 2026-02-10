@@ -169,6 +169,15 @@ fi
 if [[ "${EVENT_TYPE}" == "before_tool" ]]; then
     # Extract tool name (fixed key)
     TOOL_NAME=$(echo "${hook_input}" | jq -r '.tool_name // "Unknown Tool"')
+    
+    # 読み取り系や探索系のツールは承認待ち通知から除外する
+    # settings.json で allow リストに入っているため、実際にはプロンプトが出ないもの
+    case "${TOOL_NAME}" in
+        read_file|search_file_content|list_directory|glob|get_symbols_overview|find_symbol)
+            debug_log "Skipping notification for safe tool: ${TOOL_NAME}"
+            exit 0
+            ;;
+    esac
 
     MSG_BODY="${TOOL_NAME} の実行を許可しますか？"
     if [[ "${TOOL_NAME}" == "run_shell_command" ]]; then
@@ -179,12 +188,13 @@ if [[ "${EVENT_TYPE}" == "before_tool" ]]; then
         MSG_BODY="実行: ${CMD}"
     fi
 
-    # 要約を追記 (改行を入れる)
+    # 要約を追記 (改行を入れる: zsh/bash互換の $'\n' を使用)
     if [[ "${summary}" != "💭 メッセージなし" ]]; then
-        MSG_BODY="${MSG_BODY}\n${summary}"
+        MSG_BODY="${MSG_BODY}"$'\n'"${summary}"
     fi
 
-    notify "🤖 Gemini CLI: 承認待ち ⚠️" "${MSG_BODY}" "Glass"
+    current_time=$(date "+%H:%M:%S")
+    notify "🤖 Gemini CLI: 承認待ち ⚠️ at 🕰️${current_time}" "${MSG_BODY}" "Glass"
     exit 0
 fi
 
