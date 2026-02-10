@@ -189,12 +189,20 @@ if [[ "${EVENT_TYPE}" == "notification" ]]; then
     NOTIFICATION_TYPE=$(echo "${hook_input}" | jq -r '.notification_type // ""')
 
     if [[ "${NOTIFICATION_TYPE}" == "ToolPermission" ]]; then
-        MSG_BODY="ユーザーの承認が必要です"
+        TOOL_NAME=$(echo "${hook_input}" | jq -r '.details.tool_name // .details.rootCommand // ""')
+
+        if [[ -n "${TOOL_NAME}" ]]; then
+            MSG_BODY="ユーザーの承認が必要です: ${TOOL_NAME}"
+        else
+            MSG_BODY="ユーザーの承認が必要です"
+        fi
 
         # 要約を追記
         if [[ "${summary}" != "💭 メッセージなし" ]]; then
             MSG_BODY="${MSG_BODY}"$'\n'"${summary}"
         fi
+
+        debug_log "Sending ToolPermission notification: ${MSG_BODY}"
 
         current_time=$(date "+%H:%M:%S")
         notify "🤖 Gemini CLI承認待ち at 🕰️${current_time}" "${MSG_BODY}" "Glass"
