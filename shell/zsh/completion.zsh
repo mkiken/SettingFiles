@@ -7,7 +7,8 @@
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 
 #from http://qiita.com/items/ed2d36698a5cc314557d
-zstyle ':completion:*:default' menu select=2
+# fzf-tabを使用する場合はmenu noが推奨されるため、ここはコメントアウトしておく
+# zstyle ':completion:*:default' menu select=2
 zstyle ':completion:*' verbose yes
 # zstyle ':completion:*' completer _expand _complete _match _prefix _approximate _list _history
 zstyle ':completion:*:messages' format '%F{YELLOW}%d'$DEFAULT
@@ -15,6 +16,7 @@ zstyle ':completion:*:warnings' format '%F{RED}No matches for:''%F{YELLOW} %d'$D
 zstyle ':completion:*:descriptions' format '%F{YELLOW}completing %B%d%b'$DEFAULT
 zstyle ':completion:*:options' description 'yes'
 zstyle ':completion:*:descriptions' format '%F{yellow}Completing %B%d%b%f'$DEFAULT
+zstyle ':completion:*:corrections' format ' %F{green}-- %d (errors: %e) --%f'
 
 # マッチ種別を別々に表示
 zstyle ':completion:*' group-name ''
@@ -24,8 +26,18 @@ zstyle ':completion:*' list-separator '-->'
 zstyle ':completion:*:manuals' separate-sections true
 
 # 補完機能で大文字小文字を区別しないよう(case insensitive)にする
+# 1. 大文字小文字を区別しない
+# 2. 途中の文字でもマッチさせる (partial word)
+# 3. 曖昧マッチ (fuzzy)
 #http://nukesaq88.hatenablog.com/entry/2013/04/18/183335
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+zstyle ':completion:*' matcher-list \
+    'm:{a-zA-Z}={A-Za-z}' \
+    'r:|[._-]=* r:|=*' \
+    'l:|=* r:|=*'
+
+# キャッシュを有効化
+zstyle ':completion:*' use-cache yes
+zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/compcache"
 
 # manの補完をセクション番号別に表示させる
 zstyle ':completion:*:manuals' separate-sections true
@@ -35,6 +47,7 @@ zstyle ':completion:*:*:-subscript-:*' tag-order indexes parameters
 
 # http://qiita.com/mollifier/items/33bda290fe3c0ae7b3bb
 zstyle ':completion:*:processes' command "ps -u $USER -o pid,stat,%cpu,%mem,cputime,command"
+zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
 
 #cdは親ディレクトリからカレントディレクトリを選択しないので表示させないようにする (例: cd ../<TAB>):
 #zstyle ':completion:*:cd:*' ignore-parents parent pwd
