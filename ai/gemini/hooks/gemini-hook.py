@@ -14,7 +14,10 @@ class HookStatus(Enum):
 
     @classmethod
     def get_emoji_pattern(cls) -> str:
-        return "".join(status.value for status in cls)
+        return "".join(status.value for status in cls) + "✨✴️"
+
+
+IDENTIFIER = "✨"
 
 
 def main():
@@ -71,7 +74,7 @@ def update_tmux_window_name(status: HookStatus):
         )
         current_name = result.stdout.strip()
 
-        emoji = status.value
+        emoji = f"{IDENTIFIER}{status.value}"
         # 既存の絵文字を置き換え（または追加）
         emoji_pattern = HookStatus.get_emoji_pattern()
         new_name = re.sub(rf"^[{emoji_pattern}]*", f"{emoji}", current_name)
