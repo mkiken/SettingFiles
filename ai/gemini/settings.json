@@ -127,6 +127,28 @@
           }
         ]
       }
+    ],
+    "BeforeAgent": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.gemini/hooks/gemini-hook.py BeforeAgent"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.gemini/hooks/gemini-hook.py SessionEnd"
+          }
+        ]
+      }
     ]
   },
   "_disabledMcpServers": {},

@@ -35,12 +35,14 @@ def main():
     if event_name == "notification":
         if data.get("notification_type") == "ToolPermission":
             update_tmux_window_name(HookStatus.NOTIFICATION)
-    elif event_name == "after_agent":
+    elif event_name in ["after_agent", "AfterAgent"]:
         update_tmux_window_name(HookStatus.COMPLETED)
-    elif event_name == "user_prompt":
+    elif event_name in ["user_prompt", "BeforeAgent", "before_agent"]:
         update_tmux_window_name(HookStatus.ONGOING)
-    elif event_name == "post_tool":
+    elif event_name in ["post_tool", "AfterTool", "after_tool"]:
         update_tmux_window_name(HookStatus.ONGOING)
+    elif event_name in ["SessionEnd", "session_end"]:
+        remove_tmux_window_icon()
 
 
 def update_tmux_window_name(status: HookStatus):
