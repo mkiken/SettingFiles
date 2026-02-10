@@ -25,15 +25,16 @@ def main():
     event_name = sys.argv[1]
 
     # 標準入力からJSONを読み込む（必要に応じて）
+    data = {}
     try:
-        # 読み込みだけしてエラーチェック（内容は今のところ使わないかも）
         if not sys.stdin.isatty():
-             json.load(sys.stdin)
+             data = json.load(sys.stdin)
     except Exception:
         pass
 
-    if event_name == "before_tool":
-        update_tmux_window_name(HookStatus.NOTIFICATION)
+    if event_name == "notification":
+        if data.get("notification_type") == "ToolPermission":
+            update_tmux_window_name(HookStatus.NOTIFICATION)
     elif event_name == "after_agent":
         update_tmux_window_name(HookStatus.COMPLETED)
     elif event_name == "user_prompt":
