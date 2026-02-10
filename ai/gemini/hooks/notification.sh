@@ -108,13 +108,19 @@ if [[ -n "${transcript_path}" && "${transcript_path}" != "null" && -f "${transcr
     if [[ ${USER_COUNT} -gt 0 ]]; then
         # コマンド展開プロンプトの処理
         if echo "${FIRST_MSG}" | grep -q "^[[:space:]]*# /"; then
-            cmd_name=$(echo "${FIRST_MSG}" | grep "^[[:space:]]*# /" | head -n 1 | awk '{print $2}')
+            cmd_name=$(echo "${FIRST_MSG}" | grep "^[[:space:]]*# /" | head -n 1 | sed 's/^[[:space:]]*#[[:space:]]*//')
             last_line=$(echo "${FIRST_MSG}" | grep -v "^[[:space:]]*$" | tail -n 1)
             if [[ -n "${last_line}" && "${last_line}" != *"# /"* ]]; then
                  if [[ "${last_line}" == *"${cmd_name}"* ]]; then
                      FIRST_MSG="${last_line}"
                  else
-                     FIRST_MSG="${cmd_name} ${last_line}"
+                     # コマンドに行内引数が含まれている場合（スペースがある場合）は、
+                     # プロンプト末尾のテキスト（last_line）を結合せず、コマンド行を優先する
+                     if [[ "${cmd_name}" =~ [[:space:]] ]]; then
+                         FIRST_MSG="${cmd_name}"
+                     else
+                         FIRST_MSG="${cmd_name} ${last_line}"
+                     fi
                  fi
             fi
         fi
