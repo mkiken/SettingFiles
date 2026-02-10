@@ -30,6 +30,9 @@ if [ -z "$IS_WARP" ]; then
 fi
 export IS_WARP
 
+# Zshのフック機能を有効化
+autoload -U add-zsh-hook
+
 if [[ -z "$TMUX" ]] && ! $IS_IDE && ! $IS_WARP; then
   tmux new-session -A -s tmux
   return
@@ -121,8 +124,12 @@ else
 fi
 
 
-# http://qiita.com/yuyuchu3333/items/b10542db482c3ac8b059
-function chpwd() { pwd;ls_abbrev }
+# ディレクトリ移動時に自動で ls を実行する設定
+function _chpwd_ls_abbrev() {
+    pwd
+    ls_abbrev
+}
+add-zsh-hook chpwd _chpwd_ls_abbrev
 
 function ls_abbrev() {
     [[ ! -r $PWD ]] && return 0
@@ -342,7 +349,6 @@ if [[ -s "$NVM_DIR/nvm.sh" ]]; then
   }
 
   # chpwd_functionsに登録
-  autoload -U add-zsh-hook
   add-zsh-hook chpwd load-nvmrc
 
   # 初回読み込み時にも実行
