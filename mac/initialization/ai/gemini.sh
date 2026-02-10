@@ -39,8 +39,9 @@ else
     smart_copy "${Repo}ai/gemini/settings.json" ~/.gemini/settings.json
 fi
 
-# commandsはディレクトリ内のファイルをコピー
-for item in commands; do
+# commands,hooksはディレクトリ内のファイルをコピー
+for item in commands hooks; do
+  mkdir -p ~/.gemini/${item}
   for file in "${Repo}ai/gemini/${item}"/*; do
     if [[ -f "$file" ]]; then
       make_symlink "$file" ~/.gemini/${item}/$(basename "$file")
@@ -49,6 +50,8 @@ for item in commands; do
     fi
   done
 done
+
+chmod +x ~/.gemini/hooks/notification.sh
 
 echo "Installing Gemini tools..."
 
