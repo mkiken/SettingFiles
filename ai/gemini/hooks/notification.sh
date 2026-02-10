@@ -125,15 +125,28 @@ if [[ -n "${transcript_path}" && "${transcript_path}" != "null" && -f "${transcr
             fi
         fi
 
-        # タスク種別推測
+        # タスク種別推測とメッセージ整形
         task_type="💬"
-        if [[ "${FIRST_MSG}" == *"/sg:design"* ]]; then task_type="🎨"
-        elif [[ "${FIRST_MSG}" == *"/sg:analyze"* ]]; then task_type="📊"
-        elif [[ "${FIRST_MSG}" == *"/sg:"* ]]; then task_type="⚡"
+        msg_source="${FIRST_MSG}"
+
+        if [[ "${FIRST_MSG}" == *"/sg:design"* ]]; then
+            task_type="🎨"
+            msg_source=$(echo "${FIRST_MSG}" | sed -E 's|.*\/sg:design[[:space:]]*||')
+        elif [[ "${FIRST_MSG}" == *"/sg:analyze"* ]]; then
+            task_type="📊"
+            msg_source=$(echo "${FIRST_MSG}" | sed -E 's|.*\/sg:analyze[[:space:]]*||')
+        elif [[ "${FIRST_MSG}" == *"/sg:"* ]]; then
+            task_type="⚡"
+            msg_source=$(echo "${FIRST_MSG}" | sed -E 's|.*\/sg:[^[:space:]]+[[:space:]]*||')
         elif [[ "${FIRST_MSG}" =~ (実装|コード|プログラム|関数|バグ|修正|追加|作成) ]]; then task_type="💻"
         elif [[ "${FIRST_MSG}" =~ (検索|調べ|探し|find|grep|確認) ]]; then task_type="🔍"
         elif [[ "${FIRST_MSG}" =~ (説明|教え|解説|どう|なぜ|what|how) ]]; then task_type="📚"
         elif [[ "${FIRST_MSG}" =~ (テスト|test|チェック|確認) ]]; then task_type="🧪"
+        fi
+
+        # メッセージが空の場合のフォールバック
+        if [[ -z "${msg_source// }" ]]; then
+             msg_source="${FIRST_MSG}"
         fi
 
         # サフィックス
@@ -143,7 +156,7 @@ if [[ -n "${transcript_path}" && "${transcript_path}" != "null" && -f "${transcr
             suffix=" [x${USER_COUNT}]"
         fi
 
-        clean_msg=$(echo "${FIRST_MSG}" | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
+        clean_msg=$(echo "${msg_source}" | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
         summary="${task_type} ${clean_msg}${suffix}"
 
         # 長さ制限
