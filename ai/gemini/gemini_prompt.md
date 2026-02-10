@@ -1,8 +1,15 @@
+# Language
+
+Always respond in Japanese.
+
 # ═══════════════════════════════════════════════════
+
 # SuperGemini Framework Components
+
 # ═══════════════════════════════════════════════════
 
 # Core Framework
+
 @BUSINESS_PANEL_EXAMPLES.md
 @BUSINESS_SYMBOLS.md
 @FLAGS.md
@@ -11,6 +18,7 @@
 @RULES.md
 
 # Behavioral Modes
+
 @MODE_Brainstorming.md
 @MODE_Introspection.md
 @MODE_Task_Management.md
