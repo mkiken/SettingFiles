@@ -695,15 +695,15 @@ function _filter_workmux_worktree() {
   selected=$(echo "$worktrees" | filter \
     --header "worktreeを選択" \
     --prompt "worktree> " \
-    --preview 'echo {} | awk "{print \$4}" | xargs -I{} git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"'
+    --preview 'echo {} | awk "{print \$5}" | xargs -I{} git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"'
   )
 
   if [[ -z "$selected" ]]; then
     return $EXIT_CODE_SIGINT
   fi
 
-  # PATH列（4番目）からディレクトリ名を抽出
-  echo "$selected" | awk '{print $4}' | xargs basename
+  # PATH列（5番目）からディレクトリ名を抽出
+  echo "$selected" | awk '{print $5}' | xargs basename
 }
 
 # workmux listからworktreeのフルパスをfilterで選択する内部関数
@@ -721,15 +721,15 @@ function _filter_workmux_worktree_path() {
   selected=$(echo "$worktrees" | filter \
     --header "worktreeを選択" \
     --prompt "worktree> " \
-    --preview 'echo {} | awk "{print \$4}" | xargs -I{} git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"'
+    --preview 'echo {} | awk "{print \$5}" | xargs -I{} git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"'
   )
 
   if [[ -z "$selected" ]]; then
     return $EXIT_CODE_SIGINT
   fi
 
-  # PATH列（4番目）からフルパスを抽出
-  echo "$selected" | awk '{print $4}'
+  # PATH列（5番目）からフルパスを抽出
+  echo "$selected" | awk '{print $5}'
 }
 
 # filterでworktreeを選択して現在のpaneでcdする
