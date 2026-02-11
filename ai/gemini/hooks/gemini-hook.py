@@ -14,7 +14,7 @@ class HookStatus(Enum):
 
     @classmethod
     def get_emoji_pattern(cls) -> str:
-        return "".join(status.value for status in cls) + "✨✴️"
+        return "".join(status.value for status in cls) + "✨✴️" # Claude Codeで✴️を使っているため追加している
 
 
 IDENTIFIER = "✨"
@@ -24,7 +24,7 @@ def main():
     # 引数からイベント名を取得
     if len(sys.argv) < 2:
         return
-    
+
     event_name = sys.argv[1]
 
     # 標準入力からJSONを読み込む（必要に応じて）
