@@ -132,7 +132,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ~/.gemini/hooks/gemini-hook.py before_agent"
+            "command": "python3 ~/.gemini/hooks/gemini-hook.py BeforeAgent"
           }
         ]
       }
@@ -143,7 +143,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ~/.gemini/hooks/gemini-hook.py before_tool"
+            "command": "python3 ~/.gemini/hooks/gemini-hook.py BeforeTool"
           }
         ]
       }
@@ -154,7 +154,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ~/.gemini/hooks/gemini-hook.py session_end"
+            "command": "python3 ~/.gemini/hooks/gemini-hook.py SessionEnd"
           }
         ]
       }
