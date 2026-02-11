@@ -70,48 +70,8 @@ if [[ ! -f "${transcript_path}" ]]; then
     exit 0
 fi
 
-# イベントタイプによる分岐
-if [[ "${hook_event_name}" == "Notification" ]]; then
-    debug_log "Handling Notification event"
-
-    # notification_typeを抽出
-    notification_type=$(echo "${hook_input}" | jq -r '.notification_type')
-    debug_log "Notification type: ${notification_type}"
-
-    # permission_promptまたはelicitation_dialogの場合のみ通知
-    if [[ "${notification_type}" == "permission_prompt" || "${notification_type}" == "elicitation_dialog" ]]; then
-        # messageを抽出
-        message=$(echo "${hook_input}" | jq -r '.message // empty')
-        debug_log "Permission message: ${message}"
-
-        # 簡易的に最初のユーザーメッセージを取得（軽量版: 最初のuser roleメッセージのみ）
-        first_user_msg=$(grep '"role":"user"' "${transcript_path}" 2>/dev/null | head -1 | jq -r '.message.content | if type == "string" then . else (map(select(.type == "text") | .text) | join(" ")) end' 2>/dev/null | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
-
-        # 現在時刻を取得
-        current_time=$(date "+%H:%M:%S")
-
-        # 通知本文を作成
-        notification_body="ユーザーの承認が必要です: ${message}"
-        if [[ -n "${first_user_msg}" ]]; then
-            # 80文字に制限
-            if [[ ${#first_user_msg} -gt 80 ]]; then
-                first_user_msg="${first_user_msg:0:77}..."
-            fi
-            notification_body="${notification_body}\n${first_user_msg}"
-        fi
-
-        debug_log "Sending approval notification: ${notification_body}"
-        notify "⚠️ Claude Code承認待ち at 🕰️${current_time}" "${notification_body}" "Glass"
-        exit 0
-    else
-        # その他のNotificationタイプは通知なし
-        debug_log "Notification type ${notification_type} does not require notification, exiting"
-        exit 0
-    fi
-fi
-
-# Stopイベント: 既存の処理を継続
-debug_log "Handling Stop event, processing messages..."
+# 共通処理: トランスクリプト解析と要約生成
+debug_log "Processing transcript for summary generation..."
 
 # 会話の概要を生成
 summary=""
@@ -329,19 +289,37 @@ else
     summary="💭 セッションが開始されましたが、メッセージはありませんでした"
 fi
 
-# 通知を送信
-# 通知タイトルの設定
+# --- イベント別通知 ---
+if [[ "${hook_event_name}" == "Notification" ]]; then
+    notification_type=$(echo "${hook_input}" | jq -r '.notification_type')
+
+    if [[ "${notification_type}" == "permission_prompt" || "${notification_type}" == "elicitation_dialog" ]]; then
+        message=$(echo "${hook_input}" | jq -r '.message // empty')
+        current_time=$(date "+%H:%M:%S")
+
+        notification_body="ユーザーの承認が必要です: ${message}"
+        # 共通処理で生成された整形済みsummaryを追記
+        if [[ -n "${summary}" && "${summary}" != "💭 セッションが開始されましたが、メッセージはありませんでした" ]]; then
+            notification_body="${notification_body}"$'\n'"${summary}"
+        fi
+
+        debug_log "Sending approval notification: ${notification_body}"
+        notify "⚠️ Claude Code承認待ち at 🕰️${current_time}" "${notification_body}" "Glass"
+    else
+        debug_log "Notification type ${notification_type} does not require notification, exiting"
+    fi
+    exit 0
+fi
+
+# Stopイベント: 終了通知
 if [[ -n "${completion_time}" ]]; then
     notification_title="🤖 Claude Code終了 at ${completion_time}"
 else
-    # completion_timeが取得できない場合は現在時刻を使用
     current_time=$(date "+%H:%M:%S")
     notification_title="🤖 Claude Code終了 at 🕰️${current_time}"
 fi
 
-debug_log "Sending notification: title='${notification_title}', message='${summary}'"
-
-# notify関数を呼び出し
+debug_log "Sending stop notification: title='${notification_title}', message='${summary}'"
 notify "${notification_title}" "${summary}" "Submarine"
 
 debug_log "=== Claude Notification Hook Completed ==="
