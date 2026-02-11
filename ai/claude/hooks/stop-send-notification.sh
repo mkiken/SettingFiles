@@ -37,7 +37,7 @@ format_duration() {
     fi
 }
 
-debug_log "=== Claude Stop Hook Started ==="
+debug_log "=== Claude Notification Hook Started ==="
 debug_log "Environment __CFBundleIdentifier='${__CFBundleIdentifier}'"
 
 # hookからJSONを読み取り
@@ -50,8 +50,10 @@ if ! command -v jq &> /dev/null; then
     exit 1
 fi
 
-# JSONからtranscript_pathを抽出
+# JSONからhook_event_nameとtranscript_pathを抽出
+hook_event_name=$(echo "${hook_input}" | jq -r '.hook_event_name')
 transcript_path=$(echo "${hook_input}" | jq -r '.transcript_path')
+debug_log "Hook event: ${hook_event_name}"
 debug_log "Transcript path extracted: ${transcript_path}"
 
 # transcript_pathが取得できているかチェック
@@ -68,7 +70,48 @@ if [[ ! -f "${transcript_path}" ]]; then
     exit 0
 fi
 
-debug_log "Transcript file found, processing messages..."
+# イベントタイプによる分岐
+if [[ "${hook_event_name}" == "Notification" ]]; then
+    debug_log "Handling Notification event"
+
+    # notification_typeを抽出
+    notification_type=$(echo "${hook_input}" | jq -r '.notification_type')
+    debug_log "Notification type: ${notification_type}"
+
+    # permission_promptまたはelicitation_dialogの場合のみ通知
+    if [[ "${notification_type}" == "permission_prompt" || "${notification_type}" == "elicitation_dialog" ]]; then
+        # messageを抽出
+        message=$(echo "${hook_input}" | jq -r '.message // empty')
+        debug_log "Permission message: ${message}"
+
+        # 簡易的に最初のユーザーメッセージを取得（軽量版: 最初のuser roleメッセージのみ）
+        first_user_msg=$(grep '"role":"user"' "${transcript_path}" 2>/dev/null | head -1 | jq -r '.message.content | if type == "string" then . else (map(select(.type == "text") | .text) | join(" ")) end' 2>/dev/null | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
+
+        # 現在時刻を取得
+        current_time=$(date "+%H:%M:%S")
+
+        # 通知本文を作成
+        notification_body="ユーザーの承認が必要です: ${message}"
+        if [[ -n "${first_user_msg}" ]]; then
+            # 80文字に制限
+            if [[ ${#first_user_msg} -gt 80 ]]; then
+                first_user_msg="${first_user_msg:0:77}..."
+            fi
+            notification_body="${notification_body}\n${first_user_msg}"
+        fi
+
+        debug_log "Sending approval notification: ${notification_body}"
+        notify "⚠️ Claude Code承認待ち at 🕰️${current_time}" "${notification_body}" "Glass"
+        exit 0
+    else
+        # その他のNotificationタイプは通知なし
+        debug_log "Notification type ${notification_type} does not require notification, exiting"
+        exit 0
+    fi
+fi
+
+# Stopイベント: 既存の処理を継続
+debug_log "Handling Stop event, processing messages..."
 
 # 会話の概要を生成
 summary=""
@@ -301,4 +344,4 @@ debug_log "Sending notification: title='${notification_title}', message='${summa
 # notify関数を呼び出し
 notify "${notification_title}" "${summary}" "Submarine"
 
-debug_log "=== Claude Stop Hook Completed ==="
+debug_log "=== Claude Notification Hook Completed ==="
