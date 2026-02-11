@@ -106,50 +106,19 @@ if [[ -n "${transcript_path}" && "${transcript_path}" != "null" && -f "${transcr
 
     # 要約テキスト生成
     if [[ ${USER_COUNT} -gt 0 ]]; then
-        # コマンド展開プロンプトの処理
-        if echo "${FIRST_MSG}" | grep -q "^[[:space:]]*# /"; then
-            cmd_name=$(echo "${FIRST_MSG}" | grep "^[[:space:]]*# /" | head -n 1 | sed 's/^[[:space:]]*#[[:space:]]*//')
-            last_line=$(echo "${FIRST_MSG}" | grep -v "^[[:space:]]*$" | tail -n 1)
-            if [[ -n "${last_line}" && "${last_line}" != *"# /"* ]]; then
-                 if [[ "${last_line}" == *"${cmd_name}"* ]]; then
-                     FIRST_MSG="${last_line}"
-                 else
-                     # コマンドに行内引数が含まれている場合（スペースがある場合）は、
-                     # プロンプト末尾のテキスト（last_line）を結合せず、コマンド行を優先する
-                     if [[ "${cmd_name}" =~ [[:space:]] ]]; then
-                         FIRST_MSG="${cmd_name}"
-                     else
-                         FIRST_MSG="${cmd_name} ${last_line}"
-                     fi
-                 fi
-            fi
-        fi
+        # コマンド履歴っぽく見せる処理（コメントアウトされたコマンド部分の除去など）
+        # 簡易的に、先頭の # /command ... を除去したりする
+        FIRST_MSG=$(echo "${FIRST_MSG}" | sed 's/^[[:space:]]*#[[:space:]]*//')
 
-        # タスク種別推測とメッセージ整形
+        # タスク種別推測
         task_type="💬"
-        msg_source="${FIRST_MSG}"
 
-        # スラッシュコマンド ("/..." または "# /...") の場合
-        # コマンド実行を表すアイコンとして ⚡ を採用
-        if [[ "${FIRST_MSG}" =~ (\/([a-zA-Z0-9_:-]+)) ]]; then
-            task_type="⚡"
-            full_cmd="${BASH_REMATCH[1]}" # e.g. /sg:design
-
-            # 元のsgロジック同様、コマンド部分(およびそれ以前)を除去して本文を抽出
-            # .* はgreedyなので、最後のコマンド出現以降が残る
-            msg_content=$(echo "${FIRST_MSG}" | sed -E "s|.*${full_cmd}[[:space:]]*||")
-
-            # コマンド名を先頭に付与
-            msg_source="${full_cmd} ${msg_content}"
+        # キーワードによるアイコンの出し分け
+        if [[ "${FIRST_MSG}" =~ ^\/ ]]; then task_type="⚡" # スラッシュコマンド
         elif [[ "${FIRST_MSG}" =~ (実装|コード|プログラム|関数|バグ|修正|追加|作成) ]]; then task_type="💻"
         elif [[ "${FIRST_MSG}" =~ (検索|調べ|探し|find|grep|確認) ]]; then task_type="🔍"
         elif [[ "${FIRST_MSG}" =~ (説明|教え|解説|どう|なぜ|what|how) ]]; then task_type="📚"
         elif [[ "${FIRST_MSG}" =~ (テスト|test|チェック|確認) ]]; then task_type="🧪"
-        fi
-
-        # メッセージが空の場合のフォールバック
-        if [[ -z "${msg_source// }" ]]; then
-             msg_source="${FIRST_MSG}"
         fi
 
         # サフィックス
@@ -159,7 +128,8 @@ if [[ -n "${transcript_path}" && "${transcript_path}" != "null" && -f "${transcr
             suffix=" [x${USER_COUNT}]"
         fi
 
-        clean_msg=$(echo "${msg_source}" | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
+        # 改行を削除して1行にする
+        clean_msg=$(echo "${FIRST_MSG}" | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
         summary="${task_type} ${clean_msg}${suffix}"
 
         # 長さ制限
