@@ -40,9 +40,9 @@ def main():
             update_tmux_window_name(HookStatus.NOTIFICATION)
     elif event_name in ["after_agent"]:
         update_tmux_window_name(HookStatus.COMPLETED)
-    elif event_name in ["user_prompt",, "before_agent", "before_tool"]:
+    elif event_name in ["before_agent", "before_tool"]:
         update_tmux_window_name(HookStatus.ONGOING)
-    elif event_name in ["post_tool", "after_tool"]:
+    elif event_name in ["after_tool"]:
         update_tmux_window_name(HookStatus.ONGOING)
     elif event_name in ["session_end"]:
         remove_tmux_window_icon()
