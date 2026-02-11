@@ -57,10 +57,6 @@
           },
           {
             "type": "command",
-            "command": "afplay /System/Library/Sounds/Ping.aiff"
-          },
-          {
-            "type": "command",
             "command": "python3 ~/.claude/hooks/claude-hook.py"
           }
         ]
