@@ -14,10 +14,10 @@ class HookStatus(Enum):
 
     @classmethod
     def get_emoji_pattern(cls) -> str:
-        return "".join(status.value for status in cls) + "✨✴️" # Claude Codeで✴️を使っているため追加している
+        return "".join(status.value for status in cls) + "💎✴️" # Claude Codeで✴️を使っているため追加している
 
 
-IDENTIFIER = "✨"
+IDENTIFIER = "💎"
 
 
 def main():
