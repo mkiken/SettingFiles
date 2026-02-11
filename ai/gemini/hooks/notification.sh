@@ -129,15 +129,18 @@ if [[ -n "${transcript_path}" && "${transcript_path}" != "null" && -f "${transcr
         task_type="💬"
         msg_source="${FIRST_MSG}"
 
-        if [[ "${FIRST_MSG}" == *"/sg:design"* ]]; then
-            task_type="🎨"
-            msg_source=$(echo "${FIRST_MSG}" | sed -E 's|.*\/sg:design[[:space:]]*||')
-        elif [[ "${FIRST_MSG}" == *"/sg:analyze"* ]]; then
-            task_type="📊"
-            msg_source=$(echo "${FIRST_MSG}" | sed -E 's|.*\/sg:analyze[[:space:]]*||')
-        elif [[ "${FIRST_MSG}" == *"/sg:"* ]]; then
+        # スラッシュコマンド ("/..." または "# /...") の場合
+        # コマンド実行を表すアイコンとして ⚡ を採用
+        if [[ "${FIRST_MSG}" =~ (\/([a-zA-Z0-9_:-]+)) ]]; then
             task_type="⚡"
-            msg_source=$(echo "${FIRST_MSG}" | sed -E 's|.*\/sg:[^[:space:]]+[[:space:]]*||')
+            full_cmd="${BASH_REMATCH[1]}" # e.g. /sg:design
+
+            # 元のsgロジック同様、コマンド部分(およびそれ以前)を除去して本文を抽出
+            # .* はgreedyなので、最後のコマンド出現以降が残る
+            msg_content=$(echo "${FIRST_MSG}" | sed -E "s|.*${full_cmd}[[:space:]]*||")
+
+            # コマンド名を先頭に付与
+            msg_source="${full_cmd} ${msg_content}"
         elif [[ "${FIRST_MSG}" =~ (実装|コード|プログラム|関数|バグ|修正|追加|作成) ]]; then task_type="💻"
         elif [[ "${FIRST_MSG}" =~ (検索|調べ|探し|find|grep|確認) ]]; then task_type="🔍"
         elif [[ "${FIRST_MSG}" =~ (説明|教え|解説|どう|なぜ|what|how) ]]; then task_type="📚"
