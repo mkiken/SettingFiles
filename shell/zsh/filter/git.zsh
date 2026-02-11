@@ -668,9 +668,6 @@ function fgcp() {
   git cherry-pick "$commit_hash"
   local cherry_pick_result=$?
 
-  # コマンド履歴保存（成功・失敗に関わらず履歴に記録）
-  save_history git cherry-pick "$commit_hash"
-
   # 成功時のメッセージ表示
   if [[ $cherry_pick_result -eq 0 ]]; then
     echo "✅ cherry-pickが正常に完了しました"
