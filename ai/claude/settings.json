@@ -12,6 +12,8 @@
       "Bash(pwd:*)",
       "Bash(cd:*)",
       "Bash(find:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
       "Bash(grep:*)",
       "Bash(rg:*)",
       "WebFetch(domain:*)",
