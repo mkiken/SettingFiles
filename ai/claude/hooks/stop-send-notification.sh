@@ -297,7 +297,7 @@ if [[ "${hook_event_name}" == "Notification" ]]; then
         message=$(echo "${hook_input}" | jq -r '.message // empty')
         current_time=$(date "+%H:%M:%S")
 
-        notification_body="ユーザーの承認が必要です: ${message}"
+        notification_body="${message}"
         # 共通処理で生成された整形済みsummaryを追記
         if [[ -n "${summary}" && "${summary}" != "💭 セッションが開始されましたが、メッセージはありませんでした" ]]; then
             notification_body="${notification_body}"$'\n'"${summary}"

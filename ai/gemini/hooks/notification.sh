@@ -180,9 +180,9 @@ if [[ "${EVENT_TYPE}" == "notification" ]]; then
         ')
 
         if [[ -n "${ACTION_DETAIL}" ]]; then
-            MSG_BODY="ユーザーの承認が必要です: ${ACTION_DETAIL}"
+            MSG_BODY="${ACTION_DETAIL}"
         else
-            MSG_BODY="ユーザーの承認が必要です"
+            MSG_BODY="承認が必要です"
         fi
 
         # 要約を追記
