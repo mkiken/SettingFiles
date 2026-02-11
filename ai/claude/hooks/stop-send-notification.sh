@@ -313,10 +313,10 @@ fi
 
 # Stopイベント: 終了通知
 if [[ -n "${completion_time}" ]]; then
-    notification_title="🤖 Claude Code終了 at ${completion_time}"
+    notification_title="✅ Claude Code終了 at ${completion_time}"
 else
     current_time=$(date "+%H:%M:%S")
-    notification_title="🤖 Claude Code終了 at 🕰️${current_time}"
+    notification_title="✅ Claude Code終了 at 🕰️${current_time}"
 fi
 
 debug_log "Sending stop notification: title='${notification_title}', message='${summary}'"
