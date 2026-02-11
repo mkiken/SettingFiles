@@ -4,7 +4,7 @@
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/alias/notification.zsh"
 
 # デバッグフラグ (true/false)
-DEBUG_ENABLED=true
+DEBUG_ENABLED=false
 DEBUG_LOG="/tmp/gemini-hook-debug.log"
 
 # エラーハンドリング設定
@@ -191,7 +191,7 @@ if [[ "${EVENT_TYPE}" == "notification" ]]; then
     if [[ "${NOTIFICATION_TYPE}" == "ToolPermission" ]]; then
         ACTION_DETAIL=$(echo "${hook_input}" | jq -r '
             .details |
-            if (.type == "exec") then 
+            if (.type == "exec") then
                 if (.rootCommand != null and .rootCommand != "") then ("Shell (" + .rootCommand + ")")
                 elif (.command != null and .command != "") then ("Shell (" + (.command | split(" ")[0]) + ")")
                 else "Shell" end
