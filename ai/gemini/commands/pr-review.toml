@@ -5,6 +5,12 @@ CRITICAL: Run these commands FIRST:
 !{gh pr view {{args}} --json number,url,title,body,author,headRefName,baseRefName,isDraft,mergeable,state,commits,additions,deletions,changedFiles,files}
 !{gh pr diff {{args}}}
 
+### **Remote Review Workflow**
+
+For deeper investigation (referencing files outside diff, checking surrounding context):
+- `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefName} --jq '.content' | base64 -d` — Read any file
+- `gh api repos/{owner}/{repo}/git/trees/{headRefName}?recursive=1` — Explore file structure
+
 **IMPORTANT**: Always respond in Japanese regardless of the original language of the PR content.
 
 ### **Review Comment Priority**
@@ -34,7 +40,7 @@ Review thoroughly from the following perspectives:
 - `[path/to/file.ext:line]` for single line comments
 - `[path/to/file.ext:startLine-endLine]` for multi-line comments
 
-**Output must be grouped by priority level in descending order:**
+**Output must be grouped by priority level in descending order (omit priority levels with no findings):**
 
 #### 🔴 High Priority
 - **[path/to/file.ext:line]** Category: Issue description
@@ -65,16 +71,4 @@ Example:
 ### **Recommendations**
 
 - Specific improvement suggestions
-- Alternative implementation approaches (if needed)
-
-### **Local Checkout for Detailed Review**
-
-When PR diff is insufficient for judgment, checkout locally:
-
-1. Check working files with `git status --porcelain`
-2. If working files exist, ask user to choose:
-   - Stash then checkout
-   - Checkout anyway (may lose changes)
-   - Cancel checkout
-3. After approval, run `gh pr checkout <PR#>` (run `git stash` first if stash chosen)
-4. Read local code for detailed review"""
+- Alternative implementation approaches (if needed)"""

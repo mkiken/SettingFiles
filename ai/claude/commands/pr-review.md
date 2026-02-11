@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(gh pr view *), Bash(gh pr checkout *), Bash(git status *), Bash(git stash *)
+allowed-tools: Bash(gh:*)
 description: "Comprehensive PR review using gh command for specified PR number"
 argument-hint: [prNumber]
 ---
@@ -8,6 +8,17 @@ argument-hint: [prNumber]
 
 - Use the gh command to fetch and analyze PR #$ARGUMENTS for comprehensive code review
 - Provide detailed review feedback in the following structured format:
+
+### **Remote Review Workflow**
+
+Fetch primary review materials:
+- `gh pr view $ARGUMENTS --json title,body,files,commits,baseRefName,headRefName` — PR metadata
+- `gh pr diff $ARGUMENTS` — Complete diff
+- `gh pr view $ARGUMENTS --comments` — Existing comments
+
+For deeper investigation (referencing files outside diff, checking surrounding context):
+- `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefName} --jq '.content' | base64 -d` — Read any file
+- `gh api repos/{owner}/{repo}/git/trees/{headRefName}?recursive=1` — Explore file structure
 
 ### **Review Comment Priority**
 
@@ -36,7 +47,7 @@ Review thoroughly from the following perspectives:
 - `[path/to/file.ext:line]` for single line comments
 - `[path/to/file.ext:startLine-endLine]` for multi-line comments
 
-**Output must be grouped by priority level in descending order:**
+**Output must be grouped by priority level in descending order. Omit priority levels with no findings:**
 
 #### 🔴 High Priority
 - **[path/to/file.ext:line]** Category: Issue description
@@ -69,14 +80,3 @@ Example:
 - Specific improvement suggestions
 - Alternative implementation approaches (if needed)
 
-### **Local Checkout for Detailed Review**
-
-When PR diff is insufficient for judgment, checkout locally:
-
-1. Check working files with `git status --porcelain`
-2. If working files exist, ask user to choose:
-   - Stash then checkout
-   - Checkout anyway (may lose changes)
-   - Cancel checkout
-3. After approval, run `gh pr checkout <PR#>` (run `git stash` first if stash chosen)
-4. Read local code for detailed review
