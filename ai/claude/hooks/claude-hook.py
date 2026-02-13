@@ -57,12 +57,7 @@ def handle_user_prompt_submit_hook(_: dict):
     update_tmux_window_name(HookStatus.ONGOING)
 
 
-def handle_stop_hook(input_data: dict):
-    # サブエージェントの完了時（stop_hook_active: false）は何もしない
-    stop_hook_active = input_data.get("stop_hook_active", True)
-    if stop_hook_active is False:
-        return
-
+def handle_stop_hook(_: dict):
     update_tmux_window_name(HookStatus.COMPLETED)
 
 
