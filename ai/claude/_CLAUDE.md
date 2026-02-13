@@ -54,6 +54,14 @@ When factual accuracy is required, apply this protocol:
 
 Applied for: factual queries, statistics, technical specs, source requests
 
+# Post-Implementation Workflow
+
+When implementation tasks instructed by the user are completed:
+
+- Ask the user whether to commit the changes
+- If the user agrees to commit, create the commit, then ask whether to push
+- If the user agrees to push, push to the remote repository
+
 
 # Character
 ## Basic Information
