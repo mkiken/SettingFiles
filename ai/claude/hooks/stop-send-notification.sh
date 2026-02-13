@@ -92,6 +92,14 @@ while IFS= read -r line; do
             continue
         fi
 
+        # isMeta メッセージ（スラッシュコマンドの展開テキスト）をスキップ
+        is_meta=$(echo "${line}" | jq -r '.isMeta // false')
+
+        if [[ "${is_meta}" == "true" ]]; then
+            debug_log "Skipping meta message"
+            continue
+        fi
+
         if [[ "${has_message}" == "true" ]]; then
             role=$(echo "${line}" | jq -r '.message.role // empty')
 
@@ -131,8 +139,8 @@ while IFS= read -r line; do
             is_system_message() {
                 local msg="$1"
 
-                # HTMLタグが含まれている
-                if [[ "${msg}" =~ '<'[^'>']+'>' ]]; then
+                # Claude Codeの既知システムタグのみマッチ（メッセージ先頭のみ）
+                if [[ "${msg}" =~ ^[[:space:]]*'<'(command-message|command-name|command-args|local-command-caveat|local-command-stdout|system-reminder|user-prompt-submit-hook|tool-result|antml) ]]; then
                     return 0  # true
                 fi
 
@@ -151,8 +159,8 @@ while IFS= read -r line; do
                     return 0
                 fi
 
-                # 空または短すぎる（10文字未満）
-                if [[ ${#msg} -lt 10 ]]; then
+                # 日本語の短い指示を許容（4文字未満に緩和）
+                if [[ ${#msg} -lt 4 ]]; then
                     return 0
                 fi
 
