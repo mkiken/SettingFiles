@@ -56,6 +56,16 @@ transcript_path=$(echo "${hook_input}" | jq -r '.transcript_path')
 debug_log "Hook event: ${hook_event_name}"
 debug_log "Transcript path extracted: ${transcript_path}"
 
+# stop_hook_activeを確認（サブエージェントの場合はfalse）
+stop_hook_active=$(echo "${hook_input}" | jq -r '.stop_hook_active // "null"')
+debug_log "stop_hook_active: ${stop_hook_active}"
+
+# サブエージェントの完了時（stop_hook_active: false）は通知を送らない
+if [[ "${stop_hook_active}" == "false" ]]; then
+    debug_log "Subagent stop detected (stop_hook_active=false), skipping notification"
+    exit 0
+fi
+
 # transcript_pathが取得できているかチェック
 if [[ -z "${transcript_path}" || "${transcript_path}" == "null" ]]; then
     debug_log "No transcript path found"
