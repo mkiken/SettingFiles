@@ -48,53 +48,6 @@ def main():
         remove_tmux_window_icon()
 
 
-def get_current_tty() -> str:
-    """現在のプロセスの制御端末(TTY)のパスを取得"""
-    try:
-        # os.ttyname(0)などは /dev/tty を返すことがあり、tmuxの #{pane_tty} (/dev/ttysXXX) と一致しないため
-        # psコマンドを使用して具体的なTTYデバイス名を取得する
-        result = subprocess.run(
-            ["ps", "-p", str(os.getpid()), "-o", "tty="],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        tty_name = result.stdout.strip()
-
-        if not tty_name or tty_name in ["?", "??"]:
-            return ""
-
-        if not tty_name.startswith("/"):
-            return f"/dev/{tty_name}"
-        return tty_name
-    except Exception:
-        return ""
-
-
-def is_valid_tmux_context(pane_id: str) -> bool:
-    """
-    現在のプロセスが指定されたtmuxペイン内で実行されているか確認
-    環境変数が継承されただけの別ターミナル（VSCode等）での誤動作を防ぐ
-    """
-    try:
-        current_tty = get_current_tty()
-        if not current_tty:
-            return False
-
-        # tmuxペインのTTYを取得
-        result = subprocess.run(
-            ["tmux", "display-message", "-p", "-t", pane_id, "#{pane_tty}"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        pane_tty = result.stdout.strip()
-
-        return current_tty == pane_tty
-    except Exception:
-        return False
-
-
 def update_tmux_window_name(status: HookStatus):
     """指定されたステータスでtmuxウィンドウ名を更新"""
     try:
@@ -102,10 +55,6 @@ def update_tmux_window_name(status: HookStatus):
         pane_id = os.environ.get("TMUX_PANE")
         if not pane_id:
             return  # tmux環境外では何もしない
-
-        # 環境変数が継承されただけの別ターミナル（VSCode等）での誤動作を防ぐ
-        if not is_valid_tmux_context(pane_id):
-            return
 
         # ペインが属するウィンドウIDを取得
         result = subprocess.run(
@@ -143,10 +92,6 @@ def remove_tmux_window_icon():
     try:
         pane_id = os.environ.get("TMUX_PANE")
         if not pane_id:
-            return
-
-        # 環境変数が継承されただけの別ターミナル（VSCode等）での誤動作を防ぐ
-        if not is_valid_tmux_context(pane_id):
             return
 
         # ウィンドウIDを取得
