@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(gh:*)
+allowed-tools: Bash(gh:*), Bash(/bin/rm), Bash(mktemp)
 description: "Generate comprehensive PR body content using gh command for specified PR number"
 argument-hint: [prNumber]
 ---
