@@ -1,4 +1,5 @@
 #!/bin/bash
+export LANG="${LANG:-en_US.UTF-8}"
 
 # notification関数を読み込み (SETが未定義の場合はHOMEから解決)
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/alias/notification.zsh"
@@ -265,19 +266,13 @@ if [[ ${user_count} -gt 0 ]]; then
     # 80文字を超える場合、メッセージ部分を短縮（サフィックスは保持）
     max_summary_length=80
     if [[ ${#summary} -gt ${max_summary_length} ]]; then
-        # 絵文字のバイト長を考慮した計算
-        # UTF-8絵文字は通常4バイト、macOSの通知システムではさらに余裕を持たせる
-        emoji_display_length=2  # 絵文字の表示幅（安全マージン込み）
-        space_length=1
-        ellipsis_length=3  # "..." の長さ
-
-        # サフィックスと絵文字、スペース、省略記号を除いた、メッセージに使える文字数を計算
-        max_message_length=$((max_summary_length - emoji_display_length - space_length - ${#suffix} - ellipsis_length))
+        prefix_length=$(( ${#task_type} + 1 ))  # emoji + space
+        ellipsis_length=3  # "..."
+        max_message_length=$((max_summary_length - prefix_length - ellipsis_length - ${#suffix}))
 
         debug_log "Truncating message: original_length=${#summary}, max_allowed=${max_summary_length}, max_message=${max_message_length}"
 
-        # メッセージを切り詰め（マルチバイト文字対応）
-        truncated_message=$(echo "${first_user_message}" | sed -E "s/^(.{0,${max_message_length}}).*/\1/")
+        truncated_message="${first_user_message:0:${max_message_length}}"
         summary="${task_type} ${truncated_message}...${suffix}"
 
         # 最終的な長さを検証（念のため再チェック）
@@ -286,9 +281,8 @@ if [[ ${user_count} -gt 0 ]]; then
 
         # まだ長すぎる場合、さらに調整
         if [[ ${final_length} -gt ${max_summary_length} ]]; then
-            # 安全のため、さらに5文字短くする
             max_message_length=$((max_message_length - 5))
-            truncated_message=$(echo "${first_user_message}" | sed -E "s/^(.{0,${max_message_length}}).*/\1/")
+            truncated_message="${first_user_message:0:${max_message_length}}"
             summary="${task_type} ${truncated_message}...${suffix}"
             debug_log "Re-truncated to: ${#summary} chars"
         fi
