@@ -160,6 +160,20 @@ function g-delete-branch-not-in-remote-interactive() {
   done
   echo ""
 
+  # 一括削除の確認
+  echo "Delete all ${#branches_to_delete[@]} branches? [y/N]"
+  read -r ANSWER
+
+  case ${ANSWER} in
+    "Y" | "y" | "yes" | "Yes" | "YES" )
+      for branch in ${branches_to_delete}
+      do
+        git branch -D "${branch}"
+      done
+      return 0
+      ;;
+  esac
+
   # 個別に確認
   for branch in ${branches_to_delete}
   do

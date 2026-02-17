@@ -9,6 +9,7 @@ export NOTIFY_COMMAND_EXCLUDE=(
   ccstatusline
   ccusage
   claude
+  g-delete-branch-not-in-remote-interactive
   gemini
   less
   nvim
