@@ -574,6 +574,23 @@ fdifit() {
 
   difit "$to_hash" "$from_hash~1"
 }
+
+# コミット一覧からfzfで選択し、選択されたコミットに対してgit log -pを表示
+function fglp-hash() {
+  if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    echo "エラー: 現在のディレクトリはgitリポジトリではありません"
+    return 1
+  fi
+
+  local commit_hash
+  commit_hash=$(_select_commit_hash "git log -p で表示するコミットを選択してください" 30)
+
+  if [[ $? -ne 0 ]]; then
+    return $?
+  fi
+
+  save_history git log -p "$commit_hash"
+}
 alias fdi='fdigit'
 
 # fzfを使用してコミットを選択し、選択されたコミットをrevertする
