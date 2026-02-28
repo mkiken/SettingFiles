@@ -221,7 +221,13 @@ function smart_merge_json() {
     # Fallback to smart_copy if JSON is invalid or is array
     if ! $src_valid || ! $dst_valid || $src_is_array || $dst_is_array; then
         if ! $src_valid || ! $dst_valid; then
-            echo "⚠️  Invalid JSON detected, falling back to overwrite/skip mode" >&2
+            if ! $src_valid; then
+                echo "⚠️  Invalid JSON: $src" >&2
+            fi
+            if ! $dst_valid; then
+                echo "⚠️  Invalid JSON: $dst" >&2
+            fi
+            echo "Falling back to overwrite/skip mode" >&2
         elif $src_is_array || $dst_is_array; then
             echo "⚠️  Top-level array detected, merge not supported" >&2
         fi
