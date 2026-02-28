@@ -583,7 +583,7 @@ function fglp-hash() {
   fi
 
   local commit_hash
-  commit_hash=$(_select_commit_hash "git log -p で表示するコミットを選択してください" 30)
+  commit_hash=$(_select_commit_hash "git log -p で表示するコミットを選択してください" 500)
 
   if [[ $? -ne 0 ]]; then
     return $?
