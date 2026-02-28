@@ -698,7 +698,15 @@ function fgcp() {
 # 戻り値: 選択されたworktree名（ディレクトリ名）、キャンセル時は $EXIT_CODE_SIGINT で終了
 function _filter_workmux_worktree() {
   local worktrees
-  worktrees=$(wml | tail -n +2 | grep -v '(here)')
+  worktrees=$(wml | tail -n +2 | grep -v '(here)' \
+    | awk '
+      {path=$5; branch=$1; n=split(path, a, "/"); dirs[NR]=a[n]; branches[NR]=branch; paths[NR]=path; if(length(a[n])>max) max=length(a[n])}
+      END {
+        if(max < 8) max = 8;
+        fmt = "%-" max "s  %s\t%s\n";
+        printf fmt, "worktree", "ブランチ", "";
+        for(i=1; i<=NR; i++) printf fmt, dirs[i], branches[i], paths[i]
+      }')
 
   if [[ -z "$worktrees" ]]; then
     echo "選択可能なworktreeがありません" >&2
@@ -708,23 +716,34 @@ function _filter_workmux_worktree() {
   local selected
   selected=$(echo "$worktrees" | filter \
     --header "worktreeを選択" \
+    --header-lines 1 \
     --prompt "worktree> " \
-    --preview 'echo {} | awk "{print \$5}" | xargs -I{} git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"'
+    --delimiter $'\t' \
+    --with-nth 1 \
+    --preview 'echo {2} | xargs -I{} git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"'
   )
 
   if [[ -z "$selected" ]]; then
     return $EXIT_CODE_SIGINT
   fi
 
-  # PATH列（5番目）からディレクトリ名を抽出
-  echo "$selected" | awk '{print $5}' | xargs basename
+  # パディング済みフィールドの最初のワード（dirname）を抽出
+  echo "$selected" | awk '{print $1}'
 }
 
 # workmux listからworktreeのフルパスをfilterで選択する内部関数
 # 戻り値: 選択されたworktreeのフルパス、キャンセル時は $EXIT_CODE_SIGINT で終了
 function _filter_workmux_worktree_path() {
   local worktrees
-  worktrees=$(wml | tail -n +2 | grep -v '(here)')
+  worktrees=$(wml | tail -n +2 | grep -v '(here)' \
+    | awk '
+      {path=$5; branch=$1; n=split(path, a, "/"); dirs[NR]=a[n]; branches[NR]=branch; paths[NR]=path; if(length(a[n])>max) max=length(a[n])}
+      END {
+        if(max < 8) max = 8;
+        fmt = "%-" max "s  %s\t%s\n";
+        printf fmt, "worktree", "ブランチ", "";
+        for(i=1; i<=NR; i++) printf fmt, dirs[i], branches[i], paths[i]
+      }')
 
   if [[ -z "$worktrees" ]]; then
     echo "選択可能なworktreeがありません" >&2
@@ -734,16 +753,19 @@ function _filter_workmux_worktree_path() {
   local selected
   selected=$(echo "$worktrees" | filter \
     --header "worktreeを選択" \
+    --header-lines 1 \
     --prompt "worktree> " \
-    --preview 'echo {} | awk "{print \$5}" | xargs -I{} git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"'
+    --delimiter $'\t' \
+    --with-nth 1 \
+    --preview 'echo {2} | xargs -I{} git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"'
   )
 
   if [[ -z "$selected" ]]; then
     return $EXIT_CODE_SIGINT
   fi
 
-  # PATH列（5番目）からフルパスを抽出
-  echo "$selected" | awk '{print $5}'
+  # タブ区切りの2番目のフィールド（fullpath）を抽出
+  echo "$selected" | cut -f2
 }
 
 # filterでworktreeを選択して現在のpaneでcdする
