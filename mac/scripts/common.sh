@@ -52,9 +52,9 @@ function show_file_diff() {
     echo "Destination: $file2"
     echo ""
 
-    # Use colordiff if available, otherwise use regular diff
-    if command -v colordiff &> /dev/null; then
-        colordiff -u "$file2" "$file1" || true
+    # Use difft if available, otherwise use regular diff
+    if command -v difft &> /dev/null; then
+        difft "$file2" "$file1" || true
     else
         diff -u "$file2" "$file1" || true
     fi
