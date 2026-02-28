@@ -33,10 +33,10 @@ if [[ -f "$LOCAL_MCP" ]]; then
     echo "Found local MCP config, merging..."
     MERGED_TMP=$(mktemp)
     jq -s '.[0] * .[1]' "${Repo}ai/gemini/settings.json" "$LOCAL_MCP" > "$MERGED_TMP"
-    smart_copy "$MERGED_TMP" ~/.gemini/settings.json
+    smart_merge_json "$MERGED_TMP" ~/.gemini/settings.json
     rm -f "$MERGED_TMP"
 else
-    smart_copy "${Repo}ai/gemini/settings.json" ~/.gemini/settings.json
+    smart_merge_json "${Repo}ai/gemini/settings.json" ~/.gemini/settings.json
 fi
 
 # commands,hooksはディレクトリ内のファイルをコピー
