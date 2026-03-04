@@ -1,8 +1,117 @@
 {
+  "enabledPlugins": {},
   "env": {
-    "ENABLE_TOOL_SEARCH": "true",
-    "ENABLE_EXPERIMENTAL_MCP_CLI": "false"
+    "ENABLE_EXPERIMENTAL_MCP_CLI": "false",
+    "ENABLE_TOOL_SEARCH": "true"
   },
+  "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "command": "~/.claude/hooks/stop-send-notification.sh",
+            "type": "command"
+          },
+          {
+            "command": "afplay /System/Library/Sounds/Ping.aiff",
+            "type": "command"
+          },
+          {
+            "command": "python3 ~/.claude/hooks/claude-hook.py",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      },
+      {
+        "hooks": [
+          {
+            "command": "workmux set-window-status waiting",
+            "type": "command"
+          }
+        ],
+        "matcher": "permission_prompt|elicitation_dialog"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "python3 ~/.claude/hooks/claude-hook.py",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      },
+      {
+        "hooks": [
+          {
+            "command": "workmux set-window-status working",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "command": "python3 ~/.claude/hooks/claude-hook.py",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "command": "~/.claude/hooks/stop-send-notification.sh",
+            "type": "command"
+          },
+          {
+            "command": "afplay /System/Library/Sounds/Ping.aiff",
+            "type": "command"
+          },
+          {
+            "command": "python3 ~/.claude/hooks/claude-hook.py",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      },
+      {
+        "hooks": [
+          {
+            "command": "workmux set-window-status done",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "command": "python3 ~/.claude/hooks/claude-hook.py",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      },
+      {
+        "hooks": [
+          {
+            "command": "workmux set-window-status working",
+            "type": "command"
+          }
+        ]
+      }
+    ]
+  },
+  "language": "japanese",
+  "model": "opusplan",
   "permissions": {
     "allow": [
       "Read",
@@ -28,85 +137,9 @@
       "NotebookEdit"
     ]
   },
-  "model": "opusplan",
-  "hooks": {
-    "Stop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/stop-send-notification.sh"
-          },
-          {
-            "type": "command",
-            "command": "afplay /System/Library/Sounds/Ping.aiff"
-          },
-          {
-            "type": "command",
-            "command": "python3 ~/.claude/hooks/claude-hook.py"
-          }
-        ]
-      }
-    ],
-    "Notification": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/stop-send-notification.sh"
-          },
-          {
-            "type": "command",
-            "command": "afplay /System/Library/Sounds/Ping.aiff"
-          },
-          {
-            "type": "command",
-            "command": "python3 ~/.claude/hooks/claude-hook.py"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 ~/.claude/hooks/claude-hook.py"
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 ~/.claude/hooks/claude-hook.py"
-          }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 ~/.claude/hooks/claude-hook.py"
-          }
-        ]
-      }
-    ]
-  },
   "statusLine": {
-    "type": "command",
     "command": "ccstatusline",
-    "padding": 0
-  },
-  "enabledPlugins": {},
-  "language": "japanese"
+    "padding": 0,
+    "type": "command"
+  }
 }
