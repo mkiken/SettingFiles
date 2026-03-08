@@ -185,10 +185,10 @@ while IFS= read -r line; do
     fi
 done < "${transcript_path}"
 
-# 最初のユーザーメッセージを取得
-first_user_message=""
+# 最後のユーザーメッセージを取得
+last_user_message=""
 if [[ ${#user_messages[@]} -gt 0 ]]; then
-    first_user_message="${user_messages[0]}"
+    last_user_message="${user_messages[-1]}"
 fi
 
 debug_log "Total user messages: ${#user_messages[@]}, assistant messages: ${#assistant_messages[@]}"
@@ -231,13 +231,13 @@ fi
 
 # タスクの種類を推測
 task_type="💬" # 一般的な質問
-if [[ "$first_user_message" =~ (実装|コード|プログラム|関数|バグ|修正|追加|作成) ]]; then
+if [[ "$last_user_message" =~ (実装|コード|プログラム|関数|バグ|修正|追加|作成) ]]; then
     task_type="💻" # コーディング
-elif [[ "$first_user_message" =~ (検索|調べ|探し|find|grep|確認) ]]; then
+elif [[ "$last_user_message" =~ (検索|調べ|探し|find|grep|確認) ]]; then
     task_type="🔍" # 検索・調査
-elif [[ "$first_user_message" =~ (説明|教え|解説|どう|なぜ|what|how) ]]; then
+elif [[ "$last_user_message" =~ (説明|教え|解説|どう|なぜ|what|how) ]]; then
     task_type="📚" # 説明・学習
-elif [[ "$first_user_message" =~ (テスト|test|チェック|確認) ]]; then
+elif [[ "$last_user_message" =~ (テスト|test|チェック|確認) ]]; then
     task_type="🧪" # テスト・検証
 fi
 
@@ -257,11 +257,11 @@ if [[ ${user_count} -gt 0 ]]; then
     fi
 
     # 最終的な改行除去（念のため）
-    first_user_message=$(echo "${first_user_message}" | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
-    debug_log "Final first_user_message after newline removal: ${first_user_message:0:100}"
+    last_user_message=$(echo "${last_user_message}" | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
+    debug_log "Final last_user_message after newline removal: ${last_user_message:0:100}"
 
     # メッセージとサフィックスを結合
-    summary="${task_type} ${first_user_message}${suffix}"
+    summary="${task_type} ${last_user_message}${suffix}"
 
     # 80文字を超える場合、メッセージ部分を短縮（サフィックスは保持）
     max_summary_length=80
@@ -272,7 +272,7 @@ if [[ ${user_count} -gt 0 ]]; then
 
         debug_log "Truncating message: original_length=${#summary}, max_allowed=${max_summary_length}, max_message=${max_message_length}"
 
-        truncated_message="${first_user_message:0:${max_message_length}}"
+        truncated_message="${last_user_message:0:${max_message_length}}"
         summary="${task_type} ${truncated_message}...${suffix}"
 
         # 最終的な長さを検証（念のため再チェック）
@@ -282,7 +282,7 @@ if [[ ${user_count} -gt 0 ]]; then
         # まだ長すぎる場合、さらに調整
         if [[ ${final_length} -gt ${max_summary_length} ]]; then
             max_message_length=$((max_message_length - 5))
-            truncated_message="${first_user_message:0:${max_message_length}}"
+            truncated_message="${last_user_message:0:${max_message_length}}"
             summary="${task_type} ${truncated_message}...${suffix}"
             debug_log "Re-truncated to: ${#summary} chars"
         fi
