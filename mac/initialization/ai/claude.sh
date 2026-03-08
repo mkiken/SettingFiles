@@ -18,9 +18,8 @@ make_symlink "${Repo}ai/claude/_CLAUDE.md" ~/.claude/CLAUDE.md
 
 make_symlink "${Repo}ai/claude/ccstatusline/settings.json" ~/.config/ccstatusline/settings.json
 
-# settings.jsonはsymlink
 for item in settings.json; do
-  make_symlink "${Repo}ai/claude/${item}" ~/.claude
+  smart_merge_json "${Repo}ai/claude/${item}" ~/.claude/${item}
 done
 
 # agents,commands,hooksはディレクトリ内のファイルをコピー

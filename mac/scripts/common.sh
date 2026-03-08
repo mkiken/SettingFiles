@@ -122,6 +122,12 @@ function smart_copy() {
         return 1
     fi
 
+    # Check if destination is a directory (file path required)
+    if [[ -d "$dst" ]]; then
+        echo "Error: Destination is a directory, file path required: $dst" >&2
+        return 1
+    fi
+
     # Create destination directory if it doesn't exist
     local target_dir="$(dirname "$dst")"
     if [[ ! -d "$target_dir" ]]; then
@@ -171,6 +177,12 @@ function smart_merge_json() {
     # Check if source file exists
     if [[ ! -f "$src" ]]; then
         echo "Error: Source file not found: $src" >&2
+        return 1
+    fi
+
+    # Check if destination is a directory (file path required)
+    if [[ -d "$dst" ]]; then
+        echo "Error: Destination is a directory, file path required: $dst" >&2
         return 1
     fi
 
