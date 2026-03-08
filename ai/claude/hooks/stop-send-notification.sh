@@ -188,7 +188,7 @@ done < "${transcript_path}"
 # 最後のユーザーメッセージを取得
 last_user_message=""
 if [[ ${#user_messages[@]} -gt 0 ]]; then
-    last_user_message="${user_messages[-1]}"
+    last_user_message="${user_messages[${#user_messages[@]}-1]}"
 fi
 
 debug_log "Total user messages: ${#user_messages[@]}, assistant messages: ${#assistant_messages[@]}"
