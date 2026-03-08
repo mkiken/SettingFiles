@@ -21,6 +21,10 @@ cl-pr-review() {
     clo "/my:pr-review $*"
 }
 
+cl-pr-review-subagents() {
+    cl "/pr-review-subagents $*"
+}
+
 _cl-pr-comment-review() {
     clo "/my:pr-comment-review $*"
 }

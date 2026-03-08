@@ -1,7 +1,6 @@
 ---
-allowed-tools: Bash(gh:*), Agent(pr-reviewer-bugs), Agent(pr-reviewer-security), Agent(pr-reviewer-architecture), Agent(pr-reviewer-errors), Agent(pr-reviewer-history), Agent(pr-reviewer-tests)
 description: "Comprehensive PR review using 6 parallel specialist sub-agents for bugs, security, architecture, error handling, history, and tests"
-argument-hint: [prNumber]
+argument-hint: "[prNumber]"
 ---
 
 ## Instructions
