@@ -82,7 +82,19 @@ if [[ -n "${transcript_path}" && "${transcript_path}" != "null" && -f "${transcr
       .lastUpdated as $end |
       (.messages | map(select(.type == "user"))) as $user_msgs |
       ($user_msgs | length) as $count |
-      ($user_msgs[0].content // "") as $first_msg |
+      (if $count > 0 then
+        if ($user_msgs[0].displayContent != null and ($user_msgs[0].displayContent | type) == "array" and ($user_msgs[0].displayContent | length) > 0) then
+          $user_msgs[0].displayContent[0].text
+        elif ($user_msgs[0].content != null and ($user_msgs[0].content | type) == "array" and ($user_msgs[0].content | length) > 0) then
+          $user_msgs[0].content[0].text
+        elif ($user_msgs[0].content | type) == "string" then
+          $user_msgs[0].content
+        else
+          ""
+        end
+       else
+        ""
+       end) as $first_msg |
       @sh "START_TIME=\($start) END_TIME=\($end) USER_COUNT=\($count) FIRST_MSG=\($first_msg)"
     ' "${transcript_path}")
 
