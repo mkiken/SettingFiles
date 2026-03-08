@@ -40,7 +40,7 @@ else
 fi
 
 # commands,hooksはディレクトリ内のファイルをコピー
-for item in commands hooks; do
+for item in commands hooks policies; do
   mkdir -p ~/.gemini/${item}
   for file in "${Repo}ai/gemini/${item}"/*; do
     if [[ -f "$file" ]]; then
