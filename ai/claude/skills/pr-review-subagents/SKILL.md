@@ -1,0 +1,99 @@
+---
+allowed-tools: Bash(gh:*), Agent(pr-reviewer-bugs), Agent(pr-reviewer-security), Agent(pr-reviewer-architecture), Agent(pr-reviewer-errors), Agent(pr-reviewer-history), Agent(pr-reviewer-tests)
+description: "Comprehensive PR review using 6 parallel specialist sub-agents for bugs, security, architecture, error handling, history, and tests"
+argument-hint: [prNumber]
+---
+
+## Instructions
+
+Perform a comprehensive PR review of PR #$ARGUMENTS using 6 specialist sub-agents in parallel.
+
+### Phase 1: Gather PR Information
+
+Fetch all required PR data before launching sub-agents:
+
+```bash
+gh pr view $ARGUMENTS --json title,body,baseRefName,headRefName,url
+gh pr diff $ARGUMENTS
+gh repo view --json nameWithOwner
+```
+
+### Phase 2: Launch All 6 Sub-Agents in Parallel
+
+Pass the following to each sub-agent as context:
+- PR number: `$ARGUMENTS`
+- PR metadata (title, body, base/head branch, repository owner/name)
+- Complete PR diff
+
+Launch all agents simultaneously:
+
+1. **pr-reviewer-bugs** — バグ検出・ロジックエラー
+2. **pr-reviewer-security** — セキュリティ脆弱性
+3. **pr-reviewer-architecture** — アーキテクチャ・設計品質
+4. **pr-reviewer-errors** — エラーハンドリング品質
+5. **pr-reviewer-history** — Git履歴・リグレッションリスク
+6. **pr-reviewer-tests** — テスト品質・カバレッジ
+
+### Phase 3: Aggregate and Deduplicate Results
+
+Collect all sub-agent findings, then:
+1. Remove duplicate findings (same file:line reported by multiple agents)
+2. Reclassify priorities based on confidence scores
+3. Format structured output
+
+### Output Format
+
+Respond entirely in **Japanese**.
+
+---
+
+## レビューサマリー
+
+| 領域 | 指摘数 | 最高信頼度 |
+|------|--------|------------|
+| バグ検出 | N | XX |
+| セキュリティ | N | XX |
+| アーキテクチャ | N | XX |
+| エラーハンドリング | N | XX |
+| Git履歴 | N | XX |
+| テスト品質 | N | XX |
+
+---
+
+## 🔴 High Priority（信頼度90-100）
+
+> **アクション必須**: マージ前に対処が必要な問題
+
+- **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
+
+---
+
+## 🟡 Medium Priority（信頼度75-89）
+
+> **推奨対処**: 品質向上のために対処を推奨
+
+- **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
+
+---
+
+## 🟢 Low Priority（特筆すべきもの）
+
+> **任意対応**: 将来的に検討する価値がある改善点
+
+- **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
+
+---
+
+## レビュー注目ポイント
+
+- 特別な注意が必要な領域
+- 追加テストが必要な箇所
+- ドキュメント更新が必要な箇所
+
+---
+
+## 総合評価
+
+**マージ可否**: ✅ マージ可 / ⚠️ 条件付きマージ可 / ❌ マージ不可
+
+総合コメントと優先度の高い対応事項のまとめ。

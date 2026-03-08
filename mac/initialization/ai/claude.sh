@@ -41,6 +41,16 @@ for item in agents commands hooks; do
   done
 done
 
+# skills はディレクトリ単位でシンボリックリンク（skills/<name>/SKILL.md 構造のため）
+skills_dest=~/.claude/skills
+mkdir -p "$skills_dest"
+for skill_dir in "${Repo}ai/claude/skills"/*/; do
+  if [[ -d "$skill_dir" ]]; then
+    skill_name=$(basename "$skill_dir")
+    make_symlink "$skill_dir" "${skills_dest}/${skill_name}"
+  fi
+done
+
 make_symlink "${Repo}ai/claude/claude_desktop_config.json" ~/Library/Application\ Support/Claude/claude_desktop_config.json
 
 chmod +x ~/.claude/hooks/stop-send-notification.sh
