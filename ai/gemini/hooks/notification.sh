@@ -83,19 +83,19 @@ if [[ -n "${transcript_path}" && "${transcript_path}" != "null" && -f "${transcr
       (.messages | map(select(.type == "user"))) as $user_msgs |
       ($user_msgs | length) as $count |
       (if $count > 0 then
-        if ($user_msgs[0].displayContent != null and ($user_msgs[0].displayContent | type) == "array" and ($user_msgs[0].displayContent | length) > 0) then
-          $user_msgs[0].displayContent[0].text
-        elif ($user_msgs[0].content != null and ($user_msgs[0].content | type) == "array" and ($user_msgs[0].content | length) > 0) then
-          $user_msgs[0].content[0].text
-        elif ($user_msgs[0].content | type) == "string" then
-          $user_msgs[0].content
+        if ($user_msgs[-1].displayContent != null and ($user_msgs[-1].displayContent | type) == "array" and ($user_msgs[-1].displayContent | length) > 0) then
+          $user_msgs[-1].displayContent[-1].text
+        elif ($user_msgs[-1].content != null and ($user_msgs[-1].content | type) == "array" and ($user_msgs[-1].content | length) > 0) then
+          $user_msgs[-1].content[-1].text
+        elif ($user_msgs[-1].content | type) == "string" then
+          $user_msgs[-1].content
         else
           ""
         end
        else
         ""
-       end) as $first_msg |
-      @sh "START_TIME=\($start) END_TIME=\($end) USER_COUNT=\($count) FIRST_MSG=\($first_msg)"
+       end) as $last_msg |
+      @sh "START_TIME=\($start) END_TIME=\($end) USER_COUNT=\($count) LAST_MSG=\($last_msg)"
     ' "${transcript_path}")
 
     # 時間計算
@@ -120,17 +120,17 @@ if [[ -n "${transcript_path}" && "${transcript_path}" != "null" && -f "${transcr
     if [[ ${USER_COUNT} -gt 0 ]]; then
         # コマンド履歴っぽく見せる処理（コメントアウトされたコマンド部分の除去など）
         # 簡易的に、先頭の # /command ... を除去したりする
-        FIRST_MSG=$(echo "${FIRST_MSG}" | sed 's/^[[:space:]]*#[[:space:]]*//')
+        LAST_MSG=$(echo "${LAST_MSG}" | sed 's/^[[:space:]]*#[[:space:]]*//')
 
         # タスク種別推測
         task_type="💬"
 
         # キーワードによるアイコンの出し分け
-        if [[ "${FIRST_MSG}" =~ ^\/ ]]; then task_type="⚡" # スラッシュコマンド
-        elif [[ "${FIRST_MSG}" =~ (実装|コード|プログラム|関数|バグ|修正|追加|作成) ]]; then task_type="💻"
-        elif [[ "${FIRST_MSG}" =~ (検索|調べ|探し|find|grep|確認) ]]; then task_type="🔍"
-        elif [[ "${FIRST_MSG}" =~ (説明|教え|解説|どう|なぜ|what|how) ]]; then task_type="📚"
-        elif [[ "${FIRST_MSG}" =~ (テスト|test|チェック|確認) ]]; then task_type="🧪"
+        if [[ "${LAST_MSG}" =~ ^\/ ]]; then task_type="⚡" # スラッシュコマンド
+        elif [[ "${LAST_MSG}" =~ (実装|コード|プログラム|関数|バグ|修正|追加|作成) ]]; then task_type="💻"
+        elif [[ "${LAST_MSG}" =~ (検索|調べ|探し|find|grep|確認) ]]; then task_type="🔍"
+        elif [[ "${LAST_MSG}" =~ (説明|教え|解説|どう|なぜ|what|how) ]]; then task_type="📚"
+        elif [[ "${LAST_MSG}" =~ (テスト|test|チェック|確認) ]]; then task_type="🧪"
         fi
 
         # サフィックス
@@ -141,7 +141,7 @@ if [[ -n "${transcript_path}" && "${transcript_path}" != "null" && -f "${transcr
         fi
 
         # 改行を削除して1行にする
-        clean_msg=$(echo "${FIRST_MSG}" | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
+        clean_msg=$(echo "${LAST_MSG}" | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
         summary="${task_type} ${clean_msg}${suffix}"
 
         # 長さ制限
