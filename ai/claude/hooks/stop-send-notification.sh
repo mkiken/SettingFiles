@@ -57,6 +57,15 @@ transcript_path=$(echo "${hook_input}" | jq -r '.transcript_path')
 debug_log "Hook event: ${hook_event_name}"
 debug_log "Transcript path extracted: ${transcript_path}"
 
+# セッションIDを取得（グループ通知用）
+# hook入力JSONにsession_idがあればそれを優先、なければtranscript_pathから導出
+session_id=$(echo "${hook_input}" | jq -r '.session_id // empty')
+if [[ -z "${session_id}" ]]; then
+    session_id=$(basename "${transcript_path}" .jsonl)
+fi
+notification_group="claude-${session_id}"
+debug_log "Session ID: ${session_id}, Notification group: ${notification_group}"
+
 # transcript_pathが取得できているかチェック
 if [[ -z "${transcript_path}" || "${transcript_path}" == "null" ]]; then
     debug_log "No transcript path found"
@@ -306,7 +315,7 @@ if [[ "${hook_event_name}" == "Notification" ]]; then
         fi
 
         debug_log "Sending approval notification: ${notification_body}"
-        notify "⚠️ Claude Code承認待ち at 🕰️${current_time}" "${notification_body}" "Glass"
+        notify "⚠️ Claude Code承認待ち at 🕰️${current_time}" "${notification_body}" "Glass" "${notification_group}"
     else
         debug_log "Notification type ${notification_type} does not require notification, exiting"
     fi
@@ -322,6 +331,6 @@ else
 fi
 
 debug_log "Sending stop notification: title='${notification_title}', message='${summary}'"
-notify "${notification_title}" "${summary}" "Submarine"
+notify "${notification_title}" "${summary}" "Submarine" "${notification_group}"
 
 debug_log "=== Claude Notification Hook Completed ==="
