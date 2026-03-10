@@ -47,7 +47,7 @@ debug_log "Hook input received: ${hook_input}"
 
 # jqが利用可能かチェック
 if ! command -v jq &> /dev/null; then
-    notify '🤖 Claude Code終了' 'jqが見つかりません' 'Submarine'
+    notify '✴️🤖 Claude終了' 'jqが見つかりません' 'Submarine'
     exit 1
 fi
 
@@ -69,14 +69,14 @@ debug_log "Session ID: ${session_id}, Notification group: ${notification_group}"
 # transcript_pathが取得できているかチェック
 if [[ -z "${transcript_path}" || "${transcript_path}" == "null" ]]; then
     debug_log "No transcript path found"
-    notify '🤖 Claude Code終了' 'transcript pathが見つかりません' 'Submarine'
+    notify '✴️🤖 Claude終了' 'transcript pathが見つかりません' 'Submarine'
     exit 0
 fi
 
 # transcriptファイルが存在するかチェック
 if [[ ! -f "${transcript_path}" ]]; then
     debug_log "Transcript file not found: ${transcript_path}"
-    notify '🤖 Claude Code終了' 'セッションが終了しました' 'Submarine'
+    notify '✴️🤖 Claude終了' 'セッションが終了しました' 'Submarine'
     exit 0
 fi
 
@@ -315,7 +315,7 @@ if [[ "${hook_event_name}" == "Notification" ]]; then
         fi
 
         debug_log "Sending approval notification: ${notification_body}"
-        notify "⚠️ Claude Code承認待ち at 🕰️${current_time}" "${notification_body}" "Glass" "${notification_group}"
+        notify "✴️⚠️ Claude承認待ち at 🕰️${current_time}" "${notification_body}" "Glass" "${notification_group}"
     else
         debug_log "Notification type ${notification_type} does not require notification, exiting"
     fi
@@ -324,10 +324,10 @@ fi
 
 # Stopイベント: 終了通知
 if [[ -n "${completion_time}" ]]; then
-    notification_title="✅ Claude Code終了 at ${completion_time}"
+    notification_title="✴️✅ Claude終了 at ${completion_time}"
 else
     current_time=$(date "+%H:%M:%S")
-    notification_title="✅ Claude Code終了 at 🕰️${current_time}"
+    notification_title="✴️✅ Claude終了 at 🕰️${current_time}"
 fi
 
 debug_log "Sending stop notification: title='${notification_title}', message='${summary}'"
