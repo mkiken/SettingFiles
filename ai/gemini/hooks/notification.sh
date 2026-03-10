@@ -56,7 +56,7 @@ debug_log "Hook input received: ${hook_input}"
 # jqが利用可能かチェック
 if ! command -v jq &> /dev/null; then
     debug_log "Error: jq not found"
-    notify '🤖 Gemini CLI終了' 'jqが見つかりません' 'Submarine'
+    notify '💎🤖 Gemini終了' 'jqが見つかりません' 'Submarine'
     exit 1
 fi
 
@@ -205,7 +205,7 @@ if [[ "${EVENT_TYPE}" == "notification" ]]; then
         debug_log "Sending ToolPermission notification: ${MSG_BODY}"
 
         current_time=$(date "+%H:%M:%S")
-        notify "⚠️ Gemini CLI承認待ち at 🕰️${current_time}" "${MSG_BODY}" "Glass"
+        notify "💎⚠️ Gemini承認待ち at 🕰️${current_time}" "${MSG_BODY}" "Glass"
     else
         debug_log "Ignoring notification type: ${NOTIFICATION_TYPE}"
     fi
@@ -213,7 +213,7 @@ if [[ "${EVENT_TYPE}" == "notification" ]]; then
 fi
 
 # after_agent の場合
-notification_title="✅ Gemini CLI終了"
+notification_title="💎✅ Gemini終了"
 if [[ -n "${completion_time}" ]]; then
     notification_title="${notification_title} at ${completion_time}"
 else
