@@ -1,6 +1,7 @@
 ---
 description: "Comprehensive PR review using 6 parallel specialist sub-agents for bugs, security, architecture, error handling, history, and tests"
 argument-hint: "[prNumber]"
+allowed-tools: Bash(gh pr *), Bash(gh api *), Read, Grep, Glob, Agent
 ---
 
 ## Instructions
@@ -20,6 +21,7 @@ gh repo view --json nameWithOwner
 ### Phase 2: Launch All 6 Sub-Agents in Parallel
 
 Pass the following to each sub-agent as context:
+
 - PR number: `$ARGUMENTS`
 - PR metadata (title, body, base/head branch, repository owner/name)
 - Complete PR diff
@@ -36,6 +38,7 @@ Launch all agents simultaneously:
 ### Phase 3: Aggregate and Deduplicate Results
 
 Collect all sub-agent findings, then:
+
 1. Remove duplicate findings (same file:line reported by multiple agents)
 2. Reclassify priorities based on confidence scores
 3. Format structured output
@@ -48,14 +51,14 @@ Respond entirely in **Japanese**.
 
 ## レビューサマリー
 
-| 領域 | 指摘数 | 最高信頼度 |
-|------|--------|------------|
-| バグ検出 | N | XX |
-| セキュリティ | N | XX |
-| アーキテクチャ | N | XX |
-| エラーハンドリング | N | XX |
-| Git履歴 | N | XX |
-| テスト品質 | N | XX |
+| 領域               | 指摘数 | 最高信頼度 |
+| ------------------ | ------ | ---------- |
+| バグ検出           | N      | XX         |
+| セキュリティ       | N      | XX         |
+| アーキテクチャ     | N      | XX         |
+| エラーハンドリング | N      | XX         |
+| Git履歴            | N      | XX         |
+| テスト品質         | N      | XX         |
 
 ---
 
