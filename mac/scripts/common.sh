@@ -280,15 +280,15 @@ function smart_merge_json() {
             ;;
         merge_src|merge_dst)
             # Create temporary file for merge result
-            local tmp_file=$(mktemp)
+            local tmp_file=$(mktemp).json
 
             # Perform merge based on priority
             if [[ "$action" == "merge_src" ]]; then
                 echo "Merging with source priority..."
-                jq -s '.[0] * .[1]' "$dst" "$src" > "$tmp_file" 2>&1
+                jq -s '.[0] * .[1]' "$dst" "$src" > "$tmp_file"
             else
                 echo "Merging with destination priority..."
-                jq -s '.[0] * .[1]' "$src" "$dst" > "$tmp_file" 2>&1
+                jq -s '.[0] * .[1]' "$src" "$dst" > "$tmp_file"
             fi
 
             # Check if merge was successful
@@ -296,6 +296,13 @@ function smart_merge_json() {
                 echo "Error: Merge failed" >&2
                 /bin/rm -f "$tmp_file"
                 return 1
+            fi
+
+            # Skip if merge result is identical to current destination
+            if diff -q "$tmp_file" "$dst" > /dev/null 2>&1; then
+                echo "✓ Merge result is identical to current file, skipping: $dst"
+                /bin/rm -f "$tmp_file"
+                return 0
             fi
 
             # Show merge result preview
