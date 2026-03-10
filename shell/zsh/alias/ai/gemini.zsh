@@ -14,6 +14,14 @@ gmp() {
     gm --model pro "$@"
 }
 
+gmfp() {
+    gmf --approval-mode plan "$@"
+}
+
+gmpp() {
+    gmp --approval-mode plan "$@"
+}
+
 gm-pr-review() {
     gmp -i "/pr-review $*"
 }
