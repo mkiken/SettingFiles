@@ -81,8 +81,6 @@
   "model": "opusplan",
   "permissions": {
     "allow": [
-      "Read",
-      "LS",
       "Bash(cat:*)",
       "Bash(cd:*)",
       "Bash(find:*)",
@@ -97,6 +95,8 @@
       "Bash(pwd:*)",
       "Bash(rg:*)",
       "Bash(tail:*)",
+      "LS",
+      "Read",
       "WebFetch(domain:*)",
       "WebSearch"
     ],
