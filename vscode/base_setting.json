@@ -33,10 +33,7 @@
   "editor.inlayHints.enabled": "off",
   "errorLens.delay": 1500,
   "errorLens.onSaveTimeout": 2000,
-  "editor.rulers": [
-    80,
-    120
-  ],
+  "editor.rulers": [80, 120],
   "workbench.tree.renderIndentGuides": "none",
   "editor.guides.highlightActiveIndentation": false,
   "editor.guides.indentation": false,
@@ -64,9 +61,7 @@
   "extensions.experimental.affinity": {
     "asvetliakov.vscode-neovim": 1
   },
-  "shellcheck.exclude": [
-    "1071"
-  ],
+  "shellcheck.exclude": ["1071"],
   "geminicodeassist.displayInlineContextHint": false,
   "biome.suggestInstallingGlobally": false,
   "[jsonc]": {
@@ -74,9 +69,7 @@
   },
   "plantuml.java": "/opt/homebrew/bin/java",
   "git.confirmSync": false,
-  "cSpell.userWords": [
-    "Gundam"
-  ],
+  "cSpell.userWords": ["Gundam"],
   "geminicodeassist.chat.changeView": "Default diff view",
   "geminicodeassist.codeGenerationPaneViewEnabled": true,
   "geminicodeassist.enableTelemetry": false,
@@ -87,5 +80,5 @@
   "claudeCode.preferredLocation": "panel",
   "claudeCode.useCtrlEnterToSend": true,
   "chat.useAgentSkills": true,
-  "claudeCode.useTerminal": true
+  "chat.useClaudeHooks": true
 }
