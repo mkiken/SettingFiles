@@ -282,13 +282,30 @@ function smart_merge_json() {
             # Create temporary file for merge result
             local tmp_file=$(mktemp).json
 
+            # deepmerge: objects are recursively merged, arrays are unioned (unique)
+            local jq_deepmerge='
+def deepmerge(a; b):
+  if (a | type) == "object" and (b | type) == "object" then
+    reduce ([ (a | keys[]), (b | keys[]) ] | unique)[] as $k ({};
+      if (a | has($k)) and (b | has($k)) then . + {($k): deepmerge(a[$k]; b[$k])}
+      elif (a | has($k)) then . + {($k): a[$k]}
+      else . + {($k): b[$k]}
+      end
+    )
+  elif (a | type) == "array" and (b | type) == "array" then
+    [a[], b[]] | unique
+  else b
+  end;
+. as $f | deepmerge($f[0]; $f[1])
+'
+
             # Perform merge based on priority
             if [[ "$action" == "merge_src" ]]; then
                 echo "Merging with source priority..."
-                jq -s '.[0] * .[1]' "$dst" "$src" > "$tmp_file"
+                jq -s "$jq_deepmerge" "$dst" "$src" > "$tmp_file"
             else
                 echo "Merging with destination priority..."
-                jq -s '.[0] * .[1]' "$src" "$dst" > "$tmp_file"
+                jq -s "$jq_deepmerge" "$src" "$dst" > "$tmp_file"
             fi
 
             # Check if merge was successful
