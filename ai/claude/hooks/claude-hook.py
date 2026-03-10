@@ -26,6 +26,20 @@ class SoundType(Enum):
     NOTIFICATION = "notification"
 
 
+def _get_tmux_pane_id() -> str | None:
+    """tmuxセッション内の場合のみpane_idを返す。それ以外はNone。
+    VSCode等からtmuxを起動した際にTMUX_PANEが継承されるケースを除外するため、
+    TERM_PROGRAM=="tmux"も確認する。
+    """
+    pane_id = os.environ.get("TMUX_PANE")
+    if not pane_id:
+        return None
+    term_program = os.environ.get("TERM_PROGRAM", "")
+    if term_program != "tmux":
+        return None
+    return pane_id
+
+
 def main():
     input_data = json.load(sys.stdin)
     hook_event = input_data.get("hook_event_name")
@@ -69,10 +83,10 @@ def handle_session_end_hook(_: dict):
 def update_tmux_window_name(status: HookStatus):
     """指定されたステータスでtmuxウィンドウ名を更新"""
     try:
-        # $TMUX_PANE環境変数から実行元のペインIDを取得
-        pane_id = os.environ.get("TMUX_PANE")
+        # 実際のtmuxセッション内でのみ更新（VSCode等からの継承を除外）
+        pane_id = _get_tmux_pane_id()
         if not pane_id:
-            return  # tmux環境外では何もしない
+            return
 
         # pane_idから直接ウィンドウ名を取得（pane_idはグローバルにユニーク）
         result = subprocess.run(
@@ -108,7 +122,8 @@ def update_tmux_window_name(status: HookStatus):
 def remove_tmux_window_icon():
     """tmuxウィンドウ名から状態アイコンを削除"""
     try:
-        pane_id = os.environ.get("TMUX_PANE")
+        # 実際のtmuxセッション内でのみ更新（VSCode等からの継承を除外）
+        pane_id = _get_tmux_pane_id()
         if not pane_id:
             return
 
