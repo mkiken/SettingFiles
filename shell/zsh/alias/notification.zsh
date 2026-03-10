@@ -26,10 +26,19 @@ function notify() {
   # デバッグログ
   # echo "[$(date '+%Y-%m-%d %H:%M:%S')] notify called with bundle_id='${bundle_id}', __CFBundleIdentifier='${__CFBundleIdentifier}'" >> /tmp/notification-debug.log
 
+  # アイコンファイルが存在する場合は使用する
+  # アイコンは ~/.config/notify-icons/<bundle_id>.png に置く
+  local icon_path="${HOME}/.config/notify-icons/${bundle_id}.png"
+  local icon_option=()
+  if [[ -f "$icon_path" ]]; then
+    icon_option=(-appIcon "$icon_path")
+  fi
+
   terminal-notifier -title "$title" \
     -message "$message" \
     -sound "$sound" \
     -activate "$bundle_id" \
+    "${icon_option[@]}" \
     -ignoreDnD
 }
 
