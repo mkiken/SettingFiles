@@ -31,7 +31,7 @@ function notify() {
   local icon_path="${HOME}/.config/notify-icons/${bundle_id}.png"
   local icon_option=()
   if [[ -f "$icon_path" ]]; then
-    icon_option=(-appIcon "$icon_path")
+    icon_option=(-contentImage "${icon_path}")
   fi
 
   terminal-notifier -title "$title" \
