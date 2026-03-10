@@ -2,6 +2,7 @@ function notify() {
   local title="$1"
   local message="$2"
   local sound="${3:-default}"
+  local group="$4"
 
   # terminal-notifierがない場合は早期リターン
   if ! command -v terminal-notifier >/dev/null 2>&1; then
@@ -34,11 +35,17 @@ function notify() {
     icon_option=(-contentImage "${icon_path}")
   fi
 
+  local group_option=()
+  if [[ -n "$group" ]]; then
+    group_option=(-group "$group")
+  fi
+
   terminal-notifier -title "$title" \
     -message "$message" \
     -sound "$sound" \
     -activate "$bundle_id" \
     "${icon_option[@]}" \
+    "${group_option[@]}" \
     -ignoreDnD
 }
 
