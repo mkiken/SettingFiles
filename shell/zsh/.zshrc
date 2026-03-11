@@ -1,7 +1,10 @@
 #!/bin/zsh
 
 # vscodeの判定を変数化
-if [[ "$TERM_PROGRAM" == "vscode" ]]; then
+# TERM_PROGRAMはtmux内では上書きされるため、VSCode固有の環境変数もfallbackとして使用
+if [[ "$TERM_PROGRAM" == "vscode" ]] \
+   || [[ -n "${VSCODE_IPC_HOOK_CLI:-}" ]] \
+   || [[ -n "${VSCODE_INJECTION:-}" ]]; then
   IS_VSCODE=true
 else
   IS_VSCODE=false
