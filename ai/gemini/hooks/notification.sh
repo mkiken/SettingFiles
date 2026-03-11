@@ -66,6 +66,19 @@ fi
 
 # JSONからtranscript_pathを抽出
 transcript_path=$(echo "${hook_input}" | jq -r '.transcript_path')
+
+# セッションIDを取得（グループ通知用）
+session_id=$(echo "${hook_input}" | jq -r '.session_id // empty')
+if [[ -z "${session_id}" && -n "${transcript_path}" && "${transcript_path}" != "null" ]]; then
+    # Geminiの場合、transcript_pathは .../<uuid>/transcript.json となることが多いので親ディレクトリ名を使う
+    session_id=$(basename "$(dirname "${transcript_path}")")
+fi
+if [[ -z "${session_id}" || "${session_id}" == "." ]]; then
+    session_id="default"
+fi
+notification_group="gemini-${session_id}"
+debug_log "Session ID: ${session_id}, Notification group: ${notification_group}"
+
 summary=""
 session_duration_formatted=""
 completion_time=""
@@ -205,7 +218,7 @@ if [[ "${EVENT_TYPE}" == "notification" ]]; then
         debug_log "Sending ToolPermission notification: ${MSG_BODY}"
 
         current_time=$(date "+%H:%M:%S")
-        notify "💎⚠️ Gemini承認待ち at 🕰️${current_time}" "${MSG_BODY}" "Glass"
+        notify "💎⚠️ Gemini承認待ち at 🕰️${current_time}" "${MSG_BODY}" "Glass" "${notification_group}"
     else
         debug_log "Ignoring notification type: ${NOTIFICATION_TYPE}"
     fi
@@ -223,6 +236,6 @@ fi
 
 debug_log "Sending notification: title='${notification_title}', message='${summary}'"
 
-notify "${notification_title}" "${summary}" "Submarine"
+notify "${notification_title}" "${summary}" "Submarine" "${notification_group}"
 
 debug_log "=== Gemini Notification Hook Completed ==="
