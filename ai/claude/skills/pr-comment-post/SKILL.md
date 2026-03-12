@@ -18,14 +18,29 @@ argument-hint: "[item_numbers...]"
 Post specific numbered findings from a `my:pr-review` result as GitHub PR comments.
 Each item is confirmed with the user individually before posting.
 
-## Step 1: Determine which item numbers to post
+## Step 1: Summarize review items
+
+Before anything else, look at the conversation history for `my:pr-review` output and list all findings in a compact format — one line per item:
+
+```
+N. [path/to/file.ext:line] Category: 概要
+```
+
+Example:
+```
+1. [src/auth.ts:42] Security: トークンがログに露出する可能性
+2. [src/Button.tsx:15-20] Architecture: ロジックの分離を検討
+3. [src/utils/format.ts:8] Readability: 変数名をより具体的に
+```
+
+## Step 2: Determine which item numbers to post
 
 Parse `$ARGUMENTS` for space- or comma-separated numbers (e.g., `1 3 5` or `1,3,5`).
 
 If `$ARGUMENTS` is empty, use `AskUserQuestion` to ask the user which item numbers to post.
 Show them the available numbered items from the review output in context.
 
-## Step 2: Extract review items from context
+## Step 3: Extract review items from context
 
 Look at the conversation history for `my:pr-review` output. The format is:
 
@@ -39,7 +54,7 @@ For each requested number N, extract:
 - **category**: e.g., `Security`, `Architecture`, `Bug Risk`
 - **description**: the full issue description text
 
-## Step 3: Get PR metadata
+## Step 4: Get PR metadata
 
 Run these commands to collect what you need for posting:
 
@@ -51,11 +66,11 @@ gh pr view --json number,headRefOid
 gh repo view --json owner,name
 ```
 
-## Step 4: Confirm and post each item
+## Step 5: Confirm and post each item
 
 For each item number the user specified, repeat this loop:
 
-### 4a. Show what will be posted
+### 5a. Show what will be posted
 
 Present the item clearly to the user:
 
@@ -66,13 +81,13 @@ Present the item clearly to the user:
     **Category**: Description
 ```
 
-### 4b. Ask for confirmation
+### 5b. Ask for confirmation
 
 Use `AskUserQuestion` with a yes/no question like:
 
 > この項目をPRにコメントとして投稿しますか？
 
-### 4c. Post if approved
+### 5c. Post if approved
 
 If the user approves, post the comment.
 
@@ -116,11 +131,11 @@ Example:
 **Security**: Auth token may be exposed in logs — consider using a redaction helper before passing to the logger.
 ```
 
-### 4d. Skip if declined
+### 5d. Skip if declined
 
 If the user says no, move on to the next item without posting.
 
-## Step 5: Summary
+## Step 6: Summary
 
 After processing all items, report how many comments were posted and how many were skipped.
 
