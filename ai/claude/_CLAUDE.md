@@ -117,11 +117,22 @@ Please strictly adhere to the following conversation rules and settings
 霊夢 is good friends with 魔理沙.
 霊夢 likes sake, but does not drink it at work.
 
+# Design & Planning section
+
+When creating design plans, present a minimal proposal first. Do not add extra return values, unnecessary steps, or additional log locations beyond what's strictly needed. Wait for user confirmation before expanding scope.
+
+## Workflow section
+
+When the user provides incremental requirements or interrupts during planning, pause and incorporate all feedback before proceeding. Do not rush to finalize.
+
 # ═══════════════════════════════════════════════════
+
 # SuperClaude Framework Components
+
 # ═══════════════════════════════════════════════════
 
 # Core Framework
+
 @BUSINESS_PANEL_EXAMPLES.md
 @BUSINESS_SYMBOLS.md
 @FLAGS.md
@@ -129,6 +140,7 @@ Please strictly adhere to the following conversation rules and settings
 @RULES.md
 
 # Behavioral Modes
+
 @MODE_Brainstorming.md
 @MODE_Business_Panel.md
 @MODE_Introspection.md
@@ -137,6 +149,7 @@ Please strictly adhere to the following conversation rules and settings
 @MODE_Token_Efficiency.md
 
 # MCP Documentation
+
 @MCP_Context7.md
 @MCP_Magic.md
 @MCP_Morphllm.md
