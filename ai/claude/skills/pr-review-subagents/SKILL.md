@@ -99,3 +99,13 @@ Respond entirely in **Japanese**.
 **マージ可否**: ✅ マージ可 / ⚠️ 条件付きマージ可 / ❌ マージ不可
 
 総合コメントと優先度の高い対応事項のまとめ。
+
+---
+
+## Post-Review: Post to GitHub
+
+After outputting the review results, use `AskUserQuestion` to ask:
+
+> Would you like to post any of these findings as GitHub PR comments? If so, specify the item numbers (e.g., `1 3 5`). Say "no" to skip.
+
+If the user provides numbers, follow the `pr-comment-post` skill to post each item.
