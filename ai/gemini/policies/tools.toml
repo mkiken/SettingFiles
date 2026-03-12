@@ -3,6 +3,12 @@
 
 [[rule]]
 toolName = "run_shell_command"
+commandPrefix = "base64 "
+decision = "allow"
+priority = 100
+
+[[rule]]
+toolName = "run_shell_command"
 commandPrefix = "cat "
 decision = "allow"
 priority = 100
@@ -28,6 +34,12 @@ priority = 100
 [[rule]]
 toolName = "run_shell_command"
 commandPrefix = "gh pr view"
+decision = "allow"
+priority = 100
+
+[[rule]]
+toolName = "run_shell_command"
+commandPrefix = "git fetch"
 decision = "allow"
 priority = 100
 

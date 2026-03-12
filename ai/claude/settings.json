@@ -81,6 +81,7 @@
   "model": "opusplan",
   "permissions": {
     "allow": [
+      "Bash(base64:*)",
       "Bash(cat:*)",
       "Bash(cd:*)",
       "Bash(find:*)",
@@ -88,6 +89,7 @@
       "Bash(gh pr view:*)",
       "Bash(git diff:*)",
       "Bash(git log:*)",
+      "Bash(git fetch:*)",
       "Bash(git show:*)",
       "Bash(grep:*)",
       "Bash(head:*)",
