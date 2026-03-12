@@ -13,7 +13,7 @@ argument-hint: [prNumber]
 
 Fetch primary review materials:
 - `gh pr view $ARGUMENTS --json title,body,files,commits,baseRefName,headRefName` — PR metadata
-- `gh pr diff $ARGUMENTS` — Complete diff
+- `gh pr diff $ARGUMENTS` — Complete diff (**Note: file path arguments are not supported; always fetch the full diff and filter locally if needed**)
 - `gh pr view $ARGUMENTS --comments` — Existing comments
 
 For deeper investigation (referencing files outside diff, checking surrounding context):

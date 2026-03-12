@@ -4,6 +4,7 @@ prompt = """Perform a comprehensive PR review for {{args}}.
 CRITICAL: Run these commands FIRST:
 !{gh pr view {{args}} --json number,url,title,body,author,headRefName,baseRefName,isDraft,mergeable,state,commits,additions,deletions,changedFiles,files}
 !{gh pr diff {{args}}}
+NOTE: gh pr diff does not support file path arguments. Always fetch the full diff first, then filter locally if needed.
 
 ### **Remote Review Workflow**
 

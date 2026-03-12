@@ -14,7 +14,7 @@ Fetch all required PR data before launching sub-agents:
 
 ```bash
 gh pr view $ARGUMENTS --json title,body,baseRefName,headRefName,url
-gh pr diff $ARGUMENTS
+gh pr diff $ARGUMENTS  # NOTE: file path arguments are not supported; fetch full diff and filter locally if needed
 gh repo view --json nameWithOwner
 ```
 
