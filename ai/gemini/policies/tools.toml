@@ -90,3 +90,15 @@ toolName = "run_shell_command"
 commandPrefix = "tail "
 decision = "allow"
 priority = 100
+
+[[rule]]
+toolName = "run_shell_command"
+commandPrefix = "gh api "
+decision = "allow"
+priority = 100
+
+[[rule]]
+toolName = "run_shell_command"
+commandPrefix = "gh repo view"
+decision = "allow"
+priority = 100
