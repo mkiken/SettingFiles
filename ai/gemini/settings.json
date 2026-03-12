@@ -17,7 +17,9 @@
     "previewFeatures": false,
     "vimMode": true,
     "sessionRetention": {
-      "enabled": true
+      "enabled": true,
+      "warningAcknowledged": true,
+      "maxAge": "30d"
     }
   },
   "context": {
@@ -93,6 +95,18 @@
         "-y",
         "@superclaude-org/superagent"
       ]
+    },
+    "morphllm-fast-apply": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@morph-llm/morph-fast-apply",
+        "/home/"
+      ],
+      "env": {
+        "MORPH_API_KEY": "",
+        "ALL_TOOLS": "true"
+      }
     }
   },
   "output": {
@@ -163,7 +177,20 @@
       }
     ]
   },
-  "_disabledMcpServers": {},
+  "_disabledMcpServers": {
+    "magic": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@21st-dev/magic"
+      ],
+      "env": {
+        "TWENTYFIRST_API_KEY": ""
+      },
+      "_geminiCompatibility": "NOT_COMPATIBLE - Tool names start with '21st_' which violates Gemini function naming rules",
+      "_disabledReason": "Tool names start with '21st_' which violates Gemini's function naming rules (must start with letter/underscore, not number)"
+    }
+  },
   "experimental": {
     "plan": true
   }
