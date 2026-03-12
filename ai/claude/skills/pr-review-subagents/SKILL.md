@@ -1,7 +1,6 @@
 ---
 description: "Comprehensive PR review using 6 parallel specialist sub-agents for bugs, security, architecture, error handling, history, and tests"
 argument-hint: "[prNumber]"
-allowed-tools: Bash(gh pr *), Bash(gh api *), Read, Grep, Glob, Agent
 ---
 
 ## Instructions
@@ -41,7 +40,8 @@ Collect all sub-agent findings, then:
 
 1. Remove duplicate findings (same file:line reported by multiple agents)
 2. Reclassify priorities based on confidence scores
-3. Format structured output
+3. Assign sequential numbers to all findings across all priority sections (continue numbering across sections — do not restart per section)
+4. Format structured output
 
 ### Output Format
 
@@ -66,7 +66,7 @@ Respond entirely in **Japanese**.
 
 > **アクション必須**: マージ前に対処が必要な問題
 
-- **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
+1. **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
 
 ---
 
@@ -74,7 +74,7 @@ Respond entirely in **Japanese**.
 
 > **推奨対処**: 品質向上のために対処を推奨
 
-- **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
+2. **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
 
 ---
 
@@ -82,7 +82,7 @@ Respond entirely in **Japanese**.
 
 > **任意対応**: 将来的に検討する価値がある改善点
 
-- **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
+3. **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
 
 ---
 

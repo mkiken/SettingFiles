@@ -47,27 +47,29 @@ Review thoroughly from the following perspectives:
 - `[path/to/file.ext:line]` for single line comments
 - `[path/to/file.ext:startLine-endLine]` for multi-line comments
 
+**Number all findings sequentially across all priority sections (continue numbering across sections — do not restart per section).**
+
 **Output must be grouped by priority level in descending order. Omit priority levels with no findings:**
 
 #### 🔴 High Priority
-- **[path/to/file.ext:line]** Category: Issue description
+1. **[path/to/file.ext:line]** Category: Issue description
 
 #### 🟡 Medium Priority
-- **[path/to/file.ext:line]** Category: Issue description
+2. **[path/to/file.ext:line]** Category: Issue description
 
 #### 🟢 Low Priority
-- **[path/to/file.ext:line]** Category: Issue description
+3. **[path/to/file.ext:line]** Category: Issue description
 
 Example:
 
 #### 🔴 High Priority
-- **[src/services/auth.ts:42]** Security: Auth token may be exposed in logs
+1. **[src/services/auth.ts:42]** Security: Auth token may be exposed in logs
 
 #### 🟡 Medium Priority
-- **[src/components/Button.tsx:15-20]** Architecture: Consider separating logic
+2. **[src/components/Button.tsx:15-20]** Architecture: Consider separating logic
 
 #### 🟢 Low Priority
-- **[src/utils/format.ts:8]** Readability: Use more descriptive variable names
+3. **[src/utils/format.ts:8]** Readability: Use more descriptive variable names
 
 ### **Review Focus Points**
 
