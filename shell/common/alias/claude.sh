@@ -37,6 +37,12 @@ cl-pr-body() {
     clo "/my:pr-body $*"
 }
 
+cl-pr-create() {
+    local branch
+    branch=$(br_fmt) || return $?
+    clo "/pr-create-by-branch $branch"
+}
+
 cclog() {
      claude-code-log "$@"
 }
