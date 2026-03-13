@@ -80,5 +80,6 @@
   "claudeCode.preferredLocation": "panel",
   "claudeCode.useCtrlEnterToSend": true,
   "chat.useAgentSkills": true,
-  "chat.useClaudeHooks": true
+  "chat.useClaudeHooks": true,
+  "claudeCode.useTerminal": true
 }
