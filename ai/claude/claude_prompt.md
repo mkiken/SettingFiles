@@ -12,7 +12,8 @@ When you need to ask the user a question or request confirmation, always use the
 - Clarifying ambiguous requirements
 - Choosing between implementation approaches
 - Confirming before taking irreversible or high-impact actions
-- Any other situation where user input is required before proceeding
+
+Do NOT use AskUserQuestion for plan mode acceptance. In plan mode, use ExitPlanMode to present the plan and rely on its native accept/reject mechanism.
 
 # ═══════════════════════════════════════════════════
 
