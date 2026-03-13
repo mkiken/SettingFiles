@@ -10,6 +10,18 @@ function make_symlink () {
     mkdir -p "$target_dir"
   fi
 
+  # 既にシンボリックリンクが存在する場合の処理
+  if [[ -L "$2" ]]; then
+    local existing_target="$(readlink "$2")"
+    if [[ "$existing_target" == "$1" ]]; then
+      echo "✓ Already linked: $2 -> $1"
+      return 0
+    fi
+    # 異なるリンク先のシンボリックリンクは削除して再作成
+    echo "rm $2 (was -> $existing_target)"
+    /bin/rm "$2"
+  fi
+
   echo "ln -si $1 $2"
   ln -si "$1" "$2"
 }
