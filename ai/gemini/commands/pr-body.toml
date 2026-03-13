@@ -13,10 +13,13 @@ NOTE: gh pr diff does not support file path arguments. Always fetch the full dif
 - First, review the existing PR body from the fetched data
   - If the existing body contains meaningful information (not just template text), preserve and incorporate it
   - Template-only content (placeholders, empty sections) can be discarded
+- Analyze the full diff and describe the PR based on the **final state (HEAD)**, not intermediate steps
+  - Do not mention reverted changes, overwritten intermediate states, or trial-and-error in the history
+  - Background information useful to reviewers (why this approach was chosen, alternatives considered) is acceptable
 - Generate comprehensive PR body content with the following sections:
   - **Summary**: Comprehensive overview grouped by logical changes
   - **Files Changed Summary**: File-by-file breakdown with brief descriptions (DO NOT include line counts like +X/-Y)
-  - **Review Focus Points**: Areas requiring special attention during review
+  - **Review Focus Points**: Areas requiring special attention during review (default to "特になし" if nothing specific)
   - **Breaking Changes**: Any breaking changes or migration requirements
   - **Additional Notes**: Any other relevant information for reviewers
 - Output **raw markdown format** that can be directly copied to PR body
@@ -43,10 +46,14 @@ After generating the PR body content:
    - Options: "はい、反映する" / "いいえ、表示のみ"
 
 4. If user confirms:
-   - Create temporary file with body content (to avoid shell escaping issues)
-   - Execute `gh pr edit {{args}} --body-file <temp-file>` to apply the body
-   - Clean up temporary file after use
+   - Apply the body using stdin pipe to avoid shell escaping issues:
+     ```bash
+     cat <<'EOF' | gh pr edit {{args}} --body-file -
+     <generated PR body here>
+     EOF
+     ```
    - Show success message with PR URL
+   - Display: "必要に応じて **Review Focus Points** を編集してください"
 
 5. If user declines:
    - End process (user can manually copy the displayed content)"""

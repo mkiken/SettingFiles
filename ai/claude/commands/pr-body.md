@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(gh:*), Bash(/bin/rm *), Bash(mktemp *)
+allowed-tools: Bash(gh:*)
 description: "Generate comprehensive PR body content using gh command for specified PR number"
 argument-hint: [prNumber]
 ---
@@ -12,10 +12,13 @@ argument-hint: [prNumber]
 - Use the gh command to fetch and analyze PR #$ARGUMENTS
   - Generate content suitable for PR body
   - Exclude template sections
+- Analyze the full diff and describe the PR based on the **final state (HEAD)**, not intermediate steps
+  - Do not mention reverted changes, overwritten intermediate states, or trial-and-error in the history
+  - Background information useful to reviewers (why this approach was chosen, alternatives considered) is acceptable
 - Include the following sections:
   - **Summary**: Comprehensive overview grouped by logical changes
   - **Files Changed Summary**: File-by-file breakdown with brief descriptions (DO NOT include line counts like +X/-Y)
-  - **Review Focus Points**: Areas requiring special attention during review
+  - **Review Focus Points**: Areas requiring special attention during review (default to "特になし" if nothing specific)
   - **Breaking Changes**: Any breaking changes or migration requirements
   - **Additional Notes**: Any other relevant information for reviewers
 - Output **raw markdown format** that can be directly copied to PR body
@@ -42,14 +45,14 @@ After generating the PR body content:
    - Options: "はい、反映する" / "いいえ、表示のみ"
 
 4. If user confirms:
-   - Execute `gh pr edit $ARGUMENTS --body-file <temp-file>` to apply the body
+   - Apply the body using stdin pipe to avoid shell escaping issues:
+     ```bash
+     cat <<'EOF' | gh pr edit $ARGUMENTS --body-file -
+     <generated PR body here>
+     EOF
+     ```
    - Show success message with PR URL
+   - Display: "必要に応じて **Review Focus Points** を編集してください"
 
 5. If user declines:
    - End process (user can manually copy the displayed content)
-
-## Implementation Notes
-
-- Create temporary file for body content to avoid shell escaping issues
-- Clean up temporary file after use
-- Verify gh pr edit command success and show appropriate feedback
