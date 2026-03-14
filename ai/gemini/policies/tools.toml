@@ -45,6 +45,18 @@ priority = 100
 
 [[rule]]
 toolName = "run_shell_command"
+commandPrefix = "git add"
+decision = "allow"
+priority = 100
+
+[[rule]]
+toolName = "run_shell_command"
+commandPrefix = "git commit"
+decision = "allow"
+priority = 100
+
+[[rule]]
+toolName = "run_shell_command"
 commandPrefix = "git fetch"
 decision = "allow"
 priority = 100
@@ -70,6 +82,18 @@ priority = 100
 [[rule]]
 toolName = "run_shell_command"
 commandPrefix = "git status"
+decision = "allow"
+priority = 100
+
+[[rule]]
+toolName = "run_shell_command"
+commandPrefix = "go build"
+decision = "allow"
+priority = 100
+
+[[rule]]
+toolName = "run_shell_command"
+commandPrefix = "go test"
 decision = "allow"
 priority = 100
 
