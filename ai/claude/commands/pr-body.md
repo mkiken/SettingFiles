@@ -6,6 +6,9 @@ argument-hint: [prNumber]
 
 ## Instructions
 
+- Before generating the body, check if `.github/PULL_REQUEST_TEMPLATE.md` exists in the repository root
+  - If it exists, use its structure as the base for the PR body. Fill in each section with the generated content.
+  - If it does not exist, use the default section format defined below.
 - First, fetch and review the existing PR body using `gh pr view $ARGUMENTS --json body`
   - If the existing body contains meaningful information (not just template text), preserve and incorporate it
   - Template-only content (placeholders, empty sections) can be discarded
@@ -18,7 +21,7 @@ argument-hint: [prNumber]
 - Include the following sections:
   - **Summary**: Comprehensive overview grouped by logical changes
   - **Files Changed Summary**: File-by-file breakdown with brief descriptions (DO NOT include line counts like +X/-Y)
-  - **Review Focus Points**: Areas requiring special attention during review (default to "特になし" if nothing specific)
+  - **Review Focus Points**: Always write "特になし" (review focus is filled in by the PR author)
   - **Breaking Changes**: Any breaking changes or migration requirements
   - **Additional Notes**: Any other relevant information for reviewers
 - Output **raw markdown format** that can be directly copied to PR body

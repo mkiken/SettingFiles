@@ -4,6 +4,9 @@ prompt = """Generate a comprehensive PR body for {{args}}.
 CRITICAL: Run these commands FIRST:
 !{gh pr view {{args}} --json number,url,title,body,author,headRefName,baseRefName}
 !{gh pr diff {{args}}}
+!{cat .github/PULL_REQUEST_TEMPLATE.md 2>/dev/null || echo "NO_TEMPLATE"}
+
+If `.github/PULL_REQUEST_TEMPLATE.md` exists (output is not "NO_TEMPLATE"), use its structure as the base for the PR body and fill in each section with the generated content. If it does not exist, use the default section format defined below.
 NOTE: gh pr diff does not support file path arguments. Always fetch the full diff first, then filter locally if needed.
 
 **IMPORTANT**: Always respond in Japanese regardless of the original language of the PR content.
@@ -19,7 +22,7 @@ NOTE: gh pr diff does not support file path arguments. Always fetch the full dif
 - Generate comprehensive PR body content with the following sections:
   - **Summary**: Comprehensive overview grouped by logical changes
   - **Files Changed Summary**: File-by-file breakdown with brief descriptions (DO NOT include line counts like +X/-Y)
-  - **Review Focus Points**: Areas requiring special attention during review (default to "特になし" if nothing specific)
+  - **Review Focus Points**: Always write "特になし" (review focus is filled in by the PR author)
   - **Breaking Changes**: Any breaking changes or migration requirements
   - **Additional Notes**: Any other relevant information for reviewers
 - Output **raw markdown format** that can be directly copied to PR body

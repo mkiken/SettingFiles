@@ -24,6 +24,14 @@ Create a new GitHub Pull Request from the current branch by analyzing the diff t
 git branch --show-current
 ```
 
+### Check PR template
+
+```bash
+cat .github/PULL_REQUEST_TEMPLATE.md 2>/dev/null || echo "NO_TEMPLATE"
+```
+
+If a template exists, use its structure as the base in Phase 3 instead of the default section format.
+
 ### Determine target branch
 
 If `$ARGUMENTS` is empty, use `AskUserQuestion` to ask the user which branch to merge into.
@@ -82,8 +90,9 @@ Generate body using the sections below. Write based on the **final state (HEAD)*
 
 ## Review Focus Points
 
-- Points requiring special attention during review
-- If nothing in particular: "特になし"
+特になし
+
+<!-- レビュー観点はPR作成者が記入 -->
 
 ## Breaking Changes
 
