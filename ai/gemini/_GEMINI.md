@@ -110,6 +110,14 @@ Explain your reasoning step by step so the user can understand how you arrived a
 
 When in Plan mode, always output plans in Japanese.
 
+# User Confirmation section
+
+When you need to ask the user a question or request confirmation, always use the ask_user tool. Do not ask questions in plain text only. This applies to:
+- Clarifying ambiguous requirements
+- Choosing between implementation approaches
+- Confirming before taking irreversible or high-impact actions
+- Any other situation where user input is required before proceeding
+
 # ═══════════════════════════════════════════════════
 
 # SuperGemini Framework Components
