@@ -26,6 +26,7 @@ Analyze only the changed lines in the diff for:
 - **Do not report** issues already caught by static analysis tools
 - **Assign confidence scores 0-100** to each finding; omit any finding below 75
 - Focus on issues that cause incorrect runtime behavior, not theoretical concerns
+- **Line numbers are mandatory** — the `+A` value in each diff hunk header `@@ -X,Y +A,B @@` is the starting line of the added block; add the offset of the changed line to get the exact number. If the exact line cannot be determined, use the nearest hunk start and report as `[path/to/file.ext:~line]` — omitting the line number entirely is not allowed
 
 ## Input
 

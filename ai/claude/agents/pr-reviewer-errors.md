@@ -25,6 +25,7 @@ Trace error propagation paths through changed code and analyze for:
 - **Do not duplicate** issues reported by the bug detection reviewer
 - **Assign confidence scores 0-100** to each finding; omit any finding below 75
 - Consider the user experience impact of poor error handling
+- **Line numbers are mandatory** — the `+A` value in each diff hunk header `@@ -X,Y +A,B @@` is the starting line of the added block; add the offset of the changed line to get the exact number. If the exact line cannot be determined, use the nearest hunk start and report as `[path/to/file.ext:~line]` — omitting the line number entirely is not allowed
 
 ## Input
 

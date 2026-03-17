@@ -42,6 +42,7 @@ Collect all sub-agent findings, then:
 2. Reclassify priorities based on confidence scores
 3. Assign sequential numbers to all findings across all priority sections (continue numbering across sections — do not restart per section)
 4. Format structured output
+5. **Validate line numbers**: any finding not in `[path/to/file.ext:line]` format must be supplemented by referencing the original diff; findings without a line number must not appear in the final output
 
 ### Output Format
 
