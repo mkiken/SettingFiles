@@ -124,8 +124,12 @@ For multi-line ranges (e.g., `15-20`): use both `"start_line"` (start) and `"lin
 
 ### Inline comment body format
 
-Each inline comment uses this format — no AI header, no item numbers:
+**CRITICAL RULES for inline comments:**
+- DO NOT include the AI header (`🤖 **Gemini Code Review**`) in inline comments. The header appears ONLY ONCE in the top-level review body.
+- DO NOT include item numbers (e.g., `1.`, `2.`) in inline comments.
+- Each inline comment contains ONLY: priority emoji, priority level, category, and description.
 
+Format:
 ```markdown
 {priority_emoji} **{Priority}** / **{Category}**: {Description}
 ```
@@ -182,7 +186,5 @@ After posting, report:
 ## Notes
 
 - Use the Pull Request Review API to post all comments in a single review.
-- The AI header (`🤖 **Gemini Code Review**`) appears only once in the review body, not in each inline comment.
-- Inline comments contain only priority emoji, priority level, category, and description — no numbers, no headers.
 - If `gh pr view` fails (not in a git repo, or no PR for current branch), ask the user to provide the PR number manually.
 - The `gh api` inline comment endpoint requires a valid `commit_id`. If the commit SHA cannot be retrieved, fall back to `gh pr comment`."""
