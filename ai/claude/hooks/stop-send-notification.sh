@@ -119,21 +119,19 @@ while IFS= read -r line; do
                 # 改行を除去してスペースに置換
                 content=$(echo "${line}" | jq -r '.message.content // empty' | tr '\n' ' ' | sed 's/  */ /g')
 
-                # slashコマンドの場合、<command-args>タグから引数を抽出
-                if [[ "${content}" =~ '<command-args>'([^'<']*)'</command-args>' ]]; then
-                    extracted_args="${BASH_REMATCH[1]}"
-                    debug_log "Found command-args tag, extracted: '${extracted_args}'"
+                # スラッシュコマンド: command-nameタグからコマンド名を抽出
+                if [[ "${content}" =~ '<command-name>'([^'<']*)'</command-name>' ]]; then
+                    command_name="${BASH_REMATCH[1]}"
+                    debug_log "Found command-name tag: '${command_name}'"
 
-                    # 引数が空でない場合はそれを使用（改行も除去）
-                    if [[ -n "${extracted_args}" ]]; then
-                        content=$(echo "${extracted_args}" | tr '\n' ' ' | sed 's/  */ /g')
-                        debug_log "Using command args as content: ${content:0:100}"
+                    # command-argsタグから引数を抽出（存在し、かつ空でない場合）
+                    if [[ "${content}" =~ '<command-args>'([^'<']*)'</command-args>' ]] && [[ -n "${BASH_REMATCH[1]}" ]]; then
+                        extracted_args=$(echo "${BASH_REMATCH[1]}" | tr '\n' ' ' | sed 's/  */ /g')
+                        content="${command_name} ${extracted_args}"
+                        debug_log "Using command name + args as content: ${content:0:100}"
                     else
-                        # 引数が空の場合、<command-name>からコマンド名を取得
-                        if [[ "${BASH_REMATCH[0]}" =~ '<command-name>'([^'<']*)'</command-name>' ]] || [[ "$(echo "${line}" | jq -r '.message.content // empty')" =~ '<command-name>'([^'<']*)'</command-name>' ]]; then
-                            content="${BASH_REMATCH[1]}"
-                            debug_log "Using command name as content: ${content}"
-                        fi
+                        content="${command_name}"
+                        debug_log "Using command name as content: ${content}"
                     fi
                 fi
             elif [[ "${content_type}" == "array" ]]; then
@@ -148,6 +146,11 @@ while IFS= read -r line; do
             # システムメッセージかどうかを判定する関数
             is_system_message() {
                 local msg="$1"
+
+                # スラッシュコマンド（/で始まる）はユーザーの意図的な入力として扱う
+                if [[ "${msg}" =~ ^/ ]]; then
+                    return 1  # false - not a system message
+                fi
 
                 # Claude Codeの既知システムタグのみマッチ（メッセージ先頭のみ）
                 if [[ "${msg}" =~ ^[[:space:]]*'<'(command-message|command-name|command-args|local-command-caveat|local-command-stdout|system-reminder|user-prompt-submit-hook|tool-result|antml) ]]; then
