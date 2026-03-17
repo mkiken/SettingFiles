@@ -1,5 +1,7 @@
 ---
 description: "Comprehensive PR review using 6 parallel specialist sub-agents for bugs, security, architecture, error handling, history, and tests"
+model: opus
+allowed-tools: Bash(gh:*), Bash(git:*), Bash(python:*)
 argument-hint: "[prNumber]"
 ---
 
