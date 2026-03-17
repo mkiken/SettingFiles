@@ -85,6 +85,33 @@ When editing AI prompt files in this repository:
 - **Default to English** for new content and modifications (reduces token consumption)
 - **Exception**: If the original file uses a different language, follow that language (e.g., Japanese character dialogue examples)
 
+## Commit Message Convention
+
+This repository enforces commitizen (czg) + commitlint via a `commit-msg` hook. Non-conforming commits are rejected immediately.
+
+### Format
+
+```
+<type>(<scope>): <emoji> <subject>
+```
+
+Example: `perf(claude): ⚡ pr-review-subagentsスキルで止まりにくくする`
+
+### Allowed Types
+
+`feat`, `fix`, `refactor`, `docs`, `style`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+
+### Allowed Scopes
+
+`ai`, `bin`, `claude`, `commitlint`, `czg`, `configs`, `gemini`, `gitfiles`, `ghostty`, `idea`, `mac`, `other`, `ranger`, `repository`, `sedfiles`, `shell`, `submodules`, `terminal`, `tmux`, `vimfiles`, `vscode`, `windows`
+
+### Rules
+
+- **scope is required** — empty scope will be rejected
+- **subject**: 1–50 characters, must NOT start with an uppercase letter
+- **emoji**: czg auto-prepends it; when committing manually (not via czg), include the appropriate emoji at the start of the subject
+- **Do NOT use `--no-verify`** — the hook enforces these rules and must not be bypassed
+
 ## Important Notes
 
 - **Symlinks are critical** - Don't copy files manually; the repository works via symbolic links
