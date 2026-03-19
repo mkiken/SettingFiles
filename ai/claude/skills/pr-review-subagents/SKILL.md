@@ -107,8 +107,7 @@ Respond entirely in **Japanese**.
 
 ## Post-Review: Post to GitHub
 
-After outputting the review results, use `AskUserQuestion` to ask:
+After outputting the review results, display the following message to the user:
 
-> Would you like to post any of these findings as GitHub PR comments? If so, specify the item numbers (e.g., `1 3 5`). Say "no" to skip.
-
-If the user provides numbers, follow the `pr-comment-post` skill to post each item.
+> To post any findings as GitHub PR comments, run:
+> `/pr-comment-post <item numbers>` (e.g., `/pr-comment-post 1 3 5`)
