@@ -18,15 +18,15 @@ cl-web-summary() {
 }
 
 cl-pr-review() {
-    clo "/my:pr-review $*"
+    clo "/my:pr-review --allow-dangerously-skip-permissions $*"
 }
 
 cl-pr-review-subagents() {
-    cl "/pr-review-subagents $*"
+    cl "/pr-review-subagents --allow-dangerously-skip-permissions $*"
 }
 
 _cl-pr-comment-review() {
-    clo "/my:pr-comment-review $*"
+    clo "/my:pr-comment-review --allow-dangerously-skip-permissions $*"
 }
 
 _cl-pr-comment-implement() {
