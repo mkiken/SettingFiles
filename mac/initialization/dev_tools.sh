@@ -29,10 +29,6 @@ smart_merge_json "${Repo}mac/karabiner.json" ~/.config/karabiner/karabiner.json
 smart_merge_json "${Repo}vscode/base_setting.json" ~/Library/Application\ Support/Code/User/settings.json
 smart_copy "${Repo}vscode/base_keybindings.json" ~/Library/Application\ Support/Code/User/keybindings.json
 
-
-# History file
-touch ~/.cd_history_file
-
 # commitlint
 npm install -g @commitlint/config-conventional
 
