@@ -293,8 +293,8 @@ man() {
 source_and_zcompile_if_needed "${SET}shell/zsh/filter/main.zsh" || echo "Warning: Failed to load filter config" >&2
 
 function filter-bindkey() {
-  zle -N select-history
-  bindkey '^R' select-history
+  # ctrl-rのキーバインド登録があるのでここで行う
+  eval "$(atuin init zsh --disable-up-arrow)"
 }
 
 # zsh-vi-modeにkeybindを上書きされないよう、このメソッドで設定

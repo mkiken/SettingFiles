@@ -3,6 +3,7 @@ tap "dwarvesf/homebrew-tap"
 
 brew "actionlint"
 brew "aria2"
+brew "atuin"
 brew "bat"
 brew "claude-squad"
 brew "commitlint"
