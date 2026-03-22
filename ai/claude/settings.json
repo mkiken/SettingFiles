@@ -1,7 +1,8 @@
 {
   "enabledPlugins": {
     "document-skills@anthropic-agent-skills": true,
-    "example-skills@anthropic-agent-skills": true
+    "example-skills@anthropic-agent-skills": true,
+    "tsumiki@tsumiki": true
   },
   "env": {
     "ENABLE_EXPERIMENTAL_MCP_CLI": "false",
@@ -12,6 +13,12 @@
       "source": {
         "repo": "anthropics/skills",
         "source": "github"
+      }
+    },
+    "tsumiki": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/classmethod/tsumiki.git"
       }
     }
   },
