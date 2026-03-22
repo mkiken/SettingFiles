@@ -46,42 +46,42 @@ SettingFiles/
 
 ### Setup & Installation
 
-| File | Platform | Purpose |
-|------|----------|---------|
-| `mac/initialize` | macOS | Main initialization (6-step setup) |
-| `mac/initialization/initialize` | macOS | Orchestrator for all setup scripts |
-| `windows/initialize.ps1` | Windows | Windows environment setup |
-| `mac/update` | macOS | Update packages and plugins |
-| `windows/update.ps1` | Windows | Update Windows packages |
+| File                            | Platform | Purpose                            |
+| ------------------------------- | -------- | ---------------------------------- |
+| `mac/initialize`                | macOS    | Main initialization (6-step setup) |
+| `mac/initialization/initialize` | macOS    | Orchestrator for all setup scripts |
+| `windows/initialize.ps1`        | Windows  | Windows environment setup          |
+| `mac/update`                    | macOS    | Update packages and plugins        |
+| `windows/update.ps1`            | Windows  | Update Windows packages            |
 
 ### Shell Configuration
 
-| File | Purpose |
-|------|---------|
-| `shell/zsh/.zshrc` | Zsh main configuration (259 lines) |
-| `shell/zsh/plugin.zsh` | Plugin management via znap |
-| `shell/zsh/.zprofile` | Zsh profile settings |
-| `shell/zsh/.zshenv` | Environment variables |
+| File                   | Purpose                            |
+| ---------------------- | ---------------------------------- |
+| `shell/zsh/.zshrc`     | Zsh main configuration (259 lines) |
+| `shell/zsh/plugin.zsh` | Plugin management via znap         |
+| `shell/zsh/.zprofile`  | Zsh profile settings               |
+| `shell/zsh/.zshenv`    | Environment variables              |
 
 ### Editor Configuration
 
-| File | Purpose |
-|------|---------|
-| `vimfiles/nvim/init.lua` | Neovim entry point |
+| File                                | Purpose               |
+| ----------------------------------- | --------------------- |
+| `vimfiles/nvim/init.lua`            | Neovim entry point    |
 | `vimfiles/nvim/lua/config/lazy.lua` | Plugin manager config |
-| `vimfiles/nvim/lazy-lock.json` | Plugin version lock |
+| `vimfiles/nvim/lazy-lock.json`      | Plugin version lock   |
 
 ### AI Assistants
 
-| File | Purpose |
-|------|---------|
-| `ai/claude/_CLAUDE.md` | Generated Claude prompt (symlinked) |
-| `ai/claude/settings.json` | Claude Code settings |
-| `ai/claude/hooks/claude-hook.py` | Notification hooks |
-| `ai/gemini/_GEMINI.md` | Generated Gemini prompt |
-| `ai/gemini/hooks/gemini-hook.py` | Gemini notification hooks |
-| `ai/common/mcp.json` | MCP server configuration |
-| `ai/serena/serena_config.yml` | Serena semantic analysis config |
+| File                             | Purpose                             |
+| -------------------------------- | ----------------------------------- |
+| `ai/claude/_CLAUDE.md`           | Generated Claude prompt (symlinked) |
+| `ai/claude/settings.json`        | Claude Code settings                |
+| `ai/claude/hooks/claude-hook.py` | Notification hooks                  |
+| `ai/gemini/_GEMINI.md`           | Generated Gemini prompt             |
+| `ai/gemini/hooks/gemini-hook.py` | Gemini notification hooks           |
+| `ai/common/mcp.json`             | MCP server configuration            |
+| `ai/serena/serena_config.yml`    | Serena semantic analysis config     |
 
 ---
 
@@ -92,10 +92,10 @@ SettingFiles/
 **Location**: `ai/`
 
 **Structure**:
+
 - `claude/` - Claude Code configuration
   - `commands/` - Custom commands (pr-body, pr-review, web-summary, etc.)
   - `ccstatusline/settings.json` - Status line customization
-  - `agents/serena-expert.md` - Serena integration
 - `gemini/` - Gemini CLI configuration
   - `commands/` - TOML-based custom commands
 - `common/` - Shared resources
@@ -104,6 +104,7 @@ SettingFiles/
   - `mcp.json` - MCP server registry
 
 **Assembly Process**:
+
 ```
 prompt_base.md + characters/reimu.md + claude_prompt.md → _CLAUDE.md
 ```
@@ -117,6 +118,7 @@ prompt_base.md + characters/reimu.md + claude_prompt.md → _CLAUDE.md
 **Location**: `mac/initialization/`
 
 **Scripts**:
+
 1. `copy_files.sh` - Symlink creation
 2. `homebrew.sh` - Homebrew & package installation
 3. `dev_tools.sh` - Developer tools setup
@@ -137,6 +139,7 @@ prompt_base.md + characters/reimu.md + claude_prompt.md → _CLAUDE.md
 **Plugin Manager**: znap (marlonrichert/zsh-snap)
 
 **Managed Plugins** (Git Submodules):
+
 - `fzf-tab` - Fuzzy completion
 - `zsh-autosuggestions` - Command suggestions
 - `F-Sy-H` (Fast-Syntax-Highlighting) - Syntax highlighting
@@ -157,6 +160,7 @@ prompt_base.md + characters/reimu.md + claude_prompt.md → _CLAUDE.md
 **Plugin Manager**: lazy.nvim
 
 **Structure**:
+
 ```
 nvim/
 ├── init.lua              # Entry point
@@ -179,6 +183,7 @@ nvim/
 **Location**: `.kiro/`
 
 **Structure**:
+
 - `steering/` - Project-wide rules & context
   - `product.md` - Product requirements
   - `tech.md` - Technical constraints
@@ -195,6 +200,7 @@ nvim/
   - `mcp.json` - MCP integration
 
 **Active Specs**:
+
 - `example-feature/` - Example specification
 - `pr-comment-review-command/` - PR comment review feature
 - `fgln-function-enhancement/` - Shell function enhancement
@@ -209,6 +215,7 @@ nvim/
 **Location**: `.serena/`
 
 **Memories**:
+
 - `project_overview.md` - High-level project description
 - `directory_structure.md` - Codebase organization
 - `tech_stack.md` - Technology choices
@@ -227,39 +234,40 @@ nvim/
 
 ### Package Management
 
-| File | Purpose | Package Count |
-|------|---------|---------------|
-| `mac/Brewfile` | Homebrew packages | 40 brew, 16 cask, 7 vscode, 4 mas |
-| `vimfiles/nvim/lazy-lock.json` | Neovim plugins | ~50 plugins (locked) |
-| `.gitmodules` | Zsh plugins | 8 submodules |
+| File                           | Purpose           | Package Count                     |
+| ------------------------------ | ----------------- | --------------------------------- |
+| `mac/Brewfile`                 | Homebrew packages | 40 brew, 16 cask, 7 vscode, 4 mas |
+| `vimfiles/nvim/lazy-lock.json` | Neovim plugins    | ~50 plugins (locked)              |
+| `.gitmodules`                  | Zsh plugins       | 8 submodules                      |
 
 ### Git Tools
 
-| File | Purpose |
-|------|---------|
-| `gitfiles/.gitconfig` | Git core configuration |
-| `gitfiles/lazygit/config.yml` | LazyGit TUI settings |
-| `gitfiles/gh/dash/config.yml` | GitHub CLI dashboard |
-| `gitfiles/workmux/config.yaml` | Git workspace manager |
+| File                           | Purpose                |
+| ------------------------------ | ---------------------- |
+| `gitfiles/.gitconfig`          | Git core configuration |
+| `gitfiles/lazygit/config.yml`  | LazyGit TUI settings   |
+| `gitfiles/gh/dash/config.yml`  | GitHub CLI dashboard   |
+| `gitfiles/workmux/config.yaml` | Git workspace manager  |
 
 ### Terminal Emulators
 
-| File | Purpose |
-|------|---------|
-| `terminal/ghostty/config` | Ghostty terminal settings |
+| File                             | Purpose                   |
+| -------------------------------- | ------------------------- |
+| `terminal/ghostty/config`        | Ghostty terminal settings |
 | `terminal/warp/keybindings.yaml` | Warp terminal keybindings |
 
 ### Editor Integration
 
-| File | Purpose |
-|------|---------|
-| `vscode/base_setting.json` | VSCode settings template |
-| `vscode/base_keybindings.json` | VSCode keybindings template |
-| `mac/karabiner.json` | Karabiner-Elements key remapping |
+| File                           | Purpose                          |
+| ------------------------------ | -------------------------------- |
+| `vscode/base_setting.json`     | VSCode settings template         |
+| `vscode/base_keybindings.json` | VSCode keybindings template      |
+| `mac/karabiner.json`           | Karabiner-Elements key remapping |
 
 ### AI Commands
 
 **Claude Commands** (Markdown):
+
 - `ai/claude/commands/pr-body.md` - Generate PR descriptions
 - `ai/claude/commands/pr-review.md` - Review pull requests
 - `ai/claude/commands/pr-comment-review.md` - Analyze PR comments
@@ -267,6 +275,7 @@ nvim/
 - `ai/claude/commands/web-summary.md` - Summarize web pages
 
 **Gemini Commands** (TOML):
+
 - `ai/gemini/commands/pr-body.toml`
 - `ai/gemini/commands/pr-review.toml`
 - `ai/gemini/commands/pr-comment-review.toml`
@@ -292,6 +301,7 @@ gitfiles/.gitconfig            →    ~/.gitconfig
 ```
 
 **Benefits**:
+
 - Single source of truth
 - Version control for all configs
 - Easy cross-machine synchronization
@@ -308,6 +318,7 @@ prompt_base.md   nyaruko.md  gemini_prompt.md → _GEMINI.md
 ```
 
 **Character Personalities**:
+
 - `reimu.md` - 博麗霊夢 (Hakurei Reimu) - Claude
 - `nyaruko.md` - ニャル子 (Nyaruko) - Gemini
 - `hestia.md` - ヘスティア (Hestia) - Future use
@@ -315,10 +326,12 @@ prompt_base.md   nyaruko.md  gemini_prompt.md → _GEMINI.md
 ### Plugin Management
 
 **Zsh**: Git submodules + znap
+
 - Version controlled via `.gitmodules`
 - Loaded via `znap source` commands
 
 **Neovim**: lazy.nvim
+
 - Declarative config in `lua/plugins/`
 - Version locked in `lazy-lock.json`
 
@@ -328,27 +341,27 @@ prompt_base.md   nyaruko.md  gemini_prompt.md → _GEMINI.md
 
 ### Setup Guides
 
-| File | Description |
-|------|-------------|
-| `README.md` | Quick setup instructions |
-| `CLAUDE.md` | Claude Code guidance |
-| `mac/initialization/NOTES.md` | Post-setup notes |
+| File                          | Description              |
+| ----------------------------- | ------------------------ |
+| `README.md`                   | Quick setup instructions |
+| `CLAUDE.md`                   | Claude Code guidance     |
+| `mac/initialization/NOTES.md` | Post-setup notes         |
 
 ### AI Configuration
 
-| File | Description |
-|------|-------------|
-| `ai/common/prompt_base.md` | Base prompt template |
-| `ai/claude/claude_prompt.md` | Claude-specific instructions |
-| `.github/copilot-instructions.md` | GitHub Copilot setup |
+| File                              | Description                  |
+| --------------------------------- | ---------------------------- |
+| `ai/common/prompt_base.md`        | Base prompt template         |
+| `ai/claude/claude_prompt.md`      | Claude-specific instructions |
+| `.github/copilot-instructions.md` | GitHub Copilot setup         |
 
 ### Specification System
 
-| Directory | Description |
-|-----------|-------------|
-| `.kiro/steering/` | Project rules & context |
-| `.kiro/settings/rules/` | Validation rules |
-| `.kiro/settings/templates/` | Document templates |
+| Directory                   | Description             |
+| --------------------------- | ----------------------- |
+| `.kiro/steering/`           | Project rules & context |
+| `.kiro/settings/rules/`     | Validation rules        |
+| `.kiro/settings/templates/` | Document templates      |
 
 ---
 
@@ -356,34 +369,34 @@ prompt_base.md   nyaruko.md  gemini_prompt.md → _GEMINI.md
 
 ### System Tools (Homebrew)
 
-| Package | Purpose |
-|---------|---------|
-| `neovim` | Editor |
-| `tmux` | Terminal multiplexer |
-| `fzf` | Fuzzy finder |
-| `ripgrep` | Fast search |
-| `lazygit` | Git TUI |
-| `gh` | GitHub CLI |
-| `claude-squad` | Claude CLI tools |
+| Package        | Purpose              |
+| -------------- | -------------------- |
+| `neovim`       | Editor               |
+| `tmux`         | Terminal multiplexer |
+| `fzf`          | Fuzzy finder         |
+| `ripgrep`      | Fast search          |
+| `lazygit`      | Git TUI              |
+| `gh`           | GitHub CLI           |
+| `claude-squad` | Claude CLI tools     |
 
 ### Development Tools
 
-| Package | Purpose |
-|---------|---------|
-| `nvm` | Node version manager |
-| `uv` | Python package manager |
+| Package      | Purpose                |
+| ------------ | ---------------------- |
+| `nvm`        | Node version manager   |
+| `uv`         | Python package manager |
 | `commitlint` | Commit message linting |
 | `actionlint` | GitHub Actions linting |
 
 ### AI & MCP
 
-| Package | Purpose |
-|---------|---------|
-| `claude-code` (VSCode) | Claude Code extension |
-| Serena MCP | Semantic code analysis |
-| Context7 MCP | Documentation search |
-| Playwright MCP | Browser automation |
-| Sequential Thinking MCP | Planning assistant |
+| Package                 | Purpose                |
+| ----------------------- | ---------------------- |
+| `claude-code` (VSCode)  | Claude Code extension  |
+| Serena MCP              | Semantic code analysis |
+| Context7 MCP            | Documentation search   |
+| Playwright MCP          | Browser automation     |
+| Sequential Thinking MCP | Planning assistant     |
 
 ---
 
@@ -397,6 +410,7 @@ cd mac
 ```
 
 **What it does**:
+
 1. Creates symlinks for all configs
 2. Installs Homebrew + packages
 3. Sets up dev tools (NVM, etc.)
@@ -412,6 +426,7 @@ cd mac
 ```
 
 **What it does**:
+
 - Updates Homebrew packages
 - Updates Zsh plugins via znap
 - Updates Neovim plugins
@@ -462,10 +477,12 @@ cd mac
 ### Add New AI Command
 
 **Claude**:
+
 1. Create `ai/claude/commands/{name}.md`
 2. Reference as `/my:{name}` in Claude Code
 
 **Gemini**:
+
 1. Create `ai/gemini/commands/{name}.toml`
 2. Use via Gemini CLI
 
@@ -478,6 +495,7 @@ cd mac
 **Location**: `ai/claude/hooks/claude-hook.py`, `ai/gemini/hooks/gemini-hook.py`
 
 **Features**:
+
 - System tag filtering
 - Notification triggering
 - Task completion tracking
@@ -485,6 +503,7 @@ cd mac
 ### Specification Validation
 
 **Commands**:
+
 - `/kiro:validate-design {feature}` - Design review
 - `/kiro:validate-gap {feature}` - Implementation gap analysis
 - `/kiro:validate-impl {feature}` - Post-implementation validation
