@@ -1,133 +1,42 @@
 {
-  "tools": {
-    "autoAccept": false,
-    "sandbox": false,
-    "shell": {
-      "showColor": true
+  "_disabledMcpServers": {
+    "magic": {
+      "_disabledReason": "Tool names start with '21st_' which violates Gemini's function naming rules (must start with letter/underscore, not number)",
+      "_geminiCompatibility": "NOT_COMPATIBLE - Tool names start with '21st_' which violates Gemini function naming rules",
+      "args": [
+        "@21st-dev/magic"
+      ],
+      "command": "npx",
+      "env": {
+        "TWENTYFIRST_API_KEY": ""
+      },
+      "type": "stdio"
     }
   },
-  "privacy": {
-    "usageStatisticsEnabled": false
+  "context": {
+    "fileFiltering": {
+      "enableRecursiveFileSearch": true,
+      "respectGitIgnore": true
+    }
+  },
+  "experimental": {
+    "plan": true
   },
   "general": {
     "checkpointing": {
       "enabled": true
     },
+    "enableNotifications": true,
     "enablePromptCompletion": true,
     "previewFeatures": false,
-    "vimMode": true,
     "sessionRetention": {
       "enabled": true,
-      "warningAcknowledged": true,
-      "maxAge": "30d"
-    }
-  },
-  "context": {
-    "fileFiltering": {
-      "respectGitIgnore": true,
-      "enableRecursiveFileSearch": true
-    }
-  },
-  "ide": {
-    "enabled": true
-  },
-  "security": {
-    "auth": {
-      "selectedType": "oauth-personal"
-    }
-  },
-  "ui": {
-    "theme": "Dracula",
-    "hideBanner": true,
-    "hideTips": true,
-    "showStatusInTitle": true,
-    "footer": {
-      "hideContextPercentage": false,
-      "hideSandboxStatus": true
+      "maxAge": "30d",
+      "warningAcknowledged": true
     },
-    "showModelInfoInChat": true,
-    "showMemoryUsage": true,
-    "showLineNumbers": true,
-    "showCitations": true
-  },
-  "mcpServers": {
-    "sequential-thinking": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
-      ]
-    },
-    "serena": {
-      "command": "/usr/local/bin/uvx",
-      "args": [
-        "--from",
-        "git+https://github.com/oraios/serena",
-        "serena",
-        "start-mcp-server",
-        "--context",
-        "ide-assistant"
-      ]
-    },
-    "gitmcp": {
-      "command": "npx",
-      "args": [
-        "mcp-remote",
-        "https://gitmcp.io/docs"
-      ]
-    },
-    "context7": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@upstash/context7-mcp@latest"
-      ]
-    },
-    "playwright": {
-      "command": "npx",
-      "args": [
-        "@playwright/mcp@latest"
-      ]
-    },
-    "superagent": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@superclaude-org/superagent"
-      ]
-    },
-    "morphllm-fast-apply": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@morph-llm/morph-fast-apply",
-        "/home/"
-      ],
-      "env": {
-        "MORPH_API_KEY": "",
-        "ALL_TOOLS": "true"
-      }
-    }
-  },
-  "output": {
-    "format": "text"
+    "vimMode": true
   },
   "hooks": {
-    "Notification": [
-      {
-        "matcher": ".*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.gemini/hooks/notification.sh --event notification"
-          },
-          {
-            "type": "command",
-            "command": "python3 ~/.gemini/hooks/gemini-hook.py notification"
-          }
-        ]
-      }
-    ],
     "AfterAgent": [
       {
         "matcher": "",
@@ -165,6 +74,21 @@
         ]
       }
     ],
+    "Notification": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.gemini/hooks/notification.sh --event notification"
+          },
+          {
+            "type": "command",
+            "command": "python3 ~/.gemini/hooks/gemini-hook.py notification"
+          }
+        ]
+      }
+    ],
     "SessionEnd": [
       {
         "matcher": "",
@@ -177,21 +101,106 @@
       }
     ]
   },
-  "_disabledMcpServers": {
-    "magic": {
-      "type": "stdio",
-      "command": "npx",
+  "ide": {
+    "enabled": true
+  },
+  "mcpServers": {
+    "context7": {
       "args": [
-        "@21st-dev/magic"
+        "-y",
+        "@upstash/context7-mcp@latest"
       ],
+      "command": "npx"
+    },
+    "gitmcp": {
+      "args": [
+        "https://gitmcp.io/docs",
+        "mcp-remote"
+      ],
+      "command": "npx"
+    },
+    "morphllm-fast-apply": {
+      "args": [
+        "-y",
+        "/home/",
+        "@morph-llm/morph-fast-apply"
+      ],
+      "command": "npx",
       "env": {
-        "TWENTYFIRST_API_KEY": ""
-      },
-      "_geminiCompatibility": "NOT_COMPATIBLE - Tool names start with '21st_' which violates Gemini function naming rules",
-      "_disabledReason": "Tool names start with '21st_' which violates Gemini's function naming rules (must start with letter/underscore, not number)"
+        "ALL_TOOLS": "true",
+        "MORPH_API_KEY": ""
+      }
+    },
+    "playwright": {
+      "args": [
+        "@playwright/mcp@latest"
+      ],
+      "command": "npx"
+    },
+    "sequential-thinking": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "command": "npx"
+    },
+    "serena": {
+      "args": [
+        "--context",
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "ide-assistant",
+        "serena",
+        "start-mcp-server"
+      ],
+      "command": "/usr/local/bin/uvx"
+    },
+    "superagent": {
+      "args": [
+        "-y",
+        "@superclaude-org/superagent"
+      ],
+      "command": "npx"
     }
   },
-  "experimental": {
-    "plan": true
+  "model": {
+    "name": ""
+  },
+  "output": {
+    "format": "text"
+  },
+  "privacy": {
+    "usageStatisticsEnabled": false
+  },
+  "security": {
+    "auth": {
+      "selectedType": "oauth-personal"
+    },
+    "enablePermanentToolApproval": true
+  },
+  "tools": {
+    "autoAccept": false,
+    "sandbox": false,
+    "shell": {
+      "showColor": true
+    }
+  },
+  "ui": {
+    "errorVerbosity": "full",
+    "footer": {
+      "hideContextPercentage": false,
+      "hideSandboxStatus": true
+    },
+    "hideBanner": true,
+    "hideTips": true,
+    "inlineThinkingMode": "full",
+    "loadingPhrases": "all",
+    "showCitations": true,
+    "showLineNumbers": true,
+    "showMemoryUsage": true,
+    "showModelInfoInChat": true,
+    "showStatusInTitle": true,
+    "theme": "Dracula",
+    "useAlternateBuffer": true
   }
 }
