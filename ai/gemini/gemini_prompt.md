@@ -18,11 +18,31 @@ When in Plan mode, always output plans in Japanese.
 
 # User Confirmation section
 
-When you need to ask the user a question or request confirmation, always use the ask_user tool. Do not ask questions in plain text only. This applies to:
+**CRITICAL RULE**: When you need to ask the user a question or request confirmation, you MUST use the `ask_user` tool. Asking questions in plain text without using the tool is a violation of this rule.
+
+## When to use ask_user
+
 - Clarifying ambiguous requirements
 - Choosing between implementation approaches
 - Confirming before taking irreversible or high-impact actions
-- Any other situation where user input is required before proceeding
+- Any situation where user input is required before proceeding
+
+## Correct vs Incorrect behavior
+
+WRONG (plain text question — DO NOT DO THIS):
+```
+Should I proceed with approach A or approach B?
+```
+
+CORRECT (using ask_user tool):
+→ Call the `ask_user` tool with your question.
+
+## Enforcement
+
+- NEVER ask a question to the user without using the `ask_user` tool
+- If you catch yourself writing a question in plain text, STOP and use the tool instead
+- This rule applies even for simple yes/no questions
+- This rule applies regardless of context — coding, planning, reviewing, or any other task
 
 # ═══════════════════════════════════════════════════
 
@@ -49,3 +69,7 @@ When you need to ask the user a question or request confirmation, always use the
 # Language Reminder
 
 Remember: ALL output must be in Japanese (日本語). 技術用語とコード以外は全て日本語で出力すること。
+
+# Tool Usage Reminder
+
+CRITICAL: When asking the user ANY question, you MUST use the `ask_user` tool. Plain text questions are not acceptable.

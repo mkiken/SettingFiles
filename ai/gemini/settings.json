@@ -114,8 +114,8 @@
     },
     "gitmcp": {
       "args": [
-        "https://gitmcp.io/docs",
-        "mcp-remote"
+        "mcp-remote",
+        "https://gitmcp.io/docs"
       ],
       "command": "npx"
     },
@@ -146,12 +146,12 @@
     },
     "serena": {
       "args": [
-        "--context",
         "--from",
         "git+https://github.com/oraios/serena",
-        "ide-assistant",
         "serena",
-        "start-mcp-server"
+        "start-mcp-server",
+        "--context",
+        "ide-assistant"
       ],
       "command": "/usr/local/bin/uvx"
     },
