@@ -23,7 +23,7 @@ gmpp() {
 }
 
 gm-pr-review() {
-    gmp -i "/pr-review --approval-mode yolo $*"
+    gmp --approval-mode yolo -i "/pr-review $*"
 }
 
 gm-pr-body() {
@@ -32,7 +32,7 @@ gm-pr-body() {
 
 alias gm-pr-comment-review='noglob _gm-pr-comment-review'
 _gm-pr-comment-review() {
-    gmp -i "/pr-comment-review --approval-mode yolo $*"
+    gmp --approval-mode yolo -i "/pr-comment-review $*"
 }
 
 alias gm-pr-comment-implement='noglob _gm-pr-comment-implement'
