@@ -106,40 +106,24 @@ Example:
 Build the comments JSON and post using the Review API:
 
 ```bash
-# Write comments.json with all inline comments
+# Build the full JSON body with jq and pipe directly to gh api (no temp file needed).
 # Each comment body format: {emoji} **{Priority}** / **{Category}**: {Description}
-# Example: 🔴 **High** / **Security**: Auth token may be exposed in logs.
+# For single-line items: include "line" only.
+# For multi-line ranges (e.g., 15-20): include both "start_line" (start) and "line" (end).
 
-gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews \
-  -f body="🤖 **Claude Code Review**
+jq -n \
+  --arg body "🤖 **Claude Code Review**
 
 {summary}" \
-  -f event="COMMENT" \
-  -f commit_id="{head_sha}" \
-  --input comments.json
+  --arg event "COMMENT" \
+  --arg commit_id "{head_sha}" \
+  --argjson comments '[
+    {"path": "path/to/file.ext", "line": 42, "body": "🔴 **High** / **Security**: Description"},
+    {"path": "path/to/file2.ext", "line": 20, "start_line": 15, "body": "🟡 **Medium** / **Architecture**: Description"}
+  ]' \
+  '{body: $body, event: $event, commit_id: $commit_id, comments: $comments}' \
+| gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --input -
 ```
-
-`comments.json` structure:
-```json
-{
-  "comments": [
-    {
-      "path": "path/to/file.ext",
-      "line": 42,
-      "body": "🔴 **High** / **Security**: Description"
-    },
-    {
-      "path": "path/to/file2.ext",
-      "line": 20,
-      "start_line": 15,
-      "body": "🟡 **Medium** / **Architecture**: Description"
-    }
-  ]
-}
-```
-
-For single-line items: use `"line"` only.
-For multi-line ranges (e.g., `15-20`): use both `"start_line"` (start) and `"line"` (end).
 
 ### Inline comment body format
 
