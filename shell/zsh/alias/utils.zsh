@@ -295,21 +295,27 @@ function smart_merge_json() {
             # Create temporary file for merge result
             local tmp_file=$(mktemp).json
 
-            # deepmerge: objects are recursively merged, arrays are unioned (unique)
+            # deepmerge: オブジェクトは再帰的にマージ、配列はunion（unique+ソート）で結合する。
+            # 例外: mcpServers.*.args と _disabledMcpServers.*.args はunionせず優先側の値で置換する。
+            # CLI引数は位置依存のため、マージやソートをするとコマンドが壊れるため。
+            # path は再帰中の現在キーパスを追跡し、この例外判定に使用する。
             local jq_deepmerge='
-def deepmerge(a; b):
+def deepmerge(a; b; path):
   if (a | type) == "object" and (b | type) == "object" then
     reduce ([ (a | keys[]), (b | keys[]) ] | unique)[] as $k ({};
-      if (a | has($k)) and (b | has($k)) then . + {($k): deepmerge(a[$k]; b[$k])}
+      if (a | has($k)) and (b | has($k)) then . + {($k): deepmerge(a[$k]; b[$k]; path + [$k])}
       elif (a | has($k)) then . + {($k): a[$k]}
       else . + {($k): b[$k]}
       end
     )
   elif (a | type) == "array" and (b | type) == "array" then
-    [a[], b[]] | unique
+    if (path | length >= 3) and (path[-1] == "args") and (path[-3] | test("^(mcpServers|_disabledMcpServers)$"))
+    then b
+    else [a[], b[]] | unique
+    end
   else b
   end;
-. as $f | deepmerge($f[0]; $f[1])
+. as $f | deepmerge($f[0]; $f[1]; [])
 '
 
             # Perform merge based on priority
