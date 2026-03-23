@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-alias update-gm='npm update -g @google/gemini-cli'
+alias gm-update='brew upgrade gemini-cli'
 
 gm() {
     no_notify gemini "$@"

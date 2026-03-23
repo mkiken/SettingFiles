@@ -55,4 +55,4 @@ cclogb() {
      cclog --open-browser "$@"
 }
 
-alias update-cc='npm update -g @anthropic-ai/claude-code'
+alias cl-update='claude update'
