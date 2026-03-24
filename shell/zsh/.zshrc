@@ -37,7 +37,11 @@ export IS_WARP
 autoload -U add-zsh-hook
 
 if [[ -z "$TMUX" ]] && ! $IS_IDE && ! $IS_WARP; then
-  tmux new-session -A -s tmux
+  # tmuxウィンドウがGhosttyのウィンドウサイズより小さくなってしまう問題の対応
+  # 対応はいれたが、未解決
+  # set -g window-size は既存セッションに反映されないため、アタッチ時にセッションレベルで強制設定
+  # largest: 複数クライアント接続時、最大サイズのクライアントに合わせてウィンドウをリサイズ
+  tmux new-session -A -s tmux \; set-option window-size largest
   return
 fi
 
