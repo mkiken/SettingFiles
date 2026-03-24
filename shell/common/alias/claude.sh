@@ -34,7 +34,7 @@ _cl-pr-comment-implement() {
 }
 
 cl-pr-body() {
-    clo "/my:pr-body $*"
+    clo --allow-dangerously-skip-permissions "/my:pr-body $*"
 }
 
 cl-pr-create() {
