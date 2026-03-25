@@ -43,7 +43,7 @@ Collect all sub-agent findings, then:
 1. Remove duplicate findings (same file:line reported by multiple agents)
 2. Reclassify priorities based on confidence scores
 3. Assign sequential numbers to all findings across all priority sections (continue numbering across sections — do not restart per section)
-4. Format structured output
+4. Format structured output — **IMPORTANT: insert a blank line between each finding item. Consecutive items without spacing severely hurt readability.**
 5. **Validate line numbers**: any finding not in `[path/to/file.ext:line]` format must be supplemented by referencing the original diff; findings without a line number must not appear in the final output
 
 ### Output Format
@@ -71,13 +71,17 @@ Respond entirely in **Japanese**.
 
 1. **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
 
+2. **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
+
 ---
 
 ## 🟡 Medium Priority（信頼度75-89）
 
 > **推奨対処**: 品質向上のために対処を推奨
 
-2. **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
+3. **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
+
+4. **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
 
 ---
 
@@ -85,7 +89,9 @@ Respond entirely in **Japanese**.
 
 > **任意対応**: 将来的に検討する価値がある改善点
 
-3. **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
+5. **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
+
+6. **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
 
 ---
 

@@ -49,27 +49,35 @@ Review thoroughly from the following perspectives:
 
 **Number all findings sequentially across all priority sections (continue numbering across sections — do not restart per section).**
 
-**Output must be grouped by priority level in descending order. Omit priority levels with no findings:**
+**Output must be grouped by priority level in descending order. Omit priority levels with no findings.**
+
+**IMPORTANT: Insert a blank line between each finding item. Consecutive items without spacing severely hurt readability.**
 
 #### 🔴 High Priority
 1. **[path/to/file.ext:line]** Category: Issue description
 
-#### 🟡 Medium Priority
 2. **[path/to/file.ext:line]** Category: Issue description
 
-#### 🟢 Low Priority
+#### 🟡 Medium Priority
 3. **[path/to/file.ext:line]** Category: Issue description
+
+4. **[path/to/file.ext:line]** Category: Issue description
+
+#### 🟢 Low Priority
+5. **[path/to/file.ext:line]** Category: Issue description
 
 Example:
 
 #### 🔴 High Priority
 1. **[src/services/auth.ts:42]** Security: Auth token may be exposed in logs
 
+2. **[src/services/auth.ts:87]** Bug Risk: Null check missing before user lookup
+
 #### 🟡 Medium Priority
-2. **[src/components/Button.tsx:15-20]** Architecture: Consider separating logic
+3. **[src/components/Button.tsx:15-20]** Architecture: Consider separating logic
 
 #### 🟢 Low Priority
-3. **[src/utils/format.ts:8]** Readability: Use more descriptive variable names
+4. **[src/utils/format.ts:8]** Readability: Use more descriptive variable names
 
 ### **Review Focus Points**
 
