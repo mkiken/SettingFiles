@@ -9,6 +9,9 @@ make_symlink "${Repo_shell}zsh/.zshrc" ~/
 # Ghostty
 make_symlink "${Repo}terminal/ghostty/config" ~/.config/ghostty/config
 
+# Atuin
+make_symlink "${Repo}terminal/atuin/config.toml" ~/.config/atuin/config.toml
+
 # Vim/Neovim
 make_symlink "${Repo}vimfiles/nvim" ~/.config
 
