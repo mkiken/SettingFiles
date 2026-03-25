@@ -8,6 +8,7 @@ function ghpc() {
   gh pr create --web --body="" "$@"
 }
 alias -g ghpv='gh pr view --web'
+alias ghpu='gh pr view --json url --jq .url'
 alias -g ghco='gh co'
 alias gh-dash='no_notify gh dash'
 alias ghd='gh-dash'
