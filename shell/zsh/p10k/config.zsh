@@ -10,6 +10,7 @@ source_and_zcompile_if_needed "${BREW_PREFIX}/opt/powerlevel10k/share/powerlevel
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 source_and_zcompile_if_needed "${SET}shell/zsh/p10k/.p10k.zsh"
+source_and_zcompile_if_needed "${SET}shell/zsh/p10k/gh-pr-cache.zsh"
 
 # vim関連設定の上書き読み込み
 source_and_zcompile_if_needed "${SET}shell/zsh/p10k/overwrite.zsh"
