@@ -697,9 +697,16 @@ function fgcp() {
 # workmux listからworktree名をfilterで選択する内部関数
 # 戻り値: 選択されたworktree名（ディレクトリ名）、キャンセル時は $EXIT_CODE_SIGINT で終了
 function _filter_workmux_worktree() {
+  local raw_list
+  raw_list=$(wml | tail -n +2 | grep -v '(here)')
+
+  if [[ -z "$raw_list" ]]; then
+    echo "選択可能なworktreeがありません" >&2
+    return $EXIT_CODE_SIGINT
+  fi
+
   local worktrees
-  worktrees=$(wml | tail -n +2 | grep -v '(here)' \
-    | awk '
+  worktrees=$(echo "$raw_list" | awk '
       {path=$5; branch=$1; n=split(path, a, "/"); dirs[NR]=a[n]; branches[NR]=branch; paths[NR]=path; if(length(a[n])>max) max=length(a[n])}
       END {
         if(max < 8) max = 8;
@@ -707,11 +714,6 @@ function _filter_workmux_worktree() {
         printf fmt, "worktree", "ブランチ", "";
         for(i=1; i<=NR; i++) printf fmt, dirs[i], branches[i], paths[i]
       }')
-
-  if [[ -z "$worktrees" ]]; then
-    echo "選択可能なworktreeがありません" >&2
-    return $EXIT_CODE_SIGINT
-  fi
 
   local selected
   selected=$(echo "$worktrees" | filter \
@@ -734,9 +736,16 @@ function _filter_workmux_worktree() {
 # workmux listからworktreeのフルパスをfilterで選択する内部関数
 # 戻り値: 選択されたworktreeのフルパス、キャンセル時は $EXIT_CODE_SIGINT で終了
 function _filter_workmux_worktree_path() {
+  local raw_list
+  raw_list=$(wml | tail -n +2 | grep -v '(here)')
+
+  if [[ -z "$raw_list" ]]; then
+    echo "選択可能なworktreeがありません" >&2
+    return $EXIT_CODE_SIGINT
+  fi
+
   local worktrees
-  worktrees=$(wml | tail -n +2 | grep -v '(here)' \
-    | awk '
+  worktrees=$(echo "$raw_list" | awk '
       {path=$5; branch=$1; n=split(path, a, "/"); dirs[NR]=a[n]; branches[NR]=branch; paths[NR]=path; if(length(a[n])>max) max=length(a[n])}
       END {
         if(max < 8) max = 8;
@@ -744,11 +753,6 @@ function _filter_workmux_worktree_path() {
         printf fmt, "worktree", "ブランチ", "";
         for(i=1; i<=NR; i++) printf fmt, dirs[i], branches[i], paths[i]
       }')
-
-  if [[ -z "$worktrees" ]]; then
-    echo "選択可能なworktreeがありません" >&2
-    return $EXIT_CODE_SIGINT
-  fi
 
   local selected
   selected=$(echo "$worktrees" | filter \
