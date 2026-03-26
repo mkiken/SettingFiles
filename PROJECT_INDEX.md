@@ -95,7 +95,6 @@ SettingFiles/
 
 - `claude/` - Claude Code configuration
   - `commands/` - Custom commands (pr-body, pr-review, web-summary, etc.)
-  - `ccstatusline/settings.json` - Status line customization
 - `gemini/` - Gemini CLI configuration
   - `commands/` - TOML-based custom commands
 - `common/` - Shared resources

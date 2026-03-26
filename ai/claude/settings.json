@@ -136,7 +136,7 @@
     ]
   },
   "statusLine": {
-    "command": "ccstatusline",
+    "command": "bash ~/.claude/statusline-command.sh",
     "padding": 0,
     "type": "command"
   }
