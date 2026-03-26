@@ -73,6 +73,39 @@ function show_file_diff() {
     fi
 }
 
+# Show JSON file differences with sorted (semantic) and original (raw) diffs
+function show_json_diff() {
+    local file1="$1"
+    local file2="$2"
+
+    echo "Source: $file1"
+    echo "Destination: $file2"
+    echo ""
+
+    local sorted1=$(mktemp).json
+    local sorted2=$(mktemp).json
+    jq -S . "$file1" > "$sorted1"
+    jq -S . "$file2" > "$sorted2"
+
+    echo "--- Sorted (semantic differences) ---"
+    if command -v difft &> /dev/null; then
+        difft "$sorted2" "$sorted1" || true
+    else
+        diff -u "$sorted2" "$sorted1" || true
+    fi
+
+    echo ""
+
+    echo "--- Original (including key order differences) ---"
+    if command -v difft &> /dev/null; then
+        difft "$file2" "$file1" || true
+    else
+        diff -u "$file2" "$file1" || true
+    fi
+
+    /bin/rm -f "$sorted1" "$sorted2"
+}
+
 # Prompt user for copy action (overwrite or skip)
 function prompt_copy_action() {
     local choice
@@ -275,7 +308,7 @@ function smart_merge_json() {
     # Show differences
     echo ""
     echo "=== Differences found ==="
-    show_file_diff "$src" "$dst"
+    show_json_diff "$src" "$dst"
     echo "========================="
 
     # Prompt for action
@@ -344,7 +377,7 @@ def deepmerge(a; b; path):
             # Show merge result preview
             echo ""
             echo "=== Merge result preview ==="
-            show_file_diff "$tmp_file" "$dst"
+            show_json_diff "$tmp_file" "$dst"
             echo "============================"
 
             # Final confirmation
