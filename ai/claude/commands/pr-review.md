@@ -51,7 +51,18 @@ Review thoroughly from the following perspectives:
 
 **Output must be grouped by priority level in descending order. Omit priority levels with no findings.**
 
-**IMPORTANT: Insert a blank line between each finding item. Consecutive items without spacing severely hurt readability.**
+**MANDATORY**: Every finding item MUST be followed by a blank line before the next item. This is a hard requirement — no exceptions.
+
+✅ CORRECT (blank line between items):
+
+1. **[src/auth.ts:42]** Security: Token may be exposed in logs
+
+2. **[src/auth.ts:87]** Bug Risk: Null check missing
+
+❌ WRONG (no blank line — never do this):
+
+1. **[src/auth.ts:42]** Security: Token may be exposed in logs
+2. **[src/auth.ts:87]** Bug Risk: Null check missing
 
 #### 🔴 High Priority
 1. **[path/to/file.ext:line]** Category: Issue description

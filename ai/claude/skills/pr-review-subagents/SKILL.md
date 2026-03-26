@@ -43,8 +43,23 @@ Collect all sub-agent findings, then:
 1. Remove duplicate findings (same file:line reported by multiple agents)
 2. Reclassify priorities based on confidence scores
 3. Assign sequential numbers to all findings across all priority sections (continue numbering across sections — do not restart per section)
-4. Format structured output — **IMPORTANT: insert a blank line between each finding item. Consecutive items without spacing severely hurt readability.**
+4. Format structured output following the Formatting Rules below
 5. **Validate line numbers**: any finding not in `[path/to/file.ext:line]` format must be supplemented by referencing the original diff; findings without a line number must not appear in the final output
+
+### Formatting Rules
+
+**MANDATORY**: Every finding item MUST be followed by a blank line before the next item. This is a hard requirement — no exceptions.
+
+✅ CORRECT (blank line between items):
+
+1. **[src/auth.ts:42]** セキュリティ (信頼度: 92): トークンがログに露出
+
+2. **[src/auth.ts:87]** バグ検出 (信頼度: 85): null参照の可能性
+
+❌ WRONG (no blank line — never do this):
+
+1. **[src/auth.ts:42]** セキュリティ (信頼度: 92): トークンがログに露出
+2. **[src/auth.ts:87]** バグ検出 (信頼度: 85): null参照の可能性
 
 ### Output Format
 
