@@ -51,44 +51,59 @@ Review thoroughly from the following perspectives:
 
 **Output must be grouped by priority level in descending order. Omit priority levels with no findings.**
 
-**MANDATORY**: Every finding item MUST be followed by a blank line before the next item. This is a hard requirement — no exceptions.
+**Finding Format**: Each item MUST use a two-line structure:
+- **Header line**: `N. **[file:line]** Category: Short one-line summary`
+- **Detail line**: `   - Full explanation and recommendation (indented sub-bullet)`
 
-✅ CORRECT (blank line between items):
+This two-level structure naturally produces blank lines between items.
 
-1. **[src/auth.ts:42]** Security: Token may be exposed in logs
-
-2. **[src/auth.ts:87]** Bug Risk: Null check missing
-
-❌ WRONG (no blank line — never do this):
+✅ CORRECT:
 
 1. **[src/auth.ts:42]** Security: Token may be exposed in logs
-2. **[src/auth.ts:87]** Bug Risk: Null check missing
+   - Auth token is passed directly to the logger. Add a masking step before logging to prevent credential leakage.
+
+2. **[src/auth.ts:87]** Bug Risk: Null check missing before user lookup
+   - `user` can be null when session expires mid-request, causing an unhandled TypeError.
+
+❌ WRONG (single long line — never do this):
+
+1. **[src/auth.ts:42]** Security: Auth token may be exposed in logs because it is passed directly to the logger without masking, which could lead to credential leakage in log aggregation systems.
+2. **[src/auth.ts:87]** Bug Risk: Null check missing before user lookup which can cause unhandled TypeError.
 
 #### 🔴 High Priority
-1. **[path/to/file.ext:line]** Category: Issue description
+1. **[path/to/file.ext:line]** Category: Short summary
+   - Detailed explanation and recommendation.
 
-2. **[path/to/file.ext:line]** Category: Issue description
+2. **[path/to/file.ext:line]** Category: Short summary
+   - Detailed explanation and recommendation.
 
 #### 🟡 Medium Priority
-3. **[path/to/file.ext:line]** Category: Issue description
+3. **[path/to/file.ext:line]** Category: Short summary
+   - Detailed explanation and recommendation.
 
-4. **[path/to/file.ext:line]** Category: Issue description
+4. **[path/to/file.ext:line]** Category: Short summary
+   - Detailed explanation and recommendation.
 
 #### 🟢 Low Priority
-5. **[path/to/file.ext:line]** Category: Issue description
+5. **[path/to/file.ext:line]** Category: Short summary
+   - Detailed explanation and recommendation.
 
 Example:
 
 #### 🔴 High Priority
 1. **[src/services/auth.ts:42]** Security: Auth token may be exposed in logs
+   - Token is logged in plaintext. Apply a masking utility before passing to logger.
 
 2. **[src/services/auth.ts:87]** Bug Risk: Null check missing before user lookup
+   - `getUser()` returns null on session expiry; add a null guard to prevent TypeError.
 
 #### 🟡 Medium Priority
 3. **[src/components/Button.tsx:15-20]** Architecture: Consider separating logic
+   - Click handler mixes UI event handling with business logic. Extract to a custom hook.
 
 #### 🟢 Low Priority
 4. **[src/utils/format.ts:8]** Readability: Use more descriptive variable names
+   - `d` and `v` obscure intent; rename to `date` and `value` for clarity.
 
 ### **Review Focus Points**
 

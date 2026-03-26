@@ -48,18 +48,24 @@ Collect all sub-agent findings, then:
 
 ### Formatting Rules
 
-**MANDATORY**: Every finding item MUST be followed by a blank line before the next item. This is a hard requirement — no exceptions.
+**Finding Format**: Each item MUST use a two-line structure:
+- **Header line**: `N. **[file:line]** 領域 (信頼度: XX): 短い一行の要約`
+- **Detail line**: `   - 詳細説明と推奨対応（インデントされたサブバレット）`
 
-✅ CORRECT (blank line between items):
+This two-level structure naturally produces blank lines between items.
 
-1. **[src/auth.ts:42]** セキュリティ (信頼度: 92): トークンがログに露出
+✅ CORRECT:
 
-2. **[src/auth.ts:87]** バグ検出 (信頼度: 85): null参照の可能性
+1. **[src/auth.ts:42]** セキュリティ (信頼度: 92): トークンがログに平文で露出
+   - ロガーにトークンが直接渡されている。ログ出力前にマスキング処理を追加すること。
 
-❌ WRONG (no blank line — never do this):
+2. **[src/auth.ts:87]** バグ検出 (信頼度: 85): null参照によるTypeError
+   - セッション期限切れ時に`getUser()`がnullを返すが、nullチェックが欠落している。
 
-1. **[src/auth.ts:42]** セキュリティ (信頼度: 92): トークンがログに露出
-2. **[src/auth.ts:87]** バグ検出 (信頼度: 85): null参照の可能性
+❌ WRONG (long single line — never do this):
+
+1. **[src/auth.ts:42]** セキュリティ (信頼度: 92): トークンがログに露出しているためログ集約システムに認証情報が漏洩する可能性がありマスキング処理が必要。
+2. **[src/auth.ts:87]** バグ検出 (信頼度: 85): null参照の可能性がありTypeErrorが発生する。
 
 ### Output Format
 
@@ -84,9 +90,11 @@ Respond entirely in **Japanese**.
 
 > **アクション必須**: マージ前に対処が必要な問題
 
-1. **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
+1. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
+   - 詳細説明と推奨対応。
 
-2. **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
+2. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
+   - 詳細説明と推奨対応。
 
 ---
 
@@ -94,9 +102,11 @@ Respond entirely in **Japanese**.
 
 > **推奨対処**: 品質向上のために対処を推奨
 
-3. **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
+3. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
+   - 詳細説明と推奨対応。
 
-4. **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
+4. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
+   - 詳細説明と推奨対応。
 
 ---
 
@@ -104,9 +114,11 @@ Respond entirely in **Japanese**.
 
 > **任意対応**: 将来的に検討する価値がある改善点
 
-5. **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
+5. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
+   - 詳細説明と推奨対応。
 
-6. **[path/to/file.ext:line]** 領域 (信頼度: XX): 問題の説明
+6. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
+   - 詳細説明と推奨対応。
 
 ---
 
