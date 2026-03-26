@@ -21,7 +21,7 @@ argument-hint: [prNumber]
 - Include the following sections:
   - **Summary**: Comprehensive overview grouped by logical changes
   - **Files Changed Summary**: File-by-file breakdown with brief descriptions (DO NOT include line counts like +X/-Y)
-  - **Review Focus Points**: Always write "特になし" (review focus is filled in by the PR author)
+  - **Review Focus Points**: Check the existing PR body for this section. If the existing body contains non-default content (anything other than "特になし" or empty), preserve the existing content exactly. Only write "特になし" when creating a new PR body or when the existing section is empty/default.
   - **Breaking Changes**: Any breaking changes or migration requirements
   - **Additional Notes**: Any other relevant information for reviewers
 - Output **raw markdown format** that can be directly copied to PR body
@@ -55,7 +55,7 @@ After generating the PR body content:
      EOF
      ```
    - Show success message with PR URL
-   - Display: "必要に応じて **Review Focus Points** を編集してください"
+   - Display: "必要に応じて **Review Focus Points** を確認・編集してください"
 
 5. If user declines:
    - End process (user can manually copy the displayed content)
