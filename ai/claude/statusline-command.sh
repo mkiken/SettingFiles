@@ -107,7 +107,7 @@ if [ -n "$ctx_used" ]; then
   # Use current_usage (authoritative) > calculated from percentage > total_input_tokens
   used_tokens=""
   if [ -n "$ctx_current" ] && [ "$ctx_current" != "0" ]; then
-    used_tokens="$ctx_current"
+    used_tokens=$(printf '%.0f' "$ctx_current")
   elif [ -n "$ctx_size" ]; then
     used_tokens=$(echo "$ctx_used * $ctx_size / 100" | bc | cut -d. -f1)
   elif [ -n "$ctx_tokens" ]; then
