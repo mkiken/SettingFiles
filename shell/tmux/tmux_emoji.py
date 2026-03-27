@@ -39,3 +39,10 @@ EMOJI_PATTERN = "".join([
 def strip_emoji_prefix(name: str) -> str:
     """ウィンドウ名から先頭の絵文字アイコンを除去"""
     return re.sub(rf"^[{EMOJI_PATTERN}]+", "", name)
+
+
+if __name__ == "__main__":
+    # CLI用エントリポイント: シェルスクリプトからウィンドウ名の絵文字除去に使用
+    # 使い方: python3 tmux_emoji.py "✴️🤖main" → "main"
+    import sys
+    print(strip_emoji_prefix(sys.argv[1]) if len(sys.argv) > 1 else "")

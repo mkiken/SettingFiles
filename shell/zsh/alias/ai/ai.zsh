@@ -10,6 +10,7 @@ cl-gm-pr-review() {
 
     local current_window
     current_window=$(tmux display-message -p '#W')
+    current_window=$(python3 "${SET:-$HOME/Desktop/repository/SettingFiles}/shell/tmux/tmux_emoji.py" "$current_window")
 
     tmux new-window -n "${current_window}:cl-rvw" "zsh -ic 'cl-pr-review ${pr_number}; zsh'"
     tmux new-window -n "${current_window}:gm-rvw" "zsh -ic 'gm-pr-review ${pr_number}; zsh'"
@@ -26,6 +27,7 @@ cl-gm-pr-review-subagents() {
 
     local current_window
     current_window=$(tmux display-message -p '#W')
+    current_window=$(python3 "${SET:-$HOME/Desktop/repository/SettingFiles}/shell/tmux/tmux_emoji.py" "$current_window")
 
     tmux new-window -n "${current_window}:cl-rvw" "zsh -ic 'cl-pr-review-subagents ${pr_number}; zsh'"
     tmux new-window -n "${current_window}:gm-rvw" "zsh -ic 'gm-pr-review ${pr_number}; zsh'"
@@ -42,6 +44,7 @@ ai-pr-review() {
 
     local current_window
     current_window=$(tmux display-message -p '#W')
+    current_window=$(python3 "${SET:-$HOME/Desktop/repository/SettingFiles}/shell/tmux/tmux_emoji.py" "$current_window")
 
     tmux new-window -n "${current_window}:cl-rvw" "zsh -ic 'cl-pr-review ${pr_number}; zsh'"
     tmux new-window -n "${current_window}:cl-rvw-a" "zsh -ic 'cl-pr-review-subagents ${pr_number}; zsh'"
