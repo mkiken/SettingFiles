@@ -152,6 +152,84 @@ function prompt_merge_action() {
     esac
 }
 
+# Unified confirmation prompt with optional notification.
+# Usage: confirm "メッセージ" [--default-no] [--no-notify] [--single-key]
+# Returns: 0 = yes, 1 = no/cancel
+#   --default-no   Default answer is No (requires explicit y/Y)
+#   --no-notify    Suppress the macOS notification
+#   --single-key   Use read -k 1 (no Enter needed), implies --default-no
+function confirm() {
+    local message="$1"
+    shift
+
+    local default_yes=true
+    local send_notify=true
+    local single_key=false
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --default-no)  default_yes=false ;;
+            --no-notify)   send_notify=false ;;
+            --single-key)  single_key=true; default_yes=false ;;
+        esac
+        shift
+    done
+
+    local prompt_hint
+    if $default_yes; then
+        prompt_hint="[Y/n]"
+    else
+        prompt_hint="[y/N]"
+    fi
+
+    if $send_notify && (( ${+functions[notify]} )); then
+        notify "入力待ち" "$message" "default" "confirm-prompt"
+    fi
+
+    local reply
+    if $single_key; then
+        read -k 1 -r "reply?${message} ${prompt_hint} "
+        echo ""
+    else
+        echo -n "${message} ${prompt_hint} "
+        read -r reply
+    fi
+
+    if $default_yes; then
+        [[ "$reply" =~ ^[Yy]?$ ]] && return 0
+    else
+        [[ "$reply" =~ ^[Yy]$ ]] && return 0
+    fi
+
+    echo "❌ キャンセルされました"
+    return 1
+}
+
+# Prompt for freeform text input with optional notification.
+# Usage: result=$(prompt_input "メッセージ")
+#   or:  prompt_input "メッセージ" var_name [--no-notify]
+function prompt_input() {
+    local message="$1"
+    local var_name="$2"
+    local send_notify=true
+
+    [[ "$var_name" == "--no-notify" ]] && send_notify=false && var_name=""
+    [[ "$3" == "--no-notify" ]] && send_notify=false
+
+    if $send_notify && (( ${+functions[notify]} )); then
+        notify "入力待ち" "$message" "default" "confirm-prompt"
+    fi
+
+    local reply
+    read -r "reply?${message} "
+
+    if [[ -n "$var_name" ]]; then
+        eval "$var_name=\$reply"
+    else
+        echo "$reply"
+    fi
+}
+
 # Smart copy: check diff before overwriting
 function smart_copy() {
     local src="$1"
