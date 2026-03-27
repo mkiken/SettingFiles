@@ -1,3 +1,4 @@
+**/__pycache__/
 *.zwc
 .DS_Store
 .claude/settings.local.json
