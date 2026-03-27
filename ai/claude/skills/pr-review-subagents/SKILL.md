@@ -48,21 +48,26 @@ Collect all sub-agent findings, then:
 
 ### Formatting Rules
 
-**Finding Format**: Each item MUST use a two-line structure:
+**Finding Format**: Each item MUST use this exact three-part structure — header, detail, then separator:
 - **Header line**: `N. **[file:line]** 領域 (信頼度: XX): 短い一行の要約`
 - **Detail line**: `   - 詳細説明と推奨対応（インデントされたサブバレット）`
+- **Separator line**: `---` (horizontal rule — MANDATORY after every finding, including the last one)
 
-This two-level structure naturally produces blank lines between items.
+The `---` separator after each item is a hard structural requirement that must never be omitted.
 
 ✅ CORRECT:
 
 1. **[src/auth.ts:42]** セキュリティ (信頼度: 92): トークンがログに平文で露出
    - ロガーにトークンが直接渡されている。ログ出力前にマスキング処理を追加すること。
 
+---
+
 2. **[src/auth.ts:87]** バグ検出 (信頼度: 85): null参照によるTypeError
    - セッション期限切れ時に`getUser()`がnullを返すが、nullチェックが欠落している。
 
-❌ WRONG (long single line — never do this):
+---
+
+❌ WRONG (missing `---` separator and/or long single line):
 
 1. **[src/auth.ts:42]** セキュリティ (信頼度: 92): トークンがログに露出しているためログ集約システムに認証情報が漏洩する可能性がありマスキング処理が必要。
 2. **[src/auth.ts:87]** バグ検出 (信頼度: 85): null参照の可能性がありTypeErrorが発生する。
@@ -93,6 +98,8 @@ Respond entirely in **Japanese**.
 1. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
    - 詳細説明と推奨対応。
 
+---
+
 2. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
    - 詳細説明と推奨対応。
 
@@ -105,6 +112,8 @@ Respond entirely in **Japanese**.
 3. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
    - 詳細説明と推奨対応。
 
+---
+
 4. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
    - 詳細説明と推奨対応。
 
@@ -116,6 +125,8 @@ Respond entirely in **Japanese**.
 
 5. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
    - 詳細説明と推奨対応。
+
+---
 
 6. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
    - 詳細説明と推奨対応。
