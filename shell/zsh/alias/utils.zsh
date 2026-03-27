@@ -153,11 +153,12 @@ function prompt_merge_action() {
 }
 
 # Unified confirmation prompt with optional notification.
-# Usage: confirm "メッセージ" [--default-no] [--no-notify] [--single-key]
+# Usage: confirm "メッセージ" [--default-no] [--no-notify] [--single-key] [--no-cancel-msg]
 # Returns: 0 = yes, 1 = no/cancel
-#   --default-no   Default answer is No (requires explicit y/Y)
-#   --no-notify    Suppress the macOS notification
-#   --single-key   Use read -k 1 (no Enter needed), implies --default-no
+#   --default-no     Default answer is No (requires explicit y/Y)
+#   --no-notify      Suppress the macOS notification
+#   --single-key     Use read -k 1 (no Enter needed), implies --default-no
+#   --no-cancel-msg  Suppress the "❌ キャンセルされました" message on rejection
 function confirm() {
     local message="$1"
     shift
@@ -165,12 +166,14 @@ function confirm() {
     local default_yes=true
     local send_notify=true
     local single_key=false
+    local cancel_msg=true
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --default-no)  default_yes=false ;;
-            --no-notify)   send_notify=false ;;
-            --single-key)  single_key=true; default_yes=false ;;
+            --default-no)    default_yes=false ;;
+            --no-notify)     send_notify=false ;;
+            --single-key)    single_key=true; default_yes=false ;;
+            --no-cancel-msg) cancel_msg=false ;;
         esac
         shift
     done
@@ -201,7 +204,7 @@ function confirm() {
         [[ "$reply" =~ ^[Yy]$ ]] && return 0
     fi
 
-    echo "❌ キャンセルされました"
+    $cancel_msg && echo "❌ キャンセルされました"
     return 1
 }
 
