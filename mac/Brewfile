@@ -57,6 +57,7 @@ cask "simplenote"
 cask "slack"
 
 vscode "alefragnani.bookmarks"
+vscode "alefragnani.project-manager"
 vscode "anthropic.claude-code"
 vscode "asvetliakov.vscode-neovim"
 vscode "eamodio.gitlens"
