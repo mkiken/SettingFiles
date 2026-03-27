@@ -6,6 +6,7 @@ input=$(cat)
 # Extract fields from JSON
 model=$(echo "$input" | jq -r '.model.display_name // ""')
 ctx_used=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
+ctx_current=$(echo "$input" | jq -r '.context_window.current_usage // empty')
 ctx_tokens=$(echo "$input" | jq -r '.context_window.total_input_tokens // empty')
 ctx_size=$(echo "$input" | jq -r '.context_window.context_window_size // empty')
 cost=$(echo "$input" | jq -r '.cost.total_cost_usd // empty')
@@ -103,8 +104,17 @@ printf ' |'
 if [ -n "$ctx_used" ]; then
   ctx_int=$(printf '%.0f' "$ctx_used")
   ctx_color=$(pct_color "$ctx_int")
-  if [ -n "$ctx_tokens" ] && [ -n "$ctx_size" ]; then
-    used_fmt=$(format_tokens "$ctx_tokens")
+  # Use current_usage (authoritative) > calculated from percentage > total_input_tokens
+  used_tokens=""
+  if [ -n "$ctx_current" ] && [ "$ctx_current" != "0" ]; then
+    used_tokens="$ctx_current"
+  elif [ -n "$ctx_size" ]; then
+    used_tokens=$(echo "$ctx_used * $ctx_size / 100" | bc | cut -d. -f1)
+  elif [ -n "$ctx_tokens" ]; then
+    used_tokens="$ctx_tokens"
+  fi
+  if [ -n "$used_tokens" ] && [ -n "$ctx_size" ]; then
+    used_fmt=$(format_tokens "$used_tokens")
     size_fmt=$(format_tokens "$ctx_size")
     printf " ${ctx_color}🧠 %s / %s (%s%%)\033[0m" "$used_fmt" "$size_fmt" "$ctx_int"
   else
