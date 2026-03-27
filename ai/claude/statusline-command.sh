@@ -104,11 +104,11 @@ printf ' |'
 if [ -n "$ctx_used" ]; then
   ctx_int=$(printf '%.0f' "$ctx_used")
   ctx_color=$(pct_color "$ctx_int")
-  # Use current_usage (authoritative) > calculated from percentage > total_input_tokens
+  # current_usageは0-1の割合なのでctx_sizeを掛けて絶対トークン数に変換
   used_tokens=""
-  if [ -n "$ctx_current" ] && [ "$ctx_current" != "0" ]; then
-    used_tokens=$(printf '%.0f' "$ctx_current")
-  elif [ -n "$ctx_size" ]; then
+  if [ -n "$ctx_current" ] && [ -n "$ctx_size" ]; then
+    used_tokens=$(echo "$ctx_current * $ctx_size" | bc | cut -d. -f1)
+  elif [ -n "$ctx_used" ] && [ -n "$ctx_size" ]; then
     used_tokens=$(echo "$ctx_used * $ctx_size / 100" | bc | cut -d. -f1)
   elif [ -n "$ctx_tokens" ]; then
     used_tokens="$ctx_tokens"
