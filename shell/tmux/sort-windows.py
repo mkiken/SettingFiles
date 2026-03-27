@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """tmux sort-windows: ウィンドウをウィンドウ名でソートする"""
 import subprocess
+from tmux_emoji import strip_emoji_prefix
 
 
 def tmux(*args):
@@ -14,7 +15,7 @@ def tmux_run(*args):
 lines = tmux("list-windows", "-F", "#{window_index}\t#{window_name}").splitlines()
 windows = [(int(idx), name) for idx, name in (line.split("\t", 1) for line in lines)]
 
-sorted_windows = sorted(windows, key=lambda w: w[1].lower())
+sorted_windows = sorted(windows, key=lambda w: strip_emoji_prefix(w[1]).lower())
 
 # selection sort: position i に sorted_windows[i] を移動する
 current = list(windows)  # 現在のインデックス順リスト

@@ -2,6 +2,8 @@
 
 # notification関数を読み込み (SETが未定義の場合はHOMEから解決)
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/alias/notification.zsh"
+# 絵文字アイコン定義を読み込み
+source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_emoji.conf"
 
 # デバッグフラグ (true/false)
 DEBUG_ENABLED=false
@@ -56,7 +58,7 @@ debug_log "Hook input received: ${hook_input}"
 # jqが利用可能かチェック
 if ! command -v jq &> /dev/null; then
     debug_log "Error: jq not found"
-    notify '💎🤖 Gemini終了' 'jqが見つかりません' 'Submarine'
+    notify "${EMOJI_ID_GEMINI}🤖 Gemini終了" 'jqが見つかりません' 'Submarine'
     exit 1
 fi
 
@@ -218,7 +220,7 @@ if [[ "${EVENT_TYPE}" == "notification" ]]; then
         debug_log "Sending ToolPermission notification: ${MSG_BODY}"
 
         current_time=$(date "+%H:%M:%S")
-        notify "💎⚠️ Gemini承認待ち at 🕰️${current_time}" "${MSG_BODY}" "Glass" "${notification_group}"
+        notify "${EMOJI_ID_GEMINI}⚠️ Gemini承認待ち at 🕰️${current_time}" "${MSG_BODY}" "Glass" "${notification_group}"
     else
         debug_log "Ignoring notification type: ${NOTIFICATION_TYPE}"
     fi
@@ -226,7 +228,7 @@ if [[ "${EVENT_TYPE}" == "notification" ]]; then
 fi
 
 # after_agent の場合
-notification_title="💎✅ Gemini終了"
+notification_title="${EMOJI_ID_GEMINI}✅ Gemini終了"
 if [[ -n "${completion_time}" ]]; then
     notification_title="${notification_title} at ${completion_time}"
 else

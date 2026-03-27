@@ -6,6 +6,10 @@ import re
 import subprocess
 import sys
 from enum import Enum
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "shell" / "tmux"))
+from tmux_emoji import EMOJI_PATTERN, EMOJI_ID_CLAUDE
 
 
 class HookStatus(Enum):
@@ -13,12 +17,8 @@ class HookStatus(Enum):
     NOTIFICATION = "✋"
     ONGOING = "🤖"
 
-    @classmethod
-    def get_emoji_pattern(cls) -> str:
-        return "".join(status.value for status in cls) + "💎✴️" # Geminiで💎を使っているため追加している
 
-
-IDENTIFIER = "✴️"
+IDENTIFIER = EMOJI_ID_CLAUDE
 
 
 class SoundType(Enum):
@@ -108,7 +108,7 @@ def update_tmux_window_name(status: HookStatus):
 
         emoji = f"{IDENTIFIER}{status.value}"
         # 既存の絵文字を置き換え（または追加）
-        emoji_pattern = HookStatus.get_emoji_pattern()
+        emoji_pattern = EMOJI_PATTERN
         new_name = re.sub(rf"^[{emoji_pattern}]*", f"{emoji}", current_name)
         if not new_name.startswith(emoji):
             new_name = f"{emoji}{current_name}"
@@ -146,7 +146,7 @@ def remove_tmux_window_icon():
         window_id = result.stdout.strip()
 
         # 先頭の絵文字パターンを削除
-        emoji_pattern = HookStatus.get_emoji_pattern()
+        emoji_pattern = EMOJI_PATTERN
         new_name = re.sub(rf"^[{emoji_pattern}]+", "", current_name)
 
         # 名前が変わった場合のみ更新
