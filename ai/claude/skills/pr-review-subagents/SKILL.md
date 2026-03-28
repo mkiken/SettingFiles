@@ -3,6 +3,7 @@ description: "Comprehensive PR review using 6 parallel specialist sub-agents for
 model: opus
 allowed-tools: Bash(gh:*), Bash(git:*), Bash(python:*)
 argument-hint: "[prNumber]"
+disable-model-invocation: true
 ---
 
 ## Instructions
@@ -49,6 +50,7 @@ Collect all sub-agent findings, then:
 ### Formatting Rules
 
 **Finding Format**: Each item MUST use this exact three-part structure — header, detail, then separator:
+
 - **Header line**: `N. **[file:line]** 領域 (信頼度: XX): 短い一行の要約`
 - **Detail line**: `   - 詳細説明と推奨対応（インデントされたサブバレット）`
 - **Separator line**: `---` (horizontal rule — MANDATORY after every finding, including the last one)

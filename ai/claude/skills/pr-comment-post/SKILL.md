@@ -11,6 +11,7 @@ description: >
 model: sonnet
 allowed-tools: Bash(gh:*), Bash(git:*)
 argument-hint: "[item_numbers...]"
+disable-model-invocation: true
 ---
 
 ## Purpose
@@ -27,6 +28,7 @@ N. [path/to/file.ext:line] Priority | Category: 概要
 ```
 
 Example:
+
 ```
 1. [src/auth.ts:42] 🔴 High | Security: トークンがログに露出する可能性
 2. [src/Button.tsx:15-20] 🟡 Medium | Architecture: ロジックの分離を検討
@@ -43,6 +45,7 @@ Show them the available numbered items from the review output in context.
 ## Step 3: Extract review items from context
 
 Look at the conversation history for `my:pr-review` output. For each requested number N, extract:
+
 - **file_path**: e.g., `src/services/auth.ts`
 - **line_spec**: e.g., `42` (single) or `15-20` (range)
 - **priority**: `High`, `Medium`, or `Low` (from the section heading 🔴/🟡/🟢)
@@ -50,6 +53,7 @@ Look at the conversation history for `my:pr-review` output. For each requested n
 - **description**: the full issue description text
 
 Map priority to emoji:
+
 - High → `🔴`
 - Medium → `🟡`
 - Low → `🟢`
@@ -92,11 +96,13 @@ If the user specifies items to exclude, remove them from the posting list and co
 ### 5c. Generate summary for review body
 
 Before posting, generate a concise summary of all items being posted. This will be the top-level review body that appears once. The summary should:
+
 - Mention the general areas of concern (e.g., security, test coverage)
 - NOT include specific file names or line numbers (those are in the inline comments)
 - Be 1-3 sentences in Japanese
 
 Example:
+
 ```
 セキュリティに関する指摘が1件、アーキテクチャに関する指摘が1件、可読性に関する指摘が1件あります。認証トークンの取り扱いとコンポーネント設計の改善について検討をお願いします。
 ```
@@ -134,9 +140,11 @@ Each inline comment uses this format — no AI header, no item numbers:
 ```
 
 Examples:
+
 ```markdown
 🔴 **High** / **Security**: Auth token may be exposed in logs — consider using a redaction helper before passing to the logger.
 ```
+
 ```markdown
 🟢 **Low** / **Test Coverage**: GetMissionClearedCounts メソッドに対する単体テストが含まれていないように見受けられます。エッジケースを含めたテストを追加することを推奨します。
 ```
@@ -155,6 +163,7 @@ gh api repos/{owner}/{repo}/pulls/{pr_number}/comments \
 ```
 
 In fallback mode, prefix each comment body with the AI header:
+
 ```markdown
 > 🤖 **Claude Code Review**
 
@@ -162,6 +171,7 @@ In fallback mode, prefix each comment body with the AI header:
 ```
 
 For multi-line ranges, also include:
+
 ```bash
   -F start_line={start_line} \
   -f start_side="RIGHT"
@@ -176,6 +186,7 @@ gh pr comment {pr_number} --body "{comment_body}"
 ## Step 6: Summary
 
 After posting, report:
+
 - How many comments were posted as a review
 - Whether it was posted as a Review API call or fell back to individual comments
 - How many items were skipped (if any)
