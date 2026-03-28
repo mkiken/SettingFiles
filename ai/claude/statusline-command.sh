@@ -6,7 +6,14 @@ input=$(cat)
 # Extract fields from JSON
 model=$(echo "$input" | jq -r '.model.display_name // ""')
 ctx_used=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
-ctx_current=$(echo "$input" | jq -r '.context_window.current_usage // empty')
+ctx_current=$(echo "$input" | jq -r '
+  .context_window.current_usage as $cu |
+  if $cu | type == "object" then
+    (($cu.input_tokens // 0) + ($cu.output_tokens // 0) +
+     ($cu.cache_creation_input_tokens // 0) + ($cu.cache_read_input_tokens // 0)) | tostring
+  else ($cu // empty | tostring)
+  end
+' 2>/dev/null)
 ctx_tokens=$(echo "$input" | jq -r '.context_window.total_input_tokens // empty')
 ctx_size=$(echo "$input" | jq -r '.context_window.context_window_size // empty')
 cost=$(echo "$input" | jq -r '.cost.total_cost_usd // empty')
@@ -104,11 +111,11 @@ printf ' |'
 if [ -n "$ctx_used" ]; then
   ctx_int=$(printf '%.0f' "$ctx_used")
   ctx_color=$(pct_color "$ctx_int")
-  # current_usageは0-1の割合なのでctx_sizeを掛けて絶対トークン数に変換
+  # current_usageオブジェクトの全トークン合計 > percentage計算 > total_input_tokens
   used_tokens=""
-  if [ -n "$ctx_current" ] && [ -n "$ctx_size" ]; then
-    used_tokens=$(echo "$ctx_current * $ctx_size" | bc | cut -d. -f1)
-  elif [ -n "$ctx_used" ] && [ -n "$ctx_size" ]; then
+  if [ -n "$ctx_current" ] && [ "$ctx_current" != "0" ]; then
+    used_tokens="$ctx_current"
+  elif [ -n "$ctx_size" ]; then
     used_tokens=$(echo "$ctx_used * $ctx_size / 100" | bc | cut -d. -f1)
   elif [ -n "$ctx_tokens" ]; then
     used_tokens="$ctx_tokens"
