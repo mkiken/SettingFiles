@@ -2,7 +2,7 @@
 # Claude aliases - Common for bash and zsh
 
 cl() {
-    no_notify claude "$@"
+    no_notify claude --allow-dangerously-skip-permissions "$@"
 }
 
 clo() {
@@ -18,15 +18,15 @@ cl-web-summary() {
 }
 
 cl-pr-review() {
-    clo --allow-dangerously-skip-permissions "/my:pr-review $*"
+    clo --dangerously-skip-permissions "/my:pr-review $*"
 }
 
 cl-pr-review-subagents() {
-    cl --allow-dangerously-skip-permissions "/pr-review-subagents $*"
+    cl --dangerously-skip-permissions "/pr-review-subagents $*"
 }
 
 _cl-pr-comment-review() {
-    clo --allow-dangerously-skip-permissions "/my:pr-comment-review $*"
+    clo --dangerously-skip-permissions "/my:pr-comment-review $*"
 }
 
 _cl-pr-comment-implement() {
@@ -34,7 +34,7 @@ _cl-pr-comment-implement() {
 }
 
 cl-pr-body() {
-    clo --allow-dangerously-skip-permissions "/my:pr-body $*"
+    clo --dangerously-skip-permissions "/my:pr-body $*"
 }
 
 cl-pr-create() {
