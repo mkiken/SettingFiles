@@ -7,5 +7,5 @@ get_tmux_window_label() {
     [[ "${TERM_PROGRAM:-}" != "tmux" ]] && echo "" && return
     local win_index
     win_index=$(tmux display-message -p -t "${pane_id}" "#{window_index}" 2>/dev/null)
-    [[ -n "${win_index}" ]] && echo " #${win_index}" || echo ""
+    [[ -n "${win_index}" ]] && echo " 🖥️${win_index}" || echo ""
 }
