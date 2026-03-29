@@ -5,6 +5,8 @@ export LANG="${LANG:-en_US.UTF-8}"
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/alias/notification.zsh"
 # 絵文字アイコン定義を読み込み
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_emoji.conf"
+# tmuxウィンドウラベル取得関数を読み込み
+source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_window_info.sh"
 
 # デバッグフラグ (true/false)
 DEBUG_ENABLED=false
@@ -40,6 +42,8 @@ format_duration() {
     fi
 }
 
+TMUX_WIN_LABEL=$(get_tmux_window_label)
+
 debug_log "=== Claude Notification Hook Started ==="
 debug_log "Environment __CFBundleIdentifier='${__CFBundleIdentifier}'"
 
@@ -49,7 +53,7 @@ debug_log "Hook input received: ${hook_input}"
 
 # jqが利用可能かチェック
 if ! command -v jq &> /dev/null; then
-    notify "${EMOJI_ID_CLAUDE}🤖 Claude終了" 'jqが見つかりません' 'Submarine'
+    notify "${EMOJI_ID_CLAUDE}🤖 Claude終了${TMUX_WIN_LABEL}" 'jqが見つかりません' 'Submarine'
     exit 1
 fi
 
@@ -71,14 +75,14 @@ debug_log "Session ID: ${session_id}, Notification group: ${notification_group}"
 # transcript_pathが取得できているかチェック
 if [[ -z "${transcript_path}" || "${transcript_path}" == "null" ]]; then
     debug_log "No transcript path found"
-    notify "${EMOJI_ID_CLAUDE}🤖 Claude終了" 'transcript pathが見つかりません' 'Submarine'
+    notify "${EMOJI_ID_CLAUDE}🤖 Claude終了${TMUX_WIN_LABEL}" 'transcript pathが見つかりません' 'Submarine'
     exit 0
 fi
 
 # transcriptファイルが存在するかチェック
 if [[ ! -f "${transcript_path}" ]]; then
     debug_log "Transcript file not found: ${transcript_path}"
-    notify "${EMOJI_ID_CLAUDE}🤖 Claude終了" 'セッションが終了しました' 'Submarine'
+    notify "${EMOJI_ID_CLAUDE}🤖 Claude終了${TMUX_WIN_LABEL}" 'セッションが終了しました' 'Submarine'
     exit 0
 fi
 
@@ -320,7 +324,7 @@ if [[ "${hook_event_name}" == "Notification" ]]; then
         fi
 
         debug_log "Sending approval notification: ${notification_body}"
-        notify "${EMOJI_ID_CLAUDE}⚠️ Claude承認待ち at 🕰️${current_time}" "${notification_body}" "Glass" "${notification_group}"
+        notify "${EMOJI_ID_CLAUDE}⚠️ Claude承認待ち${TMUX_WIN_LABEL} at 🕰️${current_time}" "${notification_body}" "Glass" "${notification_group}"
     else
         debug_log "Notification type ${notification_type} does not require notification, exiting"
     fi
@@ -329,10 +333,10 @@ fi
 
 # Stopイベント: 終了通知
 if [[ -n "${completion_time}" ]]; then
-    notification_title="${EMOJI_ID_CLAUDE}✅ Claude終了 at ${completion_time}"
+    notification_title="${EMOJI_ID_CLAUDE}✅ Claude終了${TMUX_WIN_LABEL} at ${completion_time}"
 else
     current_time=$(date "+%H:%M:%S")
-    notification_title="${EMOJI_ID_CLAUDE}✅ Claude終了 at 🕰️${current_time}"
+    notification_title="${EMOJI_ID_CLAUDE}✅ Claude終了${TMUX_WIN_LABEL} at 🕰️${current_time}"
 fi
 
 debug_log "Sending stop notification: title='${notification_title}', message='${summary}'"

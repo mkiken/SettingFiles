@@ -4,6 +4,8 @@
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/alias/notification.zsh"
 # 絵文字アイコン定義を読み込み
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_emoji.conf"
+# tmuxウィンドウラベル取得関数を読み込み
+source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_window_info.sh"
 
 # デバッグフラグ (true/false)
 DEBUG_ENABLED=false
@@ -37,6 +39,8 @@ format_duration() {
     fi
 }
 
+TMUX_WIN_LABEL=$(get_tmux_window_label)
+
 debug_log "=== Gemini Notification Hook Started ==="
 
 # Parse arguments
@@ -58,7 +62,7 @@ debug_log "Hook input received: ${hook_input}"
 # jqが利用可能かチェック
 if ! command -v jq &> /dev/null; then
     debug_log "Error: jq not found"
-    notify "${EMOJI_ID_GEMINI}🤖 Gemini終了" 'jqが見つかりません' 'Submarine'
+    notify "${EMOJI_ID_GEMINI}🤖 Gemini終了${TMUX_WIN_LABEL}" 'jqが見つかりません' 'Submarine'
     exit 1
 fi
 
@@ -220,7 +224,7 @@ if [[ "${EVENT_TYPE}" == "notification" ]]; then
         debug_log "Sending ToolPermission notification: ${MSG_BODY}"
 
         current_time=$(date "+%H:%M:%S")
-        notify "${EMOJI_ID_GEMINI}⚠️ Gemini承認待ち at 🕰️${current_time}" "${MSG_BODY}" "Glass" "${notification_group}"
+        notify "${EMOJI_ID_GEMINI}⚠️ Gemini承認待ち${TMUX_WIN_LABEL} at 🕰️${current_time}" "${MSG_BODY}" "Glass" "${notification_group}"
     else
         debug_log "Ignoring notification type: ${NOTIFICATION_TYPE}"
     fi
@@ -228,7 +232,7 @@ if [[ "${EVENT_TYPE}" == "notification" ]]; then
 fi
 
 # after_agent の場合
-notification_title="${EMOJI_ID_GEMINI}✅ Gemini終了"
+notification_title="${EMOJI_ID_GEMINI}✅ Gemini終了${TMUX_WIN_LABEL}"
 if [[ -n "${completion_time}" ]]; then
     notification_title="${notification_title} at ${completion_time}"
 else
