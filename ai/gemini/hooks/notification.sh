@@ -152,32 +152,34 @@ if [[ -n "${transcript_path}" && "${transcript_path}" != "null" && -f "${transcr
         elif [[ "${LAST_MSG}" =~ (テスト|test|チェック|確認) ]]; then task_type="🧪"
         fi
 
-        # サフィックス
+        # 統計情報行（1行目）
         if [[ -n "${session_duration_formatted}" ]]; then
-            suffix=" 🔄${USER_COUNT} ⏳${session_duration_formatted}"
+            stats_line="🔄${USER_COUNT} ⏳${session_duration_formatted}"
         else
-            suffix=" 🔄${USER_COUNT}"
+            stats_line="🔄${USER_COUNT}"
         fi
 
         # 改行を削除して1行にする
         clean_msg=$(echo "${LAST_MSG}" | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
-        summary="${task_type} ${clean_msg}${suffix}"
+        msg_line="${task_type} ${clean_msg}"
 
-        # 長さ制限
-        max_summary_length=80
-        if [[ ${#summary} -gt ${max_summary_length} ]]; then
+        # 長さ制限（メッセージ行のみ）
+        max_msg_length=80
+        if [[ ${#msg_line} -gt ${max_msg_length} ]]; then
             emoji_display_length=2
             space_length=1
             ellipsis_length=3
-            max_message_length=$((max_summary_length - emoji_display_length - space_length - ${#suffix} - ellipsis_length))
+            max_message_length=$((max_msg_length - emoji_display_length - space_length - ellipsis_length))
             truncated_message=$(echo "${clean_msg}" | sed -E "s/^(.{0,${max_message_length}}).*/\1/")
-            summary="${task_type} ${truncated_message}...${suffix}"
-            if [[ ${#summary} -gt ${max_summary_length} ]]; then
+            msg_line="${task_type} ${truncated_message}..."
+            if [[ ${#msg_line} -gt ${max_msg_length} ]]; then
                  max_message_length=$((max_message_length - 5))
                  truncated_message=$(echo "${clean_msg}" | sed -E "s/^(.{0,${max_message_length}}).*/\1/")
-                 summary="${task_type} ${truncated_message}...${suffix}"
+                 msg_line="${task_type} ${truncated_message}..."
             fi
         fi
+
+        summary="${msg_line}"$'\n'"${stats_line}"
     fi
 fi
 
@@ -224,7 +226,7 @@ if [[ "${EVENT_TYPE}" == "notification" ]]; then
         debug_log "Sending ToolPermission notification: ${MSG_BODY}"
 
         current_time=$(date "+%H:%M:%S")
-        notify "${EMOJI_ID_GEMINI}⚠️ Gemini承認待ち${TMUX_WIN_LABEL} at 🕰️${current_time}" "${MSG_BODY}" "Glass" "${notification_group}"
+        notify "${EMOJI_ID_GEMINI}⚠️ Gemini承認待ち${TMUX_WIN_LABEL} 🕰️${current_time}" "${MSG_BODY}" "Glass" "${notification_group}"
     else
         debug_log "Ignoring notification type: ${NOTIFICATION_TYPE}"
     fi
@@ -234,10 +236,10 @@ fi
 # after_agent の場合
 notification_title="${EMOJI_ID_GEMINI}✅ Gemini終了${TMUX_WIN_LABEL}"
 if [[ -n "${completion_time}" ]]; then
-    notification_title="${notification_title} at ${completion_time}"
+    notification_title="${notification_title} 🕰️${completion_time}"
 else
     current_time=$(date "+%H:%M:%S")
-    notification_title="${notification_title} at 🕰️${current_time}"
+    notification_title="${notification_title} 🕰️${current_time}"
 fi
 
 debug_log "Sending notification: title='${notification_title}', message='${summary}'"

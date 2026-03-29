@@ -267,44 +267,41 @@ if [[ -n "${user_messages[*]:-}" ]]; then
 fi
 
 if [[ ${user_count} -gt 0 ]]; then
-    # サフィックス（統計情報）を作成
+    # 統計情報行（1行目）
     if [[ -n "${session_duration_formatted}" ]]; then
-        suffix=" 🔄${user_count} ⏳${session_duration_formatted}"
+        stats_line="🔄${user_count} ⏳${session_duration_formatted}"
     else
-        suffix=" 🔄${user_count}"
+        stats_line="🔄${user_count}"
     fi
 
     # 最終的な改行除去（念のため）
     last_user_message=$(echo "${last_user_message}" | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
     debug_log "Final last_user_message after newline removal: ${last_user_message:0:100}"
 
-    # メッセージとサフィックスを結合
-    summary="${task_type} ${last_user_message}${suffix}"
+    # メッセージ行（2行目）を作成
+    msg_line="${task_type} ${last_user_message}"
 
-    # 80文字を超える場合、メッセージ部分を短縮（サフィックスは保持）
-    max_summary_length=80
-    if [[ ${#summary} -gt ${max_summary_length} ]]; then
+    # 80文字を超える場合、メッセージ行を短縮
+    max_msg_length=80
+    if [[ ${#msg_line} -gt ${max_msg_length} ]]; then
         prefix_length=$(( ${#task_type} + 1 ))  # emoji + space
         ellipsis_length=3  # "..."
-        max_message_length=$((max_summary_length - prefix_length - ellipsis_length - ${#suffix}))
+        max_message_length=$((max_msg_length - prefix_length - ellipsis_length))
 
-        debug_log "Truncating message: original_length=${#summary}, max_allowed=${max_summary_length}, max_message=${max_message_length}"
+        debug_log "Truncating message: original_length=${#msg_line}, max_allowed=${max_msg_length}, max_message=${max_message_length}"
 
         truncated_message="${last_user_message:0:${max_message_length}}"
-        summary="${task_type} ${truncated_message}...${suffix}"
+        msg_line="${task_type} ${truncated_message}..."
 
-        # 最終的な長さを検証（念のため再チェック）
-        final_length=${#summary}
-        debug_log "Final summary length: ${final_length}"
-
-        # まだ長すぎる場合、さらに調整
-        if [[ ${final_length} -gt ${max_summary_length} ]]; then
+        if [[ ${#msg_line} -gt ${max_msg_length} ]]; then
             max_message_length=$((max_message_length - 5))
             truncated_message="${last_user_message:0:${max_message_length}}"
-            summary="${task_type} ${truncated_message}...${suffix}"
-            debug_log "Re-truncated to: ${#summary} chars"
+            msg_line="${task_type} ${truncated_message}..."
+            debug_log "Re-truncated to: ${#msg_line} chars"
         fi
     fi
+
+    summary="${msg_line}"$'\n'"${stats_line}"
 else
     summary="💭 セッションが開始されましたが、メッセージはありませんでした"
 fi
@@ -324,7 +321,7 @@ if [[ "${hook_event_name}" == "Notification" ]]; then
         fi
 
         debug_log "Sending approval notification: ${notification_body}"
-        notify "${EMOJI_ID_CLAUDE}⚠️ Claude承認待ち${TMUX_WIN_LABEL} at 🕰️${current_time}" "${notification_body}" "Glass" "${notification_group}"
+        notify "${EMOJI_ID_CLAUDE}⚠️ Claude承認待ち${TMUX_WIN_LABEL} 🕰️${current_time}" "${notification_body}" "Glass" "${notification_group}"
     else
         debug_log "Notification type ${notification_type} does not require notification, exiting"
     fi
@@ -333,10 +330,10 @@ fi
 
 # Stopイベント: 終了通知
 if [[ -n "${completion_time}" ]]; then
-    notification_title="${EMOJI_ID_CLAUDE}✅ Claude終了${TMUX_WIN_LABEL} at ${completion_time}"
+    notification_title="${EMOJI_ID_CLAUDE}✅ Claude終了${TMUX_WIN_LABEL} 🕰️${completion_time}"
 else
     current_time=$(date "+%H:%M:%S")
-    notification_title="${EMOJI_ID_CLAUDE}✅ Claude終了${TMUX_WIN_LABEL} at 🕰️${current_time}"
+    notification_title="${EMOJI_ID_CLAUDE}✅ Claude終了${TMUX_WIN_LABEL} 🕰️${current_time}"
 fi
 
 debug_log "Sending stop notification: title='${notification_title}', message='${summary}'"
