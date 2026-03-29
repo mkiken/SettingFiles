@@ -154,9 +154,9 @@ if [[ -n "${transcript_path}" && "${transcript_path}" != "null" && -f "${transcr
 
         # サフィックス
         if [[ -n "${session_duration_formatted}" ]]; then
-            suffix=" [x${USER_COUNT}(${session_duration_formatted})]"
+            suffix=" 🔄${USER_COUNT} ⏳${session_duration_formatted}"
         else
-            suffix=" [x${USER_COUNT}]"
+            suffix=" 🔄${USER_COUNT}"
         fi
 
         # 改行を削除して1行にする

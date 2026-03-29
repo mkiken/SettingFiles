@@ -269,9 +269,9 @@ fi
 if [[ ${user_count} -gt 0 ]]; then
     # サフィックス（統計情報）を作成
     if [[ -n "${session_duration_formatted}" ]]; then
-        suffix=" [x${user_count}(${session_duration_formatted})]"
+        suffix=" 🔄${user_count} ⏳${session_duration_formatted}"
     else
-        suffix=" [x${user_count}]"
+        suffix=" 🔄${user_count}"
     fi
 
     # 最終的な改行除去（念のため）
