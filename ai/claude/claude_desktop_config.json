@@ -32,5 +32,8 @@
       ]
     }
   },
-  "isUsingBuiltInNodeForMcp": false
+  "isUsingBuiltInNodeForMcp": false,
+  "preferences": {
+    "coworkWebSearchEnabled": true
+  }
 }
