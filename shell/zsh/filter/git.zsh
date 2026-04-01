@@ -707,7 +707,7 @@ function _filter_workmux_worktree() {
 
   local worktrees
   worktrees=$(echo "$raw_list" | awk '
-      {path=$5; branch=$1; n=split(path, a, "/"); dirs[NR]=a[n]; branches[NR]=branch; paths[NR]=path; if(length(a[n])>max) max=length(a[n])}
+      {path=$6; branch=$1; n=split(path, a, "/"); dirs[NR]=a[n]; branches[NR]=branch; paths[NR]=path; if(length(a[n])>max) max=length(a[n])}
       END {
         if(max < 8) max = 8;
         fmt = "%-" max "s  %s\t%s\n";
@@ -746,7 +746,7 @@ function _filter_workmux_worktree_path() {
 
   local worktrees
   worktrees=$(echo "$raw_list" | awk '
-      {path=$5; branch=$1; n=split(path, a, "/"); dirs[NR]=a[n]; branches[NR]=branch; paths[NR]=path; if(length(a[n])>max) max=length(a[n])}
+      {path=$6; branch=$1; n=split(path, a, "/"); dirs[NR]=a[n]; branches[NR]=branch; paths[NR]=path; if(length(a[n])>max) max=length(a[n])}
       END {
         if(max < 8) max = 8;
         fmt = "%-" max "s  %s\t%s\n";
