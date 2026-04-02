@@ -23,6 +23,16 @@ if [ -z "$BRANCH" ]; then
   BRANCH=$(git rev-parse --short HEAD 2>/dev/null)
 fi
 
+# Detect default branch (fast, local-only via symbolic-ref)
+DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null)
+DEFAULT_BRANCH="${DEFAULT_BRANCH##refs/remotes/origin/}"
+
+# On default branch: show repo name only
+if [[ -n "${DEFAULT_BRANCH}" ]] && [[ "${BRANCH}" = "${DEFAULT_BRANCH}" ]]; then
+  tmux rename-window "${REPO_NAME}"
+  exit 0
+fi
+
 # Fish-style abbreviation: shorten all segments except the last to 1 char
 fish_abbrev() {
   local branch="$1"
