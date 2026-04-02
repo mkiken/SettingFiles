@@ -1,6 +1,10 @@
 #!/bin/zsh
 # Utility functions shared between setup scripts and interactive shell
 
+# tmuxウィンドウ名操作・通知タイトル生成ヘルパー
+source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_window_name.sh" 2>/dev/null
+source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_notification_title.sh" 2>/dev/null
+
 function make_symlink () {
   # リンク先のディレクトリを取得
   local target_dir="$(dirname "$2")"
@@ -186,7 +190,14 @@ function confirm() {
     fi
 
     if $send_notify && (( ${+functions[notify]} )); then
-        notify "入力待ち" "$message" "default" "confirm-prompt"
+        local _title
+        if (( ${+functions[build_notification_title]} )); then
+            _title=$(build_notification_title "⚠️" "入力待ち")
+        else
+            _title="入力待ち"
+        fi
+        notify "$_title" "$message" "default" "confirm-prompt"
+        (( ${+functions[update_tmux_window_name]} )) && update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION:-✋}"
     fi
 
     local reply
@@ -197,6 +208,7 @@ function confirm() {
         echo -n "${message} ${prompt_hint} "
         read -r reply
     fi
+    (( ${+functions[remove_tmux_window_icon]} )) && remove_tmux_window_icon
 
     if $default_yes; then
         [[ "$reply" =~ ^[Yy]?$ ]] && return 0
@@ -220,11 +232,19 @@ function prompt_input() {
     [[ "$3" == "--no-notify" ]] && send_notify=false
 
     if $send_notify && (( ${+functions[notify]} )); then
-        notify "入力待ち" "$message" "default" "confirm-prompt"
+        local _title
+        if (( ${+functions[build_notification_title]} )); then
+            _title=$(build_notification_title "⚠️" "入力待ち")
+        else
+            _title="入力待ち"
+        fi
+        notify "$_title" "$message" "default" "confirm-prompt"
+        (( ${+functions[update_tmux_window_name]} )) && update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION:-✋}"
     fi
 
     local reply
     read -r "reply?${message} "
+    (( ${+functions[remove_tmux_window_icon]} )) && remove_tmux_window_icon
 
     if [[ -n "$var_name" ]]; then
         eval "$var_name=\$reply"
