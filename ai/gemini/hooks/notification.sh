@@ -6,6 +6,8 @@ source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/alias/notificati
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_emoji.conf"
 # tmuxウィンドウラベル取得関数を読み込み
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_window_info.sh"
+# 通知タイトル生成・時間フォーマットヘルパー
+source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_notification_title.sh"
 
 # デバッグフラグ (true/false)
 DEBUG_ENABLED=false
@@ -22,24 +24,6 @@ debug_log() {
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "${DEBUG_LOG}"
     fi
 }
-
-# 秒数を人間が読みやすい形式に変換する関数
-format_duration() {
-    local total_seconds=$1
-    local hours=$((total_seconds / 3600))
-    local minutes=$(((total_seconds % 3600) / 60))
-    local seconds=$((total_seconds % 60))
-
-    if [[ ${hours} -gt 0 ]]; then
-        echo "${hours}h${minutes}m"
-    elif [[ ${minutes} -gt 0 ]]; then
-        echo "${minutes}m${seconds}s"
-    else
-        echo "${seconds}s"
-    fi
-}
-
-TMUX_WIN_LABEL=$(get_tmux_window_label)
 
 debug_log "=== Gemini Notification Hook Started ==="
 
@@ -62,7 +46,7 @@ debug_log "Hook input received: ${hook_input}"
 # jqが利用可能かチェック
 if ! command -v jq &> /dev/null; then
     debug_log "Error: jq not found"
-    notify "${EMOJI_ID_GEMINI}🤖 Gemini終了${TMUX_WIN_LABEL}" 'jqが見つかりません' 'Submarine'
+    notify "$(build_notification_title "🤖" "Gemini終了" "${EMOJI_ID_GEMINI}")" 'jqが見つかりません' 'Submarine'
     exit 1
 fi
 
@@ -225,8 +209,7 @@ if [[ "${EVENT_TYPE}" == "notification" ]]; then
 
         debug_log "Sending ToolPermission notification: ${MSG_BODY}"
 
-        current_time=$(date "+%H:%M:%S")
-        notify "${EMOJI_ID_GEMINI}⚠️ Gemini承認待ち${TMUX_WIN_LABEL} 🕰️${current_time}" "${MSG_BODY}" "Glass" "${notification_group}"
+        notify "$(build_notification_title "⚠️" "Gemini承認待ち" "${EMOJI_ID_GEMINI}")" "${MSG_BODY}" "Glass" "${notification_group}"
     else
         debug_log "Ignoring notification type: ${NOTIFICATION_TYPE}"
     fi
@@ -234,13 +217,7 @@ if [[ "${EVENT_TYPE}" == "notification" ]]; then
 fi
 
 # after_agent の場合
-notification_title="${EMOJI_ID_GEMINI}✅ Gemini終了${TMUX_WIN_LABEL}"
-if [[ -n "${completion_time}" ]]; then
-    notification_title="${notification_title} 🕰️${completion_time}"
-else
-    current_time=$(date "+%H:%M:%S")
-    notification_title="${notification_title} 🕰️${current_time}"
-fi
+notification_title=$(build_notification_title "✅" "Gemini終了" "${EMOJI_ID_GEMINI}" "${completion_time}")
 
 debug_log "Sending notification: title='${notification_title}', message='${summary}'"
 

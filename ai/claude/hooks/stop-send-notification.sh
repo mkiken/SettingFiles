@@ -7,6 +7,8 @@ source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/alias/notificati
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_emoji.conf"
 # tmuxウィンドウラベル取得関数を読み込み
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_window_info.sh"
+# 通知タイトル生成・時間フォーマットヘルパー
+source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_notification_title.sh"
 
 # デバッグフラグ (true/false)
 DEBUG_ENABLED=false
@@ -26,24 +28,6 @@ debug_log() {
     fi
 }
 
-# 秒数を人間が読みやすい形式に変換する関数
-format_duration() {
-    local total_seconds=$1
-    local hours=$((total_seconds / 3600))
-    local minutes=$(((total_seconds % 3600) / 60))
-    local seconds=$((total_seconds % 60))
-
-    if [[ ${hours} -gt 0 ]]; then
-        echo "${hours}h${minutes}m"
-    elif [[ ${minutes} -gt 0 ]]; then
-        echo "${minutes}m${seconds}s"
-    else
-        echo "${seconds}s"
-    fi
-}
-
-TMUX_WIN_LABEL=$(get_tmux_window_label)
-
 debug_log "=== Claude Notification Hook Started ==="
 debug_log "Environment __CFBundleIdentifier='${__CFBundleIdentifier}'"
 
@@ -53,7 +37,7 @@ debug_log "Hook input received: ${hook_input}"
 
 # jqが利用可能かチェック
 if ! command -v jq &> /dev/null; then
-    notify "${EMOJI_ID_CLAUDE}🤖 Claude終了${TMUX_WIN_LABEL}" 'jqが見つかりません' 'Submarine'
+    notify "$(build_notification_title "🤖" "Claude終了" "${EMOJI_ID_CLAUDE}")" 'jqが見つかりません' 'Submarine'
     exit 1
 fi
 
@@ -75,14 +59,14 @@ debug_log "Session ID: ${session_id}, Notification group: ${notification_group}"
 # transcript_pathが取得できているかチェック
 if [[ -z "${transcript_path}" || "${transcript_path}" == "null" ]]; then
     debug_log "No transcript path found"
-    notify "${EMOJI_ID_CLAUDE}🤖 Claude終了${TMUX_WIN_LABEL}" 'transcript pathが見つかりません' 'Submarine'
+    notify "$(build_notification_title "🤖" "Claude終了" "${EMOJI_ID_CLAUDE}")" 'transcript pathが見つかりません' 'Submarine'
     exit 0
 fi
 
 # transcriptファイルが存在するかチェック
 if [[ ! -f "${transcript_path}" ]]; then
     debug_log "Transcript file not found: ${transcript_path}"
-    notify "${EMOJI_ID_CLAUDE}🤖 Claude終了${TMUX_WIN_LABEL}" 'セッションが終了しました' 'Submarine'
+    notify "$(build_notification_title "🤖" "Claude終了" "${EMOJI_ID_CLAUDE}")" 'セッションが終了しました' 'Submarine'
     exit 0
 fi
 
@@ -312,7 +296,6 @@ if [[ "${hook_event_name}" == "Notification" ]]; then
 
     if [[ "${notification_type}" == "permission_prompt" || "${notification_type}" == "elicitation_dialog" ]]; then
         message=$(echo "${hook_input}" | jq -r '.message // empty')
-        current_time=$(date "+%H:%M:%S")
 
         notification_body="${message}"
         # 共通処理で生成された整形済みsummaryを追記
@@ -321,7 +304,7 @@ if [[ "${hook_event_name}" == "Notification" ]]; then
         fi
 
         debug_log "Sending approval notification: ${notification_body}"
-        notify "${EMOJI_ID_CLAUDE}⚠️ Claude承認待ち${TMUX_WIN_LABEL} 🕰️${current_time}" "${notification_body}" "Glass" "${notification_group}"
+        notify "$(build_notification_title "⚠️" "Claude承認待ち" "${EMOJI_ID_CLAUDE}")" "${notification_body}" "Glass" "${notification_group}"
     else
         debug_log "Notification type ${notification_type} does not require notification, exiting"
     fi
@@ -329,12 +312,7 @@ if [[ "${hook_event_name}" == "Notification" ]]; then
 fi
 
 # Stopイベント: 終了通知
-if [[ -n "${completion_time}" ]]; then
-    notification_title="${EMOJI_ID_CLAUDE}✅ Claude終了${TMUX_WIN_LABEL} 🕰️${completion_time}"
-else
-    current_time=$(date "+%H:%M:%S")
-    notification_title="${EMOJI_ID_CLAUDE}✅ Claude終了${TMUX_WIN_LABEL} 🕰️${current_time}"
-fi
+notification_title=$(build_notification_title "✅" "Claude終了" "${EMOJI_ID_CLAUDE}" "${completion_time}")
 
 debug_log "Sending stop notification: title='${notification_title}', message='${summary}'"
 notify "${notification_title}" "${summary}" "Submarine" "${notification_group}"
