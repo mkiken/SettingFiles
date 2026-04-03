@@ -18,7 +18,10 @@ Fetch all required PR data before launching sub-agents:
 gh pr view $ARGUMENTS --json title,body,baseRefName,headRefName,url
 gh pr diff $ARGUMENTS  # NOTE: file path arguments are not supported; fetch full diff and filter locally if needed
 gh repo view --json nameWithOwner
+git branch --show-current  # Detect local mode
 ```
+
+Compare the output of `git branch --show-current` with `headRefName`. If they match, **local mode** is active — sub-agents can use `Read` and `Glob` tools directly instead of `gh api`.
 
 ### Phase 2: Launch All 6 Sub-Agents in Parallel
 
@@ -27,6 +30,7 @@ Pass the following to each sub-agent as context:
 - PR number: `$ARGUMENTS`
 - PR metadata (title, body, base/head branch, repository owner/name)
 - Complete PR diff
+- **Local mode**: whether the current branch matches `headRefName` (true/false). If true, instruct sub-agents to use `Read` and `Glob` tools for file reading instead of `gh api`.
 
 Launch all agents simultaneously:
 

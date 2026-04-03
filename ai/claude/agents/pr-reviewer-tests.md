@@ -33,7 +33,13 @@ Compare test files against implementation changes and analyze for:
 You will receive:
 - PR metadata (title, description, base/head branch, repository owner/name)
 - Complete PR diff
-- Use gh CLI to read test and implementation files:
+- A flag indicating whether **local mode** is active (current branch matches headRefName)
+
+To read test and implementation files and locate test files:
+- **If local mode**:
+  - Use the `Read` tool to read files directly
+  - Use the `Glob` tool to locate test files (e.g., `Glob("**/*test*")`, `Glob("**/*spec*")`)
+- **If remote mode**:
   - `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefName} --jq '.content' | base64 -d`
   - `gh api repos/{owner}/{repo}/git/trees/{headRefName}?recursive=1` to locate test files
 

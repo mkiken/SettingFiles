@@ -21,7 +21,9 @@ Explore the file tree and module boundaries, then analyze for:
 
 ## Rules
 
-- **Explore the file tree** using `gh api repos/{owner}/{repo}/git/trees/{headRefName}?recursive=1` to understand module structure
+- **Explore the file tree** to understand module structure:
+  - **If local mode** (current branch matches headRefName): Use the `Glob` tool (e.g., `Glob("src/**/*")`) and `Read` tool to inspect files
+  - **If remote mode**: Use `gh api repos/{owner}/{repo}/git/trees/{headRefName}?recursive=1`
 - **Read surrounding modules** to assess coupling and interface design
 - **Report only significant structural problems**, not minor style preferences
 - **Do not report** issues better categorized as bugs or security vulnerabilities
@@ -34,7 +36,9 @@ Explore the file tree and module boundaries, then analyze for:
 You will receive:
 - PR metadata (title, description, base/head branch, repository owner/name)
 - Complete PR diff
-- You may use gh CLI to explore file structure and read related files
+- A flag indicating whether **local mode** is active (current branch matches headRefName)
+
+Use local tools (`Read`, `Glob`) or gh CLI to explore file structure and read related files, depending on whether local mode is active.
 
 ## Output Format
 

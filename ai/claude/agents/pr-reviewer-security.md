@@ -34,7 +34,11 @@ Read full file contents for changed files to understand security context, then a
 You will receive:
 - PR metadata (title, description, base/head branch, repository owner/name)
 - Complete PR diff
-- You may use `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefName}` to read full file contents
+- A flag indicating whether **local mode** is active (current branch matches headRefName)
+
+To read full file contents for deeper security context analysis:
+- **If local mode**: Use the `Read` tool to read files directly (e.g., read `src/auth.ts`), and the `Glob` tool to find files
+- **If remote mode**: Use `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefName} --jq '.content' | base64 -d`
 
 ## Output Format
 

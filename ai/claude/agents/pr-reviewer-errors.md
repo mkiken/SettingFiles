@@ -32,7 +32,11 @@ Trace error propagation paths through changed code and analyze for:
 You will receive:
 - PR metadata (title, description, base/head branch, repository owner/name)
 - Complete PR diff
-- You may use `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefName}` to trace error propagation
+- A flag indicating whether **local mode** is active (current branch matches headRefName)
+
+To trace error propagation by reading full file contents:
+- **If local mode**: Use the `Read` tool to read files directly
+- **If remote mode**: Use `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefName} --jq '.content' | base64 -d`
 
 ## Output Format
 

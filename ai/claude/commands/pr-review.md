@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(gh:*)
+allowed-tools: Bash(gh:*), Bash(git:*), Read, Glob
 description: "Comprehensive PR review using gh command for specified PR number"
 argument-hint: [prNumber]
 ---
@@ -9,16 +9,30 @@ argument-hint: [prNumber]
 - Use the gh command to fetch and analyze PR #$ARGUMENTS for comprehensive code review
 - Provide detailed review feedback in the following structured format:
 
-### **Remote Review Workflow**
+### **Local vs Remote File Access**
+
+Before starting the review, determine the file access mode:
+
+1. Run `git branch --show-current` to get the current local branch name
+2. Fetch PR metadata: `gh pr view $ARGUMENTS --json title,body,files,commits,baseRefName,headRefName`
+3. Compare the current branch with `headRefName`
+
+**If they match (local mode)** — use local tools for deeper investigation:
+- Use the `Read` tool to read file contents directly (faster, includes uncommitted local changes)
+- Use the `Glob` tool to explore file structure (e.g., `Glob("src/**/*.ts")`)
+
+**If they don't match (remote mode)** — use gh api:
+- `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefName} --jq '.content' | base64 -d` — Read any file
+- `gh api repos/{owner}/{repo}/git/trees/{headRefName}?recursive=1` — Explore file structure
+
+### **Review Workflow**
 
 Fetch primary review materials:
-- `gh pr view $ARGUMENTS --json title,body,files,commits,baseRefName,headRefName` — PR metadata
+- PR metadata is already fetched in the step above
 - `gh pr diff $ARGUMENTS` — Complete diff (**Note: file path arguments are not supported; always fetch the full diff and filter locally if needed**)
 - `gh pr view $ARGUMENTS --comments` — Existing comments
 
-For deeper investigation (referencing files outside diff, checking surrounding context):
-- `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefName} --jq '.content' | base64 -d` — Read any file
-- `gh api repos/{owner}/{repo}/git/trees/{headRefName}?recursive=1` — Explore file structure
+For deeper investigation (referencing files outside diff, checking surrounding context), use the method determined above.
 
 ### **Review Comment Priority**
 
