@@ -34,7 +34,12 @@ _cl-pr-comment-implement() {
 }
 
 cl-pr-body() {
-    clo --dangerously-skip-permissions "/my:pr-body $*"
+    local pr_number
+    pr_number=$(gh pr view --json number --jq .number) || {
+        echo "現在のブランチに対応するPRが見つかりません。" >&2
+        return 1
+    }
+    clo --dangerously-skip-permissions "/my:pr-body $pr_number $*"
 }
 
 cl-pr-create() {
