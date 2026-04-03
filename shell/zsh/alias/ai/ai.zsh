@@ -12,11 +12,11 @@ _review_window_name() {
 }
 
 review() {
-    local pr_number="$1"
-    if [[ -z "$pr_number" ]]; then
-        echo "Usage: review <PR番号>" >&2
+    local pr_number
+    pr_number=$(gh pr view --json number --jq .number) || {
+        echo "現在のブランチに対応するPRが見つかりません。" >&2
         return 1
-    fi
+    }
 
     local review_name
     review_name=$(_review_window_name)
@@ -28,11 +28,11 @@ review() {
 }
 
 review-subagents() {
-    local pr_number="$1"
-    if [[ -z "$pr_number" ]]; then
-        echo "Usage: review-subagents <PR番号>" >&2
+    local pr_number
+    pr_number=$(gh pr view --json number --jq .number) || {
+        echo "現在のブランチに対応するPRが見つかりません。" >&2
         return 1
-    fi
+    }
 
     local review_name
     review_name=$(_review_window_name)
@@ -44,11 +44,11 @@ review-subagents() {
 }
 
 review-all() {
-    local pr_number="$1"
-    if [[ -z "$pr_number" ]]; then
-        echo "Usage: review-all <PR番号>" >&2
+    local pr_number
+    pr_number=$(gh pr view --json number --jq .number) || {
+        echo "現在のブランチに対応するPRが見つかりません。" >&2
         return 1
-    fi
+    }
 
     local review_name
     review_name=$(_review_window_name)

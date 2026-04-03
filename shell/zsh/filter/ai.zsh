@@ -23,8 +23,8 @@ _fai-pr-review() {
     # checkout
     gh co "$pr_number"
 
-    # 元関数にPR番号と残りの引数を渡す
-    "$func_name" "$pr_number" "$@"
+    # checkout後は元関数が現在ブランチからPR番号を自動取得する
+    "$func_name" "$@"
 }
 
 fcl-pr-review()              { _fai-pr-review cl-pr-review "$@" }
