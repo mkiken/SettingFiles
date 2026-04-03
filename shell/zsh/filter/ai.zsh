@@ -32,3 +32,4 @@ fcl-pr-review-subagents()    { _fai-pr-review cl-pr-review-subagents "$@" }
 fgm-pr-review()              { _fai-pr-review gm-pr-review "$@" }
 fcl-gm-pr-review()           { _fai-pr-review cl-gm-pr-review "$@" }
 fcl-gm-pr-review-subagents() { _fai-pr-review cl-gm-pr-review-subagents "$@" }
+fai-pr-review()              { _fai-pr-review ai-pr-review "$@" }
