@@ -201,6 +201,6 @@
     "showModelInfoInChat": true,
     "showStatusInTitle": true,
     "theme": "Dracula",
-    "useAlternateBuffer": true
+    "useAlternateBuffer": false
   }
 }
