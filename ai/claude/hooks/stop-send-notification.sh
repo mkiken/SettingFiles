@@ -37,7 +37,7 @@ debug_log "Hook input received: ${hook_input}"
 
 # jqが利用可能かチェック
 if ! command -v jq &> /dev/null; then
-    notify "$(build_notification_title "🤖" "Claude終了" "${EMOJI_ID_CLAUDE}")" 'jqが見つかりません' 'Submarine'
+    notify "$(build_notification_title "🤖" "Claude終了" "${EMOJI_ID_CLAUDE}")" 'jqが見つかりません' 'Hero'
     exit 1
 fi
 
@@ -59,14 +59,14 @@ debug_log "Session ID: ${session_id}, Notification group: ${notification_group}"
 # transcript_pathが取得できているかチェック
 if [[ -z "${transcript_path}" || "${transcript_path}" == "null" ]]; then
     debug_log "No transcript path found"
-    notify "$(build_notification_title "🤖" "Claude終了" "${EMOJI_ID_CLAUDE}")" 'transcript pathが見つかりません' 'Submarine'
+    notify "$(build_notification_title "🤖" "Claude終了" "${EMOJI_ID_CLAUDE}")" 'transcript pathが見つかりません' 'Hero'
     exit 0
 fi
 
 # transcriptファイルが存在するかチェック
 if [[ ! -f "${transcript_path}" ]]; then
     debug_log "Transcript file not found: ${transcript_path}"
-    notify "$(build_notification_title "🤖" "Claude終了" "${EMOJI_ID_CLAUDE}")" 'セッションが終了しました' 'Submarine'
+    notify "$(build_notification_title "🤖" "Claude終了" "${EMOJI_ID_CLAUDE}")" 'セッションが終了しました' 'Hero'
     exit 0
 fi
 
@@ -304,7 +304,7 @@ if [[ "${hook_event_name}" == "Notification" ]]; then
         fi
 
         debug_log "Sending approval notification: ${notification_body}"
-        notify "$(build_notification_title "⚠️" "Claude承認待ち" "${EMOJI_ID_CLAUDE}")" "${notification_body}" "Glass" "${notification_group}"
+        notify "$(build_notification_title "⚠️" "Claude承認待ち" "${EMOJI_ID_CLAUDE}")" "${notification_body}" "Hero" "${notification_group}"
     else
         debug_log "Notification type ${notification_type} does not require notification, exiting"
     fi
@@ -315,6 +315,6 @@ fi
 notification_title=$(build_notification_title "✅" "Claude終了" "${EMOJI_ID_CLAUDE}" "${completion_time}")
 
 debug_log "Sending stop notification: title='${notification_title}', message='${summary}'"
-notify "${notification_title}" "${summary}" "Submarine" "${notification_group}"
+notify "${notification_title}" "${summary}" "Hero" "${notification_group}"
 
 debug_log "=== Claude Notification Hook Completed ==="

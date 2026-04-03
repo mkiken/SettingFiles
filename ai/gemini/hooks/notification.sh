@@ -46,7 +46,7 @@ debug_log "Hook input received: ${hook_input}"
 # jqが利用可能かチェック
 if ! command -v jq &> /dev/null; then
     debug_log "Error: jq not found"
-    notify "$(build_notification_title "🤖" "Gemini終了" "${EMOJI_ID_GEMINI}")" 'jqが見つかりません' 'Submarine'
+    notify "$(build_notification_title "🤖" "Gemini終了" "${EMOJI_ID_GEMINI}")" 'jqが見つかりません' 'Purr'
     exit 1
 fi
 
@@ -209,7 +209,7 @@ if [[ "${EVENT_TYPE}" == "notification" ]]; then
 
         debug_log "Sending ToolPermission notification: ${MSG_BODY}"
 
-        notify "$(build_notification_title "⚠️" "Gemini承認待ち" "${EMOJI_ID_GEMINI}")" "${MSG_BODY}" "Glass" "${notification_group}"
+        notify "$(build_notification_title "⚠️" "Gemini承認待ち" "${EMOJI_ID_GEMINI}")" "${MSG_BODY}" "Purr" "${notification_group}"
     else
         debug_log "Ignoring notification type: ${NOTIFICATION_TYPE}"
     fi
@@ -221,6 +221,6 @@ notification_title=$(build_notification_title "✅" "Gemini終了" "${EMOJI_ID_G
 
 debug_log "Sending notification: title='${notification_title}', message='${summary}'"
 
-notify "${notification_title}" "${summary}" "Submarine" "${notification_group}"
+notify "${notification_title}" "${summary}" "Purr" "${notification_group}"
 
 debug_log "=== Gemini Notification Hook Completed ==="

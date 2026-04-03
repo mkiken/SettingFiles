@@ -31,10 +31,6 @@
             "type": "command"
           },
           {
-            "command": "afplay /System/Library/Sounds/Ping.aiff",
-            "type": "command"
-          },
-          {
             "command": "python3 ~/.claude/hooks/claude-hook.py",
             "type": "command"
           }
@@ -69,10 +65,6 @@
         "hooks": [
           {
             "command": "~/.claude/hooks/stop-send-notification.sh",
-            "type": "command"
-          },
-          {
-            "command": "afplay /System/Library/Sounds/Ping.aiff",
             "type": "command"
           },
           {
