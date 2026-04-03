@@ -11,10 +11,10 @@ _review_window_name() {
     echo "${EMOJI_STATUS_REVIEW}${git_name}"
 }
 
-cl-gm-pr-review() {
+review() {
     local pr_number="$1"
     if [[ -z "$pr_number" ]]; then
-        echo "Usage: cl-gm-pr-review <PR番号>" >&2
+        echo "Usage: review <PR番号>" >&2
         return 1
     fi
 
@@ -27,10 +27,10 @@ cl-gm-pr-review() {
     cl-pr-review "${pr_number}"
 }
 
-cl-gm-pr-review-subagents() {
+review-subagents() {
     local pr_number="$1"
     if [[ -z "$pr_number" ]]; then
-        echo "Usage: cl-gm-pr-review-subagents <PR番号>" >&2
+        echo "Usage: review-subagents <PR番号>" >&2
         return 1
     fi
 
@@ -43,10 +43,10 @@ cl-gm-pr-review-subagents() {
     cl-pr-review-subagents "${pr_number}"
 }
 
-ai-pr-review() {
+review-all() {
     local pr_number="$1"
     if [[ -z "$pr_number" ]]; then
-        echo "Usage: ai-pr-review <PR番号>" >&2
+        echo "Usage: review-all <PR番号>" >&2
         return 1
     fi
 
