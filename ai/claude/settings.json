@@ -127,6 +127,7 @@
       "NotebookEdit"
     ]
   },
+  "skipDangerousModePermissionPrompt": true,
   "statusLine": {
     "command": "bash ~/.claude/statusline-command.sh",
     "padding": 0,
