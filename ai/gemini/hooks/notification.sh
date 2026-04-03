@@ -9,6 +9,9 @@ source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_window_inf
 # 通知タイトル生成・時間フォーマットヘルパー
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_notification_title.sh"
 
+# 通知音設定 (変更する場合はここだけ編集)
+NOTIFICATION_SOUND='Purr'
+
 # デバッグフラグ (true/false)
 DEBUG_ENABLED=false
 DEBUG_LOG="/tmp/gemini-hook-debug.log"
@@ -46,7 +49,7 @@ debug_log "Hook input received: ${hook_input}"
 # jqが利用可能かチェック
 if ! command -v jq &> /dev/null; then
     debug_log "Error: jq not found"
-    notify "$(build_notification_title "🤖" "Gemini終了" "${EMOJI_ID_GEMINI}")" 'jqが見つかりません' 'Purr'
+    notify "$(build_notification_title "🤖" "Gemini終了" "${EMOJI_ID_GEMINI}")" 'jqが見つかりません' "${NOTIFICATION_SOUND}"
     exit 1
 fi
 

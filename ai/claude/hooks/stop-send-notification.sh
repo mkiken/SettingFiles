@@ -10,6 +10,9 @@ source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_window_inf
 # 通知タイトル生成・時間フォーマットヘルパー
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_notification_title.sh"
 
+# 通知音設定 (変更する場合はここだけ編集)
+NOTIFICATION_SOUND='Hero'
+
 # デバッグフラグ (true/false)
 DEBUG_ENABLED=false
 
@@ -37,7 +40,7 @@ debug_log "Hook input received: ${hook_input}"
 
 # jqが利用可能かチェック
 if ! command -v jq &> /dev/null; then
-    notify "$(build_notification_title "🤖" "Claude終了" "${EMOJI_ID_CLAUDE}")" 'jqが見つかりません' 'Hero'
+    notify "$(build_notification_title "🤖" "Claude終了" "${EMOJI_ID_CLAUDE}")" 'jqが見つかりません' "${NOTIFICATION_SOUND}"
     exit 1
 fi
 
@@ -59,14 +62,14 @@ debug_log "Session ID: ${session_id}, Notification group: ${notification_group}"
 # transcript_pathが取得できているかチェック
 if [[ -z "${transcript_path}" || "${transcript_path}" == "null" ]]; then
     debug_log "No transcript path found"
-    notify "$(build_notification_title "🤖" "Claude終了" "${EMOJI_ID_CLAUDE}")" 'transcript pathが見つかりません' 'Hero'
+    notify "$(build_notification_title "🤖" "Claude終了" "${EMOJI_ID_CLAUDE}")" 'transcript pathが見つかりません' "${NOTIFICATION_SOUND}"
     exit 0
 fi
 
 # transcriptファイルが存在するかチェック
 if [[ ! -f "${transcript_path}" ]]; then
     debug_log "Transcript file not found: ${transcript_path}"
-    notify "$(build_notification_title "🤖" "Claude終了" "${EMOJI_ID_CLAUDE}")" 'セッションが終了しました' 'Hero'
+    notify "$(build_notification_title "🤖" "Claude終了" "${EMOJI_ID_CLAUDE}")" 'セッションが終了しました' "${NOTIFICATION_SOUND}"
     exit 0
 fi
 
