@@ -18,11 +18,21 @@ cl-web-summary() {
 }
 
 cl-pr-review() {
-    clo --dangerously-skip-permissions "/my:pr-review $*"
+    local pr_number
+    pr_number=$(gh pr view --json number --jq .number) || {
+        echo "現在のブランチに対応するPRが見つかりません。" >&2
+        return 1
+    }
+    clo --dangerously-skip-permissions "/my:pr-review $pr_number $*"
 }
 
 cl-pr-review-subagents() {
-    cl --dangerously-skip-permissions "/pr-review-subagents $*"
+    local pr_number
+    pr_number=$(gh pr view --json number --jq .number) || {
+        echo "現在のブランチに対応するPRが見つかりません。" >&2
+        return 1
+    }
+    cl --dangerously-skip-permissions "/pr-review-subagents $pr_number $*"
 }
 
 _cl-pr-comment-review() {
