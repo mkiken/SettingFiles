@@ -133,6 +133,7 @@ fi
 
 # ディレクトリ移動時に自動で ls を実行する設定
 function _chpwd_ls_abbrev() {
+    [[ -n "$_CDQ_QUIET" ]] && return
     pwd
     ls_abbrev
 }

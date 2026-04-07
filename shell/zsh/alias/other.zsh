@@ -87,7 +87,9 @@ function up() {
 
 # chpwd出力を抑制しながらディレクトリを変更する関数（quiet cd）
 function cdq() {
-    builtin cd -q "$@" 2>/dev/null
+    _CDQ_QUIET=1
+    builtin cd "$@" 2>/dev/null
+    unset _CDQ_QUIET
 }
 
 # Path functions
