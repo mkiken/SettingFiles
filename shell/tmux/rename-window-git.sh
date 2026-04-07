@@ -1,5 +1,5 @@
 #!/bin/bash
-# Rename the current tmux window to "reponame:branch" (fish-style branch abbreviation)
+# Rename the current tmux window to "reponame:branch-tail" (last segment after slash)
 # or just "dirname" if not in a git repository.
 #
 # Usage: rename-window-git.sh <path>
@@ -33,45 +33,12 @@ if [[ -n "${DEFAULT_BRANCH}" ]] && [[ "${BRANCH}" = "${DEFAULT_BRANCH}" ]]; then
   exit 0
 fi
 
-# Fish-style abbreviation: shorten all segments except the last to 1 char
-fish_abbrev() {
-  local branch="$1"
-  local IFS='/'
-  read -ra segments <<< "$branch"
-  local count="${#segments[@]}"
+# Extract the last segment after the final slash
+ABBREV="${BRANCH##*/}"
 
-  if [ "$count" -le 1 ]; then
-    echo "$branch"
-    return
-  fi
-
-  local result=""
-  for ((i = 0; i < count - 1; i++)); do
-    result+="${segments[$i]:0:1}/"
-  done
-  result+="${segments[$((count - 1))]}"
-  echo "$result"
-}
-
-# Truncate the last segment if it exceeds 20 chars
-truncate_last() {
-  local branch="$1"
-  local max=20
-  local last="${branch##*/}"
-  local prefix="${branch%/*}"
-
-  if [ "${#last}" -gt "$max" ]; then
-    last="${last:0:$max}…"
-  fi
-
-  if [ "$prefix" = "$branch" ]; then
-    echo "$last"
-  else
-    echo "${prefix}/${last}"
-  fi
-}
-
-ABBREV=$(fish_abbrev "$BRANCH")
-ABBREV=$(truncate_last "$ABBREV")
+# Truncate if it exceeds 20 chars
+if [[ "${#ABBREV}" -gt 20 ]]; then
+  ABBREV="${ABBREV:0:20}…"
+fi
 
 tmux rename-window "${REPO_NAME}:${ABBREV}"
