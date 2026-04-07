@@ -55,6 +55,14 @@ Also detect:
 
 Follow the project's existing conventions exactly.
 
+#### Scan Existing Tests
+
+Find the test file(s) corresponding to the target using the detected naming convention. If they exist, read them and extract:
+- All test names (e.g., `it('...')`, `test('...')`, `def test_...`, `func Test...`)
+- describe/suite block names for context
+
+Build a map of what is already covered. You'll use this in Phase 4 to annotate each proposed test case.
+
 ### Phase 3: Enumerate Test Cases
 
 Generate a comprehensive list of test cases. For each logical branch or behavior, consider:
@@ -82,8 +90,17 @@ Present ALL enumerated test cases in a structured list using AskUserQuestion. Fo
 
 For each test case, include:
 - **Name**: short descriptive name
+- **Status**: coverage status based on the existing test scan from Phase 2:
+  - `NEW` — no existing test covers this case
+  - `EXISTS` — already covered (show the existing test name and file)
+  - `PARTIAL` — a similar test exists but misses boundary values or key assertions
 - **Reason**: why this test is necessary (or why it might be unnecessary)
 - **Verdict**: NEEDED / OPTIONAL / SKIP
+
+Default verdict rules:
+- `EXISTS` → default SKIP (already done; let user override if they want to replace or strengthen it)
+- `PARTIAL` → default NEEDED
+- `NEW` → NEEDED or OPTIONAL based on importance
 
 Group by category (normal, boundary, error, etc.).
 
