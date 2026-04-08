@@ -21,10 +21,10 @@ review() {
     local review_name
     review_name=$(_review_window_name)
 
-    tmux new-window -n "${review_name}" "zsh -ic 'gm-pr-review ${pr_number}; zsh'"
+    tmux new-window -n "${review_name}" "zsh -ic 'gm-pr-review; zsh'"
 
     tmux rename-window "${review_name}"
-    cl-pr-review "${pr_number}"
+    cl-pr-review
 }
 
 review-subagents() {
@@ -37,10 +37,10 @@ review-subagents() {
     local review_name
     review_name=$(_review_window_name)
 
-    tmux new-window -n "${review_name}" "zsh -ic 'gm-pr-review ${pr_number}; zsh'"
+    tmux new-window -n "${review_name}" "zsh -ic 'gm-pr-review; zsh'"
 
     tmux rename-window "${review_name}"
-    cl-pr-review-subagents "${pr_number}"
+    cl-pr-review-subagents
 }
 
 review-all() {
@@ -53,9 +53,9 @@ review-all() {
     local review_name
     review_name=$(_review_window_name)
 
-    tmux new-window -n "${review_name}" "zsh -ic 'cl-pr-review-subagents ${pr_number}; zsh'"
-    tmux new-window -n "${review_name}" "zsh -ic 'gm-pr-review ${pr_number}; zsh'"
+    tmux new-window -n "${review_name}" "zsh -ic 'cl-pr-review-subagents; zsh'"
+    tmux new-window -n "${review_name}" "zsh -ic 'gm-pr-review; zsh'"
 
     tmux rename-window "${review_name}"
-    cl-pr-review "${pr_number}"
+    cl-pr-review
 }
