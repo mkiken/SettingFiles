@@ -73,8 +73,11 @@ claude mcp add context7 -s user -- npx -y @upstash/context7-mcp
 claude mcp add serena --scope "user" -- uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context ide-assistant
 claude mcp add gitmcp -s user -- npx mcp-remote https://gitmcp.io/docs
 
-claude claude plugin marketplace add https://github.com/classmethod/tsumiki.git
+claude plugin marketplace add https://github.com/classmethod/tsumiki.git
 claude plugin install tsumiki@tsumiki
+
+claude plugin marketplace add sawyerhood/dev-browser
+claude plugin install dev-browser@sawyerhood/dev-browser
 
 cd ~/
 npx cc-sdd@latest --claude-agent --lang ja

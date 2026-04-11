@@ -8,6 +8,8 @@ _review_window_name() {
     "${set_dir}/shell/tmux/rename-window-git.sh"
     local git_name
     git_name=$(tmux display-message -p '#W')
+    # 絵文字プレフィックスを除去してから 🔍 を付与（アイコンスタック防止）
+    git_name=$(python3 "${set_dir}/shell/tmux/tmux_emoji.py" "${git_name}")
     echo "${EMOJI_STATUS_REVIEW}${git_name}"
 }
 
