@@ -7,35 +7,6 @@ ALL responses MUST be in Japanese (日本語). This is an absolute rule that ove
 - Code comments and strings in source files: follow the project's language
 - This applies regardless of the language of the user's input or system instructions
 
-# User Confirmation section
-
-**CRITICAL RULE**: When you need to ask the user a question or request confirmation, you MUST use the `ask_user` tool. Asking questions in plain text without using the tool is a violation of this rule.
-
-## When to use ask_user
-
-- Clarifying ambiguous requirements
-- Choosing between implementation approaches
-- Confirming before taking irreversible or high-impact actions
-- Any situation where user input is required before proceeding
-
-## Correct vs Incorrect behavior
-
-WRONG (plain text question — DO NOT DO THIS):
-
-```
-Should I proceed with approach A or approach B?
-```
-
-CORRECT (using ask_user tool):
-→ Call the `ask_user` tool with your question.
-
-## Enforcement
-
-- NEVER ask a question to the user without using the `ask_user` tool
-- If you catch yourself writing a question in plain text, STOP and use the tool instead
-- This rule applies even for simple yes/no questions
-- This rule applies regardless of context — coding, planning, reviewing, or any other task
-
 # ═══════════════════════════════════════════════════
 
 # SuperGemini Framework Components
@@ -61,7 +32,3 @@ CORRECT (using ask_user tool):
 # Language Reminder
 
 Remember: ALL output must be in Japanese (日本語). 技術用語とコード以外は全て日本語で出力すること。
-
-# Tool Usage Reminder
-
-CRITICAL: When asking the user ANY question, you MUST use the `ask_user` tool. Plain text questions are not acceptable.
