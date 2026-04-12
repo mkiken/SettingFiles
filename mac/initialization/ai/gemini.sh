@@ -51,6 +51,16 @@ for item in commands hooks policies; do
   done
 done
 
+# skills はディレクトリ単位でシンボリックリンク（skills/<name>/SKILL.md 構造のため）
+skills_dest=~/.gemini/skills
+mkdir -p "$skills_dest"
+for skill_dir in "${Repo}ai/gemini/skills"/*/; do
+  if [[ -d "$skill_dir" ]]; then
+    skill_name=$(basename "$skill_dir")
+    make_symlink "$skill_dir" "${skills_dest}/${skill_name}"
+  fi
+done
+
 chmod +x ~/.gemini/hooks/notification.sh
 
 echo "Installing Gemini tools..."
