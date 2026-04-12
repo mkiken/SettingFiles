@@ -406,6 +406,19 @@ function smart_merge_json() {
         fi
     fi
 
+    # Semantic JSON comparison: skip if only key order/whitespace differs
+    local sorted_src=$(mktemp).json
+    local sorted_dst=$(mktemp).json
+    jq -S . "$src" > "$sorted_src"
+    jq -S . "$dst" > "$sorted_dst"
+
+    if diff -q "$sorted_src" "$sorted_dst" > /dev/null 2>&1; then
+        echo "✓ JSON is semantically identical, skipping: $dst"
+        /bin/rm -f "$sorted_src" "$sorted_dst"
+        return 0
+    fi
+    /bin/rm -f "$sorted_src" "$sorted_dst"
+
     # Show differences
     echo ""
     echo "=== Differences found ==="
