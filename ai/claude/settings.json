@@ -1,5 +1,6 @@
 {
   "enabledPlugins": {
+    "dev-browser@dev-browser-marketplace": true,
     "document-skills@anthropic-agent-skills": true,
     "example-skills@anthropic-agent-skills": true,
     "tsumiki@tsumiki": true
@@ -13,6 +14,12 @@
       "source": {
         "repo": "anthropics/skills",
         "source": "github"
+      }
+    },
+    "dev-browser-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "sawyerhood/dev-browser"
       }
     },
     "tsumiki": {

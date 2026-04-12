@@ -128,40 +128,9 @@ When the user provides incremental requirements or interrupts during planning, p
 ## User Confirmation section
 
 When you need to ask the user a question or request confirmation, always use the AskUserQuestion tool. Do not ask questions in plain text only. This applies to:
+
 - Clarifying ambiguous requirements
 - Choosing between implementation approaches
 - Confirming before taking irreversible or high-impact actions
 
 Do NOT use AskUserQuestion for plan mode acceptance. In plan mode, use ExitPlanMode to present the plan and rely on its native accept/reject mechanism.
-
-# ═══════════════════════════════════════════════════
-
-# SuperClaude Framework Components
-
-# ═══════════════════════════════════════════════════
-
-# Core Framework
-
-@BUSINESS_PANEL_EXAMPLES.md
-@BUSINESS_SYMBOLS.md
-@FLAGS.md
-@PRINCIPLES.md
-@RULES.md
-
-# Behavioral Modes
-
-@MODE_Brainstorming.md
-@MODE_Business_Panel.md
-@MODE_Introspection.md
-@MODE_Orchestration.md
-@MODE_Task_Management.md
-@MODE_Token_Efficiency.md
-
-# MCP Documentation
-
-@MCP_Context7.md
-@MCP_Magic.md
-@MCP_Morphllm.md
-@MCP_Playwright.md
-@MCP_Sequential.md
-@MCP_Serena.md
