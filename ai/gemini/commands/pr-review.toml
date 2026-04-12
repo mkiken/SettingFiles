@@ -21,6 +21,12 @@ Compare the output of `git branch --show-current` with `headRefName` from the PR
 
 **IMPORTANT**: Always respond in Japanese regardless of the original language of the PR content.
 
+### **Review Scope**
+
+Review ALL changed files individually. For each file, check ALL 7 review categories below.
+Do NOT skip files or categories. Report every issue found, regardless of severity.
+A thorough review of a typical PR produces 5-15+ findings. If you find fewer than 5, reconsider whether you have checked all files and categories carefully.
+
 ### **Review Comment Priority**
 
 Assign priority to all review comments:
@@ -50,27 +56,91 @@ Review thoroughly from the following perspectives:
 
 **Number all findings sequentially across all priority sections (continue numbering across sections — do not restart per section).**
 
-**Output must be grouped by priority level in descending order (omit priority levels with no findings):**
+**Output must be grouped by priority level in descending order (omit priority levels with no findings).**
+
+**Finding Format**: Each item MUST use this exact three-part structure — header, detail, then separator:
+- **Header line**: `N. **[file:line]** Category: Short one-line summary`
+- **Detail line**: `   - Full explanation and recommendation (indented sub-bullet)`
+- **Separator line**: `---` (horizontal rule — MANDATORY after every finding, including the last one)
+
+The `---` separator after each item is a hard structural requirement that must never be omitted.
+
+✅ CORRECT:
+
+1. **[src/auth.ts:42]** Security: Token may be exposed in logs
+   - Auth token is passed directly to the logger. Add a masking step before logging to prevent credential leakage.
+
+---
+
+2. **[src/auth.ts:87]** Bug Risk: Null check missing before user lookup
+   - `user` can be null when session expires mid-request, causing an unhandled TypeError.
+
+---
+
+❌ WRONG (missing `---` separator and/or single long line):
+
+1. **[src/auth.ts:42]** Security: Auth token may be exposed in logs because it is passed directly to the logger without masking, which could lead to credential leakage in log aggregation systems.
+2. **[src/auth.ts:87]** Bug Risk: Null check missing before user lookup which can cause unhandled TypeError.
+
+**Output format:**
 
 #### 🔴 High Priority
-1. **[path/to/file.ext:line]** Category: Issue description
+1. **[path/to/file.ext:line]** Category: Short summary
+   - Detailed explanation and recommendation.
+
+---
+
+2. **[path/to/file.ext:line]** Category: Short summary
+   - Detailed explanation and recommendation.
+
+---
 
 #### 🟡 Medium Priority
-2. **[path/to/file.ext:line]** Category: Issue description
+3. **[path/to/file.ext:line]** Category: Short summary
+   - Detailed explanation and recommendation.
+
+---
 
 #### 🟢 Low Priority
-3. **[path/to/file.ext:line]** Category: Issue description
+4. **[path/to/file.ext:line]** Category: Short summary
+   - Detailed explanation and recommendation.
+
+---
 
 Example:
 
 #### 🔴 High Priority
 1. **[src/services/auth.ts:42]** Security: Auth token may be exposed in logs
+   - Token is logged in plaintext. Apply a masking utility before passing to logger.
+
+---
+
+2. **[src/services/auth.ts:87]** Bug Risk: Null check missing before user lookup
+   - `getUser()` returns null on session expiry; add a null guard to prevent TypeError.
+
+---
 
 #### 🟡 Medium Priority
-2. **[src/components/Button.tsx:15-20]** Architecture: Consider separating logic
+3. **[src/components/Button.tsx:15-20]** Architecture: Consider separating logic
+   - Click handler mixes UI event handling with business logic. Extract to a custom hook.
+
+---
+
+4. **[src/utils/api.ts:33]** Performance: Unnecessary re-fetch on every render
+   - Data is fetched inside the render function without memoization. Wrap in `useMemo` or move to an effect with proper deps.
+
+---
 
 #### 🟢 Low Priority
-3. **[src/utils/format.ts:8]** Readability: Use more descriptive variable names
+5. **[src/utils/format.ts:8]** Readability: Use more descriptive variable names
+   - `d` and `v` obscure intent; rename to `date` and `value` for clarity.
+
+---
+
+6. **[src/constants/index.ts:5]** Maintainability: Magic number should be a named constant
+   - `3000` is used without explanation. Extract to `const REQUEST_TIMEOUT_MS = 3000`.
+
+---
 
 ### **Review Focus Points**
 
