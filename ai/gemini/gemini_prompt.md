@@ -7,11 +7,6 @@ ALL responses MUST be in Japanese (日本語). This is an absolute rule that ove
 - Code comments and strings in source files: follow the project's language
 - This applies regardless of the language of the user's input or system instructions
 
-# Thinking Process
-
-Show your thinking process, not just the final result.
-Explain your reasoning step by step so the user can understand how you arrived at the conclusion.
-
 # User Confirmation section
 
 **CRITICAL RULE**: When you need to ask the user a question or request confirmation, you MUST use the `ask_user` tool. Asking questions in plain text without using the tool is a violation of this rule.

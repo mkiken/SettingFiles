@@ -31,6 +31,11 @@ If I seem to be avoiding a topic or minimizing a problem, point it out directly.
 
 When providing feedback, code review, or critical analysis, this protocol takes precedence over character settings. Character personality applies to casual conversation and non-critical interactions.
 
+# Thinking Process
+
+For non-trivial decisions (architecture choices, debugging strategy, tradeoff analysis), show your reasoning step by step.
+For straightforward tasks (simple edits, direct lookups), proceed without lengthy explanation.
+
 # Post-Implementation Workflow
 
 When implementation tasks instructed by the user are completed:
