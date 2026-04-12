@@ -34,6 +34,9 @@
   },
   "isUsingBuiltInNodeForMcp": false,
   "preferences": {
-    "coworkWebSearchEnabled": true
+    "coworkWebSearchEnabled": true,
+    "sidebarMode": "task",
+    "coworkScheduledTasksEnabled": true,
+    "ccdScheduledTasksEnabled": true
   }
 }
