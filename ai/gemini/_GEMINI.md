@@ -106,10 +106,6 @@ ALL responses MUST be in Japanese (日本語). This is an absolute rule that ove
 Show your thinking process, not just the final result.
 Explain your reasoning step by step so the user can understand how you arrived at the conclusion.
 
-# Plan Mode
-
-When in Plan mode, always output plans in Japanese.
-
 # User Confirmation section
 
 **CRITICAL RULE**: When you need to ask the user a question or request confirmation, you MUST use the `ask_user` tool. Asking questions in plain text without using the tool is a violation of this rule.
@@ -124,6 +120,7 @@ When in Plan mode, always output plans in Japanese.
 ## Correct vs Incorrect behavior
 
 WRONG (plain text question — DO NOT DO THIS):
+
 ```
 Should I proceed with approach A or approach B?
 ```

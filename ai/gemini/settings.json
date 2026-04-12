@@ -122,8 +122,8 @@
     "morphllm-fast-apply": {
       "args": [
         "-y",
-        "/home/",
-        "@morph-llm/morph-fast-apply"
+        "@morph-llm/morph-fast-apply",
+        "/home/"
       ],
       "command": "npx",
       "env": {
