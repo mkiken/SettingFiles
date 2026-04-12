@@ -78,7 +78,7 @@ claude plugin install tsumiki@tsumiki
 
 claude plugin marketplace add sawyerhood/dev-browser
 # claude pluginコマンドだとエラーになるため、直接clコマンドでインストール
-cl "/plugin install dev-browser@sawyerhood/dev-browser"
+claude "/plugin install dev-browser@sawyerhood/dev-browser"
 
 cd ~/
 npx cc-sdd@latest --claude-agent --lang ja
