@@ -110,10 +110,8 @@ Example: `perf(claude): ⚡ pr-review-subagentsスキルで止まりにくくす
 - **scope is required** — empty scope will be rejected
 - **subject**: 1–50 characters, must NOT start with an uppercase letter
 - **emoji**: czg auto-prepends it; when committing manually (not via czg), include the appropriate emoji at the start of the subject
-- **Do NOT use `--no-verify`** — the hook enforces these rules and must not be bypassed
 
 ## Important Notes
 
-- **Symlinks are critical** - Don't copy files manually; the repository works via symbolic links
 - **Git submodules** - Zsh plugins managed as submodules; always update recursively
 - **AI prompts include character settings** - 博麗霊夢 (Hakurei Reimu) for Claude, ニャル子 for Gemini

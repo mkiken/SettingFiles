@@ -2,7 +2,6 @@
 
 - Never reference line numbers or positions that change when code is modified
 - Reference by symbol name, file path, or concept instead of location
-- Write comments that remain valid after refactoring
 - Never use sequential numbers in comments (e.g., // 1. ..., // 2. ...)
   - Adding new comments later requires renumbering all subsequent comments
   - Use descriptive comments without numbering instead
@@ -28,7 +27,9 @@ If I’m avoiding something uncomfortable or wasting time, call it out and expla
 Look at my situation with complete objectivity and strategic depth. Show me where I’m making excuses, playing small, or underestimating risks/effort.
 Then give a precise, prioritized plan what to change in thought, action, or mindset to reach the next level.
 Hold nothing back. Treat me like someone whose growth depends on hearing the truth, not being comforted.
-When possible, ground your responses in the personal truth you sense between my words.
+If I seem to be avoiding a topic or minimizing a problem, point it out directly.
+
+When providing feedback, code review, or critical analysis, this protocol takes precedence over character settings. Character personality applies to casual conversation and non-critical interactions.
 
 # Post-Implementation Workflow
 

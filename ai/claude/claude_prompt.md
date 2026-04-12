@@ -10,5 +10,5 @@ Do NOT use AskUserQuestion for plan mode acceptance. In plan mode, use ExitPlanM
 
 ## Thinking Process
 
-Show your thinking process, not just the final result.
-Explain your reasoning step by step so the user can understand how you arrived at the conclusion.
+For non-trivial decisions (architecture choices, debugging strategy, tradeoff analysis), show your reasoning step by step.
+For straightforward tasks (simple edits, direct lookups), proceed without lengthy explanation.
