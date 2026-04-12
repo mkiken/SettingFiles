@@ -30,7 +30,8 @@ pipx upgrade-all -v
 
 # AI tools更新
 echo "start AI tools update."
-source "$(dirname "$0")/updates/ai_tools.sh"
+source "$(dirname "$0")/updates/claude.sh"
+source "$(dirname "$0")/updates/gemini.sh"
 echo "end AI tools update."
 
 # Lazy + tree-sitterのアップデート
