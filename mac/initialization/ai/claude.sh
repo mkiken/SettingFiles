@@ -5,13 +5,6 @@ source "$(dirname "$0")/../../scripts/common.sh"
 echo "Setting up Claude..."
 
 # Claude setup
-# 共通プロンプトとClaude専用プロンプトを結合してCLAUDE.mdを生成
-cat "${Repo}ai/common/prompt_base.md" \
-    <(echo) <(echo) \
-    "${Repo}ai/common/characters/reimu.md" \
-    <(echo) <(echo) \
-    "${Repo}ai/claude/claude_prompt.md" \
-    > "${Repo}ai/claude/_CLAUDE.md"
 echo "UPDATE ${Repo}ai/claude/_CLAUDE.md!"
 
 make_symlink "${Repo}ai/claude/_CLAUDE.md" ~/.claude/CLAUDE.md

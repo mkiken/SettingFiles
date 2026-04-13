@@ -66,11 +66,11 @@ Key symlinks:
 Claude-specific files (commands, hooks) are individually symlinked into `~/.claude/`. Commands go to `~/.claude/commands/my/`.
 
 ### AI Configuration Generation
-AI prompts are assembled by concatenating multiple source files:
-- **Claude**: `ai/common/prompt_base.md` + `ai/common/characters/reimu.md` + `ai/claude/claude_prompt.md` → `ai/claude/_CLAUDE.md`
-- **Gemini**: `ai/common/prompt_base.md` + `ai/common/characters/nyaruko.md` + `ai/gemini/gemini_prompt.md` → `ai/gemini/_GEMINI.md`
+Both `_CLAUDE.md` and `_GEMINI.md` are static files using `@file` import syntax to compose prompts from shared source files at runtime:
+- **Claude** (`ai/claude/_CLAUDE.md`): `@../common/prompt_base.md` + `@../common/characters/reimu.md`
+- **Gemini** (`ai/gemini/_GEMINI.md`): `@../common/prompt_base.md` + `@../common/characters/nyaruko.md` + `@gemini_prompt.md`
 
-The generated `_CLAUDE.md` / `_GEMINI.md` files are gitignored outputs — **edit the source files, not the generated files**. Gemini additionally merges `ai/common/mcp.json` (and `mcp.local.json` if present) into its `settings.json`.
+Edit the source files directly (`ai/common/prompt_base.md`, `ai/common/characters/*.md`) — no build step needed. Gemini additionally merges `ai/common/mcp.json` (and `mcp.local.json` if present) into its `settings.json`.
 
 ### Claude Hooks
 `ai/claude/hooks/` contains notification hooks symlinked into `~/.claude/hooks/`:
