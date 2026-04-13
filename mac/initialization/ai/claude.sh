@@ -74,7 +74,7 @@ claude plugin marketplace add sawyerhood/dev-browser
 claude -p "/plugin install dev-browser@sawyerhood/dev-browser"
 
 cd ~/
-npx cc-sdd@latest --claude-agent --lang ja
+npx cc-sdd@latest --claude-skills --lang ja
 cd $OLDPWD
 
 echo 'Claude setup and tools installation completed.'
