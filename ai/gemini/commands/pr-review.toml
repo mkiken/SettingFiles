@@ -3,9 +3,10 @@ prompt = """Perform a comprehensive PR review for {{args}}.
 
 CRITICAL: Run these commands FIRST:
 !{gh pr view {{args}} --json number,url,title,body,author,headRefName,baseRefName,isDraft,mergeable,state,commits,additions,deletions,changedFiles,files}
-!{gh pr diff {{args}}}
 !{git branch --show-current}
-NOTE: gh pr diff does not support file path arguments. Always fetch the full diff first, then filter locally if needed.
+
+To see the code changes, use your `run_shell_command` tool to execute `gh pr diff {{args}}`. 
+If the diff is too large, consider redirecting it to a file (e.g. `gh pr diff {{args}} > diff.txt`) and reading it incrementally.
 
 ### **Local vs Remote File Access**
 

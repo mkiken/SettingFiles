@@ -3,11 +3,12 @@ prompt = """Generate a comprehensive PR body for {{args}}.
 
 CRITICAL: Run these commands FIRST:
 !{gh pr view {{args}} --json number,url,title,body,author,headRefName,baseRefName}
-!{gh pr diff {{args}}}
 !{cat .github/PULL_REQUEST_TEMPLATE.md 2>/dev/null || echo "NO_TEMPLATE"}
 
+To see the code changes, use your `run_shell_command` tool to execute `gh pr diff {{args}}`. 
+If the diff is too large, consider redirecting it to a file (e.g. `gh pr diff {{args}} > diff.txt`) and reading it incrementally.
+
 If `.github/PULL_REQUEST_TEMPLATE.md` exists (output is not "NO_TEMPLATE"), use its structure as the base for the PR body and fill in each section with the generated content. If it does not exist, use the default section format defined below.
-NOTE: gh pr diff does not support file path arguments. Always fetch the full diff first, then filter locally if needed.
 
 
 ## Instructions
