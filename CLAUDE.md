@@ -19,7 +19,7 @@ cd windows && ./initialize.ps1
 
 ### Update Environment
 ```bash
-# Mac (submodules, brew, npm, pipx, AI tools, nvim plugins, znap, gh extensions, zcompile)
+# Mac: submodules → brew → npm → pipx → AI tools → nvim plugins → znap → gh extensions → zcompile
 cd mac && ./update
 
 # Windows (PowerShell)
@@ -31,9 +31,11 @@ cd windows && ./update.ps1
 cd mac && brew bundle
 ```
 
-### Git Submodules
+### Regenerate AI Prompts
 ```bash
-git submodule update --init --recursive
+# After editing source files in ai/common/ or ai/claude/ or ai/gemini/
+mac/initialization/ai/claude.sh
+mac/initialization/ai/gemini.sh
 ```
 
 ## Architecture
@@ -44,7 +46,7 @@ git submodule update --init --recursive
 - `/windows/` - Windows configurations and scripts
 - `/vimfiles/nvim/` - Neovim configuration (lazy.nvim)
 - `/shell/zsh/` - Zsh configuration with znap plugin manager
-- `/submodules/` - Git submodule-managed Zsh plugins
+- `/submodules/` - znap plugin manager (git submodule); other Zsh plugins are downloaded by znap at runtime
 - `/gitfiles/` - Git configurations (gitui, lazygit, gh-dash, workmux)
 - `/terminal/` - Terminal emulator configs (ghostty, etc.)
 
@@ -61,7 +63,7 @@ Key symlinks:
 - `vimfiles/nvim` → `~/.config/nvim`
 - `gitfiles/.gitconfig` → `~/.gitconfig`
 
-Claude-specific files (agents, commands, hooks, skills) are individually symlinked into `~/.claude/`. Commands go to `~/.claude/commands/my/`, skills are symlinked as directories.
+Claude-specific files (commands, hooks) are individually symlinked into `~/.claude/`. Commands go to `~/.claude/commands/my/`.
 
 ### AI Configuration Generation
 AI prompts are assembled by concatenating multiple source files:
@@ -70,11 +72,14 @@ AI prompts are assembled by concatenating multiple source files:
 
 The generated `_CLAUDE.md` / `_GEMINI.md` files are gitignored outputs — **edit the source files, not the generated files**. Gemini additionally merges `ai/common/mcp.json` (and `mcp.local.json` if present) into its `settings.json`.
 
-To regenerate after editing source files: re-run `mac/initialization/ai/claude.sh` or `mac/initialization/ai/gemini.sh`.
+### Claude Hooks
+`ai/claude/hooks/` contains notification hooks symlinked into `~/.claude/hooks/`:
+- `claude-hook.py` - Updates tmux window name to reflect Claude Code session status
+- `stop-send-notification.sh` - Sends rich session notifications on completion (transcript analysis, duration, task type inference)
 
 ### Plugin Management
 
-**Zsh (znap)**: Config in `shell/zsh/plugin.zsh`. Plugins updated via `znap pull` in `mac/update`.
+**Zsh (znap)**: Config in `shell/zsh/plugin.zsh`. Only znap itself is a git submodule (`submodules/zsh-snap`); all other Zsh plugins (fzf-tab, zsh-autosuggestions, F-Sy-H, etc.) are managed by znap at runtime. Plugins updated via `znap pull` in `mac/update`.
 
 **Neovim (lazy.nvim)**: Plugins in `vimfiles/nvim/lua/plugins/`. VSCode Neovim uses separate `plugins_vscode/`. Updated via `nvim --headless "+Lazy! sync | TSUpdate" +qa` in `mac/update`.
 
@@ -110,8 +115,3 @@ Example: `perf(claude): ⚡ pr-review-subagentsスキルで止まりにくくす
 - **scope is required** — empty scope will be rejected
 - **subject**: 1–50 characters, must NOT start with an uppercase letter
 - **emoji**: czg auto-prepends it; when committing manually (not via czg), include the appropriate emoji at the start of the subject
-
-## Important Notes
-
-- **Git submodules** - Zsh plugins managed as submodules; always update recursively
-- **AI prompts include character settings** - 博麗霊夢 (Hakurei Reimu) for Claude, ニャル子 for Gemini
