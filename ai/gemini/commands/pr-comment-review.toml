@@ -3,7 +3,6 @@ prompt = """Analyze PR review comments for {{args}}.
 
 **Arguments**: The first token in {{args}} is the PR comment URL ($COMMENT_URL), and the rest are user instructions ($PROMPT).
 
-**IMPORTANT**: Always respond in Japanese regardless of the original language of the PR content.
 
 ## Step 1: Parse the Comment URL
 

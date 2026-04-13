@@ -19,9 +19,6 @@
       "respectGitIgnore": true
     }
   },
-  "experimental": {
-    "plan": true
-  },
   "general": {
     "checkpointing": {
       "enabled": true

@@ -19,7 +19,6 @@ Compare the output of `git branch --show-current` with `headRefName` from the PR
 - `!{gh api repos/{owner}/{repo}/contents/{path}?ref={headRefName} --jq '.content' | base64 -d}` — Read any file
 - `!{gh api repos/{owner}/{repo}/git/trees/{headRefName}?recursive=1}` — Explore file structure
 
-**IMPORTANT**: Always respond in Japanese regardless of the original language of the PR content.
 
 ### **Review Scope**
 

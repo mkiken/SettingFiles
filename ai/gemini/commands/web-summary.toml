@@ -3,7 +3,6 @@ prompt = """Fetch and analyze the web page at {{args}}.
 
 Requirements:
 - Use WebFetch to fetch and analyze the web page content
-- **IMPORTANT**: Always respond in Japanese regardless of the original language of the web page
 - Generate comprehensive summary suitable for understanding the content
 - Extract key information and main points
 - Format in markdown with bullet points

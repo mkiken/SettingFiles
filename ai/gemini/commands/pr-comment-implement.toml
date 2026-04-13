@@ -3,7 +3,6 @@ prompt = """Implement code changes based on PR review comments for {{args}}.
 
 **Arguments**: The first token in {{args}} is the PR comment URL ($PR_URL), and the rest are implementation instructions ($PROMPT).
 
-**IMPORTANT**: Always respond in Japanese regardless of the original language of the PR content.
 
 ## Pre-fetch Data
 

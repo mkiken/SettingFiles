@@ -1,7 +1,6 @@
 description = "Post specific findings from pr-review results as GitHub PR inline comments"
 prompt = """Post specific numbered findings from the previous pr-review result as a single GitHub Pull Request Review for {{args}}.
 
-**IMPORTANT**: Always respond in Japanese regardless of input language.
 
 ## Step 1: Summarize review items
 
