@@ -21,7 +21,6 @@ echo "MCP configuration merged successfully!"
 
 make_symlink "${Repo}ai/gemini/_GEMINI.md" ~/.gemini/GEMINI.md
 make_symlink "${Repo}ai/common" ~/.gemini/common
-make_symlink "${Repo}ai/gemini/gemini_prompt.md" ~/.gemini/gemini_prompt.md
 
 # ローカルMCP設定があれば一時ファイルにマージしてコピー
 LOCAL_MCP="${Repo}ai/common/mcp.local.json"
