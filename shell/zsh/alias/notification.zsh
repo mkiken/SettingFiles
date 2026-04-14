@@ -11,13 +11,32 @@ function notify() {
   fi
 
   # Bundle ID決定ロジック
-  # 優先度: $__CFBundleIdentifier > $TERM_PROGRAM > $TERMINAL_EMULATOR (JetBrains) > デフォルト(Ghostty)
+  # tmux内ではシェルの環境変数がtmuxサーバー起動元の値を保持しており不正確
+  # .tmux.conf の update-environment によりアタッチ時に更新されるセッション環境を優先して使う
   # osascript による frontmost アプリ検出は非決定的なため使わない
-  local bundle_id="${__CFBundleIdentifier}"
+  local bundle_id=""
+  local term_program=""
+  local terminal_emulator=""
 
-  # TERM_PROGRAM によるマッピング（ほとんどのターミナルがセットする変数）
+  if [[ -n "$TMUX" ]]; then
+    local val
+    val=$(tmux show-environment __CFBundleIdentifier 2>/dev/null)
+    [[ "$val" == __CFBundleIdentifier=* ]] && bundle_id="${val#*=}"
+
+    val=$(tmux show-environment TERM_PROGRAM 2>/dev/null)
+    [[ "$val" == TERM_PROGRAM=* ]] && term_program="${val#*=}"
+
+    val=$(tmux show-environment TERMINAL_EMULATOR 2>/dev/null)
+    [[ "$val" == TERMINAL_EMULATOR=* ]] && terminal_emulator="${val#*=}"
+  else
+    bundle_id="${__CFBundleIdentifier}"
+    term_program="${TERM_PROGRAM}"
+    terminal_emulator="${TERMINAL_EMULATOR}"
+  fi
+
+  # TERM_PROGRAMによるマッピング（ほとんどのターミナルがセットする変数）
   if [[ -z "$bundle_id" ]]; then
-    case "${TERM_PROGRAM}" in
+    case "$term_program" in
       ghostty)        bundle_id="com.mitchellh.ghostty" ;;
       vscode)         bundle_id="com.microsoft.VSCode" ;;
       iTerm.app)      bundle_id="com.googlecode.iterm2" ;;
@@ -26,7 +45,7 @@ function notify() {
   fi
 
   # JetBrains IDE（TERMINAL_EMULATOR=JetBrains-JediTerm）
-  if [[ -z "$bundle_id" && "${TERMINAL_EMULATOR}" == "JetBrains-JediTerm" ]]; then
+  if [[ -z "$bundle_id" && "$terminal_emulator" == "JetBrains-JediTerm" ]]; then
     bundle_id="com.jetbrains.goland"
   fi
 
