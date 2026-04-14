@@ -11,15 +11,26 @@ function notify() {
   fi
 
   # Bundle ID決定ロジック
-  # 優先度: 環境変数 $__CFBundleIdentifier > アクティブアプリ検出 > デフォルト値(Ghostty)
+  # 優先度: $__CFBundleIdentifier > $TERM_PROGRAM > $TERMINAL_EMULATOR (JetBrains) > デフォルト(Ghostty)
+  # osascript による frontmost アプリ検出は非決定的なため使わない
   local bundle_id="${__CFBundleIdentifier}"
 
-  # 環境変数が未設定の場合、アクティブなアプリのBundle IDを自動検出
+  # TERM_PROGRAM によるマッピング（ほとんどのターミナルがセットする変数）
   if [[ -z "$bundle_id" ]]; then
-    bundle_id=$(osascript -e 'tell application "System Events" to get bundle identifier of first application process whose frontmost is true' 2>/dev/null)
+    case "${TERM_PROGRAM}" in
+      ghostty)        bundle_id="com.mitchellh.ghostty" ;;
+      vscode)         bundle_id="com.microsoft.VSCode" ;;
+      iTerm.app)      bundle_id="com.googlecode.iterm2" ;;
+      Apple_Terminal) bundle_id="com.apple.Terminal" ;;
+    esac
   fi
 
-  # それでも取得できない場合はデフォルト値を使用
+  # JetBrains IDE（TERMINAL_EMULATOR=JetBrains-JediTerm）
+  if [[ -z "$bundle_id" && "${TERMINAL_EMULATOR}" == "JetBrains-JediTerm" ]]; then
+    bundle_id="com.jetbrains.goland"
+  fi
+
+  # 最終デフォルト値
   if [[ -z "$bundle_id" ]]; then
     bundle_id="com.mitchellh.ghostty"
   fi
