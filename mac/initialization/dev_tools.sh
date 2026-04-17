@@ -23,6 +23,7 @@ make_symlink "${Repo}.tmux.conf" ~/.tmux.conf
 make_symlink "${Repo}shell/tmux/new-window.py" ~/.tmux/scripts/new-window.py
 make_symlink "${Repo}shell/tmux/sort-windows.py" ~/.tmux/scripts/sort-windows.py
 make_symlink "${Repo}shell/tmux/rename-window-git.sh" ~/.tmux/scripts/rename-window-git.sh
+make_symlink "${Repo}shell/tmux/fzf-jump-window.sh" ~/.tmux/scripts/fzf-jump-window.sh
 
 # Tmux Plugin Manager
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
