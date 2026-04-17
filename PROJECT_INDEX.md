@@ -259,7 +259,7 @@ nvim/
 
 | File                           | Purpose                          |
 | ------------------------------ | -------------------------------- |
-| `vscode/base_setting.json`     | VSCode settings template         |
+| `vscode/base_setting.jsonc`    | VSCode settings template         |
 | `vscode/base_keybindings.json` | VSCode keybindings template      |
 | `mac/karabiner.json`           | Karabiner-Elements key remapping |
 

@@ -31,7 +31,7 @@ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 smart_merge_json "${Repo}mac/karabiner.json" ~/.config/karabiner/karabiner.json
 
 # VSCode
-smart_merge_json "${Repo}vscode/base_setting.json" ~/Library/Application\ Support/Code/User/settings.json
+smart_copy "${Repo}vscode/base_setting.jsonc" ~/Library/Application\ Support/Code/User/settings.json
 smart_copy "${Repo}vscode/base_keybindings.json" ~/Library/Application\ Support/Code/User/keybindings.json
 
 # commitlint
