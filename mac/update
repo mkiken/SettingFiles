@@ -22,7 +22,9 @@ brew cleanup -s
 brew bundle -v
 echo "end brew update."
 
-
+echo "start tmux plugin update."
+~/.tmux/plugins/tpm/bin/update_plugins all
+echo "end tmux plugin update."
 
 npm update -g
 

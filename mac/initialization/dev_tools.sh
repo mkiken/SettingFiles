@@ -27,6 +27,9 @@ make_symlink "${Repo}shell/tmux/fzf-jump-window.sh" ~/.tmux/scripts/fzf-jump-win
 
 # Tmux Plugin Manager
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+if [ -f ~/.tmux/plugins/tpm/bin/install_plugins ]; then
+    ~/.tmux/plugins/tpm/bin/install_plugins
+fi
 
 # Karabiner
 smart_merge_json "${Repo}mac/karabiner.json" ~/.config/karabiner/karabiner.json
