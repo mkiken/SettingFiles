@@ -115,6 +115,7 @@
     },
     "gitmcp": {
       "args": [
+        "-y",
         "mcp-remote",
         "https://gitmcp.io/docs"
       ],
@@ -123,8 +124,7 @@
     "morphllm-fast-apply": {
       "args": [
         "-y",
-        "@morph-llm/morph-fast-apply",
-        "/home/"
+        "@morphllm/morphmcp"
       ],
       "command": "npx",
       "env": {
@@ -134,6 +134,7 @@
     },
     "playwright": {
       "args": [
+        "-y",
         "@playwright/mcp@latest"
       ],
       "command": "npx"
