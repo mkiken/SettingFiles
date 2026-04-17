@@ -19,19 +19,23 @@
       "respectGitIgnore": true
     }
   },
+  "experimental": {},
   "general": {
     "checkpointing": {
       "enabled": true
     },
     "enableNotifications": true,
     "enablePromptCompletion": true,
-    "previewFeatures": false,
+    "previewFeatures": true,
     "sessionRetention": {
       "enabled": true,
       "maxAge": "30d",
       "warningAcknowledged": true
     },
-    "vimMode": true
+    "vimMode": true,
+    "plan": {
+      "enabled": true
+    }
   },
   "hooks": {
     "AfterAgent": [
@@ -199,5 +203,8 @@
     "showStatusInTitle": true,
     "theme": "Dracula",
     "useAlternateBuffer": false
+  },
+  "agents": {
+    "overrides": {}
   }
 }
