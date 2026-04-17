@@ -155,9 +155,11 @@ Example:
 
 ---
 
-### **Post-Review: Post to GitHub**
+### **Post-Review: Clean Up & Post to GitHub**
 
-After outputting the review results, display the following message to the user:
+After completing the review, you MUST delete any temporary files you created during the process (e.g., `diff.txt`, `pr_diff.txt`) using the Bash tool.
+
+After outputting the review results and cleaning up, display the following message to the user:
 
 > To post any findings as GitHub PR comments, run:
 > `/pr-comment-post <item numbers>` (e.g., `/pr-comment-post 1 3 5`)
