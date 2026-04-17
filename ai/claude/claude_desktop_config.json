@@ -5,7 +5,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "@upstash/context7-mcp"
+        "@upstash/context7-mcp@latest"
       ]
     },
     "sequential-thinking": {
@@ -21,12 +21,15 @@
         "--from",
         "git+https://github.com/oraios/serena",
         "serena",
-        "start-mcp-server"
+        "start-mcp-server",
+        "--context",
+        "ide-assistant"
       ]
     },
     "gitmcp": {
       "command": "npx",
       "args": [
+        "-y",
         "mcp-remote",
         "https://gitmcp.io/docs"
       ]
