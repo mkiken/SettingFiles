@@ -63,7 +63,7 @@ Present all items clearly:
 
 ### 5b. Ask for bulk confirmation
 
-Ask the user:
+MUST use the `ask_user` tool to ask the user:
 
 > 上記 N 件をまとめて Pull Request Review として投稿しますか？
 > 除外したい項目があれば番号を指定してください（例: 2,3 を除外）。
@@ -170,5 +170,5 @@ After posting, report:
 ## Notes
 
 - Use the Pull Request Review API to post all comments in a single review.
-- If `gh pr view` fails (not in a git repo, or no PR for current branch), ask the user to provide the PR number manually.
+- If `gh pr view` fails (not in a git repo, or no PR for current branch), MUST use the `ask_user` tool to ask the user to provide the PR number manually.
 - The `gh api` inline comment endpoint requires a valid `commit_id`. If the commit SHA cannot be retrieved, fall back to `gh pr comment`."""
