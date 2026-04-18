@@ -79,6 +79,8 @@ Create a comprehensive implementation design and present it to the user for appr
 
 After successful push, reply to the original PR comment with the implemented commit information.
 
+**⚠️ 原則**: 返信対象が review comment (`#discussion_r{id}`) またはスレッド可能な review comment の場合、**必ずスレッド返信API** (`gh api repos/{owner}/{repo}/pulls/comments/{comment_id}/replies`) を使用すること。`gh pr comment` は thread API が使えない場合 (純粋な issue comment やスレッド対象が無い review) に限定する。
+
 #### Step 1: Gather commit information
 
 ```bash
@@ -96,39 +98,53 @@ This lists all commits pushed in Phase 5. Build the reply body using this templa
 
 (Repeat per commit if multiple)
 
-#### Step 2: Determine reply method from URL type
+#### Step 2: Determine reply method from URL type (MUST follow)
 
-Parse `$PR_URL` fragment and extract `owner`, `repo`, `pull_number`:
+Parse `$PR_URL` and extract `owner`, `repo`, `pull_number` from the URL path, then classify by fragment (`#` 以降):
 
-- `#discussion_r{comment_id}` → **Thread reply** (Review Comment):
-  ```bash
-  gh api repos/{owner}/{repo}/pulls/comments/{comment_id}/replies \
-    -f body="$(cat <<'EOF'
-  {reply_body}
-  EOF
-  )"
-  ```
-- `#issuecomment-{id}` or `#pullrequestreview-{id}` → **PR comment** (no thread API):
-  Prepend `> 元コメント: {PR_URL}\n\n` to the reply body, then:
-  ```bash
-  gh pr comment {pull_number} --body "$(cat <<'EOF'
-  {reply_body}
-  EOF
-  )"
-  ```
+| Fragment pattern | Action |
+|---|---|
+| `#discussion_r(\d+)` | Extract `comment_id` → **Thread reply (MUST)** |
+| `#pullrequestreview-(\d+)` | Extract `review_id` → **Go to Step 2a** |
+| `#issuecomment-(\d+)` or no fragment | **Standalone comment** |
+
+If the fragment cannot be classified, use `AskUserQuestion` to ask the user which reply method to use before proceeding.
+
+#### Step 2a: Resolve thread for `#pullrequestreview-{review_id}` URL
+
+Fetch the inline comments attached to the review:
+
+```bash
+gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/comments \
+  --jq '[.[] | {id: .id, path: .path, body: (.body | .[0:80])}]'
+```
+
+- **1 comment found**: Use that `comment_id` as the thread reply target → **Thread reply (MUST)**
+- **Multiple comments found**: Show the list with `AskUserQuestion` and ask the user to select the target comment → **Thread reply (MUST)**
+- **0 comments found**: The review has no inline thread; use standalone comment (`gh pr comment`) — this is the only case where standalone posting is appropriate here
 
 #### Step 3: Confirm before posting
 
-Use `AskUserQuestion` tool to show the composed reply body and ask:
-「以下の内容で元PRコメントに返信しますか？」
+Use `AskUserQuestion` to show **both** the reply method and the body:
+
+- **Reply method**: `Thread reply (スレッド返信)` or `Standalone comment (単発コメント)`
+- **Target**: `comment_id: {id}` (thread reply) or `pull #{pull_number}` (standalone)
+- **Body**: the composed reply body
+
+Question: 「以下の方法・内容で元PRコメントに返信しますか？」
+
+If the method shown is `Standalone comment` but the URL fragment was `#discussion_r{id}`, alert the user and confirm the downgrade is intentional before continuing.
 
 Wait for user approval before posting.
 
 #### Step 4: Post the reply
 
 If user approves:
-1. Post using the appropriate API determined in Step 2
-2. If API call fails, fall back to `gh pr comment {pull_number}` and notify the user
+1. Post using the method determined in Step 2 / 2a
+2. If the thread reply API call fails:
+   - **DO NOT silently fall back to `gh pr comment`**. Thread reply failure MUST NOT be converted to a standalone comment automatically.
+   - Report the error (status code, response body) to the user.
+   - Use `AskUserQuestion` to ask whether to (a) retry, (b) post as a standalone comment instead, or (c) abort.
 3. Report: `✅ 元のPRコメントに返信しました`
 
 If user cancels, skip posting and report that the reply was skipped.
