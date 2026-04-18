@@ -72,7 +72,66 @@ Create a comprehensive implementation design and present it to the user for appr
    - Summarizes the changes made
    - Follows conventional commit format if applicable
 2. Stage and commit the changes
-3. Push to the remote branch
+3. Before pushing, record the current remote HEAD: `BEFORE_SHA=$(git rev-parse origin/$(git branch --show-current) 2>/dev/null || git rev-parse HEAD^)`
+4. Push to the remote branch
+
+### Phase 6: Reply to PR Comment
+
+After successful push, reply to the original PR comment with the implemented commit information.
+
+#### Step 1: Gather commit information
+
+```bash
+git log ${BEFORE_SHA}..HEAD --format='%h %H %s'
+```
+
+This lists all commits pushed in Phase 5. Build the reply body using this template:
+
+```
+ご指摘ありがとうございます。対応しました。
+
+- Commit: {short_hash} ({full_hash})
+  - {commit_subject}
+```
+
+(Repeat per commit if multiple)
+
+#### Step 2: Determine reply method from URL type
+
+Parse `$PR_URL` fragment and extract `owner`, `repo`, `pull_number`:
+
+- `#discussion_r{comment_id}` → **Thread reply** (Review Comment):
+  ```bash
+  gh api repos/{owner}/{repo}/pulls/comments/{comment_id}/replies \
+    -f body="$(cat <<'EOF'
+  {reply_body}
+  EOF
+  )"
+  ```
+- `#issuecomment-{id}` or `#pullrequestreview-{id}` → **PR comment** (no thread API):
+  Prepend `> 元コメント: {PR_URL}\n\n` to the reply body, then:
+  ```bash
+  gh pr comment {pull_number} --body "$(cat <<'EOF'
+  {reply_body}
+  EOF
+  )"
+  ```
+
+#### Step 3: Confirm before posting
+
+Use `AskUserQuestion` tool to show the composed reply body and ask:
+「以下の内容で元PRコメントに返信しますか？」
+
+Wait for user approval before posting.
+
+#### Step 4: Post the reply
+
+If user approves:
+1. Post using the appropriate API determined in Step 2
+2. If API call fails, fall back to `gh pr comment {pull_number}` and notify the user
+3. Report: `✅ 元のPRコメントに返信しました`
+
+If user cancels, skip posting and report that the reply was skipped.
 
 ## Output Format
 
@@ -88,6 +147,7 @@ Provide progress updates for each step:
 - "✅ 変更内容を確認しました"
 - "✅ コミットを作成しました: [commit message]"
 - "✅ リモートブランチにプッシュしました"
+- "✅ 元のPRコメントに返信しました (<reply_url_or_comment_link>)"
 
 ### Final Summary
 
@@ -95,6 +155,7 @@ Provide a summary including:
 
 - Modified files and changes made
 - Commit hash and message
+- Reply comment URL (if posted)
 - Next steps (if any)
 
 ## Notes
