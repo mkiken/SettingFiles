@@ -2,23 +2,25 @@ description = "Comprehensive PR review using gh command for specified PR number"
 prompt = """Perform a comprehensive PR review for {{args}}.
 
 CRITICAL: Run these commands FIRST:
-!{gh pr view {{args}} --json number,url,title,body,author,headRefName,baseRefName,isDraft,mergeable,state,commits,additions,deletions,changedFiles,files}
+!{gh pr view {{args}} --json number,url,title,author,headRefName,baseRefName,isDraft,mergeable,state,additions,deletions,changedFiles}
 !{git branch --show-current}
 
-To see the code changes, use your `run_shell_command` tool to execute `gh pr diff {{args}}`. 
+To get the PR body (description), run `gh pr view {{args}} --json body --jq '.body'` via `run_shell_command`.
+To see the code changes, use your `run_shell_command` tool to execute `gh pr diff {{args}}`.
 If the diff is too large, consider redirecting it to a file (e.g. `gh pr diff {{args}} > diff.txt`) and reading it incrementally.
+To list changed files only, run `gh pr diff {{args}} --name-only`.
 
 ### **Local vs Remote File Access**
 
 Compare the output of `git branch --show-current` with `headRefName` from the PR metadata above.
 
 **If they match (local mode)** — use local shell commands for file access:
-- `!{cat path/to/file}` to read file contents
-- `!{find . -type f -name "*.ts"}` or `!{ls -R src/}` to explore file structure
+- `cat path/to/file` to read file contents
+- `find . -type f -name "*.ts"` or `ls -R src/` to explore file structure
 
 **If they don't match (remote mode)** — use gh api:
-- `!{gh api repos/{owner}/{repo}/contents/{path}?ref={headRefName} --jq '.content' | base64 -d}` — Read any file
-- `!{gh api repos/{owner}/{repo}/git/trees/{headRefName}?recursive=1}` — Explore file structure
+- `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefName} --jq '.content' | base64 -d` — Read any file
+- `gh api repos/{owner}/{repo}/git/trees/{headRefName}?recursive=1` — Explore file structure
 
 
 ### **Review Scope**

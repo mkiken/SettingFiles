@@ -13,8 +13,8 @@ Extract the comment type and ID from $COMMENT_URL:
 
 ## Step 2: Fetch Baseline Data
 
-First, run this command to fetch all PR comments as baseline:
-!{gh pr view <PR_NUMBER> --comments}
+After parsing the URL in Step 1, fetch all PR comments as baseline using `run_shell_command`:
+`gh pr view {pull_number} --comments`
 
 ## Step 3: Fetch the Target Comment
 
