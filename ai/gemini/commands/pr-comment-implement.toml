@@ -103,9 +103,9 @@ Parse $PR_URL and extract owner, repo, pull_number from the URL path, then class
 
 | Fragment pattern | Action |
 |---|---|
-| `#discussion_r(\d+)` | Extract comment_id → **Thread reply (MUST)** |
-| `#pullrequestreview-(\d+)` | Extract review_id → **Go to Step 2a** |
-| `#issuecomment-(\d+)` or no fragment | **Standalone comment** |
+| `#discussion_r(\\d+)` | Extract comment_id → **Thread reply (MUST)** |
+| `#pullrequestreview-(\\d+)` | Extract review_id → **Go to Step 2a** |
+| `#issuecomment-(\\d+)` or no fragment | **Standalone comment** |
 
 If the fragment cannot be classified, MUST use the ask_user tool to ask the user which reply method to use before proceeding.
 
