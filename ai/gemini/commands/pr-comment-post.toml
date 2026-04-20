@@ -84,7 +84,7 @@ Example:
 
 ### 5d. Post as Pull Request Review
 
-Build the comments JSON and post using the Review API:
+Build the comments JSON and post using the Review API. Capture stdout and stderr together to inspect the exit code and error message afterwards:
 
 ```bash
 # Build the full JSON body with jq and pipe directly to gh api (no temp file needed).
@@ -92,7 +92,7 @@ Build the comments JSON and post using the Review API:
 # For single-line items: include "line" only.
 # For multi-line ranges (e.g., 15-20): include both "start_line" (start) and "line" (end).
 
-jq -n \
+api_response=$(jq -n \
   --arg body "🤖 **Gemini Code Review**
 
 {summary}" \
@@ -103,8 +103,16 @@ jq -n \
     {"path": "path/to/file2.ext", "line": 20, "start_line": 15, "body": "🟡 **Medium** / **Architecture**: Description"}
   ]' \
   '{body: $body, event: $event, commit_id: $commit_id, comments: $comments}' \
-| gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --input -
+| gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --input - 2>&1)
+api_exit_code=$?
 ```
+
+If the command succeeds (`api_exit_code == 0`), proceed to Step 6.
+
+If the command fails (`api_exit_code != 0`):
+- Check whether `$api_response` contains `"one pending review"` or `"pending review per pull request"`.
+  - Yes → PENDING conflict detected → go to **Step 5f**.
+  - No → Other error → go to **Step 5e** (individual comment fallback).
 
 ### Inline comment body format
 
@@ -126,7 +134,9 @@ Examples:
 🟢 **Low** / **Test Coverage**: GetMissionClearedCounts メソッドに対する単体テストが含まれていないように見受けられます。エッジケースを含めたテストを追加することを推奨します。
 ```
 
-### 5e. Fallback if Review API fails
+### 5e. Fallback if Review API fails (non-PENDING errors only)
+
+> **Note:** If the error contains `"one pending review"` or `"pending review per pull request"`, use **Step 5f** instead. This fallback is for all other API errors.
 
 If the Review API call fails, fall back to posting each comment individually using `gh api`:
 
@@ -158,11 +168,53 @@ For multi-line ranges, also include:
 gh pr comment {pr_number} --body "{comment_body}"
 ```
 
+### 5f. Handle PENDING review conflict
+
+A PENDING review (draft review not yet submitted) already exists for this pull request. The Review API rejected the request because only one PENDING review is allowed per user per PR.
+
+Retrieve the PENDING review ID:
+
+```bash
+viewer=$(gh api user --jq .login)
+pending_id=$(gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews \
+  --jq ".[] | select(.state==\"PENDING\" and .user.login==\"$viewer\") | .id" | head -1)
+```
+
+MUST use the `ask_user` tool to present the following choice:
+
+> GitHub に未 submit のレビュー (PENDING) が残っているため投稿に失敗しました。
+> 対処方法を選んでください:
+>
+> - **submit して続行** — 既存の PENDING レビューを COMMENT として submit した後、今回のコメントを新たな Review として投稿します。
+> - **中断** — 何もしません。GitHub UI の「Files changed」タブで PENDING レビューを Submit または Cancel してから再実行してください。
+
+If the user chooses "submit して続行":
+
+```bash
+# Submit the existing PENDING review
+gh api --method POST repos/{owner}/{repo}/pulls/{pr_number}/reviews/$pending_id/events \
+  -f event=COMMENT
+
+# Retry Step 5d exactly once
+api_response=$(jq -n ... | gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --input - 2>&1)
+api_exit_code=$?
+```
+
+If the retry succeeds, proceed to Step 6.
+If the retry also fails, do NOT retry again — report the error and abort.
+
+If the user chooses "中断":
+Proceed directly to Step 6 and report that posting was aborted due to a PENDING review conflict.
+
 ## Step 6: Summary
 
 After posting, report:
 - How many comments were posted as a review
-- Whether it was posted as a Review API call or fell back to individual comments
+- Which path was taken:
+  - Review API での一括投稿に成功
+  - PENDING レビューを submit してから再投稿に成功
+  - 5e の個別コメント fallback に切り替えて投稿
+  - PENDING 競合のため中断
 - How many items were skipped (if any)
 
 ---
