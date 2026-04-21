@@ -30,6 +30,7 @@ echo "\n[7/7] Setting up AI assistants..."
 source "${SCRIPT_DIR}/ai/claude.sh"
 source "${SCRIPT_DIR}/ai/gemini.sh"
 source "${SCRIPT_DIR}/ai/other.sh"
+source "${SCRIPT_DIR}/ai/codex.sh"
 
 echo "\nmacOS initialization completed!"
 
