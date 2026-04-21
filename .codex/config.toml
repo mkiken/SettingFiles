@@ -1,0 +1,4 @@
+# SettingFiles リポジトリ作業時のみ適用される Codex 設定（Layer 3: プロジェクトスコープ）
+# Codex は project root から cwd までの .codex/config.toml を自動発見する
+# ここには「このリポジトリで作業中だけ有効化したい」設定を入れる
+# グローバル共通設定は ai/codex/config.toml → ~/.codex/config.toml（マージ管理）

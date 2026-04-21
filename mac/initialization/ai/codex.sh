@@ -6,6 +6,9 @@ echo "Setting up Codex..."
 
 npm install -g @openai/codex
 
+# 共通設定テンプレートを ~/.codex/config.toml にマージ
+smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml
+
 # hooks はファイル単位でシンボリックリンク
 mkdir -p ~/.codex/hooks
 for file in "${Repo}ai/codex/hooks"/*; do

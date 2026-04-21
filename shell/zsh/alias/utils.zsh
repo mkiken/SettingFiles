@@ -456,7 +456,7 @@ def deepmerge(a; b; path):
       end
     )
   elif (a | type) == "array" and (b | type) == "array" then
-    if (path | length >= 3) and (path[-1] == "args") and (path[-3] | test("^(mcpServers|_disabledMcpServers)$"))
+    if (path | length >= 3) and (path[-1] == "args") and (path[-3] | test("^(mcpServers|_disabledMcpServers|mcp_servers)$"))
     then b
     else [a[], b[]] | unique
     end
@@ -513,4 +513,71 @@ def deepmerge(a; b; path):
             fi
             ;;
     esac
+}
+
+# TOML ファイルを対話形式でマージする（dasel 経由で TOML↔JSON 変換し、smart_merge_json に委譲）
+# Usage: smart_merge_toml <source> <destination>
+# - source: リポジトリ側のテンプレート TOML
+# - destination: ユーザー環境側の TOML（存在しない場合はコピー）
+# 制約: dasel が必要（brew install dasel）。コメントとキー順序はラウンドトリップで失われる。
+function smart_merge_toml() {
+    local src="$1" dst="$2"
+
+    if [[ -z "$src" || -z "$dst" ]]; then
+        echo "Usage: smart_merge_toml <source> <destination>"
+        return 1
+    fi
+
+    if ! command -v dasel >/dev/null 2>&1; then
+        echo "✗ dasel not found. Install with: brew install dasel" >&2
+        return 1
+    fi
+
+    if [[ ! -f "$src" ]]; then
+        echo "Error: Source file not found: $src" >&2
+        return 1
+    fi
+
+    local target_dir="$(dirname "$dst")"
+    if [[ ! -d "$target_dir" ]]; then
+        mkdir -p "$target_dir"
+    fi
+
+    # dst が存在しない場合はコピーして終了
+    if [[ ! -f "$dst" ]]; then
+        echo "cp \"$src\" \"$dst\""
+        cp "$src" "$dst"
+        return $?
+    fi
+
+    local tmpdir
+    tmpdir=$(mktemp -d /tmp/smart_merge_toml_XXXXXX)
+    local src_json="${tmpdir}/src.json"
+    local dst_json="${tmpdir}/dst.json"
+    local dst_json_before="${tmpdir}/before.json"
+
+    # TOML → JSON 変換
+    if ! dasel query -i toml -o json --root < "$src" > "$src_json" 2>/dev/null; then
+        echo "Error: Failed to parse TOML: $src" >&2
+        rm -rf "$tmpdir"
+        return 1
+    fi
+    if ! dasel query -i toml -o json --root < "$dst" > "$dst_json" 2>/dev/null; then
+        echo "Error: Failed to parse TOML: $dst" >&2
+        rm -rf "$tmpdir"
+        return 1
+    fi
+    cp "$dst_json" "$dst_json_before"
+
+    # JSON マージ（対話 UI は smart_merge_json に委譲）
+    smart_merge_json "$src_json" "$dst_json"
+    local rc=$?
+
+    # dst_json が変更された場合のみ JSON→TOML 書き戻し
+    if [[ $rc -eq 0 ]] && ! diff -q "$dst_json" "$dst_json_before" > /dev/null 2>&1; then
+        dasel query -i json -o toml --root < "$dst_json" > "$dst"
+    fi
+
+    rm -rf "$tmpdir"
+    return $rc
 }

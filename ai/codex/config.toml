@@ -1,0 +1,23 @@
+# ai/codex/config.toml — リポジトリ管理の Codex 共通設定
+# このファイルは mac/initialization/ai/codex.sh 実行時に ~/.codex/config.toml へマージされる
+# マシン固有設定（trust_level, 認証, ローカルMCPのcwd/commandなど）は ~/.codex/config.toml に直接書く
+
+[features]
+codex_hooks = true
+
+# デフォルトモデル・承認ポリシー（コメントアウトを外して有効化）
+# model = "codex-1"
+# approval_policy = "on-request"
+
+# 共通MCPサーバー（Claude/Gemini登録と揃える）
+[mcp_servers.sequential-thinking]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+
+[mcp_servers.context7]
+command = "npx"
+args = ["-y", "@upstash/context7-mcp"]
+
+[mcp_servers.gitmcp]
+command = "npx"
+args = ["-y", "mcp-remote", "https://gitmcp.io/docs"]
