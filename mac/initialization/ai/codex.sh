@@ -6,6 +6,19 @@ echo "Setting up Codex..."
 
 npm install -g @openai/codex
 
+# hooks はファイル単位でシンボリックリンク
+mkdir -p ~/.codex/hooks
+for file in "${Repo}ai/codex/hooks"/*; do
+  if [[ -f "$file" ]]; then
+    make_symlink "$file" ~/.codex/hooks/$(basename "$file")
+  fi
+done
+
+# hooks.json をシンボリックリンク
+make_symlink "${Repo}ai/codex/hooks.json" ~/.codex/hooks.json
+
+chmod +x ~/.codex/hooks/codex-stop-notification.sh
+
 # skills はディレクトリ単位でシンボリックリンク（skills/<name>/SKILL.md 構造のため）
 skills_dest=~/.codex/skills
 mkdir -p "$skills_dest"
