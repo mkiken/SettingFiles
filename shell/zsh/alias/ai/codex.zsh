@@ -12,5 +12,5 @@ cx-pr-review() {
         echo "現在のブランチに対応するPRが見つかりません。" >&2
         return 1
     }
-    cx exec "pr-review スキルを使って PR #$pr_number をレビュー $*"
+    cx "pr-review スキルを使って PR #$pr_number をレビュー $*"
 }
