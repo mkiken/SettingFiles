@@ -11,7 +11,9 @@ codex_hooks = true
 suppress_unstable_features_warning = true
 
 [sandbox_workspace_write]
-network_access = false
+exclude_tmpdir_env_var = false  # Allow $TMPDIR
+exclude_slash_tmp = false       # Allow /tmp
+network_access = false          # Opt in to outbound network
 
 # 共通MCPサーバー（Claude/Gemini登録と揃える）
 [mcp_servers.sequential-thinking]
