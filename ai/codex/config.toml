@@ -4,6 +4,7 @@
 
 [features]
 codex_hooks = true
+suppress_unstable_features_warning = true
 
 # デフォルトモデル・承認ポリシー（コメントアウトを外して有効化）
 # model = "codex-1"
