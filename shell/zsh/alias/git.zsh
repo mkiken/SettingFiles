@@ -204,7 +204,65 @@ alias wma='wm add'
 alias wmm='wm merge'
 alias wml='wm list'
 alias wmd='wm dashboard'
+
+# workmuxの対話プロンプト発生を出力から検知し、必要ならsetupを実行する
+# 目的: fwmon等がworkmuxの初回プロンプト待ちで見えないハングを起こすのを防ぐ
+_workmux_ensure_setup() {
+  [[ -n "$WORKMUX_SKIP_SETUP_CHECK" ]] && return 0
+  [[ -e /dev/tty ]] || return 0
+
+  # macOSにtimeoutコマンドがないため、perlのfork+alarmで代替（3秒でタイムアウト、exit 124）
+  local output rc
+  output=$(perl -e '
+    use POSIX ":sys_wait_h";
+    my $pid = fork // die "fork: $!";
+    if ($pid == 0) {
+      open STDIN, "<", "/dev/null" or exit 1;
+      exec "workmux", "list" or exit 1;
+    }
+    local $SIG{ALRM} = sub { kill 9, $pid; waitpid($pid, 0); exit 124 };
+    alarm 3;
+    waitpid $pid, 0;
+    alarm 0;
+    exit $? >> 8;
+  ' 2>&1)
+  rc=$?
+
+  local trigger="" reason=""
+  if (( rc == 124 )); then
+    trigger=1
+    reason="プローブがタイムアウト（stdin封鎖してもworkmuxが応答せず）"
+  elif print -r -- "$output" | grep -qE '\[Y/n\]|\[y/N\]|Install .+\?|Detected .+\(found'; then
+    trigger=1
+    reason="対話プロンプトらしい出力パターンを検出"
+  fi
+
+  [[ -z "$trigger" ]] && return 0
+
+  {
+    print -- ""
+    print -- "⚠️  workmux: 未処理の対話プロンプトを検出しました"
+    print -- "   理由: ${reason}"
+    print -- "   出力サンプル:"
+    print -r -- "$output" | sed 's/^/     /' | head -10
+    print -- ""
+    print -- "   fwmon等のハングを防ぐため、今 workmux setup を実行します。"
+    print -- ""
+  } > /dev/tty
+
+  if workmux setup </dev/tty >/dev/tty 2>&1; then
+    print -- "\n✅ workmux setup 完了。元の操作を続行します。" > /dev/tty
+    return 0
+  else
+    local srec=$?
+    print -- "\n❌ workmux setup が失敗しました (exit $srec)。手動で解消してください。" > /dev/tty
+    print -- "   一時的にスキップするには: WORKMUX_SKIP_SETUP_CHECK=1 <cmd>" > /dev/tty
+    return $srec
+  fi
+}
+
 wm() {
+  _workmux_ensure_setup || return $?
   workmux "$@"
 }
 wmo() {
