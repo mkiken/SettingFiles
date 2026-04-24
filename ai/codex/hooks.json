@@ -4,7 +4,7 @@
       {
         "hooks": [
           {
-            "command": "workmux set-window-status working >/dev/null 2>&1 || true",
+            "command": "python3 ~/.codex/hooks/codex-hook.py",
             "type": "command"
           }
         ]
@@ -14,7 +14,11 @@
       {
         "hooks": [
           {
-            "command": "workmux set-window-status done >/dev/null 2>&1 || true",
+            "command": "~/.codex/hooks/codex-stop-notification.sh",
+            "type": "command"
+          },
+          {
+            "command": "python3 ~/.codex/hooks/codex-hook.py",
             "type": "command"
           }
         ]
@@ -24,7 +28,7 @@
       {
         "hooks": [
           {
-            "command": "workmux set-window-status working >/dev/null 2>&1 || true",
+            "command": "python3 ~/.codex/hooks/codex-hook.py",
             "type": "command"
           }
         ]
