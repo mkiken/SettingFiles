@@ -33,9 +33,10 @@ cd mac && brew bundle
 
 ### Regenerate AI Prompts
 ```bash
-# After editing source files in ai/common/ or ai/claude/ or ai/gemini/
+# After editing source files in ai/common/ or ai/claude/ or ai/gemini/ or ai/codex/
 mac/initialization/ai/claude.sh
 mac/initialization/ai/gemini.sh
+mac/initialization/ai/codex.sh
 ```
 
 ## Architecture
@@ -59,6 +60,7 @@ Initialize scripts create symbolic links from repository to system locations. Th
 Key symlinks:
 - `ai/claude/_CLAUDE.md` → `~/.claude/CLAUDE.md`
 - `ai/gemini/_GEMINI.md` → `~/.gemini/GEMINI.md`
+- `ai/codex/_AGENTS.md` → `~/.codex/AGENTS.md`
 - `shell/zsh/.zshrc` → `~/.zshrc`
 - `vimfiles/nvim` → `~/.config/nvim`
 - `gitfiles/.gitconfig` → `~/.gitconfig`
@@ -71,6 +73,8 @@ Both `_CLAUDE.md` and `_GEMINI.md` are static files using `@file` import syntax 
 - **Gemini** (`ai/gemini/_GEMINI.md`): `@../common/prompt_base.md` + `@../common/characters/nyaruko.md` + inline Language rules + SuperGemini framework imports
 
 Edit the source files directly (`ai/common/prompt_base.md`, `ai/common/characters/*.md`) — no build step needed. Gemini additionally merges `ai/common/mcp.json` (and `mcp.local.json` if present) into its `settings.json`.
+
+- **Codex** (`ai/codex/_AGENTS.md`): Codex's AGENTS.md does not support `@file` imports, so `mac/initialization/ai/codex.sh` (and `mac/updates/codex.sh`) generates `_AGENTS.md` by `cat`-concatenating `ai/common/prompt_base.md` + `ai/common/characters/reimu.md`. The generated file is committed and symlinked to `~/.codex/AGENTS.md`. Edit the source files (not the generated `_AGENTS.md`); regenerate with `mac/initialization/ai/codex.sh`.
 
 ### Claude Hooks
 `ai/claude/hooks/` contains notification hooks symlinked into `~/.claude/hooks/`:
