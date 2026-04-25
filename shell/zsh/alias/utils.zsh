@@ -559,12 +559,12 @@ function smart_merge_toml() {
     # TOML → JSON 変換
     if ! dasel query -i toml -o json --root < "$src" > "$src_json" 2>/dev/null; then
         echo "Error: Failed to parse TOML: $src" >&2
-        rm -rf "$tmpdir"
+        /bin/rm -rf "$tmpdir"
         return 1
     fi
     if ! dasel query -i toml -o json --root < "$dst" > "$dst_json" 2>/dev/null; then
         echo "Error: Failed to parse TOML: $dst" >&2
-        rm -rf "$tmpdir"
+        /bin/rm -rf "$tmpdir"
         return 1
     fi
     cp "$dst_json" "$dst_json_before"
@@ -578,6 +578,6 @@ function smart_merge_toml() {
         dasel query -i json -o toml --root < "$dst_json" > "$dst"
     fi
 
-    rm -rf "$tmpdir"
+    /bin/rm -rf "$tmpdir"
     return $rc
 }
