@@ -10,6 +10,10 @@ exclude_slash_tmp = false
 exclude_tmpdir_env_var = false
 network_access = false
 
+[agents]
+max_threads = 6
+max_depth = 1
+
 [mcp_servers]
 [mcp_servers.context7]
 args = ['-y', '@upstash/context7-mcp']

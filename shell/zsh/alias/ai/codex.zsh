@@ -16,3 +16,12 @@ cx-pr-review() {
     }
     cx "\$pr-review PR #$pr_number をレビューして $*"
 }
+
+cx-pr-review-subagent() {
+    local pr_number
+    pr_number=$(gh pr view --json number --jq .number) || {
+        echo "現在のブランチに対応するPRが見つかりません。" >&2
+        return 1
+    }
+    cx "\$pr-review-subagents PR #$pr_number をレビューして $*"
+}
