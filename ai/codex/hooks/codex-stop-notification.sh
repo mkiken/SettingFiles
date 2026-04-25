@@ -43,6 +43,30 @@ fi
 notification_group="codex-${session_id}"
 debug_log "Session ID: ${session_id}"
 
+if [[ "${hook_event_name}" == "PermissionRequest" ]]; then
+    tool_name=$(echo "${hook_input}" | jq -r '.tool_name // "tool"')
+    approval_reason=$(echo "${hook_input}" | jq -r '.tool_input.description // empty')
+    tool_command=$(echo "${hook_input}" | jq -r '.tool_input.command // empty')
+
+    if [[ -n "${approval_reason}" ]]; then
+        notification_body="${approval_reason}"
+    elif [[ -n "${tool_command}" ]]; then
+        notification_body="${tool_name}: ${tool_command}"
+    else
+        notification_body="${tool_name} の承認が必要です"
+    fi
+
+    notification_body=$(echo "${notification_body}" | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
+    max_permission_length=140
+    if [[ ${#notification_body} -gt ${max_permission_length} ]]; then
+        notification_body="${notification_body:0:${max_permission_length}}..."
+    fi
+
+    debug_log "Sending permission request notification: ${notification_body}"
+    notify "$(build_notification_title "⚠️" "Codex承認待ち" "${EMOJI_ID_CODEX}")" "${notification_body}" "Hero" "${notification_group}" || true
+    exit 0
+fi
+
 if [[ -z "${transcript_path}" || "${transcript_path}" == "null" ]]; then
     notify "$(build_notification_title "🤖" "Codex終了" "${EMOJI_ID_CODEX}")" 'transcript pathが見つかりません' "${NOTIFICATION_SOUND}"
     exit 0

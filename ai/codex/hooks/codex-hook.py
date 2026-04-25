@@ -39,6 +39,7 @@ def main():
     hook_event = input_data.get("hook_event_name")
 
     handlers = {
+        "PermissionRequest": handle_permission_request_hook,
         "PostToolUse": handle_post_tool_use_hook,
         "Stop": handle_stop_hook,
         "UserPromptSubmit": handle_user_prompt_submit_hook,
@@ -52,6 +53,10 @@ def main():
 
 def handle_post_tool_use_hook(_: dict):
     update_tmux_window_name(HookStatus.ONGOING)
+
+
+def handle_permission_request_hook(_: dict):
+    update_tmux_window_name(HookStatus.NOTIFICATION)
 
 
 def handle_user_prompt_submit_hook(_: dict):
