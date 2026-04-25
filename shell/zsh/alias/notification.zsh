@@ -5,12 +5,6 @@ function notify() {
   local group="$4"
   local time_override="${5:-}"
 
-  # terminal-notifierがない場合は早期リターン
-  if ! command -v terminal-notifier >/dev/null 2>&1; then
-    echo "terminal-notifier not found. Please install.\n"
-    return 1
-  fi
-
   # タイトルに tmuxウィンドウ番号と時刻を自動付与（NOTIFY_NO_DECORATE=1 で抑制可）
   if [[ -z "${NOTIFY_NO_DECORATE}" ]]; then
     if ! command -v get_tmux_window_label >/dev/null 2>&1; then
@@ -85,13 +79,42 @@ function notify() {
     group_option=(-group "$group")
   fi
 
-  terminal-notifier -title "$title" \
-    -message "$message" \
-    -sound "$sound" \
-    -activate "$bundle_id" \
-    "${icon_option[@]}" \
-    "${group_option[@]}" \
-    -ignoreDnD
+  if command -v terminal-notifier >/dev/null 2>&1; then
+    local notifier_args=(
+      -title "$title"
+      -message "$message"
+      -sound "$sound"
+      -activate "$bundle_id"
+      "${icon_option[@]}"
+      "${group_option[@]}"
+      -ignoreDnD
+    )
+
+    /bin/bash -c 'terminal-notifier "$@" >/dev/null 2>&1' terminal-notifier-wrapper "${notifier_args[@]}" >/dev/null 2>&1
+
+    local notifier_status=$?
+    if [[ ${notifier_status} -eq 0 ]]; then
+      return 0
+    fi
+
+    _notify_report_failure "terminal-notifier failed with exit status ${notifier_status}" "$title"
+    return ${notifier_status}
+  fi
+
+  _notify_report_failure "terminal-notifier not found" "$title"
+  return 1
+}
+
+function _notify_report_failure() {
+  local reason="$1"
+  local title="$2"
+  local message="notification failed: ${reason}: ${title}"
+
+  echo "${message}" >&2
+
+  if command -v tmux >/dev/null 2>&1 && [[ -n "${TMUX_PANE:-}" ]]; then
+    tmux display-message -t "${TMUX_PANE}" "${message}" >/dev/null 2>&1 || true
+  fi
 }
 
 # 通知を無効化してコマンドを実行する汎用関数

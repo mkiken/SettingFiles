@@ -1,6 +1,10 @@
 #!/bin/bash
 export LANG="${LANG:-en_US.UTF-8}"
 
+HOOK_ERROR_LOG="${TMPDIR:-/tmp}/codex-stop-notification-error.log"
+exec >/dev/null
+exec 2>>"${HOOK_ERROR_LOG}"
+
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/alias/notification.zsh"
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_emoji.conf"
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_window_info.sh"
