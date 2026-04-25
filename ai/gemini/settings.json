@@ -13,6 +13,9 @@
       "type": "stdio"
     }
   },
+  "agents": {
+    "overrides": {}
+  },
   "context": {
     "fileFiltering": {
       "enableRecursiveFileSearch": true,
@@ -26,16 +29,16 @@
     },
     "enableNotifications": true,
     "enablePromptCompletion": true,
-    "previewFeatures": true,
+    "plan": {
+      "enabled": true
+    },
+    "previewFeatures": false,
     "sessionRetention": {
       "enabled": true,
       "maxAge": "30d",
       "warningAcknowledged": true
     },
-    "vimMode": true,
-    "plan": {
-      "enabled": true
-    }
+    "vimMode": true
   },
   "hooks": {
     "AfterAgent": [
@@ -191,7 +194,16 @@
     "errorVerbosity": "full",
     "footer": {
       "hideContextPercentage": false,
-      "hideSandboxStatus": true
+      "hideSandboxStatus": true,
+      "items": [
+        "workspace",
+        "git-branch",
+        "model-name",
+        "context-used",
+        "quota",
+        "token-count"
+      ],
+      "showLabels": true
     },
     "hideBanner": true,
     "hideTips": true,
@@ -204,8 +216,5 @@
     "showStatusInTitle": true,
     "theme": "Dracula",
     "useAlternateBuffer": false
-  },
-  "agents": {
-    "overrides": {}
   }
 }
