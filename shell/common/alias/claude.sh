@@ -13,6 +13,8 @@ clp() {
     cl --permission-mode plan "$@"
 }
 
+clr() { cl --resume "$@" }
+
 cl-web-summary() {
     clo "/my:web-summary $*"
 }

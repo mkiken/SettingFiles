@@ -6,6 +6,8 @@ gm() {
     no_notify gemini "$@"
 }
 
+gmr() { gm "/resume" "$@" }
+
 gmf() {
     gm --model flash "$@"
 }

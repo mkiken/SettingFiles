@@ -6,6 +6,8 @@ cx() {
     no_notify codex "$@"
 }
 
+cxr() { cx resume "$@" }
+
 cx-pr-review() {
     local pr_number
     pr_number=$(gh pr view --json number --jq .number) || {
