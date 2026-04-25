@@ -223,9 +223,9 @@ else
     summary="💭 セッションが開始されましたが、メッセージはありませんでした"
 fi
 
-notification_title=$(build_notification_title "✅" "Codex終了" "${EMOJI_ID_CODEX}" "${completion_time}")
+notification_title=$(build_notification_title "✅" "Codex終了" "${EMOJI_ID_CODEX}")
 
 debug_log "Sending notification: title='${notification_title}', message='${summary}'"
-notify "${notification_title}" "${summary}" "${NOTIFICATION_SOUND}" "${notification_group}"
+notify "${notification_title}" "${summary}" "${NOTIFICATION_SOUND}" "${notification_group}" "${completion_time}"
 
 debug_log "=== Codex Notification Hook Completed ==="

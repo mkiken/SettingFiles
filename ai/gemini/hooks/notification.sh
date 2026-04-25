@@ -220,10 +220,10 @@ if [[ "${EVENT_TYPE}" == "notification" ]]; then
 fi
 
 # after_agent の場合
-notification_title=$(build_notification_title "✅" "Gemini終了" "${EMOJI_ID_GEMINI}" "${completion_time}")
+notification_title=$(build_notification_title "✅" "Gemini終了" "${EMOJI_ID_GEMINI}")
 
 debug_log "Sending notification: title='${notification_title}', message='${summary}'"
 
-notify "${notification_title}" "${summary}" "Purr" "${notification_group}"
+notify "${notification_title}" "${summary}" "Purr" "${notification_group}" "${completion_time}"
 
 debug_log "=== Gemini Notification Hook Completed ==="

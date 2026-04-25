@@ -315,9 +315,9 @@ if [[ "${hook_event_name}" == "Notification" ]]; then
 fi
 
 # Stopイベント: 終了通知
-notification_title=$(build_notification_title "✅" "Claude終了" "${EMOJI_ID_CLAUDE}" "${completion_time}")
+notification_title=$(build_notification_title "✅" "Claude終了" "${EMOJI_ID_CLAUDE}")
 
 debug_log "Sending stop notification: title='${notification_title}', message='${summary}'"
-notify "${notification_title}" "${summary}" "Hero" "${notification_group}"
+notify "${notification_title}" "${summary}" "Hero" "${notification_group}" "${completion_time}"
 
 debug_log "=== Claude Notification Hook Completed ==="
