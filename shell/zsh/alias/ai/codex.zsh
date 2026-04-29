@@ -14,7 +14,7 @@ cx-pr-review() {
         echo "現在のブランチに対応するPRが見つかりません。" >&2
         return 1
     }
-    cx "\$pr-review PR #$pr_number をレビューして $*"
+    cx --dangerously-bypass-approvals-and-sandbox "\$pr-review PR #$pr_number をレビューして $*"
 }
 
 cx-pr-review-subagent() {
@@ -23,5 +23,5 @@ cx-pr-review-subagent() {
         echo "現在のブランチに対応するPRが見つかりません。" >&2
         return 1
     }
-    cx "\$pr-review-subagents PR #$pr_number をレビューして $*"
+    cx --dangerously-bypass-approvals-and-sandbox "\$pr-review-subagents PR #$pr_number をレビューして $*"
 }
