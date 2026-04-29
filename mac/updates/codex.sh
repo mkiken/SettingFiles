@@ -10,7 +10,7 @@ npm i -g @openai/codex@latest
 smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml
 
 # 共通プロンプトの更新を _AGENTS.md に反映
-{ /bin/cat "${Repo}ai/common/prompt_base.md"; echo; /bin/cat "${Repo}ai/common/characters/mizuki_himeji.md"; } > "${Repo}ai/codex/_AGENTS.md"
+{ /bin/cat "${Repo}ai/common/prompt_base.md"; echo; /bin/cat "${Repo}ai/common/characters/mizuki_himeji.md"; echo; /bin/cat "${Repo}ai/codex/codex_base.md"; } > "${Repo}ai/codex/_AGENTS.md"
 
 # agents はファイル単位でシンボリックリンク
 agents_dest=~/.codex/agents

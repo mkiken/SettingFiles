@@ -10,7 +10,7 @@ npm install -g @openai/codex
 smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml
 
 # 共通プロンプトを連結して _AGENTS.md を生成し、~/.codex/AGENTS.md にシンボリックリンク
-{ /bin/cat "${Repo}ai/common/prompt_base.md"; echo; /bin/cat "${Repo}ai/common/characters/mizuki_himeji.md"; } > "${Repo}ai/codex/_AGENTS.md"
+{ /bin/cat "${Repo}ai/common/prompt_base.md"; echo; /bin/cat "${Repo}ai/common/characters/mizuki_himeji.md"; echo; /bin/cat "${Repo}ai/codex/codex_base.md"; } > "${Repo}ai/codex/_AGENTS.md"
 make_symlink "${Repo}ai/codex/_AGENTS.md" ~/.codex/AGENTS.md
 
 # hooks はファイル単位でシンボリックリンク
