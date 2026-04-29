@@ -1,7 +1,7 @@
 name = "pr_reviewer_security"
 description = "Read-only PR reviewer focused on security vulnerabilities, trust boundaries, sensitive data exposure, and unsafe dependencies."
 model = "gpt-5.4"
-model_reasoning_effort = "high"
+model_reasoning_effort = "xhigh"
 sandbox_mode = "read-only"
 
 developer_instructions = '''

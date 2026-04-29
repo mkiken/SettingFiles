@@ -1,7 +1,7 @@
 name = "pr_reviewer_tests"
 description = "Read-only PR reviewer focused on test coverage, meaningful assertions, boundary cases, negative paths, and brittle tests."
 model = "gpt-5.4"
-model_reasoning_effort = "medium"
+model_reasoning_effort = "xhigh"
 sandbox_mode = "read-only"
 
 developer_instructions = '''

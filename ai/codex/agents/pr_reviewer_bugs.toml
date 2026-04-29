@@ -1,7 +1,7 @@
 name = "pr_reviewer_bugs"
 description = "Read-only PR reviewer focused on runtime bugs, logic errors, null handling, races, resource leaks, and API misuse."
 model = "gpt-5.4"
-model_reasoning_effort = "high"
+model_reasoning_effort = "xhigh"
 sandbox_mode = "read-only"
 
 developer_instructions = '''
