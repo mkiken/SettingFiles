@@ -25,7 +25,7 @@ cl-pr-review() {
         echo "現在のブランチに対応するPRが見つかりません。" >&2
         return 1
     }
-    clo --dangerously-skip-permissions "/my:pr-review $pr_number $*"
+    clo --effort max --dangerously-skip-permissions "/my:pr-review $pr_number $* ultrathink"
 }
 
 cl-pr-review-subagents() {
@@ -34,11 +34,11 @@ cl-pr-review-subagents() {
         echo "現在のブランチに対応するPRが見つかりません。" >&2
         return 1
     }
-    cl --dangerously-skip-permissions "/pr-review-subagents $pr_number $*"
+    clo --effort max --dangerously-skip-permissions "/pr-review-subagents $pr_number $* ultrathink"
 }
 
 _cl-pr-comment-review() {
-    clo --dangerously-skip-permissions "/my:pr-comment-review $*"
+    clo --effort max --dangerously-skip-permissions "/my:pr-comment-review $* ultrathink"
 }
 
 _cl-pr-comment-implement() {
