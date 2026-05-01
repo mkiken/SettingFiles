@@ -106,13 +106,13 @@ This repository enforces commitizen (czg) + commitlint via a `commit-msg` hook. 
 
 Example: `perf(claude): ⚡ pr-review-subagentsスキルで止まりにくくする`
 
-### Allowed Types
+### Allowed Types and Scopes
 
-`feat`, `fix`, `refactor`, `docs`, `style`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+The canonical source is `.commitlintrc.json`:
+- Types: `rules.type-enum`
+- Scopes: `rules.scope-enum`
 
-### Allowed Scopes
-
-`ai`, `bin`, `claude`, `commitlint`, `czg`, `configs`, `gemini`, `gitfiles`, `ghostty`, `idea`, `mac`, `other`, `ranger`, `repository`, `sedfiles`, `shell`, `submodules`, `terminal`, `tmux`, `vimfiles`, `vscode`, `windows`
+Do not duplicate the allowed lists in this document. When changing commit types or scopes, update `.commitlintrc.json` first. Keep `.czrc` type prompts aligned only when type values change.
 
 ### Rules
 
