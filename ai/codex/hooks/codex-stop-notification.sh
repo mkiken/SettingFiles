@@ -25,6 +25,44 @@ debug_log() {
     fi
 }
 
+is_subagent_metadata() {
+    jq -e '
+        def has_subagent_source:
+            (.source? | if type == "object" then (.subagent? != null) else false end);
+
+        has_subagent_source
+        or ((.agent_role? // "") != "")
+        or ((.agent_nickname? // "") != "")
+    ' >/dev/null 2>&1
+}
+
+is_subagent_session() {
+    if echo "${hook_input}" | is_subagent_metadata; then
+        debug_log "Subagent detected from hook input"
+        return 0
+    fi
+
+    if [[ -z "${transcript_path}" || "${transcript_path}" == "null" || ! -f "${transcript_path}" ]]; then
+        return 1
+    fi
+
+    if jq -e '
+        def has_subagent_source:
+            (.source? | if type == "object" then (.subagent? != null) else false end);
+
+        select(.type == "session_meta")
+        | .payload
+        | has_subagent_source
+          or ((.agent_role? // "") != "")
+          or ((.agent_nickname? // "") != "")
+    ' "${transcript_path}" >/dev/null 2>&1; then
+        debug_log "Subagent detected from transcript metadata"
+        return 0
+    fi
+
+    return 1
+}
+
 debug_log "=== Codex Notification Hook Started ==="
 
 hook_input=$(cat)
@@ -68,6 +106,11 @@ if [[ "${hook_event_name}" == "PermissionRequest" ]]; then
 
     debug_log "Sending permission request notification: ${notification_body}"
     notify "$(build_notification_title "⚠️" "Codex承認待ち" "${EMOJI_ID_CODEX}")" "${notification_body}" "Hero" "${notification_group}" || true
+    exit 0
+fi
+
+if [[ "${hook_event_name}" == "Stop" ]] && is_subagent_session; then
+    debug_log "Skipping completion notification for subagent session: ${session_id}"
     exit 0
 fi
 
