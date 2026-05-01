@@ -313,7 +313,7 @@ Prompts are composed from multiple sources:
 Base Prompt + Character + Tool-Specific → Final Prompt
 ─────────────────────────────────────────────────────────
 prompt_base.md   reimu.md    claude_prompt.md → _CLAUDE.md
-prompt_base.md   nyaruko.md  (inline: Language + SuperGemini) → _GEMINI.md
+prompt_base.md   nyaruko.md  (inline: Language) → _GEMINI.md
 ```
 
 **Character Personalities**:

@@ -2,11 +2,8 @@
 
 source "$(dirname "$0")/../scripts/common.sh"
 
-echo "Updating Gemini tools..."
+echo "Updating Gemini settings..."
 
 smart_merge_json ~/.gemini/settings.json "${Repo}ai/gemini/settings.json"
 
-pipx upgrade SuperGemini
-SuperGemini update
-
-echo "Gemini tools update completed."
+echo "Gemini settings update completed."

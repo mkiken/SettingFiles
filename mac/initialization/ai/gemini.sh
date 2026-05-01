@@ -58,9 +58,4 @@ done
 
 chmod +x ~/.gemini/hooks/notification.sh
 
-echo "Installing Gemini tools..."
-
-# Gemini tools
-pipx install SuperGemini && SuperGemini install --verbose --yes
-
-echo 'Gemini setup and tools installation completed.'
+echo 'Gemini setup completed.'
