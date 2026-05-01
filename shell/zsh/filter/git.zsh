@@ -772,6 +772,47 @@ function _filter_workmux_worktree_path() {
   echo "$selected" | cut -f2
 }
 
+# workmux listからworktree名とフルパスをfilterで選択する内部関数
+# 戻り値: "<name>\t<path>"、キャンセル時は $EXIT_CODE_SIGINT で終了
+function _filter_workmux_worktree_with_path() {
+  local raw_list
+  raw_list=$(wml | tail -n +2 | grep -v '(here)')
+
+  if [[ -z "$raw_list" ]]; then
+    echo "選択可能なworktreeがありません" >&2
+    return $EXIT_CODE_SIGINT
+  fi
+
+  local worktrees
+  worktrees=$(echo "$raw_list" | awk '
+      {path=$6; branch=$1; n=split(path, a, "/"); dirs[NR]=a[n]; branches[NR]=branch; paths[NR]=path; if(length(a[n])>max) max=length(a[n])}
+      END {
+        if(max < 8) max = 8;
+        fmt = "%-" max "s  %s\t%s\n";
+        printf fmt, "worktree", "ブランチ", "";
+        for(i=1; i<=NR; i++) printf fmt, dirs[i], branches[i], paths[i]
+      }')
+
+  local selected
+  selected=$(echo "$worktrees" | filter \
+    --header "worktreeを選択" \
+    --header-lines 1 \
+    --prompt "worktree> " \
+    --delimiter $'\t' \
+    --with-nth 1 \
+    --preview 'echo {2} | xargs -I{} git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"'
+  )
+
+  if [[ -z "$selected" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  local first_col="${selected%%$'\t'*}"
+  local name="${first_col%% *}"
+  local path="${selected#*$'\t'}"
+  printf '%s\t%s\n' "$name" "$path"
+}
+
 # filterでworktreeを選択して現在のpaneでcdする
 function fwmo() {
   local worktree_path
@@ -786,14 +827,20 @@ function fwmo() {
 
 # filterでworktreeを選択して新しいウィンドウで開く（workmux open）
 function fwmon() {
-  local worktree_name
-  worktree_name=$(_filter_workmux_worktree)
+  local selected
+  selected=$(_filter_workmux_worktree_with_path)
 
-  if [[ $? -ne 0 ]] || [[ -z "$worktree_name" ]]; then
+  if [[ $? -ne 0 ]] || [[ -z "$selected" ]]; then
     return $EXIT_CODE_SIGINT
   fi
 
+  local worktree_name="${selected%%$'\t'*}"
+  local worktree_path="${selected#*$'\t'}"
+
   save_history wmo "$worktree_name"
+
+  local set_dir="${SET:-$HOME/Desktop/repository/SettingFiles}"
+  "${set_dir}/shell/tmux/rename-window-git.sh" "$worktree_path"
 }
 
 # filterでworktreeを選択して水平分割（左右）して新しいpaneで開く
