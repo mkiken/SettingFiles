@@ -217,7 +217,8 @@ _workmux_ensure_setup() {
     use POSIX ":sys_wait_h";
     my $pid = fork // die "fork: $!";
     if ($pid == 0) {
-      open STDIN, "<", "/dev/null" or exit 1;
+      open STDIN, "<", "/dev/tty" or exit 1;
+      open STDERR, ">&", \*STDOUT or exit 1;
       exec "workmux", "list" or exit 1;
     }
     local $SIG{ALRM} = sub { kill 9, $pid; waitpid($pid, 0); exit 124 };
@@ -231,7 +232,7 @@ _workmux_ensure_setup() {
   local trigger="" reason=""
   if (( rc == 124 )); then
     trigger=1
-    reason="プローブがタイムアウト（stdin封鎖してもworkmuxが応答せず）"
+    reason="プローブがタイムアウト（対話プロンプト待ちで応答なし）"
   elif print -r -- "$output" | grep -qE '\[Y/n\]|\[y/N\]|Install .+\?|Detected .+\(found'; then
     trigger=1
     reason="対話プロンプトらしい出力パターンを検出"
