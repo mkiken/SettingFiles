@@ -42,5 +42,6 @@ cursor-opacity = 0.8
 # Other
 mouse-hide-while-typing = true
 resize-overlay = never
-# Shift+Enter で改行（tmux内でも機能）
-keybind = shift+enter=text:\x1b\r
+# Shift+Enter / Alt+Enter で改行（codex CLI / Claude Code 共通、tmux内でも機能）
+keybind = shift+enter=text:\n
+keybind = alt+enter=text:\n
