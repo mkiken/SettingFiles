@@ -35,11 +35,11 @@ When providing feedback, code review, or critical analysis, this protocol takes 
 
 When implementation tasks instructed by the user are completed, ask the user which follow-up action to take. Use the Ask-style tool defined in the `# User Confirmation` section of your environment (do not ask in plain text). Present exactly these three options:
 
-- **Commit only** — create a commit but do not push
-- **Commit and push** — create a commit, then push to the remote
-- **Do not commit** — leave the changes uncommitted
+- **コミットのみ** — コミットを作成するがプッシュはしない
+- **コミットしてプッシュ** — コミットを作成し、リモートへプッシュする
+- **コミットしない** — 変更をコミットせずそのまま残す
 
 Then act according to the choice:
-- "Commit only": create the commit and stop.
-- "Commit and push": create the commit, then push to the remote.
-- "Do not commit": take no git action.
+- "コミットのみ": create the commit and stop.
+- "コミットしてプッシュ": create the commit, then push to the remote.
+- "コミットしない": take no git action.
