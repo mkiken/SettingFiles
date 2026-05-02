@@ -168,7 +168,7 @@ If `THREAD_IS_RESOLVED=true`, do **not** offer resolve (no-op prevention).
 ```
 ご指摘ありがとうございます。対応しました。
 
-- Commit: {short_hash} ({full_hash})
+- Commit: {full_hash}
   - {commit_subject}
 ```
 
@@ -264,7 +264,7 @@ If push fails: use `AskUserQuestion` to ask `(a) 再試行 / (b) 中止`. On ret
 Build the actual reply body using real commit hashes from Step A:
 
 ```bash
-git log ${BEFORE_SHA}..HEAD --format='%h %H %s'
+git log ${BEFORE_SHA}..HEAD --format='%H %s'
 ```
 
 Post using the method determined in Step 5-2:
@@ -310,7 +310,7 @@ Report the result of each executed step:
 
 ```
 ## 実行結果
-- ✅ Commit: {short_hash} {subject}
+- ✅ Commit: {full_hash} {subject}
 - ✅ Push: origin/{branch}
 - ✅ Reply: {url} （thread reply）
 - ✅ Resolve: thread {PRRT_...} を resolved に変更

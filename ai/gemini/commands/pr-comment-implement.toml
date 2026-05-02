@@ -83,7 +83,7 @@ After successful push, reply to the original PR comment with the implemented com
 #### Step 1: Gather commit information
 
 ```bash
-git log ${BEFORE_SHA}..HEAD --format='%h %H %s'
+git log ${BEFORE_SHA}..HEAD --format='%H %s'
 ```
 
 This lists all commits pushed in Phase 5. Build the reply body using this template:
@@ -91,7 +91,7 @@ This lists all commits pushed in Phase 5. Build the reply body using this templa
 ```
 ご指摘ありがとうございます。対応しました。
 
-- Commit: {short_hash} ({full_hash})
+- Commit: {full_hash}
   - {commit_subject}
 ```
 
