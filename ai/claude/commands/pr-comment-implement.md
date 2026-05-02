@@ -140,7 +140,17 @@ Wait for user approval before posting.
 #### Step 4: Post the reply
 
 If user approves:
-1. Post using the method determined in Step 2 / 2a
+1. Post using the method determined in Step 2 / 2a. Use the variables extracted from `$PR_URL` — **the URL must include `pull_number`**:
+
+   ```bash
+   # Thread reply
+   gh api "repos/${OWNER}/${REPO}/pulls/${PULL_NUMBER}/comments/${COMMENT_ID}/replies" \
+     -X POST -f body="${BODY}"
+
+   # Standalone (issue comment) — only when Step 2/2a determined this path
+   gh pr comment "${OWNER}/${REPO}#${PULL_NUMBER}" --body "${BODY}"
+   ```
+
 2. If the thread reply API call fails:
    - **DO NOT silently fall back to `gh pr comment`**. Thread reply failure MUST NOT be converted to a standalone comment automatically.
    - Report the error (status code, response body) to the user.
