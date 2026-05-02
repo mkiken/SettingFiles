@@ -20,6 +20,47 @@ class HookStatus(Enum):
 IDENTIFIER = EMOJI_ID_CODEX
 
 
+def is_subagent_metadata(data: dict) -> bool:
+    source = data.get("source")
+    has_subagent_source = isinstance(source, dict) and source.get("subagent") is not None
+    return has_subagent_source or bool(data.get("agent_role")) or bool(data.get("agent_nickname"))
+
+
+def is_subagent_session(input_data: dict) -> bool:
+    if is_subagent_metadata(input_data):
+        return True
+
+    transcript_path = input_data.get("transcript_path")
+    if not transcript_path:
+        return False
+
+    path = Path(transcript_path)
+    if not path.is_file():
+        return False
+
+    try:
+        with path.open(encoding="utf-8") as transcript:
+            for line in transcript:
+                if not line.strip():
+                    continue
+
+                try:
+                    event = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+
+                if event.get("type") != "session_meta":
+                    continue
+
+                payload = event.get("payload")
+                if isinstance(payload, dict) and is_subagent_metadata(payload):
+                    return True
+    except Exception:
+        return False
+
+    return False
+
+
 def _get_tmux_pane_id() -> str | None:
     """tmuxセッション内の場合のみpane_idを返す。それ以外はNone。
     VSCode等からtmuxを起動した際にTMUX_PANEが継承されるケースを除外するため、
@@ -63,7 +104,10 @@ def handle_user_prompt_submit_hook(_: dict):
     update_tmux_window_name(HookStatus.ONGOING)
 
 
-def handle_stop_hook(_: dict):
+def handle_stop_hook(input_data: dict):
+    if is_subagent_session(input_data):
+        return
+
     update_tmux_window_name(HookStatus.COMPLETED)
 
 
