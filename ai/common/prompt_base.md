@@ -33,8 +33,13 @@ When providing feedback, code review, or critical analysis, this protocol takes 
 
 # Post-Implementation Workflow
 
-When implementation tasks instructed by the user are completed:
+When implementation tasks instructed by the user are completed, ask the user which follow-up action to take. Use the Ask-style tool defined in the `# User Confirmation` section of your environment (do not ask in plain text). Present exactly these three options:
 
-- Ask the user whether to commit the changes
-- If the user agrees to commit, create the commit, then ask whether to push
-- If the user agrees to push, push to the remote repository
+- **Commit only** — create a commit but do not push
+- **Commit and push** — create a commit, then push to the remote
+- **Do not commit** — leave the changes uncommitted
+
+Then act according to the choice:
+- "Commit only": create the commit and stop.
+- "Commit and push": create the commit, then push to the remote.
+- "Do not commit": take no git action.
