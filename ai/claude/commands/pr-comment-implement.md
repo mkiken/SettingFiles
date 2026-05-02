@@ -65,29 +65,105 @@ Create a comprehensive implementation design and present it to the user for appr
 2. Verify that changes align with the design
 3. Check for potential issues or missing updates
 
-### Phase 5: Commit
+### Phase 5: Pre-Action Preparation
 
-1. Generate a descriptive commit message that:
-   - References the PR comment
-   - Summarizes the changes made
-   - Follows conventional commit format if applicable
-2. Stage and commit the changes
-3. Before pushing, record the current remote HEAD: `BEFORE_SHA=$(git rev-parse origin/$(git branch --show-current) 2>/dev/null || git rev-parse HEAD^)`
-4. Push to the remote branch
-
-### Phase 6: Reply to PR Comment
-
-After successful push, reply to the original PR comment with the implemented commit information.
+Before presenting the unified action selection, resolve all information required to execute each action.
 
 **⚠️ 原則**: 返信対象が review comment (`#discussion_r{id}`) またはスレッド可能な review comment の場合、**必ずスレッド返信API** (`gh api repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies`) を使用すること。`gh pr comment` は thread API が使えない場合 (純粋な issue comment やスレッド対象が無い review) に限定する。
 
-#### Step 1: Gather commit information
+#### Step 5-1: Draft commit message
+
+Generate a commit message that:
+- References the PR comment
+- Summarizes the changes made
+- Follows conventional commit format if applicable
+
+Do **not** create the commit yet — only draft the message.
+
+#### Step 5-2: Resolve reply target
+
+Parse `$PR_URL` and extract `OWNER`, `REPO`, `PULL_NUMBER` from the URL path. Then classify by fragment (`#` 以降):
+
+| Fragment pattern | Action |
+|---|---|
+| `#discussion_r(\d+)` | Extract `COMMENT_ID` → `REPLY_PATH=thread` |
+| `#pullrequestreview-(\d+)` | Extract `review_id` → **Go to Step 5-2a** |
+| `#issuecomment-(\d+)` or no fragment | `REPLY_PATH=standalone` (no `COMMENT_ID`) |
+
+If the fragment cannot be classified, use `AskUserQuestion` to ask the user which reply method to use before proceeding.
+
+#### Step 5-2a: Resolve thread for `#pullrequestreview-{review_id}` URL
+
+Fetch the inline comments attached to the review:
 
 ```bash
-git log ${BEFORE_SHA}..HEAD --format='%h %H %s'
+gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/comments \
+  --jq '[.[] | {id: .id, path: .path, body: (.body | .[0:80])}]'
 ```
 
-This lists all commits pushed in Phase 5. Build the reply body using this template:
+- **1 comment found**: Use that `comment_id` → `REPLY_PATH=thread`, `COMMENT_ID=<id>`
+- **Multiple comments found**: Use `AskUserQuestion` to let the user select the target comment → `REPLY_PATH=thread`
+- **0 comments found**: `REPLY_PATH=standalone`
+
+#### Step 5-3: Determine author (bot / self)
+
+Executed only when `COMMENT_ID` is available (i.e., `REPLY_PATH=thread`).
+
+```bash
+META=$(gh api "repos/${OWNER}/${REPO}/pulls/comments/${COMMENT_ID}" \
+       --jq '{login: .user.login, type: .user.type}')
+COMMENT_AUTHOR=$(echo "$META" | jq -r '.login')
+COMMENT_AUTHOR_TYPE=$(echo "$META" | jq -r '.type')
+SELF_LOGIN=$(gh api user --jq '.login' 2>/dev/null || echo "")
+
+# Bot: type == "Bot" OR login ends with "[bot]"
+IS_BOT=false
+[ "$COMMENT_AUTHOR_TYPE" = "Bot" ] && IS_BOT=true
+case "$COMMENT_AUTHOR" in *"[bot]") IS_BOT=true ;; esac
+
+# Self
+IS_SELF=false
+[ -n "$SELF_LOGIN" ] && [ "$COMMENT_AUTHOR" = "$SELF_LOGIN" ] && IS_SELF=true
+```
+
+If `gh api user` fails, treat `IS_SELF=false` and proceed (bot detection still works).
+
+#### Step 5-4: Fetch resolve target thread
+
+Executed only when `REPLY_PATH=thread` AND (`IS_BOT=true` OR `IS_SELF=true`).
+
+```bash
+THREAD_JSON=$(gh api graphql \
+  -F owner="$OWNER" -F name="$REPO" -F number="$PULL_NUMBER" \
+  -f query='
+    query($owner:String!,$name:String!,$number:Int!){
+      repository(owner:$owner,name:$name){
+        pullRequest(number:$number){
+          reviewThreads(first:100){
+            nodes{ id isResolved comments(first:50){ nodes{ databaseId } } }
+          }
+        }
+      }
+    }' \
+  --jq "[.data.repository.pullRequest.reviewThreads.nodes[]
+         | select(any(.comments.nodes[]; .databaseId == ${COMMENT_ID}))][0]")
+
+THREAD_NODE_ID=$(echo "$THREAD_JSON" | jq -r '.id // empty')
+THREAD_IS_RESOLVED=$(echo "$THREAD_JSON" | jq -r '.isResolved // false')
+```
+
+#### Step 5-5: Compute `CAN_OFFER_RESOLVE`
+
+```
+CAN_OFFER_RESOLVE = (REPLY_PATH == "thread")
+                 && (IS_BOT || IS_SELF)
+                 && (THREAD_NODE_ID is non-empty)
+                 && (THREAD_IS_RESOLVED == false)
+```
+
+If `THREAD_IS_RESOLVED=true`, do **not** offer resolve (no-op prevention).
+
+#### Step 5-6: Build reply body
 
 ```
 ご指摘ありがとうございます。対応しました。
@@ -98,66 +174,151 @@ This lists all commits pushed in Phase 5. Build the reply body using this templa
 
 (Repeat per commit if multiple)
 
-#### Step 2: Determine reply method from URL type (MUST follow)
+Note: At this stage the commit has not been created yet. Use the drafted message and placeholder hashes. The actual hashes will be filled in **after** the commit is created in Phase 6.
 
-Parse `$PR_URL` and extract `owner`, `repo`, `pull_number` from the URL path, then classify by fragment (`#` 以降):
+#### Step 5-7: Output preview
 
-| Fragment pattern | Action |
-|---|---|
-| `#discussion_r(\d+)` | Extract `comment_id` → **Thread reply (MUST)** |
-| `#pullrequestreview-(\d+)` | Extract `review_id` → **Go to Step 2a** |
-| `#issuecomment-(\d+)` or no fragment | **Standalone comment** |
+Before calling `AskUserQuestion`, print the following Markdown to chat:
 
-If the fragment cannot be classified, use `AskUserQuestion` to ask the user which reply method to use before proceeding.
+```markdown
+## 実装完了。以下を実行する準備ができました。
 
-#### Step 2a: Resolve thread for `#pullrequestreview-{review_id}` URL
+### コミットメッセージ（草案）
+{commit message draft}
 
-Fetch the inline comments attached to the review:
+### Reply 宛先
+- 方法: {Thread reply | Standalone}
+- target: comment_id = {id}（author: {login}、type: {Bot|User}、role: {bot|self|other}）
+- url: {reply target url}
 
-```bash
-gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/comments \
-  --jq '[.[] | {id: .id, path: .path, body: (.body | .[0:80])}]'
+### Reply 本文プレビュー
+{reply body}
+
+### Resolve 対象 thread
+- thread_id: {PRRT_...}（現在: unresolved）
+（または「対象外: standalone 経路 / 既に resolved / author が他人」）
 ```
 
-- **1 comment found**: Use that `comment_id` as the thread reply target → **Thread reply (MUST)**
-- **Multiple comments found**: Show the list with `AskUserQuestion` and ask the user to select the target comment → **Thread reply (MUST)**
-- **0 comments found**: The review has no inline thread; use standalone comment (`gh pr comment`) — this is the only case where standalone posting is appropriate here
+---
 
-#### Step 3: Confirm before posting
+### Phase 6: Unified Action Selection
 
-Use `AskUserQuestion` to show **both** the reply method and the body:
+#### Step 6-1: Unified AskUserQuestion
 
-- **Reply method**: `Thread reply (スレッド返信)` or `Standalone comment (単発コメント)`
-- **Target**: `comment_id: {id}` (thread reply) or `pull #{pull_number}` (standalone)
-- **Body**: the composed reply body
+Present a **single** `AskUserQuestion` with the following options. Build the options list dynamically:
 
-Question: 「以下の方法・内容で元PRコメントに返信しますか？」
+```
+options = [
+  { label: "コミットのみ",              description: "git commit のみ作成。push も返信も resolve もしません。" },
+  { label: "コミット & push",           description: "commit 後に origin へ push します。返信・resolve はしません。" },
+]
 
-If the method shown is `Standalone comment` but the URL fragment was `#discussion_r{id}`, alert the user and confirm the downgrade is intentional before continuing.
+if REPLY_PATH in ("thread", "standalone"):
+  options.append({
+    label: "コミット & push & 返信",
+    description: "さらに上記プレビューの本文で元PRコメントに返信します（{thread reply|standalone}）。"
+  })
 
-Wait for user approval before posting.
+if CAN_OFFER_RESOLVE:
+  options.append({
+    label: "コミット & push & 返信 & resolve",
+    description: "さらに元コメントの review thread を resolve します（author が bot/自分のため提示）。"
+  })
+```
 
-#### Step 4: Post the reply
+Question: 「実装が完了しました。以下のうちどこまで自動実行しますか？（プレビューは上記参照）」
 
-If user approves:
-1. Post using the method determined in Step 2 / 2a. Use the variables extracted from `$PR_URL` — **the URL must include `pull_number`**:
+Wait for user selection before proceeding.
 
-   ```bash
-   # Thread reply
-   gh api "repos/${OWNER}/${REPO}/pulls/${PULL_NUMBER}/comments/${COMMENT_ID}/replies" \
-     -X POST -f body="${BODY}"
+If the user selects "Other" or cancels, do nothing and report that no action was taken.
 
-   # Standalone (issue comment) — only when Step 2/2a determined this path
-   gh pr comment "${OWNER}/${REPO}#${PULL_NUMBER}" --body "${BODY}"
-   ```
+#### Step 6-2: Execute selected actions sequentially
 
-2. If the thread reply API call fails:
-   - **DO NOT silently fall back to `gh pr comment`**. Thread reply failure MUST NOT be converted to a standalone comment automatically.
-   - Report the error (status code, response body) to the user.
-   - Use `AskUserQuestion` to ask whether to (a) retry, (b) post as a standalone comment instead, or (c) abort.
-3. Report: `✅ 元のPRコメントに返信しました`
+Execute only the steps covered by the user's choice. Stop immediately if any step fails (unless a retry is chosen).
 
-If user cancels, skip posting and report that the reply was skipped.
+**Step A — Commit** (all choices)
+
+```bash
+git add -A  # or stage specific files reviewed in Phase 4
+git commit -m "<drafted message>"
+```
+
+If commit fails: report the error and abort. Do not proceed to push/reply/resolve.
+
+After commit, record remote HEAD for later reference:
+
+```bash
+BEFORE_SHA=$(git rev-parse origin/$(git branch --show-current) 2>/dev/null || git rev-parse HEAD^)
+```
+
+**Step B — Push** (choices 2, 3, 4)
+
+```bash
+git push origin HEAD
+```
+
+If push fails: use `AskUserQuestion` to ask `(a) 再試行 / (b) 中止`. On retry success, continue. On abort, skip reply and resolve and report.
+
+**Step C — Reply** (choices 3, 4)
+
+Build the actual reply body using real commit hashes from Step A:
+
+```bash
+git log ${BEFORE_SHA}..HEAD --format='%h %H %s'
+```
+
+Post using the method determined in Step 5-2:
+
+```bash
+# Thread reply
+gh api "repos/${OWNER}/${REPO}/pulls/${PULL_NUMBER}/comments/${COMMENT_ID}/replies" \
+  -X POST -f body="${BODY}"
+
+# Standalone (issue comment) — only when REPLY_PATH=standalone
+gh pr comment "${OWNER}/${REPO}#${PULL_NUMBER}" --body "${BODY}"
+```
+
+If thread reply fails:
+- **DO NOT silently fall back to `gh pr comment`**.
+- Report the error (status code, response body).
+- Use `AskUserQuestion` to ask `(a) 再試行 / (b) standalone に降格 / (c) 中止`.
+  - If downgrading from `#discussion_r` → warn the user that thread context will be lost.
+
+Track reply result in `REPLY_STATUS` (`success` / `failed` / `skipped`).
+
+**Step D — Resolve** (choice 4 only)
+
+Before resolving, check `REPLY_STATUS`:
+- If `REPLY_STATUS=failed`: use `AskUserQuestion` to ask `「返信が失敗しましたが resolve は実行しますか？」 (a) 実行する / (b) スキップ`.
+- If `REPLY_STATUS=success` or `skipped by user`: proceed without additional confirmation.
+
+```bash
+gh api graphql \
+  -F id="$THREAD_NODE_ID" \
+  -f query='
+    mutation($id:ID!){
+      resolveReviewThread(input:{threadId:$id}){ thread{ id isResolved } }
+    }'
+```
+
+If mutation fails or returns `isResolved=false`:
+- Use `AskUserQuestion` to ask `(a) 再試行 / (b) スキップ`.
+
+#### Step 6-3: Final summary
+
+Report the result of each executed step:
+
+```
+## 実行結果
+- ✅ Commit: {short_hash} {subject}
+- ✅ Push: origin/{branch}
+- ✅ Reply: {url} （thread reply）
+- ✅ Resolve: thread {PRRT_...} を resolved に変更
+```
+
+Use `⚠️` for errors and `⏭️` for skipped steps.
+
+---
 
 ## Output Format
 
@@ -165,15 +326,19 @@ If user cancels, skip posting and report that the reply was skipped.
 
 Output the design in Japanese following the structure above.
 
-### During Implementation (Phase 3-5)
+### During Implementation (Phase 3-4)
 
 Provide progress updates for each step:
 
 - "✅ ファイルXを修正しました"
 - "✅ 変更内容を確認しました"
+
+### During Execution (Phase 6)
+
 - "✅ コミットを作成しました: [commit message]"
 - "✅ リモートブランチにプッシュしました"
 - "✅ 元のPRコメントに返信しました (<reply_url_or_comment_link>)"
+- "✅ review thread を resolve しました (PRRT_...)"
 
 ### Final Summary
 
@@ -182,6 +347,7 @@ Provide a summary including:
 - Modified files and changes made
 - Commit hash and message
 - Reply comment URL (if posted)
+- Resolve result (if executed)
 - Next steps (if any)
 
 ## Notes
@@ -193,3 +359,5 @@ Provide a summary including:
 - Use Write tool only when creating new files
 - Ensure all changes are tested if applicable
 - Follow the project's git commit conventions
+- Commit / push / reply / resolve are all selected in a **single** `AskUserQuestion` at the end of Phase 5
+- The resolve option is offered only when the original comment author is a bot or the authenticated user themselves, and the thread is currently unresolved
