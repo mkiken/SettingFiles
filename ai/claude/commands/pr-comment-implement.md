@@ -208,10 +208,13 @@ Before calling `AskUserQuestion`, print the following Markdown to chat:
 Present a **single** `AskUserQuestion` with the following options. Build the options list dynamically:
 
 ```
-options = [
-  { label: "コミットのみ",              description: "git commit のみ作成。push も返信も resolve もしません。" },
-  { label: "コミット & push",           description: "commit 後に origin へ push します。返信・resolve はしません。" },
-]
+options = []
+
+if CAN_OFFER_RESOLVE:
+  options.append({
+    label: "コミット & push & 返信 & resolve",
+    description: "さらに元コメントの review thread を resolve します（author が bot/自分のため提示）。"
+  })
 
 if REPLY_PATH in ("thread", "standalone"):
   options.append({
@@ -219,11 +222,8 @@ if REPLY_PATH in ("thread", "standalone"):
     description: "さらに上記プレビューの本文で元PRコメントに返信します（{thread reply|standalone}）。"
   })
 
-if CAN_OFFER_RESOLVE:
-  options.append({
-    label: "コミット & push & 返信 & resolve",
-    description: "さらに元コメントの review thread を resolve します（author が bot/自分のため提示）。"
-  })
+options.append({ label: "コミット & push",  description: "commit 後に origin へ push します。返信・resolve はしません。" })
+options.append({ label: "コミットのみ",     description: "git commit のみ作成。push も返信も resolve もしません。" })
 ```
 
 Question: 「実装が完了しました。以下のうちどこまで自動実行しますか？（プレビューは上記参照）」
