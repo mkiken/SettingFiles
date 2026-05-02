@@ -33,7 +33,7 @@ When providing feedback, code review, or critical analysis, this protocol takes 
 
 # Post-Implementation Workflow
 
-When implementation tasks instructed by the user are completed, ask the user which follow-up action to take. Use the Ask-style tool defined in the `# User Confirmation` section of your environment (do not ask in plain text). Present exactly these three options:
+When implementation tasks instructed by the user are completed, ask the user which follow-up action to take. Prefer the Ask-style tool defined in the `# User Confirmation` section of your environment when it is available. If the tool is unavailable in the current mode, fall back to a concise plain text question. Present exactly these three options:
 
 - **コミットのみ** — コミットを作成するがプッシュはしない
 - **コミットしてプッシュ** — コミットを作成し、リモートへプッシュする
