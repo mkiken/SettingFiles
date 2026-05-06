@@ -45,3 +45,8 @@ resize-overlay = never
 # Shift+Enter / Alt+Enter で改行（codex CLI / Claude Code 共通、tmux内でも機能）
 keybind = shift+enter=text:\n
 keybind = alt+enter=text:\n
+# Option+矢印キー等を Alt として tmux に送る（Window切替バインド有効化のため）
+macos-option-as-alt = true
+# Ghostty内蔵のalt+arrow_left/right→esc:b/f変換を無効化（tmuxのM-Left/M-Right捕捉のため）
+keybind = alt+arrow_left=unbind
+keybind = alt+arrow_right=unbind
