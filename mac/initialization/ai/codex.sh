@@ -45,4 +45,6 @@ for skill_dir in "${Repo}ai/codex/skills"/*/; do
   fi
 done
 
+npm install -g @nogataka/ccresume-codex
+
 echo "Codex setup completed."
