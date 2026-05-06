@@ -7,13 +7,13 @@ function notify() {
 
   # タイトルに tmuxウィンドウ番号と時刻を自動付与（NOTIFY_NO_DECORATE=1 で抑制可）
   if [[ -z "${NOTIFY_NO_DECORATE}" ]]; then
-    if ! command -v get_tmux_window_label >/dev/null 2>&1; then
+    if ! command -v get_tmux_label >/dev/null 2>&1; then
       local _twi="${HOME}/Desktop/repository/SettingFiles/shell/tmux/tmux_window_info.sh"
       [[ -f "$_twi" ]] && source "$_twi"
     fi
     local tmux_label=""
-    if command -v get_tmux_window_label >/dev/null 2>&1; then
-      tmux_label=$(get_tmux_window_label)
+    if command -v get_tmux_label >/dev/null 2>&1; then
+      tmux_label=$(get_tmux_label)
     fi
     local display_time="${time_override:-$(date "+%H:%M:%S")}"
     title="${title}${tmux_label} 🕰️${display_time}"
