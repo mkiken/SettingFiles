@@ -26,7 +26,9 @@ echo "start tmux plugin update."
 ~/.tmux/plugins/tpm/bin/update_plugins all
 echo "end tmux plugin update."
 
-npm update -g
+npm install -g npm@latest
+# semver範囲外を含む全アウトデートパッケージを最新版に更新
+npm outdated -g --parseable 2>/dev/null | cut -d: -f4 | while read -r pkg; do npm install -g "$pkg"; done
 
 pipx upgrade-all -v
 
