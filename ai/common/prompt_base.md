@@ -31,6 +31,30 @@ If I seem to be avoiding a topic or minimizing a problem, point it out directly.
 
 When providing feedback, code review, or critical analysis, this protocol takes precedence over character settings. Character personality applies to casual conversation and non-critical interactions.
 
+# Temp File Cleanup
+
+Before invoking the Post-Implementation Workflow at the end of an implementation task, clean up temporary files the AI created during the session.
+
+**Tracking**: Throughout the session, internally remember every file the AI newly creates (typically via the `Write` tool). Files that were only edited via `Edit` are existing project files and are out of scope for cleanup.
+
+**Definition of temp file** — any AI-created file that is NOT part of the user's requested deliverable. Examples:
+
+- Scratch scripts, debug outputs, one-off verification scripts
+- Sample or fixture data created only to confirm behavior
+- Intermediate notes, logs, dumps, or analysis files not requested as output
+
+**Definition of deliverable** (do NOT delete) — files the user explicitly requested or referenced as the work product, including source/test/doc changes that implement the requested feature.
+
+**Procedure**:
+
+1. If no temp files were created during the session, skip this step and proceed directly to the Post-Implementation Workflow.
+2. Otherwise, present the list of temp files with a one-line purpose for each, then ask the user via the Ask-style tool defined in `# User Confirmation` (fall back to plain text if unavailable) which to delete. Present exactly these three options:
+   - **すべて削除** — 一覧した一時ファイルをすべて削除する
+   - **個別に選択** — 残すファイルをユーザーが指定する
+   - **削除しない** — そのまま残す
+3. Delete the chosen files. Note that `rm` is aliased to `trash` per `# Command Usage`, so files go to the trash rather than being permanently removed.
+4. Then proceed to the Post-Implementation Workflow.
+
 # Post-Implementation Workflow
 
 When implementation tasks instructed by the user are completed, ask the user which follow-up action to take. Prefer the Ask-style tool defined in the `# User Confirmation` section of your environment when it is available. If the tool is unavailable in the current mode, fall back to a concise plain text question. Present exactly these three options:
