@@ -27,6 +27,7 @@ make_symlink "${Repo}shell/tmux/fzf-jump-window.sh" ~/.tmux/scripts/fzf-jump-win
 make_symlink "${Repo}shell/tmux/new-session.sh" ~/.tmux/scripts/new-session.sh
 make_symlink "${Repo}shell/tmux/cycle-session.sh" ~/.tmux/scripts/cycle-session.sh
 make_symlink "${Repo}shell/tmux/select-session.sh" ~/.tmux/scripts/select-session.sh
+make_symlink "${Repo}shell/tmux/update-session-ai-status.sh" ~/.tmux/scripts/update-session-ai-status.sh
 
 # Tmux Plugin Manager
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
