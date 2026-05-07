@@ -23,7 +23,7 @@ Compare test files against implementation changes and analyze for:
 
 - **Compare implementation changes against corresponding test files** to identify gaps
 - **Read both test and implementation files** to evaluate coverage meaningfulness
-- **Do not penalize for missing tests on unchanged code** — focus on the PR's changes
+- **Focus on test coverage for changed/new code** — for unchanged code, report missing tests only when their absence creates a critical impact risk (outage or data loss if the untested code breaks). Mark such findings with `[既存コード]` prefix (e.g., `[既存コード] **[path:line]**`) and state which impact category applies.
 - **Assign confidence scores 0-100** to each finding; omit any finding below 75
 - Focus on tests that are practically missing, not just stylistically imperfect
 - **Line numbers are mandatory** — the `+A` value in each diff hunk header `@@ -X,Y +A,B @@` is the starting line of the added block; add the offset of the changed line to get the exact number. If the exact line cannot be determined, use the nearest hunk start and report as `[path/to/file.ext:~line]` — omitting the line number entirely is not allowed

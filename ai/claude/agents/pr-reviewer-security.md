@@ -27,6 +27,12 @@ Read full file contents for changed files to understand security context, then a
 - **Do not report** issues that require already-compromised infrastructure to exploit
 - **Assign confidence scores 0-100** to each finding; omit any finding below 75
 - Consider the application's trust model when evaluating severity
+- **Changed code is primary focus** — findings MUST target lines added or modified in the PR diff. For pre-existing issues in unchanged code, report ONLY when the issue falls into one of these critical impact categories:
+  - **Security breach**: concrete exploitable attack vector (auth bypass, RCE, injection, secret exposure)
+  - **Data corruption/loss**: silent overwrite, missing transaction, irreversible mutation
+  - **Service outage**: crash, infinite loop, deadlock, resource exhaustion under realistic load
+  - **Compliance violation**: PII handling, license breach, audit trail loss
+  Mark pre-existing findings with `[既存コード]` prefix (e.g., `[既存コード] **[path:line]**`) and state which impact category applies. All other pre-existing issues MUST be omitted, regardless of confidence score.
 - **Line numbers are mandatory** — the `+A` value in each diff hunk header `@@ -X,Y +A,B @@` is the starting line of the added block; add the offset of the changed line to get the exact number. If the exact line cannot be determined, use the nearest hunk start and report as `[path/to/file.ext:~line]` — omitting the line number entirely is not allowed
 
 ## Input

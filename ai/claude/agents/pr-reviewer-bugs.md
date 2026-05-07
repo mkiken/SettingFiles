@@ -21,7 +21,7 @@ Analyze only the changed lines in the diff for:
 
 ## Rules
 
-- **Analyze diff changes only** — do not report issues in unchanged surrounding code
+- **Changed code is primary focus** — for unchanged surrounding code, report only issues that fall into a critical impact category (security breach, data corruption/loss, service outage, compliance violation). Mark such findings with `[既存コード]` prefix (e.g., `[既存コード] **[path:line]**`) and state which impact category applies. All other pre-existing issues MUST be omitted.
 - **Do not report** style issues, linting violations, or formatting problems
 - **Do not report** issues already caught by static analysis tools
 - **Assign confidence scores 0-100** to each finding; omit any finding below 75

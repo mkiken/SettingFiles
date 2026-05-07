@@ -29,6 +29,12 @@ Explore the file tree and module boundaries, then analyze for:
 - **Do not report** issues better categorized as bugs or security vulnerabilities
 - **Assign confidence scores 0-100** to each finding; omit any finding below 75
 - Ground findings in the actual codebase structure, not hypothetical ideals
+- **Changed code is primary focus** — findings MUST target lines added or modified in the PR diff. For pre-existing structural issues in unchanged code, report ONLY when the issue falls into a critical impact category:
+  - **Security breach**: concrete exploitable attack vector
+  - **Data corruption/loss**: silent overwrite, missing transaction, irreversible mutation
+  - **Service outage**: crash, infinite loop, deadlock, resource exhaustion
+  - **Compliance violation**: PII handling, license breach, audit trail loss
+  Mark pre-existing findings with `[既存コード]` prefix (e.g., `[既存コード] **[path:line]**`) and state which impact category applies. All other pre-existing issues MUST be omitted, regardless of confidence score.
 - **Line numbers are mandatory** — the `+A` value in each diff hunk header `@@ -X,Y +A,B @@` is the starting line of the added block; add the offset of the changed line to get the exact number. If the exact line cannot be determined, use the nearest hunk start and report as `[path/to/file.ext:~line]` — omitting the line number entirely is not allowed
 
 ## Input
