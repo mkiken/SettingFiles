@@ -32,6 +32,7 @@ Trace error propagation paths through changed code and analyze for:
   - **Compliance violation**: PII handling, license breach, audit trail loss
   Mark pre-existing findings with `[既存コード]` prefix (e.g., `[既存コード] **[path:line]**`) and state which impact category applies. All other pre-existing issues MUST be omitted, regardless of confidence score.
 - **Line numbers are mandatory** — the `+A` value in each diff hunk header `@@ -X,Y +A,B @@` is the starting line of the added block; add the offset of the changed line to get the exact number. If the exact line cannot be determined, use the nearest hunk start and report as `[path/to/file.ext:~line]` — omitting the line number entirely is not allowed
+- **Existing-comment deduplication**: Before outputting each finding, check the existing PR comments NDJSON passed in the input. Skip a finding when it overlaps an unresolved existing comment (same `path` + line within ±5 AND same root cause, OR same target symbol/concept addressable by the same fix) and your duplicate confidence is ≥ 70. Do NOT skip if `is_resolved == true` or `is_outdated == true`. List each skipped finding at the end of your response as: `[既コメント済スキップ] [path:line] — <reason>`
 
 ## Input
 
@@ -39,6 +40,7 @@ You will receive:
 - PR metadata (title, description, base/head branch, repository owner/name)
 - Complete PR diff
 - A flag indicating whether **local mode** is active (current branch matches headRefName)
+- Existing PR comments as NDJSON (passed by the parent skill; do not re-fetch)
 
 To trace error propagation by reading full file contents:
 - **If local mode**: Use the `Read` tool to read files directly

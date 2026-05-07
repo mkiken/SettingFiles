@@ -1,9 +1,17 @@
 description = "Comprehensive PR review using gh command for specified PR number"
-prompt = """Perform a comprehensive PR review for {{args}}.
+prompt = """
+!{cat ~/.gemini/common/pr_existing_comments_policy.md}
+
+---
+
+Perform a comprehensive PR review for {{args}}.
 
 CRITICAL: Run these commands FIRST:
 !{gh pr view {{args}} --json number,url,title,author,headRefName,baseRefName,isDraft,mergeable,state,additions,deletions,changedFiles}
 !{git branch --show-current}
+!{bash ~/.gemini/bin/fetch_existing_comments.sh {{args}}}
+
+The last command above outputs existing PR comments as NDJSON. Use it for duplicate detection per the policy loaded at the top of this prompt.
 
 To get the PR body (description), run `gh pr view {{args}} --json body --jq '.body'` via `run_shell_command`.
 To see the code changes, use your `run_shell_command` tool to execute `gh pr diff {{args}}`.
@@ -154,6 +162,20 @@ Example:
 
 - Specific improvement suggestions
 - Alternative implementation approaches (if needed)
+
+### **[既コメント済] スキップした指摘**
+
+If any findings were skipped due to duplication with existing PR comments (per the policy at the top), add this section **before** the Post-Review block:
+
+```
+## [既コメント済] スキップした指摘
+
+> 既存PRコメントと意味的に重複したため出力から除外:
+
+- **[path:line]** Category / 既存コメント ID: <id> (resolved=<bool>, ai_origin=<value>) — <reason>
+```
+
+Omit this section entirely when nothing is skipped.
 
 ### **Post-Review**
 

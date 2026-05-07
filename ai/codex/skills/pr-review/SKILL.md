@@ -37,9 +37,25 @@ Before starting the review, determine the file access mode:
 Fetch primary review materials:
 - PR metadata is already fetched in the step above
 - `gh pr diff <PR_NUMBER>` — Complete diff (**Note: file path arguments are not supported; always fetch the full diff and filter locally if needed**)
-- `gh pr view <PR_NUMBER> --comments` — Existing comments
+- `bash "$(git rev-parse --show-toplevel)/shell/common/pr/fetch_existing_comments.sh" <PR_NUMBER>` — Existing PR comments as NDJSON (inline, issue, and review-summary with resolved/outdated status)
 
 For deeper investigation (referencing files outside diff, checking surrounding context), use the method determined above.
+
+### Existing Comment Deduplication
+
+Before finalizing each finding, check whether it is already covered by an existing PR comment:
+
+1. **Skip resolved/outdated from duplicate matching**: `is_resolved == true` or `is_outdated == true` → non-existing. Re-reporting is allowed; append `(参考: 過去にresolved済みの既存コメント #<id> と同様の指摘)` to the detail line.
+2. **Mark as duplicate** when: same `path` + line within ±5 AND same root cause, OR same target symbol/concept addressable by the same fix.
+3. **Do NOT skip**: same problem type at a different file, or a more specific finding requiring a different fix.
+4. **Confidence threshold**: skip only when your duplicate confidence is ≥ 70. Below 70, output both.
+5. `ai_origin` does not affect the duplicate decision — judge on content only.
+
+When findings are skipped, add **`## [既コメント済] スキップした指摘`** immediately before the Post-Review block:
+```
+- **[path:line]** Category / 既存コメント ID: <id> (resolved=<bool>, ai_origin=<value>) — <reason>
+```
+Omit this section entirely when nothing is skipped.
 
 ### Review Comment Priority
 

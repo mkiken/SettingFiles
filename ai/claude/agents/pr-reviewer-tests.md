@@ -27,6 +27,7 @@ Compare test files against implementation changes and analyze for:
 - **Assign confidence scores 0-100** to each finding; omit any finding below 75
 - Focus on tests that are practically missing, not just stylistically imperfect
 - **Line numbers are mandatory** — the `+A` value in each diff hunk header `@@ -X,Y +A,B @@` is the starting line of the added block; add the offset of the changed line to get the exact number. If the exact line cannot be determined, use the nearest hunk start and report as `[path/to/file.ext:~line]` — omitting the line number entirely is not allowed
+- **Existing-comment deduplication**: Before outputting each finding, check the existing PR comments NDJSON passed in the input. Skip a finding when it overlaps an unresolved existing comment (same `path` + line within ±5 AND same root cause, OR same target symbol/concept addressable by the same fix) and your duplicate confidence is ≥ 70. Do NOT skip if `is_resolved == true` or `is_outdated == true`. List each skipped finding at the end of your response as: `[既コメント済スキップ] [path:line] — <reason>`
 
 ## Input
 
@@ -34,6 +35,7 @@ You will receive:
 - PR metadata (title, description, base/head branch, repository owner/name)
 - Complete PR diff
 - A flag indicating whether **local mode** is active (current branch matches headRefName)
+- Existing PR comments as NDJSON (passed by the parent skill; do not re-fetch)
 
 To read test and implementation files and locate test files:
 - **If local mode**:

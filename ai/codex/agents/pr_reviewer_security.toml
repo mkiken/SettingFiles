@@ -24,6 +24,7 @@ Rules:
 - Consider the application's actual trust model and exposed surfaces.
 - Assign confidence scores from 0 to 100 and omit findings below 75.
 - Every finding must cite a changed line as [path/to/file.ext:line]. If exact line resolution is impossible, use the nearest changed hunk start as [path/to/file.ext:~line].
+- Existing-comment deduplication: the parent skill passes the current PR's existing comments as NDJSON in the context. Before outputting each finding, check whether it is already covered by an unresolved existing comment (same path + line ±5 AND same root cause, or same target symbol/concept fixable by the same fix) with your duplicate confidence ≥ 70. Do NOT skip if is_resolved or is_outdated is true. List each skipped finding at the end as: [既コメント済スキップ] [path:line] — <reason>
 
 Output in Japanese. For each finding, use:
 

@@ -26,6 +26,7 @@ gh pr view <PR_NUMBER> --json title,body,baseRefName,headRefName,url,files,commi
 gh pr diff <PR_NUMBER>
 gh repo view --json nameWithOwner
 git branch --show-current
+bash "$(git rev-parse --show-toplevel)/shell/common/pr/fetch_existing_comments.sh" <PR_NUMBER>
 ```
 
 Compare the current branch with `headRefName`.
@@ -39,6 +40,7 @@ Pass each subagent:
 - PR metadata.
 - Repository owner/name.
 - Complete PR diff.
+- **Existing PR comments** (the full NDJSON output from the fetch above — inline, issue, and review-summary with `is_resolved`, `is_outdated`, `path`, `line`, `body`, `ai_origin`).
 - Local mode flag and head branch.
 - The exact focus area for that subagent.
 
@@ -60,13 +62,15 @@ Each subagent must stay read-only and return Japanese findings in its own config
 After all subagents finish:
 
 - Drop "no findings" messages from the final findings list, but include them in the summary counts as zero.
-- Remove duplicates. Treat findings as duplicates when they cite the same file/line and same underlying cause; keep the clearest/highest-confidence version.
+- **Remove inter-agent duplicates**: findings citing the same file/line with the same underlying cause; keep the clearest/highest-confidence version.
+- **Remove PR-comment duplicates**: for each remaining finding, check against the existing PR comments NDJSON fetched above. Mark as duplicate when the finding overlaps an unresolved existing comment (same path + line within ±5 AND same root cause, OR same target symbol/concept addressable by the same fix) and duplicate confidence is ≥ 70. Do NOT skip if `is_resolved == true` or `is_outdated == true`. Collect all skipped findings to emit in the `[既コメント済]` section below.
 - Reclassify priority by confidence:
   - High: 90-100
   - Medium: 75-89
   - Low: notable issues below the main threshold only when a subagent explicitly reports one as worth mentioning.
 - Validate that every final finding has a `[path/to/file.ext:line]` or `[path/to/file.ext:~line]` reference. Do not include findings without a line reference.
 - Number findings sequentially across all priority sections. Do not restart numbering per section.
+- If any findings were removed in the PR-comment deduplication step above, add a **`## [既コメント済] スキップした指摘`** section immediately before `## 総合評価`: one line per skipped finding as `- **[path:line]** 領域: <area> / 既存コメント ID: <id> (resolved=<bool>, ai_origin=<value>) — <reason>`. Omit this section entirely when nothing was removed.
 
 ### Formatting Rules
 

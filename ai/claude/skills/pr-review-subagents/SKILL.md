@@ -34,6 +34,7 @@ gh pr view $ARGUMENTS --json title,body,baseRefName,headRefName,url
 gh pr diff $ARGUMENTS  # NOTE: file path arguments are not supported; fetch full diff and filter locally if needed
 gh repo view --json nameWithOwner
 git branch --show-current  # Detect local mode
+bash "$(git rev-parse --show-toplevel)/shell/common/pr/fetch_existing_comments.sh" $ARGUMENTS  # Existing PR comments as NDJSON
 ```
 
 Compare the output of `git branch --show-current` with `headRefName`. If they match, **local mode** is active — sub-agents can use `Read` and `Glob` tools directly instead of `gh api`.
@@ -45,6 +46,7 @@ Pass the following to each sub-agent as context:
 - PR number: `$ARGUMENTS`
 - PR metadata (title, body, base/head branch, repository owner/name)
 - Complete PR diff
+- **Existing PR comments**: the full NDJSON output from Phase 1 (inline, issue, and review-summary comments with `is_resolved`, `is_outdated`, `path`, `line`, `body`, `ai_origin`)
 - **Local mode**: whether the current branch matches `headRefName` (true/false). If true, instruct sub-agents to use `Read` and `Glob` tools for file reading instead of `gh api`.
 - **Scope rule**: Focus findings on changed lines. For pre-existing issues in unchanged code, report only critical impact categories (security breach, data corruption/loss, service outage, compliance violation) with a `[既存コード]` prefix.
 
@@ -61,11 +63,19 @@ Launch all agents simultaneously:
 
 Collect all sub-agent findings, then:
 
-1. Remove duplicate findings (same file:line reported by multiple agents)
-2. Reclassify priorities based on confidence scores
-3. Assign sequential numbers to all findings across all priority sections (continue numbering across sections — do not restart per section)
-4. Format structured output following the Formatting Rules below
-5. **Validate line numbers**: any finding not in `[path/to/file.ext:line]` format must be supplemented by referencing the original diff; findings without a line number must not appear in the final output
+1. **Remove inter-agent duplicates**: same file:line reported by multiple agents → keep the highest-confidence version.
+2. **Remove PR-comment duplicates**: for each remaining finding, check against the existing PR comments fetched in Phase 1:
+   - Exclude `is_resolved == true` or `is_outdated == true` entries from duplicate matching (re-reporting allowed; append `(参考: 過去にresolved済みの既存コメント #<id> と同様の指摘)` to detail).
+   - Mark as duplicate when: same `path` + line within ±5 AND same root cause, OR same target symbol/concept addressable by the same fix.
+   - Do NOT skip: same problem type at a different file, or a more specific finding requiring a distinct fix.
+   - Skip only when duplicate confidence is ≥ 70.
+3. Reclassify priorities based on confidence scores.
+4. Assign sequential numbers to all findings across all priority sections (continue numbering across sections — do not restart per section).
+5. Format structured output following the Formatting Rules below.
+6. **Validate line numbers**: any finding not in `[path/to/file.ext:line]` format must be supplemented by referencing the original diff; findings without a line number must not appear in the final output.
+7. If any findings were removed in step 2, add **`## [既コメント済] スキップした指摘`** immediately before `## 総合評価` with one line per skipped finding:
+   `- **[path:line]** 領域: <area> / 既存コメント ID: <id> (resolved=<bool>, ai_origin=<value>) — <reason>`
+   Omit this section entirely when nothing was removed.
 
 ### Formatting Rules
 

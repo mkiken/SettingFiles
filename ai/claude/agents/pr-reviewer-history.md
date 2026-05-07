@@ -30,16 +30,18 @@ Use git history and past PRs as your primary evidence source, analyzing for:
   - **Compliance violation**: PII handling, license breach, audit trail loss
   Mark pre-existing findings with `[既存コード]` prefix (e.g., `[既存コード] **[path:line]**`) and state which impact category applies. All other pre-existing issues MUST be omitted, regardless of confidence score.
 - **Line numbers are mandatory** — the `+A` value in each diff hunk header `@@ -X,Y +A,B @@` is the starting line of the added block; add the offset of the changed line to get the exact number. If the exact line cannot be determined, use the nearest hunk start and report as `[path/to/file.ext:~line]` — omitting the line number entirely is not allowed
+- **Existing-comment deduplication**: Before outputting each finding, check the existing PR comments NDJSON passed in the input. Skip a finding when it overlaps an unresolved existing comment (same `path` + line within ±5 AND same root cause, OR same target symbol/concept addressable by the same fix) and your duplicate confidence is ≥ 70. Do NOT skip if `is_resolved == true` or `is_outdated == true`. List each skipped finding at the end of your response as: `[既コメント済スキップ] [path:line] — <reason>`
 
 ## Input
 
 You will receive:
 - PR metadata (title, description, base/head branch, repository owner/name)
 - Complete PR diff
-- Use these gh commands to investigate history:
+- Existing PR comments as NDJSON (passed by the parent skill; do not re-fetch — use for deduplication only)
+- Use these gh commands to investigate **past** PRs and commit history (distinct from existing comments on the current PR):
   - `gh api repos/{owner}/{repo}/commits?path={file}&per_page=10` — recent commits for a file
   - `gh pr list --state merged --limit 20 --json number,title,files` — recent merged PRs
-  - `gh pr view {number} --comments` — past PR review comments
+  - `gh pr view {number} --comments` — comments on a **different past PR** (not the current one)
 
 ## Output Format
 
