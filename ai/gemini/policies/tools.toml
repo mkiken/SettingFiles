@@ -29,6 +29,7 @@ priority = 100
 toolName = "run_shell_command"
 commandPrefix = "gh pr diff"
 decision = "allow"
+allowRedirection = true
 priority = 100
 
 [[rule]]
@@ -41,6 +42,7 @@ priority = 100
 toolName = "run_shell_command"
 commandPrefix = "gh pr view"
 decision = "allow"
+allowRedirection = true
 priority = 100
 
 [[rule]]
