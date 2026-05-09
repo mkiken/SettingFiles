@@ -1,0 +1,51 @@
+prefix_rule(
+    pattern = ["git", "add"],
+    decision = "allow",
+    justification = "Allow Codex to stage changes without prompting",
+    match = ["git add ai/codex/config.toml", "git add -A", "git add ."],
+    not_match = ["git commit -m fix", "git push"],
+)
+
+prefix_rule(
+    pattern = ["git", "commit", "-m"],
+    decision = "allow",
+    justification = "Allow Codex to create normal local commits without prompting",
+    match = ["git commit -m fix", "git commit -m fix --no-verify"],
+    not_match = ["git commit --amend --no-edit", "git push"],
+)
+
+prefix_rule(
+    pattern = ["git", "commit", "--message"],
+    decision = "allow",
+    justification = "Allow Codex to create normal local commits without prompting",
+    match = ["git commit --message fix"],
+    not_match = ["git commit --amend --no-edit", "git push"],
+)
+
+prefix_rule(
+    pattern = ["git", "push", "--force"],
+    decision = "forbidden",
+    justification = "Force push must remain manual",
+    match = ["git push --force origin main"],
+)
+
+prefix_rule(
+    pattern = ["git", "push", "-f"],
+    decision = "forbidden",
+    justification = "Force push must remain manual",
+    match = ["git push -f origin main"],
+)
+
+prefix_rule(
+    pattern = ["git", "push", "--force-with-lease"],
+    decision = "forbidden",
+    justification = "Force push must remain manual",
+    match = ["git push --force-with-lease origin main"],
+)
+
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "allow",
+    justification = "Allow Codex to push normal commits without prompting",
+    match = ["git push", "git push origin HEAD", "git push -u origin HEAD"],
+)

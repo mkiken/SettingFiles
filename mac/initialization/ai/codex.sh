@@ -26,6 +26,15 @@ make_symlink "${Repo}ai/codex/hooks.json" ~/.codex/hooks.json
 
 chmod +x ~/.codex/hooks/codex-stop-notification.sh
 
+# rules はファイル単位でシンボリックリンク
+rules_dest=~/.codex/rules
+mkdir -p "$rules_dest"
+for file in "${Repo}ai/codex/rules"/*; do
+  if [[ -f "$file" ]]; then
+    make_symlink "$file" "${rules_dest}/$(basename "$file")"
+  fi
+done
+
 # agents はファイル単位でシンボリックリンク
 agents_dest=~/.codex/agents
 mkdir -p "$agents_dest"
