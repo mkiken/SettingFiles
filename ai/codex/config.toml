@@ -1,11 +1,11 @@
 approval_policy = 'on-request'
 sandbox_mode = 'danger-full-access'
 plan_mode_reasoning_effort = 'xhigh'
+suppress_unstable_features_warning = true
 
 [features]
 hooks = true
 default_mode_request_user_input = true
-suppress_unstable_features_warning = true
 
 [agents]
 max_threads = 6
