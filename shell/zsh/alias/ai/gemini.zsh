@@ -33,6 +33,16 @@ gm-pr-review() {
     gmp --approval-mode yolo -i "/pr-review $pr_number $*"
 }
 
+gm-pr-review-subagent() {
+    local pr_number
+    pr_number=$(gh pr view --json number --jq .number) || {
+        echo "現在のブランチに対応するPRが見つかりません。" >&2
+        return 1
+    }
+    gmp --approval-mode yolo -i "/pr-review-subagents $pr_number $*"
+}
+alias gm-pr-review-subagents='gm-pr-review-subagent'
+
 gm-pr-body() {
     gmp -i "/pr-body $*"
 }

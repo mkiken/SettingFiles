@@ -35,8 +35,8 @@ else
     smart_merge_json "${Repo}ai/gemini/settings.json" ~/.gemini/settings.json
 fi
 
-# commands,hooksはディレクトリ内のファイルをコピー
-for item in commands hooks policies; do
+# commands,hooksなどはディレクトリ内のファイルをコピー
+for item in agents commands hooks policies; do
   mkdir -p ~/.gemini/${item}
   for file in "${Repo}ai/gemini/${item}"/*; do
     if [[ -f "$file" ]]; then

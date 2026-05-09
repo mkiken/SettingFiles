@@ -42,7 +42,7 @@ review-subagents() {
     current_window=$(tmux display-message -p '#{window_id}')
     review_name=$(_review_window_name)
 
-    tmux new-window -n "${review_name}" "zsh -ic 'gm-pr-review; zsh'"
+    tmux new-window -n "${review_name}" "zsh -ic 'gm-pr-review-subagents; zsh'"
     tmux new-window -n "${review_name}" "zsh -ic 'cx-pr-review-subagent; zsh'"
 
     tmux rename-window -t "${current_window}" "${review_name}"
@@ -61,7 +61,7 @@ review-all() {
     review_name=$(_review_window_name)
 
     tmux new-window -n "${review_name}" "zsh -ic 'cl-pr-review-subagents; zsh'"
-    tmux new-window -n "${review_name}" "zsh -ic 'gm-pr-review; zsh'"
+    tmux new-window -n "${review_name}" "zsh -ic 'gm-pr-review-subagents; zsh'"
     tmux new-window -n "${review_name}" "zsh -ic 'cx-pr-review-subagent; zsh'"
 
     tmux rename-window -t "${current_window}" "${review_name}"
