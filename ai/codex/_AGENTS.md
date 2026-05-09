@@ -57,7 +57,11 @@ Before invoking the Post-Implementation Workflow at the end of an implementation
 
 # Post-Implementation Workflow
 
-When implementation tasks instructed by the user are completed, ask the user which follow-up action to take. You MUST use the Ask-style tool defined in the `# User Confirmation` section of your environment — plain text questions are forbidden. If the tool's schema is not currently loaded (e.g., it is a deferred tool), load it first via the appropriate mechanism before asking. The only permitted exception is when the tool truly cannot be invoked in the current mode (e.g., a restricted environment); in that case, state explicitly why the fallback is needed before falling back. Present exactly these three options:
+Before invoking this workflow, decide whether a commit is actually needed. If needed, inspect the working tree with `git status` or equivalent evidence.
+
+Skip this workflow entirely and do not ask the user for a commit decision when no commit is needed. This includes read-only work, planning, investigation, review-only tasks, tasks that produced no repository deliverable changes, tasks where only temporary files were created and then deleted, and tasks where the user explicitly said not to commit or not to use git.
+
+When implementation tasks instructed by the user are completed and a commit is needed, ask the user which follow-up action to take. You MUST use the Ask-style tool defined in the `# User Confirmation` section of your environment — plain text questions are forbidden. If the tool's schema is not currently loaded (e.g., it is a deferred tool), load it first via the appropriate mechanism before asking. The only permitted exception is when the tool truly cannot be invoked in the current mode (e.g., a restricted environment); in that case, state explicitly why the fallback is needed before falling back. Present exactly these three options:
 
 - **コミットしてプッシュ** — コミットを作成し、リモートへプッシュする
 - **コミットのみ** — コミットを作成するがプッシュはしない
