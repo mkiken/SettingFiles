@@ -99,13 +99,14 @@ SettingFiles/
   - `commands/` - TOML-based custom commands
 - `common/` - Shared resources
   - `prompt_base.md` - Base prompt template
-  - `characters/` - Character personalities (reimu.md, nyaruko.md, hestia.md)
+  - `characters/` - Character personalities (reimu.md, nyaruko.md, nagato_yuki.md, hestia.md)
   - `mcp.json` - MCP server registry
 
 **Assembly Process**:
 
 ```
 prompt_base.md + characters/reimu.md + claude_prompt.md → _CLAUDE.md
+prompt_base.md + characters/nagato_yuki.md + codex_base.md → _AGENTS.md
 ```
 
 **Purpose**: Centralized AI assistant configuration with character-based prompts
@@ -314,12 +315,14 @@ Base Prompt + Character + Tool-Specific → Final Prompt
 ─────────────────────────────────────────────────────────
 prompt_base.md   reimu.md    claude_prompt.md → _CLAUDE.md
 prompt_base.md   nyaruko.md  (inline: Language) → _GEMINI.md
+prompt_base.md   nagato_yuki.md   codex_base.md → _AGENTS.md
 ```
 
 **Character Personalities**:
 
 - `reimu.md` - 博麗霊夢 (Hakurei Reimu) - Claude
 - `nyaruko.md` - ニャル子 (Nyaruko) - Gemini
+- `nagato_yuki.md` - 長門有希 (Yuki Nagato) - Codex
 - `hestia.md` - ヘスティア (Hestia) - Future use
 
 ### Plugin Management
@@ -539,7 +542,7 @@ find .kiro/specs/ -name "requirements.md"
 ## 💡 Notes
 
 - **Symlinks are critical**: Don't copy files manually
-- **Character-driven AI**: Reimu (Claude) and Nyaruko (Gemini) provide personality
+- **Character-driven AI**: Reimu (Claude), Nyaruko (Gemini), and Yuki Nagato (Codex) provide personality
 - **Git submodules**: Always update recursively (`git submodule update --init --recursive`)
 - **Platform-specific**: Use appropriate `initialize` script for your OS
 - **Kiro specs**: Follow 3-phase approval (Requirements → Design → Tasks)
