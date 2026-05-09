@@ -1,0 +1,4 @@
+#!/bin/zsh
+
+script_dir="${0:A:h}"
+exec "$script_dir/../node_modules/.bin/magic" "$@"

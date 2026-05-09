@@ -4,6 +4,8 @@ source "$(dirname "$0")/../../scripts/common.sh"
 
 echo "Setting up Gemini..."
 
+setup_ai_mcp install
+
 # jqコマンドの確認
 if ! command -v jq &> /dev/null; then
     echo "Error: jq is not installed. Please install it with 'brew install jq'"

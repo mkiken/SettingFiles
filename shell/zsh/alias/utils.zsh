@@ -581,3 +581,57 @@ function smart_merge_toml() {
     /bin/rm -rf "$tmpdir"
     return $rc
 }
+
+function setup_ai_mcp() {
+    local mode="install"
+    if [[ "$1" == "update" || "$1" == "--update" ]]; then
+        mode="update"
+    fi
+
+    if [[ "${AI_MCP_SETUP_DONE:-}" == "$mode" ]]; then
+        echo "✓ Shared AI MCP packages already handled for this run: $mode"
+        return 0
+    fi
+
+    local repo_root="${Repo:-$HOME/Desktop/repository/SettingFiles/}"
+    local mcp_dir="${repo_root%/}/ai/common/mcp"
+    local link_dest="$HOME/.config/ai-mcp"
+    local packages=(
+        "@21st-dev/magic"
+        "@modelcontextprotocol/server-sequential-thinking"
+        "@morphllm/morphmcp"
+        "@playwright/mcp"
+        "@superclaude-org/superagent"
+        "@upstash/context7-mcp"
+        "chrome-devtools-mcp"
+        "mcp-obsidian"
+        "mcp-remote"
+        "tavily-mcp"
+    )
+
+    if [[ ! -d "$mcp_dir" ]]; then
+        echo "Error: Shared AI MCP directory not found: $mcp_dir" >&2
+        return 1
+    fi
+
+    if [[ "$mode" == "update" || ! -f "$mcp_dir/package-lock.json" ]]; then
+        echo "Updating shared AI MCP packages..."
+        local latest_packages=("${packages[@]/%/@latest}")
+        npm install --prefix "$mcp_dir" "${latest_packages[@]}"
+    else
+        echo "Installing shared AI MCP packages..."
+        npm install --prefix "$mcp_dir"
+    fi
+    local rc=$?
+    if [[ $rc -ne 0 ]]; then
+        return $rc
+    fi
+
+    make_symlink "$mcp_dir" "$link_dest"
+
+    if [[ -d "$link_dest/bin" ]]; then
+        chmod +x "$link_dest"/bin/*(N)
+    fi
+
+    export AI_MCP_SETUP_DONE="$mode"
+}

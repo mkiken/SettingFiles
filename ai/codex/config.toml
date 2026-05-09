@@ -13,16 +13,16 @@ max_depth = 1
 
 [mcp_servers]
 [mcp_servers.context7]
-args = ['-y', '@upstash/context7-mcp']
-command = 'npx'
+args = ['-c', 'exec "$HOME/.config/ai-mcp/bin/context7"']
+command = 'zsh'
 
 [mcp_servers.gitmcp]
-args = ['-y', 'mcp-remote', 'https://gitmcp.io/docs']
-command = 'npx'
+args = ['-c', 'exec "$HOME/.config/ai-mcp/bin/gitmcp" https://gitmcp.io/docs']
+command = 'zsh'
 
 [mcp_servers.sequential-thinking]
-args = ['-y', '@modelcontextprotocol/server-sequential-thinking']
-command = 'npx'
+args = ['-c', 'exec "$HOME/.config/ai-mcp/bin/sequential-thinking"']
+command = 'zsh'
 
 [tui]
 status_line = ['project-name', 'git-branch', 'thread-title', 'task-progress', 'context-remaining', 'five-hour-limit', 'weekly-limit', 'used-tokens', 'model-with-reasoning']

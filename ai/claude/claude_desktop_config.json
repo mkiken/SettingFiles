@@ -2,17 +2,17 @@
   "globalShortcut": "",
   "mcpServers": {
     "Context7": {
-      "command": "npx",
+      "command": "zsh",
       "args": [
-        "-y",
-        "@upstash/context7-mcp@latest"
+        "-c",
+        "exec \"$HOME/.config/ai-mcp/bin/context7\""
       ]
     },
     "sequential-thinking": {
-      "command": "npx",
+      "command": "zsh",
       "args": [
-        "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
+        "-c",
+        "exec \"$HOME/.config/ai-mcp/bin/sequential-thinking\""
       ]
     },
     "serena": {
@@ -27,11 +27,10 @@
       ]
     },
     "gitmcp": {
-      "command": "npx",
+      "command": "zsh",
       "args": [
-        "-y",
-        "mcp-remote",
-        "https://gitmcp.io/docs"
+        "-c",
+        "exec \"$HOME/.config/ai-mcp/bin/gitmcp\" https://gitmcp.io/docs"
       ]
     }
   },

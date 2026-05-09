@@ -4,6 +4,8 @@ source "$(dirname "$0")/../../scripts/common.sh"
 
 echo "Setting up Claude..."
 
+setup_ai_mcp install
+
 # Claude setup
 echo "UPDATE ${Repo}ai/claude/_CLAUDE.md!"
 
@@ -61,10 +63,10 @@ pipx install claude-code-log
 # 日本語設定にする
 ccundo language ja
 
-claude mcp add sequential-thinking -s user -- npx -y @modelcontextprotocol/server-sequential-thinking
-claude mcp add context7 -s user -- npx -y @upstash/context7-mcp
+claude mcp add sequential-thinking -s user -- zsh -c 'exec "$HOME/.config/ai-mcp/bin/sequential-thinking"'
+claude mcp add context7 -s user -- zsh -c 'exec "$HOME/.config/ai-mcp/bin/context7"'
 claude mcp add serena --scope "user" -- uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context ide-assistant
-claude mcp add gitmcp -s user -- npx mcp-remote https://gitmcp.io/docs
+claude mcp add gitmcp -s user -- zsh -c 'exec "$HOME/.config/ai-mcp/bin/gitmcp" https://gitmcp.io/docs'
 
 claude plugin marketplace add https://github.com/classmethod/tsumiki.git
 claude plugin install tsumiki@tsumiki

@@ -4,6 +4,8 @@ source "$(dirname "$0")/../scripts/common.sh"
 
 echo "Updating Claude tools..."
 
+setup_ai_mcp update
+
 smart_merge_json ~/.claude/settings.json "${Repo}ai/claude/settings.json"
 
 claude update

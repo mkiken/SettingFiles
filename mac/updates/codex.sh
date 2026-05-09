@@ -6,6 +6,8 @@ echo "Updating Codex tools..."
 
 npm i -g @openai/codex@latest
 
+setup_ai_mcp update
+
 # 共通設定テンプレートを ~/.codex/config.toml にマージ
 smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml
 

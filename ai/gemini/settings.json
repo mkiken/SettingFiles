@@ -4,9 +4,10 @@
       "_disabledReason": "Tool names start with '21st_' which violates Gemini's function naming rules (must start with letter/underscore, not number)",
       "_geminiCompatibility": "NOT_COMPATIBLE - Tool names start with '21st_' which violates Gemini function naming rules",
       "args": [
-        "@21st-dev/magic"
+        "-c",
+        "exec \"$HOME/.config/ai-mcp/bin/magic\""
       ],
-      "command": "npx",
+      "command": "zsh",
       "env": {
         "TWENTYFIRST_API_KEY": ""
       },
@@ -111,25 +112,24 @@
   "mcpServers": {
     "context7": {
       "args": [
-        "-y",
-        "@upstash/context7-mcp@latest"
+        "-c",
+        "exec \"$HOME/.config/ai-mcp/bin/context7\""
       ],
-      "command": "npx"
+      "command": "zsh"
     },
     "gitmcp": {
       "args": [
-        "-y",
-        "mcp-remote",
-        "https://gitmcp.io/docs"
+        "-c",
+        "exec \"$HOME/.config/ai-mcp/bin/gitmcp\" https://gitmcp.io/docs"
       ],
-      "command": "npx"
+      "command": "zsh"
     },
     "morphllm-fast-apply": {
       "args": [
-        "-y",
-        "@morphllm/morphmcp"
+        "-c",
+        "exec \"$HOME/.config/ai-mcp/bin/morphllm-fast-apply\""
       ],
-      "command": "npx",
+      "command": "zsh",
       "env": {
         "ALL_TOOLS": "true",
         "MORPH_API_KEY": ""
@@ -137,17 +137,17 @@
     },
     "playwright": {
       "args": [
-        "-y",
-        "@playwright/mcp@latest"
+        "-c",
+        "exec \"$HOME/.config/ai-mcp/bin/playwright\""
       ],
-      "command": "npx"
+      "command": "zsh"
     },
     "sequential-thinking": {
       "args": [
-        "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
+        "-c",
+        "exec \"$HOME/.config/ai-mcp/bin/sequential-thinking\""
       ],
-      "command": "npx"
+      "command": "zsh"
     },
     "serena": {
       "args": [
@@ -162,10 +162,10 @@
     },
     "superagent": {
       "args": [
-        "-y",
-        "@superclaude-org/superagent"
+        "-c",
+        "exec \"$HOME/.config/ai-mcp/bin/superagent\""
       ],
-      "command": "npx"
+      "command": "zsh"
     }
   },
   "model": {

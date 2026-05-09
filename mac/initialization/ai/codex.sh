@@ -6,6 +6,8 @@ echo "Setting up Codex..."
 
 npm install -g @openai/codex
 
+setup_ai_mcp install
+
 # 共通設定テンプレートを ~/.codex/config.toml にマージ
 smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml
 
