@@ -4,6 +4,7 @@ plan_mode_reasoning_effort = 'xhigh'
 
 [features]
 hooks = true
+default_mode_request_user_input = true
 suppress_unstable_features_warning = true
 
 [agents]

@@ -4,4 +4,4 @@ When asking for confirmation, clarification, or any question requiring a user re
 
 Plain text questions end the current turn and trigger the Stop hook, sending a "finished" notification indistinguishable from task completion. `request_user_input` keeps the turn active and avoids the false completion notification.
 
-Note: `request_user_input` is unavailable in some modes (e.g., Default mode and `codex exec` non-interactive runs). In those cases, fall back to a concise plain text question.
+Note: This configuration enables `default_mode_request_user_input`, so try `request_user_input` first when the tool is listed, including in Default mode. If the tool still returns unavailable (e.g., in `codex exec` non-interactive runs), fall back to a concise plain text question and state that the tool was unavailable.
