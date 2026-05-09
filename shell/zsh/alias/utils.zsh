@@ -601,7 +601,6 @@ function setup_ai_mcp() {
         "@modelcontextprotocol/server-sequential-thinking"
         "@morphllm/morphmcp"
         "@playwright/mcp"
-        "@superclaude-org/superagent"
         "@upstash/context7-mcp"
         "chrome-devtools-mcp"
         "mcp-obsidian"

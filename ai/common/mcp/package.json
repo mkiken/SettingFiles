@@ -7,7 +7,6 @@
     "@modelcontextprotocol/server-sequential-thinking": "^2025.12.18",
     "@morphllm/morphmcp": "^0.8.177",
     "@playwright/mcp": "^0.0.75",
-    "@superclaude-org/superagent": "^0.1.15",
     "@upstash/context7-mcp": "^2.2.4",
     "chrome-devtools-mcp": "^0.25.0",
     "mcp-obsidian": "^1.0.0",

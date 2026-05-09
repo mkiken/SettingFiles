@@ -124,17 +124,6 @@
       ],
       "command": "zsh"
     },
-    "morphllm-fast-apply": {
-      "args": [
-        "-c",
-        "exec \"$HOME/.config/ai-mcp/bin/morphllm-fast-apply\""
-      ],
-      "command": "zsh",
-      "env": {
-        "ALL_TOOLS": "true",
-        "MORPH_API_KEY": ""
-      }
-    },
     "playwright": {
       "args": [
         "-c",
@@ -159,13 +148,6 @@
         "ide-assistant"
       ],
       "command": "/usr/local/bin/uvx"
-    },
-    "superagent": {
-      "args": [
-        "-c",
-        "exec \"$HOME/.config/ai-mcp/bin/superagent\""
-      ],
-      "command": "zsh"
     }
   },
   "model": {
