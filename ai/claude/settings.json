@@ -2,7 +2,6 @@
   "agentPushNotifEnabled": true,
   "enabledPlugins": {
     "dev-browser@dev-browser-marketplace": true,
-    "document-skills@anthropic-agent-skills": true,
     "tsumiki@tsumiki": true
   },
   "env": {
