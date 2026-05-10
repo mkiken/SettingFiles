@@ -75,8 +75,4 @@ claude plugin marketplace add sawyerhood/dev-browser
 # claude pluginコマンドだとエラーになるため、直接clコマンドでインストール
 claude -p "/plugin install dev-browser@sawyerhood/dev-browser"
 
-cd ~/
-npx cc-sdd@latest --claude-skills --lang ja
-cd $OLDPWD
-
 echo 'Claude setup and tools installation completed.'

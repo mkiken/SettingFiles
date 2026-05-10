@@ -36,7 +36,7 @@ SettingFiles/
 ├── terminal/            # Terminal emulator configs
 ├── vscode/              # VSCode settings & keybindings
 ├── submodules/          # Git submodule-managed plugins
-├── .kiro/               # Kiro spec-driven development
+├── .kiro/               # Spec documents (legacy archive)
 └── .serena/             # Serena project memories
 ```
 
@@ -175,38 +175,6 @@ nvim/
 ```
 
 **Purpose**: Modular Neovim configuration with lazy loading
-
----
-
-### Kiro Specification System
-
-**Location**: `.kiro/`
-
-**Structure**:
-
-- `steering/` - Project-wide rules & context
-  - `product.md` - Product requirements
-  - `tech.md` - Technical constraints
-  - `structure.md` - Project structure
-  - `my-custom-rule.md` - Custom rules
-- `specs/` - Feature specifications
-  - `{feature}/requirements.md` - EARS format requirements
-  - `{feature}/design.md` - Technical design
-  - `{feature}/tasks.md` - Implementation tasks
-  - `{feature}/spec.json` - Metadata
-- `settings/` - Framework configuration
-  - `rules/` - Validation rules
-  - `templates/` - Document templates
-  - `mcp.json` - MCP integration
-
-**Active Specs**:
-
-- `example-feature/` - Example specification
-- `pr-comment-review-command/` - PR comment review feature
-- `fgln-function-enhancement/` - Shell function enhancement
-- `fgrv-git-revert-command/` - Git revert command
-
-**Purpose**: AI-DLC (AI Development Life Cycle) spec-driven development
 
 ---
 
@@ -357,14 +325,6 @@ prompt_base.md   nagato_yuki.md   codex_base.md → _AGENTS.md
 | `ai/claude/claude_prompt.md`      | Claude-specific instructions |
 | `.github/copilot-instructions.md` | GitHub Copilot setup         |
 
-### Specification System
-
-| Directory                   | Description             |
-| --------------------------- | ----------------------- |
-| `.kiro/steering/`           | Project rules & context |
-| `.kiro/settings/rules/`     | Validation rules        |
-| `.kiro/settings/templates/` | Document templates      |
-
 ---
 
 ## 🔗 Key Dependencies
@@ -434,28 +394,6 @@ cd mac
 - Updates Neovim plugins
 - Rebuilds AI prompt files
 
-### Managing Specifications
-
-```bash
-# Check spec status
-/kiro:spec-status {feature}
-
-# Create new spec
-/kiro:spec-init "feature description"
-
-# Generate requirements
-/kiro:spec-requirements {feature}
-
-# Generate design
-/kiro:spec-design {feature}
-
-# Generate tasks
-/kiro:spec-tasks {feature}
-
-# Implement tasks
-/kiro:spec-impl {feature} [tasks]
-```
-
 ---
 
 ## 🎯 Common Operations
@@ -502,14 +440,6 @@ cd mac
 - Notification triggering
 - Task completion tracking
 
-### Specification Validation
-
-**Commands**:
-
-- `/kiro:validate-design {feature}` - Design review
-- `/kiro:validate-gap {feature}` - Implementation gap analysis
-- `/kiro:validate-impl {feature}` - Post-implementation validation
-
 ---
 
 ## 🔍 Search Tips
@@ -533,8 +463,6 @@ ls vimfiles/nvim/lua/plugins/
 # Claude command definitions
 grep -r "command-name" ai/claude/commands/
 
-# Kiro specifications
-find .kiro/specs/ -name "requirements.md"
 ```
 
 ---
@@ -545,7 +473,6 @@ find .kiro/specs/ -name "requirements.md"
 - **Character-driven AI**: Reimu (Claude), Nyaruko (Gemini), and Yuki Nagato (Codex) provide personality
 - **Git submodules**: Always update recursively (`git submodule update --init --recursive`)
 - **Platform-specific**: Use appropriate `initialize` script for your OS
-- **Kiro specs**: Follow 3-phase approval (Requirements → Design → Tasks)
 - **Serena memories**: Persistent context across sessions
 
 ---
