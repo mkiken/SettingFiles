@@ -36,7 +36,6 @@ SettingFiles/
 ├── terminal/            # Terminal emulator configs
 ├── vscode/              # VSCode settings & keybindings
 ├── submodules/          # Git submodule-managed plugins
-├── .kiro/               # Spec documents (legacy archive)
 └── .serena/             # Serena project memories
 ```
 
