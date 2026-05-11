@@ -117,13 +117,6 @@
       ],
       "command": "zsh"
     },
-    "gitmcp": {
-      "args": [
-        "-c",
-        "exec \"$HOME/.config/ai-mcp/bin/gitmcp\" https://gitmcp.io/docs"
-      ],
-      "command": "zsh"
-    },
     "playwright": {
       "args": [
         "-c",

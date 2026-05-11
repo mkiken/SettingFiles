@@ -25,13 +25,6 @@
         "--context",
         "ide-assistant"
       ]
-    },
-    "gitmcp": {
-      "command": "zsh",
-      "args": [
-        "-c",
-        "exec \"$HOME/.config/ai-mcp/bin/gitmcp\" https://gitmcp.io/docs"
-      ]
     }
   },
   "isUsingBuiltInNodeForMcp": false,

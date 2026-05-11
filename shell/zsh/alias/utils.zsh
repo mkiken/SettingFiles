@@ -604,7 +604,6 @@ function setup_ai_mcp() {
         "@upstash/context7-mcp"
         "chrome-devtools-mcp"
         "mcp-obsidian"
-        "mcp-remote"
         "tavily-mcp"
     )
 

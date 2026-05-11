@@ -16,10 +16,6 @@ max_depth = 1
 args = ['-c', 'exec "$HOME/.config/ai-mcp/bin/context7"']
 command = 'zsh'
 
-[mcp_servers.gitmcp]
-args = ['-c', 'exec "$HOME/.config/ai-mcp/bin/gitmcp" https://gitmcp.io/docs']
-command = 'zsh'
-
 [mcp_servers.sequential-thinking]
 args = ['-c', 'exec "$HOME/.config/ai-mcp/bin/sequential-thinking"']
 command = 'zsh'
