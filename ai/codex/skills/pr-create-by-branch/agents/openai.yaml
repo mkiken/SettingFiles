@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR Create by Branch"
+  short_description: "Create GitHub PRs from branch diffs"
+  default_prompt: "Use $pr-create-by-branch to create a pull request from the current branch."

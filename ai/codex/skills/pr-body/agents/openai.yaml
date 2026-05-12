@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR Body"
+  short_description: "Generate and update GitHub PR bodies"
+  default_prompt: "Use $pr-body to generate and optionally update the current pull request body."
