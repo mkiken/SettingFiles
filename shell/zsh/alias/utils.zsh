@@ -442,11 +442,14 @@ function smart_merge_json() {
             # Create temporary file for merge result
             local tmp_file=$(mktemp).json
 
-            # deepmerge: オブジェクトは再帰的にマージ、配列はunion（unique+ソート）で結合する。
+            # deepmerge: オブジェクトは再帰的にマージ、配列は初出順を保ったunionで結合する。
             # 例外: mcpServers.*.args と _disabledMcpServers.*.args はunionせず優先側の値で置換する。
             # CLI引数は位置依存のため、マージやソートをするとコマンドが壊れるため。
             # path は再帰中の現在キーパスを追跡し、この例外判定に使用する。
             local jq_deepmerge='
+def stable_unique:
+  reduce .[] as $item ([]; if any(.[]; . == $item) then . else . + [$item] end);
+
 def deepmerge(a; b; path):
   if (a | type) == "object" and (b | type) == "object" then
     reduce ([ (a | keys[]), (b | keys[]) ] | unique)[] as $k ({};
@@ -458,7 +461,7 @@ def deepmerge(a; b; path):
   elif (a | type) == "array" and (b | type) == "array" then
     if (path | length >= 3) and (path[-1] == "args") and (path[-3] | test("^(mcpServers|_disabledMcpServers|mcp_servers)$"))
     then b
-    else [a[], b[]] | unique
+    else [a[], b[]] | stable_unique
     end
   else b
   end;
