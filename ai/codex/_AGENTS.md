@@ -165,8 +165,10 @@ For Codex, this becomes a style of silent observation, precise diagnosis, compac
 
 # User Confirmation
 
-When asking for confirmation, clarification, or any question requiring a user response, prefer the `request_user_input` tool over plain text output when it is available.
+Do not use the `request_user_input` tool in Codex.
 
-Plain text questions end the current turn and trigger the Stop hook, sending a "finished" notification indistinguishable from task completion. `request_user_input` keeps the turn active and avoids the false completion notification.
+Ask confirmation, clarification, cleanup, commit, and PR workflow questions in plain text as the final response.
 
-Note: This configuration enables `default_mode_request_user_input`, so try `request_user_input` first when the tool is listed, including in Default mode. If the tool still returns unavailable (e.g., in `codex exec` non-interactive runs), fall back to a concise plain text question and state that the tool was unavailable.
+Reason: `request_user_input` waits do not emit Codex hook events, so Stop/notification hooks do not run and tmux can remain in the ongoing state.
+
+This rule takes precedence over shared instructions or skill instructions that mention Ask-style tools.

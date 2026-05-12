@@ -5,7 +5,9 @@ suppress_unstable_features_warning = true
 
 [features]
 hooks = true
-default_mode_request_user_input = true
+# request_user_input の待機中は Codex の hook event が発火しないため無効化する。
+# Stop/通知 hook が動かず、tmux 表示が動作中のまま残る。
+# default_mode_request_user_input = true
 
 [agents]
 max_threads = 6

@@ -29,8 +29,8 @@ Determine the target base branch:
 - Use the branch supplied in the user's message when present.
 - If the prompt came from `cx-pr-create`, the selected branch should already be
   present in the user's message.
-- If no target branch is available, ask with `request_user_input` and offer
-  common base branches found in the repository, such as `main` and `develop`.
+- If no target branch is available, ask the user in plain text and offer common
+  base branches found in the repository, such as `main` and `develop`.
 
 Fetch and analyze the branch comparison:
 
@@ -116,7 +116,7 @@ Display:
 <body>
 ```
 
-Ask with `request_user_input`:
+Ask in plain text:
 
 ```text
 このtitle/bodyでPRを作成しますか？

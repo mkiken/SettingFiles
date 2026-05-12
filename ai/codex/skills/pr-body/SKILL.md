@@ -23,7 +23,7 @@ run:
 gh pr view --json number --jq .number
 ```
 
-If no PR is found, ask the user for a PR number with `request_user_input`.
+If no PR is found, ask the user for a PR number in plain text.
 
 ## Gather Context
 
@@ -101,7 +101,7 @@ If the existing body is empty or template-only, display:
 (既存bodyは空またはテンプレートのみのため、全て新規追加)
 ```
 
-Ask with `request_user_input`:
+Ask in plain text:
 
 ```text
 このPR bodyをPR #<PR_NUMBER> に反映しますか？
