@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # セッション内の全windowのAI状態を集約し、最高優先度のアイコンをuser optionに書き込む
-# 引数: $1 = session_id の数値部分（$は除去済み、例: 0）
-SESSION_ID="$1"
+# 引数: $1 = session_id（$付き・数値のみのどちらも可）
+SESSION_ID="${1#\$}"
 [ -z "$SESSION_ID" ] && exit 0
 
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
