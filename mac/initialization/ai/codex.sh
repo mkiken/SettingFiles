@@ -6,6 +6,10 @@ echo "Setting up Codex..."
 
 npm install -g @openai/codex
 
+# cc-sdd Codex Skills は ~/.codex にインストールする
+mkdir -p "$HOME/.codex"
+(cd "$HOME/.codex" && npx --yes cc-sdd@latest --codex-skills --lang ja)
+
 setup_ai_mcp install
 
 # 共通設定テンプレートを ~/.codex/config.toml にマージ
