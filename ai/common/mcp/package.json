@@ -5,10 +5,10 @@
   "dependencies": {
     "@21st-dev/magic": "^0.1.0",
     "@modelcontextprotocol/server-sequential-thinking": "^2025.12.18",
-    "@morphllm/morphmcp": "^0.8.177",
+    "@morphllm/morphmcp": "^0.8.178",
     "@playwright/mcp": "^0.0.75",
-    "@upstash/context7-mcp": "^2.2.4",
-    "chrome-devtools-mcp": "^0.25.0",
+    "@upstash/context7-mcp": "^2.2.5",
+    "chrome-devtools-mcp": "^0.26.0",
     "mcp-obsidian": "^1.0.0",
     "tavily-mcp": "^0.2.19"
   }
