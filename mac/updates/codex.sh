@@ -6,9 +6,8 @@ echo "Updating Codex tools..."
 
 npm i -g @openai/codex@latest
 
-# cc-sdd Codex Skills は ~/.codex で更新する
-mkdir -p "$HOME/.codex"
-(cd "$HOME/.codex" && npx --yes cc-sdd@latest --codex-skills --lang ja)
+# cc-sdd Codex Skills はホームディレクトリで更新する
+(cd "$HOME" && npx --yes cc-sdd@latest --codex-skills --lang ja)
 
 setup_ai_mcp update
 
