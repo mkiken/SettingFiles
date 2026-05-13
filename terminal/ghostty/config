@@ -45,3 +45,15 @@ resize-overlay = never
 # Shift+Enter / Alt+Enter で改行（codex CLI / Claude Code 共通、tmux内でも機能）
 keybind = shift+enter=text:\n
 keybind = alt+enter=text:\n
+
+# Option+数字だけtmuxのMeta数字として送る
+keybind = alt+digit_0=esc:0
+keybind = alt+digit_1=esc:1
+keybind = alt+digit_2=esc:2
+keybind = alt+digit_3=esc:3
+keybind = alt+digit_4=esc:4
+keybind = alt+digit_5=esc:5
+keybind = alt+digit_6=esc:6
+keybind = alt+digit_7=esc:7
+keybind = alt+digit_8=esc:8
+keybind = alt+digit_9=esc:9
