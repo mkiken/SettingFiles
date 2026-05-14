@@ -6,6 +6,10 @@ cx() {
     no_notify codex "$@"
 }
 
+cxh() {
+    cx -c 'model_reasoning_effort="xhigh"' "$@"
+}
+
 cxr() { cx resume "$@" }
 
 cx-pr-body() {
