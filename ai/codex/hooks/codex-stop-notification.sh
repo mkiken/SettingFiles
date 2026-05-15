@@ -25,43 +25,11 @@ debug_log() {
     fi
 }
 
-is_subagent_metadata() {
-    jq -e '
-        def has_subagent_source:
-            (.source? | if type == "object" then (.subagent? != null) else false end);
-
-        has_subagent_source
-        or ((.agent_role? // "") != "")
-        or ((.agent_nickname? // "") != "")
-    ' >/dev/null 2>&1
-}
-
-is_subagent_session() {
-    if echo "${hook_input}" | is_subagent_metadata; then
-        debug_log "Subagent detected from hook input"
-        return 0
-    fi
-
-    if [[ -z "${transcript_path}" || "${transcript_path}" == "null" || ! -f "${transcript_path}" ]]; then
-        return 1
-    fi
-
-    if jq -e '
-        def has_subagent_source:
-            (.source? | if type == "object" then (.subagent? != null) else false end);
-
-        select(.type == "session_meta")
-        | .payload
-        | has_subagent_source
-          or ((.agent_role? // "") != "")
-          or ((.agent_nickname? // "") != "")
-    ' "${transcript_path}" >/dev/null 2>&1; then
-        debug_log "Subagent detected from transcript metadata"
-        return 0
-    fi
-
-    return 1
-}
+HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+CODEX_HOOK_COMMON="${HOOK_DIR}/codex_hook_common.py"
+if [[ ! -f "${CODEX_HOOK_COMMON}" ]]; then
+    CODEX_HOOK_COMMON="${SET:-$HOME/Desktop/repository/SettingFiles/}ai/codex/hooks/codex_hook_common.py"
+fi
 
 debug_log "=== Codex Notification Hook Started ==="
 
@@ -109,7 +77,25 @@ if [[ "${hook_event_name}" == "PermissionRequest" ]]; then
     exit 0
 fi
 
-if [[ "${hook_event_name}" == "Stop" ]] && is_subagent_session; then
+if [[ ! -f "${CODEX_HOOK_COMMON}" ]]; then
+    notify "$(build_notification_title "🤖" "Codex終了" "${EMOJI_ID_CODEX}")" 'hook共通モジュールが見つかりません' "${NOTIFICATION_SOUND}"
+    exit 0
+fi
+
+debug_log "Processing hook input with common analyzer..."
+analysis_json=$(printf '%s' "${hook_input}" | python3 "${CODEX_HOOK_COMMON}" analyze 2>>"${HOOK_ERROR_LOG}")
+analysis_status=$?
+if [[ ${analysis_status} -ne 0 || -z "${analysis_json}" ]]; then
+    notify "$(build_notification_title "🤖" "Codex終了" "${EMOJI_ID_CODEX}")" 'hook解析に失敗しました' "${NOTIFICATION_SOUND}"
+    exit 0
+fi
+if ! echo "${analysis_json}" | jq -e . >/dev/null 2>&1; then
+    notify "$(build_notification_title "🤖" "Codex終了" "${EMOJI_ID_CODEX}")" 'hook解析結果が不正です' "${NOTIFICATION_SOUND}"
+    exit 0
+fi
+
+is_subagent=$(echo "${analysis_json}" | jq -r '.is_subagent_session // false')
+if [[ "${hook_event_name}" == "Stop" && "${is_subagent}" == "true" ]]; then
     debug_log "Skipping completion notification for subagent session: ${session_id}"
     exit 0
 fi
@@ -124,122 +110,37 @@ if [[ ! -f "${transcript_path}" ]]; then
     exit 0
 fi
 
-debug_log "Processing transcript for summary generation..."
-
 summary=""
-user_messages=()
-assistant_messages=()
-total_messages=0
+last_user_message=$(echo "${analysis_json}" | jq -r '.last_user_message // ""')
+last_assistant_message=$(echo "${analysis_json}" | jq -r '.last_assistant_message // ""')
+waiting_for_user_response=$(echo "${analysis_json}" | jq -r '.waiting_for_user_response // false')
+user_count=$(echo "${analysis_json}" | jq -r '.user_message_count // 0')
+assistant_count=$(echo "${analysis_json}" | jq -r '.assistant_message_count // 0')
+first_timestamp=$(echo "${analysis_json}" | jq -r '.first_timestamp // ""')
+last_timestamp=$(echo "${analysis_json}" | jq -r '.last_timestamp // ""')
 
-# Codex rollout JSONL: type=="response_item" + payload.type=="message" + payload.role=="user"|"assistant"
-while IFS= read -r line; do
-    if [[ -n "${line}" ]]; then
-        line_type=$(echo "${line}" | jq -r '.type // empty')
-
-        if [[ "${line_type}" != "response_item" ]]; then
-            continue
-        fi
-
-        payload_type=$(echo "${line}" | jq -r '.payload.type // empty')
-        if [[ "${payload_type}" != "message" ]]; then
-            continue
-        fi
-
-        role=$(echo "${line}" | jq -r '.payload.role // empty')
-        # developer ロールはシステムメッセージなのでスキップ
-        if [[ "${role}" == "developer" ]]; then
-            continue
-        fi
-
-        # content は input_text / output_text タイプの配列
-        content=$(echo "${line}" | jq -r '.payload.content[] | select(.type == "input_text" or .type == "output_text") | .text' 2>/dev/null | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
-
-        debug_log "Found message: role=${role}, content_length=${#content}"
-
-        is_system_message() {
-            local msg="$1"
-
-            # AGENTS.md auto-inject やenvironment_contextはCodexが自動挿入するsystem context
-            if [[ "${msg}" =~ ^'# AGENTS.md instructions for' ]]; then
-                return 0
-            fi
-            if [[ "${msg}" =~ ^'<environment_context>' ]]; then
-                return 0
-            fi
-            if [[ "${msg}" =~ ^'<command-message>' ]]; then
-                return 0
-            fi
-
-            # スラッシュコマンドは意図的な入力として扱う
-            if [[ "${msg}" =~ ^/ ]]; then
-                return 1
-            fi
-
-            # 既知のClaude Codeシステムタグパターン（Codexにも共通する可能性あり）
-            if [[ "${msg}" =~ ^[[:space:]]*'<'(system-reminder|user-prompt-submit-hook|tool-result|antml) ]]; then
-                return 0
-            fi
-
-            if [[ "${msg}" =~ ^Caveat: ]]; then
-                return 0
-            fi
-
-            if [[ ${#msg} -lt 4 ]]; then
-                return 0
-            fi
-
-            return 1
-        }
-
-        if [[ "${role}" == "user" && -n "${content}" && "${content}" != "null" ]]; then
-            if ! is_system_message "${content}"; then
-                user_messages+=("${content}")
-                ((total_messages++))
-                debug_log "Added user message: ${#content} chars"
-            else
-                debug_log "Skipping system message: ${content:0:100}..."
-            fi
-        elif [[ "${role}" == "assistant" && -n "${content}" && "${content}" != "null" ]]; then
-            assistant_messages+=("${content}")
-            ((total_messages++))
-            debug_log "Added assistant message: ${#content} chars"
-        fi
-    fi
-done < "${transcript_path}"
-
-last_user_message=""
-if [[ ${#user_messages[@]} -gt 0 ]]; then
-    last_user_message="${user_messages[${#user_messages[@]}-1]}"
-fi
-
-debug_log "Total user messages: ${#user_messages[@]}, assistant messages: ${#assistant_messages[@]}"
+debug_log "Total user messages: ${user_count}, assistant messages: ${assistant_count}"
+debug_log "Waiting for user response: ${waiting_for_user_response}"
 
 # セッション時間計算
 session_duration=""
 session_duration_formatted=""
 completion_time=""
-if [[ -f "${transcript_path}" ]]; then
-    filtered_log=$(grep -v '"type":"session_meta"' "${transcript_path}")
+debug_log "First timestamp: ${first_timestamp}"
+debug_log "Last timestamp: ${last_timestamp}"
 
-    first_timestamp=$(echo "${filtered_log}" | jq -r 'select(.timestamp) | .timestamp' 2>/dev/null | grep -v '^null$' | head -1)
-    last_timestamp=$(echo "${filtered_log}" | jq -r 'select(.timestamp) | .timestamp' 2>/dev/null | grep -v '^null$' | tail -1)
+if [[ -n "${first_timestamp}" && "${first_timestamp}" != "null" && -n "${last_timestamp}" && "${last_timestamp}" != "null" ]]; then
+    start_epoch=$(date -j -f "%Y-%m-%dT%H:%M:%S" "${first_timestamp%.*}" "+%s" 2>/dev/null)
+    end_epoch=$(date -j -f "%Y-%m-%dT%H:%M:%S" "${last_timestamp%.*}" "+%s" 2>/dev/null)
 
-    debug_log "First timestamp: ${first_timestamp}"
-    debug_log "Last timestamp: ${last_timestamp}"
+    if [[ -n "${start_epoch}" && -n "${end_epoch}" ]]; then
+        session_duration=$((end_epoch - start_epoch))
+        session_duration_formatted=$(format_duration ${session_duration})
+        debug_log "Session duration: ${session_duration}s (${session_duration_formatted})"
 
-    if [[ -n "${first_timestamp}" && "${first_timestamp}" != "null" && -n "${last_timestamp}" && "${last_timestamp}" != "null" ]]; then
-        start_epoch=$(date -j -f "%Y-%m-%dT%H:%M:%S" "${first_timestamp%.*}" "+%s" 2>/dev/null)
-        end_epoch=$(date -j -f "%Y-%m-%dT%H:%M:%S" "${last_timestamp%.*}" "+%s" 2>/dev/null)
-
-        if [[ -n "${start_epoch}" && -n "${end_epoch}" ]]; then
-            session_duration=$((end_epoch - start_epoch))
-            session_duration_formatted=$(format_duration ${session_duration})
-            debug_log "Session duration: ${session_duration}s (${session_duration_formatted})"
-
-            jst_epoch=$((end_epoch + 32400))
-            completion_time=$(date -r "${jst_epoch}" "+%H:%M:%S" 2>/dev/null)
-            debug_log "Completion time (JST): ${completion_time}"
-        fi
+        jst_epoch=$((end_epoch + 32400))
+        completion_time=$(date -r "${jst_epoch}" "+%H:%M:%S" 2>/dev/null)
+        debug_log "Completion time (JST): ${completion_time}"
     fi
 fi
 
@@ -256,11 +157,6 @@ elif [[ "$last_user_message" =~ (テスト|test|チェック|確認) ]]; then
 fi
 
 # 要約を作成
-user_count=0
-if [[ -n "${user_messages[*]:-}" ]]; then
-    user_count=${#user_messages[@]}
-fi
-
 if [[ ${user_count} -gt 0 ]]; then
     if [[ -n "${session_duration_formatted}" ]]; then
         stats_line="🔄${user_count} ⏳${session_duration_formatted}"
@@ -268,24 +164,30 @@ if [[ ${user_count} -gt 0 ]]; then
         stats_line="🔄${user_count}"
     fi
 
-    last_user_message=$(echo "${last_user_message}" | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
-    debug_log "Final last_user_message: ${last_user_message:0:100}"
+    summary_message="${last_user_message}"
+    summary_task_type="${task_type}"
+    if [[ "${waiting_for_user_response}" == "true" ]]; then
+        summary_message="${last_assistant_message}"
+        summary_task_type="✋"
+    fi
 
-    msg_line="${task_type} ${last_user_message}"
+    debug_log "Final summary_message: ${summary_message:0:100}"
+
+    msg_line="${summary_task_type} ${summary_message}"
 
     max_msg_length=80
     if [[ ${#msg_line} -gt ${max_msg_length} ]]; then
-        prefix_length=$(( ${#task_type} + 1 ))
+        prefix_length=$(( ${#summary_task_type} + 1 ))
         ellipsis_length=3
         max_message_length=$((max_msg_length - prefix_length - ellipsis_length))
 
-        truncated_message="${last_user_message:0:${max_message_length}}"
-        msg_line="${task_type} ${truncated_message}..."
+        truncated_message="${summary_message:0:${max_message_length}}"
+        msg_line="${summary_task_type} ${truncated_message}..."
 
         if [[ ${#msg_line} -gt ${max_msg_length} ]]; then
             max_message_length=$((max_message_length - 5))
-            truncated_message="${last_user_message:0:${max_message_length}}"
-            msg_line="${task_type} ${truncated_message}..."
+            truncated_message="${summary_message:0:${max_message_length}}"
+            msg_line="${summary_task_type} ${truncated_message}..."
         fi
     fi
 
@@ -294,9 +196,15 @@ else
     summary="💭 セッションが開始されましたが、メッセージはありませんでした"
 fi
 
-notification_title=$(build_notification_title "✅" "Codex終了" "${EMOJI_ID_CODEX}")
+notification_sound="${NOTIFICATION_SOUND}"
+if [[ "${waiting_for_user_response}" == "true" ]]; then
+    notification_title=$(build_notification_title "✋" "Codex応答待ち" "${EMOJI_ID_CODEX}")
+    notification_sound="Hero"
+else
+    notification_title=$(build_notification_title "✅" "Codex終了" "${EMOJI_ID_CODEX}")
+fi
 
 debug_log "Sending notification: title='${notification_title}', message='${summary}'"
-notify "${notification_title}" "${summary}" "${NOTIFICATION_SOUND}" "${notification_group}" "${completion_time}"
+notify "${notification_title}" "${summary}" "${notification_sound}" "${notification_group}" "${completion_time}"
 
 debug_log "=== Codex Notification Hook Completed ==="

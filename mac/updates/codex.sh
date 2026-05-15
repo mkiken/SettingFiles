@@ -17,6 +17,19 @@ smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml
 # 共通プロンプトの更新を _AGENTS.md に反映
 { /bin/cat "${Repo}ai/common/prompt_base.md"; echo; /bin/cat "${Repo}ai/common/characters/nagato_yuki.md"; echo; /bin/cat "${Repo}ai/codex/codex_base.md"; } > "${Repo}ai/codex/_AGENTS.md"
 
+# hooks はファイル単位でシンボリックリンク
+mkdir -p ~/.codex/hooks
+for file in "${Repo}ai/codex/hooks"/*; do
+  if [[ -f "$file" ]]; then
+    make_symlink "$file" ~/.codex/hooks/$(basename "$file")
+  fi
+done
+
+# hooks.json をシンボリックリンク
+make_symlink "${Repo}ai/codex/hooks.json" ~/.codex/hooks.json
+
+chmod +x ~/.codex/hooks/codex-stop-notification.sh
+
 # rules はファイル単位でシンボリックリンク
 rules_dest=~/.codex/rules
 mkdir -p "$rules_dest"
