@@ -16,8 +16,16 @@ else
   IS_KIRO=false
 fi
 
-# IDEの判定を統合（IntelliJまたはVSCodeの場合true）
-if [[ $JETBRAINS_INTELLIJ_ZSH_DIR ]] || $IS_VSCODE || $IS_KIRO; then
+# JetBrains IDEの判定を変数化
+if [[ -n "${JETBRAINS_INTELLIJ_ZSH_DIR:-}" ]] \
+   || [[ "${TERMINAL_EMULATOR:-}" == "JetBrains-JediTerm" ]]; then
+  IS_JETBRAINS=true
+else
+  IS_JETBRAINS=false
+fi
+
+# IDEの判定を統合（JetBrains IDE、VSCode、Kiroの場合true）
+if $IS_JETBRAINS || $IS_VSCODE || $IS_KIRO; then
   IS_IDE=true
 else
   IS_IDE=false
@@ -36,13 +44,32 @@ export IS_WARP
 # Zshのフック機能を有効化
 autoload -U add-zsh-hook
 
-if [[ -z "$TMUX" ]] && ! $IS_IDE && ! $IS_WARP; then
+if [[ -n "${TMUX:-}" && "${TERM_PROGRAM:-}" == "tmux" ]]; then
+  IS_TMUX=true
+else
+  IS_TMUX=false
+fi
+
+if ! $IS_TMUX && ! $IS_WARP; then
+  TMUX_SESSION_NAME=""
+  if $IS_KIRO; then
+    TMUX_SESSION_NAME=""
+  elif $IS_VSCODE; then
+    TMUX_SESSION_NAME="vscode"
+  elif $IS_JETBRAINS; then
+    TMUX_SESSION_NAME="jetbrains"
+  elif ! $IS_IDE; then
+    TMUX_SESSION_NAME="tmux"
+  fi
+
   # tmuxウィンドウがGhosttyのウィンドウサイズより小さくなってしまう問題の対応
   # 対応はいれたが、未解決
   # set -g window-size は既存セッションに反映されないため、アタッチ時にセッションレベルで強制設定
   # largest: 複数クライアント接続時、最大サイズのクライアントに合わせてウィンドウをリサイズ
-  tmux new-session -A -s tmux \; set-option window-size largest
-  return
+  if [[ -n "$TMUX_SESSION_NAME" ]]; then
+    TMUX= TMUX_PANE= tmux new-session -A -s "$TMUX_SESSION_NAME" \; set-option window-size largest
+    return
+  fi
 fi
 
 function zcompile_if_needed() {
