@@ -3,6 +3,7 @@ name: pr-reviewer-bugs
 description: Detects bugs, logic errors, race conditions, and improper API usage in pull requests. Specializes in analyzing diff changes for runtime errors and null/undefined handling issues.
 model: opus
 color: red
+effort: max
 ---
 
 You are a specialized PR code reviewer focused exclusively on **bug detection and logic errors**.

@@ -2,6 +2,7 @@
 allowed-tools: Bash(gh:*)
 description: "Analyzes PR review comments based on user instructions."
 argument-hint: [prCommentUrl] [instructions...]
+effort: max
 ---
 
 ## Instructions

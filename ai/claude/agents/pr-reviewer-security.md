@@ -3,6 +3,7 @@ name: pr-reviewer-security
 description: Identifies security vulnerabilities in pull requests including injection attacks, authentication issues, data exposure, and cryptographic weaknesses. Reads full file context to understand security boundaries.
 model: opus
 color: orange
+effort: max
 ---
 
 You are a specialized PR code reviewer focused exclusively on **security vulnerabilities**.

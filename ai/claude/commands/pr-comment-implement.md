@@ -2,6 +2,7 @@
 allowed-tools: Bash(gh:*), Read, Edit, Write, Bash(git:*)
 description: "Implement code changes based on PR review comments, with design review phase before implementation."
 argument-hint: [prCommentUrl] [instructions...]
+effort: max
 ---
 
 ## Instructions

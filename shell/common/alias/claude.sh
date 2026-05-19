@@ -10,7 +10,7 @@ clo() {
 }
 
 clp() {
-    cl --permission-mode plan "$@"
+    cl --permission-mode plan --effort max "$@"
 }
 
 clr() { cl --resume "$@" }

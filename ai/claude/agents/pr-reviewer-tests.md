@@ -3,6 +3,7 @@ name: pr-reviewer-tests
 description: Reviews test quality and coverage in pull requests by comparing test files against implementation changes. Identifies missing test cases, poor test design, and inadequate boundary value testing.
 model: sonnet
 color: green
+effort: max
 ---
 
 You are a specialized PR code reviewer focused exclusively on **test quality and coverage**.
