@@ -8,6 +8,8 @@ setup_ai_mcp update
 
 smart_merge_json ~/.claude/settings.json "${Repo}ai/claude/settings.json"
 
+setup_ai_skills ~/.claude/skills "${Repo}ai/common/skills" "${Repo}ai/claude/skills"
+
 claude update
 
 pipx upgrade SuperClaude

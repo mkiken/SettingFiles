@@ -1,0 +1,4 @@
+interface:
+  display_name: "Prompt Self-Improvement"
+  short_description: "Improve assistant prompts with evals"
+  default_prompt: "Use $prompt-self-improvement to audit and improve my AI assistant prompts."
