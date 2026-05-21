@@ -3,16 +3,34 @@
 # or just "dirname" if not in a git repository.
 # Existing emoji prefixes (Claude ✴️, Gemini 💎, etc.) are preserved.
 #
-# Usage: rename-window-git.sh <path>
+# Usage: rename-window-git.sh <path> [target-window]
 
 # Resolve symlink to find actual script location (tmux_emoji.py lives alongside this script)
 _REAL="$(readlink "$0" 2>/dev/null)"
 [ -z "$_REAL" ] && _REAL="$0"
 SCRIPT_DIR="$(cd "$(dirname "$_REAL")" && pwd)"
 TARGET_PATH="${1:-$PWD}"
+TARGET_WINDOW="${2:-}"
+
+tmux_display_window_name() {
+  if [ -n "$TARGET_WINDOW" ]; then
+    tmux display-message -p -t "$TARGET_WINDOW" "#W" 2>/dev/null
+  else
+    tmux display-message -p "#W" 2>/dev/null
+  fi
+}
+
+rename_window() {
+  local name="$1"
+  if [ -n "$TARGET_WINDOW" ]; then
+    tmux rename-window -t "$TARGET_WINDOW" "$name"
+  else
+    tmux rename-window "$name"
+  fi
+}
 
 # Capture current window name and extract emoji prefix before cd changes context
-CURRENT_NAME=$(tmux display-message -p "#W" 2>/dev/null)
+CURRENT_NAME=$(tmux_display_window_name)
 EMOJI_PREFIX=""
 if [ -n "$CURRENT_NAME" ]; then
   STRIPPED=$(python3 "${SCRIPT_DIR}/tmux_emoji.py" "$CURRENT_NAME" 2>/dev/null)
@@ -26,7 +44,7 @@ cd "$TARGET_PATH" || exit 1
 REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
 
 if [ -z "$REPO_ROOT" ]; then
-  tmux rename-window "${EMOJI_PREFIX}$(basename "$TARGET_PATH")"
+  rename_window "${EMOJI_PREFIX}$(basename "$TARGET_PATH")"
   exit 0
 fi
 
@@ -44,7 +62,7 @@ DEFAULT_BRANCH="${DEFAULT_BRANCH##refs/remotes/origin/}"
 
 # On default branch: show repo name only
 if [[ -n "${DEFAULT_BRANCH}" ]] && [[ "${BRANCH}" = "${DEFAULT_BRANCH}" ]]; then
-  tmux rename-window "${EMOJI_PREFIX}${REPO_NAME}"
+  rename_window "${EMOJI_PREFIX}${REPO_NAME}"
   exit 0
 fi
 
@@ -56,4 +74,4 @@ if [[ "${#ABBREV}" -gt 20 ]]; then
   ABBREV="${ABBREV:0:20}…"
 fi
 
-tmux rename-window "${EMOJI_PREFIX}${REPO_NAME}:${ABBREV}"
+rename_window "${EMOJI_PREFIX}${REPO_NAME}:${ABBREV}"

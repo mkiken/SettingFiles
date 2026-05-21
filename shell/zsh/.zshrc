@@ -67,7 +67,11 @@ if ! $IS_TMUX && ! $IS_WARP; then
   # set -g window-size は既存セッションに反映されないため、アタッチ時にセッションレベルで強制設定
   # largest: 複数クライアント接続時、最大サイズのクライアントに合わせてウィンドウをリサイズ
   if [[ -n "$TMUX_SESSION_NAME" ]]; then
-    TMUX= TMUX_PANE= tmux new-session -A -s "$TMUX_SESSION_NAME" \; set-option window-size largest
+    if $IS_VSCODE || $IS_JETBRAINS; then
+      "${HOME}/Desktop/repository/SettingFiles/shell/tmux/open-ide-session.sh" "$TMUX_SESSION_NAME" "$PWD"
+    else
+      TMUX= TMUX_PANE= tmux new-session -A -s "$TMUX_SESSION_NAME" \; set-option window-size largest
+    fi
     return
   fi
 fi
