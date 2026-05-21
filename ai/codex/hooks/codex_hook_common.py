@@ -10,10 +10,25 @@ def normalize_message(message: str) -> str:
     return re.sub(r"\s+", " ", message).strip()
 
 
+def assistant_response_contains_proposed_plan(message: str) -> bool:
+    has_line_bounded_block = (
+        re.search(r"(?m)^\s*<proposed_plan>\s*$", message) is not None
+        and re.search(r"(?m)^\s*</proposed_plan>\s*$", message) is not None
+    )
+    if has_line_bounded_block:
+        return True
+
+    normalized = normalize_message(message)
+    return normalized.startswith("<proposed_plan>") and normalized.endswith("</proposed_plan>")
+
+
 def assistant_response_needs_user_input(message: str) -> bool:
     normalized = normalize_message(message)
     if not normalized:
         return False
+
+    if assistant_response_contains_proposed_plan(message):
+        return True
 
     if re.search(r"[？?]\s*$", normalized):
         return True
