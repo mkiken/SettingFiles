@@ -6,8 +6,18 @@ from pathlib import Path
 from typing import Any
 
 
+QUESTION_SCAN_TAIL_LENGTH = 500
+
+
 def normalize_message(message: str) -> str:
     return re.sub(r"\s+", " ", message).strip()
+
+
+def assistant_response_question_scan_text(message: str) -> str:
+    stripped = re.sub(r"(?s)(```.*?```|~~~.*?~~~)", " ", message)
+    stripped = re.sub(r"`[^`\n]*`", " ", stripped)
+    stripped = re.sub(r"\b(?:https?://|www\.)\S+", " ", stripped)
+    return normalize_message(stripped)[-QUESTION_SCAN_TAIL_LENGTH:]
 
 
 def assistant_response_contains_proposed_plan(message: str) -> bool:
@@ -30,13 +40,7 @@ def assistant_response_needs_user_input(message: str) -> bool:
     if assistant_response_contains_proposed_plan(message):
         return True
 
-    if re.search(r"[？?]\s*$", normalized):
-        return True
-
-    if re.search(
-        r"[？?].{0,160}(修正点|変更点|問題|懸念|異論|希望|要望|不明点)があれば.{0,60}(お知らせ|教えて|返信|返答|回答)ください[。.!！]*$",
-        normalized,
-    ):
+    if re.search(r"[？?]", assistant_response_question_scan_text(message)):
         return True
 
     if "コミット操作を選択して" in normalized or "コミット方針を指示して" in normalized:
