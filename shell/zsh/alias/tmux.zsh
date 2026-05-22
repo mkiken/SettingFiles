@@ -145,14 +145,9 @@ function create_tmux_session() {
     tmux switch-client -t "$temp_session"
 }
 
-function W() {
+function _tmux_window_from_stdin() {
   if ! _tmux_require_client; then
     return 1
-  fi
-
-  if [[ -t 0 ]]; then
-    create_tmux_window cdi
-    return $?
   fi
 
   local target_path
@@ -165,14 +160,9 @@ function W() {
   _tmux_create_window_at_path "$target_path"
 }
 
-function S() {
+function _tmux_session_from_stdin() {
   if ! _tmux_require_client; then
     return 1
-  fi
-
-  if [[ -t 0 ]]; then
-    create_tmux_session cdi
-    return $?
   fi
 
   local target_path
@@ -219,3 +209,9 @@ function tmux-snap() {
   tmux capture-pane -pS - > "$filename"
   echo "スナップショットを保存しました: $filename"
 }
+
+alias tw='create_tmux_window cdi'
+alias ts='create_tmux_session cdi'
+
+alias -g W='| _tmux_window_from_stdin'
+alias -g S='| _tmux_session_from_stdin'
