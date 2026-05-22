@@ -50,30 +50,13 @@ else
   IS_TMUX=false
 fi
 
-if ! $IS_TMUX && ! $IS_WARP; then
-  TMUX_SESSION_NAME=""
-  if $IS_KIRO; then
-    TMUX_SESSION_NAME=""
-  elif $IS_VSCODE; then
-    TMUX_SESSION_NAME="vscode"
-  elif $IS_JETBRAINS; then
-    TMUX_SESSION_NAME="jetbrains"
-  elif ! $IS_IDE; then
-    TMUX_SESSION_NAME="tmux"
-  fi
-
+if ! $IS_TMUX && ! $IS_IDE && ! $IS_WARP; then
   # tmuxウィンドウがGhosttyのウィンドウサイズより小さくなってしまう問題の対応
   # 対応はいれたが、未解決
   # set -g window-size は既存セッションに反映されないため、アタッチ時にセッションレベルで強制設定
   # largest: 複数クライアント接続時、最大サイズのクライアントに合わせてウィンドウをリサイズ
-  if [[ -n "$TMUX_SESSION_NAME" ]]; then
-    if $IS_VSCODE || $IS_JETBRAINS; then
-      "${HOME}/Desktop/repository/SettingFiles/shell/tmux/open-ide-session.sh" "$TMUX_SESSION_NAME" "$PWD"
-    else
-      TMUX= TMUX_PANE= tmux new-session -A -s "$TMUX_SESSION_NAME" \; set-option window-size largest
-    fi
-    return
-  fi
+  TMUX= TMUX_PANE= tmux new-session -A -s tmux \; set-option window-size largest
+  return
 fi
 
 function zcompile_if_needed() {
