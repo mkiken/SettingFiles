@@ -29,6 +29,9 @@ make_symlink "${Repo}shell/tmux/new-session.sh" ~/.tmux/scripts/new-session.sh
 make_symlink "${Repo}shell/tmux/cycle-session.sh" ~/.tmux/scripts/cycle-session.sh
 make_symlink "${Repo}shell/tmux/select-session.sh" ~/.tmux/scripts/select-session.sh
 make_symlink "${Repo}shell/tmux/update-session-ai-status.sh" ~/.tmux/scripts/update-session-ai-status.sh
+make_symlink "${Repo}shell/tmux/resurrect-save-wrapper.sh" ~/.tmux/scripts/resurrect-save-wrapper.sh
+make_symlink "${Repo}shell/tmux/resurrect-restore-wrapper.sh" ~/.tmux/scripts/resurrect-restore-wrapper.sh
+make_symlink "${Repo}shell/tmux/resurrect-setup.sh" ~/.tmux/scripts/resurrect-setup.sh
 
 # Tmux Plugin Manager
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
