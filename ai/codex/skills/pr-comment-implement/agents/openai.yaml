@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR Comment Implement"
+  short_description: "Implement fixes from GitHub PR comments"
+  default_prompt: "Use $pr-comment-implement with a GitHub PR comment URL to implement the requested fix."
