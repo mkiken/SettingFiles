@@ -48,6 +48,18 @@ def assistant_response_needs_user_input(message: str) -> bool:
     if re.search(r"教えて(ください)?[。.!！]*$", normalized):
         return True
 
+    if re.search(
+        r"\d+[.．]\s+\S[^.]{0,80}?\s+[—–]\s+\S.*?\d+[.．]\s+\S[^.]{0,80}?\s+[—–]\s+\S.*?\s*$",
+        normalized,
+    ):
+        return True
+
+    if re.search(
+        r"(確認|選択|お選び|選んで|どれ|いずれ)[:：]\s*1[.．]\s+\S.*?\s+2[.．]\s+\S",
+        normalized,
+    ):
+        return True
+
     if re.search(r"(どうする|どうします|どれにする|どちらにする|続行するか|実行するか|作成するか|削除するか|コミットするか)", normalized):
         return True
 
