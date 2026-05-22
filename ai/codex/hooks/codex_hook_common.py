@@ -33,6 +33,12 @@ def assistant_response_needs_user_input(message: str) -> bool:
     if re.search(r"[？?]\s*$", normalized):
         return True
 
+    if re.search(
+        r"[？?].{0,160}(修正点|変更点|問題|懸念|異論|希望|要望|不明点)があれば.{0,60}(お知らせ|教えて|返信|返答|回答)ください[。.!！]*$",
+        normalized,
+    ):
+        return True
+
     if "コミット操作を選択して" in normalized or "コミット方針を指示して" in normalized:
         return True
 
