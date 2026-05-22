@@ -27,12 +27,15 @@ Fetch all required PR data before launching sub-agents via `run_shell_command`:
 ```bash
 gh pr view {{args}} --json title,body,baseRefName,headRefName,url
 gh pr diff {{args}}  # NOTE: file path arguments are not supported; fetch full diff and filter locally if needed
+bash ~/.gemini/bin/format_pr_diff_with_line_numbers.sh {{args}}  # Authoritative current-side line numbers for review comments
 gh repo view --json nameWithOwner
 git branch --show-current  # Detect local mode
-bash "$(git rev-parse --show-toplevel)/shell/common/pr/fetch_existing_comments.sh" {{args}}  # Existing PR comments as NDJSON
+bash ~/.gemini/bin/fetch_existing_comments.sh {{args}}  # Existing PR comments as NDJSON
 ```
 
 Compare the output of `git branch --show-current` with `headRefName`. If they match, **local mode** is active — sub-agents can use `read_file` and `glob` tools directly instead of `gh api`.
+
+The line-numbered diff output from `format_pr_diff_with_line_numbers.sh` is the authoritative source for final `[path:line]` references. `NEW <line>` is the preferred target, `CTX <line>` may be used only when no `NEW` line can carry the finding, and `OLD <line>` must not be used for final GitHub review comments.
 
 ### Phase 2: Launch All 6 Sub-Agents in Parallel
 
@@ -41,9 +44,11 @@ Pass the following to each sub-agent as context:
 - PR number: `{{args}}`
 - PR metadata (title, body, base/head branch, repository owner/name)
 - Complete PR diff
+- **Line-numbered PR diff** from `format_pr_diff_with_line_numbers.sh`
 - **Existing PR comments**: the full NDJSON output from Phase 1 (inline, issue, and review-summary comments with `is_resolved`, `is_outdated`, `path`, `line`, `body`, `ai_origin`)
 - **Local mode**: whether the current branch matches `headRefName` (true/false). If true, instruct sub-agents to use `read_file` and `glob` tools for file reading instead of `gh api`.
 - **Scope rule**: Focus findings on changed lines. For pre-existing issues in unchanged code, report only critical impact categories (security breach, data corruption/loss, service outage, compliance violation) with a `[既存コード]` prefix.
+- **Line-number rule**: use only `NEW` or, when unavoidable, current-side `CTX` line numbers from the line-numbered diff. Do not calculate final line numbers from hunk headers.
 
 Launch all agents simultaneously using `invoke_agent` (set `wait_for_previous` to `false` for parallel execution):
 
@@ -67,7 +72,7 @@ Collect all sub-agent findings, then:
 3. Reclassify priorities based on confidence scores.
 4. Assign sequential numbers to all findings across all priority sections (continue numbering across sections — do not restart per section).
 5. Format structured output following the Formatting Rules below.
-6. **Validate line numbers**: any finding not in `[path/to/file.ext:line]` format must be supplemented by referencing the original diff; findings without a line number must not appear in the final output.
+6. **Validate line numbers**: every finding must point to a `NEW` line from the line-numbered diff, or to a current-side `CTX` line only when no `NEW` line can carry the finding. Findings without a verified current-side line number must not appear in the final output.
 7. If any findings were removed in step 2, add **`## [既コメント済] スキップした指摘`** immediately before `## 総合評価` with one line per skipped finding:
    `- **[path:line]** 領域: <area> / 既存コメント ID: <id> (resolved=<bool>, ai_origin=<value>) — <reason>`
    Omit this section entirely when nothing was removed.

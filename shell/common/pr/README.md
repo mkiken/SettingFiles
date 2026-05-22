@@ -2,6 +2,32 @@
 
 PR review utilities shared across Claude Code, Gemini CLI, and Codex.
 
+## format_pr_diff_with_line_numbers.sh
+
+Renders a PR diff with explicit current-side line numbers for AI review prompts.
+This avoids having models infer GitHub review lines from raw hunk headers.
+
+### Usage
+
+```bash
+bash shell/common/pr/format_pr_diff_with_line_numbers.sh <pr_number>
+bash shell/common/pr/format_pr_diff_with_line_numbers.sh --stdin < diff.patch
+```
+
+### Output records
+
+| Record | Meaning |
+|---|---|
+| `FILE <path>` | Current file path for following hunks |
+| `@@ ... @@` | Original unified diff hunk header |
+| `NEW <line> <content>` | Added or modified line in the PR head |
+| `CTX <line> <content>` | Unchanged context line in the PR head |
+| `OLD <line> <content>` | Removed base-side line; do not use for GitHub review comments |
+| `DELETED_FILE <path>` | File has no current-side target lines |
+
+Review prompts should prefer `NEW` line numbers. Use `CTX` only when no changed
+line can carry the finding, and never post an inline review comment using `OLD`.
+
 ## fetch_existing_comments.sh
 
 Fetches all existing comments on a GitHub PR and outputs them as NDJSON (one JSON object per line).
