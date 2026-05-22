@@ -8,21 +8,23 @@ set -euo pipefail
 # login PATH, so ensure Homebrew paths are visible to `tmux` calls inside it.
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 
-LIST=$(tmux list-windows -a -F $'#{session_name}:#{window_index}\t#{session_name} > #{window_index}: #{window_name} · #{pane_current_path}')
+LIST=$(tmux list-windows -a -F $'#{session_name}:#{window_index}\t#{s/[$]//:session_id}:#{session_name} > #{window_index}: #{window_name} · #{pane_current_path}')
 LIST=${LIST//"$HOME"/\~}
 [ -z "$LIST" ] && exit 0
 
 PREVIEW='
 target={1}
-info=$(tmux list-windows -a -f "#{==:#{session_name}:#{window_index},$target}" -F "#{session_name}|#{window_index}|#{window_name}|#{pane_current_path}")
-sess=${info%%|*}
+info=$(tmux list-windows -a -f "#{==:#{session_name}:#{window_index},$target}" -F "#{s/[$]//:session_id}|#{session_name}|#{window_index}|#{window_name}|#{pane_current_path}")
+sid=${info%%|*}
 rest=${info#*|}
+sess=${rest%%|*}
+rest=${rest#*|}
 idx=${rest%%|*}
 rest=${rest#*|}
 win=${rest%%|*}
 path=${rest##*|}
 path=${path/#$HOME/\~}
-printf "\033[1;33mSession\033[0m : %s\n" "$sess"
+printf "\033[1;33mSession\033[0m : %s:%s\n" "$sid" "$sess"
 printf "\033[1;33mWindow \033[0m : %s: %s\n" "$idx" "$win"
 printf "\033[1;33mPath   \033[0m : %s\n" "$path"
 printf -- "----------------------------------------\n"
