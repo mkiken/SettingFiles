@@ -48,11 +48,13 @@ gm-pr-body() {
 }
 
 alias gm-pr-comment-review='noglob _gm-pr-comment-review'
+alias gm-pcr='noglob _gm-pr-comment-review'
 _gm-pr-comment-review() {
     gmp --approval-mode yolo -i "/pr-comment-review $*"
 }
 
 alias gm-pr-comment-implement='noglob _gm-pr-comment-implement'
+alias gm-pci='noglob _gm-pr-comment-implement'
 _gm-pr-comment-implement() {
     gmp -i "/pr-comment-implement $*"
 }

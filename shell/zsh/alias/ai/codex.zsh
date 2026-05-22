@@ -46,11 +46,13 @@ cx-pr-review-subagent() {
 }
 
 alias cx-pr-comment-review='noglob _cx-pr-comment-review'
+alias cx-pcr='noglob _cx-pr-comment-review'
 _cx-pr-comment-review() {
     cx -c 'model_reasoning_effort="xhigh"' --dangerously-bypass-approvals-and-sandbox "\$pr-comment-review $*"
 }
 
 alias cx-pr-comment-implement='noglob _cx-pr-comment-implement'
+alias cx-pci='noglob _cx-pr-comment-implement'
 _cx-pr-comment-implement() {
     cx -c 'model_reasoning_effort="xhigh"' "\$pr-comment-implement $*"
 }
