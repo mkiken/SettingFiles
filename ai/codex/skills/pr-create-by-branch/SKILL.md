@@ -124,9 +124,9 @@ Ask in plain text:
 
 Use exactly these options:
 
-- `はい、作成する`
-- `title/bodyを修正したい`
-- `キャンセル`
+1. `はい、作成する`
+2. `title/bodyを修正したい`
+3. `キャンセル`
 
 If the user requests a title or body change, ask which content to revise,
 collect the corrected content, display the revised title/body, and confirm

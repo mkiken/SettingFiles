@@ -109,8 +109,8 @@ Ask in plain text:
 
 Use exactly these options:
 
-- `はい、反映する`
-- `いいえ、表示のみ`
+1. `はい、反映する`
+2. `いいえ、表示のみ`
 
 ## Apply
 

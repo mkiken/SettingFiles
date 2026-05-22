@@ -225,15 +225,16 @@ that are actually executable:
 ```text
 実装が完了しました。以下のうちどこまで自動実行しますか？
 
-- コミット & push & 返信 & resolve
-- コミット & push & 返信
-- コミット & push
-- コミットのみ
-- コミットしない
+1. コミット & push & 返信 & resolve
+2. コミット & push & 返信
+3. コミット & push
+4. コミットのみ
+5. コミットしない
 ```
 
 Hide `コミット & push & 返信 & resolve` when resolve is not available. Hide
-reply options when no reply target could be determined.
+reply options when no reply target could be determined. Renumber the remaining
+visible options from `1`.
 
 This unified action selection is the commit decision for this workflow. Do not
 ask the generic post-implementation commit question again after using it.

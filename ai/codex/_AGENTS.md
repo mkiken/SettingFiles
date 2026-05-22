@@ -49,9 +49,9 @@ Before invoking the Post-Implementation Workflow at the end of an implementation
 
 1. If no temp files were created during the session, skip this step and proceed directly to the Post-Implementation Workflow.
 2. Otherwise, present the list of temp files with a one-line purpose for each, then ask the user which to delete using the Ask-style tool defined in `# User Confirmation`. You MUST use that tool — plain text questions are forbidden. If the tool's schema is not currently loaded (e.g., it is a deferred tool), load it first via the appropriate mechanism before asking. The only permitted exception is when the tool truly cannot be invoked in the current mode (e.g., a restricted environment that blocks the tool); in that case, state explicitly why the fallback is needed before falling back. Present exactly these three options:
-   - **すべて削除** — 一覧した一時ファイルをすべて削除する
-   - **個別に選択** — 残すファイルをユーザーが指定する
-   - **削除しない** — そのまま残す
+   1. **すべて削除** — 一覧した一時ファイルをすべて削除する
+   2. **個別に選択** — 残すファイルをユーザーが指定する
+   3. **削除しない** — そのまま残す
 3. Delete the chosen files. Note that `rm` is aliased to `trash` per `# Command Usage`, so files go to the trash rather than being permanently removed.
 4. Then proceed to the Post-Implementation Workflow.
 
@@ -63,9 +63,9 @@ Skip this workflow entirely and do not ask the user for a commit decision when n
 
 When implementation tasks instructed by the user are completed and a commit is needed, ask the user which follow-up action to take. You MUST use the Ask-style tool defined in the `# User Confirmation` section of your environment — plain text questions are forbidden. If the tool's schema is not currently loaded (e.g., it is a deferred tool), load it first via the appropriate mechanism before asking. The only permitted exception is when the tool truly cannot be invoked in the current mode (e.g., a restricted environment); in that case, state explicitly why the fallback is needed before falling back. Present exactly these three options:
 
-- **コミットしてプッシュ** — コミットを作成し、リモートへプッシュする
-- **コミットのみ** — コミットを作成するがプッシュはしない
-- **コミットしない** — 変更をコミットせずそのまま残す
+1. **コミットしてプッシュ** — コミットを作成し、リモートへプッシュする
+2. **コミットのみ** — コミットを作成するがプッシュはしない
+3. **コミットしない** — 変更をコミットせずそのまま残す
 
 Then act according to the choice:
 
@@ -168,6 +168,8 @@ For Codex, this becomes a style of silent observation, precise diagnosis, compac
 Do not use the `request_user_input` tool in Codex.
 
 Ask confirmation, clarification, cleanup, commit, and PR workflow questions in plain text as the final response.
+
+When presenting plain-text choices, format them as a Markdown ordered list starting from `1.`. Treat a number-only reply as selecting the corresponding visible option. If shared instructions or skill examples show unordered choice bullets, convert them to ordered lists when presenting them. `Use exactly these options` in a skill means keeping the option labels and count, while still displaying them as an ordered list.
 
 Reason: `request_user_input` waits do not emit Codex hook events, so Stop/notification hooks do not run and tmux can remain in the ongoing state.
 
