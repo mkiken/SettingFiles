@@ -43,10 +43,23 @@ Use the output from `format_pr_diff_with_line_numbers.sh` as the authoritative s
 
 Never calculate final review line numbers from `@@` hunk headers by memory. If a candidate finding is not present in the line-numbered diff, verify the exact current-side line with `grep -n ''` or omit the finding.
 
-### **Review Scope**
+### **Review Scope: Changed Code vs Pre-existing Code**
+
+**Primary focus**: Review comments MUST target lines added or modified in this PR's diff. Do not surface issues whose root cause lives entirely in unchanged code that this PR did not touch.
+
+**Pre-existing-code exception (critical only)**: You MAY report a pre-existing issue (one that exists entirely in unchanged code) only when it falls into one of these critical impact categories:
+
+- **Security breach**: concrete exploitable attack vector (auth bypass, RCE, injection, secret exposure)
+- **Data corruption/loss**: silent overwrite, missing transaction, irreversible mutation
+- **Service outage**: crash, infinite loop, deadlock, resource exhaustion under realistic load
+- **Compliance violation**: PII handling, license breach, audit trail loss
+
+For pre-existing findings, mark the header with `[既存コード]` prefix (e.g., `[既存コード] **[path:line]**`) and state which impact category applies. All other pre-existing issues MUST be omitted.
+
+### **Review Breadth**
 
 Review ALL changed files individually. For each file, check ALL 7 review categories below.
-Do NOT skip files or categories. Report every issue found, regardless of severity.
+Do NOT skip files or categories. Report every issue found in changed code, regardless of severity.
 A thorough review of a typical PR produces 5-15+ findings. If you find fewer than 5, reconsider whether you have checked all files and categories carefully.
 
 ### **Review Comment Priority**
@@ -82,6 +95,7 @@ Review thoroughly from the following perspectives:
 
 **Finding Format**: Each item MUST use this exact three-part structure — header, detail, then separator:
 - **Header line**: `N. **[file:line]** Category: Short one-line summary`
+- **Pre-existing header line**: `N. [既存コード] **[file:line]** Category: Short one-line summary (critical impact category)`
 - **Detail line**: `   - Full explanation and recommendation (indented sub-bullet)`
 - **Separator line**: `---` (horizontal rule — MANDATORY after every finding, including the last one)
 
@@ -96,6 +110,11 @@ The `---` separator after each item is a hard structural requirement that must n
 
 2. **[src/auth.ts:87]** Bug Risk: Null check missing before user lookup
    - `user` can be null when session expires mid-request, causing an unhandled TypeError.
+
+---
+
+3. [既存コード] **[src/db/query.ts:120]** Security: SQL injection in pre-existing helper (Security breach category)
+   - Unchanged code called by this PR's new feature concatenates raw user input into a query string. Concrete attack vector: any string input allows arbitrary SQL execution.
 
 ---
 

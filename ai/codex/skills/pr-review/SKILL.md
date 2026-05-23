@@ -16,6 +16,19 @@ PR number: extract from the user's message if provided. If not provided, run:
 gh pr view --json number --jq .number
 ```
 
+### Review Scope: Changed Code vs Pre-existing Code
+
+**Primary focus**: Review comments MUST target lines added or modified in this PR's diff. Do not surface issues whose root cause lives entirely in unchanged code that this PR did not touch.
+
+**Pre-existing-code exception (critical only)**: You MAY report a pre-existing issue (one that exists entirely in unchanged code) only when it falls into one of these critical impact categories:
+
+- **Security breach**: concrete exploitable attack vector (auth bypass, RCE, injection, secret exposure)
+- **Data corruption/loss**: silent overwrite, missing transaction, irreversible mutation
+- **Service outage**: crash, infinite loop, deadlock, resource exhaustion under realistic load
+- **Compliance violation**: PII handling, license breach, audit trail loss
+
+For pre-existing findings, mark the header with `[既存コード]` prefix (e.g., `[既存コード] **[path:line]**`) and state which impact category applies. All other pre-existing issues MUST be omitted.
+
 ### Local vs Remote File Access
 
 Before starting the review, determine the file access mode:
@@ -90,6 +103,7 @@ Review thoroughly from the following perspectives:
 
 **Finding Format**: Each item MUST use this exact three-part structure — header, detail, then separator:
 - **Header line**: `N. **[file:line]** Category: Short one-line summary`
+- **Pre-existing header line**: `N. [既存コード] **[file:line]** Category: Short one-line summary (critical impact category)`
 - **Detail line**: `   - Full explanation and recommendation (indented sub-bullet)`
 - **Separator line**: `---` (horizontal rule — MANDATORY after every finding, including the last one)
 
@@ -104,6 +118,11 @@ The `---` separator after each item is a hard structural requirement that must n
 
 2. **[src/auth.ts:87]** Bug Risk: Null check missing before user lookup
    - `user` can be null when session expires mid-request, causing an unhandled TypeError.
+
+---
+
+3. [既存コード] **[src/db/query.ts:120]** Security: SQL injection in pre-existing helper (Security breach category)
+   - Unchanged code called by the PR's new feature concatenates raw user input into a query string. Concrete attack vector: any string input allows arbitrary SQL execution.
 
 ---
 

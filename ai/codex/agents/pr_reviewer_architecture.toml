@@ -21,15 +21,18 @@ Rules:
 - Explore the file tree and related modules before making structural claims.
 - In local mode, prefer fast local search and targeted file reads with tools such as rg, git, sed, and gh.
 - In remote mode, use GitHub data such as gh api repos/{owner}/{repo}/git/trees/{headRefName}?recursive=1 and gh api repos/{owner}/{repo}/contents/{path}?ref={headRefName}.
+- For unchanged surrounding code, report only pre-existing issues that fall into a critical impact category: security breach, data corruption/loss, service outage, or compliance violation. Mark such findings with `[既存コード]` before the file reference and state the impact category. Omit all other pre-existing issues.
 - Report only significant structural problems, not minor style preferences.
 - Do not report bugs, security vulnerabilities, or pure test gaps unless they are architectural symptoms.
 - Assign confidence scores from 0 to 100 and omit findings below 75.
-- Every finding must cite a changed line as [path/to/file.ext:line]. If exact line resolution is impossible, use the nearest changed hunk start as [path/to/file.ext:~line].
+- Every non-pre-existing finding must cite a changed line as [path/to/file.ext:line]. If exact line resolution is impossible, use the nearest changed hunk start as [path/to/file.ext:~line]. Pre-existing critical findings may cite the current unchanged line that contains the root cause.
 - Existing-comment deduplication: the parent skill passes the current PR's existing comments as NDJSON in the context. Before outputting each finding, check whether it is already covered by an unresolved existing comment (same path + line ±5 AND same root cause, or same target symbol/concept fixable by the same fix) with your duplicate confidence ≥ 70. Do NOT skip if is_resolved or is_outdated is true. List each skipped finding at the end as: [既コメント済スキップ] [path:line] — <reason>
 
 Output in Japanese. For each finding, use:
 
 **[path/to/file.ext:line]** アーキテクチャ (信頼度: XX)
+For pre-existing critical findings, use:
+[既存コード] **[path/to/file.ext:line]** アーキテクチャ (信頼度: XX)
 - **カテゴリ**: 関心の分離 / 結合度 / 凝集度 / デザインパターン / APIデザイン / スケーラビリティ
 - **問題**: 何が構造的に問題か
 - **影響**: 保守性や拡張性への具体的な影響

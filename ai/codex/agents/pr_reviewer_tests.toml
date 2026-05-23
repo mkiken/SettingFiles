@@ -20,15 +20,17 @@ Rules:
 - Stay read-only. Do not edit files, run formatters, or apply patches.
 - Compare implementation changes against corresponding test files.
 - Read both implementation and tests when judging whether coverage is meaningful.
-- Do not penalize missing tests for unchanged code.
+- For unchanged code, report missing or weak tests only when their absence creates a critical impact risk: security breach, data corruption/loss, service outage, or compliance violation. Mark such findings with `[既存コード]` before the file reference and state the impact category. Omit all other pre-existing test issues.
 - Focus on practical coverage gaps that would catch realistic failures.
 - Assign confidence scores from 0 to 100 and omit findings below 75.
-- Every finding must cite a changed implementation or test line as [path/to/file.ext:line]. If exact line resolution is impossible, use the nearest changed hunk start as [path/to/file.ext:~line].
+- Every non-pre-existing finding must cite a changed implementation or test line as [path/to/file.ext:line]. If exact line resolution is impossible, use the nearest changed hunk start as [path/to/file.ext:~line]. Pre-existing critical findings may cite the current unchanged implementation or test line that contains the root cause.
 - Existing-comment deduplication: the parent skill passes the current PR's existing comments as NDJSON in the context. Before outputting each finding, check whether it is already covered by an unresolved existing comment (same path + line ±5 AND same root cause, or same target symbol/concept fixable by the same fix) with your duplicate confidence ≥ 70. Do NOT skip if is_resolved or is_outdated is true. List each skipped finding at the end as: [既コメント済スキップ] [path:line] — <reason>
 
 Output in Japanese. For each finding, use:
 
 **[path/to/file.ext:line]** テスト品質 (信頼度: XX)
+For pre-existing critical findings, use:
+[既存コード] **[path/to/file.ext:line]** テスト品質 (信頼度: XX)
 - **カテゴリ**: カバレッジ不足 / テスト品質 / テスト設計 / 境界値テスト欠如 / モック不適切
 - **問題**: 何が不十分か
 - **不足しているテストケース**: 具体的に何をテストすべきか

@@ -17,6 +17,19 @@ PR number: extract from the user's message if provided. If not provided, run:
 gh pr view --json number --jq .number
 ```
 
+### Review Scope: Changed Code vs Pre-existing Code
+
+**Primary focus**: All findings MUST target lines added or modified in this PR's diff. Do not surface issues whose root cause lives entirely in unchanged code that this PR did not touch.
+
+**Pre-existing-code exception (critical only)**: Subagents MAY report a pre-existing issue only when it falls into one of these critical impact categories:
+
+- **Security breach**: concrete exploitable attack vector (auth bypass, RCE, injection, secret exposure)
+- **Data corruption/loss**: silent overwrite, missing transaction, irreversible mutation
+- **Service outage**: crash, infinite loop, deadlock, resource exhaustion under realistic load
+- **Compliance violation**: PII handling, license breach, audit trail loss
+
+Pre-existing findings must be marked with `[既存コード]` prefix and state which impact category applies. All other pre-existing issues MUST be omitted.
+
 ### Gather Context Before Spawning
 
 Fetch the shared review context once in the parent session:
@@ -43,6 +56,7 @@ Pass each subagent:
 - **Existing PR comments** (the full NDJSON output from the fetch above — inline, issue, and review-summary with `is_resolved`, `is_outdated`, `path`, `line`, `body`, `ai_origin`).
 - Local mode flag and head branch.
 - The exact focus area for that subagent.
+- **Scope rule**: Focus findings on changed lines. For pre-existing issues in unchanged code, report only critical impact categories (security breach, data corruption/loss, service outage, compliance violation) with a `[既存コード]` prefix.
 
 ### Spawn Subagents
 
@@ -64,6 +78,7 @@ After all subagents finish:
 - Drop "no findings" messages from the final findings list, but include them in the summary counts as zero.
 - **Remove inter-agent duplicates**: findings citing the same file/line with the same underlying cause; keep the clearest/highest-confidence version.
 - **Remove PR-comment duplicates**: for each remaining finding, check against the existing PR comments NDJSON fetched above. Mark as duplicate when the finding overlaps an unresolved existing comment (same path + line within ±5 AND same root cause, OR same target symbol/concept addressable by the same fix) and duplicate confidence is ≥ 70. Do NOT skip if `is_resolved == true` or `is_outdated == true`. Collect all skipped findings to emit in the `[既コメント済]` section below.
+- Preserve the `[既存コード]` prefix and the critical impact category on any retained pre-existing finding.
 - Reclassify priority by confidence:
   - High: 90-100
   - Medium: 75-89
@@ -79,6 +94,7 @@ Respond entirely in Japanese.
 Every finding must use this exact three-part structure: header, detail, separator.
 
 - Header: `N. **[file:line]** 領域 (信頼度: XX): 短い一行の要約`
+- Pre-existing header: `N. [既存コード] **[file:line]** 領域 (信頼度: XX): 短い一行の要約（重大カテゴリ）`
 - Detail: `   - 詳細説明と推奨対応。`
 - Separator: `---`
 
