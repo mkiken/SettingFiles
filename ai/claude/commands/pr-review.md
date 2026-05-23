@@ -74,7 +74,31 @@ Assign priority to all review comments:
 - 🟡 **Medium (Recommended)**: Architecture issues, performance, critical readability
 - 🟢 **Low (Optional)**: Maintainability, minor refactoring, style
 
-**Group output by priority in descending order.**
+**Group non-test findings by priority in descending order.**
+
+### **Actionable Findings Only**
+
+Output only findings that require a concrete response: code changes, test additions, design changes, documentation updates, or explicit reviewer decisions.
+
+Do not output praise, compliance confirmations, or non-actionable observations such as "the code follows the convention", "this is well implemented", "no issue here", or "looks good".
+
+Do not include filler sections. `Review Focus Points` and `Recommendations` are optional and must be omitted unless they contain concrete unresolved actions that are not already covered by numbered findings.
+
+If no actionable findings remain after deduplication, output only:
+
+```markdown
+対応が必要な指摘はありません。
+```
+
+### **Test Finding Routing**
+
+Separate test-related findings from regular code findings:
+
+- Put findings about missing tests, weak assertions, brittle tests, incorrect mocks/fixtures, boundary-value tests, negative/error-path tests, and integration coverage under `## テストに関する指摘`.
+- Inside `## テストに関する指摘`, group findings by `High`, `Medium`, and `Low` using the same priority thresholds.
+- Keep numbering sequential across regular findings and test findings. Do not restart numbering in the test section.
+- Omit `## テストに関する指摘` entirely when there are no actionable test findings.
+- If a runtime bug and a missing test share the same root cause, keep the bug in the regular priority section. Mention the missing test in the detail line when it is only supporting evidence; create a separate test finding only when a distinct test change is required.
 
 ### **Code Quality Review**
 
@@ -93,9 +117,9 @@ Review thoroughly from the following perspectives:
 - `[path/to/file.ext:line]` for single line comments
 - `[path/to/file.ext:startLine-endLine]` for multi-line comments
 
-**Number all findings sequentially across all priority sections (continue numbering across sections — do not restart per section).**
+**Number all findings sequentially across regular priority sections and `## テストに関する指摘` (continue numbering across sections — do not restart per section).**
 
-**Output must be grouped by priority level in descending order. Omit priority levels with no findings.**
+**Output must be grouped by priority level in descending order. Omit priority levels with no findings. Test findings must be moved to `## テストに関する指摘` instead of appearing in the regular priority sections.**
 
 **Finding Format**: Each item MUST use this exact three-part structure — header, detail, then separator:
 - **Header line**: `N. **[file:line]** Category: Short one-line summary`
@@ -154,6 +178,14 @@ The `---` separator after each item is a hard structural requirement that must n
 
 ---
 
+## テストに関する指摘
+
+#### 🟡 Medium Priority
+6. **[path/to/file.ext:line]** Test Coverage: Short summary
+   - Detailed explanation and recommendation for the missing or weak test.
+
+---
+
 Example:
 
 #### 🔴 High Priority
@@ -181,14 +213,11 @@ Example:
 
 ### **Review Focus Points**
 
-- Areas requiring special attention
-- Regions needing additional testing
-- Documentation update requirements
+Omit this section unless there are concrete unresolved review focus points that are not already covered by numbered findings.
 
 ### **Recommendations**
 
-- Specific improvement suggestions
-- Alternative implementation approaches (if needed)
+Omit this section unless there are concrete recommendations that are not already covered by numbered findings.
 
 ---
 
@@ -196,8 +225,7 @@ Example:
 
 After completing the review, you MUST delete any temporary files you created during the process (e.g., `diff.txt`, `pr_diff.txt`) using the Bash tool.
 
-After outputting the review results and cleaning up, display the following message to the user:
+If at least one actionable finding remains, display the following message to the user after outputting the review results and cleaning up:
 
 > To post any findings as GitHub PR comments, run:
 > `/pr-comment-post <item numbers>` (e.g., `/pr-comment-post 1 3 5`)
-

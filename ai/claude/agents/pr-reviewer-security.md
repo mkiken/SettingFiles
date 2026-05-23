@@ -27,6 +27,7 @@ Read full file contents for changed files to understand security context, then a
 - **Do not report** theoretical vulnerabilities without a concrete attack vector
 - **Do not report** issues that require already-compromised infrastructure to exploit
 - **Assign confidence scores 0-100** to each finding; omit any finding below 75
+- **Output only actionable findings** that require a concrete fix. Do not output praise, compliance confirmations, "looks good" statements, or non-actionable observations.
 - Consider the application's trust model when evaluating severity
 - **Changed code is primary focus** — findings MUST target lines added or modified in the PR diff. For pre-existing issues in unchanged code, report ONLY when the issue falls into one of these critical impact categories:
   - **Security breach**: concrete exploitable attack vector (auth bypass, RCE, injection, secret exposure)

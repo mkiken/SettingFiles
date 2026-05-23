@@ -69,11 +69,18 @@ Collect all sub-agent findings, then:
    - Mark as duplicate when: same `path` + line within ±5 AND same root cause, OR same target symbol/concept addressable by the same fix.
    - Do NOT skip: same problem type at a different file, or a more specific finding requiring a distinct fix.
    - Skip only when duplicate confidence is ≥ 70.
-3. Reclassify priorities based on confidence scores.
-4. Assign sequential numbers to all findings across all priority sections (continue numbering across sections — do not restart per section).
-5. Format structured output following the Formatting Rules below.
-6. **Validate line numbers**: every finding must point to a `NEW` line from the line-numbered diff, or to a current-side `CTX` line only when no `NEW` line can carry the finding. Findings without a verified current-side line number must not appear in the final output.
-7. If any findings were removed in step 2, add **`## [既コメント済] スキップした指摘`** immediately before `## 総合評価` with one line per skipped finding:
+3. Keep sub-agent outputs intact during collection. The parent reviewer, not the sub-agents, decides final section placement.
+4. **Route test-related findings by content**: findings about missing tests, weak assertions, brittle tests, incorrect mocks/fixtures, boundary-value tests, negative/error-path tests, and integration coverage must go under `## テストに関する指摘`, regardless of which sub-agent produced them.
+5. If a runtime bug and a missing test share the same root cause, keep the bug in the regular priority section. Mention the missing test in the detail line when it is only supporting evidence; create a separate test finding only when a distinct test change is required.
+6. Output only actionable findings that require a concrete response. Do not output praise, compliance confirmations, "looks good" statements, or non-actionable observations.
+7. Reclassify priorities based on confidence scores.
+8. Assign sequential numbers to all findings across regular priority sections and the test section (continue numbering across sections — do not restart per section).
+9. Format structured output following the Formatting Rules below.
+10. **Validate line numbers**: every finding must point to a `NEW` line from the line-numbered diff, or to a current-side `CTX` line only when no `NEW` line can carry the finding. Findings without a verified current-side line number must not appear in the final output.
+11. Omit empty priority sections and omit `## テストに関する指摘` when there are no actionable test findings.
+12. Omit `## レビュー注目ポイント` unless it contains concrete unresolved actions not already covered by numbered findings.
+13. If no actionable findings remain after deduplication, output only `対応が必要な指摘はありません。`
+14. If any findings were removed in step 2, add **`## [既コメント済] スキップした指摘`** immediately before `## 総合評価` with one line per skipped finding:
    `- **[path:line]** 領域: <area> / 既存コメント ID: <id> (resolved=<bool>, ai_origin=<value>) — <reason>`
    Omit this section entirely when nothing was removed.
 
@@ -86,6 +93,7 @@ Collect all sub-agent findings, then:
 - **Separator line**: `---` (horizontal rule — MANDATORY after every finding, including the last one)
 
 The `---` separator after each item is a hard structural requirement that must never be omitted.
+Regular priority sections must contain only non-test findings. Test-related findings must use the same finding format under `## テストに関する指摘`.
 
 ✅ CORRECT:
 
@@ -170,11 +178,18 @@ Respond entirely in **Japanese**.
 
 ---
 
+## テストに関する指摘
+
+### 🟡 Medium Priority（信頼度75-89）
+
+7. **[path/to/file.ext:line]** テスト品質 (信頼度: XX): 短い一行の要約
+   - 詳細説明と推奨対応。
+
+---
+
 ## レビュー注目ポイント
 
-- 特別な注意が必要な領域
-- 追加テストが必要な箇所
-- ドキュメント更新が必要な箇所
+このセクションは任意。番号付き指摘でまだ扱っていない具体的な未対応事項がある場合だけ出力する。
 
 ---
 
@@ -188,7 +203,7 @@ Respond entirely in **Japanese**.
 
 ## Post-Review: Post to GitHub
 
-After outputting the review results, display the following message to the user:
+If at least one actionable finding remains, display the following message to the user:
 
 > To post any findings as GitHub PR comments, run:
 > `/pr-comment-post <item numbers>` (e.g., `/pr-comment-post 1 3 5`)

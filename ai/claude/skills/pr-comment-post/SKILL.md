@@ -35,6 +35,8 @@ Example:
 3. [src/utils/format.ts:8] 🟢 Low | Readability: 変数名をより具体的に
 ```
 
+Include numbered findings from both the regular priority sections and `## テストに関する指摘`. Do not treat the test section as a summary-only block.
+
 ## Step 2: Determine which item numbers to post
 
 Parse `$ARGUMENTS` for space- or comma-separated numbers (e.g., `1 3 5` or `1,3,5`).
@@ -48,7 +50,7 @@ Look at the conversation history for `my:pr-review` output. For each requested n
 
 - **file_path**: e.g., `src/services/auth.ts`
 - **line_spec**: e.g., `42` (single) or `15-20` (range)
-- **priority**: `High`, `Medium`, or `Low` (from the section heading 🔴/🟡/🟢)
+- **priority**: `High`, `Medium`, or `Low` (from the nearest priority section heading, including priority headings inside `## テストに関する指摘`)
 - **category**: e.g., `Security`, `Architecture`, `Bug Risk`
 - **description**: the full issue description text
 

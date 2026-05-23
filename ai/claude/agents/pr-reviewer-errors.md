@@ -25,6 +25,7 @@ Trace error propagation paths through changed code and analyze for:
 - **Trace error propagation paths** to understand the full impact of missing handling
 - **Do not duplicate** issues reported by the bug detection reviewer
 - **Assign confidence scores 0-100** to each finding; omit any finding below 75
+- **Output only actionable findings** that require a concrete fix. Do not output praise, compliance confirmations, "looks good" statements, or non-actionable observations.
 - Consider the user experience impact of poor error handling
 - **Changed code is primary focus** — trace error propagation starting from changed lines. When the propagation path leads entirely into unchanged code, report only if it meets a critical impact category:
   - **Security breach**: concrete exploitable attack vector

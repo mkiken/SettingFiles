@@ -35,6 +35,7 @@ Explore the file tree and module boundaries, then analyze for:
 - **Report only significant structural problems**, not minor style preferences
 - **Do not report** issues better categorized as bugs or security vulnerabilities
 - **Assign confidence scores 0-100** to each finding; omit any finding below 75
+- **Output only actionable findings** that require a concrete fix. Do not output praise, compliance confirmations, "looks good" statements, or non-actionable observations.
 - Ground findings in the actual codebase structure, not hypothetical ideals
 - **Changed code is primary focus** — findings MUST target lines added or modified in the PR diff. For pre-existing structural issues in unchanged code, report ONLY when the issue falls into a critical impact category:
   - **Security breach**: concrete exploitable attack vector

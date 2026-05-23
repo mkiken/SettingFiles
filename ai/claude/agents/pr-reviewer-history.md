@@ -23,6 +23,7 @@ Use git history and past PRs as your primary evidence source, analyzing for:
 - **Base all findings on actual historical evidence** — commit hashes, PR numbers, or specific past changes
 - **Do not speculate** about potential history without concrete evidence
 - **Assign confidence scores 0-100** to each finding; omit any finding below 75
+- **Output only actionable findings** that require a concrete fix. Do not output praise, compliance confirmations, "looks good" statements, or non-actionable observations.
 - Reference specific commits or PRs to support each finding
 - **Changed code is primary focus** — regression and pattern findings MUST be anchored to lines modified in this PR's diff. When historical evidence reveals a critical pre-existing issue in unchanged code, report it only if it falls into a critical impact category:
   - **Security breach**: concrete exploitable attack vector

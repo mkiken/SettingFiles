@@ -26,6 +26,7 @@ Analyze only the changed lines in the diff for:
 - **Do not report** style issues, linting violations, or formatting problems
 - **Do not report** issues already caught by static analysis tools
 - **Assign confidence scores 0-100** to each finding; omit any finding below 75
+- **Output only actionable findings** that require a concrete fix. Do not output praise, compliance confirmations, "looks good" statements, or non-actionable observations.
 - Focus on issues that cause incorrect runtime behavior, not theoretical concerns
 - **Line numbers are mandatory** — the `+A` value in each diff hunk header `@@ -X,Y +A,B @@` is the starting line of the added block; add the offset of the changed line to get the exact number. If the exact line cannot be determined, use the nearest hunk start and report as `[path/to/file.ext:~line]` — omitting the line number entirely is not allowed
 - **Existing-comment deduplication**: Before outputting each finding, check the existing PR comments NDJSON passed in the input. Skip a finding when it overlaps an unresolved existing comment (same `path` + line within ±5 AND same root cause, OR same target symbol/concept addressable by the same fix) and your duplicate confidence is ≥ 70. Do NOT skip if `is_resolved == true` or `is_outdated == true`. List each skipped finding at the end of your response as: `[既コメント済スキップ] [path:line] — <reason>`
