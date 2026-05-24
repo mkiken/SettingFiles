@@ -13,6 +13,103 @@ set -euo pipefail
 # tmux display-popup から起動されると login PATH を継承しないので Homebrew を明示
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 
+SCRIPT_PATH="${BASH_SOURCE[0]}"
+if [[ $SCRIPT_PATH != /* ]]; then
+  SCRIPT_PATH="$PWD/$SCRIPT_PATH"
+fi
+
+_preview_directory() {
+  local target="$1"
+
+  if command -v tree >/dev/null 2>&1; then
+    tree -C "$target" | head -n 80 || true
+  elif command -v eza >/dev/null 2>&1; then
+    eza -T --color=always --level=2 -- "$target" | head -n 80 || true
+  elif command -v exa >/dev/null 2>&1; then
+    exa -T --color=always --level=2 -- "$target" | head -n 80 || true
+  else
+    ls -la "$target"
+  fi
+}
+
+_preview_file() {
+  local target="$1"
+
+  if command -v bat >/dev/null 2>&1; then
+    bat --style=numbers --color=always --line-range :200 -- "$target"
+  elif command -v batcat >/dev/null 2>&1; then
+    batcat --style=numbers --color=always --line-range :200 -- "$target"
+  else
+    sed -n "1,200p" "$target"
+  fi
+}
+
+_preview_file_or_directory() {
+  local target="$1"
+
+  if [[ -z $target ]]; then
+    return 0
+  elif [[ -d $target ]]; then
+    _preview_directory "$target"
+  else
+    _preview_file "$target"
+  fi
+}
+
+_preview_grep() {
+  local target="$1"
+
+  if [[ -z $target ]]; then
+    return 0
+  elif [[ -n ${FZF_QUERY:-} ]]; then
+    if command -v rg >/dev/null 2>&1; then
+      rg --context 3 --color=always --line-number --no-heading --smart-case --max-columns 200 --max-columns-preview -- "${FZF_QUERY}" "$target" || true
+    else
+      printf "rg not found\n"
+    fi
+  else
+    _preview_file_or_directory "$target"
+  fi
+}
+
+_run_preview() {
+  local mode="${1:-files}"
+  local target="${2:-}"
+
+  case "$mode" in
+  directory)
+    [[ -n $target ]] && _preview_directory "$target"
+    ;;
+  dynamic)
+    if [[ ${FZF_PROMPT:-} == Grep* ]]; then
+      _preview_grep "$target"
+    else
+      _preview_file_or_directory "$target"
+    fi
+    ;;
+  files)
+    _preview_file_or_directory "$target"
+    ;;
+  *)
+    printf "unknown preview mode: %s\n" "$mode" >&2
+    return 2
+    ;;
+  esac
+}
+
+_preview_command() {
+  local mode="$1"
+  local quoted_script
+  printf -v quoted_script "%q" "$SCRIPT_PATH"
+  printf '%s --preview %s {}' "$quoted_script" "$mode"
+}
+
+if [[ ${1:-} == "--preview" ]]; then
+  shift
+  _run_preview "$@"
+  exit $?
+fi
+
 # pgrep -P は直接の子のみ対象。tmux 経由では pane_pid → login-shell → ai-cli と
 # 2段階になるため、ps で子孫を最大3世代まで再帰検索する
 _has_ai_descendant() {
@@ -33,32 +130,6 @@ _has_ai_descendant() {
     return 1
 }
 
-_directory_preview_cmd() {
-  local target="${1:-{}}"
-
-  if command -v tree >/dev/null 2>&1; then
-    printf 'tree -C %s | head -n 80\n' "$target"
-  elif command -v eza >/dev/null 2>&1; then
-    printf 'eza -T --color=always --level=2 %s | head -n 80\n' "$target"
-  elif command -v exa >/dev/null 2>&1; then
-    printf 'exa -T --color=always --level=2 %s | head -n 80\n' "$target"
-  else
-    printf 'ls -la %s\n' "$target"
-  fi
-}
-
-_file_preview_cmd() {
-  local target="${1:-{}}"
-
-  if command -v bat >/dev/null 2>&1; then
-    printf 'bat --style=numbers --color=always --line-range :200 -- %s\n' "$target"
-  elif command -v batcat >/dev/null 2>&1; then
-    printf 'batcat --style=numbers --color=always --line-range :200 -- %s\n' "$target"
-  else
-    printf 'sed -n "1,200p" %s\n' "$target"
-  fi
-}
-
 _select_zoxide_dir() {
   if ! command -v zoxide >/dev/null 2>&1; then
     echo "Error: Required command 'zoxide' not found. Please install it." >&2
@@ -66,12 +137,12 @@ _select_zoxide_dir() {
   fi
 
   local zoxide_preview_cmd
-  zoxide_preview_cmd=$(_directory_preview_cmd)
+  zoxide_preview_cmd=$(_preview_command directory)
 
   # Use fzf to select directories from zoxide's list.
   # The '|| true' prevents the script from exiting if the user cancels fzf.
   local dirs
-  dirs=$(zoxide query -l | fzf --multi --reverse --preview "$zoxide_preview_cmd" || true)
+  dirs=$(zoxide query -l | SHELL=/bin/bash fzf --multi --reverse --preview "$zoxide_preview_cmd" || true)
   echo "$dirs"
 }
 
@@ -223,41 +294,33 @@ main() {
   # --- File/Directory Selection ---
   local fd_flags
   local preview_cmd
-  local directory_preview_cmd
-  local file_preview_cmd
   local grep_preview_cmd
   local grep_reload_cmd
-  local grep_dynamic_preview_cmd
   local fd_flags_array=()
   local grep_toggle_flags=()
-
-  directory_preview_cmd=$(_directory_preview_cmd "\"\$preview_target\"")
 
   if $select_directories; then
     # Directory selection mode
     fd_flags="${TMUX_FILE_PICKER_FD_FLAGS:--H --follow --type d --exclude .git}"
-    preview_cmd="preview_target={}; if [ -z \"\$preview_target\" ]; then :; else $directory_preview_cmd; fi"
+    preview_cmd=$(_preview_command directory)
   else
     # File and directory selection mode (default)
     fd_flags="${TMUX_FILE_PICKER_FD_FLAGS:--H --follow --type f --type d --exclude .git --exclude .DS_Store}"
-    file_preview_cmd=$(_file_preview_cmd "\"\$preview_target\"")
-    preview_cmd="preview_target={}; if [ -z \"\$preview_target\" ]; then :; elif [ -d \"\$preview_target\" ]; then $directory_preview_cmd; else $file_preview_cmd; fi"
+    preview_cmd=$(_preview_command files)
 
     # Grep mode toggle (C-s to switch between file search and content grep)
     # $FZF_PROMPT is available in preview commands since fzf 0.50+
     if command -v rg >/dev/null 2>&1; then
-      grep_preview_cmd="preview_target={}; if [ -z \"\$preview_target\" ]; then :; elif [ -n \"\$FZF_QUERY\" ]; then rg --context 3 --color=always --line-number --no-heading --smart-case --max-columns 200 --max-columns-preview -- \"\$FZF_QUERY\" \"\$preview_target\" || true; elif [ -d \"\$preview_target\" ]; then $directory_preview_cmd; else $file_preview_cmd; fi"
       grep_reload_cmd="if [ -n \"\$FZF_QUERY\" ]; then rg --files-with-matches --hidden --glob '!.git' --color=never -- \"\$FZF_QUERY\" 2>/dev/null || true; else printf \"\"; fi"
     else
-      grep_preview_cmd='printf "rg not found\n"'
       grep_reload_cmd='printf ""'
     fi
-    grep_dynamic_preview_cmd="if [[ \$FZF_PROMPT == Grep* ]]; then $grep_preview_cmd; else $preview_cmd; fi"
+    grep_preview_cmd=$(_preview_command dynamic)
 
     grep_toggle_flags=(
       --prompt 'Files> '
       --header 'C-s: toggle grep mode'
-      --preview "$grep_dynamic_preview_cmd"
+      --preview "$grep_preview_cmd"
       --bind 'start:unbind(change)'
       --bind "change:reload:$grep_reload_cmd"
       --bind "ctrl-s:transform:[[ \$FZF_PROMPT == \"Files> \" ]] && echo \"change-prompt(Grep> )+disable-search+clear-query+reload(: || true)+rebind(change)\" || echo \"change-prompt(Files> )+enable-search+clear-query+unbind(change)+reload($fd_cmd $fd_flags)\""
@@ -269,10 +332,10 @@ main() {
   local selected_files_str
   if [[ ${#search_dirs[@]} -eq 1 ]]; then
     # Single directory: cd into it for cleaner relative paths in fzf
-    selected_files_str=$(cd "${search_dirs[0]}" && "$fd_cmd" "${fd_flags_array[@]}" | fzf --multi --reverse --freeze-right=1 --bind 'tab:toggle' --preview "$preview_cmd" "${grep_toggle_flags[@]}" || true)
+    selected_files_str=$(cd "${search_dirs[0]}" && "$fd_cmd" "${fd_flags_array[@]}" | SHELL=/bin/bash fzf --multi --reverse --freeze-right=1 --bind 'tab:toggle' --preview "$preview_cmd" "${grep_toggle_flags[@]}" || true)
   else
     # Multiple directories: pass them as arguments to fd (returns absolute paths)
-    selected_files_str=$("$fd_cmd" "${fd_flags_array[@]}" "${search_dirs[@]}" | fzf --multi --reverse --freeze-right=1 --bind 'tab:toggle' --preview "$preview_cmd" "${grep_toggle_flags[@]}" || true)
+    selected_files_str=$("$fd_cmd" "${fd_flags_array[@]}" "${search_dirs[@]}" | SHELL=/bin/bash fzf --multi --reverse --freeze-right=1 --bind 'tab:toggle' --preview "$preview_cmd" "${grep_toggle_flags[@]}" || true)
   fi
 
   if [[ -z $selected_files_str ]]; then
