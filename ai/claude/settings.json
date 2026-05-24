@@ -137,6 +137,10 @@
   "preferredNotifChannel": "ghostty",
   "skipAutoPermissionPrompt": true,
   "skipDangerousModePermissionPrompt": true,
+  "fileSuggestion": {
+    "command": "~/.claude/scripts/file-suggestion.sh",
+    "type": "command"
+  },
   "statusLine": {
     "command": "bash ~/.claude/statusline-command.sh",
     "padding": 0,

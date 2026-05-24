@@ -17,8 +17,8 @@ for item in settings.json; do
   smart_merge_json "${Repo}ai/claude/${item}" ~/.claude/${item}
 done
 
-# agents,commands,hooksはディレクトリ内のファイルをコピー
-for item in agents commands hooks; do
+# agents,commands,hooks,scripts はディレクトリ内のファイルをシンボリックリンク
+for item in agents commands hooks scripts; do
   if [[ "$item" == "commands" ]]; then
     dest_dir=~/.claude/commands/my
   else
@@ -42,6 +42,7 @@ setup_ai_skills ~/.claude/skills "${Repo}ai/common/skills" "${Repo}ai/claude/ski
 make_symlink "${Repo}ai/claude/claude_desktop_config.json" ~/Library/Application\ Support/Claude/claude_desktop_config.json
 
 chmod +x ~/.claude/hooks/stop-send-notification.sh
+chmod +x ~/.claude/scripts/file-suggestion.sh
 
 echo "Installing Claude tools..."
 
