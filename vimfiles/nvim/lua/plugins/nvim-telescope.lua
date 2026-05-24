@@ -116,12 +116,17 @@ return {
   dependencies = {
     'nvim-lua/plenary.nvim',
     'nvim-telescope/telescope-file-browser.nvim',
+    {
+      'nvim-telescope/telescope-frecency.nvim',
+      version = '*',
+    },
   },
   keys = {
     { "<leader>fb", function() require('telescope.builtin').buffers() end, desc="Telescope buffers" },
     { "<leader>fcm", function() require('telescope.builtin').commands() end, desc="Lists available plugin/user commands and runs them on <cr>" },
     { "<leader>fcs", function() require('telescope.builtin').color_scheme() end, desc="Lists available colorschemes and applies them on <cr>" },
-    { "<leader>ff", function() require('telescope.builtin').find_files() end, desc="Telescope find files" },
+    { "<leader>ff", function() require('telescope').extensions.frecency.frecency({ workspace = "CWD" }) end, desc="Telescope frecency files" },
+    { "<leader>fF", function() require('telescope.builtin').find_files() end, desc="Telescope find files" },
     { "<leader>f@", insert_at_file_paths, desc="Insert @ file paths" },
     { "<leader>fgd", function() require('telescope.builtin').live_grep() end, desc="Search for a string in your current working directory and get results live as you type, respects .gitignore" },
     { "<leader>fgf", function() require('telescope.builtin').current_buffer_fuzzy_find() end, desc="Live fuzzy search inside of the currently open buffer" },
@@ -130,7 +135,9 @@ return {
     { "<leader>ft", function() require('telescope').extensions.file_browser.file_browser({ path = "%:p:h", select_buffer = true }) end, desc="Telescope file browser" },
   },
   config = function()
-    require('telescope').load_extension('fzf')
-    require('telescope').load_extension('file_browser')
+    local telescope = require('telescope')
+    telescope.load_extension('fzf')
+    telescope.load_extension('file_browser')
+    telescope.load_extension('frecency')
   end
 }
