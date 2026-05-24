@@ -98,14 +98,14 @@ SettingFiles/
   - `commands/` - TOML-based custom commands
 - `common/` - Shared resources
   - `prompt_base.md` - Base prompt template
-  - `characters/` - Character personalities (reimu.md, nyaruko.md, nagato_yuki.md, hestia.md)
+  - `characters/` - Character personalities (reimu.md, nyaruko.md, rikka_takanashi.md, hestia.md, mizuki_himeji.md, nagato_yuki.md)
   - `mcp.json` - MCP server registry
 
 **Assembly Process**:
 
 ```
 prompt_base.md + characters/reimu.md + claude_prompt.md → _CLAUDE.md
-prompt_base.md + characters/nagato_yuki.md + codex_base.md → _AGENTS.md
+prompt_base.md + characters/rikka_takanashi.md + codex_base.md → _AGENTS.md
 ```
 
 **Purpose**: Centralized AI assistant configuration with character-based prompts
@@ -284,15 +284,17 @@ Base Prompt + Character + Tool-Specific → Final Prompt
 ─────────────────────────────────────────────────────────
 prompt_base.md   reimu.md    claude_prompt.md → _CLAUDE.md
 prompt_base.md   nyaruko.md  (inline: Language) → _GEMINI.md
-prompt_base.md   nagato_yuki.md   codex_base.md → _AGENTS.md
+prompt_base.md   rikka_takanashi.md   codex_base.md → _AGENTS.md
 ```
 
 **Character Personalities**:
 
 - `reimu.md` - 博麗霊夢 (Hakurei Reimu) - Claude
 - `nyaruko.md` - ニャル子 (Nyaruko) - Gemini
-- `nagato_yuki.md` - 長門有希 (Yuki Nagato) - Codex
+- `rikka_takanashi.md` - 小鳥遊六花 (Rikka Takanashi) - Codex
 - `hestia.md` - ヘスティア (Hestia) - Future use
+- `mizuki_himeji.md` - 姫路瑞希 (Mizuki Himeji) - Future use
+- `nagato_yuki.md` - 長門有希 (Yuki Nagato) - Retired (kept as reference)
 
 ### Plugin Management
 
