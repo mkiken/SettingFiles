@@ -1,3 +1,13 @@
+# Output Language
+
+Respond to the user in Japanese by default.
+
+This applies to normal replies, Plan Mode progress updates, clarification or confirmation questions, and all human-readable content inside `<proposed_plan>` blocks.
+
+Keep required protocol tags and machine-readable identifiers unchanged. For example, use the literal `<proposed_plan>` and `</proposed_plan>` tags exactly as specified.
+
+Use English only when the user explicitly requests it, when preserving source text or API names, or when writing code, commands, identifiers, commit messages, documentation, or user-facing strings that should remain English for the target context.
+
 # User Confirmation
 
 Do not use the `request_user_input` tool in Codex.
