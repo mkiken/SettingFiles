@@ -32,6 +32,7 @@ make_symlink "${Repo}shell/tmux/update-session-ai-status.sh" ~/.tmux/scripts/upd
 make_symlink "${Repo}shell/tmux/resurrect-save-wrapper.sh" ~/.tmux/scripts/resurrect-save-wrapper.sh
 make_symlink "${Repo}shell/tmux/resurrect-restore-wrapper.sh" ~/.tmux/scripts/resurrect-restore-wrapper.sh
 make_symlink "${Repo}shell/tmux/resurrect-setup.sh" ~/.tmux/scripts/resurrect-setup.sh
+make_symlink "${Repo}shell/tmux/tmux-file-picker.sh" ~/.tmux/scripts/tmux-file-picker.sh
 
 # Tmux Plugin Manager
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
