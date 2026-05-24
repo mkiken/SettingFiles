@@ -61,6 +61,93 @@ local function telescope_entry_path(entry, cwd)
   return relative_path(entry.value or entry.filename or entry.path or entry[1], cwd)
 end
 
+local function executable(name)
+  return vim.fn.executable(name) == 1
+end
+
+local function find_file_command()
+  if executable("rg") then
+    return { "rg", "--files", "--color", "never" }
+  elseif executable("fd") then
+    return { "fd", "--type", "f", "--color", "never" }
+  elseif executable("fdfind") then
+    return { "fdfind", "--type", "f", "--color", "never" }
+  elseif executable("find") and vim.fn.has("win32") == 0 then
+    return { "find", ".", "-type", "f" }
+  elseif executable("where") then
+    return { "where", "/r", ".", "*" }
+  end
+
+  return nil
+end
+
+local function preview_entry_path(entry, cwd)
+  if not entry then
+    return nil
+  end
+
+  local path = entry.path or entry.filename or entry.value or entry[1]
+  if type(path) ~= "string" or path == "" then
+    return nil
+  end
+
+  if vim.startswith(path, "/") or path:match("^%a:[/\\]") then
+    return path
+  end
+
+  if vim.fs.joinpath then
+    return vim.fs.joinpath(cwd, path)
+  end
+
+  return cwd .. "/" .. path
+end
+
+local function file_picker_previewer(cwd, mode_state)
+  local previewers = require('telescope.previewers')
+  local action_state = require('telescope.actions.state')
+
+  return previewers.new_termopen_previewer({
+    title = "File Preview",
+    get_command = function(entry)
+      local path = preview_entry_path(entry, cwd)
+      if not path then
+        return nil
+      end
+
+      if mode_state.mode == "grep" then
+        local query = action_state.get_current_line()
+        if query == "" or not executable("rg") then
+          return nil
+        end
+
+        return {
+          "rg",
+          "--context",
+          "3",
+          "--color=always",
+          "--line-number",
+          "--no-heading",
+          "--smart-case",
+          "--max-columns",
+          "200",
+          "--max-columns-preview",
+          "--",
+          query,
+          path,
+        }
+      end
+
+      if executable("bat") then
+        return { "bat", "--style=numbers", "--color=always", "--line-range", ":200", path }
+      elseif executable("batcat") then
+        return { "batcat", "--style=numbers", "--color=always", "--line-range", ":200", path }
+      end
+
+      return { "sed", "-n", "1,200p", path }
+    end,
+  })
+end
+
 local function insert_at_file_paths()
   local cwd = prompt_file_picker_cwd()
   if not cwd then
@@ -71,44 +158,133 @@ local function insert_at_file_paths()
   local insert_win = vim.api.nvim_get_current_win()
   local actions = require('telescope.actions')
   local action_state = require('telescope.actions.state')
+  local conf = require('telescope.config').values
+  local finders = require('telescope.finders')
+  local make_entry = require('telescope.make_entry')
+  local pickers = require('telescope.pickers')
+  local sorters = require('telescope.sorters')
 
-  require('telescope.builtin').find_files({
+  local entry_maker = make_entry.gen_from_file({ cwd = cwd })
+  local mode_state = { mode = "files" }
+
+  local function new_file_finder()
+    local command = find_file_command()
+    if not command then
+      return nil
+    end
+
+    return finders.new_oneshot_job(command, {
+      cwd = cwd,
+      entry_maker = entry_maker,
+    })
+  end
+
+  local function new_grep_finder()
+    return finders.new_job(function(prompt)
+      if not prompt or prompt == "" then
+        return nil
+      end
+
+      return {
+        "rg",
+        "--files-with-matches",
+        "--hidden",
+        "--glob",
+        "!.git",
+        "--color",
+        "never",
+        "--",
+        prompt,
+      }
+    end, entry_maker, nil, cwd)
+  end
+
+  local function picker_sorter(mode)
+    if mode == "grep" then
+      return sorters.highlighter_only({})
+    end
+
+    return conf.file_sorter({ cwd = cwd })
+  end
+
+  local function insert_selected_paths(prompt_bufnr)
+    local paths = {}
+    local picker = action_state.get_current_picker(prompt_bufnr)
+    local selections = picker:get_multi_selection()
+
+    if #selections == 0 then
+      selections = { action_state.get_selected_entry() }
+    end
+
+    for _, entry in ipairs(selections) do
+      local path = telescope_entry_path(entry, cwd)
+      if path then
+        table.insert(paths, "@" .. path)
+      end
+    end
+
+    actions.close(prompt_bufnr)
+
+    if #paths == 0 then
+      return
+    end
+
+    vim.schedule(function()
+      if vim.api.nvim_win_is_valid(insert_win) then
+        vim.api.nvim_set_current_win(insert_win)
+      end
+      vim.api.nvim_put({ table.concat(paths, " ") .. " " }, "c", true, true)
+    end)
+  end
+
+  local function switch_mode(prompt_bufnr)
+    local next_mode = mode_state.mode == "files" and "grep" or "files"
+    if next_mode == "grep" and not executable("rg") then
+      vim.notify("rg not found for @ file picker grep mode", vim.log.levels.WARN)
+      return
+    end
+
+    local finder = next_mode == "grep" and new_grep_finder() or new_file_finder()
+    if not finder then
+      vim.notify("No file search command found for @ file picker", vim.log.levels.WARN)
+      return
+    end
+
+    mode_state.mode = next_mode
+
+    local picker = action_state.get_current_picker(prompt_bufnr)
+    picker.sorter = picker_sorter(next_mode)
+    picker.sorter:_init()
+    picker:refresh(finder, {
+      reset_prompt = true,
+      new_prefix = next_mode == "grep" and "Grep> " or "Files> ",
+    })
+  end
+
+  local initial_finder = new_file_finder()
+  if not initial_finder then
+    vim.notify("No file search command found for @ file picker", vim.log.levels.WARN)
+    return
+  end
+
+  pickers.new({
     cwd = cwd,
     prompt_title = "Insert @ File",
-    attach_mappings = function(prompt_bufnr)
+    prompt_prefix = "Files> ",
+  }, {
+    finder = initial_finder,
+    previewer = file_picker_previewer(cwd, mode_state),
+    sorter = picker_sorter("files"),
+    attach_mappings = function(prompt_bufnr, map)
       actions.select_default:replace(function()
-        local paths = {}
-        local picker = action_state.get_current_picker(prompt_bufnr)
-        local selections = picker:get_multi_selection()
-
-        if #selections == 0 then
-          selections = { action_state.get_selected_entry() }
-        end
-
-        for _, entry in ipairs(selections) do
-          local path = telescope_entry_path(entry, cwd)
-          if path then
-            table.insert(paths, "@" .. path)
-          end
-        end
-
-        actions.close(prompt_bufnr)
-
-        if #paths == 0 then
-          return
-        end
-
-        vim.schedule(function()
-          if vim.api.nvim_win_is_valid(insert_win) then
-            vim.api.nvim_set_current_win(insert_win)
-          end
-          vim.api.nvim_put({ table.concat(paths, " ") .. " " }, "c", true, true)
-        end)
+        insert_selected_paths(prompt_bufnr)
       end)
+
+      map({ "i", "n" }, "<C-s>", switch_mode)
 
       return true
     end,
-  })
+  }):find()
 end
 
 return {
