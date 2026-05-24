@@ -34,24 +34,28 @@ _has_ai_descendant() {
 }
 
 _directory_preview_cmd() {
+  local target="${1:-{}}"
+
   if command -v tree >/dev/null 2>&1; then
-    printf '%s\n' 'tree -C {} | head -n 80'
+    printf 'tree -C %s | head -n 80\n' "$target"
   elif command -v eza >/dev/null 2>&1; then
-    printf '%s\n' 'eza -T --color=always --level=2 {} | head -n 80'
+    printf 'eza -T --color=always --level=2 %s | head -n 80\n' "$target"
   elif command -v exa >/dev/null 2>&1; then
-    printf '%s\n' 'exa -T --color=always --level=2 {} | head -n 80'
+    printf 'exa -T --color=always --level=2 %s | head -n 80\n' "$target"
   else
-    printf '%s\n' 'ls -la {}'
+    printf 'ls -la %s\n' "$target"
   fi
 }
 
 _file_preview_cmd() {
+  local target="${1:-{}}"
+
   if command -v bat >/dev/null 2>&1; then
-    printf '%s\n' 'bat --style=numbers --color=always --line-range :200 {}'
+    printf 'bat --style=numbers --color=always --line-range :200 -- %s\n' "$target"
   elif command -v batcat >/dev/null 2>&1; then
-    printf '%s\n' 'batcat --style=numbers --color=always --line-range :200 {}'
+    printf 'batcat --style=numbers --color=always --line-range :200 -- %s\n' "$target"
   else
-    printf '%s\n' 'sed -n "1,200p" {}'
+    printf 'sed -n "1,200p" %s\n' "$target"
   fi
 }
 
@@ -227,23 +231,23 @@ main() {
   local fd_flags_array=()
   local grep_toggle_flags=()
 
-  directory_preview_cmd=$(_directory_preview_cmd)
+  directory_preview_cmd=$(_directory_preview_cmd "\"\$preview_target\"")
 
   if $select_directories; then
     # Directory selection mode
     fd_flags="${TMUX_FILE_PICKER_FD_FLAGS:--H --follow --type d --exclude .git}"
-    preview_cmd="$directory_preview_cmd"
+    preview_cmd="preview_target={}; if [ -z \"\$preview_target\" ]; then :; else $directory_preview_cmd; fi"
   else
     # File and directory selection mode (default)
     fd_flags="${TMUX_FILE_PICKER_FD_FLAGS:--H --follow --type f --type d --exclude .git --exclude .DS_Store}"
-    file_preview_cmd=$(_file_preview_cmd)
-    preview_cmd="if [ -d {} ]; then $directory_preview_cmd; else $file_preview_cmd; fi"
+    file_preview_cmd=$(_file_preview_cmd "\"\$preview_target\"")
+    preview_cmd="preview_target={}; if [ -z \"\$preview_target\" ]; then :; elif [ -d \"\$preview_target\" ]; then $directory_preview_cmd; else $file_preview_cmd; fi"
 
     # Grep mode toggle (C-s to switch between file search and content grep)
     # $FZF_PROMPT is available in preview commands since fzf 0.50+
     if command -v rg >/dev/null 2>&1; then
-      grep_preview_cmd="if [ -n {q} ]; then rg --context 3 --color=always --line-number --no-heading --smart-case --max-columns 200 --max-columns-preview -- {q} {} || true; else $preview_cmd; fi"
-      grep_reload_cmd="rg --files-with-matches --hidden --glob '!.git' --color=never -- {q} 2>/dev/null || true"
+      grep_preview_cmd="preview_target={}; if [ -z \"\$preview_target\" ]; then :; elif [ -n \"\$FZF_QUERY\" ]; then rg --context 3 --color=always --line-number --no-heading --smart-case --max-columns 200 --max-columns-preview -- \"\$FZF_QUERY\" \"\$preview_target\" || true; elif [ -d \"\$preview_target\" ]; then $directory_preview_cmd; else $file_preview_cmd; fi"
+      grep_reload_cmd="if [ -n \"\$FZF_QUERY\" ]; then rg --files-with-matches --hidden --glob '!.git' --color=never -- \"\$FZF_QUERY\" 2>/dev/null || true; else printf \"\"; fi"
     else
       grep_preview_cmd='printf "rg not found\n"'
       grep_reload_cmd='printf ""'
