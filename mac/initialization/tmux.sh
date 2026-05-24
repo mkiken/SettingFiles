@@ -8,6 +8,7 @@ function setup_tmux_symlinks() {
     sort-windows.py
     rename-window-git.sh
     fzf-jump-window.sh
+    tmux-cdi-open.zsh
     open-nv.sh
     new-session.sh
     cycle-session.sh
