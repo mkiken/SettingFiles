@@ -104,6 +104,11 @@ _preview_command() {
   printf '%s --preview %s {}' "$quoted_script" "$mode"
 }
 
+_ai_at_path() {
+  local path="$1"
+  printf '@%s' "$path"
+}
+
 if [[ ${1:-} == "--preview" ]]; then
   shift
   _run_preview "$@"
@@ -266,7 +271,9 @@ main() {
   if $dir_only; then
     local output_str=""
     if $at_prefix_mode; then
-      printf -v output_str "@%s " "${search_dirs[@]}"
+      for dir in "${search_dirs[@]}"; do
+        output_str+="$(_ai_at_path "$dir") "
+      done
     else
       local escaped_paths=()
       for dir in "${search_dirs[@]}"; do
@@ -317,13 +324,22 @@ main() {
     fi
     grep_preview_cmd=$(_preview_command dynamic)
 
+    local desktop_dir="${HOME}/Desktop"
+    local desktop_reload_cmd='printf ""'
+    if [[ -d $desktop_dir ]]; then
+      local desktop_dir_arg
+      printf -v desktop_dir_arg "%q" "$desktop_dir"
+      desktop_reload_cmd="$fd_cmd --absolute-path --max-depth 1 $fd_flags . $desktop_dir_arg"
+    fi
+
     grep_toggle_flags=(
       --prompt 'Files> '
-      --header 'C-s: toggle grep mode'
+      --header 'C-s: grep/files | C-d: desktop/files'
       --preview "$grep_preview_cmd"
       --bind 'start:unbind(change)'
       --bind "change:reload:$grep_reload_cmd"
       --bind "ctrl-s:transform:[[ \$FZF_PROMPT == \"Files> \" ]] && echo \"change-prompt(Grep> )+disable-search+clear-query+reload(: || true)+rebind(change)\" || echo \"change-prompt(Files> )+enable-search+clear-query+unbind(change)+reload($fd_cmd $fd_flags)\""
+      --bind "ctrl-d:transform:[[ \$FZF_PROMPT == \"Desktop> \" ]] && echo \"change-prompt(Files> )+enable-search+clear-query+unbind(change)+reload($fd_cmd $fd_flags)\" || echo \"change-prompt(Desktop> )+enable-search+clear-query+unbind(change)+reload($desktop_reload_cmd)\""
     )
   fi
 
@@ -370,6 +386,9 @@ main() {
       # Multiple directories mode: fd returned absolute paths, use as-is
       relative_paths=("${selected_files[@]}")
     fi
+  elif [[ ${#selected_files[@]} -gt 0 && ${selected_files[0]} == /* ]]; then
+    # Desktop mode returns absolute paths so AI CLIs can read files outside the repository.
+    relative_paths=("${selected_files[@]}")
   else
     # Standard path relativization logic (non-zoxide always has single directory)
     local search_dir="${search_dirs[0]}"
@@ -402,7 +421,10 @@ main() {
   local files_oneline
   if $at_prefix_mode; then
     # Prefix each file with '@' and join with spaces
-    printf -v files_oneline "@%s " "${relative_paths[@]}"
+    files_oneline=""
+    for path in "${relative_paths[@]}"; do
+      files_oneline+="$(_ai_at_path "$path") "
+    done
   else
     # Shell-escape each file path and join with spaces
     local escaped_paths=()

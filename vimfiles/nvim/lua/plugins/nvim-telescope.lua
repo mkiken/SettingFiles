@@ -65,13 +65,35 @@ local function executable(name)
   return vim.fn.executable(name) == 1
 end
 
-local function find_file_command()
+local function at_mention_path(path)
+  if not path or path == "" then
+    return nil
+  end
+
+  return "@" .. path
+end
+
+local function find_file_command(opts)
+  opts = opts or {}
+
   if executable("rg") then
-    return { "rg", "--files", "--color", "never" }
+    local command = { "rg", "--files", "--color", "never" }
+    if opts.max_depth then
+      vim.list_extend(command, { "--max-depth", tostring(opts.max_depth) })
+    end
+    return command
   elseif executable("fd") then
-    return { "fd", "--type", "f", "--color", "never" }
+    local command = { "fd", "--type", "f", "--color", "never" }
+    if opts.max_depth then
+      vim.list_extend(command, { "--max-depth", tostring(opts.max_depth) })
+    end
+    return command
   elseif executable("fdfind") then
-    return { "fdfind", "--type", "f", "--color", "never" }
+    local command = { "fdfind", "--type", "f", "--color", "never" }
+    if opts.max_depth then
+      vim.list_extend(command, { "--max-depth", tostring(opts.max_depth) })
+    end
+    return command
   elseif executable("find") and vim.fn.has("win32") == 0 then
     return { "find", ".", "-type", "f" }
   elseif executable("where") then
@@ -109,7 +131,7 @@ local function file_picker_previewer(cwd, mode_state)
   return previewers.new_termopen_previewer({
     title = "File Preview",
     get_command = function(entry)
-      local path = preview_entry_path(entry, cwd)
+      local path = preview_entry_path(entry, mode_state.cwd or cwd)
       if not path then
         return nil
       end
@@ -164,22 +186,21 @@ local function insert_at_file_paths()
   local pickers = require('telescope.pickers')
   local sorters = require('telescope.sorters')
 
-  local entry_maker = make_entry.gen_from_file({ cwd = cwd })
-  local mode_state = { mode = "files" }
+  local mode_state = { mode = "files", cwd = cwd }
 
-  local function new_file_finder()
-    local command = find_file_command()
+  local function new_file_finder(search_cwd, opts)
+    local command = find_file_command(opts)
     if not command then
       return nil
     end
 
     return finders.new_oneshot_job(command, {
-      cwd = cwd,
-      entry_maker = entry_maker,
+      cwd = search_cwd,
+      entry_maker = make_entry.gen_from_file({ cwd = search_cwd }),
     })
   end
 
-  local function new_grep_finder()
+  local function new_grep_finder(search_cwd)
     return finders.new_job(function(prompt)
       if not prompt or prompt == "" then
         return nil
@@ -196,19 +217,20 @@ local function insert_at_file_paths()
         "--",
         prompt,
       }
-    end, entry_maker, nil, cwd)
+    end, make_entry.gen_from_file({ cwd = search_cwd }), nil, search_cwd)
   end
 
-  local function picker_sorter(mode)
+  local function picker_sorter(mode, search_cwd)
     if mode == "grep" then
       return sorters.highlighter_only({})
     end
 
-    return conf.file_sorter({ cwd = cwd })
+    return conf.file_sorter({ cwd = search_cwd })
   end
 
   local function insert_selected_paths(prompt_bufnr)
     local paths = {}
+    local selected_cwd = mode_state.cwd or cwd
     local picker = action_state.get_current_picker(prompt_bufnr)
     local selections = picker:get_multi_selection()
 
@@ -217,9 +239,15 @@ local function insert_at_file_paths()
     end
 
     for _, entry in ipairs(selections) do
-      local path = telescope_entry_path(entry, cwd)
+      local path
+      if mode_state.mode == "desktop" then
+        path = preview_entry_path(entry, selected_cwd)
+      else
+        path = telescope_entry_path(entry, selected_cwd)
+      end
+
       if path then
-        table.insert(paths, "@" .. path)
+        table.insert(paths, at_mention_path(path))
       end
     end
 
@@ -244,16 +272,17 @@ local function insert_at_file_paths()
       return
     end
 
-    local finder = next_mode == "grep" and new_grep_finder() or new_file_finder()
+    local finder = next_mode == "grep" and new_grep_finder(cwd) or new_file_finder(cwd)
     if not finder then
       vim.notify("No file search command found for @ file picker", vim.log.levels.WARN)
       return
     end
 
     mode_state.mode = next_mode
+    mode_state.cwd = cwd
 
     local picker = action_state.get_current_picker(prompt_bufnr)
-    picker.sorter = picker_sorter(next_mode)
+    picker.sorter = picker_sorter(next_mode, cwd)
     picker.sorter:_init()
     picker:refresh(finder, {
       reset_prompt = true,
@@ -261,7 +290,33 @@ local function insert_at_file_paths()
     })
   end
 
-  local initial_finder = new_file_finder()
+  local function switch_desktop_mode(prompt_bufnr)
+    local next_mode = mode_state.mode == "desktop" and "files" or "desktop"
+    local next_cwd = next_mode == "desktop" and normalize_dir("~/Desktop") or cwd
+    if not next_cwd then
+      vim.notify("Desktop directory not found for @ file picker", vim.log.levels.WARN)
+      return
+    end
+
+    local finder = new_file_finder(next_cwd, next_mode == "desktop" and { max_depth = 1 } or nil)
+    if not finder then
+      vim.notify("No file search command found for @ file picker", vim.log.levels.WARN)
+      return
+    end
+
+    mode_state.mode = next_mode
+    mode_state.cwd = next_cwd
+
+    local picker = action_state.get_current_picker(prompt_bufnr)
+    picker.sorter = picker_sorter(next_mode, next_cwd)
+    picker.sorter:_init()
+    picker:refresh(finder, {
+      reset_prompt = true,
+      new_prefix = next_mode == "desktop" and "Desktop> " or "Files> ",
+    })
+  end
+
+  local initial_finder = new_file_finder(cwd)
   if not initial_finder then
     vim.notify("No file search command found for @ file picker", vim.log.levels.WARN)
     return
@@ -274,13 +329,14 @@ local function insert_at_file_paths()
   }, {
     finder = initial_finder,
     previewer = file_picker_previewer(cwd, mode_state),
-    sorter = picker_sorter("files"),
+    sorter = picker_sorter("files", cwd),
     attach_mappings = function(prompt_bufnr, map)
       actions.select_default:replace(function()
         insert_selected_paths(prompt_bufnr)
       end)
 
       map({ "i", "n" }, "<C-s>", switch_mode)
+      map({ "i", "n" }, "<C-d>", switch_desktop_mode)
 
       return true
     end,
