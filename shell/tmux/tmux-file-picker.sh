@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # tmux popup から fzf でファイル/ディレクトリを多選択し、現在ペインへ送り込むスクリプト。
 # 親プロセスに claude / gemini / codex を検出した場合は @path 形式で書き戻す。
-# 起動例: bind F display-popup -E -d '#{pane_current_path}' -w 90% -h 90% '$HOME/.tmux/scripts/tmux-file-picker.sh'
+# 起動例: bind @ display-popup -E -d '#{pane_current_path}' -w 90% -h 90% '$HOME/.tmux/scripts/tmux-file-picker.sh'
 # Options: --git-root | --zoxide | --dir-only | --directories
 #
 # 出典:
