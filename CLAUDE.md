@@ -10,7 +10,7 @@ Personal dotfiles repository for managing development environment configurations
 
 ### Initial Setup
 ```bash
-# Mac (7-step setup: copy_files → homebrew → dev_tools → notify_icons → git_setup → system_setup → AI assistants)
+# Mac (8-step setup: copy_files → homebrew → dev_tools → tmux → notify_icons → git_setup → system_setup → AI assistants)
 cd mac && ./initialize
 
 # Windows (PowerShell)

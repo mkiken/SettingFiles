@@ -18,28 +18,6 @@ make_symlink "${Repo}vimfiles/nvim" ~/.config
 # IDEAVim
 make_symlink "${Repo}.ideavimrc" ~/.ideavimrc
 
-# Tmux
-make_symlink "${Repo}.tmux.conf" ~/.tmux.conf
-make_symlink "${Repo}shell/tmux/new-window.py" ~/.tmux/scripts/new-window.py
-make_symlink "${Repo}shell/tmux/sort-windows.py" ~/.tmux/scripts/sort-windows.py
-make_symlink "${Repo}shell/tmux/rename-window-git.sh" ~/.tmux/scripts/rename-window-git.sh
-make_symlink "${Repo}shell/tmux/fzf-jump-window.sh" ~/.tmux/scripts/fzf-jump-window.sh
-make_symlink "${Repo}shell/tmux/open-nv.sh" ~/.tmux/scripts/open-nv.sh
-make_symlink "${Repo}shell/tmux/new-session.sh" ~/.tmux/scripts/new-session.sh
-make_symlink "${Repo}shell/tmux/cycle-session.sh" ~/.tmux/scripts/cycle-session.sh
-make_symlink "${Repo}shell/tmux/select-session.sh" ~/.tmux/scripts/select-session.sh
-make_symlink "${Repo}shell/tmux/update-session-ai-status.sh" ~/.tmux/scripts/update-session-ai-status.sh
-make_symlink "${Repo}shell/tmux/resurrect-save-wrapper.sh" ~/.tmux/scripts/resurrect-save-wrapper.sh
-make_symlink "${Repo}shell/tmux/resurrect-restore-wrapper.sh" ~/.tmux/scripts/resurrect-restore-wrapper.sh
-make_symlink "${Repo}shell/tmux/resurrect-setup.sh" ~/.tmux/scripts/resurrect-setup.sh
-make_symlink "${Repo}shell/tmux/tmux-file-picker.sh" ~/.tmux/scripts/tmux-file-picker.sh
-
-# Tmux Plugin Manager
-git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-if [ -f ~/.tmux/plugins/tpm/bin/install_plugins ]; then
-    ~/.tmux/plugins/tpm/bin/install_plugins
-fi
-
 # Karabiner
 smart_merge_json "${Repo}mac/karabiner.json" ~/.config/karabiner/karabiner.json
 

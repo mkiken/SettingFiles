@@ -121,13 +121,15 @@ prompt_base.md + characters/nagato_yuki.md + codex_base.md → _AGENTS.md
 1. `copy_files.sh` - Symlink creation
 2. `homebrew.sh` - Homebrew & package installation
 3. `dev_tools.sh` - Developer tools setup
-4. `git_setup.sh` - Git configuration
-5. `system_setup.sh` - macOS system settings
-6. `ai/` - AI assistant setup (claude.sh, gemini.sh, other.sh)
+4. `tmux.sh` - tmux setup
+5. `notify_icons.sh` - Notification icon setup
+6. `git_setup.sh` - Git configuration
+7. `system_setup.sh` - macOS system settings
+8. `ai/` - AI assistant setup (claude.sh, gemini.sh, other.sh)
 
 **Orchestrator**: `mac/initialization/initialize`
 
-**Purpose**: 6-phase macOS environment setup via symlink strategy
+**Purpose**: 8-phase macOS environment setup via symlink strategy
 
 ---
 
