@@ -16,6 +16,7 @@ function setup_tmux_symlinks() {
     resurrect-save-wrapper.sh
     resurrect-restore-wrapper.sh
     resurrect-setup.sh
+    split-snapshot-pane.sh
     tmux-file-picker.sh
   )
 
