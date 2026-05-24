@@ -98,3 +98,126 @@ vim.keymap.set('n', '<Leader>s', function()
   vim.cmd('source ~/.config/nvim/init.lua')
   vim.notify('設定を再読み込みしました', vim.log.levels.INFO)
 end, { silent = true })
+
+local function count_pattern(text, pattern)
+  local _, count = text:gsub(pattern, "")
+  return count
+end
+
+local function trim_url(url)
+  local always_trim = {
+    ["."] = true,
+    [","] = true,
+    [";"] = true,
+    [":"] = true,
+    ["!"] = true,
+    ["?"] = true,
+    ["'"] = true,
+    ['"'] = true,
+    ["`"] = true,
+  }
+  local bracket_pairs = {
+    [")"] = { "%(", "%)" },
+    ["]"] = { "%[", "%]" },
+    ["}"] = { "{", "}" },
+  }
+
+  while url ~= "" do
+    local last_char = url:sub(-1)
+
+    if always_trim[last_char] then
+      url = url:sub(1, -2)
+    elseif bracket_pairs[last_char] then
+      local pair = bracket_pairs[last_char]
+      if count_pattern(url, pair[2]) > count_pattern(url, pair[1]) then
+        url = url:sub(1, -2)
+      else
+        break
+      end
+    else
+      break
+    end
+  end
+
+  return url
+end
+
+local function collect_buffer_urls()
+  local urls = {}
+  local seen = {}
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+
+  for _, line in ipairs(lines) do
+    for match in line:gmatch("https?://[^%s<>'\"`]+") do
+      local url = trim_url(match)
+      if url:match("^https?://.+") and not seen[url] then
+        seen[url] = true
+        table.insert(urls, url)
+      end
+    end
+  end
+
+  return urls
+end
+
+local function open_url(url)
+  local _, err = vim.ui.open(url)
+  if err then
+    vim.notify(("URLを開けませんでした: %s"):format(err), vim.log.levels.ERROR)
+  end
+end
+
+local function select_buffer_url(urls)
+  local has_pickers, pickers = pcall(require, "telescope.pickers")
+  local has_finders, finders = pcall(require, "telescope.finders")
+  local has_conf, conf = pcall(require, "telescope.config")
+  local has_actions, actions = pcall(require, "telescope.actions")
+  local has_action_state, action_state = pcall(require, "telescope.actions.state")
+
+  if not (has_pickers and has_finders and has_conf and has_actions and has_action_state) then
+    vim.ui.select(urls, { prompt = "Open URL" }, function(choice)
+      if choice then
+        open_url(choice)
+      end
+    end)
+    return
+  end
+
+  pickers.new({}, {
+    prompt_title = "Open URL",
+    finder = finders.new_table({ results = urls }),
+    sorter = conf.values.generic_sorter({}),
+    attach_mappings = function(prompt_bufnr)
+      actions.select_default:replace(function()
+        local selection = action_state.get_selected_entry()
+        actions.close(prompt_bufnr)
+
+        if selection then
+          open_url(selection.value)
+        end
+      end)
+
+      return true
+    end,
+  }):find()
+end
+
+local function open_buffer_url()
+  local urls = collect_buffer_urls()
+
+  if #urls == 0 then
+    vim.notify("現在のバッファにURLがありません", vim.log.levels.WARN)
+    return
+  end
+
+  select_buffer_url(urls)
+end
+
+vim.api.nvim_create_user_command("OpenBufferUrl", open_buffer_url, {
+  desc = "Open URL from current buffer",
+})
+
+vim.keymap.set("n", "<Leader>o", open_buffer_url, {
+  silent = true,
+  desc = "Open URL from current buffer",
+})
