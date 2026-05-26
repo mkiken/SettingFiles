@@ -52,6 +52,12 @@ function _tmux_zsh_login_command() {
   print -r -- "TERM_PROGRAM=tmux zsh -lic ${(q)shell_command}"
 }
 
+function _tmux_zsh_login_command_without_rc() {
+  local shell_command="$1"
+
+  print -r -- "TERM_PROGRAM=tmux zsh -lc ${(q)shell_command}"
+}
+
 function _tmux_unique_cd_session_name() {
   local session_name
 
@@ -87,7 +93,7 @@ function _tmux_create_window_at_path() {
   local set_dir="${SET:-$HOME/Desktop/repository/SettingFiles/}"
   local rename_script="${set_dir}shell/tmux/rename-window-git.sh"
   local shell_command="${(q)rename_script} \"\$PWD\"; exec zsh"
-  local tmux_command=$(_tmux_zsh_login_command "$shell_command")
+  local tmux_command=$(_tmux_zsh_login_command_without_rc "$shell_command")
 
   tmux new-window -c "$target_path" "$tmux_command"
 }
@@ -98,7 +104,7 @@ function _tmux_create_session_at_path() {
   local rename_script="${set_dir}shell/tmux/rename-window-git.sh"
   local temp_session=$(_tmux_unique_cd_session_name)
   local shell_command=$(_tmux_path_session_command "$rename_script")
-  local tmux_command=$(_tmux_zsh_login_command "$shell_command")
+  local tmux_command=$(_tmux_zsh_login_command_without_rc "$shell_command")
 
   tmux new-session -d -s "$temp_session" -c "$target_path" "$tmux_command" &&
     tmux switch-client -t "$temp_session"
