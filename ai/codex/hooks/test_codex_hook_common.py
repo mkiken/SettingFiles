@@ -1,10 +1,22 @@
+import json
+import os
+import sqlite3
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from codex_hook_common import assistant_response_needs_user_input
+from codex_hook_common import analyze_hook_input, assistant_response_needs_user_input
+
+
+def write_jsonl(path: Path, events: list[dict]):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as output:
+        for event in events:
+            output.write(json.dumps(event, ensure_ascii=False) + "\n")
 
 
 class AssistantResponseNeedsUserInputTest(unittest.TestCase):
@@ -59,6 +71,113 @@ class AssistantResponseNeedsUserInputTest(unittest.TestCase):
         message = "実装した。テストも通過した。変更はコミットしていない。"
 
         self.assertFalse(assistant_response_needs_user_input(message))
+
+
+class AnalyzeHookInputFallbackTest(unittest.TestCase):
+    def test_resolves_transcript_by_session_id(self):
+        session_id = "019e68fe-273e-7592-8fbe-135395cf1c9f"
+
+        with tempfile.TemporaryDirectory() as codex_home:
+            transcript_path = (
+                Path(codex_home)
+                / "sessions"
+                / "2026"
+                / "05"
+                / "27"
+                / f"rollout-2026-05-27T19-32-27-{session_id}.jsonl"
+            )
+            write_jsonl(
+                transcript_path,
+                [
+                    {
+                        "timestamp": "2026-05-27T10:00:00.000Z",
+                        "type": "response_item",
+                        "payload": {
+                            "type": "message",
+                            "role": "user",
+                            "content": [{"type": "input_text", "text": "通常会話の内容"}],
+                        },
+                    },
+                    {
+                        "timestamp": "2026-05-27T10:00:10.000Z",
+                        "type": "response_item",
+                        "payload": {
+                            "type": "message",
+                            "role": "assistant",
+                            "content": [{"type": "output_text", "text": "通常会話への返答"}],
+                        },
+                    },
+                ],
+            )
+
+            with patch.dict(os.environ, {"CODEX_HOME": codex_home}):
+                result = analyze_hook_input({"hook_event_name": "Stop", "session_id": session_id})
+
+        self.assertEqual(result["last_user_message"], "通常会話の内容")
+        self.assertEqual(result["last_assistant_message"], "通常会話への返答")
+        self.assertEqual(result["user_message_count"], 1)
+        self.assertEqual(result["assistant_message_count"], 1)
+        self.assertEqual(result["first_timestamp"], "2026-05-27T10:00:00.000Z")
+        self.assertEqual(result["last_timestamp"], "2026-05-27T10:00:10.000Z")
+
+    def test_recovers_side_session_from_history_and_logs(self):
+        session_id = "019e68f4-5ce6-7bd2-a35d-2146d0be8019"
+
+        with tempfile.TemporaryDirectory() as codex_home:
+            codex_home_path = Path(codex_home)
+            write_jsonl(
+                codex_home_path / "history.jsonl",
+                [
+                    {"session_id": "other-session", "ts": 1779877300, "text": "別の会話"},
+                    {"session_id": session_id, "ts": 1779877390, "text": "spawn_agentってなに？"},
+                ],
+            )
+
+            logs_path = codex_home_path / "logs_2.sqlite"
+            connection = sqlite3.connect(logs_path)
+            try:
+                connection.execute(
+                    """
+                    CREATE TABLE logs (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        ts INTEGER NOT NULL,
+                        ts_nanos INTEGER NOT NULL,
+                        feedback_log_body TEXT,
+                        thread_id TEXT
+                    )
+                    """
+                )
+                event = {
+                    "type": "response.output_text.done",
+                    "text": "spawn_agent は別の AI サブエージェントを起動する内部ツールです。",
+                }
+                connection.execute(
+                    "INSERT INTO logs (ts, ts_nanos, feedback_log_body, thread_id) VALUES (?, ?, ?, ?)",
+                    (
+                        1779877397,
+                        0,
+                        "prefix websocket event: " + json.dumps(event, ensure_ascii=False),
+                        session_id,
+                    ),
+                )
+                connection.commit()
+            finally:
+                connection.close()
+
+            with patch.dict(os.environ, {"CODEX_HOME": codex_home}):
+                result = analyze_hook_input(
+                    {"hook_event_name": "Stop", "session_id": session_id, "transcript_path": None}
+                )
+
+        self.assertEqual(result["last_user_message"], "spawn_agentってなに？")
+        self.assertEqual(
+            result["last_assistant_message"],
+            "spawn_agent は別の AI サブエージェントを起動する内部ツールです。",
+        )
+        self.assertEqual(result["user_message_count"], 1)
+        self.assertEqual(result["assistant_message_count"], 1)
+        self.assertTrue(result["first_timestamp"])
+        self.assertTrue(result["last_timestamp"])
 
 
 if __name__ == "__main__":

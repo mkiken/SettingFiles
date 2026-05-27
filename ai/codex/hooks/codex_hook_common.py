@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 import json
+import os
 import re
+import sqlite3
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 
 QUESTION_SCAN_TAIL_LENGTH = 500
+WEBSOCKET_EVENT_MARKER = "websocket event: "
 
 
 def normalize_message(message: str) -> str:
@@ -120,6 +124,52 @@ def iter_transcript_events(transcript_path: str | None):
         return
 
 
+def codex_home() -> Path:
+    return Path(os.environ.get("CODEX_HOME", Path.home() / ".codex")).expanduser()
+
+
+def format_epoch_timestamp(epoch_seconds: int | float | None) -> str:
+    if epoch_seconds is None:
+        return ""
+
+    try:
+        return datetime.fromtimestamp(epoch_seconds, timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+    except (OSError, OverflowError, ValueError, TypeError):
+        return ""
+
+
+def find_session_transcript_path(session_id: str | None) -> str | None:
+    if not session_id:
+        return None
+
+    sessions_dir = codex_home() / "sessions"
+    if not sessions_dir.is_dir():
+        return None
+
+    try:
+        candidates = [path for path in sessions_dir.rglob(f"*{session_id}.jsonl") if path.is_file()]
+    except OSError:
+        return None
+
+    if not candidates:
+        return None
+
+    try:
+        candidates.sort(key=lambda path: path.stat().st_mtime, reverse=True)
+    except OSError:
+        candidates.sort()
+
+    return str(candidates[0])
+
+
+def resolve_transcript_path(input_data: dict[str, Any]) -> str | None:
+    transcript_path = input_data.get("transcript_path")
+    if transcript_path and transcript_path != "null" and Path(str(transcript_path)).is_file():
+        return str(transcript_path)
+
+    return find_session_transcript_path(input_data.get("session_id"))
+
+
 def extract_message_text(payload: dict[str, Any]) -> str:
     content = payload.get("content")
     if not isinstance(content, list):
@@ -133,8 +183,94 @@ def extract_message_text(payload: dict[str, Any]) -> str:
     return normalize_message(" ".join(parts))
 
 
+def iter_history_user_messages(session_id: str | None):
+    if not session_id:
+        return
+
+    history_path = codex_home() / "history.jsonl"
+    if not history_path.is_file():
+        return
+
+    try:
+        with history_path.open(encoding="utf-8") as history:
+            for line in history:
+                if not line.strip():
+                    continue
+
+                try:
+                    event = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+
+                if event.get("session_id") != session_id:
+                    continue
+
+                text = normalize_message(str(event.get("text") or ""))
+                if text and not is_system_user_message(text):
+                    yield format_epoch_timestamp(event.get("ts")), text
+    except Exception:
+        return
+
+
+def decode_websocket_event(log_body: str) -> dict[str, Any] | None:
+    marker_index = log_body.find(WEBSOCKET_EVENT_MARKER)
+    if marker_index < 0:
+        return None
+
+    json_text = log_body[marker_index + len(WEBSOCKET_EVENT_MARKER) :]
+    try:
+        event, _ = json.JSONDecoder().raw_decode(json_text)
+    except json.JSONDecodeError:
+        return None
+
+    return event if isinstance(event, dict) else None
+
+
+def iter_log_assistant_messages(session_id: str | None):
+    if not session_id:
+        return
+
+    logs_path = codex_home() / "logs_2.sqlite"
+    if not logs_path.is_file():
+        return
+
+    try:
+        connection = sqlite3.connect(f"file:{logs_path}?mode=ro", uri=True, timeout=0.2)
+    except sqlite3.Error:
+        return
+
+    try:
+        cursor = connection.execute(
+            """
+            SELECT ts, feedback_log_body
+            FROM logs
+            WHERE thread_id = ?
+              AND feedback_log_body LIKE ?
+            ORDER BY ts, ts_nanos, id
+            """,
+            (session_id, f"%{WEBSOCKET_EVENT_MARKER}%response.output_text.done%"),
+        )
+
+        for ts, log_body in cursor:
+            if not isinstance(log_body, str):
+                continue
+
+            event = decode_websocket_event(log_body)
+            if not event or event.get("type") != "response.output_text.done":
+                continue
+
+            text = normalize_message(str(event.get("text") or ""))
+            if text:
+                yield format_epoch_timestamp(ts), text
+    except sqlite3.Error:
+        return
+    finally:
+        connection.close()
+
+
 def analyze_hook_input(input_data: dict[str, Any]) -> dict[str, Any]:
-    transcript_path = input_data.get("transcript_path")
+    session_id = input_data.get("session_id")
+    transcript_path = resolve_transcript_path(input_data)
     user_messages: list[str] = []
     assistant_messages: list[str] = []
     first_timestamp = ""
@@ -176,6 +312,21 @@ def analyze_hook_input(input_data: dict[str, Any]) -> dict[str, Any]:
             if not is_system_user_message(message_text):
                 user_messages.append(message_text)
         elif role == "assistant":
+            assistant_messages.append(message_text)
+
+    if not user_messages and not assistant_messages:
+        for timestamp, message_text in iter_history_user_messages(session_id):
+            if timestamp:
+                if not first_timestamp:
+                    first_timestamp = timestamp
+                last_timestamp = timestamp
+            user_messages.append(message_text)
+
+        for timestamp, message_text in iter_log_assistant_messages(session_id):
+            if timestamp:
+                if not first_timestamp:
+                    first_timestamp = timestamp
+                last_timestamp = timestamp
             assistant_messages.append(message_text)
 
     last_assistant_message = assistant_messages[-1] if assistant_messages else ""

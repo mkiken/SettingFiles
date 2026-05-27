@@ -100,16 +100,6 @@ if [[ "${hook_event_name}" == "Stop" && "${is_subagent}" == "true" ]]; then
     exit 0
 fi
 
-if [[ -z "${transcript_path}" || "${transcript_path}" == "null" ]]; then
-    notify "$(build_notification_title "🤖" "Codex終了" "${EMOJI_ID_CODEX}")" 'transcript pathが見つかりません' "${NOTIFICATION_SOUND}"
-    exit 0
-fi
-
-if [[ ! -f "${transcript_path}" ]]; then
-    notify "$(build_notification_title "🤖" "Codex終了" "${EMOJI_ID_CODEX}")" 'セッションが終了しました' "${NOTIFICATION_SOUND}"
-    exit 0
-fi
-
 summary=""
 last_user_message=$(echo "${analysis_json}" | jq -r '.last_user_message // ""')
 last_assistant_message=$(echo "${analysis_json}" | jq -r '.last_assistant_message // ""')
