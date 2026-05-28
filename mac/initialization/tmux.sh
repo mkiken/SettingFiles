@@ -10,6 +10,7 @@ function setup_tmux_symlinks() {
     fzf-jump-window.sh
     tmux-cdi-open.zsh
     open-nv.sh
+    open-pr-web.sh
     new-session.sh
     cycle-session.sh
     select-session.sh
