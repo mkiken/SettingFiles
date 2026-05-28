@@ -70,7 +70,7 @@ Collect all sub-agent findings, then:
    - Do NOT skip: same problem type at a different file, or a more specific finding requiring a distinct fix.
    - Skip only when duplicate confidence is ≥ 70.
 3. Keep sub-agent outputs intact during collection. The parent reviewer, not the sub-agents, decides final section placement.
-4. **Route test-related findings by content**: findings about missing tests, weak assertions, brittle tests, incorrect mocks/fixtures, boundary-value tests, negative/error-path tests, and integration coverage must go under `## テストに関する指摘`, regardless of which sub-agent produced them.
+4. **Route test-related findings by content (CRITICAL)**: ANY finding related to tests (e.g., missing tests, weak assertions, brittle tests, incorrect mocks/fixtures, boundary-value tests, negative/error-path tests, integration coverage, test quality) MUST be STRICTLY EXCLUDED from the regular priority sections (High/Medium/Low Priority). They MUST ONLY be placed under the `## テストに関する指摘` section.
 5. If a runtime bug and a missing test share the same root cause, keep the bug in the regular priority section. Mention the missing test in the detail line when it is only supporting evidence; create a separate test finding only when a distinct test change is required.
 6. Output only actionable findings that require a concrete response. Do not output praise, compliance confirmations, "looks good" statements, or non-actionable observations.
 7. Reclassify priorities based on confidence scores.
@@ -93,7 +93,7 @@ Collect all sub-agent findings, then:
 - **Separator line**: `---` (horizontal rule — MANDATORY after every finding, including the last one)
 
 The `---` separator after each item is a hard structural requirement that must never be omitted.
-Regular priority sections must contain only non-test findings. Test-related findings must use the same finding format under `## テストに関する指摘`.
+Regular priority sections MUST contain ONLY non-test findings. DO NOT mix test-related findings into the regular priority sections. Test-related findings must be grouped by priority under the `## テストに関する指摘` section.
 
 ✅ CORRECT:
 
