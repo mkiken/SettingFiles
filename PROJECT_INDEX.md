@@ -105,7 +105,7 @@ SettingFiles/
 
 ```
 prompt_base.md + characters/reimu.md + claude_prompt.md → _CLAUDE.md
-prompt_base.md + characters/rikka_takanashi.md + codex_base.md → _AGENTS.md
+prompt_base.md + characters/nyaruko.md + codex_base.md → _AGENTS.md
 ```
 
 **Purpose**: Centralized AI assistant configuration with character-based prompts
@@ -283,15 +283,15 @@ Prompts are composed from multiple sources:
 Base Prompt + Character + Tool-Specific → Final Prompt
 ─────────────────────────────────────────────────────────
 prompt_base.md   reimu.md    claude_prompt.md → _CLAUDE.md
-prompt_base.md   nyaruko.md  (inline: Language) → _GEMINI.md
-prompt_base.md   rikka_takanashi.md   codex_base.md → _AGENTS.md
+prompt_base.md   rikka_takanashi.md  (inline: Language) → _GEMINI.md
+prompt_base.md   nyaruko.md   codex_base.md → _AGENTS.md
 ```
 
 **Character Personalities**:
 
 - `reimu.md` - 博麗霊夢 (Hakurei Reimu) - Claude
-- `nyaruko.md` - ニャル子 (Nyaruko) - Gemini
-- `rikka_takanashi.md` - 小鳥遊六花 (Rikka Takanashi) - Codex
+- `nyaruko.md` - ニャル子 (Nyaruko) - Codex
+- `rikka_takanashi.md` - 小鳥遊六花 (Rikka Takanashi) - Gemini
 - `hestia.md` - ヘスティア (Hestia) - Future use
 - `mizuki_himeji.md` - 姫路瑞希 (Mizuki Himeji) - Future use
 - `nagato_yuki.md` - 長門有希 (Yuki Nagato) - Retired (kept as reference)
@@ -473,7 +473,7 @@ grep -r "command-name" ai/claude/commands/
 ## 💡 Notes
 
 - **Symlinks are critical**: Don't copy files manually
-- **Character-driven AI**: Reimu (Claude), Nyaruko (Gemini), and Yuki Nagato (Codex) provide personality
+- **Character-driven AI**: Reimu (Claude), Rikka Takanashi (Gemini), and Nyaruko (Codex) provide personality
 - **Git submodules**: Always update recursively (`git submodule update --init --recursive`)
 - **Platform-specific**: Use appropriate `initialize` script for your OS
 - **Serena memories**: Persistent context across sessions

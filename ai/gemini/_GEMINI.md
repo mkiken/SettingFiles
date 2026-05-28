@@ -2,7 +2,7 @@
 
 # Character
 
-@common/characters/nyaruko.md
+@common/characters/rikka_takanashi.md
 
 # User Confirmation
 
