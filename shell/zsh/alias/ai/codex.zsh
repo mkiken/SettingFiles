@@ -22,9 +22,23 @@ cx-pr-body() {
 }
 
 cx-pr-create() {
+    local title="$*"
+    if [[ -z "$title" ]]; then
+        echo 'Usage: cx-pr-create "<title>"' >&2
+        return 1
+    fi
+
     local branch
     branch=$(br_fmt) || return $?
-    cx "\$pr-create-by-branch $branch に向けてPRを作成して"
+
+    gh pr create --base "$branch" --title "$title" --body "" || return $?
+
+    local pr_number
+    pr_number=$(gh pr view --json number --jq .number) || {
+        echo "作成したPR番号を取得できませんでした。" >&2
+        return 1
+    }
+    cx --dangerously-bypass-approvals-and-sandbox "\$pr-body PR #$pr_number のbodyを生成して"
 }
 
 cx-pr-review() {

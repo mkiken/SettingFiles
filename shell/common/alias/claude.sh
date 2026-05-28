@@ -13,7 +13,7 @@ clp() {
     cl --permission-mode plan --effort max "$@"
 }
 
-clr() { cl --resume "$@" }
+clr() { cl --resume "$@"; }
 
 cl-web-summary() {
     clo "/my:web-summary $*"
@@ -55,9 +55,23 @@ cl-pr-body() {
 }
 
 cl-pr-create() {
+    local title="$*"
+    if [[ -z "$title" ]]; then
+        echo 'Usage: cl-pr-create "<title>"' >&2
+        return 1
+    fi
+
     local branch
     branch=$(br_fmt) || return $?
-    clp "/pr-create-by-branch $branch"
+
+    gh pr create --base "$branch" --title "$title" --body "" || return $?
+
+    local pr_number
+    pr_number=$(gh pr view --json number --jq .number) || {
+        echo "作成したPR番号を取得できませんでした。" >&2
+        return 1
+    }
+    clo --dangerously-skip-permissions "/my:pr-body $pr_number"
 }
 
 cclog() {
