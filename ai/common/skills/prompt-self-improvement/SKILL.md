@@ -1,6 +1,17 @@
 ---
 name: prompt-self-improvement
-description: Improve Claude, Gemini, or Codex prompt configuration through evidence-based diagnosis, candidate prompt changes, evaluation design, and reviewable source edits. Use when the user asks to improve, audit, optimize, refactor, or make AI prompts, instructions, memories, skills, commands, agents, or AGENTS.md/GEMINI.md/CLAUDE.md behavior better.
+description: >
+  Improve Claude, Gemini, or Codex prompt configuration through evidence-based
+  diagnosis, candidate prompt changes, evaluation design, and reviewable source
+  edits. Use both when the user explicitly asks to improve, audit, optimize,
+  refactor, or fix AI prompts, instructions, memories, skills, commands, agents,
+  hooks, settings, or AGENTS.md / GEMINI.md / CLAUDE.md behavior, AND when you
+  opportunistically detect a configuration gap during another task and need the
+  response format, source map, and guardrails to surface a proposal under the
+  `# Opportunistic Improvement Proposals` rule in `ai/common/prompt_base.md`.
+  Trigger keywords: improve prompt, audit config, optimize CLAUDE.md, fix skill
+  trigger, document workflow, resolve config conflict, propose improvement,
+  プロンプト改善, 設定を見直し, ワークフロー文書化.
 ---
 
 # Prompt Self-Improvement
@@ -39,6 +50,7 @@ Only change persistent prompt sources after you have evidence, a clear target be
 5. Prefer the smallest change that fixes the demonstrated failure.
 6. Remove or move noisy instructions instead of adding more rules when prompt size or conflicts are the real problem.
 7. Validate with realistic prompts or scripts. For prompt behavior, include at least one ordinary case and one failure case that motivated the change.
+8. When the trigger originated from the Opportunistic Improvement Proposals rule rather than an explicit user request, stop at the analysis-only Response format and respect the per-session proposal budget defined there.
 
 ## Guardrails
 
@@ -49,6 +61,8 @@ Only change persistent prompt sources after you have evidence, a clear target be
 - Do not weaken confirmation, cleanup, commit, or safety workflows while trying to reduce friction.
 - Do not edit character files for workflow behavior unless the requested change is specifically about character voice.
 - Do not cite volatile line numbers in prompt comments or documentation.
+- Do not propose changes that increase your own automatic activation surface (skill descriptions, trigger keywords, hook matchers) unless the user explicitly asks to broaden activation.
+- After a proposal is declined or deferred in a session, do not re-raise the same topic until the next session.
 
 ## Evaluation loop
 

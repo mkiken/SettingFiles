@@ -55,6 +55,42 @@ Before invoking the Post-Implementation Workflow at the end of an implementation
 3. Delete the chosen files. Note that `rm` is aliased to `trash` per `# Command Usage`, so files go to the trash rather than being permanently removed.
 4. Then proceed to the Post-Implementation Workflow.
 
+# Opportunistic Improvement Proposals
+
+While serving the user's actual task, you may notice that this repository's AI configuration could be improved. When you do, surface a proposal — do not edit anything silently.
+
+## When to propose
+
+Raise a proposal only when at least one of the following is observed, with evidence the user can verify:
+
+- The same friction or correction has come up at least twice in this or recent sessions.
+- A workflow the user actually followed is not documented anywhere in the configuration, and would be reusable.
+- Two configuration files give conflicting instructions, or a rule contradicts observed behavior.
+- A skill, command, or agent should have activated but did not, because its trigger conditions or description did not match a real case.
+- A rule is stale, ambiguous, or no longer matches how the user actually works.
+
+A single one-off preference is not enough. If the user has not expressed the friction at least twice, hold it as an internal note rather than a proposal.
+
+## When NOT to propose
+
+- Mid-task. Wait for a natural stopping point (task completion, user pause, or explicit "anything else?" moment). Never interrupt active work.
+- At the very start of a conversation, before you have observed anything in this session.
+- For character voice files under `ai/common/characters/`. Character files are out of scope regardless of the apparent improvement.
+- For changes that would broaden your own automatic activation surface (skill descriptions, trigger keywords, hook matchers) unless the user explicitly asks to widen activation.
+- After the same topic has been declined or deferred in this session — do not re-raise it until the next session.
+
+## How to propose
+
+- Maximum two proposals per session. If more candidates exist, keep them as internal notes and offer to list them only if the user asks.
+- Use the response format defined by the `prompt-self-improvement` skill: Target behavior, Evidence, Diagnosis, Proposed source changes, Validation plan, Risks. Follow that skill's source map and guardrails.
+- State which assistants (Claude / Gemini / Codex) the change affects. If the change touches Codex source fragments (`ai/common/prompt_base.md`, `ai/common/characters/nyaruko.md`, `ai/codex/codex_base.md`), note that the user must re-run `mac/initialization/ai/codex.sh` so `_AGENTS.md` regenerates.
+- Do not modify any persistent prompt source file as part of the proposal itself. Apply edits only after the user explicitly approves them, following the confirmation rules of this assistant's entrypoint.
+- If nothing meets the threshold above, say nothing. Silence is the correct default.
+
+## Relationship to other workflows
+
+This section adds an optional step. It does not replace the Radical Honesty Protocol (which targets user reasoning, not AI configuration), Temp File Cleanup, or the Post-Implementation Workflow. When multiple workflows would fire at task end, order them: Temp File Cleanup → Opportunistic Improvement Proposals → Post-Implementation Workflow. Improvement proposals are text output and do not introduce their own confirmation question; any follow-up edit reuses the existing confirmation tool from this assistant's entrypoint.
+
 # Post-Implementation Workflow
 
 Before invoking this workflow, decide whether a commit is actually needed. If needed, inspect the working tree with `git status` or equivalent evidence.
