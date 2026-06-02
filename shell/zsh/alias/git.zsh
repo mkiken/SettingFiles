@@ -195,7 +195,7 @@ di() {
   no_notify difit "$@"
 }
 
-alias diu='di .'
+alias dia='di .'
 alias diw='di working'
 alias dis='di staged'
 
