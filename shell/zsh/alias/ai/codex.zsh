@@ -4,6 +4,15 @@ alias cx-update='npm i -g @openai/codex@latest'
 
 cx() {
     no_notify codex "$@"
+    local codex_status=$?
+
+    if (( ${+functions[remove_tmux_window_icon]} )); then
+        remove_tmux_window_icon
+    else
+        echo "cx: remove_tmux_window_icon is not defined; tmux window icon was not cleaned up" >&2
+    fi
+
+    return $codex_status
 }
 
 cxh() {
