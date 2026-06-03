@@ -8,6 +8,7 @@ make_symlink "${Repo}gitfiles/.gitignore_global" ~/.gitignore
 make_symlink "${Repo}gitfiles/.git_template" ~
 make_symlink "${Repo}gitfiles/gitui" "$HOME/.config"
 make_symlink "${Repo}gitfiles/gh/dash/config.yml" "$HOME/.config/gh-dash/config.yml"
+make_symlink "${Repo}gitfiles/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
 make_symlink "${Repo}gitfiles/workmux" "$HOME/.config/workmux"
 
 # Git extensions
