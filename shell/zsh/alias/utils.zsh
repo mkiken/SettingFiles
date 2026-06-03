@@ -537,11 +537,7 @@ def deepmerge(a; b; path):
 
             # Final confirmation
             echo ""
-            echo -n "Apply merge? [y/n] (default: n): "
-            local confirm
-            read -r confirm
-
-            if [[ "$confirm" =~ ^[yY]$ ]]; then
+            if confirm "Apply merge?" --default-no --no-cancel-msg; then
                 echo "Applying merge result to destination: $dst_label"
                 echo "cp \"$tmp_file\" \"$dst\""
                 cp "$tmp_file" "$dst"
