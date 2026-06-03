@@ -8,7 +8,7 @@
     "@morphllm/morphmcp": "^0.8.181",
     "@playwright/mcp": "^0.0.75",
     "@upstash/context7-mcp": "^3.0.0",
-    "chrome-devtools-mcp": "^1.1.0",
+    "chrome-devtools-mcp": "^1.1.1",
     "mcp-obsidian": "^1.0.0",
     "tavily-mcp": "^0.2.19"
   }

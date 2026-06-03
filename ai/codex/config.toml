@@ -24,6 +24,12 @@ command = 'zsh'
 args = ['-c', 'exec "$HOME/.config/ai-mcp/bin/sequential-thinking"']
 command = 'zsh'
 
+[mcp_servers.chrome-devtools]
+args = ['-c', 'exec "$HOME/.config/ai-mcp/bin/chrome-devtools" --no-usage-statistics --no-performance-crux']
+command = 'zsh'
+startup_timeout_sec = 20
+tool_timeout_sec = 120
+
 [tui]
 status_line = ['project-name', 'git-branch', 'thread-title', 'task-progress', 'context-remaining', 'five-hour-limit', 'weekly-limit', 'used-tokens', 'model-with-reasoning']
 
