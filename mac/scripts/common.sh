@@ -1,11 +1,26 @@
 #!/bin/zsh
 
 # 関数定義を読み込み
-source "$(dirname "$(dirname "$(dirname "$(realpath "$0")")")")/shell/zsh/alias/utils.zsh"
+source "$(dirname "$(dirname "$(dirname "$(realpath "${(%):-%x}")")")")/shell/zsh/alias/utils.zsh"
 
 # set Repo "$HOME/Desktop/repository/SettingFiles/"
-Repo="$(dirname "$(dirname "$(dirname "$(realpath "$0")")")")/"
+Repo="$(dirname "$(dirname "$(dirname "$(realpath "${(%):-%x}")")")")/"
 Repo_shell="${Repo}shell/"
+
+function untap_stale_homebrew_taps() {
+  local stale_taps=(
+    "aku11i/tap"
+    "dwarvesf/tap"
+    "dwarvesf/homebrew-tap"
+  )
+
+  local stale_tap
+  for stale_tap in "${stale_taps[@]}"; do
+    if HOMEBREW_NO_AUTO_UPDATE=1 brew tap | /usr/bin/grep -Fxq "$stale_tap"; then
+      HOMEBREW_NO_AUTO_UPDATE=1 brew untap "$stale_tap"
+    fi
+  done
+}
 
 function setup_ai_skills() {
   local dest_dir="$1"

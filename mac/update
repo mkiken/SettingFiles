@@ -16,10 +16,11 @@ git submodule update --recursive --remote
 echo "end git submodule setting."
 
 echo "start brew update."
+untap_stale_homebrew_taps
 brew update -v
 brew upgrade -v
 brew cleanup -s
-brew bundle -v
+brew bundle --file="${SET}mac/Brewfile" -v
 echo "end brew update."
 
 echo "start tmux plugin update."
