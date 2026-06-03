@@ -64,9 +64,18 @@ function copy_if_not_exists() {
 function show_file_diff() {
     local file1="$1"
     local file2="$2"
+    local label1="${3:-$file1}"
+    local label2="${4:-$file2}"
 
-    echo "Source: $file1"
-    echo "Destination: $file2"
+    echo "Source: $label1"
+    if [[ "$label1" != "$file1" ]]; then
+        echo "Source internal file: $file1"
+    fi
+    echo "Destination: $label2"
+    if [[ "$label2" != "$file2" ]]; then
+        echo "Destination internal file: $file2"
+    fi
+    echo "Diff direction: $label2 -> $label1"
     echo ""
 
     # Use difft if available, otherwise use regular diff
@@ -81,9 +90,18 @@ function show_file_diff() {
 function show_json_diff() {
     local file1="$1"
     local file2="$2"
+    local label1="${3:-$file1}"
+    local label2="${4:-$file2}"
 
-    echo "Source: $file1"
-    echo "Destination: $file2"
+    echo "Source: $label1"
+    if [[ "$label1" != "$file1" ]]; then
+        echo "Source internal file: $file1"
+    fi
+    echo "Destination: $label2"
+    if [[ "$label2" != "$file2" ]]; then
+        echo "Destination internal file: $file2"
+    fi
+    echo "Diff direction: $label2 -> $label1"
     echo ""
 
     local sorted1=$(mktemp).json
@@ -108,6 +126,23 @@ function show_json_diff() {
     fi
 
     /bin/rm -f "$sorted1" "$sorted2"
+}
+
+function json_files_semantically_equal() {
+    local file1="$1"
+    local file2="$2"
+    local sorted1=$(mktemp).json
+    local sorted2=$(mktemp).json
+
+    if ! jq -S . "$file1" > "$sorted1" || ! jq -S . "$file2" > "$sorted2"; then
+        /bin/rm -f "$sorted1" "$sorted2"
+        return 1
+    fi
+
+    diff -q "$sorted1" "$sorted2" > /dev/null 2>&1
+    local result=$?
+    /bin/rm -f "$sorted1" "$sorted2"
+    return $result
 }
 
 # Prompt user for copy action (overwrite or skip)
@@ -315,21 +350,23 @@ function smart_copy() {
 function smart_merge_json() {
     local src="$1"
     local dst="$2"
+    local src_label="${3:-$src}"
+    local dst_label="${4:-$dst}"
 
     if [[ -z "$src" || -z "$dst" ]]; then
-        echo "Usage: smart_merge_json <source> <destination>"
+        echo "Usage: smart_merge_json <source> <destination> [source_label] [destination_label]"
         return 1
     fi
 
     # Check if source file exists
     if [[ ! -f "$src" ]]; then
-        echo "Error: Source file not found: $src" >&2
+        echo "Error: Source file not found: $src_label" >&2
         return 1
     fi
 
     # Check if destination is a directory (file path required)
     if [[ -d "$dst" ]]; then
-        echo "Error: Destination is a directory, file path required: $dst" >&2
+        echo "Error: Destination is a directory, file path required: $dst_label" >&2
         return 1
     fi
 
@@ -349,7 +386,7 @@ function smart_merge_json() {
 
     # Check for differences
     if diff -q "$src" "$dst" > /dev/null 2>&1; then
-        echo "✓ Files are identical, skipping: $dst"
+        echo "✓ Files are identical, skipping: $dst_label"
         return 0
     fi
 
@@ -381,10 +418,10 @@ function smart_merge_json() {
     if ! $src_valid || ! $dst_valid || $src_is_array || $dst_is_array; then
         if ! $src_valid || ! $dst_valid; then
             if ! $src_valid; then
-                echo "⚠️  Invalid JSON: $src" >&2
+                echo "⚠️  Invalid JSON: $src_label" >&2
             fi
             if ! $dst_valid; then
-                echo "⚠️  Invalid JSON: $dst" >&2
+                echo "⚠️  Invalid JSON: $dst_label" >&2
             fi
             echo "Falling back to overwrite/skip mode" >&2
         elif $src_is_array || $dst_is_array; then
@@ -393,36 +430,30 @@ function smart_merge_json() {
 
         echo ""
         echo "=== Differences found ==="
-        show_file_diff "$src" "$dst"
+        show_file_diff "$src" "$dst" "$src_label" "$dst_label"
         echo "========================="
 
         if prompt_copy_action; then
+            echo "Applying source to destination: $src_label -> $dst_label"
             echo "cp \"$src\" \"$dst\""
             cp "$src" "$dst"
             return $?
         else
-            echo "Skipped: $dst"
+            echo "Skipped: $dst_label"
             return 0
         fi
     fi
 
     # Semantic JSON comparison: skip if only key order/whitespace differs
-    local sorted_src=$(mktemp).json
-    local sorted_dst=$(mktemp).json
-    jq -S . "$src" > "$sorted_src"
-    jq -S . "$dst" > "$sorted_dst"
-
-    if diff -q "$sorted_src" "$sorted_dst" > /dev/null 2>&1; then
-        echo "✓ JSON is semantically identical, skipping: $dst"
-        /bin/rm -f "$sorted_src" "$sorted_dst"
+    if json_files_semantically_equal "$src" "$dst"; then
+        echo "✓ JSON is semantically identical, skipping: $dst_label"
         return 0
     fi
-    /bin/rm -f "$sorted_src" "$sorted_dst"
 
     # Show differences
     echo ""
     echo "=== Differences found ==="
-    show_json_diff "$src" "$dst"
+    show_json_diff "$src" "$dst" "$src_label" "$dst_label"
     echo "========================="
 
     # Prompt for action
@@ -430,12 +461,13 @@ function smart_merge_json() {
 
     case "$action" in
         overwrite)
+            echo "Applying source to destination: $src_label -> $dst_label"
             echo "cp \"$src\" \"$dst\""
             cp "$src" "$dst"
             return $?
             ;;
         keep)
-            echo "Skipped: $dst"
+            echo "Skipped: $dst_label"
             return 0
             ;;
         merge_src|merge_dst)
@@ -486,7 +518,13 @@ def deepmerge(a; b; path):
 
             # Skip if merge result is identical to current destination
             if diff -q "$tmp_file" "$dst" > /dev/null 2>&1; then
-                echo "✓ Merge result is identical to current file, skipping: $dst"
+                echo "✓ Merge result is identical to current file, skipping: $dst_label"
+                /bin/rm -f "$tmp_file"
+                return 0
+            fi
+
+            if json_files_semantically_equal "$tmp_file" "$dst"; then
+                echo "✓ Merge result is semantically identical to current file, skipping: $dst_label"
                 /bin/rm -f "$tmp_file"
                 return 0
             fi
@@ -494,7 +532,7 @@ def deepmerge(a; b; path):
             # Show merge result preview
             echo ""
             echo "=== Merge result preview ==="
-            show_json_diff "$tmp_file" "$dst"
+            show_json_diff "$tmp_file" "$dst" "Merge result for $dst_label" "$dst_label"
             echo "============================"
 
             # Final confirmation
@@ -504,6 +542,7 @@ def deepmerge(a; b; path):
             read -r confirm
 
             if [[ "$confirm" =~ ^[yY]$ ]]; then
+                echo "Applying merge result to destination: $dst_label"
                 echo "cp \"$tmp_file\" \"$dst\""
                 cp "$tmp_file" "$dst"
                 local result=$?
@@ -516,6 +555,37 @@ def deepmerge(a; b; path):
             fi
             ;;
     esac
+}
+
+function validate_toml_strict() {
+    local file="$1"
+    local label="${2:-$file}"
+
+    if ! command -v python3 >/dev/null 2>&1; then
+        echo "✗ python3 not found. Strict TOML validation requires python3." >&2
+        return 1
+    fi
+
+    python3 - "$file" "$label" <<'PY'
+import sys
+
+path = sys.argv[1]
+label = sys.argv[2]
+
+try:
+    import tomllib
+except ModuleNotFoundError:
+    print("Error: Python 3.11+ is required for strict TOML validation.", file=sys.stderr)
+    sys.exit(1)
+
+try:
+    with open(path, "rb") as file:
+        tomllib.load(file)
+except Exception as error:
+    print(f"Error: Invalid TOML: {label}", file=sys.stderr)
+    print(f"       {error}", file=sys.stderr)
+    sys.exit(1)
+PY
 }
 
 # TOML ファイルを対話形式でマージする（dasel 経由で TOML↔JSON 変換し、smart_merge_json に委譲）
@@ -541,6 +611,10 @@ function smart_merge_toml() {
         return 1
     fi
 
+    if ! validate_toml_strict "$src"; then
+        return 1
+    fi
+
     local target_dir="$(dirname "$dst")"
     if [[ ! -d "$target_dir" ]]; then
         mkdir -p "$target_dir"
@@ -551,6 +625,10 @@ function smart_merge_toml() {
         echo "cp \"$src\" \"$dst\""
         cp "$src" "$dst"
         return $?
+    fi
+
+    if ! validate_toml_strict "$dst"; then
+        return 1
     fi
 
     local tmpdir
@@ -573,7 +651,7 @@ function smart_merge_toml() {
     cp "$dst_json" "$dst_json_before"
 
     # JSON マージ（対話 UI は smart_merge_json に委譲）
-    smart_merge_json "$src_json" "$dst_json"
+    smart_merge_json "$src_json" "$dst_json" "$src" "$dst"
     local rc=$?
 
     # dst_json が変更された場合のみ JSON→TOML 書き戻し
