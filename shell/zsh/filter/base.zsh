@@ -1,12 +1,12 @@
 #!/bin/zsh
 
-FILTER_TOOL='fzf-tmux'
+FILTER_TOOL="${FILTER_TOOL:-fzf-tmux}"
 
 if ! command -v ${FILTER_TOOL} > /dev/null 2>&1; then
   exit
 fi
 
-FILTER_COMMAND="${FILTER_TOOL} --cycle --exit-0 --ansi"
+FILTER_COMMAND="${FILTER_COMMAND:-${FILTER_TOOL} --cycle --exit-0 --ansi}"
 
 # フィルターツール (fzf-tmux) のラッパー関数
 # 引数: fzf-tmuxに渡すオプション (例: --preview, --query など)
