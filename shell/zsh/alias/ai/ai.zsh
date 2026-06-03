@@ -74,7 +74,7 @@ ai-all() {
     tmux new-window -d -n "${codex_name}" -c "${PWD}" "zsh -ic ${(q)codex_command}" || return 1
 
     tmux rename-window -t "${current_window}" "${claude_name}" || return 1
-    cl --model opus --permission-mode plan --effort max "${prompt}"
+    cl --model opus --effort max "${prompt}"
 }
 
 review() {
