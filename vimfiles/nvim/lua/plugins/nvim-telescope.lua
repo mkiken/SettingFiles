@@ -70,32 +70,75 @@ local function at_mention_path(path)
     return nil
   end
 
+  if #path > 1 and not path:match("^%a:[/\\]$") then
+    path = path:gsub("[/\\]$", "")
+  end
+
   return "@" .. path
 end
 
-local function find_file_command(opts)
+local function find_path_command(opts)
   opts = opts or {}
 
-  if executable("rg") then
-    local command = { "rg", "--files", "--color", "never" }
-    if opts.max_depth then
-      vim.list_extend(command, { "--max-depth", tostring(opts.max_depth) })
-    end
-    return command
-  elseif executable("fd") then
-    local command = { "fd", "--type", "f", "--color", "never" }
+  if executable("fd") then
+    local command = {
+      "fd",
+      "--type",
+      "file",
+      "--type",
+      "directory",
+      "--exclude",
+      ".git",
+      "--color",
+      "never",
+    }
     if opts.max_depth then
       vim.list_extend(command, { "--max-depth", tostring(opts.max_depth) })
     end
     return command
   elseif executable("fdfind") then
-    local command = { "fdfind", "--type", "f", "--color", "never" }
+    local command = {
+      "fdfind",
+      "--type",
+      "file",
+      "--type",
+      "directory",
+      "--exclude",
+      ".git",
+      "--color",
+      "never",
+    }
     if opts.max_depth then
       vim.list_extend(command, { "--max-depth", tostring(opts.max_depth) })
     end
     return command
   elseif executable("find") and vim.fn.has("win32") == 0 then
-    return { "find", ".", "-type", "f" }
+    return {
+      "find",
+      ".",
+      "!",
+      "-path",
+      ".",
+      "!",
+      "-path",
+      "*/.git/*",
+      "!",
+      "-path",
+      "*/.git",
+      "(",
+      "-type",
+      "f",
+      "-o",
+      "-type",
+      "d",
+      ")",
+    }
+  elseif executable("rg") then
+    local command = { "rg", "--files", "--color", "never" }
+    if opts.max_depth then
+      vim.list_extend(command, { "--max-depth", tostring(opts.max_depth) })
+    end
+    return command
   elseif executable("where") then
     return { "where", "/r", ".", "*" }
   end
@@ -124,16 +167,26 @@ local function preview_entry_path(entry, cwd)
   return cwd .. "/" .. path
 end
 
-local function file_picker_previewer(cwd, mode_state)
+local function path_picker_previewer(cwd, mode_state)
   local previewers = require('telescope.previewers')
   local action_state = require('telescope.actions.state')
 
   return previewers.new_termopen_previewer({
-    title = "File Preview",
+    title = "Path Preview",
     get_command = function(entry)
       local path = preview_entry_path(entry, mode_state.cwd or cwd)
       if not path then
         return nil
+      end
+
+      if vim.fn.isdirectory(path) == 1 then
+        if executable("fd") then
+          return { "fd", "--max-depth", "2", "--color", "always", ".", path }
+        elseif executable("fdfind") then
+          return { "fdfind", "--max-depth", "2", "--color", "always", ".", path }
+        end
+
+        return { "ls", "-la", path }
       end
 
       if mode_state.mode == "grep" then
@@ -170,10 +223,10 @@ local function file_picker_previewer(cwd, mode_state)
   })
 end
 
-local function insert_at_file_paths()
+local function insert_at_paths()
   local cwd = prompt_file_picker_cwd()
   if not cwd then
-    vim.notify("No directory found for @ file picker", vim.log.levels.WARN)
+    vim.notify("No directory found for @ path picker", vim.log.levels.WARN)
     return
   end
 
@@ -186,10 +239,10 @@ local function insert_at_file_paths()
   local pickers = require('telescope.pickers')
   local sorters = require('telescope.sorters')
 
-  local mode_state = { mode = "files", cwd = cwd }
+  local mode_state = { mode = "paths", cwd = cwd }
 
-  local function new_file_finder(search_cwd, opts)
-    local command = find_file_command(opts)
+  local function new_path_finder(search_cwd, opts)
+    local command = find_path_command(opts)
     if not command then
       return nil
     end
@@ -266,15 +319,15 @@ local function insert_at_file_paths()
   end
 
   local function switch_mode(prompt_bufnr)
-    local next_mode = mode_state.mode == "files" and "grep" or "files"
+    local next_mode = mode_state.mode == "paths" and "grep" or "paths"
     if next_mode == "grep" and not executable("rg") then
-      vim.notify("rg not found for @ file picker grep mode", vim.log.levels.WARN)
+      vim.notify("rg not found for @ path picker grep mode", vim.log.levels.WARN)
       return
     end
 
-    local finder = next_mode == "grep" and new_grep_finder(cwd) or new_file_finder(cwd)
+    local finder = next_mode == "grep" and new_grep_finder(cwd) or new_path_finder(cwd)
     if not finder then
-      vim.notify("No file search command found for @ file picker", vim.log.levels.WARN)
+      vim.notify("No path search command found for @ path picker", vim.log.levels.WARN)
       return
     end
 
@@ -286,21 +339,21 @@ local function insert_at_file_paths()
     picker.sorter:_init()
     picker:refresh(finder, {
       reset_prompt = true,
-      new_prefix = next_mode == "grep" and "Grep> " or "Files> ",
+      new_prefix = next_mode == "grep" and "Grep> " or "Paths> ",
     })
   end
 
   local function switch_desktop_mode(prompt_bufnr)
-    local next_mode = mode_state.mode == "desktop" and "files" or "desktop"
+    local next_mode = mode_state.mode == "desktop" and "paths" or "desktop"
     local next_cwd = next_mode == "desktop" and normalize_dir("~/Desktop") or cwd
     if not next_cwd then
-      vim.notify("Desktop directory not found for @ file picker", vim.log.levels.WARN)
+      vim.notify("Desktop directory not found for @ path picker", vim.log.levels.WARN)
       return
     end
 
-    local finder = new_file_finder(next_cwd, next_mode == "desktop" and { max_depth = 1 } or nil)
+    local finder = new_path_finder(next_cwd, next_mode == "desktop" and { max_depth = 1 } or nil)
     if not finder then
-      vim.notify("No file search command found for @ file picker", vim.log.levels.WARN)
+      vim.notify("No path search command found for @ path picker", vim.log.levels.WARN)
       return
     end
 
@@ -312,24 +365,24 @@ local function insert_at_file_paths()
     picker.sorter:_init()
     picker:refresh(finder, {
       reset_prompt = true,
-      new_prefix = next_mode == "desktop" and "Desktop> " or "Files> ",
+      new_prefix = next_mode == "desktop" and "Desktop> " or "Paths> ",
     })
   end
 
-  local initial_finder = new_file_finder(cwd)
+  local initial_finder = new_path_finder(cwd)
   if not initial_finder then
-    vim.notify("No file search command found for @ file picker", vim.log.levels.WARN)
+    vim.notify("No path search command found for @ path picker", vim.log.levels.WARN)
     return
   end
 
   pickers.new({
     cwd = cwd,
-    prompt_title = "Insert @ File",
-    prompt_prefix = "Files> ",
+    prompt_title = "Insert @ Path",
+    prompt_prefix = "Paths> ",
   }, {
     finder = initial_finder,
-    previewer = file_picker_previewer(cwd, mode_state),
-    sorter = picker_sorter("files", cwd),
+    previewer = path_picker_previewer(cwd, mode_state),
+    sorter = picker_sorter("paths", cwd),
     attach_mappings = function(prompt_bufnr, map)
       actions.select_default:replace(function()
         insert_selected_paths(prompt_bufnr)
@@ -359,7 +412,7 @@ return {
     { "<leader>fcs", function() require('telescope.builtin').color_scheme() end, desc="Lists available colorschemes and applies them on <cr>" },
     { "<leader>ff", function() require('telescope').extensions.frecency.frecency({ workspace = "CWD" }) end, desc="Telescope frecency files" },
     { "<leader>F", function() require('telescope.builtin').find_files() end, desc="Telescope find files" },
-    { "<leader>@", insert_at_file_paths, desc="Insert @ file paths" },
+    { "<leader>@", insert_at_paths, desc="Insert @ paths" },
     { "<leader>gd", function() require('telescope.builtin').live_grep() end, desc="Search for a string in your current working directory and get results live as you type, respects .gitignore" },
     { "<leader>gf", function() require('telescope.builtin').current_buffer_fuzzy_find() end, desc="Live fuzzy search inside of the currently open buffer" },
     { "<leader>hc", function() require('telescope.builtin').command_history() end, desc="Lists commands that were executed recently, and reruns them on <cr>" },
