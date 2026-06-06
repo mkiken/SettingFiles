@@ -12,7 +12,4 @@ setup_ai_skills ~/.claude/skills "${Repo}ai/common/skills" "${Repo}ai/claude/ski
 
 claude update
 
-pipx upgrade SuperClaude
-SuperClaude update
-
 echo "Claude tools update completed."

@@ -52,7 +52,6 @@ npm install -g @sasazame/ccresume
 npm install -g ccexp
 npm install -g ccusage
 npm install -g ccundo
-pipx install SuperClaude && SuperClaude install
 pipx install claude-code-log
 # 日本語設定にする
 ccundo language ja

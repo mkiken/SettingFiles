@@ -155,7 +155,7 @@ while IFS= read -r line; do
                     return 0
                 fi
 
-                # コマンド説明パターン (例: "# /sc:help - Command Reference")
+                # コマンド説明パターン (例: "# /command - Command Reference")
                 if [[ "${msg}" =~ ^'#'[[:space:]]*'/'[a-z:-]+[[:space:]]*'-' ]]; then
                     return 0
                 fi
