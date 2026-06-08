@@ -24,16 +24,22 @@ def assistant_response_question_scan_text(message: str) -> str:
     return normalize_message(stripped)[-QUESTION_SCAN_TAIL_LENGTH:]
 
 
+def assistant_response_plan_scan_text(message: str) -> str:
+    stripped = re.sub(r"(?s)(```.*?```|~~~.*?~~~)", " ", message)
+    return re.sub(r"`[^`\n]*`", " ", stripped)
+
+
 def assistant_response_contains_proposed_plan(message: str) -> bool:
-    has_line_bounded_block = (
-        re.search(r"(?m)^\s*<proposed_plan>\s*$", message) is not None
-        and re.search(r"(?m)^\s*</proposed_plan>\s*$", message) is not None
-    )
+    scan_text = assistant_response_plan_scan_text(message)
+    has_line_bounded_block = re.search(
+        r"(?ms)^\s*<proposed_plan>\s*$.*?^\s*</proposed_plan>\s*$",
+        scan_text,
+    ) is not None
     if has_line_bounded_block:
         return True
 
-    normalized = normalize_message(message)
-    return normalized.startswith("<proposed_plan>") and normalized.endswith("</proposed_plan>")
+    normalized = normalize_message(scan_text)
+    return re.search(r"<proposed_plan>\s*\S.*?</proposed_plan>", normalized) is not None
 
 
 def assistant_response_needs_user_input(message: str) -> bool:
@@ -170,7 +176,7 @@ def resolve_transcript_path(input_data: dict[str, Any]) -> str | None:
     return find_session_transcript_path(input_data.get("session_id"))
 
 
-def extract_message_text(payload: dict[str, Any]) -> str:
+def extract_message_text(payload: dict[str, Any], preserve_format: bool = False) -> str:
     content = payload.get("content")
     if not isinstance(content, list):
         return ""
@@ -180,6 +186,9 @@ def extract_message_text(payload: dict[str, Any]) -> str:
         for item in content
         if isinstance(item, dict) and item.get("type") in {"input_text", "output_text"}
     ]
+    if preserve_format:
+        return "\n".join(part for part in parts if part).strip()
+
     return normalize_message(" ".join(parts))
 
 
@@ -259,7 +268,7 @@ def iter_log_assistant_messages(session_id: str | None):
             if not event or event.get("type") != "response.output_text.done":
                 continue
 
-            text = normalize_message(str(event.get("text") or ""))
+            text = str(event.get("text") or "").strip()
             if text:
                 yield format_epoch_timestamp(ts), text
     except sqlite3.Error:
@@ -273,6 +282,7 @@ def analyze_hook_input(input_data: dict[str, Any]) -> dict[str, Any]:
     transcript_path = resolve_transcript_path(input_data)
     user_messages: list[str] = []
     assistant_messages: list[str] = []
+    assistant_messages_for_detection: list[str] = []
     first_timestamp = ""
     last_timestamp = ""
     has_subagent_session_meta = False
@@ -313,6 +323,8 @@ def analyze_hook_input(input_data: dict[str, Any]) -> dict[str, Any]:
                 user_messages.append(message_text)
         elif role == "assistant":
             assistant_messages.append(message_text)
+            raw_message_text = extract_message_text(payload, preserve_format=True)
+            assistant_messages_for_detection.append(raw_message_text or message_text)
 
     if not user_messages and not assistant_messages:
         for timestamp, message_text in iter_history_user_messages(session_id):
@@ -327,14 +339,18 @@ def analyze_hook_input(input_data: dict[str, Any]) -> dict[str, Any]:
                 if not first_timestamp:
                     first_timestamp = timestamp
                 last_timestamp = timestamp
-            assistant_messages.append(message_text)
+            assistant_messages.append(normalize_message(message_text))
+            assistant_messages_for_detection.append(message_text)
 
     last_assistant_message = assistant_messages[-1] if assistant_messages else ""
+    last_assistant_message_for_detection = (
+        assistant_messages_for_detection[-1] if assistant_messages_for_detection else last_assistant_message
+    )
     is_subagent = is_subagent_metadata(input_data) or has_subagent_session_meta
 
     return {
         "is_subagent_session": is_subagent,
-        "waiting_for_user_response": assistant_response_needs_user_input(last_assistant_message),
+        "waiting_for_user_response": assistant_response_needs_user_input(last_assistant_message_for_detection),
         "last_user_message": user_messages[-1] if user_messages else "",
         "last_assistant_message": last_assistant_message,
         "user_message_count": len(user_messages),

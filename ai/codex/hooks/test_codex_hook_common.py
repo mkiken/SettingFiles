@@ -39,6 +39,25 @@ class AssistantResponseNeedsUserInputTest(unittest.TestCase):
 
         self.assertTrue(assistant_response_needs_user_input(message))
 
+    def test_detects_proposed_plan_with_intro_text(self):
+        message = """
+        修正した。
+
+        <proposed_plan>
+        # Codex Hook Notification Fix
+
+        ## Summary
+        - Plan Mode の設計確認は応答待ち通知にする。
+        </proposed_plan>
+        """
+
+        self.assertTrue(assistant_response_needs_user_input(message))
+
+    def test_detects_compacted_proposed_plan_with_intro_text(self):
+        message = "修正した。 <proposed_plan> # Codex Hook Notification Fix ## Summary - Plan Mode の設計確認は応答待ち通知にする。 </proposed_plan>"
+
+        self.assertTrue(assistant_response_needs_user_input(message))
+
     def test_ignores_url_query_in_tail(self):
         message = "確認した。詳細は https://example.com/search?q=codex を参照。"
 
@@ -62,6 +81,26 @@ class AssistantResponseNeedsUserInputTest(unittest.TestCase):
 
         self.assertFalse(assistant_response_needs_user_input(message))
 
+    def test_ignores_fenced_code_proposed_plan_example(self):
+        message = """
+        形式は次の通り。
+
+        ```markdown
+        <proposed_plan>
+        # Example
+        </proposed_plan>
+        ```
+
+        説明は以上。
+        """
+
+        self.assertFalse(assistant_response_needs_user_input(message))
+
+    def test_ignores_inline_code_proposed_plan_example(self):
+        message = "タグは `<proposed_plan>...</proposed_plan>` を使う。説明は以上。"
+
+        self.assertFalse(assistant_response_needs_user_input(message))
+
     def test_ignores_old_question_outside_tail(self):
         message = "この方針で進めてよろしいですか？" + (" 完了。" * 200)
 
@@ -74,6 +113,58 @@ class AssistantResponseNeedsUserInputTest(unittest.TestCase):
 
 
 class AnalyzeHookInputFallbackTest(unittest.TestCase):
+    def test_detects_proposed_plan_from_transcript_without_normalizing_detection_text(self):
+        session_id = "019ea532-60d3-7c03-a1d5-09e8778c32a5"
+
+        with tempfile.TemporaryDirectory() as codex_home:
+            transcript_path = (
+                Path(codex_home)
+                / "sessions"
+                / "2026"
+                / "06"
+                / "08"
+                / f"rollout-2026-06-08T12-06-42-{session_id}.jsonl"
+            )
+            write_jsonl(
+                transcript_path,
+                [
+                    {
+                        "timestamp": "2026-06-08T03:06:42.000Z",
+                        "type": "response_item",
+                        "payload": {
+                            "type": "message",
+                            "role": "user",
+                            "content": [{"type": "input_text", "text": "設計を確認したい"}],
+                        },
+                    },
+                    {
+                        "timestamp": "2026-06-08T03:08:23.000Z",
+                        "type": "response_item",
+                        "payload": {
+                            "type": "message",
+                            "role": "assistant",
+                            "content": [
+                                {
+                                    "type": "output_text",
+                                    "text": "修正した。\n\n<proposed_plan>\n# Codex Hook Notification Fix\n\n## Summary\n- Plan Mode の設計確認は応答待ち通知にする。\n</proposed_plan>",
+                                }
+                            ],
+                        },
+                    },
+                ],
+            )
+
+            with patch.dict(os.environ, {"CODEX_HOME": codex_home}):
+                result = analyze_hook_input(
+                    {"hook_event_name": "Stop", "session_id": session_id, "transcript_path": str(transcript_path)}
+                )
+
+        self.assertTrue(result["waiting_for_user_response"])
+        self.assertEqual(
+            result["last_assistant_message"],
+            "修正した。 <proposed_plan> # Codex Hook Notification Fix ## Summary - Plan Mode の設計確認は応答待ち通知にする。 </proposed_plan>",
+        )
+
     def test_resolves_transcript_by_session_id(self):
         session_id = "019e68fe-273e-7592-8fbe-135395cf1c9f"
 
