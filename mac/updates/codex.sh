@@ -10,6 +10,7 @@ npm i -g @openai/codex@latest
 (cd "$HOME" && npx --yes cc-sdd@latest --codex-skills --lang ja)
 
 setup_ai_mcp update
+setup_ai_pr_tools
 
 # 共通設定テンプレートを ~/.codex/config.toml にマージ
 smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml

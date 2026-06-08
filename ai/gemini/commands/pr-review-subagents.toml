@@ -27,10 +27,10 @@ Fetch all required PR data before launching sub-agents via `run_shell_command`:
 ```bash
 gh pr view {{args}} --json title,body,baseRefName,headRefName,url
 gh pr diff {{args}}  # NOTE: file path arguments are not supported; fetch full diff and filter locally if needed
-bash ~/.gemini/bin/format_pr_diff_with_line_numbers.sh {{args}}  # Authoritative current-side line numbers for review comments
+bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh {{args}}  # Authoritative current-side line numbers for review comments
 gh repo view --json nameWithOwner
 git branch --show-current  # Detect local mode
-bash ~/.gemini/bin/fetch_existing_comments.sh {{args}}  # Existing PR comments as NDJSON
+bash ~/.config/ai-pr/bin/fetch_existing_comments.sh {{args}}  # Existing PR comments as NDJSON
 ```
 
 Compare the output of `git branch --show-current` with `headRefName`. If they match, **local mode** is active — sub-agents can use `read_file` and `glob` tools directly instead of `gh api`.

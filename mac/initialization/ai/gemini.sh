@@ -5,6 +5,7 @@ source "$(dirname "$0")/../../scripts/common.sh"
 echo "Setting up Gemini..."
 
 setup_ai_mcp install
+setup_ai_pr_tools
 
 # jqコマンドの確認
 if ! command -v jq &> /dev/null; then
@@ -23,7 +24,6 @@ echo "MCP configuration merged successfully!"
 
 make_symlink "${Repo}ai/gemini/_GEMINI.md" ~/.gemini/GEMINI.md
 make_symlink "${Repo}ai/common" ~/.gemini/common
-make_symlink "${Repo}shell/common/pr" ~/.gemini/bin
 
 # ローカルMCP設定があれば一時ファイルにマージしてコピー
 LOCAL_MCP="${Repo}ai/common/mcp.local.json"

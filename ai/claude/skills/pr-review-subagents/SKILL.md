@@ -35,7 +35,7 @@ gh pr view $ARGUMENTS --json title,body,baseRefName,headRefName,url
 gh pr diff $ARGUMENTS  # NOTE: file path arguments are not supported; fetch full diff and filter locally if needed
 gh repo view --json nameWithOwner
 git branch --show-current  # Detect local mode
-bash "$(git rev-parse --show-toplevel)/shell/common/pr/fetch_existing_comments.sh" $ARGUMENTS  # Existing PR comments as NDJSON
+bash ~/.config/ai-pr/bin/fetch_existing_comments.sh $ARGUMENTS  # Existing PR comments as NDJSON
 ```
 
 Compare the output of `git branch --show-current` with `headRefName`. If they match, **local mode** is active — sub-agents can use `Read` and `Glob` tools directly instead of `gh api`.

@@ -39,7 +39,7 @@ gh pr view <PR_NUMBER> --json title,body,baseRefName,headRefName,url,files,commi
 gh pr diff <PR_NUMBER>
 gh repo view --json nameWithOwner
 git branch --show-current
-bash "$(git rev-parse --show-toplevel)/shell/common/pr/fetch_existing_comments.sh" <PR_NUMBER>
+bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <PR_NUMBER>
 ```
 
 Compare the current branch with `headRefName`.

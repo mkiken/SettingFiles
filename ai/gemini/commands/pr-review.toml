@@ -9,11 +9,11 @@ Perform a comprehensive PR review for {{args}}.
 CRITICAL: Run these commands FIRST:
 !{gh pr view {{args}} --json number,url,title,author,headRefName,baseRefName,isDraft,mergeable,state,additions,deletions,changedFiles}
 !{git branch --show-current}
-!{bash ~/.gemini/bin/fetch_existing_comments.sh {{args}}}
-!{bash ~/.gemini/bin/format_pr_diff_with_line_numbers.sh {{args}}}
+!{bash ~/.config/ai-pr/bin/fetch_existing_comments.sh {{args}}}
+!{bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh {{args}}}
 
-The last command above outputs existing PR comments as NDJSON. Use it for duplicate detection per the policy loaded at the top of this prompt.
-The line-numbered diff command above is the authoritative source for review line numbers.
+The `fetch_existing_comments.sh` command above outputs existing PR comments as NDJSON. Use it for duplicate detection per the policy loaded at the top of this prompt.
+The `format_pr_diff_with_line_numbers.sh` command above is the authoritative source for review line numbers.
 
 To get the PR body (description), run `gh pr view {{args}} --json body --jq '.body'` via `run_shell_command`.
 To see the code changes, use your `run_shell_command` tool to execute `gh pr diff {{args}}`.

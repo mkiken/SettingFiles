@@ -10,8 +10,8 @@ This avoids having models infer GitHub review lines from raw hunk headers.
 ### Usage
 
 ```bash
-bash shell/common/pr/format_pr_diff_with_line_numbers.sh <pr_number>
-bash shell/common/pr/format_pr_diff_with_line_numbers.sh --stdin < diff.patch
+bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh <pr_number>
+bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh --stdin < diff.patch
 ```
 
 ### Output records
@@ -35,7 +35,7 @@ Fetches all existing comments on a GitHub PR and outputs them as NDJSON (one JSO
 ### Usage
 
 ```bash
-bash shell/common/pr/fetch_existing_comments.sh <pr_number>
+bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <pr_number>
 ```
 
 ### Output fields
@@ -69,16 +69,16 @@ bash shell/common/pr/fetch_existing_comments.sh <pr_number>
 
 ```bash
 # Verify all three kinds are returned
-bash shell/common/pr/fetch_existing_comments.sh <pr> | jq -c .kind | sort | uniq -c
+bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <pr> | jq -c .kind | sort | uniq -c
 
 # Count resolved comments (should match GitHub UI)
-bash shell/common/pr/fetch_existing_comments.sh <pr> | jq 'select(.is_resolved==true)' | wc -l
+bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <pr> | jq 'select(.is_resolved==true)' | wc -l
 
 # Verify self-detection
-bash shell/common/pr/fetch_existing_comments.sh <pr> | jq 'select(.is_self==true) | .author'
+bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <pr> | jq 'select(.is_self==true) | .author'
 
 # Verify ai_origin detection
-bash shell/common/pr/fetch_existing_comments.sh <pr> | jq 'select(.ai_origin != null) | {id, author, ai_origin}'
+bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <pr> | jq 'select(.ai_origin != null) | {id, author, ai_origin}'
 ```
 
 ### False-positive skip checklist

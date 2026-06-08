@@ -5,6 +5,7 @@ source "$(dirname "$0")/../../scripts/common.sh"
 echo "Setting up Claude..."
 
 setup_ai_mcp install
+setup_ai_pr_tools
 
 # Claude setup
 echo "UPDATE ${Repo}ai/claude/_CLAUDE.md!"

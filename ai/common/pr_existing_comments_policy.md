@@ -7,7 +7,7 @@ When performing a PR review, you MUST check whether each finding you are about t
 Before generating review findings, fetch the existing PR comments as NDJSON using:
 
 ```bash
-bash <REPO_ROOT>/shell/common/pr/fetch_existing_comments.sh <PR_NUMBER>
+bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <PR_NUMBER>
 ```
 
 Each output line is a JSON object with these fields:

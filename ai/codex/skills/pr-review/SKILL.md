@@ -50,7 +50,7 @@ Before starting the review, determine the file access mode:
 Fetch primary review materials:
 - PR metadata is already fetched in the step above
 - `gh pr diff <PR_NUMBER>` — Complete diff (**Note: file path arguments are not supported; always fetch the full diff and filter locally if needed**)
-- `bash "$(git rev-parse --show-toplevel)/shell/common/pr/fetch_existing_comments.sh" <PR_NUMBER>` — Existing PR comments as NDJSON (inline, issue, and review-summary with resolved/outdated status)
+- `bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <PR_NUMBER>` — Existing PR comments as NDJSON (inline, issue, and review-summary with resolved/outdated status)
 
 For deeper investigation (referencing files outside diff, checking surrounding context), use the method determined above.
 

@@ -40,3 +40,20 @@ function setup_ai_skills() {
     done
   done
 }
+
+function setup_ai_pr_tools() {
+  local source_dir="${Repo}shell/common/pr"
+  local dest_bin="$HOME/.config/ai-pr/bin"
+  local file
+
+  if [[ -d "$dest_bin" && ! -L "$dest_bin" ]]; then
+    for file in "${source_dir}"/*.sh; do
+      if [[ -f "$file" ]]; then
+        make_symlink "$file" "${dest_bin}/$(basename "$file")"
+      fi
+    done
+    return
+  fi
+
+  make_symlink "$source_dir" "$dest_bin"
+}

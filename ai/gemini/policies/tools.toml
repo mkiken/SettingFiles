@@ -15,13 +15,13 @@ priority = 100
 
 [[rule]]
 toolName = "run_shell_command"
-commandPrefix = "bash ~/.gemini/bin/fetch_existing_comments.sh"
+commandPrefix = "bash ~/.config/ai-pr/bin/fetch_existing_comments.sh"
 decision = "allow"
 priority = 100
 
 [[rule]]
 toolName = "run_shell_command"
-commandPrefix = "bash ~/.gemini/bin/format_pr_diff_with_line_numbers.sh"
+commandPrefix = "bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh"
 decision = "allow"
 priority = 100
 
