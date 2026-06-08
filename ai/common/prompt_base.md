@@ -85,7 +85,16 @@ A single one-off preference is not enough. If the user has not expressed the fri
 - Use the response format defined by the `prompt-self-improvement` skill: Target behavior, Evidence, Diagnosis, Proposed source changes, Validation plan, Risks. Follow that skill's source map and guardrails.
 - State which assistants (Claude / Gemini / Codex) the change affects. If the change touches Codex source fragments (`ai/common/prompt_base.md`, `ai/common/characters/nyaruko.md`, `ai/codex/codex_base.md`), note that the user must re-run `mac/initialization/ai/codex.sh` so `_AGENTS.md` regenerates.
 - Do not modify any persistent prompt source file as part of the proposal itself. Apply edits only after the user explicitly approves them, following the confirmation rules of this assistant's entrypoint.
-- If nothing meets the threshold above, say nothing. Silence is the correct default.
+- Outside the completion-time check below, if nothing meets the threshold above, say nothing. Silence is the correct default.
+
+## Completion-Time Check
+
+At the end of implementation, fix, configuration, review, or investigation-delivery tasks, explicitly check whether Opportunistic Improvement Proposals criteria were met before sending the final completion response.
+
+- If one or more proposals qualify, include them using the `prompt-self-improvement` response format, respecting the maximum of two proposals per session.
+- If no proposal qualifies, include exactly `自己改善チェック: 該当なし` once in the final completion response.
+- Do not include this check in ordinary conversation, clarification-only turns, plan-only responses, active progress updates, or confirmation questions that happen before the task has been completed.
+- When another completion workflow also needs to run, preserve the workflow order in `Relationship to other workflows`; place the check before any required cleanup, commit, or PR confirmation choices.
 
 ## Relationship to other workflows
 
