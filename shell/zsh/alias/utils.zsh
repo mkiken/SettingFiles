@@ -175,13 +175,58 @@ function json_files_semantically_equal() {
     return $result
 }
 
+function _ensure_prompt_notify_available() {
+    if ! (( ${+functions[notify]} )); then
+        source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/alias/notification.zsh" 2>/dev/null || true
+    fi
+}
+
+function _start_prompt_wait_notification() {
+    local message="$1"
+    local group="${2:-confirm-prompt}"
+
+    _ensure_prompt_notify_available
+
+    if (( ${+functions[notify]} )); then
+        local _title
+        if (( ${+functions[build_notification_title]} )); then
+            _title=$(build_notification_title "⚠️" "入力待ち")
+        else
+            _title="入力待ち"
+        fi
+        notify "$_title" "$message" "default" "$group" || true
+    fi
+
+    if (( ${+functions[update_tmux_window_name]} )); then
+        update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION:-✋}" || true
+    fi
+
+    return 0
+}
+
+function _finish_prompt_wait_notification() {
+    if (( ${+functions[remove_tmux_window_icon]} )); then
+        remove_tmux_window_icon || true
+    fi
+
+    return 0
+}
+
 # Prompt user for copy action (overwrite or skip)
 function prompt_copy_action() {
+    local notification_message="$1"
     local choice
+
+    if [[ -n "$notification_message" ]]; then
+        _start_prompt_wait_notification "$notification_message" "smart-merge-json-prompt"
+    fi
 
     echo ""
     echo -n "Overwrite? [o]verwrite / [s]kip (default: s): "
     read -r choice
+    if [[ -n "$notification_message" ]]; then
+        _finish_prompt_wait_notification
+    fi
 
     case "$choice" in
         o|O|overwrite)
@@ -195,8 +240,10 @@ function prompt_copy_action() {
 
 # Prompt user for merge action (overwrite, keep, merge with priority)
 function prompt_merge_action() {
+    local notification_message="${1:-smart_merge_json action required}"
     local choice
 
+    _start_prompt_wait_notification "$notification_message" "smart-merge-json-prompt"
     echo "" >&2
     echo "[o] Overwrite: Replace destination with source" >&2
     echo "[k] Keep: Keep destination as is (skip)" >&2
@@ -204,6 +251,7 @@ function prompt_merge_action() {
     echo "[d] Merge (destination priority): Merge with destination winning conflicts" >&2
     echo -n "Choose action (default: k): " >&2
     read -r choice
+    _finish_prompt_wait_notification
 
     case "$choice" in
         o|O|overwrite)
@@ -254,15 +302,8 @@ function confirm() {
         prompt_hint="[y/N]"
     fi
 
-    if $send_notify && (( ${+functions[notify]} )); then
-        local _title
-        if (( ${+functions[build_notification_title]} )); then
-            _title=$(build_notification_title "⚠️" "入力待ち")
-        else
-            _title="入力待ち"
-        fi
-        notify "$_title" "$message" "default" "confirm-prompt"
-        (( ${+functions[update_tmux_window_name]} )) && update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION:-✋}"
+    if $send_notify; then
+        _start_prompt_wait_notification "$message" "confirm-prompt"
     fi
 
     local reply
@@ -273,7 +314,7 @@ function confirm() {
         echo -n "${message} ${prompt_hint} "
         read -r reply
     fi
-    (( ${+functions[remove_tmux_window_icon]} )) && remove_tmux_window_icon
+    _finish_prompt_wait_notification
 
     if $default_yes; then
         [[ "$reply" =~ ^[Yy]?$ ]] && return 0
@@ -296,20 +337,13 @@ function prompt_input() {
     [[ "$var_name" == "--no-notify" ]] && send_notify=false && var_name=""
     [[ "$3" == "--no-notify" ]] && send_notify=false
 
-    if $send_notify && (( ${+functions[notify]} )); then
-        local _title
-        if (( ${+functions[build_notification_title]} )); then
-            _title=$(build_notification_title "⚠️" "入力待ち")
-        else
-            _title="入力待ち"
-        fi
-        notify "$_title" "$message" "default" "confirm-prompt"
-        (( ${+functions[update_tmux_window_name]} )) && update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION:-✋}"
+    if $send_notify; then
+        _start_prompt_wait_notification "$message" "confirm-prompt"
     fi
 
     local reply
     read -r "reply?${message} "
-    (( ${+functions[remove_tmux_window_icon]} )) && remove_tmux_window_icon
+    _finish_prompt_wait_notification
 
     if [[ -n "$var_name" ]]; then
         eval "$var_name=\$reply"
@@ -463,7 +497,7 @@ function smart_merge_json() {
         show_file_diff "$src" "$dst" "$src_label" "$dst_label"
         echo "========================="
 
-        if prompt_copy_action; then
+        if prompt_copy_action "smart_merge_json overwrite/skip required: $src_label -> $dst_label"; then
             echo "Applying source to destination: $src_label -> $dst_label"
             echo "cp \"$src\" \"$dst\""
             cp "$src" "$dst"
@@ -487,7 +521,7 @@ function smart_merge_json() {
     echo "========================="
 
     # Prompt for action
-    local action=$(prompt_merge_action)
+    local action=$(prompt_merge_action "smart_merge_json merge action required: $src_label -> $dst_label")
 
     case "$action" in
         overwrite)
