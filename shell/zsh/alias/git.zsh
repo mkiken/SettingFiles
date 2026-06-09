@@ -195,7 +195,7 @@ di() {
   no_notify difit "$@"
 }
 
-alias dia='di .'
+alias dia='di --include-untracked .'
 alias diw='di working'
 alias dis='di staged'
 
