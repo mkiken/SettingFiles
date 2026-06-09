@@ -37,6 +37,8 @@ Compare the output of `git branch --show-current` with `headRefName`. If they ma
 
 The line-numbered diff output from `format_pr_diff_with_line_numbers.sh` is the authoritative source for final `[path:line]` references. `NEW <line>` is the preferred target, `CTX <line>` may be used only when no `NEW` line can carry the finding, and `OLD <line>` must not be used for final GitHub review comments.
 
+Every sub-agent finding must include line evidence that quotes the exact line-numbered diff record used for the header. The finding header `[path:line]` must match that evidence. Findings that rely on `OLD`, deleted files, hunk-header arithmetic, approximate `~line` references, or file reads without a matching `NEW`/allowed `CTX` record are invalid.
+
 ### Phase 2: Launch All 6 Sub-Agents in Parallel
 
 Pass the following to each sub-agent as context:
@@ -49,6 +51,7 @@ Pass the following to each sub-agent as context:
 - **Local mode**: whether the current branch matches `headRefName` (true/false). If true, instruct sub-agents to use `read_file` and `glob` tools for file reading instead of `gh api`.
 - **Scope rule**: Focus findings on changed lines. For pre-existing issues in unchanged code, report only critical impact categories (security breach, data corruption/loss, service outage, compliance violation) with a `[既存コード]` prefix.
 - **Line-number rule**: use only `NEW` or, when unavoidable, current-side `CTX` line numbers from the line-numbered diff. Do not calculate final line numbers from hunk headers.
+- **Line-evidence rule**: each finding must include `行番号根拠: FILE <path> / NEW <line> <snippet>` or, only when no changed line can carry the finding, `行番号根拠: FILE <path> / CTX <line> <snippet>`. The finding header must use the same path and line as the evidence.
 
 Launch all agents simultaneously using `invoke_agent` (set `wait_for_previous` to `false` for parallel execution):
 
@@ -76,7 +79,11 @@ Collect all sub-agent findings, then:
 7. Reclassify priorities based on confidence scores.
 8. Assign sequential numbers to all findings across regular priority sections and the test section (continue numbering across sections — do not restart per section).
 9. Format structured output following the Formatting Rules below.
-10. **Validate line numbers**: every finding must point to a `NEW` line from the line-numbered diff, or to a current-side `CTX` line only when no `NEW` line can carry the finding. Findings without a verified current-side line number must not appear in the final output.
+10. **Validate and normalize line numbers** before final formatting:
+   - Every final finding must point to a `NEW` line from the line-numbered diff, or to a current-side `CTX` line only when no `NEW` line can carry the finding.
+   - If a sub-agent header line differs from valid `行番号根拠`, replace the final header with the evidence path and line.
+   - Drop any finding that has no `行番号根拠`, cites `OLD`, cites `DELETED_FILE`, uses `~line` or a range, or references a path/line not present in the line-numbered diff.
+   - Use `行番号根拠` only for validation. Do not include it in the final user-facing review output.
 11. Omit empty priority sections and omit `## テストに関する指摘` when there are no actionable test findings.
 12. Omit `## レビュー注目ポイント` unless it contains concrete unresolved actions not already covered by numbered findings.
 13. If no actionable findings remain after deduplication, output only `対応が必要な指摘はありません。`

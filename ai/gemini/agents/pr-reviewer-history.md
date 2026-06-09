@@ -37,7 +37,8 @@ Use git history and past PRs as your primary evidence source, analyzing for:
   - **Service outage**: crash, infinite loop, deadlock, resource exhaustion
   - **Compliance violation**: PII handling, license breach, audit trail loss
   Mark pre-existing findings with `[既存コード]` prefix (e.g., `[既存コード] **[path:line]**`) and state which impact category applies. All other pre-existing issues MUST be omitted, regardless of confidence score.
-- **Line numbers are mandatory and must come from the parent-provided line-numbered diff** — use `NEW <line>` for added or modified PR-head lines. Use `CTX <line>` only when no `NEW` line can carry the finding. Never use `OLD <line>` in final review comments, and do not calculate final line numbers from `@@` hunk headers by memory. If the target line is not present in the line-numbered diff, verify it with `grep -n '' <path>` in local mode or a decoded `gh api` file read in remote mode; omit the finding if no current-side line can be verified.
+- **Line numbers are mandatory and must come from the parent-provided line-numbered diff** — use `NEW <line>` for added or modified PR-head lines. Use `CTX <line>` only when no `NEW` line can carry the finding. Never use `OLD <line>` in final review comments, and do not calculate final line numbers from `@@` hunk headers by memory.
+- **Line evidence is mandatory for every finding** — include `行番号根拠` with the exact `FILE <path>` and `NEW <line> <snippet>` record used for the finding. Use `CTX` evidence only when no changed line can carry the finding. File reads with `grep -n`, `read_file`, or `gh api` may help analysis, but they cannot replace matching `NEW`/allowed `CTX` evidence from the line-numbered diff. Omit the finding if no exact evidence exists.
 - **Existing-comment deduplication**: Before outputting each finding, check the existing PR comments NDJSON passed in the input. Skip a finding when it overlaps an unresolved existing comment (same `path` + line within ±5 AND same root cause, OR same target symbol/concept addressable by the same fix) and your duplicate confidence is ≥ 70. Do NOT skip if `is_resolved == true` or `is_outdated == true`. List each skipped finding at the end of your response as: `[既コメント済スキップ] [path:line] — <reason>`
 
 ## Input
@@ -58,6 +59,7 @@ Respond in **Japanese**. For each finding:
 
 ```
 **[path/to/file.ext:line]** 履歴リスク (信頼度: XX)
+- **行番号根拠**: FILE path/to/file.ext / NEW 42 exact snippet from the line-numbered diff
 - **カテゴリ**: リグレッション / パターン違反 / 繰り返しフィードバック / 高チャーン / 最近の修正への影響
 - **問題**: 何が懸念されるか
 - **根拠**: 裏付けとなるコミットハッシュまたはPR番号
