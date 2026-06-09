@@ -6,8 +6,21 @@ source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_window_nam
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_notification_title.sh" 2>/dev/null
 
 function make_symlink () {
+  local src="$1"
+  local dst="$2"
+  local link_path="$dst"
+
+  if [[ -z "$src" || -z "$dst" ]]; then
+    echo "Usage: make_symlink <source> <destination>" >&2
+    return 1
+  fi
+
+  if [[ ! -L "$dst" && -d "$dst" ]]; then
+    link_path="${dst%/}/$(basename "$src")"
+  fi
+
   # リンク先のディレクトリを取得
-  local target_dir="$(dirname "$2")"
+  local target_dir="$(dirname "$link_path")"
 
   # ディレクトリが存在しない場合は作成
   if [[ ! -d "$target_dir" ]]; then
@@ -16,19 +29,36 @@ function make_symlink () {
   fi
 
   # 既にシンボリックリンクが存在する場合の処理
-  if [[ -L "$2" ]]; then
-    local existing_target="$(readlink "$2")"
-    if [[ "$existing_target" == "$1" ]]; then
-      echo "✓ Already linked: $2 -> $1"
+  if [[ -L "$link_path" ]]; then
+    local existing_target="$(readlink "$link_path")"
+    if [[ "$existing_target" == "$src" ]]; then
+      echo "✓ Already linked: $link_path -> $src"
       return 0
     fi
     # 異なるリンク先のシンボリックリンクは削除して再作成
-    echo "rm $2 (was -> $existing_target)"
-    /bin/rm "$2"
+    echo "rm $link_path (was -> $existing_target)"
+    /bin/rm "$link_path"
+  elif [[ -e "$link_path" ]]; then
+    if ! (( ${+functions[notify]} )); then
+      source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/alias/notification.zsh" 2>/dev/null
+    fi
+
+    if confirm "シンボリックリンクではない既存パスがあります: $link_path。$src へのsymlinkで上書きしますか？" --default-no --no-cancel-msg; then
+      if [[ -d "$link_path" ]]; then
+        echo "rm -rf $link_path"
+        /bin/rm -rf "$link_path"
+      else
+        echo "rm -f $link_path"
+        /bin/rm -f "$link_path"
+      fi
+    else
+      echo "Skipped: $link_path"
+      return 0
+    fi
   fi
 
-  echo "ln -si $1 $2"
-  ln -si "$1" "$2"
+  echo "ln -si $src $dst"
+  ln -si "$src" "$dst"
 }
 
 # Copy file only if destination does not exist (with warning if it exists)
