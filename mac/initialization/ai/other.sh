@@ -16,4 +16,7 @@ smart_copy "${Repo}ai/serena/serena_config.yml" ~/.serena/serena_config.yml
 # for Spec Kit
 uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
 
+# for cc-search
+npm install -g @nogataka/cc-search
+
 echo 'Other AI assistants setup completed.'

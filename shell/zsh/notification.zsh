@@ -6,6 +6,7 @@ export NOTIFY_COMMAND_EXCLUDE=(
   cclog
   cclogt
   ccresume
+  cc-search
   ccusage
   claude
   g-delete-branch-not-in-remote-interactive
