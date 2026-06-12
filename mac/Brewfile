@@ -1,3 +1,5 @@
+tap "jazzyalex/agent-sessions"
+
 brew "actionlint"
 brew "aria2"
 brew "atuin"
@@ -38,6 +40,7 @@ brew "uv"
 brew "yarn"
 brew "zoxide"
 
+cask "agent-sessions"
 cask "alt-tab"
 cask "claude"
 cask "cursor"
