@@ -14,7 +14,7 @@ _fai-pr-review() {
 
     # fzf PR選択
     local pr_number
-    pr_number=$(ghpl | filter | awk '{print $1}')
+    pr_number=$(_fgh_select_pr_number)
     if [[ -z "$pr_number" ]]; then
         echo "PRが選択されませんでした。" >&2
         return 1

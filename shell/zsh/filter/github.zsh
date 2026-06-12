@@ -17,11 +17,25 @@ function fgh_compare_url(){
 }
 
 # マージ先のブランチ名を表示するPR一覧
-function fghpl_branch() {
- ghpl_branch \
+function _fgh_select_pr() {
+  ghpl_branch "$@" \
     | filter --height 40% --layout reverse --info inline --border \
         --header $'Number\tTitle\tAuthor\tBase\tHead' \
         --delimiter $'\t' --with-nth 1,2,3,4,5
+}
+
+function _fgh_select_pr_number() {
+  local selected_pr
+  selected_pr=$(_fgh_select_pr "$@")
+  if [[ -z "$selected_pr" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  print -r -- "${selected_pr%%$'\t'*}"
+}
+
+function fghpl_branch() {
+  _fgh_select_pr "$@"
 }
 
 # GitHubのPR一覧からブランチ間差分表示（共通祖先からの差分）
@@ -85,7 +99,7 @@ function fghpch() {
 
 # PR一覧からブラウザで開く
 function _fghpv_impl(){
-  local pr_number=$(ghpl | filter | awk '{print $1}')
+  local pr_number=$(_fgh_select_pr_number)
   if [[ -z "$pr_number" ]]; then
     return $EXIT_CODE_SIGINT
   fi
@@ -100,7 +114,7 @@ function _fghpv_from_commit_impl(){
     echo "Usage: fghpv_from_commit <commit-hash>"
     return $EXIT_CODE_SIGINT
   fi
-  local pr_number=$(ghpl_from_commit "$commit_hash" | filter | awk '{print $1}')
+  local pr_number=$(_fgh_select_pr_number --search "$commit_hash" --state all)
   if [[ -z "$pr_number" ]]; then
     return $EXIT_CODE_SIGINT
   fi
@@ -110,7 +124,7 @@ alias fghpv_from_commit='no_notify _fghpv_from_commit_impl'
 
 # 自分のPR一覧からブラウザで開く
 function _fghpvm_impl(){
-  local pr_number=$(ghplm | filter | awk '{print $1}')
+  local pr_number=$(_fgh_select_pr_number --author "@me")
   if [[ -z "$pr_number" ]]; then
     return $EXIT_CODE_SIGINT
   fi
@@ -120,7 +134,7 @@ alias fghpvm='no_notify _fghpvm_impl'
 
 # PR一覧からチェックアウト
 function _fghco_impl(){
-  local pr_number=$(ghpl | filter | awk '{print $1}')
+  local pr_number=$(_fgh_select_pr_number)
   if [[ -z "$pr_number" ]]; then
     return $EXIT_CODE_SIGINT
   fi
@@ -130,7 +144,7 @@ alias fghco='no_notify _fghco_impl'
 
 # 自分のPR一覧からチェックアウト
 function _fghcom_impl(){
-  local pr_number=$(ghplm | filter | awk '{print $1}')
+  local pr_number=$(_fgh_select_pr_number --author "@me")
   if [[ -z "$pr_number" ]]; then
     return $EXIT_CODE_SIGINT
   fi
