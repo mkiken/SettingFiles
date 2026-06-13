@@ -28,7 +28,7 @@ brew "mas"
 brew "neovim"
 brew "nvm"
 brew "powerlevel10k"
-brew "raine/workmux/workmux"
+brew "raine/workmux/workmux", trusted: true
 brew "reattach-to-user-namespace"
 brew "ripgrep"
 brew "rlwrap"
@@ -40,7 +40,7 @@ brew "uv"
 brew "yarn"
 brew "zoxide"
 
-cask "agent-sessions"
+cask "jazzyalex/agent-sessions/agent-sessions", trusted: true
 cask "alt-tab"
 cask "claude"
 cask "cursor"
