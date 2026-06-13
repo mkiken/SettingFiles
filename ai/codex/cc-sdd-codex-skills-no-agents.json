@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "artifacts": [
+    {
+      "id": "skills",
+      "source": {
+        "type": "templateDir",
+        "fromDir": "templates/agents/{{AGENT}}/skills",
+        "toDir": "{{AGENT_COMMANDS_DIR}}"
+      },
+      "when": { "agent": "codex-skills" }
+    },
+    {
+      "id": "codex_agents",
+      "source": {
+        "type": "templateDir",
+        "fromDir": "templates/agents/{{AGENT}}/codex-agents",
+        "toDir": ".codex/agents"
+      },
+      "when": { "agent": "codex-skills" }
+    },
+    {
+      "id": "settings_templates",
+      "source": {
+        "type": "templateDir",
+        "fromDir": "templates/shared/settings/templates",
+        "toDir": "{{KIRO_DIR}}/settings/templates"
+      },
+      "when": { "agent": "codex-skills" }
+    }
+  ]
+}
