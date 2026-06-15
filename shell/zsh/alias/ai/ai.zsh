@@ -31,7 +31,7 @@ _ai_tmux_command() {
             print -r -- "cl --model opus --permission-mode plan --effort max ${prompt_quoted}; zsh"
             ;;
         gemini)
-            print -r -- "gmp --approval-mode plan -i ${prompt_quoted}; zsh"
+            print -r -- "gmh --approval-mode plan -i ${prompt_quoted}; zsh"
             ;;
         codex)
             print -r -- "cx -c 'model_reasoning_effort=\"xhigh\"' --sandbox read-only ${prompt_quoted}; zsh"
