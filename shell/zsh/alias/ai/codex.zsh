@@ -7,7 +7,7 @@ cx() {
     local codex_status=$?
 
     if (( ${+functions[remove_tmux_window_icon]} )); then
-        remove_tmux_window_icon
+        remove_tmux_window_icon true
     else
         echo "cx: remove_tmux_window_icon is not defined; tmux window icon was not cleaned up" >&2
     fi

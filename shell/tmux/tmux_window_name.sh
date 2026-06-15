@@ -28,15 +28,64 @@ update_tmux_window_name() {
     tmux rename-window -t "${window_id}" "${status_emoji}${stripped}" 2>/dev/null || true
 }
 
+# tmuxウィンドウ名アイコン削除の失敗理由を出力する
+_report_tmux_window_icon_cleanup_status() {
+    local cleanup_status="$1"
+
+    case "${cleanup_status}" in
+        2)
+            echo "tmux window icon cleanup skipped: TMUX_PANE is unset or TERM_PROGRAM is not tmux" >&2
+            ;;
+        3)
+            echo "tmux window icon cleanup failed: could not read current tmux window name" >&2
+            ;;
+        4)
+            echo "tmux window icon cleanup failed: could not resolve tmux window id" >&2
+            ;;
+        5)
+            echo "tmux window icon cleanup failed: could not strip emoji prefix" >&2
+            ;;
+        6)
+            echo "tmux window icon cleanup failed: could not rename tmux window" >&2
+            ;;
+        *)
+            echo "tmux window icon cleanup failed: unexpected status ${cleanup_status}" >&2
+            ;;
+    esac
+}
+
 # tmuxウィンドウ名から絵文字プレフィックスを除去して元の名前に戻す
 remove_tmux_window_icon() {
+    local report_error="${1:-false}"
     local pane_id
-    pane_id=$(_get_tmux_pane_id_for_window_name) || return 0
+    pane_id=$(_get_tmux_pane_id_for_window_name) || {
+        local cleanup_status=2
+        [[ "${report_error}" == "true" ]] && _report_tmux_window_icon_cleanup_status "${cleanup_status}"
+        return "${cleanup_status}"
+    }
     local current_name
-    current_name=$(tmux display-message -p -t "${pane_id}" "#W" 2>/dev/null) || return 0
+    current_name=$(tmux display-message -p -t "${pane_id}" "#W" 2>/dev/null) || {
+        local cleanup_status=3
+        [[ "${report_error}" == "true" ]] && _report_tmux_window_icon_cleanup_status "${cleanup_status}"
+        return "${cleanup_status}"
+    }
     local window_id
-    window_id=$(tmux display-message -p -t "${pane_id}" "#{window_id}" 2>/dev/null) || return 0
+    window_id=$(tmux display-message -p -t "${pane_id}" "#{window_id}" 2>/dev/null) || {
+        local cleanup_status=4
+        [[ "${report_error}" == "true" ]] && _report_tmux_window_icon_cleanup_status "${cleanup_status}"
+        return "${cleanup_status}"
+    }
     local stripped
-    stripped=$(python3 "${_TMUX_WINDOW_NAME_DIR}/tmux_emoji.py" "${current_name}") || return 0
-    [[ "${stripped}" != "${current_name}" ]] && tmux rename-window -t "${window_id}" "${stripped}" 2>/dev/null || true
+    stripped=$(python3 "${_TMUX_WINDOW_NAME_DIR}/tmux_emoji.py" "${current_name}") || {
+        local cleanup_status=5
+        [[ "${report_error}" == "true" ]] && _report_tmux_window_icon_cleanup_status "${cleanup_status}"
+        return "${cleanup_status}"
+    }
+    [[ "${stripped}" == "${current_name}" ]] && return 1
+    tmux rename-window -t "${window_id}" "${stripped}" 2>/dev/null || {
+        local cleanup_status=6
+        [[ "${report_error}" == "true" ]] && _report_tmux_window_icon_cleanup_status "${cleanup_status}"
+        return "${cleanup_status}"
+    }
+    return 0
 }
