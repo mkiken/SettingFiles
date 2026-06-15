@@ -737,15 +737,7 @@ function setup_ai_mcp() {
     local repo_root="${Repo:-$HOME/Desktop/repository/SettingFiles/}"
     local mcp_dir="${repo_root%/}/ai/common/mcp"
     local link_dest="$HOME/.config/ai-mcp"
-    local packages=(
-        "@21st-dev/magic"
-        "@modelcontextprotocol/server-sequential-thinking"
-        "@morphllm/morphmcp"
-        "@playwright/mcp"
-        "@upstash/context7-mcp"
-        "chrome-devtools-mcp"
-        "tavily-mcp"
-    )
+    local packages=()
 
     if [[ ! -d "$mcp_dir" ]]; then
         echo "Error: Shared AI MCP directory not found: $mcp_dir" >&2

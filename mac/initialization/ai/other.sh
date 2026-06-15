@@ -4,9 +4,6 @@ source "$(dirname "$0")/../../scripts/common.sh"
 
 echo "Setting up other AI assistants..."
 
-# for serena
-smart_copy "${Repo}ai/serena/serena_config.yml" ~/.serena/serena_config.yml
-
 # for Roo Code
 # make_symlink "${Repo}ai/common/prompt.md" ~/.roo/rules/.roorules
 

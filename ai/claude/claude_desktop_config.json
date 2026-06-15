@@ -1,32 +1,6 @@
 {
   "globalShortcut": "",
-  "mcpServers": {
-    "Context7": {
-      "command": "zsh",
-      "args": [
-        "-c",
-        "exec \"$HOME/.config/ai-mcp/bin/context7\""
-      ]
-    },
-    "sequential-thinking": {
-      "command": "zsh",
-      "args": [
-        "-c",
-        "exec \"$HOME/.config/ai-mcp/bin/sequential-thinking\""
-      ]
-    },
-    "serena": {
-      "command": "/usr/local/bin/uvx",
-      "args": [
-        "--from",
-        "git+https://github.com/oraios/serena",
-        "serena",
-        "start-mcp-server",
-        "--context",
-        "ide-assistant"
-      ]
-    }
-  },
+  "mcpServers": {},
   "isUsingBuiltInNodeForMcp": false,
   "preferences": {
     "coworkWebSearchEnabled": true,

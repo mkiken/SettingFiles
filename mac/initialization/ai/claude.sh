@@ -57,10 +57,6 @@ pipx install claude-code-log
 # 日本語設定にする
 ccundo language ja
 
-claude mcp add sequential-thinking -s user -- zsh -c 'exec "$HOME/.config/ai-mcp/bin/sequential-thinking"'
-claude mcp add context7 -s user -- zsh -c 'exec "$HOME/.config/ai-mcp/bin/context7"'
-claude mcp add serena --scope "user" -- uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context ide-assistant
-
 claude plugin marketplace add https://github.com/classmethod/tsumiki.git
 claude plugin install tsumiki@tsumiki
 

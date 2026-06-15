@@ -2,13 +2,5 @@
   "name": "settingfiles-ai-mcp",
   "private": true,
   "description": "Shared locally installed MCP servers for AI assistants",
-  "dependencies": {
-    "@21st-dev/magic": "^0.1.0",
-    "@modelcontextprotocol/server-sequential-thinking": "^2025.12.18",
-    "@morphllm/morphmcp": "^0.8.181",
-    "@playwright/mcp": "^0.0.75",
-    "@upstash/context7-mcp": "^3.0.0",
-    "chrome-devtools-mcp": "^1.1.1",
-    "tavily-mcp": "^0.2.19"
-  }
+  "dependencies": {}
 }

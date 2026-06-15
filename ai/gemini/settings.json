@@ -1,19 +1,4 @@
 {
-  "_disabledMcpServers": {
-    "magic": {
-      "_disabledReason": "Tool names start with '21st_' which violates Gemini's function naming rules (must start with letter/underscore, not number)",
-      "_geminiCompatibility": "NOT_COMPATIBLE - Tool names start with '21st_' which violates Gemini function naming rules",
-      "args": [
-        "-c",
-        "exec \"$HOME/.config/ai-mcp/bin/magic\""
-      ],
-      "command": "zsh",
-      "env": {
-        "TWENTYFIRST_API_KEY": ""
-      },
-      "type": "stdio"
-    }
-  },
   "agents": {
     "overrides": {}
   },
@@ -109,40 +94,7 @@
   "ide": {
     "enabled": true
   },
-  "mcpServers": {
-    "context7": {
-      "args": [
-        "-c",
-        "exec \"$HOME/.config/ai-mcp/bin/context7\""
-      ],
-      "command": "zsh"
-    },
-    "playwright": {
-      "args": [
-        "-c",
-        "exec \"$HOME/.config/ai-mcp/bin/playwright\""
-      ],
-      "command": "zsh"
-    },
-    "sequential-thinking": {
-      "args": [
-        "-c",
-        "exec \"$HOME/.config/ai-mcp/bin/sequential-thinking\""
-      ],
-      "command": "zsh"
-    },
-    "serena": {
-      "args": [
-        "--from",
-        "git+https://github.com/oraios/serena",
-        "serena",
-        "start-mcp-server",
-        "--context",
-        "ide-assistant"
-      ],
-      "command": "/usr/local/bin/uvx"
-    }
-  },
+  "mcpServers": {},
   "model": {
     "name": ""
   },
