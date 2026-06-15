@@ -25,6 +25,9 @@ macos-window-shadow = false
 macos-titlebar-style = transparent
 # ネイティブの全画面は使いたくない
 macos-non-native-fullscreen = true
+# OptionをAltとして扱い、外部ShortcutsからGhostty操作を奪われないようにする
+macos-option-as-alt = true
+macos-shortcuts = deny
 
 # Window
 window-padding-x = 3
