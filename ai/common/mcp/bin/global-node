@@ -1,0 +1,97 @@
+#!/bin/zsh
+
+emulate -L zsh
+
+function _ai_mcp_node_version() {
+  "$1" -v 2>/dev/null
+}
+
+function _ai_mcp_node_is_supported() {
+  local node_bin="$1"
+
+  [[ -x "$node_bin" ]] || return 1
+
+  "$node_bin" -e '
+const [major, minor] = process.versions.node.split(".").map(Number);
+process.exit(major > 20 || (major === 20 && minor >= 19) ? 0 : 1);
+' >/dev/null 2>&1
+}
+
+function _ai_mcp_nvm_default_node() {
+  local nvm_dir="${NVM_DIR:-$HOME/.nvm}"
+  local node_bin
+
+  [[ -s "$nvm_dir/nvm.sh" ]] || return 1
+
+  source "$nvm_dir/nvm.sh" >/dev/null 2>&1
+  node_bin="$(nvm which default 2>/dev/null)" || return 1
+  [[ -n "$node_bin" && "$node_bin" != "N/A" ]] || return 1
+
+  print -r -- "$node_bin"
+}
+
+function _ai_mcp_select_node() {
+  local path_node nvm_default_node candidate
+  local -a candidates seen
+
+  if [[ -n "${AI_MCP_NODE:-}" ]]; then
+    if _ai_mcp_node_is_supported "$AI_MCP_NODE"; then
+      print -r -- "$AI_MCP_NODE"
+      return 0
+    fi
+
+    echo "Error: AI_MCP_NODE is not executable or does not satisfy MCP Node requirement (>= 20.19.0): $AI_MCP_NODE" >&2
+    echo "Detected version: $(_ai_mcp_node_version "$AI_MCP_NODE")" >&2
+    return 1
+  fi
+
+  path_node="$(whence -p node 2>/dev/null || true)"
+  nvm_default_node="$(_ai_mcp_nvm_default_node 2>/dev/null || true)"
+
+  candidates=(
+    /opt/homebrew/bin/node
+    /usr/local/bin/node
+    "$nvm_default_node"
+    "$path_node"
+  )
+
+  for candidate in "${candidates[@]}"; do
+    [[ -n "$candidate" ]] || continue
+    if (( ${seen[(Ie)$candidate]} )); then
+      continue
+    fi
+    seen+=("$candidate")
+
+    if _ai_mcp_node_is_supported "$candidate"; then
+      print -r -- "$candidate"
+      return 0
+    fi
+  done
+
+  echo "Error: No supported Node.js found for AI MCP servers. Install Node >= 20.19.0 or set AI_MCP_NODE." >&2
+  return 1
+}
+
+if [[ "${1:-}" == "--print-node" ]]; then
+  _ai_mcp_select_node
+  exit $?
+fi
+
+if (( $# < 1 )); then
+  echo "Usage: $0 <javascript-entrypoint> [args...]" >&2
+  exit 64
+fi
+
+entrypoint="$1"
+shift
+
+if [[ ! -e "$entrypoint" ]]; then
+  echo "Error: JavaScript entrypoint not found: $entrypoint" >&2
+  exit 66
+fi
+
+node_bin="$(_ai_mcp_select_node)" || exit $?
+node_dir="${node_bin:h}"
+
+export PATH="$node_dir:$PATH"
+exec "$node_bin" "$entrypoint" "$@"

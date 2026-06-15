@@ -752,13 +752,17 @@ function setup_ai_mcp() {
         return 1
     fi
 
+    local mcp_node
+    mcp_node="$(zsh "$mcp_dir/bin/global-node" --print-node)" || return $?
+    local mcp_node_dir="${mcp_node:h}"
+
     if [[ "$mode" == "update" || ! -f "$mcp_dir/package-lock.json" ]]; then
         echo "Updating shared AI MCP packages..."
         local latest_packages=("${packages[@]/%/@latest}")
-        npm install --prefix "$mcp_dir" "${latest_packages[@]}"
+        PATH="$mcp_node_dir:$PATH" npm install --prefix "$mcp_dir" "${latest_packages[@]}"
     else
         echo "Installing shared AI MCP packages..."
-        npm install --prefix "$mcp_dir"
+        PATH="$mcp_node_dir:$PATH" npm install --prefix "$mcp_dir"
     fi
     local rc=$?
     if [[ $rc -ne 0 ]]; then
