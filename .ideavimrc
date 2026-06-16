@@ -104,6 +104,20 @@ nnoremap go :action SearchEverywhere<CR>
 nnoremap ]d :action GotoNextError<CR>
 nnoremap [d :action GotoPreviousError<CR>
 
+" ケース変換 (String Manipulation plugin)
+nmap crx <Action>(StringManipulation.ToSnakeCaseOrCamelCase)
+xmap crx <Action>(StringManipulation.ToSnakeCaseOrCamelCase)
+nmap crs <Action>(StringManipulation.ToSnakeCase)
+xmap crs <Action>(StringManipulation.ToSnakeCase)
+nmap crc <Action>(StringManipulation.ToCamelCase)
+xmap crc <Action>(StringManipulation.ToCamelCase)
+nmap crp <Action>(StringManipulation.ToPascalCase)
+xmap crp <Action>(StringManipulation.ToPascalCase)
+nmap crk <Action>(StringManipulation.ToKebabCase)
+xmap crk <Action>(StringManipulation.ToKebabCase)
+nmap cru <Action>(StringManipulation.ToScreamingSnakeCase)
+xmap cru <Action>(StringManipulation.ToScreamingSnakeCase)
+
 " システムクリップボード操作
 nnoremap <leader>y "+y
 vnoremap <leader>y "+y
