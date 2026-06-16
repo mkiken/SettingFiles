@@ -378,6 +378,7 @@ local function insert_at_paths()
   pickers.new({
     cwd = cwd,
     prompt_title = "Insert @ Path",
+    results_title = "C-s: grep/files | C-d: desktop/files",
     prompt_prefix = "Paths> ",
   }, {
     finder = initial_finder,
