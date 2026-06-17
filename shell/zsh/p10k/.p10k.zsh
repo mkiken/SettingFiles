@@ -365,14 +365,18 @@
   # Change the value of this parameter to show a different icon.
   typeset -g POWERLEVEL9K_VCS_UNTRACKED_ICON='?'
 
+  # Maximum length for branch, tag, and remote branch names before truncation.
+  typeset -g POWERLEVEL9K_VCS_REF_MAX_LENGTH=72
+
   # [powerlevel10k(p10k)でブランチ名表示をfish風に省略する #Git - Qiita](https://qiita.com/mkiken/items/779f543ce9b6c19d7cac)
   function shorten_branch_name {
     local input="$1"
     local total_length=${#input}
+    local max_length=${POWERLEVEL9K_VCS_REF_MAX_LENGTH:-72}
     local short_length=4  # 省略時の文字数
 
-    # 32文字以下ならそのまま返す
-    if [[ $total_length -le 32 ]]; then
+    # 表示上限以下ならそのまま返す
+    if [[ $total_length -le $max_length ]]; then
       echo "$input"
       return
     fi
@@ -401,8 +405,8 @@
       # 短縮後の全体長を計算
       local new_total_length=$((current_length - reduction))
 
-      if [[ $new_total_length -le 32 ]]; then
-        # 32文字以下になるので、現在の要素を短縮して、これ以降は短縮しない
+      if [[ $new_total_length -le $max_length ]]; then
+        # 表示上限以下になるので、現在の要素を短縮して、これ以降は短縮しない
         result="${result}${array[i]:0:$short_length}/"
         for ((j = i + 1; j <= $num_parts - 1; j++)); do
           result="${result}${array[j]}/"
@@ -418,6 +422,22 @@
     # 最後の要素を追加
     result="${result}${array[-1]}"
     echo "$result"
+  }
+
+  function truncate_vcs_ref_name {
+    local input="$1"
+    local max_length=${POWERLEVEL9K_VCS_REF_MAX_LENGTH:-72}
+    local ref_name=$(shorten_branch_name "$input")
+
+    if (( $#ref_name <= max_length )); then
+      echo "$ref_name"
+      return
+    fi
+
+    local head_length=$(( (max_length - 1) / 2 ))
+    local tail_length=$(( max_length - head_length - 1 ))
+    local tail_start=$(( $#ref_name - tail_length + 1 ))
+    echo "${ref_name[1,$head_length]}…${ref_name[$tail_start,-1]}"
   }
 
   # Formatter for Git status.
@@ -451,12 +471,8 @@
       local branch=${(V)VCS_STATUS_LOCAL_BRANCH}
 
       # ここでブランチ名の省略をする
-      branch=`shorten_branch_name $branch`
+      branch=$(truncate_vcs_ref_name "$branch")
 
-      # If local branch name is at most 32 characters long, show it in full.
-      # Otherwise show the first 12 … the last 12.
-      # Tip: To always show local branch name in full without truncation, delete the next line.
-      (( $#branch > 32 )) && branch[13,-13]="…"  # <-- this line
       res+="${clean}${(g::)POWERLEVEL9K_VCS_BRANCH_ICON}${branch//\%/%%}"
     fi
 
@@ -468,18 +484,14 @@
       local tag=${(V)VCS_STATUS_TAG}
 
       # ここでタグ名の省略をする
-      tag=`shorten_branch_name $tag`
+      tag=$(truncate_vcs_ref_name "$tag")
 
-      # If tag name is at most 32 characters long, show it in full.
-      # Otherwise show the first 12 … the last 12.
-      # Tip: To always show tag name in full without truncation, delete the next line.
-      (( $#tag > 32 )) && tag[13,-13]="…"  # <-- this line
       res+="${meta}#${clean}${tag//\%/%%}"
     fi
 
     # Display the current Git commit if there is no branch and no tag.
     # Tip: To always display the current Git commit, delete the next line.
-    [[ -z $VCS_STATUS_LOCAL_BRANCH && -z $VCS_STATUS_TAG ]] &&  # <-- this line
+    [[ -z $VCS_STATUS_LOCAL_BRANCH && -z $VCS_STATUS_TAG ]] &&
       res+="${meta}@${clean}${VCS_STATUS_COMMIT[1,8]}"
 
     # Show tracking branch name if it differs from local branch.
@@ -487,7 +499,7 @@
       local remote_branch=${(V)VCS_STATUS_REMOTE_BRANCH}
 
       # ここでブランチ名の省略をする
-      remote_branch=`shorten_branch_name $remote_branch`
+      remote_branch=$(truncate_vcs_ref_name "$remote_branch")
 
       res+="${meta}:${clean}${remote_branch//\%/%%}"
     fi
