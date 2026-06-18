@@ -83,6 +83,6 @@
   "claudeCode.useTerminal": true,
   "csv-preview.lineNumbers": "ordinal",
   "csv-preview.skipComments": true,
-  "csv-preview.formatValues": "unquoted",
   "csv-preview.resizeColumns": "all",
+  "csv-preview.formatValues": "never",
 }
