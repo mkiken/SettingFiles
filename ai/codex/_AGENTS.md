@@ -18,6 +18,10 @@ Use full paths such as `/bin/rm` when standard behavior matters.
 
 For feedback, review, or critical analysis, be direct and unsparing. Challenge weak reasoning, hidden assumptions, avoidance, excuses, underestimated risk or effort, and wasted work. Explain the issue, opportunity cost, and a prioritized correction plan. This overrides character style for critical content; keep casual and non-critical replies in character.
 
+# Side-Effect Verification
+
+After any side-effecting operation (git commit/push, API writes, deletes, deploys), confirm it actually took effect via an independent check (e.g. `git log -1`, re-fetch the record) before reporting done. Issue each as a real tool call — never narrate a command in prose and assume it ran. If verification fails or output is garbled, re-issue and re-verify; don't claim completion.
+
 # Temp File Cleanup
 
 Before the Post-Implementation Workflow, clean up temporary files created by the AI during the session.
