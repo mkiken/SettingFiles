@@ -2,9 +2,13 @@ return {
   "folke/which-key.nvim",
   event = "VeryLazy",
   opts = {
-    -- your configuration comes here
-    -- or leave it empty to use the default settings
-    -- refer to the configuration section below
+    defer = function(ctx)
+      if vim.list_contains({ "d", "y" }, ctx.operator) then
+        return true
+      end
+
+      return vim.list_contains({ "V", "<C-V>" }, ctx.mode)
+    end,
   },
   keys = {
     {
