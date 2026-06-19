@@ -49,3 +49,27 @@ prefix_rule(
     justification = "Allow Codex to push normal commits without prompting",
     match = ["git push", "git push origin HEAD", "git push -u origin HEAD"],
 )
+
+prefix_rule(
+    pattern = ["git", "ls-remote"],
+    decision = "allow",
+    justification = "Allow Codex to verify remote refs after pushes without prompting",
+    match = ["git ls-remote origin refs/heads/main", "git ls-remote origin refs/heads/feature/example"],
+    not_match = ["git push origin HEAD", "git ls-remote --upload-pack=ssh://example origin"],
+)
+
+prefix_rule(
+    pattern = ["gh", "pr", "view"],
+    decision = "allow",
+    justification = "Allow Codex to read PR metadata and comments without prompting",
+    match = ["gh pr view 123 --json number,title,comments", "gh pr view --json number --jq .number"],
+    not_match = ["gh pr edit 123 --title fix", "gh pr merge 123"],
+)
+
+prefix_rule(
+    pattern = ["gh", "api", "--method", "GET"],
+    decision = "allow",
+    justification = "Allow Codex to read GitHub API data without prompting when GET is explicit",
+    match = ["gh api --method GET repos/{owner}/{repo}/pulls/123/comments --paginate", "gh api --method GET repos/{owner}/{repo}/pulls/123/reviews --paginate"],
+    not_match = ["gh api repos/{owner}/{repo}/pulls/123/comments --method POST", "gh api --method PATCH repos/{owner}/{repo}/pulls/123"],
+)
