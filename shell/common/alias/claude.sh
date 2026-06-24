@@ -10,6 +10,10 @@ clo() {
 }
 
 clp() {
+    cl --permission-mode plan "$@"
+}
+
+clpm() {
     cl --permission-mode plan --effort max "$@"
 }
 
@@ -42,7 +46,7 @@ _cl-pr-comment-review() {
 }
 
 _cl-pr-comment-implement() {
-    clp "/my:pr-comment-implement $*"
+    clpm "/my:pr-comment-implement $*"
 }
 
 cl-pr-body() {
