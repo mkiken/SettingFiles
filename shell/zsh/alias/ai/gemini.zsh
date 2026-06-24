@@ -8,6 +8,8 @@ gm() {
 
 gmr() { gm "/resume" "$@" }
 
+gmpr() { gmp "/resume" "$@" }
+
 gmf() {
     gm --model flash "$@"
 }

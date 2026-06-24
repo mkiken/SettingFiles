@@ -19,6 +19,8 @@ clpm() {
 
 clr() { cl --resume "$@"; }
 
+clor() { clo --resume "$@"; }
+
 cl-web-summary() {
     clo "/my:web-summary $*"
 }

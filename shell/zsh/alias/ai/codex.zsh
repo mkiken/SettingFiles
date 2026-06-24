@@ -21,6 +21,8 @@ cxh() {
 
 cxr() { cx resume "$@" }
 
+cxhr() { cxh resume "$@" }
+
 cx-pr-body() {
     local pr_number
     pr_number=$(gh pr view --json number --jq .number) || {
