@@ -6,7 +6,11 @@ cl() {
 }
 
 clo() {
-    cl --model opus "$@"
+    cl --model 'opus[1m]' "$@"
+}
+
+clom() {
+    clo --effort max "$@"
 }
 
 clp() {
@@ -44,7 +48,7 @@ cl-pr-review-subagents() {
 }
 
 _cl-pr-comment-review() {
-    clo --effort max --dangerously-skip-permissions "/my:pr-comment-review $* ultrathink"
+    clom --dangerously-skip-permissions "/my:pr-comment-review $* ultrathink"
 }
 
 _cl-pr-comment-implement() {
