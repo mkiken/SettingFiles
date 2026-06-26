@@ -3,7 +3,7 @@
 #
 # Usage (from hook scripts / statusline):
 #   source this file, then call:
-#     ctx_alert_evaluate <ai> <session_id> <used_pct> <ai_identifier_emoji> [<window_size>]
+#     ctx_alert_evaluate <ai> <session_id> <used_pct> <ai_identifier_emoji> [<window_size>] [<context_window_tokens>]
 #
 # Parameters:
 #   ai                 — "claude" | "codex" | "gemini" (state ファイル区別用)
@@ -11,6 +11,7 @@
 #   used_pct           — context使用率（整数 0–100）
 #   ai_identifier_emoji — 通知タイトル用識別子絵文字 (例: $EMOJI_ID_CLAUDE)
 #   window_size        — (省略可) context window サイズ（トークン数、表示用のみ）
+#   context_window_tokens — (省略可) 現在のcontext window内トークン数（表示用）
 #
 # 依存: notify(), build_notification_title() が source 済みであること。
 # 未 source の場合は自動ロードを試みる。
@@ -29,6 +30,10 @@ fi
 if [[ -z "${EMOJI_ID_CLAUDE}" ]]; then
     # shellcheck source=/dev/null
     source "${_CTX_ALERT_SET}shell/tmux/tmux_emoji.conf" 2>/dev/null || true
+fi
+if ! declare -f add_tmux_context_alert_badge >/dev/null 2>&1; then
+    # shellcheck source=/dev/null
+    source "${_CTX_ALERT_SET}shell/tmux/tmux_window_name.sh" 2>/dev/null || true
 fi
 
 # --- 設定定数（変数で調整可能） ---
@@ -82,14 +87,27 @@ _ctx_alert_tmux_banner() {
     tmux display-message -d "${duration}" "${message}" 2>/dev/null || true
 }
 
+_ctx_alert_add_badge() {
+    if declare -f add_tmux_context_alert_badge >/dev/null 2>&1; then
+        add_tmux_context_alert_badge >/dev/null 2>&1 || true
+    fi
+}
+
+_ctx_alert_remove_badge() {
+    if declare -f remove_tmux_context_alert_badge >/dev/null 2>&1; then
+        remove_tmux_context_alert_badge >/dev/null 2>&1 || true
+    fi
+}
+
 # --- メイン: context逼迫アラート判定・発火 ---
-# Usage: ctx_alert_evaluate <ai> <session_id> <used_pct> <ai_identifier_emoji> [<window_size>]
+# Usage: ctx_alert_evaluate <ai> <session_id> <used_pct> <ai_identifier_emoji> [<window_size>] [<context_window_tokens>]
 ctx_alert_evaluate() {
     local ai="$1"
     local session_id="${2:-unknown}"
     local used_pct_raw="$3"
     local ai_emoji="$4"
     local window_size="${5:-}"
+    local context_window_tokens="${6:-}"
 
     # 整数に変換（小数点切り捨て）
     local used_pct
@@ -124,6 +142,12 @@ ctx_alert_evaluate() {
 
     local remaining=$(( 100 - used_pct ))
 
+    if [[ "${used_pct}" -ge "${_CTX_ALERT_THRESHOLD_WARN}" ]] 2>/dev/null; then
+        _ctx_alert_add_badge
+    else
+        _ctx_alert_remove_badge
+    fi
+
     # --- 通知メッセージ用テキスト生成 ---
     _ctx_alert_fire() {
         local threshold_label="$1"   # "30%" or "15%"
@@ -132,7 +156,10 @@ ctx_alert_evaluate() {
         local body
         if [[ -n "${window_size}" && "${window_size}" -gt 0 ]] 2>/dev/null; then
             # トークン数も表示
-            local used_tokens=$(( used_pct * window_size / 100 ))
+            local used_tokens="${context_window_tokens}"
+            if ! [[ -n "${used_tokens}" && "${used_tokens}" -ge 0 ]] 2>/dev/null; then
+                used_tokens=$(( used_pct * window_size / 100 ))
+            fi
             local used_fmt window_fmt
             if [[ "${window_size}" -ge 1000000 ]]; then
                 window_fmt="$(echo "scale=1; ${window_size} / 1000000" | bc)M"

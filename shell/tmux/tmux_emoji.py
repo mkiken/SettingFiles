@@ -46,7 +46,10 @@ EMOJI_ID_CODEX = _conf["EMOJI_ID_CODEX"]
 EMOJI_STATUS_COMPLETED = _conf["EMOJI_STATUS_COMPLETED"]
 EMOJI_STATUS_NOTIFICATION = _conf["EMOJI_STATUS_NOTIFICATION"]
 EMOJI_STATUS_ONGOING = _conf["EMOJI_STATUS_ONGOING"]
+EMOJI_CONTEXT_ALERT = _conf["EMOJI_CONTEXT_ALERT"]
 
+# Status updates should replace only AI/status icons. Independent badges such as
+# context alerts are preserved by keeping them out of this pattern.
 EMOJI_PATTERN = "".join([
     EMOJI_STATUS_COMPLETED,
     EMOJI_STATUS_NOTIFICATION,

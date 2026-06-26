@@ -203,11 +203,12 @@ ctx_usage_json=$(printf '%s' "${hook_input}" | python3 "${CODEX_HOOK_COMMON}" co
 if [[ -n "${ctx_usage_json}" ]] && echo "${ctx_usage_json}" | jq -e '.used_pct' >/dev/null 2>&1; then
     ctx_used_pct=$(echo "${ctx_usage_json}" | jq -r '.used_pct')
     ctx_window=$(echo "${ctx_usage_json}" | jq -r '.model_context_window // empty')
-    debug_log "Context usage: ${ctx_used_pct}% (window: ${ctx_window})"
+    ctx_window_tokens=$(echo "${ctx_usage_json}" | jq -r '.context_window_tokens // empty')
+    debug_log "Context usage: ${ctx_used_pct}% (tokens: ${ctx_window_tokens}, window: ${ctx_window})"
     source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/alias/context-alert.zsh" 2>/dev/null || true
     if declare -f ctx_alert_evaluate >/dev/null 2>&1; then
         ctx_alert_evaluate "codex" "${session_id}" "${ctx_used_pct}" \
-            "${EMOJI_ID_CODEX:-🪷}" "${ctx_window}" \
+            "${EMOJI_ID_CODEX:-🪷}" "${ctx_window}" "${ctx_window_tokens}" \
             >/dev/null 2>&1 || true
     fi
 fi

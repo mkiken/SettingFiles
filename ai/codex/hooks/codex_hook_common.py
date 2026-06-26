@@ -11,6 +11,7 @@ from typing import Any
 
 QUESTION_SCAN_TAIL_LENGTH = 500
 WEBSOCKET_EVENT_MARKER = "websocket event: "
+CODEX_CONTEXT_BASELINE_TOKENS = 12000
 
 
 def normalize_message(message: str) -> str:
@@ -368,12 +369,14 @@ def extract_context_usage(input_data: dict[str, Any]) -> dict[str, Any]:
     """transcript から context 使用率を抽出する。
 
     Codex session JSONL 内の token_count イベントを検索し、最後のものから
-    total_token_usage.total_tokens / model_context_window を計算して返す。
+    Codex TUI と同じ last_token_usage ベースの context window 使用率を返す。
 
     Returns:
         {
-            "used_pct": float,          # 0.0–100.0
+            "used_pct": int,            # 0–100
             "total_tokens": int,
+            "context_window_tokens": int,
+            "remaining_pct": int,
             "model_context_window": int,
         }
         いずれかが取得できない場合は空 dict を返す。
@@ -395,16 +398,28 @@ def extract_context_usage(input_data: dict[str, Any]) -> dict[str, Any]:
         return {}
 
     total_usage = info.get("total_token_usage", {})
+    last_usage = info.get("last_token_usage", {})
     total_tokens: int | None = total_usage.get("total_tokens") if isinstance(total_usage, dict) else None
+    context_window_tokens: int | None = last_usage.get("total_tokens") if isinstance(last_usage, dict) else None
     model_context_window: int | None = info.get("model_context_window")
 
-    if total_tokens is None or model_context_window is None or model_context_window <= 0:
+    if context_window_tokens is None or model_context_window is None or model_context_window <= 0:
         return {}
 
-    used_pct = min(100.0, total_tokens / model_context_window * 100.0)
+    if model_context_window <= CODEX_CONTEXT_BASELINE_TOKENS:
+        remaining_pct = 0
+    else:
+        effective_window = model_context_window - CODEX_CONTEXT_BASELINE_TOKENS
+        used_tokens = max(context_window_tokens - CODEX_CONTEXT_BASELINE_TOKENS, 0)
+        remaining_tokens = max(effective_window - used_tokens, 0)
+        remaining_pct = int(min(100.0, max(0.0, remaining_tokens / effective_window * 100.0)) + 0.5)
+
+    used_pct = 100 - remaining_pct
     return {
-        "used_pct": round(used_pct, 1),
-        "total_tokens": total_tokens,
+        "used_pct": used_pct,
+        "total_tokens": total_tokens if total_tokens is not None else context_window_tokens,
+        "context_window_tokens": context_window_tokens,
+        "remaining_pct": remaining_pct,
         "model_context_window": model_context_window,
     }
 

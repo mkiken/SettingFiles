@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from codex_hook_common import analyze_hook_input, assistant_response_needs_user_input
+from codex_hook_common import analyze_hook_input, assistant_response_needs_user_input, extract_context_usage
 
 
 def write_jsonl(path: Path, events: list[dict]):
@@ -269,6 +269,84 @@ class AnalyzeHookInputFallbackTest(unittest.TestCase):
         self.assertEqual(result["assistant_message_count"], 1)
         self.assertTrue(result["first_timestamp"])
         self.assertTrue(result["last_timestamp"])
+
+
+class ExtractContextUsageTest(unittest.TestCase):
+    def test_uses_last_token_usage_for_context_window_percent(self):
+        with tempfile.TemporaryDirectory() as codex_home:
+            transcript_path = Path(codex_home) / "sessions" / "context.jsonl"
+            write_jsonl(
+                transcript_path,
+                [
+                    {
+                        "type": "event_msg",
+                        "payload": {
+                            "type": "token_count",
+                            "info": {
+                                "total_token_usage": {"total_tokens": 774025},
+                                "last_token_usage": {"total_tokens": 46950},
+                                "model_context_window": 258400,
+                            },
+                        },
+                    }
+                ],
+            )
+
+            result = extract_context_usage({"transcript_path": str(transcript_path)})
+
+        self.assertEqual(result["used_pct"], 14)
+        self.assertEqual(result["remaining_pct"], 86)
+        self.assertEqual(result["total_tokens"], 774025)
+        self.assertEqual(result["context_window_tokens"], 46950)
+        self.assertEqual(result["model_context_window"], 258400)
+
+    def test_baseline_tokens_are_zero_percent_used(self):
+        with tempfile.TemporaryDirectory() as codex_home:
+            transcript_path = Path(codex_home) / "sessions" / "context.jsonl"
+            write_jsonl(
+                transcript_path,
+                [
+                    {
+                        "type": "event_msg",
+                        "payload": {
+                            "type": "token_count",
+                            "info": {
+                                "total_token_usage": {"total_tokens": 12000},
+                                "last_token_usage": {"total_tokens": 12000},
+                                "model_context_window": 258400,
+                            },
+                        },
+                    }
+                ],
+            )
+
+            result = extract_context_usage({"transcript_path": str(transcript_path)})
+
+        self.assertEqual(result["used_pct"], 0)
+        self.assertEqual(result["remaining_pct"], 100)
+
+    def test_missing_last_token_usage_returns_empty_result(self):
+        with tempfile.TemporaryDirectory() as codex_home:
+            transcript_path = Path(codex_home) / "sessions" / "context.jsonl"
+            write_jsonl(
+                transcript_path,
+                [
+                    {
+                        "type": "event_msg",
+                        "payload": {
+                            "type": "token_count",
+                            "info": {
+                                "total_token_usage": {"total_tokens": 774025},
+                                "model_context_window": 258400,
+                            },
+                        },
+                    }
+                ],
+            )
+
+            result = extract_context_usage({"transcript_path": str(transcript_path)})
+
+        self.assertEqual(result, {})
 
 
 if __name__ == "__main__":
