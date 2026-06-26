@@ -87,7 +87,11 @@ if [[ -n "${transcript_path}" && "${transcript_path}" != "null" && -f "${transcr
       (if (length == 1 and (.[0].messages | type) == "array") then .[0].messages else . end) as $msgs |
       (if (.[0].startTime != null) then .[0].startTime else null end) as $start |
       (if (length == 1 and (.[0].messages | type) == "array") then .[0].lastUpdated else ((map(select(."$set" != null and ."$set".lastUpdated != null)) | last | ."$set".lastUpdated) // .[0].lastUpdated) end) as $end |
-      ($msgs | map(select(.type == "user"))) as $user_msgs |
+      ($msgs | map(select(.type == "user" and (
+        (.content | type == "array" and .content[-1].text != null) or
+        (.displayContent | type == "array" and .displayContent[-1].text != null) or
+        (.content | type == "string")
+      )))) as $user_msgs |
       ($user_msgs | length) as $count |
       (if $count > 0 then
         if ($user_msgs[-1].displayContent != null and ($user_msgs[-1].displayContent | type) == "array" and ($user_msgs[-1].displayContent | length) > 0) then
