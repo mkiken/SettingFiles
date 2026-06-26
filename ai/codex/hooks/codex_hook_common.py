@@ -364,9 +364,54 @@ def is_subagent_session(input_data: dict[str, Any]) -> bool:
     return bool(analyze_hook_input(input_data)["is_subagent_session"])
 
 
+def extract_context_usage(input_data: dict[str, Any]) -> dict[str, Any]:
+    """transcript から context 使用率を抽出する。
+
+    Codex session JSONL 内の token_count イベントを検索し、最後のものから
+    total_token_usage.total_tokens / model_context_window を計算して返す。
+
+    Returns:
+        {
+            "used_pct": float,          # 0.0–100.0
+            "total_tokens": int,
+            "model_context_window": int,
+        }
+        いずれかが取得できない場合は空 dict を返す。
+    """
+    transcript_path = resolve_transcript_path(input_data)
+    last_token_count_event: dict[str, Any] | None = None
+
+    for event in iter_transcript_events(transcript_path):
+        if event.get("type") == "event_msg":
+            payload = event.get("payload")
+            if isinstance(payload, dict) and payload.get("type") == "token_count":
+                last_token_count_event = payload
+
+    if last_token_count_event is None:
+        return {}
+
+    info = last_token_count_event.get("info", {})
+    if not isinstance(info, dict):
+        return {}
+
+    total_usage = info.get("total_token_usage", {})
+    total_tokens: int | None = total_usage.get("total_tokens") if isinstance(total_usage, dict) else None
+    model_context_window: int | None = info.get("model_context_window")
+
+    if total_tokens is None or model_context_window is None or model_context_window <= 0:
+        return {}
+
+    used_pct = min(100.0, total_tokens / model_context_window * 100.0)
+    return {
+        "used_pct": round(used_pct, 1),
+        "total_tokens": total_tokens,
+        "model_context_window": model_context_window,
+    }
+
+
 def main() -> int:
-    if len(sys.argv) != 2 or sys.argv[1] != "analyze":
-        print("usage: codex_hook_common.py analyze", file=sys.stderr)
+    if len(sys.argv) != 2 or sys.argv[1] not in ("analyze", "context-usage"):
+        print("usage: codex_hook_common.py analyze|context-usage", file=sys.stderr)
         return 2
 
     try:
@@ -374,6 +419,10 @@ def main() -> int:
     except json.JSONDecodeError as exc:
         print(f"invalid hook input JSON: {exc}", file=sys.stderr)
         return 1
+
+    if sys.argv[1] == "context-usage":
+        print(json.dumps(extract_context_usage(input_data), ensure_ascii=False))
+        return 0
 
     print(json.dumps(analyze_hook_input(input_data), ensure_ascii=False))
     return 0

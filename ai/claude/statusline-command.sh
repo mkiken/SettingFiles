@@ -180,3 +180,17 @@ if [ -n "$worktree_name" ]; then
 fi
 
 echo
+
+# --- context逼迫アラート ---
+# used_percentage がある場合のみ評価（stdout を汚さないよう全出力を抑制）
+if [ -n "$ctx_used" ]; then
+  _ctx_alert_session_id=$(echo "$input" | jq -r '.session_id // empty' 2>/dev/null)
+  # shellcheck source=/dev/null
+  source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/alias/context-alert.zsh" 2>/dev/null || true
+  if declare -f ctx_alert_evaluate >/dev/null 2>&1; then
+    # EMOJI_ID_CLAUDE は context-alert.zsh が tmux_emoji.conf をロード済みなので参照可
+    ctx_alert_evaluate "claude" "${_ctx_alert_session_id}" "${ctx_used}" \
+      "${EMOJI_ID_CLAUDE:-✴️}" "${ctx_size}" \
+      >/dev/null 2>&1 || true
+  fi
+fi
