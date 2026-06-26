@@ -18,7 +18,7 @@ max_depth = 1
 [mcp_servers]
 
 [tui]
-status_line = ['project-name', 'git-branch', 'thread-title', 'task-progress', 'context-remaining', 'five-hour-limit', 'weekly-limit', 'used-tokens', 'model-with-reasoning']
+status_line = ['project-name', 'git-branch', 'task-progress', 'context-remaining', 'context-window-size', 'five-hour-limit', 'weekly-limit', 'used-tokens', 'model-with-reasoning']
 
 [tui.model_availability_nux]
 'gpt-5.5' = 2
