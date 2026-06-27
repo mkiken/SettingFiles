@@ -1,9 +1,38 @@
 #!/bin/zsh
 
-alias cx-update='npm i -g @openai/codex@latest'
+_cx_homebrew_prefix() {
+    if [[ -n "${BREW_PREFIX:-}" ]]; then
+        print -r -- "$BREW_PREFIX"
+    elif command -v brew >/dev/null 2>&1; then
+        brew --prefix
+    else
+        print -r -- "/opt/homebrew"
+    fi
+}
+
+# Project-local Node managers can put per-version global bins before Homebrew.
+# Keep cx on the Homebrew Codex install so updates are not repo-specific.
+cx-update() {
+    local homebrew_prefix="$(_cx_homebrew_prefix)"
+    local npm_bin="${homebrew_prefix}/bin/npm"
+    if [[ ! -x "$npm_bin" ]]; then
+        echo "cx-update: Homebrew npm not found: $npm_bin" >&2
+        return 1
+    fi
+
+    PATH="${homebrew_prefix}/bin:$PATH" "$npm_bin" i -g @openai/codex@latest
+}
 
 cx() {
-    no_notify codex "$@"
+    local homebrew_prefix="$(_cx_homebrew_prefix)"
+    local codex_bin="${homebrew_prefix}/bin/codex"
+    if [[ ! -x "$codex_bin" ]]; then
+        echo "cx: Homebrew codex not found: $codex_bin" >&2
+        return 1
+    fi
+
+    # codex and npm use env node, so put Homebrew bin first for the command too.
+    PATH="${homebrew_prefix}/bin:$PATH" no_notify "$codex_bin" "$@"
     local codex_status=$?
 
     if (( ${+functions[remove_tmux_window_icon]} )); then
