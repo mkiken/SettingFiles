@@ -61,6 +61,33 @@ function make_symlink () {
   ln -si "$src" "$dst"
 }
 
+function homebrew_prefix() {
+  if [[ -n "${BREW_PREFIX:-}" ]]; then
+    print -r -- "$BREW_PREFIX"
+  elif command -v brew >/dev/null 2>&1; then
+    brew --prefix
+  elif [[ -x /opt/homebrew/bin/brew ]]; then
+    /opt/homebrew/bin/brew --prefix
+  elif [[ -x /usr/local/bin/brew ]]; then
+    /usr/local/bin/brew --prefix
+  else
+    print -r -- "/opt/homebrew"
+  fi
+}
+
+function homebrew_npm() {
+  local homebrew_prefix_path
+  homebrew_prefix_path="$(homebrew_prefix)"
+  local npm_bin="${homebrew_prefix_path}/bin/npm"
+
+  if [[ ! -x "$npm_bin" ]]; then
+    echo "Homebrew npm not found: $npm_bin" >&2
+    return 1
+  fi
+
+  PATH="${homebrew_prefix_path}/bin:$PATH" "$npm_bin" "$@"
+}
+
 # Copy file only if destination does not exist (with warning if it exists)
 function copy_if_not_exists() {
     local src="$1"

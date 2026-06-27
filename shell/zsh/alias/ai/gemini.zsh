@@ -1,9 +1,19 @@
 #!/bin/zsh
 
-alias gm-update='brew upgrade gemini-cli'
+gm-update() {
+    homebrew_npm install -g @google/gemini-cli@latest
+}
 
 gm() {
-    no_notify gemini "$@"
+    local homebrew_prefix_path
+    homebrew_prefix_path="$(homebrew_prefix)"
+    local gemini_bin="${homebrew_prefix_path}/bin/gemini"
+    if [[ ! -x "$gemini_bin" ]]; then
+        echo "gm: Homebrew Gemini CLI not found: $gemini_bin" >&2
+        return 1
+    fi
+
+    PATH="${homebrew_prefix_path}/bin:$PATH" no_notify "$gemini_bin" "$@"
 }
 
 gmr() { gm "/resume" "$@" }

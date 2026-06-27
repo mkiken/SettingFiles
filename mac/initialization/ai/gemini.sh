@@ -4,6 +4,8 @@ source "$(dirname "$0")/../../scripts/common.sh"
 
 echo "Setting up Gemini..."
 
+homebrew_npm install -g @google/gemini-cli@latest
+
 setup_ai_mcp install
 setup_ai_pr_tools
 
