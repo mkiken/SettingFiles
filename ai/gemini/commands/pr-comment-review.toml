@@ -1,30 +1,28 @@
 description = "Analyzes PR review comments based on user instructions"
 prompt = """Analyze PR review comments for {{args}}.
 
-**Arguments**: The first token in {{args}} is the PR comment URL ($COMMENT_URL), and the rest are user instructions ($PROMPT).
-
+**Arguments**: first token = PR comment URL ($COMMENT_URL); rest = user instructions ($PROMPT).
 
 ## Step 1: Parse the Comment URL
 
-Extract the comment type and ID from $COMMENT_URL:
+Extract comment type, ID, owner, repo, and pull_number from $COMMENT_URL (`https://github.com/{owner}/{repo}/pull/{pull_number}#...`):
 - If URL contains `#issuecomment-{id}` → Issue Comment (comment on PR as a whole)
 - If URL contains `#discussion_r{id}` → Review Comment (comment on code lines)
-- Extract `owner`, `repo`, and `pull_number` from the URL path (format: `https://github.com/{owner}/{repo}/pull/{pull_number}#...`)
 
 ## Step 2: Fetch Baseline Data
 
-After parsing the URL in Step 1, fetch all PR comments as baseline using `run_shell_command`:
+After parsing, fetch all PR comments as baseline with `run_shell_command`:
 `gh pr view {pull_number} --comments`
 
 ## Step 3: Fetch the Target Comment
 
-During the conversation, you will need to execute the appropriate API call based on the parsed URL:
+Run the API matching the parsed URL:
 
-- For Issue Comment:
+- Issue Comment:
   ```bash
   gh api repos/{owner}/{repo}/issues/comments/{comment_id}
   ```
-- For Review Comment:
+- Review Comment:
   ```bash
   gh api repos/{owner}/{repo}/pulls/comments/{comment_id}
   ```
@@ -33,47 +31,43 @@ Note: These dynamic API calls will require user confirmation during execution (G
 
 ## Step 4: Fetch Thread Context
 
-For Review Comment, fetch full review thread:
+For Review Comment, fetch all PR review comments and reconstruct the target thread with `in_reply_to_id`:
 
 ```bash
 gh api repos/{owner}/{repo}/pulls/{pull_number}/comments
 ```
 
-Filter by `in_reply_to_id` to reconstruct thread containing target comment.
-
 For Issue Comment, target is typically standalone.
 
 ## Step 5: Focused Analysis
 
-Analyze primarily based on the **target comment** specified by the URL.
-Use related comments only as supplementary context.
-
-Output a detailed analysis in Japanese using the following structure:
+Analyze the URL's **target comment** first; use related comments only as context.
+Output detailed Japanese analysis in this structure:
 
 ### **Target Comment Details**
 
-- **Author**: Comment author
-- **Posted at**: Timestamp
-- **Location**: Code location (for Review Comment: file path, line number)
-- **Content**: Full comment text
+- **Author**:
+- **Posted at**:
+- **Location**: file path/line, if any
+- **Content**:
 
 ### **Deep Analysis**
 
-Based on $PROMPT, provide in-depth analysis of the target comment:
+Based on $PROMPT, cover:
 
-- Intent and purpose of the comment
-- Detailed issues pointed out
+- Intent and purpose
+- Pointed-out issues
 - Technical background and reasoning
-- Recommended response methods
+- Recommended response
 
 ### **Related Discussion**
 
-- If there are comments in the same thread, summarize the discussion flow
-- Clarify relationship to the target comment
+- Same-thread discussion flow
+- Relationship to the target comment
 
 ### **Recommended Actions**
 
-- Specific actions based on the target comment
+- Specific actions
 - Priority and direction
 
 ### **Additional Notes**

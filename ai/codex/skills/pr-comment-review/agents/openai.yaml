@@ -1,4 +1,4 @@
 interface:
   display_name: "PR Comment Review"
   short_description: "Analyze GitHub PR review comments"
-  default_prompt: "Use $pr-comment-review with a GitHub PR comment URL to analyze the comment and recommend a response."
+  default_prompt: "Use $pr-comment-review with a GitHub PR comment URL to analyze it and recommend a response."

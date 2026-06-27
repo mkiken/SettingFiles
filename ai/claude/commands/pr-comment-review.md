@@ -7,73 +7,67 @@ effort: max
 
 ## Instructions
 
-- Interpret the first argument from `$ARGUMENTS` as the PR comment URL (`$COMMENT_URL`) and the rest as user instructions (`$PROMPT`).
+- Treat the first `$ARGUMENTS` token as `COMMENT_URL`; the rest is `PROMPT`.
 
 ### Step 1: Parse the Comment URL
 
-- Extract the comment type and ID from `$COMMENT_URL`:
-  - If URL contains `#issuecomment-{id}` → Issue Comment (comment on PR as a whole)
-  - If URL contains `#discussion_r{id}` → Review Comment (comment on code lines)
-- Extract `owner`, `repo`, and `pull_number` from the URL path (format: `https://github.com/{owner}/{repo}/pull/{pull_number}#...`).
+- From `https://github.com/{owner}/{repo}/pull/{pull_number}#...`, extract `owner`, `repo`, `pull_number`, comment type, and ID.
+- `#issuecomment-{id}` = Issue Comment; `#discussion_r{id}` = Review Comment.
 
 ### Step 2: Fetch the Target Comment
 
-- For Issue Comment:
+- Issue Comment:
   ```bash
   gh api repos/{owner}/{repo}/issues/comments/{comment_id}
   ```
-- For Review Comment:
+- Review Comment:
   ```bash
   gh api repos/{owner}/{repo}/pulls/comments/{comment_id}
   ```
 
 ### Step 3: Fetch Thread Context
 
-- For Review Comment, fetch full review thread:
+For Review Comment, fetch all PR review comments and reconstruct the target thread with `in_reply_to_id`:
 
-  ```bash
-  gh api repos/{owner}/{repo}/pulls/{pull_number}/comments
-  ```
+```bash
+gh api repos/{owner}/{repo}/pulls/{pull_number}/comments
+```
 
-  Filter by `in_reply_to_id` to reconstruct thread containing target comment.
-
-- For Issue Comment, target is typically standalone.
+For Issue Comment, treat the target as standalone.
 
 ### Step 4: Focused Analysis
 
-- Analyze primarily based on the **target comment** specified by the URL.
-- Use related comments only as supplementary context.
-- Output a detailed analysis in Japanese using the following structure.
+- Analyze the URL's **target comment** first; use related comments only as context.
+- Output detailed Japanese analysis in this structure.
 
 ---
 
 ### **Target Comment Details**
 
-- **Author**: Comment author
-- **Posted at**: Timestamp
-- **Location**: Code location (for Review Comment: file path, line number)
-- **Content**: Full comment text
+- **Author**:
+- **Posted at**:
+- **Location**: file path/line, if any
+- **Content**:
 
 ### **Deep Analysis**
 
-Based on `$PROMPT`, provide in-depth analysis of the target comment:
+Based on `$PROMPT`, cover:
 
-- Intent and purpose of the comment
-- Detailed issues pointed out
+- Intent and purpose
+- Pointed-out issues
 - Technical background and reasoning
-- Recommended response methods
+- Recommended response
 
 ### **Related Discussion**
 
-- If there are comments in the same thread, summarize the discussion flow
-- Clarify relationship to the target comment
+- Same-thread discussion flow
+- Relationship to the target comment
 
 ### **Recommended Actions**
 
-- Specific actions based on the target comment
+- Specific actions
 - Priority and direction
 
 ### **Additional Notes**
 
 - Other important information
-
