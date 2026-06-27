@@ -9,49 +9,31 @@ effort: max
 
 ## Instructions
 
-Perform a comprehensive PR review of PR #$ARGUMENTS using 6 specialist sub-agents in parallel.
+Review PR #$ARGUMENTS with 6 read-only specialist sub-agents in parallel.
 
-### Review Scope: Changed Code vs Pre-existing Code
+### Scope Rule
 
-**Primary focus**: All findings MUST target lines added or modified in this PR's diff. Do not surface issues whose root cause lives entirely in unchanged code that this PR did not touch.
+Findings must target PR-added or modified lines. Report unchanged pre-existing code only for critical impact: security breach, data corruption/loss, service outage, or compliance violation. Prefix these with `[既存コード]` and name the category; omit all other pre-existing issues.
 
-**Pre-existing-code exception (critical only)**: Sub-agents MAY report a pre-existing issue only when it falls into one of these critical impact categories:
+### Gather Once
 
-- **Security breach**: concrete exploitable attack vector (auth bypass, RCE, injection, secret exposure)
-- **Data corruption/loss**: silent overwrite, missing transaction, irreversible mutation
-- **Service outage**: crash, infinite loop, deadlock, resource exhaustion under realistic load
-- **Compliance violation**: PII handling, license breach, audit trail loss
-
-Pre-existing findings must be marked with `[既存コード]` prefix and state which impact category applies. All other pre-existing issues MUST be omitted.
-
----
-
-### Phase 1: Gather PR Information
-
-Fetch all required PR data before launching sub-agents:
+Fetch required context before launching sub-agents:
 
 ```bash
 gh pr view $ARGUMENTS --json title,body,baseRefName,headRefName,url
-gh pr diff $ARGUMENTS  # NOTE: file path arguments are not supported; fetch full diff and filter locally if needed
+gh pr diff $ARGUMENTS
 gh repo view --json nameWithOwner
-git branch --show-current  # Detect local mode
-bash ~/.config/ai-pr/bin/fetch_existing_comments.sh $ARGUMENTS  # Existing PR comments as NDJSON
+git branch --show-current
+bash ~/.config/ai-pr/bin/fetch_existing_comments.sh $ARGUMENTS
 ```
 
-Compare the output of `git branch --show-current` with `headRefName`. If they match, **local mode** is active — sub-agents can use `Read` and `Glob` tools directly instead of `gh api`.
+Compare `git branch --show-current` with `headRefName`. If they match, local mode is true and sub-agents may use `Read`/`Glob`; otherwise they must use `gh api` against `headRefName`.
 
-### Phase 2: Launch All 6 Sub-Agents in Parallel
+Pass every sub-agent: PR number, metadata, repo owner/name, full diff, existing comments NDJSON, local mode, head branch, focus area, and the scope rule.
 
-Pass the following to each sub-agent as context:
+### Launch
 
-- PR number: `$ARGUMENTS`
-- PR metadata (title, body, base/head branch, repository owner/name)
-- Complete PR diff
-- **Existing PR comments**: the full NDJSON output from Phase 1 (inline, issue, and review-summary comments with `is_resolved`, `is_outdated`, `path`, `line`, `body`, `ai_origin`)
-- **Local mode**: whether the current branch matches `headRefName` (true/false). If true, instruct sub-agents to use `Read` and `Glob` tools for file reading instead of `gh api`.
-- **Scope rule**: Focus findings on changed lines. For pre-existing issues in unchanged code, report only critical impact categories (security breach, data corruption/loss, service outage, compliance violation) with a `[既存コード]` prefix.
-
-Launch all agents simultaneously:
+Start all simultaneously:
 
 1. **pr-reviewer-bugs** — バグ検出・ロジックエラー
 2. **pr-reviewer-security** — セキュリティ脆弱性
@@ -60,121 +42,62 @@ Launch all agents simultaneously:
 5. **pr-reviewer-history** — Git履歴・リグレッションリスク
 6. **pr-reviewer-tests** — テスト品質・カバレッジ
 
-### Phase 3: Aggregate and Deduplicate Results
+### Aggregate
 
-Collect all sub-agent findings, then:
+1. Drop "no findings" messages from final findings, but count them as zero in the summary.
+2. Remove inter-agent duplicates by same root cause at the same file/line; keep the clearest/highest-confidence finding.
+3. Recheck existing comments NDJSON. Skip an unresolved duplicate when same path within ±5 lines and same root cause, or same target symbol/concept fixable by the same change, with duplicate confidence >= 70. Do not skip resolved or outdated comments; if they overlap, re-report and mention the past resolved comment in the detail. Collect skipped findings for `[既コメント済]`.
+4. Preserve `[既存コード]` and its critical category.
+5. Route all test-related findings to `## テストに関する指摘`, regardless of source agent.
+6. If a bug and missing test share the same root cause, keep the bug as the finding and mention the test gap only as supporting detail unless a distinct test change is required.
+7. Output only actionable findings requiring a concrete response. No praise, compliance confirmations, "looks good", or non-actionable observations.
+8. Reclassify by confidence: High 90-100, Medium 75-89, Low only when explicitly notable below threshold.
+9. Every final finding needs `[path:line]` or `[path:~line]`; drop findings without line references.
+10. Number findings sequentially across regular and test sections. Omit empty sections and omit `## レビュー注目ポイント` unless it adds concrete unresolved actions not already numbered.
+11. If no actionable findings remain, output only `対応が必要な指摘はありません。`
+12. If any finding was skipped as an existing-comment duplicate, add `## [既コメント済] スキップした指摘` immediately before `## 総合評価`, one line each:
+    `- **[path:line]** 領域: <area> / 既存コメント ID: <id> (resolved=<bool>, ai_origin=<value>) — <reason>`
 
-1. **Remove inter-agent duplicates**: same file:line reported by multiple agents → keep the highest-confidence version.
-2. **Remove PR-comment duplicates**: for each remaining finding, check against the existing PR comments fetched in Phase 1:
-   - Exclude `is_resolved == true` or `is_outdated == true` entries from duplicate matching (re-reporting allowed; append `(参考: 過去にresolved済みの既存コメント #<id> と同様の指摘)` to detail).
-   - Mark as duplicate when: same `path` + line within ±5 AND same root cause, OR same target symbol/concept addressable by the same fix.
-   - Do NOT skip: same problem type at a different file, or a more specific finding requiring a distinct fix.
-   - Skip only when duplicate confidence is ≥ 70.
-3. Keep sub-agent outputs intact during collection. The parent reviewer, not the sub-agents, decides final section placement.
-4. **Route test-related findings by content**: findings about missing tests, weak assertions, brittle tests, incorrect mocks/fixtures, boundary-value tests, negative/error-path tests, and integration coverage must go under `## テストに関する指摘`, regardless of which sub-agent produced them.
-5. If a runtime bug and a missing test share the same root cause, keep the bug in the regular priority section. Mention the missing test in the detail line when it is only supporting evidence; create a separate test finding only when a distinct test change is required.
-6. Output only actionable findings that require a concrete response. Do not output praise, compliance confirmations, "looks good" statements, or non-actionable observations.
-7. Reclassify priorities based on confidence scores.
-8. Assign sequential numbers to all findings across regular priority sections and the test section (continue numbering across sections — do not restart per section).
-9. Format structured output following the Formatting Rules below.
-10. **Validate line numbers**: any finding not in `[path/to/file.ext:line]` format must be supplemented by referencing the original diff; findings without a line number must not appear in the final output.
-11. Omit empty priority sections and omit `## テストに関する指摘` when there are no actionable test findings.
-12. Omit `## レビュー注目ポイント` unless it contains concrete unresolved actions not already covered by numbered findings.
-13. If no actionable findings remain after deduplication, output only `対応が必要な指摘はありません。`
-14. If any findings were removed in step 2, add **`## [既コメント済] スキップした指摘`** immediately before `## 総合評価` with one line per skipped finding:
-   `- **[path:line]** 領域: <area> / 既存コメント ID: <id> (resolved=<bool>, ai_origin=<value>) — <reason>`
-   Omit this section entirely when nothing was removed.
+### Final Format
 
-### Formatting Rules
+Respond entirely in Japanese. Every finding must be header, indented detail bullet, then `---` separator, including the last finding.
 
-**Finding Format**: Each item MUST use this exact three-part structure — header, detail, then separator:
+Header forms:
 
-- **Header line**: `N. **[file:line]** 領域 (信頼度: XX): 短い一行の要約`
-- **Detail line**: `   - 詳細説明と推奨対応（インデントされたサブバレット）`
-- **Separator line**: `---` (horizontal rule — MANDATORY after every finding, including the last one)
+- `N. **[file:line]** 領域 (信頼度: XX): 短い一行の要約`
+- `N. [既存コード] **[file:line]** 領域 (信頼度: XX): 短い一行の要約（重大カテゴリ）`
 
-The `---` separator after each item is a hard structural requirement that must never be omitted.
-Regular priority sections must contain only non-test findings. Test-related findings must use the same finding format under `## テストに関する指摘`.
+Use this structure and omit empty sections:
 
-✅ CORRECT:
-
-1. **[src/auth.ts:42]** セキュリティ (信頼度: 92): トークンがログに平文で露出
-   - ロガーにトークンが直接渡されている。ログ出力前にマスキング処理を追加すること。
-
----
-
-2. **[src/auth.ts:87]** バグ検出 (信頼度: 85): null参照によるTypeError
-   - セッション期限切れ時に`getUser()`がnullを返すが、nullチェックが欠落している。
-
----
-
-3. [既存コード] **[src/db/query.ts:120]** セキュリティ (信頼度: 95): SQLインジェクション（セキュリティ侵害カテゴリ）
-   - このPRで変更された関数の呼び出し先に未検査の文字列補間があり、攻撃者が任意のSQLを実行できる。
-
----
-
-❌ WRONG (missing `---` separator and/or long single line):
-
-1. **[src/auth.ts:42]** セキュリティ (信頼度: 92): トークンがログに露出しているためログ集約システムに認証情報が漏洩する可能性がありマスキング処理が必要。
-2. **[src/auth.ts:87]** バグ検出 (信頼度: 85): null参照の可能性がありTypeErrorが発生する。
-
-### Output Format
-
-Respond entirely in **Japanese**.
-
----
-
+```markdown
 ## レビューサマリー
 
-| 領域               | 指摘数 | 最高信頼度 |
-| ------------------ | ------ | ---------- |
-| バグ検出           | N      | XX         |
-| セキュリティ       | N      | XX         |
-| アーキテクチャ     | N      | XX         |
-| エラーハンドリング | N      | XX         |
-| Git履歴            | N      | XX         |
-| テスト品質         | N      | XX         |
-
----
+| 領域 | 指摘数 | 最高信頼度 |
+| ---- | ------ | ---------- |
+| バグ検出 | N | XX |
+| セキュリティ | N | XX |
+| アーキテクチャ | N | XX |
+| エラーハンドリング | N | XX |
+| Git履歴 | N | XX |
+| テスト品質 | N | XX |
 
 ## 🔴 High Priority（信頼度90-100）
-
-> **アクション必須**: マージ前に対処が必要な問題
 
 1. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
    - 詳細説明と推奨対応。
 
 ---
 
-2. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
-   - 詳細説明と推奨対応。
-
----
-
 ## 🟡 Medium Priority（信頼度75-89）
 
-> **推奨対処**: 品質向上のために対処を推奨
-
-3. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
-   - 詳細説明と推奨対応。
-
----
-
-4. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
+2. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
    - 詳細説明と推奨対応。
 
 ---
 
 ## 🟢 Low Priority（特筆すべきもの）
 
-> **任意対応**: 将来的に検討する価値がある改善点
-
-5. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
-   - 詳細説明と推奨対応。
-
----
-
-6. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
+3. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
    - 詳細説明と推奨対応。
 
 ---
@@ -183,14 +106,8 @@ Respond entirely in **Japanese**.
 
 ### 🟡 Medium Priority（信頼度75-89）
 
-7. **[path/to/file.ext:line]** テスト品質 (信頼度: XX): 短い一行の要約
+4. **[path/to/file.ext:line]** テスト品質 (信頼度: XX): 短い一行の要約
    - 詳細説明と推奨対応。
-
----
-
-## レビュー注目ポイント
-
-このセクションは任意。番号付き指摘でまだ扱っていない具体的な未対応事項がある場合だけ出力する。
 
 ---
 
@@ -198,13 +115,10 @@ Respond entirely in **Japanese**.
 
 **マージ可否**: ✅ マージ可 / ⚠️ 条件付きマージ可 / ❌ マージ不可
 
-総合コメントと優先度の高い対応事項のまとめ。
+総合コメント。
+```
 
----
-
-## Post-Review: Post to GitHub
-
-If at least one actionable finding remains, display the following message to the user:
+If at least one actionable finding remains, append:
 
 > To post any findings as GitHub PR comments, run:
 > `/pr-comment-post <item numbers>` (e.g., `/pr-comment-post 1 3 5`)

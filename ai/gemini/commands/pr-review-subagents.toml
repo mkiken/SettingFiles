@@ -5,7 +5,7 @@ Review PR #{{args}} with six specialist agents in parallel. Respond in Japanese.
 
 ## Gather Once
 
-Run these first with `run_shell_command`:
+Run with `run_shell_command`:
 
 ```bash
 gh pr view {{args}} --json title,body,baseRefName,headRefName,url
@@ -16,17 +16,17 @@ git branch --show-current
 bash ~/.config/ai-pr/bin/fetch_existing_comments.sh {{args}}
 ```
 
-Compare the current branch with `headRefName`. If they match, local mode is true.
+Compare current branch with `headRefName`; match means local mode.
 
-## Shared Contract For Agents
+## Shared Agent Contract
 
 Pass each agent: PR number, metadata, repo owner/name, full diff, line-numbered diff, existing comments NDJSON, local mode, and head branch.
 
 Common rules:
-- Review changed code first. Report unchanged pre-existing code only for security breach, data corruption/loss, service outage, or compliance violation. Prefix those with `[既存コード]` and name the category.
+- Review changed code first. Report unchanged pre-existing code only for security breach, data corruption/loss, service outage, or compliance violation. Prefix `[既存コード]` and name the category.
 - Final line references must come from the line-numbered diff: prefer `NEW`; use current-side `CTX` only when no `NEW` line can carry the finding. Never use `OLD`, deleted-file records, hunk arithmetic, ranges, or approximate lines.
 - Every agent finding must include `行番号根拠: FILE <path> / NEW|CTX <line> <snippet>` matching its header.
-- Deduplicate against unresolved existing comments. Skip only if the same root cause or same fix target already exists at the same path within ±5 lines with confidence >= 70. Do not skip resolved or outdated comments; list skipped items separately.
+- Deduplicate against unresolved existing comments only when same path within ±5 lines and same root cause, or same fix target, with confidence >= 70. Do not skip resolved or outdated comments; list skipped items separately.
 - Output only actionable findings with confidence >= 75. No praise or "looks good" notes.
 
 ## Launch Agents
@@ -42,17 +42,17 @@ Invoke all six with `wait_for_previous=false`:
 
 ## Aggregate
 
-Drop "no findings" messages. Remove inter-agent duplicates by root cause, keeping the clearest/highest-confidence finding. Recheck PR-comment duplicates and collect skipped items.
+Drop "no findings" messages. Remove inter-agent duplicates by root cause, keeping the clearest/highest-confidence finding. Recheck existing-comment duplicates and collect skipped items.
 
-Validate before final output: drop any finding without valid `行番号根拠`, any `OLD`/deleted/approximate/range line, or any header not present in the line-numbered diff. Do not show `行番号根拠` in the final output.
+Before final output, drop findings without valid `行番号根拠`, findings using `OLD`/deleted/approximate/range lines, and headers not present in the line-numbered diff. Do not show `行番号根拠` in final output.
 
-Route every test-related finding only to `## テストに関する指摘`. If a runtime bug and missing test share one root cause, keep the bug in regular priority and mention testing only as supporting detail.
+Route all test-related findings only to `## テストに関する指摘`. If a bug and missing test share one root cause, keep the bug in regular priority and mention testing only as supporting detail.
 
 Priority: High 90-100, Medium 75-89, Low only for notable explicitly reported items below threshold. Number findings sequentially across all sections. Omit empty sections and `## レビュー注目ポイント` unless it adds unresolved actions not already listed. If no actionable findings remain, output only `対応が必要な指摘はありません。`
 
 ## Final Format
 
-Use this structure:
+Every finding must have a header, indented detail bullet, and `---`, including the last finding. Omit empty and skipped-comments sections when empty.
 
 ```markdown
 ## レビューサマリー
@@ -105,8 +105,6 @@ Use this structure:
 
 総合コメント。
 ```
-
-Every finding must have a header, an indented detail bullet, and `---`, including the last finding. Omit the skipped-comments section when empty.
 
 If at least one actionable finding remains, append:
 
