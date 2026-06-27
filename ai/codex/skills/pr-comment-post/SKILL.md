@@ -15,9 +15,9 @@ description: >
 Post specific numbered findings from a `pr-review` result as a single GitHub Pull Request Review.
 All items are confirmed together before posting, then submitted in one API call.
 
-## Step 1: Summarize review items
+## Step 1: Build a review item index
 
-Before anything else, look at the conversation history for `pr-review` output and list all findings in a compact format — one line per item:
+Before anything else, look at the conversation history for `pr-review` output and build an internal numbered index of all findings in this compact format — one line per item:
 
 ```
 N. [path/to/file.ext:line] Priority | Category: 概要
@@ -33,12 +33,14 @@ Example:
 
 Include numbered findings from both the regular priority sections and `## テストに関する指摘`. Do not treat the test section as a summary-only block.
 
+Do not display this full index when the user's message already specifies item numbers. The posting preview must show only the items that will be posted.
+
 ## Step 2: Determine which item numbers to post
 
 Parse the user's message for space- or comma-separated numbers (e.g., `1 3 5` or `1,3,5`).
 
 If no numbers are specified, ask the user which item numbers to post.
-Show them the available numbered items from the review output in context.
+Show them the available numbered items from the review output in context. This is the only case where all available review items should be displayed.
 
 ## Step 3: Extract review items from context
 
@@ -68,11 +70,11 @@ gh pr view --json number,headRefOid
 gh repo view --json owner,name
 ```
 
-## Step 5: Show all items and confirm in bulk
+## Step 5: Show selected items and confirm in bulk
 
-### 5a. Display all items to be posted
+### 5a. Display only items to be posted
 
-Present all items clearly:
+Present only the selected items clearly:
 
 ```
 投稿予定のレビューコメント一覧:
@@ -82,14 +84,15 @@ Present all items clearly:
 3. [src/utils/format.ts:8] 🟢 Low | Readability: 変数名をより具体的に
 ```
 
+Do not display any items that are not in the posting list.
+
 ### 5b. Ask for bulk confirmation
 
 Ask the user:
 
 > 上記 N 件をまとめて Pull Request Review として投稿しますか？
-> 除外したい項目があれば番号を指定してください（例: 2,3 を除外）。
 
-Wait for the user's confirmation before proceeding. If the user specifies items to exclude, remove them from the posting list and confirm the final list.
+Wait for the user's confirmation before proceeding. If the user confirms, continue with exactly the displayed posting list. If the user does not confirm or wants a different item set, abort without posting and ask them to rerun the request with the desired item numbers.
 
 ### 5c. Generate summary for review body
 
@@ -242,7 +245,8 @@ After posting, report:
   - PENDING レビューを submit してから再投稿に成功
   - 5e の個別コメント fallback に切り替えて投稿
   - PENDING 競合のため中断
-- How many items were skipped (if any)
+
+Do not report counts or lists for items that were not posted.
 
 ---
 
