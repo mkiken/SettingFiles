@@ -21,7 +21,9 @@ smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml
 # hooks はファイル単位でシンボリックリンク
 mkdir -p ~/.codex/hooks
 for file in "${Repo}ai/codex/hooks"/*; do
-  if [[ -f "$file" ]]; then
+  if [[ "$(basename "$file")" == test_*.py ]]; then
+    continue
+  elif [[ -f "$file" ]]; then
     make_symlink "$file" ~/.codex/hooks/$(basename "$file")
   fi
 done

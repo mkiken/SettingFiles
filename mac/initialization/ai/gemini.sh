@@ -41,8 +41,12 @@ fi
 for item in agents commands hooks policies; do
   mkdir -p ~/.gemini/${item}
   for file in "${Repo}ai/gemini/${item}"/*; do
-    if [[ -f "$file" ]]; then
+    if [[ "$(basename "$file")" == test_*.py ]]; then
+      continue
+    elif [[ -f "$file" ]]; then
       make_symlink "$file" ~/.gemini/${item}/$(basename "$file")
+    elif [[ -d "$file" ]]; then
+      continue
     else
       echo "⚠️  Warning: $(basename "$file") is not a regular file, skipping..."
     fi

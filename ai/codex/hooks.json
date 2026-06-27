@@ -18,6 +18,10 @@
       {
         "hooks": [
           {
+            "command": "~/.codex/hooks/codex-context-alert.sh",
+            "type": "command"
+          },
+          {
             "command": "python3 ~/.codex/hooks/codex-hook.py",
             "type": "command"
           }
@@ -32,6 +36,10 @@
             "type": "command"
           },
           {
+            "command": "~/.codex/hooks/codex-context-alert.sh",
+            "type": "command"
+          },
+          {
             "command": "python3 ~/.codex/hooks/codex-hook.py",
             "type": "command"
           }
@@ -41,6 +49,10 @@
     "UserPromptSubmit": [
       {
         "hooks": [
+          {
+            "command": "~/.codex/hooks/codex-context-alert.sh",
+            "type": "command"
+          },
           {
             "command": "python3 ~/.codex/hooks/codex-hook.py",
             "type": "command"

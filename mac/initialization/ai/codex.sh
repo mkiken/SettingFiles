@@ -22,7 +22,9 @@ make_symlink "${Repo}ai/codex/_AGENTS.md" ~/.codex/AGENTS.md
 # hooks はファイル単位でシンボリックリンク
 mkdir -p ~/.codex/hooks
 for file in "${Repo}ai/codex/hooks"/*; do
-  if [[ -f "$file" ]]; then
+  if [[ "$(basename "$file")" == test_*.py ]]; then
+    continue
+  elif [[ -f "$file" ]]; then
     make_symlink "$file" ~/.codex/hooks/$(basename "$file")
   fi
 done

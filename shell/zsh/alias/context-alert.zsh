@@ -146,6 +146,7 @@ ctx_alert_evaluate() {
         _ctx_alert_add_badge
     else
         _ctx_alert_remove_badge
+        fired_stage=0
     fi
 
     # --- 通知メッセージ用テキスト生成 ---

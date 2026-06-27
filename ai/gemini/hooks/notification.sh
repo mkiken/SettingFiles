@@ -238,13 +238,14 @@ _gemini_chat_dir="${HOME}/.gemini/tmp"
 _session_prefix="${session_id:0:8}"
 _gemini_chat_jsonl=""
 if [[ -n "${_session_prefix}" && "${_session_prefix}" != "defa" ]]; then
-    _gemini_chat_jsonl=$(find "${_gemini_chat_dir}" -name "*${_session_prefix}*.jsonl" \
-        -path "*/chats/*" -type f 2>/dev/null | sort -t/ -k1,1 | tail -1)
+    _gemini_chat_jsonl=$(find "${_gemini_chat_dir}" -path "*/chats/*${_session_prefix}*.jsonl" \
+        -type f -exec stat -f '%m %N' {} + 2>/dev/null \
+        | sort -nr | head -1 | cut -d' ' -f2-)
 fi
 debug_log "Gemini chat JSONL: ${_gemini_chat_jsonl}"
 
 if [[ -n "${_gemini_chat_jsonl}" && -f "${_gemini_chat_jsonl}" ]]; then
-    # 最後の gemini タイプ行から tokens.total と model を取得
+    # 最後の gemini タイプ行から context window 使用量と model を取得
     _gemini_ctx_json=$(python3 -c "
 import json, sys
 path = sys.argv[1]
@@ -266,13 +267,21 @@ except Exception:
 if last:
     tokens = last.get('tokens', {})
     model = last.get('model', '')
-    print(json.dumps({'total_tokens': tokens.get('total', 0), 'model': model}))
+    context_tokens = tokens.get('input')
+    if not isinstance(context_tokens, (int, float)) or context_tokens <= 0:
+        context_tokens = tokens.get('total', 0)
+    print(json.dumps({
+        'context_tokens': int(context_tokens or 0),
+        'total_tokens': tokens.get('total', context_tokens or 0),
+        'model': model,
+    }))
 " "${_gemini_chat_jsonl}" 2>/dev/null)
 
     if [[ -n "${_gemini_ctx_json}" ]]; then
+        _gemini_context_tokens=$(echo "${_gemini_ctx_json}" | jq -r '.context_tokens // 0')
         _gemini_total_tokens=$(echo "${_gemini_ctx_json}" | jq -r '.total_tokens // 0')
         _gemini_model=$(echo "${_gemini_ctx_json}" | jq -r '.model // ""')
-        debug_log "Gemini tokens: ${_gemini_total_tokens}, model: ${_gemini_model}"
+        debug_log "Gemini context tokens: ${_gemini_context_tokens}, total tokens: ${_gemini_total_tokens}, model: ${_gemini_model}"
 
         # モデル別 context window テーブル
         # gemini-* モデルは基本的に 1M トークン
@@ -288,13 +297,13 @@ if last:
                 _gemini_window=1048576 ;;
         esac
 
-        if [[ "${_gemini_total_tokens}" -gt 0 && "${_gemini_window}" -gt 0 ]]; then
-            _gemini_used_pct=$(echo "scale=1; ${_gemini_total_tokens} * 100 / ${_gemini_window}" | bc 2>/dev/null)
+        if [[ "${_gemini_context_tokens}" -gt 0 && "${_gemini_window}" -gt 0 ]]; then
+            _gemini_used_pct=$(echo "scale=1; ${_gemini_context_tokens} * 100 / ${_gemini_window}" | bc 2>/dev/null)
             debug_log "Gemini used_pct: ${_gemini_used_pct}%"
             source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/alias/context-alert.zsh" 2>/dev/null || true
             if declare -f ctx_alert_evaluate >/dev/null 2>&1; then
                 ctx_alert_evaluate "gemini" "${session_id}" "${_gemini_used_pct}" \
-                    "${EMOJI_ID_GEMINI:-💎}" "${_gemini_window}" \
+                    "${EMOJI_ID_GEMINI:-💎}" "${_gemini_window}" "${_gemini_context_tokens}" \
                     >/dev/null 2>&1 || true
             fi
         fi
