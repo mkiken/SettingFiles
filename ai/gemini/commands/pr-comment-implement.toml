@@ -1,92 +1,59 @@
 description = "Implement code changes based on PR review comments, with design review phase before implementation"
 prompt = """Implement code changes based on PR review comments for {{args}}.
 
-**Arguments**: The first token in {{args}} is the PR comment URL ($PR_URL), and the rest are implementation instructions ($PROMPT).
+## Arguments and Pre-fetch
 
-
-## Pre-fetch Data
-
-First, run this command to fetch the PR comments:
+- First `{{args}}` token is `$PR_URL`; the rest is `$PROMPT`.
+- Fetch PR comments first:
 !{gh pr view {{args}} --comments}
 
 ## Workflow
 
 ### Phase 1: Analysis
 
-1. Fetch and analyze the PR comments related to $PR_URL
-2. Understand the issue or improvement request based on $PROMPT
-3. Identify the files and code sections that need modification
+Analyze the target PR comment, `$PROMPT`, affected files, and surrounding code.
 
 ### Phase 2: Design Review (MANDATORY)
 
-Create a comprehensive implementation design and present it to the user for approval:
+Before editing, present a Japanese design covering:
 
-#### **Modification Summary**
+- target comment and requested change
+- target files, code changes, new files, and tests
+- affected code/docs, risks, chosen approach, alternatives, and open questions
 
-- Which comment to address
-- What to modify (summary)
-
-#### **Detailed Modification Plan**
-
-- **Target Files**: Specify each file and modification location
-- **Specific Changes**: Code-level changes
-- **New Files Required**: Files that need to be created (if any)
-
-#### **Impact Analysis**
-
-- Other code affected by these changes
-- Test files requiring updates
-- Documentation update necessity
-
-#### **Implementation Approach**
-
-- Chosen approach and reasoning
-- Alternative approaches if any
-
-#### **Confirmation Points**
-
-- Points requiring user confirmation
-- Unclear points or decisions needed
-
-**⚠️ IMPORTANT**: Ask the user: "この設計で実装を進めてよろしいですか?修正点があればお知らせください。"
-
-**Wait for user approval before proceeding to Phase 3.**
+Ask: `この設計で実装を進めてよろしいですか?修正点があればお知らせください。`
+Wait for approval; revise and re-present if requested.
 
 ### Phase 3: Implementation (Only after approval)
 
-1. Implement the code changes based on the approved design
-2. Ensure code quality and consistency with existing codebase
-3. Follow project coding standards and best practices
+Implement only the approved scope, preserve unrelated user changes, follow
+project style, and test when applicable.
 
 ### Phase 4: Review Changes
 
-1. Review all modified files
-2. Verify that changes align with the design
-3. Check for potential issues or missing updates
+Review modified files, confirm they match the design, and check for missing
+updates or risks.
 
 ### Phase 5: Commit
 
-1. Generate a descriptive commit message that:
-   - References the PR comment
-   - Summarizes the changes made
-   - Follows conventional commit format if applicable
-2. Stage and commit the changes
-3. Before pushing, record the current remote HEAD: `BEFORE_SHA=$(git rev-parse origin/$(git branch --show-current) 2>/dev/null || git rev-parse HEAD^)`
-4. Push to the remote branch
+1. Generate a commit message that references the PR comment, summarizes the
+   change, and follows repository convention when present.
+2. Stage and commit.
+3. Before pushing, record `BEFORE_SHA=$(git rev-parse origin/$(git branch --show-current) 2>/dev/null || git rev-parse HEAD^)`.
+4. Push to the remote branch.
 
 ### Phase 6: Reply to PR Comment
 
-After successful push, reply to the original PR comment with the implemented commit information.
+After successful push, reply to the original PR comment with implemented commit
+information.
 
 **⚠️ 原則**: 返信対象が review comment (`#discussion_r{id}`) またはスレッド可能な review comment の場合、**必ずスレッド返信API** (`gh api repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies`) を使用すること。`gh pr comment` は thread API が使えない場合 (純粋な issue comment やスレッド対象が無い review) に限定する。
 
-#### Step 1: Gather commit information
+Gather commit info:
 
 ```bash
 git log ${BEFORE_SHA}..HEAD --format='%H %s'
 ```
-
-This lists all commits pushed in Phase 5. Build the reply body using this template:
 
 ```
 ご指摘ありがとうございます。対応しました。
@@ -95,11 +62,9 @@ This lists all commits pushed in Phase 5. Build the reply body using this templa
   - {commit_subject}
 ```
 
-(Repeat per commit if multiple)
+Repeat per commit if multiple.
 
-#### Step 2: Determine reply method from URL type (MUST follow)
-
-Parse $PR_URL and extract owner, repo, pull_number from the URL path, then classify by fragment (# 以降):
+Parse `$PR_URL`, extract owner/repo/pull_number, then classify the fragment:
 
 | Fragment pattern | Action |
 |---|---|
@@ -107,56 +72,44 @@ Parse $PR_URL and extract owner, repo, pull_number from the URL path, then class
 | `#pullrequestreview-(\\d+)` | Extract review_id → **Go to Step 2a** |
 | `#issuecomment-(\\d+)` or no fragment | **Standalone comment** |
 
-If the fragment cannot be classified, MUST use the ask_user tool to ask the user which reply method to use before proceeding.
+If unclassified, use `ask_user` to choose the reply method.
 
-#### Step 2a: Resolve thread for `#pullrequestreview-{review_id}` URL
-
-Fetch the inline comments attached to the review:
+For `#pullrequestreview-{review_id}`, fetch inline comments:
 
 ```bash
 gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/comments \
   --jq '[.[] | {id: .id, path: .path, body: (.body | .[0:80])}]'
 ```
 
-- **1 comment found**: Use that comment_id as the thread reply target → **Thread reply (MUST)**
-- **Multiple comments found**: MUST use ask_user to show the list and ask the user to select the target comment → **Thread reply (MUST)**
-- **0 comments found**: The review has no inline thread; use standalone comment (`gh pr comment`) — this is the only case where standalone posting is appropriate here
+- 1 comment: use it as thread reply target.
+- Multiple: use `ask_user` to select the target comment; then thread reply.
+- 0: use standalone comment (`gh pr comment`).
 
-#### Step 3: Confirm before posting
+Before posting, use `ask_user` to show method and body:
 
-MUST use the ask_user tool to show **both** the reply method and the body:
-
-- **Reply method**: `Thread reply (スレッド返信)` or `Standalone comment (単発コメント)`
-- **Target**: `comment_id: {id}` (thread reply) or `pull #{pull_number}` (standalone)
-- **Body**: the composed reply body
+- Reply method: `Thread reply (スレッド返信)` or `Standalone comment (単発コメント)`
+- Target: `comment_id: {id}` or `pull #{pull_number}`
+- Body: composed reply body
 
 Question: 「以下の方法・内容で元PRコメントに返信しますか？」
 
-If the method shown is `Standalone comment` but the URL fragment was `#discussion_r{id}`, alert the user and confirm the downgrade is intentional before continuing.
-
-Wait for user approval before posting.
-
-#### Step 4: Post the reply
+If showing `Standalone comment` for `#discussion_r{id}`, warn and confirm the
+downgrade is intentional. Wait for approval before posting.
 
 If user approves:
-1. Post using the method determined in Step 2 / 2a
-2. If the thread reply API call fails:
-   - **DO NOT silently fall back to `gh pr comment`**. Thread reply failure MUST NOT be converted to a standalone comment automatically.
-   - Report the error (status code, response body) to the user.
-   - MUST use ask_user to ask whether to (a) retry, (b) post as a standalone comment instead, or (c) abort.
-3. Report: `✅ 元のPRコメントに返信しました`
+
+1. Post with the resolved method.
+2. If thread reply API fails, **do not** fallback automatically. Report status
+   and response body, then use `ask_user` to choose retry, standalone downgrade,
+   or abort.
+3. Report `✅ 元のPRコメントに返信しました`.
 
 If user cancels, skip posting and report that the reply was skipped.
 
 ## Output Format
 
-### During Design Phase (Phase 2)
-
-Output the design in Japanese following the structure above.
-
-### During Implementation (Phase 3-5)
-
-Provide progress updates for each step:
+During design, output the Japanese design above. During implementation/execution,
+briefly report:
 
 - "✅ ファイルXを修正しました"
 - "✅ 変更内容を確認しました"
@@ -166,12 +119,8 @@ Provide progress updates for each step:
 
 ### Final Summary
 
-Provide a summary including:
-
-- Modified files and changes made
-- Commit hash and message
-- Reply comment URL (if posted)
-- Next steps (if any)
+Summarize modified files/changes, verification, commit hash/message, reply URL
+if posted, and next steps.
 
 ## Notes
 
