@@ -17,42 +17,108 @@ def read_text(path: str) -> str:
 
 
 class ContextModeSetupTest(unittest.TestCase):
-    def test_common_setup_functions_are_defined(self):
+    def assert_source_before_call(
+        self,
+        script_path: str,
+        source_line: str,
+        call_lines: tuple[str, ...],
+    ) -> None:
+        script = read_text(script_path)
+
+        common_source_index = script.index('source "$(dirname "$0")/')
+        assistant_source_index = script.index(source_line)
+        self.assertGreater(assistant_source_index, common_source_index)
+
+        for call_line in call_lines:
+            with self.subTest(script=script_path, call=call_line):
+                self.assertLess(assistant_source_index, script.index(call_line))
+
+    def test_common_setup_does_not_source_assistant_specific_setup_files(self):
         common = read_text("mac/scripts/common.sh")
 
         for function_name in (
             "require_context_mode_node",
             "setup_context_mode_cli",
-            "setup_claude_context_mode",
-            "setup_gemini_context_mode",
-            "setup_codex_context_mode",
         ):
             self.assertIn(f"function {function_name}()", common)
 
-    def test_ai_setup_and_update_scripts_call_context_mode_setup(self):
-        expected_calls = {
-            "mac/initialization/ai/claude.sh": "setup_claude_context_mode",
-            "mac/updates/claude.sh": "setup_claude_context_mode",
-            "mac/initialization/ai/gemini.sh": "setup_gemini_context_mode",
-            "mac/updates/gemini.sh": "setup_gemini_context_mode",
-            "mac/initialization/ai/codex.sh": "setup_codex_context_mode",
-            "mac/updates/codex.sh": "setup_codex_context_mode",
+        for assistant_name in ("claude", "gemini", "codex"):
+            self.assertNotIn(f"mac/scripts/ai/{assistant_name}.sh", common)
+
+        for function_name in (
+            "setup_claude_context_mode",
+            "setup_gemini_context_mode",
+            "setup_codex_context_mode",
+            "setup_claude_superpowers",
+            "setup_gemini_superpowers",
+            "setup_codex_superpowers",
+        ):
+            self.assertNotIn(f"function {function_name}()", common)
+
+    def test_assistant_specific_setup_functions_are_defined_in_own_files(self):
+        expected_functions = {
+            "mac/scripts/ai/claude.sh": (
+                "setup_claude_context_mode",
+                "setup_claude_superpowers",
+            ),
+            "mac/scripts/ai/gemini.sh": (
+                "setup_gemini_context_mode",
+                "setup_gemini_superpowers",
+            ),
+            "mac/scripts/ai/codex.sh": (
+                "setup_codex_context_mode",
+                "setup_codex_superpowers",
+            ),
         }
 
-        for script_path, call in expected_calls.items():
+        for script_path, function_names in expected_functions.items():
+            script = read_text(script_path)
             with self.subTest(script=script_path):
-                self.assertIn(call, read_text(script_path))
+                for function_name in function_names:
+                    self.assertIn(f"function {function_name}()", script)
+
+    def test_ai_setup_and_update_scripts_source_assistant_setup_before_calls(self):
+        expected_sources = {
+            "mac/initialization/ai/claude.sh": (
+                'source "${Repo}mac/scripts/ai/claude.sh"',
+                ("setup_claude_superpowers", "setup_claude_context_mode"),
+            ),
+            "mac/updates/claude.sh": (
+                'source "${Repo}mac/scripts/ai/claude.sh"',
+                ("setup_claude_superpowers", "setup_claude_context_mode"),
+            ),
+            "mac/initialization/ai/gemini.sh": (
+                'source "${Repo}mac/scripts/ai/gemini.sh"',
+                ("setup_gemini_superpowers", "setup_gemini_context_mode"),
+            ),
+            "mac/updates/gemini.sh": (
+                'source "${Repo}mac/scripts/ai/gemini.sh"',
+                ("setup_gemini_superpowers", "setup_gemini_context_mode"),
+            ),
+            "mac/initialization/ai/codex.sh": (
+                'source "${Repo}mac/scripts/ai/codex.sh"',
+                ("setup_codex_superpowers", "setup_codex_context_mode"),
+            ),
+            "mac/updates/codex.sh": (
+                'source "${Repo}mac/scripts/ai/codex.sh"',
+                ("setup_codex_superpowers", "setup_codex_context_mode"),
+            ),
+        }
+
+        for script_path, (source_line, call_lines) in expected_sources.items():
+            self.assert_source_before_call(script_path, source_line, call_lines)
 
     def test_context_mode_functions_apply_local_settings(self):
-        common = read_text("mac/scripts/common.sh")
+        gemini = read_text("mac/scripts/ai/gemini.sh")
+        codex = read_text("mac/scripts/ai/codex.sh")
 
         self.assertIn(
             'smart_merge_json "${Repo}ai/gemini/settings.json" ~/.gemini/settings.json',
-            common,
+            gemini,
         )
         self.assertIn(
             'smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml',
-            common,
+            codex,
         )
 
     def test_gemini_settings_register_context_mode_mcp_and_hooks(self):

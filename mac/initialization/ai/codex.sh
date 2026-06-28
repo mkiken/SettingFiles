@@ -1,6 +1,7 @@
 #!/bin/zsh
 
 source "$(dirname "$0")/../../scripts/common.sh"
+source "${Repo}mac/scripts/ai/codex.sh"
 
 echo "Setting up Codex..."
 

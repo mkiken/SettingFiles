@@ -1,6 +1,7 @@
 #!/bin/zsh
 
 source "$(dirname "$0")/../../scripts/common.sh"
+source "${Repo}mac/scripts/ai/claude.sh"
 
 echo "Setting up Claude..."
 
