@@ -205,7 +205,7 @@ alias wmm='wm merge'
 alias wml='wm list'
 alias wmd='wm dashboard'
 
-# workmuxの対話プロンプト発生を出力から検知し、必要ならsetupを実行する
+# workmuxの対話プロンプト発生を出力から検知し、手動setupを案内する
 # 目的: fwmon等がworkmuxの初回プロンプト待ちで見えないハングを起こすのを防ぐ
 _workmux_ensure_setup() {
   [[ -n "$WORKMUX_SKIP_SETUP_CHECK" ]] && return 0
@@ -247,19 +247,17 @@ _workmux_ensure_setup() {
     print -- "   出力サンプル:"
     print -r -- "$output" | sed 's/^/     /' | head -10
     print -- ""
-    print -- "   fwmon等のハングを防ぐため、今 workmux setup を実行します。"
+    print -- "   自動で workmux setup は実行しません。"
+    print -- "   必要なsetupだけ手動で実行してください:"
+    print -- "     workmux setup --hooks"
+    print -- "     workmux setup --skills"
+    print -- "     workmux setup"
+    print -- ""
+    print -- "   一時的にスキップするには: WORKMUX_SKIP_SETUP_CHECK=1 <cmd>"
     print -- ""
   } > /dev/tty
 
-  if workmux setup </dev/tty >/dev/tty 2>&1; then
-    print -- "\n✅ workmux setup 完了。元の操作を続行します。" > /dev/tty
-    return 0
-  else
-    local srec=$?
-    print -- "\n❌ workmux setup が失敗しました (exit $srec)。手動で解消してください。" > /dev/tty
-    print -- "   一時的にスキップするには: WORKMUX_SKIP_SETUP_CHECK=1 <cmd>" > /dev/tty
-    return $srec
-  fi
+  return 1
 }
 
 wm() {
