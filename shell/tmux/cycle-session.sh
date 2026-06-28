@@ -14,7 +14,7 @@ LIST=$(tmux list-sessions -F '#{session_id}|#{session_name}' \
   | sort -t'|' -k1 -n)
 
 COUNT=$(printf '%s\n' "$LIST" | wc -l | tr -d ' ')
-[ "$COUNT" -le 1 ] && exit 0
+[ "$COUNT" -le 1 ] && tmux display-message "no other session" && exit 0
 
 IDX=$(printf '%s\n' "$LIST" | awk -F'|' -v cur="$CUR_ID" '$1==cur{print NR; exit}')
 [ -z "$IDX" ] && exit 0
