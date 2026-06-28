@@ -67,5 +67,6 @@ claude -p "/plugin install dev-browser@sawyerhood/dev-browser"
 
 setup_claude_superpowers
 setup_claude_context_mode
+setup_claude_mem
 
 echo 'Claude setup and tools installation completed.'

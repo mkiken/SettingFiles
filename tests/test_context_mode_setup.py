@@ -60,6 +60,7 @@ class ContextModeSetupTest(unittest.TestCase):
             "mac/scripts/ai/claude.sh": (
                 "setup_claude_context_mode",
                 "setup_claude_superpowers",
+                "setup_claude_mem",
             ),
             "mac/scripts/ai/gemini.sh": (
                 "setup_gemini_context_mode",
@@ -81,11 +82,11 @@ class ContextModeSetupTest(unittest.TestCase):
         expected_sources = {
             "mac/initialization/ai/claude.sh": (
                 'source "${Repo}mac/scripts/ai/claude.sh"',
-                ("setup_claude_superpowers", "setup_claude_context_mode"),
+                ("setup_claude_superpowers", "setup_claude_context_mode", "setup_claude_mem"),
             ),
             "mac/updates/claude.sh": (
                 'source "${Repo}mac/scripts/ai/claude.sh"',
-                ("setup_claude_superpowers", "setup_claude_context_mode"),
+                ("setup_claude_superpowers", "setup_claude_context_mode", "setup_claude_mem"),
             ),
             "mac/initialization/ai/gemini.sh": (
                 'source "${Repo}mac/scripts/ai/gemini.sh"',
@@ -166,6 +167,50 @@ class ContextModeSetupTest(unittest.TestCase):
 
         self.assertTrue(config["features"]["hooks"])
         self.assertTrue(config["features"]["plugin_hooks"])
+
+    def test_brewfile_installs_bun_for_claude_mem_runtime(self):
+        brewfile = read_text("mac/Brewfile")
+
+        self.assertIn('brew "bun"', brewfile)
+
+    def test_claude_settings_register_claude_mem_plugin(self):
+        settings = json.loads(read_text("ai/claude/settings.json"))
+
+        self.assertTrue(settings["enabledPlugins"]["claude-mem@thedotmack"])
+        self.assertEqual(
+            settings["extraKnownMarketplaces"]["thedotmack"],
+            {
+                "source": {
+                    "repo": "thedotmack/claude-mem",
+                    "source": "github",
+                }
+            },
+        )
+
+    def test_claude_mem_setup_uses_noninteractive_worker_install_and_repair(self):
+        script = read_text("mac/scripts/ai/claude.sh")
+
+        self.assertIn("function setup_claude_mem()", script)
+
+        for command_name in ("claude", "jq", "node", "npm", "uv", "bun"):
+            with self.subTest(command=command_name):
+                self.assertIn(f"require_ai_setup_command {command_name}", script)
+
+        for expected in (
+            "npx --yes claude-mem@latest install",
+            "--ide",
+            "claude-code",
+            "--provider",
+            '"${CLAUDE_MEM_PROVIDER:-claude}"',
+            "--runtime",
+            '"${CLAUDE_MEM_RUNTIME:-worker}"',
+            "npx --yes claude-mem@latest repair",
+            "claude plugin marketplace update thedotmack",
+            "npx --yes claude-mem@latest start",
+            "npx --yes claude-mem@latest status",
+        ):
+            with self.subTest(expected=expected):
+                self.assertIn(expected, script)
 
 
 if __name__ == "__main__":

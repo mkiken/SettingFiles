@@ -1,6 +1,7 @@
 {
   "agentPushNotifEnabled": true,
   "enabledPlugins": {
+    "claude-mem@thedotmack": true,
     "dev-browser@dev-browser-marketplace": true,
     "tsumiki@tsumiki": true
   },
@@ -18,6 +19,12 @@
     "dev-browser-marketplace": {
       "source": {
         "repo": "sawyerhood/dev-browser",
+        "source": "github"
+      }
+    },
+    "thedotmack": {
+      "source": {
+        "repo": "thedotmack/claude-mem",
         "source": "github"
       }
     },
