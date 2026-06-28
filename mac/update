@@ -48,4 +48,4 @@ znap pull
 
 gh extension upgrade --all
 
-zcompile ~/.zshrc
+zcompile "${SET}shell/zsh/managed.zsh"

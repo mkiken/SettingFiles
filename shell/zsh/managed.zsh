@@ -383,7 +383,7 @@ fi
 
 # 自動コンパイル
 # http://blog.n-z.jp/blog/2013-12-10-auto-zshrc-recompile.html
-zcompile_if_needed ~/.zshrc
+zcompile_if_needed "${SET}shell/zsh/managed.zsh"
 
 # ローカル設定（上書き用）
 source_and_zcompile_if_needed ~/.zshrc_local

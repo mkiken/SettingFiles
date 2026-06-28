@@ -131,7 +131,7 @@ alias fp='fullpath'
 alias rp='relpath'
 
 # make new alias
-alias reload='zcompile ~/.zshrc;source ~/.zshrc;echo "zshrc reloaded.";zcompile ~/.zprofile;source ~/.zprofile;echo "zprofile reloaded."'
+alias reload='zcompile "${SET}shell/zsh/managed.zsh";source ~/.zshrc;echo "zshrc reloaded.";zcompile ~/.zprofile;source ~/.zprofile;echo "zprofile reloaded."'
 alias rm_zwc='rm ~/*.zwc;rm ${SET}/shell/zsh/*.zwc;echo "zwc removed."'
 
 # cd shortcuts

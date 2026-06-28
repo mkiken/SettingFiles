@@ -61,6 +61,46 @@ function make_symlink () {
   ln -si "$src" "$dst"
 }
 
+function ensure_settingfiles_zsh_loader() {
+  local zshrc="${1:-$HOME/.zshrc}"
+  local managed_rc="${2:-${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/managed.zsh}"
+  local start_marker="# >>> SettingFiles managed zsh >>>"
+  local end_marker="# <<< SettingFiles managed zsh <<<"
+  local existing_content=""
+  local target_dir
+
+  target_dir="$(dirname "$zshrc")"
+  if [[ ! -d "$target_dir" ]]; then
+    echo "mkdir -p $target_dir"
+    mkdir -p "$target_dir"
+  fi
+
+  if [[ -L "$zshrc" ]]; then
+    echo "rm $zshrc (was -> $(readlink "$zshrc"))"
+    /bin/rm "$zshrc"
+  elif [[ -e "$zshrc" ]]; then
+    existing_content="$(
+      awk -v start="$start_marker" -v end="$end_marker" '
+        $0 == start { skipping = 1; next }
+        $0 == end { skipping = 0; next }
+        !skipping { print }
+      ' "$zshrc"
+    )"
+  fi
+
+  {
+    print -r -- "$start_marker"
+    print -r -- "if [[ -r \"$managed_rc\" ]]; then"
+    print -r -- "  source \"$managed_rc\""
+    print -r -- "fi"
+    print -r -- "$end_marker"
+    if [[ -n "$existing_content" ]]; then
+      print
+      print -r -- "$existing_content"
+    fi
+  } >| "$zshrc"
+}
+
 function homebrew_prefix() {
   if [[ -n "${BREW_PREFIX:-}" ]]; then
     print -r -- "$BREW_PREFIX"

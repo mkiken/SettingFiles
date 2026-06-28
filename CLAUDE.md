@@ -61,7 +61,7 @@ Key symlinks:
 - `ai/claude/_CLAUDE.md` → `~/.claude/CLAUDE.md`
 - `ai/gemini/_GEMINI.md` → `~/.gemini/GEMINI.md`
 - `ai/codex/_AGENTS.md` → `~/.codex/AGENTS.md`
-- `shell/zsh/.zshrc` → `~/.zshrc`
+- `~/.zshrc` loads `shell/zsh/managed.zsh` through a managed loader block
 - `vimfiles/nvim` → `~/.config/nvim`
 - `gitfiles/.gitconfig` → `~/.gitconfig`
 

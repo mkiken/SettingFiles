@@ -4,7 +4,7 @@ source "$(dirname "$0")/../scripts/common.sh"
 
 # Shell
 make_symlink "${Repo_shell}bash/.bash_profile" ~/
-make_symlink "${Repo_shell}zsh/.zshrc" ~/
+ensure_settingfiles_zsh_loader ~/.zshrc "${Repo_shell}zsh/managed.zsh"
 
 # Ghostty
 make_symlink "${Repo}terminal/ghostty/config" ~/.config/ghostty/config
