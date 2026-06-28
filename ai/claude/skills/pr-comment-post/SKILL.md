@@ -20,13 +20,13 @@ Post selected numbered findings from a previous `my:pr-review` result as one Git
 
 ## Workflow
 
-1. Build an internal numbered index from the previous `my:pr-review` output:
-   - Format: `N. [path/to/file.ext:line] Priority | Category: 概要`
-   - Include regular priority sections and `## テストに関する指摘`.
+1. Build an internal numbered index from the previous `my:pr-review` output. The serial numbers assigned by `my:pr-review` are the source of truth: preserve them exactly and never renumber.
+   - Format: `N. [path/to/file.ext:line] Priority | Category: 概要`, where `N` is the original `my:pr-review` serial number for that item.
+   - Include regular priority sections and `## テストに関する指摘`, keeping the single continuous numbering used by `my:pr-review` (do not restart at 1 per section).
    - If `$ARGUMENTS` already has numbers, do not display the full index.
    - If `$ARGUMENTS` is empty, use `AskUserQuestion` to ask which numbers to post and show the available numbered items.
-2. Parse requested numbers from spaces or commas.
-3. For each selected item, extract `file_path`, `line_spec`, `priority`, `category`, and the full description.
+2. Parse requested numbers from spaces or commas. These refer to the original serial numbers from step 1.
+3. For each requested number, look it up in the step 1 index and copy that entry's `file_path`, `line_spec`, `priority`, `category`, and full description verbatim. Do not reconstruct or infer an item's content from its number, and do not reorder or renumber. If a requested number has no matching entry, stop and report the mismatch instead of substituting another item.
    - Priority emoji: High `🔴`, Medium `🟡`, Low `🟢`.
 4. Get PR metadata:
 
@@ -39,15 +39,17 @@ If `gh pr view` fails, ask the user for the PR number. A valid `commit_id` is re
 
 ## Preview And Confirm
 
-Show only the selected posting list:
+Show only the selected posting list, keeping each item's original `my:pr-review` serial number (do not renumber from 1):
 
 ```text
 投稿予定のレビューコメント一覧:
 
-1. [src/auth.ts:42] 🔴 High | Security: トークンがログに露出する可能性
+4. [src/auth.ts:42] 🔴 High | Security: トークンがログに露出する可能性
 ```
 
 Do not display any items that are not in the posting list.
+
+Before asking for confirmation, self-check every item in the posting list: confirm its serial number, `file:line`, and 概要 match the same-numbered entry in the original `my:pr-review` output. If any number, file/line, or summary does not match its source item, stop and report the discrepancy instead of proceeding.
 
 Use `AskUserQuestion`:
 
