@@ -13,4 +13,6 @@ smart_merge_json ~/.gemini/settings.json "${Repo}ai/gemini/settings.json"
 
 setup_ai_skills ~/.gemini/skills "${Repo}ai/common/skills" "${Repo}ai/gemini/skills"
 
+setup_gemini_superpowers
+
 echo "Gemini settings update completed."

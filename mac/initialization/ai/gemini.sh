@@ -60,4 +60,6 @@ setup_ai_skills ~/.gemini/skills "${Repo}ai/common/skills" "${Repo}ai/gemini/ski
 
 chmod +x ~/.gemini/hooks/notification.sh
 
+setup_gemini_superpowers
+
 echo 'Gemini setup completed.'

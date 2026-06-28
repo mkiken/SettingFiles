@@ -54,4 +54,6 @@ done
 # skills はディレクトリ単位でシンボリックリンク（skills/<name>/SKILL.md 構造のため）
 setup_ai_skills ~/.codex/skills "${Repo}ai/common/skills" "${Repo}ai/codex/skills"
 
+setup_codex_superpowers
+
 echo "Codex tools update completed."

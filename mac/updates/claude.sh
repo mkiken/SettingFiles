@@ -12,5 +12,6 @@ smart_merge_json ~/.claude/settings.json "${Repo}ai/claude/settings.json"
 setup_ai_skills ~/.claude/skills "${Repo}ai/common/skills" "${Repo}ai/claude/skills"
 
 claude update
+setup_claude_superpowers
 
 echo "Claude tools update completed."
