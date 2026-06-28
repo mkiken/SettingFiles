@@ -6,6 +6,7 @@ suppress_unstable_features_warning = true
 
 [features]
 hooks = true
+plugin_hooks = true
 apps = false
 terminal_resize_reflow = true
 # request_user_input の待機中は Codex の hook event が発火しないため無効化する。

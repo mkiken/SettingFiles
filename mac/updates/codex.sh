@@ -55,5 +55,6 @@ done
 setup_ai_skills ~/.codex/skills "${Repo}ai/common/skills" "${Repo}ai/codex/skills"
 
 setup_codex_superpowers
+setup_codex_context_mode
 
 echo "Codex tools update completed."

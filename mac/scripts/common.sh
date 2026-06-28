@@ -67,6 +67,89 @@ function require_ai_setup_command() {
   fi
 }
 
+function require_context_mode_node() {
+  require_ai_setup_command node || return 1
+  require_ai_setup_command npm || return 1
+
+  node -e '
+const [major, minor] = process.versions.node.split(".").map(Number);
+if (major < 22 || (major === 22 && minor < 5)) {
+  console.error(`Error: context-mode requires Node.js >= 22.5.0. Found ${process.versions.node}.`);
+  process.exit(1);
+}
+'
+}
+
+function setup_context_mode_cli() {
+  if [[ "${CONTEXT_MODE_CLI_SETUP_DONE:-}" == "1" ]]; then
+    echo "✓ context-mode CLI already handled for this run."
+    return 0
+  fi
+
+  echo "Ensuring context-mode CLI..."
+
+  require_context_mode_node || return 1
+
+  npm install -g context-mode@latest || return 1
+
+  export CONTEXT_MODE_CLI_SETUP_DONE=1
+}
+
+function setup_claude_context_mode() {
+  echo "Ensuring Claude context-mode plugin..."
+
+  setup_context_mode_cli || return 1
+  require_ai_setup_command claude || return 1
+  require_ai_setup_command jq || return 1
+
+  if ! claude plugin marketplace list | /usr/bin/grep -Fq "context-mode"; then
+    claude plugin marketplace add mksglu/context-mode || return 1
+  fi
+
+  claude plugin marketplace update context-mode || return 1
+
+  if claude plugin list --json | jq -e '.[] | select(.id == "context-mode@context-mode")' >/dev/null; then
+    claude plugin update context-mode@context-mode || return 1
+  else
+    claude plugin install context-mode@context-mode || return 1
+  fi
+
+  if ! claude plugin list --json | jq -e '.[] | select(.id == "context-mode@context-mode" and .enabled == true)' >/dev/null; then
+    claude plugin enable context-mode@context-mode || return 1
+  fi
+}
+
+function setup_gemini_context_mode() {
+  echo "Ensuring Gemini context-mode CLI..."
+
+  setup_context_mode_cli || return 1
+  require_ai_setup_command jq || return 1
+
+  smart_merge_json "${Repo}ai/gemini/settings.json" ~/.gemini/settings.json
+}
+
+function setup_codex_context_mode() {
+  echo "Ensuring Codex context-mode plugin..."
+
+  setup_context_mode_cli || return 1
+  require_ai_setup_command codex || return 1
+  require_ai_setup_command jq || return 1
+
+  smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml || return 1
+
+  if ! codex plugin marketplace list | /usr/bin/grep -Fq "context-mode"; then
+    codex plugin marketplace add mksglu/context-mode || return 1
+  fi
+
+  codex plugin marketplace upgrade context-mode >/dev/null 2>&1 || true
+
+  if codex plugin list --json | jq -e '.installed[]? | select(.pluginId == "context-mode@context-mode" or (.name == "context-mode" and .marketplaceName == "context-mode"))' >/dev/null; then
+    echo "✓ Codex context-mode plugin already installed."
+  else
+    codex plugin add context-mode@context-mode || return 1
+  fi
+}
+
 function setup_claude_superpowers() {
   echo "Ensuring Claude Superpowers plugin..."
 

@@ -27,6 +27,28 @@
     "vimMode": true
   },
   "hooks": {
+    "AfterModel": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "context-mode hook gemini-cli aftermodel"
+          }
+        ]
+      }
+    ],
+    "AfterTool": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "context-mode hook gemini-cli aftertool"
+          }
+        ]
+      }
+    ],
     "AfterAgent": [
       {
         "matcher": "",
@@ -55,6 +77,15 @@
     ],
     "BeforeTool": [
       {
+        "matcher": "run_shell_command|read_file|read_many_files|grep_search|search_file_content|web_fetch|activate_skill|mcp__plugin_context-mode",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "context-mode hook gemini-cli beforetool"
+          }
+        ]
+      },
+      {
         "matcher": "",
         "hooks": [
           {
@@ -79,6 +110,28 @@
         ]
       }
     ],
+    "PreCompress": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "context-mode hook gemini-cli precompress"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "context-mode hook gemini-cli sessionstart"
+          }
+        ]
+      }
+    ],
     "SessionEnd": [
       {
         "matcher": "",
@@ -94,7 +147,11 @@
   "ide": {
     "enabled": true
   },
-  "mcpServers": {},
+  "mcpServers": {
+    "context-mode": {
+      "command": "context-mode"
+    }
+  },
   "model": {
     "name": ""
   },
