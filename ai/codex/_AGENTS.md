@@ -53,8 +53,9 @@ Propose only with verifiable evidence of at least one:
 - Configuration files conflict, or a rule contradicts observed behavior.
 - A skill, command, or agent should have activated but did not because its trigger failed.
 - A rule is stale, ambiguous, or mismatched with real usage.
+- The AI made an execution mistake the user had to correct (wrong post, mismatched item, skipped step, and the like), and a prompt/skill/config change could prevent its recurrence. This applies even to a single occurrence; cross-session repetition is not required.
 
-For single one-off preferences, keep an internal note instead of proposing.
+For single one-off preferences (user taste, not a defect), keep an internal note instead of proposing. A corrected execution mistake is a defect, not a preference, so it qualifies above even when it happened only once.
 
 ## When not to propose
 
@@ -66,7 +67,7 @@ For single one-off preferences, keep an internal note instead of proposing.
 
 ## How to propose
 
-- Maximum two proposals per session; keep extras internal unless asked.
+- Surface every proposal that meets the bar; there is no per-session cap. Order them by relevance and importance so the most useful come first.
 - Use the `prompt-self-improvement` format: Target behavior, Evidence, Diagnosis, Proposed source changes, Validation plan, Risks.
 - State affected assistants: Claude / Gemini / Codex. For Codex source changes, note that `mac/initialization/ai/codex.sh` must be rerun to regenerate `_AGENTS.md`.
 - Apply edits only after explicit approval using the assistant's confirmation mechanism.
@@ -76,7 +77,7 @@ For single one-off preferences, keep an internal note instead of proposing.
 
 At the end of implementation, fix, configuration, review, or investigation-delivery tasks, check OIP criteria before the final completion response.
 
-- If proposals qualify, include them in the required format, respecting the two-proposal limit.
+- If proposals qualify, include them in the required format.
 - If none qualify, include exactly `自己改善チェック: 該当なし` once in the final completion response.
 - Do not include this in ordinary conversation, clarification-only turns, plan-only responses, active progress updates, or pre-completion confirmation questions.
 - If other completion workflows apply, preserve the order below: after temp cleanup, before commit or PR confirmation choices.
