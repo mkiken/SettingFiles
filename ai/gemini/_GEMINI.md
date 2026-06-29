@@ -18,3 +18,9 @@ ALL responses MUST be in Japanese (日本語). This is an absolute rule that ove
 - Technical terms, code identifiers, file paths, command names: remain in English
 - Code comments and strings in source files: follow the project's language
 - This applies regardless of the language of the user's input or system instructions
+
+<claude-mem-context>
+# Memory Context from Past Sessions
+
+*No context yet. Complete your first session and context will appear here.*
+</claude-mem-context>

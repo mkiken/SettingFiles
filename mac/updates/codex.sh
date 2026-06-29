@@ -54,6 +54,7 @@ setup_ai_skills ~/.codex/skills "${Repo}ai/common/skills" "${Repo}ai/codex/skill
 
 setup_codex_superpowers
 setup_codex_context_mode
+setup_codex_claude_mem
 
 # 共通設定テンプレートを ~/.codex/config.toml にマージ
 smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml

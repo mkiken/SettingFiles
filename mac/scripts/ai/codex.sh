@@ -1,5 +1,7 @@
 #!/bin/zsh
 
+source "${Repo}mac/scripts/ai/claude_mem.sh"
+
 function setup_codex_context_mode() {
   echo "Ensuring Codex context-mode plugin..."
 
@@ -38,4 +40,13 @@ function setup_codex_superpowers() {
   else
     codex plugin add superpowers@openai-curated || return 1
   fi
+}
+
+function setup_codex_claude_mem() {
+  echo "Ensuring Codex claude-mem plugin..."
+
+  require_ai_setup_command codex || return 1
+
+  setup_claude_mem_for_ide codex-cli || return 1
+  setup_claude_mem_runtime || return 1
 }

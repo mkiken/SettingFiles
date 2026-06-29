@@ -65,10 +65,12 @@ class ContextModeSetupTest(unittest.TestCase):
             "mac/scripts/ai/gemini.sh": (
                 "setup_gemini_context_mode",
                 "setup_gemini_superpowers",
+                "setup_gemini_claude_mem",
             ),
             "mac/scripts/ai/codex.sh": (
                 "setup_codex_context_mode",
                 "setup_codex_superpowers",
+                "setup_codex_claude_mem",
             ),
         }
 
@@ -90,24 +92,36 @@ class ContextModeSetupTest(unittest.TestCase):
             ),
             "mac/initialization/ai/gemini.sh": (
                 'source "${Repo}mac/scripts/ai/gemini.sh"',
-                ("setup_gemini_superpowers", "setup_gemini_context_mode"),
+                ("setup_gemini_superpowers", "setup_gemini_context_mode", "setup_gemini_claude_mem"),
             ),
             "mac/updates/gemini.sh": (
                 'source "${Repo}mac/scripts/ai/gemini.sh"',
-                ("setup_gemini_superpowers", "setup_gemini_context_mode"),
+                ("setup_gemini_superpowers", "setup_gemini_context_mode", "setup_gemini_claude_mem"),
             ),
             "mac/initialization/ai/codex.sh": (
                 'source "${Repo}mac/scripts/ai/codex.sh"',
-                ("setup_codex_superpowers", "setup_codex_context_mode"),
+                ("setup_codex_superpowers", "setup_codex_context_mode", "setup_codex_claude_mem"),
             ),
             "mac/updates/codex.sh": (
                 'source "${Repo}mac/scripts/ai/codex.sh"',
-                ("setup_codex_superpowers", "setup_codex_context_mode"),
+                ("setup_codex_superpowers", "setup_codex_context_mode", "setup_codex_claude_mem"),
             ),
         }
 
         for script_path, (source_line, call_lines) in expected_sources.items():
             self.assert_source_before_call(script_path, source_line, call_lines)
+
+    def test_assistant_setup_scripts_source_shared_claude_mem_helpers(self):
+        for script_path in (
+            "mac/scripts/ai/claude.sh",
+            "mac/scripts/ai/codex.sh",
+            "mac/scripts/ai/gemini.sh",
+        ):
+            with self.subTest(script=script_path):
+                self.assertIn(
+                    'source "${Repo}mac/scripts/ai/claude_mem.sh"',
+                    read_text(script_path),
+                )
 
     def test_context_mode_functions_apply_local_settings(self):
         gemini = read_text("mac/scripts/ai/gemini.sh")
@@ -209,31 +223,46 @@ class ContextModeSetupTest(unittest.TestCase):
         )
 
     def test_claude_mem_setup_uses_noninteractive_worker_install_and_repair(self):
-        script = read_text("mac/scripts/ai/claude.sh")
+        script = read_text("mac/scripts/ai/claude_mem.sh")
+        claude_script = read_text("mac/scripts/ai/claude.sh")
 
-        self.assertIn("function setup_claude_mem()", script)
+        self.assertIn("function setup_claude_mem_for_ide()", script)
+        self.assertIn("function setup_claude_mem_runtime()", script)
+        self.assertIn("function setup_claude_mem()", claude_script)
 
-        for command_name in ("claude", "jq", "node", "npm", "uv", "bun"):
+        for command_name in ("node", "npm", "uv", "bun"):
             with self.subTest(command=command_name):
                 self.assertIn(f"require_ai_setup_command {command_name}", script)
 
         for expected in (
             "npx --yes claude-mem@latest install",
             "--ide",
-            "claude-code",
             "--provider",
             '"${CLAUDE_MEM_PROVIDER:-claude}"',
             "--runtime",
             '"${CLAUDE_MEM_RUNTIME:-worker}"',
             "npx --yes claude-mem@latest repair",
-            "claude plugin marketplace update thedotmack",
             "npx --yes claude-mem@latest start",
             "npx --yes claude-mem@latest status",
         ):
             with self.subTest(expected=expected):
                 self.assertIn(expected, script)
 
+        self.assertIn('setup_claude_mem_for_ide claude-code', claude_script)
+        self.assertIn("claude plugin marketplace update thedotmack", claude_script)
         self.assertEqual(2, script.count("< /dev/null || return 1"))
+
+    def test_codex_and_gemini_claude_mem_setup_use_supported_ide_ids(self):
+        codex = read_text("mac/scripts/ai/codex.sh")
+        gemini = read_text("mac/scripts/ai/gemini.sh")
+
+        self.assertIn("function setup_codex_claude_mem()", codex)
+        self.assertIn("setup_claude_mem_for_ide codex-cli", codex)
+        self.assertIn("setup_claude_mem_runtime", codex)
+
+        self.assertIn("function setup_gemini_claude_mem()", gemini)
+        self.assertIn("setup_claude_mem_for_ide gemini-cli", gemini)
+        self.assertIn("setup_claude_mem_runtime", gemini)
 
 
 if __name__ == "__main__":

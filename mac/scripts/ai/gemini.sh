@@ -1,5 +1,7 @@
 #!/bin/zsh
 
+source "${Repo}mac/scripts/ai/claude_mem.sh"
+
 function setup_gemini_context_mode() {
   echo "Ensuring Gemini context-mode CLI..."
 
@@ -21,4 +23,13 @@ function setup_gemini_superpowers() {
   fi
 
   gemini extensions enable superpowers || return 1
+}
+
+function setup_gemini_claude_mem() {
+  echo "Ensuring Gemini claude-mem hooks..."
+
+  require_ai_setup_command gemini || return 1
+
+  setup_claude_mem_for_ide gemini-cli || return 1
+  setup_claude_mem_runtime || return 1
 }
