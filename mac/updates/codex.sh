@@ -13,9 +13,6 @@ npm i -g @openai/codex@latest
 setup_ai_mcp update
 setup_ai_pr_tools
 
-# 共通設定テンプレートを ~/.codex/config.toml にマージ
-smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml
-
 # 共通プロンプトの更新を _AGENTS.md に反映
 { /bin/cat "${Repo}ai/common/prompt_base.md"; echo; /bin/cat "${Repo}ai/common/characters/nyaruko.md"; echo; /bin/cat "${Repo}ai/codex/codex_base.md"; } > "${Repo}ai/codex/_AGENTS.md"
 
@@ -57,5 +54,8 @@ setup_ai_skills ~/.codex/skills "${Repo}ai/common/skills" "${Repo}ai/codex/skill
 
 setup_codex_superpowers
 setup_codex_context_mode
+
+# 共通設定テンプレートを ~/.codex/config.toml にマージ
+smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml
 
 echo "Codex tools update completed."

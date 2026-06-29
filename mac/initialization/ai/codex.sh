@@ -13,9 +13,6 @@ npm install -g @openai/codex
 setup_ai_mcp install
 setup_ai_pr_tools
 
-# 共通設定テンプレートを ~/.codex/config.toml にマージ
-smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml
-
 # 共通プロンプトを連結して _AGENTS.md を生成し、~/.codex/AGENTS.md にシンボリックリンク
 { /bin/cat "${Repo}ai/common/prompt_base.md"; echo; /bin/cat "${Repo}ai/common/characters/nyaruko.md"; echo; /bin/cat "${Repo}ai/codex/codex_base.md"; } > "${Repo}ai/codex/_AGENTS.md"
 make_symlink "${Repo}ai/codex/_AGENTS.md" ~/.codex/AGENTS.md
@@ -60,5 +57,8 @@ setup_codex_superpowers
 setup_codex_context_mode
 
 npm install -g @nogataka/ccresume-codex
+
+# 共通設定テンプレートを ~/.codex/config.toml にマージ
+smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml
 
 echo "Codex setup completed."

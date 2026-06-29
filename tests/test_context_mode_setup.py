@@ -117,10 +117,31 @@ class ContextModeSetupTest(unittest.TestCase):
             'smart_merge_json "${Repo}ai/gemini/settings.json" ~/.gemini/settings.json',
             gemini,
         )
-        self.assertIn(
+        self.assertNotIn(
             'smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml',
             codex,
         )
+
+    def test_codex_setup_and_update_merge_config_once_after_setup_steps(self):
+        merge_line = 'smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml'
+        expected_order = {
+            "mac/initialization/ai/codex.sh": (
+                "setup_codex_context_mode",
+                "npm install -g @nogataka/ccresume-codex",
+            ),
+            "mac/updates/codex.sh": ("setup_codex_context_mode",),
+        }
+
+        for script_path, earlier_lines in expected_order.items():
+            script = read_text(script_path)
+            with self.subTest(script=script_path):
+                self.assertEqual(script.count(merge_line), 1)
+
+                merge_index = script.index(merge_line)
+                for earlier_line in earlier_lines:
+                    self.assertLess(script.index(earlier_line), merge_index)
+
+                self.assertLess(merge_index, script.index("echo \"Codex"))
 
     def test_gemini_settings_register_context_mode_mcp_and_hooks(self):
         settings = json.loads(read_text("ai/gemini/settings.json"))

@@ -7,8 +7,6 @@ function setup_codex_context_mode() {
   require_ai_setup_command codex || return 1
   require_ai_setup_command jq || return 1
 
-  smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml || return 1
-
   if ! codex plugin marketplace list | /usr/bin/grep -Fq "context-mode"; then
     codex plugin marketplace add mksglu/context-mode || return 1
   fi
