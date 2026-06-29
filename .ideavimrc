@@ -106,17 +106,17 @@ nnoremap [d :action GotoPreviousError<CR>
 
 " ケース変換 (String Manipulation plugin)
 nmap crx <Action>(StringManipulation.ToSnakeCaseOrCamelCase)
-xmap crx <Action>(StringManipulation.ToSnakeCaseOrCamelCase)
+xmap gcrx <Action>(StringManipulation.ToSnakeCaseOrCamelCase)
 nmap crs <Action>(StringManipulation.ToSnakeCase)
-xmap crs <Action>(StringManipulation.ToSnakeCase)
+xmap gcrs <Action>(StringManipulation.ToSnakeCase)
 nmap crc <Action>(StringManipulation.ToCamelCase)
-xmap crc <Action>(StringManipulation.ToCamelCase)
+xmap gcrc <Action>(StringManipulation.ToCamelCase)
 nmap crp <Action>(StringManipulation.ToPascalCase)
-xmap crp <Action>(StringManipulation.ToPascalCase)
+xmap gcrp <Action>(StringManipulation.ToPascalCase)
 nmap crk <Action>(StringManipulation.ToKebabCase)
-xmap crk <Action>(StringManipulation.ToKebabCase)
+xmap gcrk <Action>(StringManipulation.ToKebabCase)
 nmap cru <Action>(StringManipulation.ToScreamingSnakeCase)
-xmap cru <Action>(StringManipulation.ToScreamingSnakeCase)
+xmap gcru <Action>(StringManipulation.ToScreamingSnakeCase)
 
 " システムクリップボード操作
 nnoremap <leader>y "+y
