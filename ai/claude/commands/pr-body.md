@@ -11,6 +11,8 @@ argument-hint: [prNumber]
   - If it does not exist, use the default section format defined below.
 - First, fetch and review the existing PR body using `gh pr view $ARGUMENTS --json body`
   - If the existing body contains meaningful information (not just template text), preserve and incorporate it
+  - Treat manually written TODOs, FIXME notes, free-form notes, incomplete checklists, HTML comments, review requests, and useful background context as meaningful information
+  - Do not delete manually written existing content just because it is outside the generated section structure. Keep it in the closest matching section, or move it to **Additional Notes** when no better section exists
   - Template-only content (placeholders, empty sections) can be discarded
 - Use the gh command to fetch and analyze PR #$ARGUMENTS
   - Generate content suitable for PR body
@@ -43,6 +45,7 @@ After generating the PR body content:
      ```
    - If existing body is empty/template-only: display "(既存bodyは空またはテンプレートのみのため、全て新規追加)"
    - Keep diff concise: for very large changes, summarize with key sections
+   - Before asking for confirmation, check that manually written TODOs, notes, incomplete checklist items, HTML comments, review requests, and background context from the existing body were not removed. If any were removed, revise the generated body first
 
 3. Use AskUserQuestion to confirm: "このPR bodyをPR #$ARGUMENTS に反映しますか？"
    - Options: "はい、反映する" / "いいえ、表示のみ"

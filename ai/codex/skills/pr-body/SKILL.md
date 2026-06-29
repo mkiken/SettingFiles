@@ -43,8 +43,13 @@ default section format below.
 
 - Describe the final state at `HEAD`, not intermediate commits, reverted work,
   or trial-and-error.
-- Preserve meaningful information from the existing PR body.
+- Preserve meaningful information from the existing PR body. This includes
+  manually written TODOs, FIXME notes, free-form notes, incomplete checklists,
+  HTML comments, review requests, and useful background context.
 - Treat placeholder-only or template-only content as disposable.
+- Do not delete manually written existing content just because it is outside the
+  generated section structure. Keep it in the closest matching section, or move
+  it to `Additional Notes` when no better section exists.
 - Preserve a non-default `Review Focus Points` section exactly when the existing
   body contains content other than empty text or `特になし`.
 - Write `特になし` for `Review Focus Points` only when creating a new body or
@@ -100,6 +105,11 @@ If the existing body is empty or template-only, display:
 ```text
 (既存bodyは空またはテンプレートのみのため、全て新規追加)
 ```
+
+Before asking for confirmation, check the diff and confirm that manually written
+TODOs, notes, incomplete checklist items, HTML comments, review requests, and
+background context from the existing body were not removed. If any were removed,
+revise the generated body before asking.
 
 Ask in plain text:
 
