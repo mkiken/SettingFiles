@@ -3,73 +3,44 @@ prompt = """Analyze PR review comments for {{args}}.
 
 **Arguments**: first token = PR comment URL ($COMMENT_URL); rest = user instructions ($PROMPT).
 
-## Step 1: Parse the Comment URL
+## Gather Context
 
-Extract comment type, ID, owner, repo, and pull_number from $COMMENT_URL (`https://github.com/{owner}/{repo}/pull/{pull_number}#...`):
-- If URL contains `#issuecomment-{id}` → Issue Comment (comment on PR as a whole)
-- If URL contains `#discussion_r{id}` → Review Comment (comment on code lines)
+Extract comment type, ID, owner, repo, and pull_number from $COMMENT_URL:
+- If URL contains `#issuecomment-{id}` -> Issue Comment (comment on PR as a whole)
+- If URL contains `#discussion_r{id}` -> Review Comment (comment on code lines)
 
-## Step 2: Fetch Baseline Data
-
-After parsing, fetch all PR comments as baseline with `run_shell_command`:
+Fetch baseline PR comments with `run_shell_command`:
 `gh pr view {pull_number} --comments`
 
-## Step 3: Fetch the Target Comment
-
-Run the API matching the parsed URL:
-
-- Issue Comment:
-  ```bash
-  gh api repos/{owner}/{repo}/issues/comments/{comment_id}
-  ```
-- Review Comment:
-  ```bash
-  gh api repos/{owner}/{repo}/pulls/comments/{comment_id}
-  ```
-
-Note: These dynamic API calls will require user confirmation during execution (Gemini CLI limitation).
-
-## Step 4: Fetch Thread Context
-
-For Review Comment, fetch all PR review comments and reconstruct the target thread with `in_reply_to_id`:
+Run only the API calls matching the parsed target:
 
 ```bash
+gh api repos/{owner}/{repo}/issues/comments/{comment_id}
+gh api repos/{owner}/{repo}/pulls/comments/{comment_id}
 gh api repos/{owner}/{repo}/pulls/{pull_number}/comments
 ```
 
+Note: These dynamic API calls will require user confirmation during execution (Gemini CLI limitation).
+
+For Review Comment, reconstruct the target thread with `in_reply_to_id`.
 For Issue Comment, target is typically standalone.
 
-## Step 5: Focused Analysis
+## Focused Analysis
 
 Analyze the URL's **target comment** first; use related comments only as context.
 Output detailed Japanese analysis in this structure:
 
 ### **Target Comment Details**
-
-- **Author**:
-- **Posted at**:
-- **Location**: file path/line, if any
-- **Content**:
+Author / Posted at / Location / Content
 
 ### **Deep Analysis**
-
-Based on $PROMPT, cover:
-
-- Intent and purpose
-- Pointed-out issues
-- Technical background and reasoning
-- Recommended response
+Intent / pointed-out issues / technical reasoning / recommended response
 
 ### **Related Discussion**
-
-- Same-thread discussion flow
-- Relationship to the target comment
+Same-thread discussion flow / relationship to the target comment
 
 ### **Recommended Actions**
-
-- Specific actions
-- Priority and direction
+Specific actions / priority and direction
 
 ### **Additional Notes**
-
-- Other important information"""
+Other important information"""

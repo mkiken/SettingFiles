@@ -25,76 +25,41 @@ $pr-comment-review <PR_COMMENT_URL> [analysis instructions...]
 
 ## Workflow
 
-### Parse the URL
-
-Extract `OWNER`, `REPO`, and `PULL_NUMBER` from:
-
-```text
-https://github.com/{owner}/{repo}/pull/{pull_number}#...
-```
-
-Classify the fragment:
+Parse `OWNER`, `REPO`, `PULL_NUMBER`, fragment type, and ID from
+`https://github.com/{owner}/{repo}/pull/{pull_number}#...`.
 
 - `#issuecomment-<id>`: standalone PR conversation comment.
 - `#discussion_r<id>`: inline review comment.
-- `#pullrequestreview-<id>`: pull request review summary and its inline comments.
+- `#pullrequestreview-<id>`: pull request review summary and inline comments.
 
 If no supported fragment exists, fetch the PR discussion and say no single target
 comment could be identified.
 
-### Fetch Baseline PR Context
-
-Gather visible PR discussion first:
+Gather only the context needed for the parsed target:
 
 ```bash
+# Baseline PR discussion
 gh pr view "$COMMENT_URL" --comments
-```
-
-If the URL cannot be resolved, use the parsed values:
-
-```bash
 gh pr view "$PULL_NUMBER" --repo "$OWNER/$REPO" --comments
-```
 
-### Fetch the Target
-
-Use the API matching the fragment:
-
-```bash
-# Standalone PR conversation comment
+# Target comment or review
 gh api "repos/${OWNER}/${REPO}/issues/comments/${COMMENT_ID}"
-
-# Inline review comment
 gh api "repos/${OWNER}/${REPO}/pulls/comments/${COMMENT_ID}"
-
-# Pull request review summary
 gh api "repos/${OWNER}/${REPO}/pulls/${PULL_NUMBER}/reviews/${REVIEW_ID}"
 gh api "repos/${OWNER}/${REPO}/pulls/${PULL_NUMBER}/reviews/${REVIEW_ID}/comments"
-```
 
-For `#pullrequestreview-<id>`: with one inline comment, analyze it and use the
-summary as context; with multiple, analyze the review as a group unless `PROMPT`
-asks for one item, then show candidates and ask; with none, analyze the summary.
-
-### Fetch Thread Context
-
-For an inline review comment, fetch all inline PR comments:
-
-```bash
+# Inline review thread reconstruction
 gh api "repos/${OWNER}/${REPO}/pulls/${PULL_NUMBER}/comments"
 ```
 
-Reconstruct the target thread:
-
-- Root is the target if it has no `in_reply_to_id`; otherwise root is the comment
-  whose `id` equals `in_reply_to_id`.
-- Thread replies are comments whose `in_reply_to_id` equals the root comment ID.
-- Sort the root and replies by `created_at`.
-
-For standalone PR conversation comments, treat the target as standalone and use
-the baseline discussion only as context.
-
-### Inspect Code When Needed
+- Use the parsed PR-number form if the URL form fails.
+- For inline comments, reconstruct the root and replies from `in_reply_to_id`,
+  then sort by `created_at`.
+- For standalone comments, use the target plus baseline discussion.
+- For `#pullrequestreview-<id>`, analyze the single inline comment if there is
+  one; analyze the review as a group if there are multiple; analyze the summary
+  if there are none. If `PROMPT` asks for one item among many, show candidates
+  and ask which one.
 
 If the comment references a path, line, symbol, behavior, or failing test, inspect
 the current repo before concluding. If it points to stale code, locate the current
@@ -110,36 +75,19 @@ Use this structure:
 
 ```markdown
 ## 対象コメント
-
-- URL:
-- 種別: issue comment / review comment / pull request review
-- 投稿者:
-- 投稿日時:
-- 場所: path:line, review summary, or PR conversation
-- 内容:
+URL / 種別 / 投稿者 / 投稿日時 / 場所 / 内容
 
 ## 深掘り分析
-
-- 意図:
-- 指摘内容:
-- 技術的根拠:
-- 妥当性:
+意図 / 指摘内容 / 技術的根拠 / 妥当性
 
 ## 関連議論
-
-- 同一スレッドまたは同一レビュー内の流れ:
-- 対象コメントとの関係:
+同一スレッドまたは同一レビュー内の流れ / 対象コメントとの関係
 
 ## 推奨対応
-
-- 優先度:
-- 具体的な対応:
-- 返信方針:
+優先度 / 具体的な対応 / 返信方針
 
 ## 補足
-
-- 不明点:
-- 追加で確認すべき情報:
+不明点 / 追加で確認すべき情報
 ```
 
 If the comment is incorrect, too broad, stale, or already addressed, say so with
