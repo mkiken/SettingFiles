@@ -49,17 +49,20 @@ gh api "repos/${OWNER}/${REPO}/pulls/${PULL_NUMBER}/reviews/${REVIEW_ID}"
 gh api "repos/${OWNER}/${REPO}/pulls/${PULL_NUMBER}/reviews/${REVIEW_ID}/comments"
 
 # Inline review thread reconstruction
-gh api "repos/${OWNER}/${REPO}/pulls/${PULL_NUMBER}/comments"
+gh api "repos/${OWNER}/${REPO}/pulls/${PULL_NUMBER}/comments" --paginate
 ```
 
 - Use the parsed PR-number form if the URL form fails.
-- For inline comments, reconstruct the root and replies from `in_reply_to_id`,
-  then sort by `created_at`.
+- For inline comments, always read the complete target review thread, not only
+  the URL comment. Fetch the target comment, set `ROOT_COMMENT_ID` to
+  `in_reply_to_id` when present or the target `id` otherwise, then filter all PR
+  review comments to the root plus replies and sort them by `created_at`.
 - For standalone comments, use the target plus baseline discussion.
 - For `#pullrequestreview-<id>`, analyze the single inline comment if there is
   one; analyze the review as a group if there are multiple; analyze the summary
   if there are none. If `PROMPT` asks for one item among many, show candidates
-  and ask which one.
+  and ask which one. When a concrete inline comment is selected, reconstruct and
+  read that comment's complete review thread before concluding.
 
 If the comment references a path, line, symbol, behavior, or failing test, inspect
 the current repo before concluding. If it points to stale code, locate the current
@@ -70,6 +73,8 @@ Do not change repository files.
 ## Output
 
 Respond in Japanese. Focus on the URL target; related comments are context.
+If same-thread comments add corrections, constraints, or implementation intent,
+include that information in the analysis and recommendation.
 
 Use this structure:
 

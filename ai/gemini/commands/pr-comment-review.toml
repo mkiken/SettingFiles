@@ -8,6 +8,7 @@ prompt = """Analyze PR review comments for {{args}}.
 Extract comment type, ID, owner, repo, and pull_number from $COMMENT_URL:
 - If URL contains `#issuecomment-{id}` -> Issue Comment (comment on PR as a whole)
 - If URL contains `#discussion_r{id}` -> Review Comment (comment on code lines)
+- If URL contains `#pullrequestreview-{id}` -> Pull Request Review summary and inline comments
 
 Fetch baseline PR comments with `run_shell_command`:
 `gh pr view {pull_number} --comments`
@@ -17,17 +18,28 @@ Run only the API calls matching the parsed target:
 ```bash
 gh api repos/{owner}/{repo}/issues/comments/{comment_id}
 gh api repos/{owner}/{repo}/pulls/comments/{comment_id}
-gh api repos/{owner}/{repo}/pulls/{pull_number}/comments
+gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}
+gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/comments
+gh api repos/{owner}/{repo}/pulls/{pull_number}/comments --paginate
 ```
 
 Note: These dynamic API calls will require user confirmation during execution (Gemini CLI limitation).
 
-For Review Comment, reconstruct the target thread with `in_reply_to_id`.
+For Review Comment, always read the complete target thread, not only the URL
+comment. Fetch the target comment, set `ROOT_COMMENT_ID` to `in_reply_to_id`
+when present or the target `id` otherwise, then filter all PR review comments to
+the root plus replies and sort them by `created_at`.
+For Pull Request Review, analyze the single inline comment if there is one;
+analyze the review as a group if there are multiple; analyze the summary if
+there are none. When a concrete inline comment is selected, reconstruct and read
+that comment's complete review thread before concluding.
 For Issue Comment, target is typically standalone.
 
 ## Focused Analysis
 
 Analyze the URL's **target comment** first; use related comments only as context.
+If same-thread comments add corrections, constraints, or implementation intent,
+include that information in the analysis and recommendation.
 Output detailed Japanese analysis in this structure:
 
 ### **Target Comment Details**

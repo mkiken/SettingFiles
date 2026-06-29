@@ -47,6 +47,22 @@ Parse `PR_URL`, extracting `OWNER`, `REPO`, `PULL_NUMBER`, then classify:
 - `#issuecomment-<id>` or no fragment: standalone PR conversation comment;
   fetch issue comments as needed.
 
+For any concrete inline review comment target (`#discussion_r<id>` or a selected
+comment from `#pullrequestreview-<id>`), read the complete same review thread
+before proposing changes:
+
+1. Fetch the target comment.
+2. Set `ROOT_COMMENT_ID` to `in_reply_to_id` when present or the target `id`
+   otherwise.
+3. Fetch all PR review comments with
+   `gh api "repos/${OWNER}/${REPO}/pulls/${PULL_NUMBER}/comments" --paginate`.
+4. Filter to comments where `id == ROOT_COMMENT_ID` or
+   `in_reply_to_id == ROOT_COMMENT_ID`, then sort by `created_at`.
+
+Treat the URL target as primary, but use same-thread comments as required
+context. If replies add corrections, scope, or implementation intent, reflect
+that in the design before editing.
+
 For `#pullrequestreview-<id>`:
 
 - If exactly one inline comment exists, use it as the thread target.

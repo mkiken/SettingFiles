@@ -20,6 +20,29 @@ effort: max
 Analyze the target comment, `$PROMPT`, affected files, and surrounding code
 before designing the change.
 
+During this phase, parse `$PR_URL`, extract `OWNER`, `REPO`, `PULL_NUMBER`, and
+classify the fragment. For `#discussion_r{id}`, use that id as `COMMENT_ID`.
+For `#pullrequestreview-{review_id}`, fetch inline comments; use the only
+comment as `COMMENT_ID`, ask the user to choose when there are multiple, and
+treat the review as standalone when there are none.
+
+For a concrete inline review comment target (`#discussion_r{id}` or a selected
+comment from `#pullrequestreview-{review_id}`), always read the complete same
+review thread before designing the change:
+
+1. Fetch the target comment with
+   `gh api "repos/${OWNER}/${REPO}/pulls/comments/${COMMENT_ID}"`.
+2. Set `ROOT_COMMENT_ID` to `in_reply_to_id` when present or the target `id`
+   otherwise.
+3. Fetch all PR review comments with
+   `gh api "repos/${OWNER}/${REPO}/pulls/${PULL_NUMBER}/comments" --paginate`.
+4. Filter to comments where `id == ROOT_COMMENT_ID` or
+   `in_reply_to_id == ROOT_COMMENT_ID`, then sort by `created_at`.
+
+Treat the URL target as primary, but use same-thread comments as required
+context. If replies add corrections, constraints, or implementation intent,
+reflect that in the design before editing.
+
 ### Phase 2: Design Review (MANDATORY)
 
 Before editing, present a Japanese design covering:
