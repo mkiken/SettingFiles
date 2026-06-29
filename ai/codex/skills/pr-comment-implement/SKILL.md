@@ -98,10 +98,26 @@ Before editing, present this Japanese design and wait for explicit approval:
 - リスク:
 - 確認方法:
 
+### PR返信引き継ぎ
+- Reply方式: thread reply / standalone / なし
+- Reply target: <comment_id or pull number, or なし>
+- Resolve候補: <thread id and unresolved status, or why resolve is unavailable>
+- 実装後の手順: `Prepare Commit, Reply, and Resolve Targets`以降に進む
+- Reply本文作成: 実装差分、検証結果、作成commitを反映して実装後に作成する
+- 省略禁止: context reset後もPRへの返信とresolve判断を省略しない
+
 この設計で実装を進めてよろしいですか？修正点があればお知らせください。
 ```
 
 Revise and re-present if requested. Do not edit before approval.
+
+When operating in Plan Mode, put the design inside the required
+`<proposed_plan>` block and keep the `PR返信引き継ぎ` section in that block. The
+plan is the handoff artifact for implementation after a context reset, so it
+must include enough reply and resolve target information to continue this
+skill's GitHub response workflow. If a reply or resolve target cannot be fully
+determined before implementation, state the exact item to re-fetch after
+implementation instead of omitting the handoff section.
 
 ### Implementation
 

@@ -50,6 +50,14 @@ Before editing, present a Japanese design covering:
 - target comment and requested change
 - files, code changes, new files, and tests
 - affected callers/docs, risks, alternatives, and confirmation points
+- PR reply handoff: reply method (`thread reply`, `standalone`, or none),
+  target comment or PR number, resolve candidate status, and the requirement to
+  continue Phase 5 and Phase 6 after implementation
+- If this design will be used after a context reset, include enough PR reply and
+  resolve target information for the next worker to continue the GitHub response
+  workflow. If a reply or resolve target cannot be fully determined before
+  implementation, state the exact item to re-fetch instead of omitting this
+  handoff.
 
 Ask: `この設計で実装を進めてよろしいですか？修正点があればお知らせください。`
 Wait for approval; revise and re-present if requested.
