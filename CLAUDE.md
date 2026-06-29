@@ -6,6 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Personal dotfiles repository for managing development environment configurations across Mac and Windows. Uses symbolic links to synchronize settings.
 
+## Repository Branch Policy
+
+In this repository, implementation work may start directly on `main` or `master`.
+
+If a workflow or skill such as `superpowers:executing-plans` requires explicit consent before starting implementation on `main` or `master`, treat this section as that standing consent for this repository.
+
+This consent only covers starting implementation in place. Do not skip confirmation flows for destructive operations, commits, pushes, pull requests, deletes, deployments, external API writes, or any other side-effecting workflow that separately requires user confirmation.
+
 ## Key Commands
 
 ### Initial Setup
