@@ -67,8 +67,8 @@ updates or risks.
 
 ### Phase 6: Reply to PR Comment
 
-After successful push, reply to the original PR comment with implemented commit
-information.
+After successful push, reply to the original PR comment with the implementation
+summary and commit information.
 
 **⚠️ 原則**: 返信対象が review comment (`#discussion_r{id}`) またはスレッド可能な review comment の場合、**必ずスレッド返信API** (`gh api repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies`) を使用すること。`gh pr comment` は thread API が使えない場合 (純粋な issue comment やスレッド対象が無い review) に限定する。
 
@@ -78,10 +78,24 @@ Gather commit info:
 git log ${BEFORE_SHA}..HEAD --format='%H %s'
 ```
 
+Compose the reply body from the implemented diff and the original review
+comment. Keep it specific; do not use vague bullets such as "修正しました" or
+"改善しました" without naming what changed. Include `背景・理由` only when the
+comment, implementation design, or diff provides a concrete reason for the
+approach. Omit the `背景・理由` section entirely when there is no reason worth
+calling out.
+
 ```
 ご指摘ありがとうございます。対応しました。
 
-- Commit: {full_hash}
+対応概要:
+- {what was changed}
+
+背景・理由:
+- {why this approach was chosen, only when there is a concrete reason}
+
+Commit:
+- {full_hash}
   - {commit_subject}
 ```
 

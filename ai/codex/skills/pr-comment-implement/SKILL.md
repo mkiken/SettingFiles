@@ -166,12 +166,25 @@ THREAD_JSON=$(gh api graphql \
 Offer resolve only when `REPLY_PATH=thread`, the thread node exists, it is
 unresolved, and the original author is bot or self.
 
-Preview the reply with placeholder hashes until the commit exists:
+Preview the reply with placeholder hashes until the commit exists. Compose the
+summary from the implemented diff and the original review comment. Keep it
+specific; do not use vague bullets such as "修正しました" or "改善しました"
+without naming what changed. Include `背景・理由` only when the comment,
+implementation design, or diff provides a concrete reason for the approach.
+Omit the `背景・理由` section entirely when there is no reason worth calling
+out.
 
 ```markdown
 ご指摘ありがとうございます。対応しました。
 
-- Commit: <created-after-commit>
+対応概要:
+- <what was changed>
+
+背景・理由:
+- <why this approach was chosen, only when there is a concrete reason>
+
+Commit:
+- <created-after-commit>
   - <commit subject>
 ```
 
@@ -229,8 +242,10 @@ git commit -m "<drafted message>"
 # Push
 git push origin HEAD
 
-# Reply body
+# Commit list for the reply body
 git log "${PRE_COMMIT_HEAD}..HEAD" --format='%H %s'
+# Build BODY by filling the previewed reply body with these commits.
+# Do not replace the body with only commit lines.
 
 # Thread reply only
 gh api "repos/${OWNER}/${REPO}/pulls/${PULL_NUMBER}/comments/${COMMENT_ID}/replies" \

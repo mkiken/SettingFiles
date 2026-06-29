@@ -143,10 +143,24 @@ THREAD_IS_RESOLVED=$(echo "$THREAD_JSON" | jq -r '.isResolved // false')
 Offer resolve only when `REPLY_PATH=thread`, author is bot/self,
 `THREAD_NODE_ID` exists, and `THREAD_IS_RESOLVED=false`.
 
+Compose the reply body from the implemented diff and the original review
+comment. Keep it specific; do not use vague bullets such as "修正しました" or
+"改善しました" without naming what changed. Include `背景・理由` only when the
+comment, implementation design, or diff provides a concrete reason for the
+approach. Omit the `背景・理由` section entirely when there is no reason worth
+calling out.
+
 ```
 ご指摘ありがとうございます。対応しました。
 
-- Commit: {full_hash}
+対応概要:
+- {what was changed}
+
+背景・理由:
+- {why this approach was chosen, only when there is a concrete reason}
+
+Commit:
+- {full_hash}
   - {commit_subject}
 ```
 
@@ -206,11 +220,14 @@ git push origin HEAD
 
 If push fails, ask retry/abort; skip reply and resolve on abort.
 
-Reply body:
+Commit list for the reply body:
 
 ```bash
 git log ${BEFORE_SHA}..HEAD --format='%H %s'
 ```
+
+Use this output to fill the `Commit` section of the previewed reply body. Do
+not replace the body with only commit lines.
 
 ```bash
 # Thread only
