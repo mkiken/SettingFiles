@@ -19,6 +19,9 @@ return {
       lsp_doc_border = false, -- add a border to hover docs and signature help
     },
   },
+  keys = {
+    { "<leader>hm", "<cmd>Noice telescope<cr>", desc = "Noice message history (Telescope)" },
+  },
   dependencies = {
     -- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
     "MunifTanjim/nui.nvim",
