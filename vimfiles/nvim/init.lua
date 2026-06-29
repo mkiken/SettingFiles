@@ -1,5 +1,3 @@
-vim.cmd.colorscheme('habamax')
-
 -- 基本オプションの設定
 require('options')
 
