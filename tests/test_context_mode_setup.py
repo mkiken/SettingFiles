@@ -233,6 +233,8 @@ class ContextModeSetupTest(unittest.TestCase):
             with self.subTest(expected=expected):
                 self.assertIn(expected, script)
 
+        self.assertEqual(2, script.count("< /dev/null || return 1"))
+
 
 if __name__ == "__main__":
     unittest.main()

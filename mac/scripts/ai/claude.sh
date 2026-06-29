@@ -65,12 +65,12 @@ function setup_claude_mem() {
       --ide claude-code \
       --provider "${CLAUDE_MEM_PROVIDER:-claude}" \
       --model "${CLAUDE_MEM_MODEL:-claude-haiku-4-5-20251001}" \
-      --runtime "${CLAUDE_MEM_RUNTIME:-worker}" || return 1
+      --runtime "${CLAUDE_MEM_RUNTIME:-worker}" < /dev/null || return 1
   else
     npx --yes claude-mem@latest install \
       --ide claude-code \
       --provider "${CLAUDE_MEM_PROVIDER:-claude}" \
-      --runtime "${CLAUDE_MEM_RUNTIME:-worker}" || return 1
+      --runtime "${CLAUDE_MEM_RUNTIME:-worker}" < /dev/null || return 1
   fi
 
   npx --yes claude-mem@latest repair || return 1
