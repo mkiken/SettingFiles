@@ -99,6 +99,8 @@ vim.keymap.set('n', '<Leader>s', function()
   vim.notify('設定を再読み込みしました', vim.log.levels.INFO)
 end, { silent = true })
 
+vim.keymap.set('n', '<Leader>bd', '<cmd>bdelete<CR>', { silent = true, desc = "現在のバッファを閉じる" })
+
 local function count_pattern(text, pattern)
   local _, count = text:gsub(pattern, "")
   return count

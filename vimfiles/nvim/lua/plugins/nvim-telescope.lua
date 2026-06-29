@@ -408,7 +408,7 @@ return {
     },
   },
   keys = {
-    { "<leader>b", function() require('telescope.builtin').buffers() end, desc="Telescope buffers" },
+    { "<leader>bs", function() require('telescope.builtin').buffers() end, desc="Telescope buffers" },
     { "<leader>fcm", function() require('telescope.builtin').commands() end, desc="Lists available plugin/user commands and runs them on <cr>" },
     { "<leader>fcs", function() require('telescope.builtin').color_scheme() end, desc="Lists available colorschemes and applies them on <cr>" },
     { "<leader>ff", function() require('telescope').extensions.frecency.frecency({ workspace = "CWD" }) end, desc="Telescope frecency files" },
