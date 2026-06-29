@@ -1,8 +1,11 @@
 {
   "agentPushNotifEnabled": true,
+  "alwaysThinkingEnabled": false,
   "enabledPlugins": {
     "claude-mem@thedotmack": true,
+    "context-mode@context-mode": true,
     "dev-browser@dev-browser-marketplace": true,
+    "superpowers@claude-plugins-official": true,
     "tsumiki@tsumiki": true
   },
   "env": {
@@ -14,6 +17,12 @@
       "source": {
         "repo": "anthropics/skills",
         "source": "github"
+      }
+    },
+    "context-mode": {
+      "source": {
+        "source": "github",
+        "repo": "mksglu/context-mode"
       }
     },
     "dev-browser-marketplace": {
@@ -35,68 +44,72 @@
       }
     }
   },
+  "fileSuggestion": {
+    "command": "~/.claude/scripts/file-suggestion.sh",
+    "type": "command"
+  },
   "hooks": {
     "Notification": [
       {
+        "matcher": "",
         "hooks": [
           {
-            "command": "~/.claude/hooks/stop-send-notification.sh",
-            "type": "command"
+            "type": "command",
+            "command": "~/.claude/hooks/stop-send-notification.sh"
           },
           {
-            "command": "python3 ~/.claude/hooks/claude-hook.py",
-            "type": "command"
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/claude-hook.py"
           }
-        ],
-        "matcher": ""
+        ]
       }
     ],
     "PostToolUse": [
       {
+        "matcher": "",
         "hooks": [
           {
-            "command": "python3 ~/.claude/hooks/claude-hook.py",
-            "type": "command"
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/claude-hook.py"
           }
-        ],
-        "matcher": ""
+        ]
       }
     ],
     "SessionEnd": [
       {
+        "matcher": "",
         "hooks": [
           {
-            "command": "python3 ~/.claude/hooks/claude-hook.py",
-            "type": "command"
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/claude-hook.py"
           }
-        ],
-        "matcher": ""
+        ]
       }
     ],
     "Stop": [
       {
+        "matcher": "",
         "hooks": [
           {
-            "command": "~/.claude/hooks/stop-send-notification.sh",
-            "type": "command"
+            "type": "command",
+            "command": "~/.claude/hooks/stop-send-notification.sh"
           },
           {
-            "command": "python3 ~/.claude/hooks/claude-hook.py",
-            "type": "command"
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/claude-hook.py"
           }
-        ],
-        "matcher": ""
+        ]
       }
     ],
     "UserPromptSubmit": [
       {
+        "matcher": "",
         "hooks": [
           {
-            "command": "python3 ~/.claude/hooks/claude-hook.py",
-            "type": "command"
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/claude-hook.py"
           }
-        ],
-        "matcher": ""
+        ]
       }
     ]
   },
@@ -144,10 +157,6 @@
   "preferredNotifChannel": "ghostty",
   "skipAutoPermissionPrompt": true,
   "skipDangerousModePermissionPrompt": true,
-  "fileSuggestion": {
-    "command": "~/.claude/scripts/file-suggestion.sh",
-    "type": "command"
-  },
   "statusLine": {
     "command": "bash ~/.claude/statusline-command.sh",
     "padding": 0,

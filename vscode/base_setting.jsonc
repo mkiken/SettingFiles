@@ -24,7 +24,7 @@
     "source.fixAll.shellcheck": "explicit",
   },
   "editor.tabSize": 2,
-  "extensions.autoUpdate": "onlyEnabledExtensions",
+  "extensions.autoUpdate": "on",
   "workbench.editor.enablePreview": false,
   "files.autoSave": "onFocusChange",
   "editor.minimap.enabled": false,
@@ -85,4 +85,5 @@
   "csv-preview.skipComments": true,
   "csv-preview.resizeColumns": "all",
   "csv-preview.formatValues": "never",
+  "todo-tree.ripgrep.ripgrep": "/opt/homebrew/bin/rg",
 }
