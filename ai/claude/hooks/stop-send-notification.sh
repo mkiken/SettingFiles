@@ -44,6 +44,14 @@ if ! command -v jq &> /dev/null; then
     exit 1
 fi
 
+# サブエージェント由来のイベントは無視（メインエージェントの動向のみ通知）。
+# agent_id はサブエージェント内で発火した場合のみ存在する（公式仕様）。
+agent_id=$(echo "${hook_input}" | jq -r '.agent_id // empty')
+if [[ -n "${agent_id}" ]]; then
+    debug_log "Subagent event detected (agent_id=${agent_id}), skipping"
+    exit 0
+fi
+
 # JSONからhook_event_nameとtranscript_pathを抽出
 hook_event_name=$(echo "${hook_input}" | jq -r '.hook_event_name')
 transcript_path=$(echo "${hook_input}" | jq -r '.transcript_path')
