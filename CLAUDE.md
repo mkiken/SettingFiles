@@ -75,6 +75,8 @@ Key symlinks:
 
 Claude-specific files (commands, hooks) are individually symlinked into `~/.claude/`. Commands go to `~/.claude/commands/my/`.
 
+`ai/claude/settings.json` is the exception: it is not symlinked. It is deep-merged into `~/.claude/settings.json` via `smart_merge_json`, and the two files diverge (the runtime file accumulates machine-local keys). Editing the repository source alone does not update the live file — apply changes with `mac/initialization/ai/claude.sh` / `mac/update`, or merge manually when immediate effect is needed.
+
 ### AI Configuration Generation
 Both `_CLAUDE.md` and `_GEMINI.md` are static files using `@file` import syntax to compose prompts from shared source files at runtime:
 - **Claude** (`ai/claude/_CLAUDE.md`): `@../common/prompt_base.md` + `@../common/characters/reimu.md`

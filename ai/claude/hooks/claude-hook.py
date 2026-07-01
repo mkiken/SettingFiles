@@ -42,13 +42,18 @@ def _get_tmux_pane_id() -> str | None:
 
 def main():
     input_data = json.load(sys.stdin)
+    hook_event = input_data.get("hook_event_name")
 
-    # サブエージェント由来のイベントは無視（メインエージェントの動向のみ追跡）。
+    # SubagentStart/SubagentStopはサブエージェントのライフサイクルイベントでagent_idを持つが、
+    # メインエージェントは発火中も稼働継続中のため、agent_idフィルタより先に作業中表示にする。
+    if hook_event in ("SubagentStart", "SubagentStop"):
+        update_tmux_window_name(HookStatus.ONGOING)
+        return
+
+    # それ以外のサブエージェント由来のイベントは無視（メインエージェントの動向のみ追跡）。
     # agent_id はサブエージェント内で発火した場合のみ存在する（公式仕様）。
     if input_data.get("agent_id"):
         return
-
-    hook_event = input_data.get("hook_event_name")
 
     handlers = {
         "Notification": handle_notification_hook,
