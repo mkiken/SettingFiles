@@ -1,6 +1,10 @@
 {
   "agentPushNotifEnabled": true,
   "alwaysThinkingEnabled": false,
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
   "enabledPlugins": {
     "claude-mem@thedotmack": true,
     "context-mode@context-mode": true,
