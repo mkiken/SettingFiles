@@ -397,7 +397,7 @@ local function insert_at_paths()
   }):find()
 end
 
-return {
+local telescope_spec = {
   'nvim-telescope/telescope.nvim',
   dependencies = {
     'nvim-lua/plenary.nvim',
@@ -422,8 +422,37 @@ return {
   },
   config = function()
     local telescope = require('telescope')
+    telescope.setup({
+      extensions = {
+        ["ui-select"] = {
+          require('telescope.themes').get_dropdown({}),
+        },
+      },
+    })
     telescope.load_extension('fzf')
     telescope.load_extension('file_browser')
     telescope.load_extension('frecency')
   end
 }
+
+-- telescope-ui-select を VeryLazy で独立ロードし、起動直後から vim.ui.select を
+-- telescope の dropdown picker へ上書きする。telescope 本体の重い初期化（frecency
+-- DB 等）は keys 遅延のまま維持し、ui-select の上書きだけを前倒しする。
+local ui_select_spec = {
+  'nvim-telescope/telescope-ui-select.nvim',
+  dependencies = { 'nvim-telescope/telescope.nvim' },
+  event = 'VeryLazy',
+  config = function()
+    local telescope = require('telescope')
+    telescope.setup({
+      extensions = {
+        ["ui-select"] = {
+          require('telescope.themes').get_dropdown({}),
+        },
+      },
+    })
+    telescope.load_extension('ui-select')
+  end,
+}
+
+return { telescope_spec, ui_select_spec }
