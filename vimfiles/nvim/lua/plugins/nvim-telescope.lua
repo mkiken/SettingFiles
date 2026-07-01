@@ -422,10 +422,12 @@ local telescope_spec = {
   },
   config = function()
     local telescope = require('telescope')
+    local themes = require('telescope.themes')
     telescope.setup({
+      defaults = themes.get_ivy({}),
       extensions = {
         ["ui-select"] = {
-          require('telescope.themes').get_dropdown({}),
+          themes.get_dropdown({}),
         },
       },
     })
