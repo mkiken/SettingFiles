@@ -56,4 +56,4 @@ if [[ "${#ABBREV}" -gt 20 ]]; then
   ABBREV="${ABBREV:0:20}…"
 fi
 
-tmux rename-window "${EMOJI_PREFIX}${REPO_NAME}:${ABBREV}"
+tmux rename-window "${EMOJI_PREFIX}${REPO_NAME}/${ABBREV}"
