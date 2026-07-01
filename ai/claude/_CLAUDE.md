@@ -10,3 +10,7 @@ When asking for confirmation, clarification, or any question requiring a user re
 Plain text questions end the current turn and trigger the Stop hook, sending a "finished" notification indistinguishable from task completion. `AskUserQuestion` keeps the turn active and triggers the correct "awaiting input" notification instead.
 
 **Note:** `AskUserQuestion` is a deferred tool in Claude Code — its schema is not loaded by default. If you have not yet loaded its schema this session, call `ToolSearch` with the query `select:AskUserQuestion` first, then invoke `AskUserQuestion`. "I do not have access to the tool" is NOT a valid reason to skip — load the schema and use it.
+
+# Settings Changes
+
+Before editing `settings.json` / `settings.local.json` — or any of its `hooks`, `permissions`, or `env` — in the repository source or the live `~/.claude/` files, consider whether the `update-config` skill applies and invoke it when it does. Its description explicitly covers settings edits, permission changes, env vars, and hook troubleshooting. This check applies even inside the plan-mode implementation flow, where it is easy to skip. Skip the skill only for trivial mechanical edits (e.g. reverting a prior commit) where no configuration-domain judgment is needed.
