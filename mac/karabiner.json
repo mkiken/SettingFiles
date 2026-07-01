@@ -41,32 +41,6 @@
                                 "type": "basic"
                             }
                         ]
-                    },
-                    {
-                        "description": "Ghostty-Alt-Enter-Newline",
-                        "manipulators": [
-                            {
-                                "conditions": [
-                                    {
-                                        "bundle_identifiers": [
-                                            "^com\\.mitchellh\\.ghostty$"
-                                        ],
-                                        "type": "frontmost_application_if"
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "return_or_enter",
-                                    "modifiers": { "mandatory": ["option"] }
-                                },
-                                "to": [
-                                    {
-                                        "key_code": "return_or_enter",
-                                        "modifiers": ["left_shift"]
-                                    }
-                                ],
-                                "type": "basic"
-                            }
-                        ]
                     }
                 ]
             },
