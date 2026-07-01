@@ -279,10 +279,37 @@ function _finish_prompt_wait_notification() {
     return 0
 }
 
+# Resolve SMART_MERGE_ACTION into a normalized action, for non-interactive
+# automation of smart_merge_json/smart_copy prompts.
+# Usage: action=$(_smart_merge_resolved_action)
+# Returns (stdout): overwrite|keep|merge_src|merge_dst, or empty string
+#   when unset (fall through to interactive prompt).
+# Invalid values print a warning to stderr and also fall through to empty
+# (interactive), rather than aborting the whole script.
+function _smart_merge_resolved_action() {
+    local a="${SMART_MERGE_ACTION:-}"
+    [[ -z "$a" ]] && return 0
+    case "$a" in
+        overwrite|keep|merge_src|merge_dst)
+            echo "$a"
+            ;;
+        *)
+            echo "⚠️  Invalid SMART_MERGE_ACTION='$a' (expected: overwrite|keep|merge_src|merge_dst). Falling back to interactive." >&2
+            ;;
+    esac
+}
+
 # Prompt user for copy action (overwrite or skip)
 function prompt_copy_action() {
     local notification_message="$1"
     local choice
+
+    local _auto
+    _auto=$(_smart_merge_resolved_action)
+    if [[ -n "$_auto" ]]; then
+        [[ "$_auto" == "overwrite" ]] && return 0
+        return 1
+    fi
 
     if [[ -n "$notification_message" ]]; then
         _start_prompt_wait_notification "$notification_message" "smart-merge-json-prompt"
@@ -309,6 +336,13 @@ function prompt_copy_action() {
 function prompt_merge_action() {
     local notification_message="${1:-smart_merge_json action required}"
     local choice
+
+    local _auto
+    _auto=$(_smart_merge_resolved_action)
+    if [[ -n "$_auto" ]]; then
+        echo "$_auto"
+        return 0
+    fi
 
     _start_prompt_wait_notification "$notification_message" "smart-merge-json-prompt"
     echo "" >&2
@@ -337,12 +371,14 @@ function prompt_merge_action() {
 }
 
 # Unified confirmation prompt with optional notification.
-# Usage: confirm "メッセージ" [--default-no] [--no-notify] [--single-key] [--no-cancel-msg]
+# Usage: confirm "メッセージ" [--default-no] [--no-notify] [--single-key] [--no-cancel-msg] [--smart-merge-gated]
 # Returns: 0 = yes, 1 = no/cancel
-#   --default-no     Default answer is No (requires explicit y/Y)
-#   --no-notify      Suppress the macOS notification
-#   --single-key     Use read -k 1 (no Enter needed), implies --default-no
-#   --no-cancel-msg  Suppress the "❌ キャンセルされました" message on rejection
+#   --default-no         Default answer is No (requires explicit y/Y)
+#   --no-notify          Suppress the macOS notification
+#   --single-key         Use read -k 1 (no Enter needed), implies --default-no
+#   --no-cancel-msg      Suppress the "❌ キャンセルされました" message on rejection
+#   --smart-merge-gated  Opt in to SMART_MERGE_ACTION auto-answering (smart_merge_json
+#                        internal use only; plain confirm() calls never read that env var)
 function confirm() {
     local message="$1"
     shift
@@ -351,16 +387,31 @@ function confirm() {
     local send_notify=true
     local single_key=false
     local cancel_msg=true
+    local smart_merge_gated=false
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --default-no)    default_yes=false ;;
-            --no-notify)     send_notify=false ;;
-            --single-key)    single_key=true; default_yes=false ;;
-            --no-cancel-msg) cancel_msg=false ;;
+            --default-no)        default_yes=false ;;
+            --no-notify)         send_notify=false ;;
+            --single-key)        single_key=true; default_yes=false ;;
+            --no-cancel-msg)     cancel_msg=false ;;
+            --smart-merge-gated) smart_merge_gated=true ;;
         esac
         shift
     done
+
+    if $smart_merge_gated; then
+        local _auto
+        _auto=$(_smart_merge_resolved_action)
+        case "$_auto" in
+            merge_src|merge_dst)
+                return 0
+                ;;
+            overwrite|keep)
+                return 1
+                ;;
+        esac
+    fi
 
     local prompt_hint
     if $default_yes; then
@@ -559,6 +610,16 @@ function smart_merge_json() {
             echo "⚠️  Top-level array detected, merge not supported" >&2
         fi
 
+        # merge_src/merge_dst implies the caller wants a real merge, which is
+        # not possible here (invalid JSON or top-level array). Surface this
+        # as a failure instead of silently skipping, so it doesn't go unnoticed.
+        local _auto_fallback
+        _auto_fallback=$(_smart_merge_resolved_action)
+        if [[ "$_auto_fallback" == "merge_src" || "$_auto_fallback" == "merge_dst" ]]; then
+            echo "❌ SMART_MERGE_ACTION=$_auto_fallback requested but merge is not possible (invalid JSON or top-level array): $dst_label" >&2
+            return 1
+        fi
+
         echo ""
         echo "=== Differences found ==="
         show_file_diff "$src" "$dst" "$src_label" "$dst_label"
@@ -668,7 +729,7 @@ def deepmerge(a; b; path):
 
             # Final confirmation
             echo ""
-            if confirm "Apply merge?" --default-no --no-cancel-msg; then
+            if confirm "Apply merge?" --default-no --no-cancel-msg --smart-merge-gated; then
                 echo "Applying merge result to destination: $dst_label"
                 echo "cp \"$tmp_file\" \"$dst\""
                 cp "$tmp_file" "$dst"
