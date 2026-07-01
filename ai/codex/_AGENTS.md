@@ -70,21 +70,21 @@ For single one-off preferences (user taste, not a defect), keep an internal note
 - Surface every proposal that meets the bar; there is no per-session cap. Order them by relevance and importance so the most useful come first.
 - Use the `prompt-self-improvement` format: Target behavior, Evidence, Diagnosis, Proposed source changes, Validation plan, Risks.
 - State affected assistants: Claude / Gemini / Codex. For Codex source changes, note that `mac/initialization/ai/codex.sh` must be rerun to regenerate `_AGENTS.md`.
-- Apply edits only after explicit approval using the assistant's confirmation mechanism.
+- Apply edits only after explicit approval using the assistant's confirmation mechanism — obtained via the per-proposal `AskUserQuestion` check described in Completion-Time Check.
 - Outside the completion-time check, say nothing when no proposal qualifies.
 
 ## Completion-Time Check
 
 At the end of implementation, fix, configuration, review, or investigation-delivery tasks, check OIP criteria before the final completion response.
 
-- If proposals qualify, include them in the required format.
-- If none qualify, include exactly `自己改善チェック: 該当なし` once in the final completion response.
+- If proposals qualify, present them in the required format, then use the `# User Confirmation` mechanism (`AskUserQuestion`) to ask approval per proposal — options per proposal: apply now / do not apply / decide later. If that tool is unavailable, state why before falling back to text. Apply edits only to the proposals the user approves.
+- If none qualify, include exactly `自己改善チェック: 該当なし` once in the final completion response; do not raise a confirmation question in this case.
 - Do not include this in ordinary conversation, clarification-only turns, plan-only responses, active progress updates, or pre-completion confirmation questions.
-- If other completion workflows apply, preserve the order below: after temp cleanup, before commit or PR confirmation choices.
+- If other completion workflows apply, preserve the order below: after temp cleanup, after the git action from the Post-Implementation Workflow has completed.
 
 ## Workflow order
 
-At task end, run applicable workflows in this order: Temp File Cleanup -> Opportunistic Improvement Proposals -> Post-Implementation Workflow. OIP is text-only and does not create its own confirmation question.
+At task end, run applicable workflows in this order: Temp File Cleanup -> Post-Implementation Workflow -> Opportunistic Improvement Proposals. OIP runs last, after the selected git action has completed, so it never blocks the commit/push flow. When proposals qualify, OIP asks for approval per proposal (see Completion-Time Check).
 
 # Post-Implementation Workflow
 
@@ -96,7 +96,7 @@ When implementation is complete and a commit is needed, inspect the working tree
 2. **コミットのみ** — コミットを作成するがプッシュはしない
 3. **コミットしない** — 変更をコミットせずそのまま残す
 
-Then perform the selected git action.
+Then perform the selected git action. After it completes, run the Opportunistic Improvement Proposals Completion-Time Check (see Workflow order).
 
 # Character
 
