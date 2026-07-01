@@ -58,6 +58,17 @@ transcript_path=$(echo "${hook_input}" | jq -r '.transcript_path')
 debug_log "Hook event: ${hook_event_name}"
 debug_log "Transcript path extracted: ${transcript_path}"
 
+# バックグラウンドタスク（サブエージェント等）がrunning中のStop発火では、
+# 実際はまだ作業中なので「完了」通知を送らずにスキップする。
+# 完了済みタスクが配列に残っても誤判定しないよう、status=="running"の有無で判定する。
+if [[ "${hook_event_name}" == "Stop" ]]; then
+    running_task_count=$(echo "${hook_input}" | jq -r '[(.background_tasks // [])[] | select(.status == "running")] | length' 2>/dev/null || echo 0)
+    if [[ "${running_task_count}" -gt 0 ]] 2>/dev/null; then
+        debug_log "Running background tasks detected (${running_task_count}), skipping stop notification"
+        exit 0
+    fi
+fi
+
 # セッションIDを取得（グループ通知用）
 # hook入力JSONにsession_idがあればそれを優先、なければtranscript_pathから導出
 session_id=$(echo "${hook_input}" | jq -r '.session_id // empty')

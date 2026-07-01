@@ -77,8 +77,24 @@ def handle_user_prompt_submit_hook(_: dict):
     update_tmux_window_name(HookStatus.ONGOING)
 
 
-def handle_stop_hook(_: dict):
+def handle_stop_hook(input_data: dict):
+    # バックグラウンドタスク（サブエージェント等）がrunning中にメインのStopが
+    # 発火した場合、実際はまだ作業中なので✅にせず、直前のPostToolUseの🤖を維持する。
+    if _has_running_background_tasks(input_data):
+        return
     update_tmux_window_name(HookStatus.COMPLETED)
+
+
+def _has_running_background_tasks(input_data: dict) -> bool:
+    """background_tasks 内に status=="running" の要素があれば True。
+
+    フィールド不在（旧バージョン）やNone、空配列は False。
+    完了済みタスクが配列に残り続けても、statusで判定するため誤判定しない。
+    """
+    tasks = input_data.get("background_tasks")
+    if not tasks:
+        return False
+    return any(task.get("status") == "running" for task in tasks)
 
 
 def handle_session_end_hook(_: dict):
