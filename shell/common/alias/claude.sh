@@ -62,7 +62,7 @@ _cl-pr-comment-review() {
 }
 
 _cl-pr-comment-implement() {
-    clfm "/my:pr-comment-implement $*"
+    clom "/my:pr-comment-implement $*"
 }
 
 cl-pr-body() {
