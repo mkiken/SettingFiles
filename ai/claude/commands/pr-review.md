@@ -21,7 +21,7 @@ effort: max
 - **Service outage**: crash, infinite loop, deadlock, resource exhaustion under realistic load
 - **Compliance violation**: PII handling, license breach, audit trail loss
 
-For pre-existing findings, mark the header with `[既存コード]` prefix (e.g., `[既存コード] **[path:line]**`) and state which impact category applies. All other pre-existing issues MUST be omitted.
+For pre-existing findings, route them to `## 既存コードに関する指摘` (see **Pre-existing Code Finding Routing** below) and state which impact category applies. All other pre-existing issues MUST be omitted.
 
 ---
 
@@ -99,6 +99,18 @@ Separate test-related findings from regular code findings:
 - Keep numbering sequential across regular findings and test findings. Do not restart numbering in the test section.
 - Omit `## テストに関する指摘` entirely when there are no actionable test findings.
 - If a runtime bug and a missing test share the same root cause, keep the bug in the regular priority section. Mention the missing test in the detail line when it is only supporting evidence; create a separate test finding only when a distinct test change is required.
+- **Pre-existing code takes priority over test routing**: if a finding is about unchanged/pre-existing code (e.g., missing tests for pre-existing code), route it to `## 既存コードに関する指摘` instead of `## テストに関する指摘`, even though it is test-related. Whether the target is pre-existing code is decided first; only then is the test-vs-regular routing decided for the remainder.
+
+### **Pre-existing Code Finding Routing**
+
+Separate pre-existing-code findings (per the critical-impact exception above) from regular code findings and test findings:
+
+- Put findings whose root cause lives entirely in unchanged code — and that qualify under the critical impact categories (Security breach, Data corruption/loss, Service outage, Compliance violation) — under `## 既存コードに関する指摘`.
+- Inside `## 既存コードに関する指摘`, group findings by `High`, `Medium`, and `Low` using the same priority thresholds.
+- Keep numbering sequential across regular findings, test findings, and pre-existing-code findings. Do not restart numbering in this section.
+- Omit `## 既存コードに関する指摘` entirely when there are no actionable pre-existing-code findings.
+- Each finding's detail line must state which critical impact category applies (Security breach / Data corruption-loss / Service outage / Compliance violation).
+- This section takes priority over `## テストに関する指摘`: a pre-existing-code finding about tests still goes here, not in the test section.
 
 ### **Code Quality Review**
 
@@ -117,9 +129,9 @@ Review thoroughly from the following perspectives:
 - `[path/to/file.ext:line]` for single line comments
 - `[path/to/file.ext:startLine-endLine]` for multi-line comments
 
-**Number all findings sequentially across regular priority sections and `## テストに関する指摘` (continue numbering across sections — do not restart per section).**
+**Number all findings sequentially across regular priority sections, `## テストに関する指摘`, and `## 既存コードに関する指摘` (continue numbering across sections — do not restart per section).**
 
-**Output must be grouped by priority level in descending order. Omit priority levels with no findings. Test findings must be moved to `## テストに関する指摘` instead of appearing in the regular priority sections.**
+**Output must be grouped by priority level in descending order. Omit priority levels with no findings. Test findings must be moved to `## テストに関する指摘` and pre-existing-code findings must be moved to `## 既存コードに関する指摘` instead of appearing in the regular priority sections.**
 
 **Finding Format**: Each item MUST use this exact three-part structure — header, detail, then separator:
 - **Header line**: `N. **[file:line]** Category: Short one-line summary`
@@ -140,10 +152,7 @@ The `---` separator after each item is a hard structural requirement that must n
 
 ---
 
-3. [既存コード] **[src/db/query.ts:120]** Security: SQL injection in pre-existing helper (Security breach category)
-   - Unchanged code called by the PR's new feature concatenates raw user input into a query string. Concrete attack vector: any string input allows arbitrary SQL execution.
-
----
+(A pre-existing-code finding such as a SQL injection in an unchanged helper would be numbered sequentially but placed under `## 既存コードに関する指摘` — see that section's template below, not here.)
 
 ❌ WRONG (missing `---` separator and/or single long line):
 
@@ -186,6 +195,14 @@ The `---` separator after each item is a hard structural requirement that must n
 
 ---
 
+## 既存コードに関する指摘
+
+#### 🔴 High Priority
+7. **[path/to/file.ext:line]** Category: Short summary (Security breach category)
+   - Detailed explanation, concrete impact, and recommendation.
+
+---
+
 Example:
 
 #### 🔴 High Priority
@@ -208,6 +225,14 @@ Example:
 #### 🟢 Low Priority
 4. **[src/utils/format.ts:8]** Readability: Use more descriptive variable names
    - `d` and `v` obscure intent; rename to `date` and `value` for clarity.
+
+---
+
+## 既存コードに関する指摘
+
+#### 🔴 High Priority
+5. **[src/db/query.ts:120]** Security: SQL injection in pre-existing helper (Security breach category)
+   - Unchanged code called by this PR's new feature concatenates raw user input into a query string. Concrete attack vector: any string input allows arbitrary SQL execution.
 
 ---
 
