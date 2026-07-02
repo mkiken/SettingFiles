@@ -13,6 +13,14 @@ clom() {
     clo --effort max "$@"
 }
 
+clf() {
+    cl --model 'fable' "$@"
+}
+
+clfm() {
+    clf --effort max "$@"
+}
+
 clp() {
     cl --permission-mode plan "$@"
 }
@@ -25,6 +33,8 @@ clr() { cl --resume "$@"; }
 
 clor() { clo --resume "$@"; }
 
+clfr() { clf --resume "$@"; }
+
 cl-web-summary() {
     clo "/my:web-summary $*"
 }
@@ -35,7 +45,7 @@ cl-pr-review() {
         echo "現在のブランチに対応するPRが見つかりません。" >&2
         return 1
     }
-    clo --effort max --dangerously-skip-permissions "/my:pr-review $pr_number $* ultrathink"
+    clfm --dangerously-skip-permissions "/my:pr-review $pr_number $* ultrathink"
 }
 
 cl-pr-review-subagents() {
@@ -44,15 +54,15 @@ cl-pr-review-subagents() {
         echo "現在のブランチに対応するPRが見つかりません。" >&2
         return 1
     }
-    clo --effort max --dangerously-skip-permissions "/pr-review-subagents $pr_number $* ultrathink"
+    clfm --dangerously-skip-permissions "/pr-review-subagents $pr_number $* ultrathink"
 }
 
 _cl-pr-comment-review() {
-    clom --dangerously-skip-permissions "/my:pr-comment-review $* ultrathink"
+    clfm --dangerously-skip-permissions "/my:pr-comment-review $* ultrathink"
 }
 
 _cl-pr-comment-implement() {
-    clpm "/my:pr-comment-implement $*"
+    clfm "/my:pr-comment-implement $*"
 }
 
 cl-pr-body() {
