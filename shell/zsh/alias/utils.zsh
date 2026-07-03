@@ -128,6 +128,24 @@ function homebrew_npm() {
   PATH="${homebrew_prefix_path}/bin:$PATH" "$npm_bin" "$@"
 }
 
+# Run a Homebrew-installed CLI with Homebrew bin first on PATH.
+# Project-local Node managers (nvm/mise) can pin an old Node; prepending PATH on
+# the same command line as the execution leaves precmd hooks no chance to
+# rewrite it, so the CLI always runs on Homebrew's node.
+function homebrew_run() {
+  local homebrew_prefix_path
+  homebrew_prefix_path="$(homebrew_prefix)"
+  local cmd_bin="${homebrew_prefix_path}/bin/$1"
+
+  if [[ ! -x "$cmd_bin" ]]; then
+    echo "homebrew_run: Homebrew command not found: $cmd_bin" >&2
+    return 1
+  fi
+
+  shift
+  PATH="${homebrew_prefix_path}/bin:$PATH" "$cmd_bin" "$@"
+}
+
 # Copy file only if destination does not exist (with warning if it exists)
 function copy_if_not_exists() {
     local src="$1"

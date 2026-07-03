@@ -191,8 +191,10 @@ function g-delete-branch-not-in-remote-interactive() {
   done
 }
 
+# difit は Node>=21 を要求するが、プロジェクトの mise 設定（.mise.toml）が古い Node に固定していると
+# SyntaxError でクラッシュする。homebrew_run で brew の node を優先して起動する。
 di() {
-  no_notify difit "$@"
+  no_notify homebrew_run difit "$@"
 }
 
 alias dia='di --include-untracked .'

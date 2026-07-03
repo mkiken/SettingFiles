@@ -5,15 +5,7 @@ gm-update() {
 }
 
 gm() {
-    local homebrew_prefix_path
-    homebrew_prefix_path="$(homebrew_prefix)"
-    local gemini_bin="${homebrew_prefix_path}/bin/gemini"
-    if [[ ! -x "$gemini_bin" ]]; then
-        echo "gm: Homebrew Gemini CLI not found: $gemini_bin" >&2
-        return 1
-    fi
-
-    PATH="${homebrew_prefix_path}/bin:$PATH" no_notify "$gemini_bin" "$@"
+    no_notify homebrew_run gemini "$@"
 }
 
 gmr() { gm "/resume" "$@" }
