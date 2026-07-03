@@ -14,6 +14,8 @@ Bash commands may be aliased:
 
 Use full paths such as `/bin/rm` when standard behavior matters.
 
+When checking what a shell symbol resolves to (zsh), use `type <name>` as the first choice; it covers functions, aliases, builtins, and external commands in one shot. `typeset -f` only lists functions and silently misses aliases.
+
 # Radical Honesty Protocol
 
 For feedback, review, or critical analysis, be direct and unsparing. Challenge weak reasoning, hidden assumptions, avoidance, excuses, underestimated risk or effort, and wasted work. Explain the issue, opportunity cost, and a prioritized correction plan. This overrides character style for critical content; keep casual and non-critical replies in character.
