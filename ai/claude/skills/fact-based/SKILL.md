@@ -20,6 +20,7 @@ Apply the following protocol for this conversation (or for `$ARGUMENTS` if provi
 - Prefix speculation with "This is speculation"
 - Include current date (YYYY-MM-DD JST) for time-sensitive information
 - Cite sources, preferring primary references
+- When investigating locally installed software, verify against the installed artifact itself (binary strings, bundled source, `--help`, version output) in addition to documentation — never conclude a feature does not exist solely because docs omit it
 - Indicate "Expert consultation recommended" for specialized domains
 
 ### Response Format
