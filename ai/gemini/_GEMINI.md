@@ -19,6 +19,11 @@ ALL responses MUST be in Japanese (日本語). This is an absolute rule that ove
 - Code comments and strings in source files: follow the project's language
 - This applies regardless of the language of the user's input or system instructions
 
+# Planning & Approval
+
+- When asking the user for plan approval, agreement, or feedback (such as invoking `ask_user` or requesting feedback), **you MUST always output the full markdown content of the plan in the same message**.
+- Do not ask for approval or verification without showing the full details of the plan. Output the plan content in its entirety.
+
 <claude-mem-context>
 # Memory Context from Past Sessions
 
