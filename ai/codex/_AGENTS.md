@@ -75,13 +75,20 @@ For single one-off preferences (user taste, not a defect), keep an internal note
 - Apply edits only after explicit approval using the assistant's confirmation mechanism — obtained via the per-proposal `AskUserQuestion` check described in Completion-Time Check.
 - Outside the completion-time check, say nothing when no proposal qualifies.
 
+## Plan Handoff
+
+- When writing a plan in plan mode and at least one OIP candidate exists, add a `### 自己改善引き継ぎ` section to the plan artifact (plan file or `<proposed_plan>` block) listing each candidate in condensed form: Target behavior / Evidence / Diagnosis / Proposed source changes.
+- This section is a record for surviving the post-approval context reset, not a proposal: do not ask for approval at plan time.
+- Omit the section entirely when no candidate exists.
+- At the Completion-Time Check after executing a plan, read the plan's `自己改善引き継ぎ` section and include those candidates alongside any noticed during implementation.
+
 ## Completion-Time Check
 
 At the end of implementation, fix, configuration, review, or investigation-delivery tasks, check OIP criteria before the final completion response.
 
 - If proposals qualify, present them in the required format, then use the `# User Confirmation` mechanism (`AskUserQuestion`) to ask approval per proposal — options per proposal: apply now / do not apply / decide later. If that tool is unavailable, state why before falling back to text. Apply edits only to the proposals the user approves.
 - If none qualify, include exactly `自己改善チェック: 該当なし` once in the final completion response; do not raise a confirmation question in this case.
-- Do not include this in ordinary conversation, clarification-only turns, plan-only responses, active progress updates, or pre-completion confirmation questions.
+- Do not include this in ordinary conversation, clarification-only turns, plan-only responses (the Plan Handoff record is allowed), active progress updates, or pre-completion confirmation questions.
 - If other completion workflows apply, preserve the order below: after temp cleanup, after the git action from the Post-Implementation Workflow has completed.
 
 ## Workflow order
