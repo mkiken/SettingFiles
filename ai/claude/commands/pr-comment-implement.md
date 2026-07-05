@@ -58,6 +58,9 @@ Before editing, present a Japanese design covering:
   workflow. If a reply or resolve target cannot be fully determined before
   implementation, state the exact item to re-fetch instead of omitting this
   handoff.
+- When operating in plan mode, write this design into the plan file and keep the
+  PR reply handoff in it; the plan file is the handoff artifact that survives the
+  post-approval context reset.
 
 Ask: `この設計で実装を進めてよろしいですか？修正点があればお知らせください。`
 Wait for approval; revise and re-present if requested.
