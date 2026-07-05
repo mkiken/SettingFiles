@@ -161,5 +161,9 @@
   {
     "key": "cmd+e",
     "command": "workbench.action.showAllEditorsByMostRecentlyUsed"
+  },
+  {
+    "key": "alt+cmd+o",
+    "command": "workbench.action.switchWindow"
   }
 ]
