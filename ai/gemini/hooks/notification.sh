@@ -189,7 +189,13 @@ if [[ "${EVENT_TYPE}" == "notification" ]]; then
     if [[ "${NOTIFICATION_TYPE}" == "ToolPermission" ]]; then
         ACTION_DETAIL=$(echo "${hook_input}" | jq -r '
             .details |
-            if (.type == "exec") then
+            if (.tool_name == "ask_user") then
+                "❓ " + (.tool_input.questions | map(.question) | join(" / "))
+            elif (.tool_name == "replace" or .tool_name == "write_file") then
+                "📝 " + .tool_name + " (" + (.tool_input.file_path | split("/") | last) + ")"
+            elif (.tool_name == "run_shell_command") then
+                "💻 cmd (" + (.tool_input.command | split("\n")[0] | if length > 40 then .[0:40] + "..." else . end) + ")"
+            elif (.type == "exec") then
                 if (.rootCommand != null and .rootCommand != "") then ("Shell (" + .rootCommand + ")")
                 elif (.command != null and .command != "") then ("Shell (" + (.command | split(" ")[0]) + ")")
                 else "Shell" end
