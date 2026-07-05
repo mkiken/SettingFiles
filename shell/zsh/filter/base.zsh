@@ -12,7 +12,7 @@ FILTER_COMMAND="${FILTER_COMMAND:-${FILTER_TOOL} --cycle --exit-0 --ansi}"
 # 引数: fzf-tmuxに渡すオプション (例: --preview, --query など)
 # 戻り値: 選択された項目
 function filter(){
-  no_notify ${=FILTER_COMMAND} $@
+  no_notify ${=FILTER_COMMAND} "$@"
 }
 
 alias -g F='| filter'
