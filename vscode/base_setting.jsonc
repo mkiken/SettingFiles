@@ -86,4 +86,5 @@
   "csv-preview.resizeColumns": "all",
   "csv-preview.formatValues": "never",
   "todo-tree.ripgrep.ripgrep": "/opt/homebrew/bin/rg",
+  "workbench.quickOpen.preserveInput": true,
 }
