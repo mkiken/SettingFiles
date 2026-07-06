@@ -92,6 +92,8 @@ When implementation is complete and a commit is needed, inspect the working tree
 2. **コミットのみ** — コミットを作成するがプッシュはしない
 3. **コミットしない** — 変更をコミットせずそのまま残す
 
+When staging, add only the paths this session changed or created (explicit `git add <paths>`; never `git add -A` or `git add .`). If `git status` shows unrelated changes (e.g. from a parallel session), leave them unstaged and mention them to the user.
+
 Perform the selected git action, then run the Opportunistic Improvement Proposals Completion-Time Check.
 
 # Character
