@@ -15,6 +15,6 @@ effort: max
   "no action" (equivalent to `コミットしない`).
 - In plan mode, the plan artifact is the plan file.
 
-### Core Workflow
+## Core Workflow
 
 !`/bin/cat ~/.claude/common/pr_comment_implement_core.md`

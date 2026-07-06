@@ -1,5 +1,3 @@
-## Workflow
-
 ### Phase 1: Analysis
 
 Analyze the target comment, `PROMPT`, affected files, and surrounding code

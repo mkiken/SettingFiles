@@ -58,6 +58,9 @@ done
 # pr-comment-review スキルは共通コアを連結して SKILL.md を生成（編集は skill_head.md / ai/common/pr_comment_review_core.md へ）
 { /bin/cat "${Repo}ai/codex/skills/pr-comment-review/skill_head.md"; echo; /bin/cat "${Repo}ai/common/pr_comment_review_core.md"; } > "${Repo}ai/codex/skills/pr-comment-review/SKILL.md"
 
+# pr-comment-implement スキルは共通コアを連結して SKILL.md を生成（編集は skill_head.md / ai/common/pr_comment_implement_core.md へ）
+{ /bin/cat "${Repo}ai/codex/skills/pr-comment-implement/skill_head.md"; echo; /bin/cat "${Repo}ai/common/pr_comment_implement_core.md"; } > "${Repo}ai/codex/skills/pr-comment-implement/SKILL.md"
+
 # pr-review-subagents スキルは共通コアを連結して SKILL.md を生成（編集は skill_head.md / skill_tail.md / ai/common/pr_review_subagents/orchestrator_core.md へ）
 { /bin/cat "${Repo}ai/codex/skills/pr-review-subagents/skill_head.md"; echo; /bin/cat "${Repo}ai/common/pr_review_subagents/orchestrator_core.md"; echo; /bin/cat "${Repo}ai/codex/skills/pr-review-subagents/skill_tail.md"; } > "${Repo}ai/codex/skills/pr-review-subagents/SKILL.md"
 
