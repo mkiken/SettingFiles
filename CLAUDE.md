@@ -88,7 +88,7 @@ Edit the source files directly (`ai/common/prompt_base.md`, `ai/common/character
 
 - **Codex** (`ai/codex/_AGENTS.md`): Codex's AGENTS.md does not support `@file` imports, so `mac/initialization/ai/codex.sh` (and `mac/updates/codex.sh`) generates `_AGENTS.md` by `cat`-concatenating `ai/common/prompt_base.md` + `ai/common/characters/nyaruko.md` + `ai/codex/codex_base.md`. The generated file is committed and symlinked to `~/.codex/AGENTS.md`. Edit the source files (not the generated `_AGENTS.md`); regenerate with `mac/initialization/ai/codex.sh`.
 
-The pr-review shared body lives in `ai/common/pr_review_core.md` and is loaded at runtime by Claude (`` !`/bin/cat ~/.claude/common/pr_review_core.md` `` in the command) and Gemini (`!{cat ~/.gemini/common/pr_review_core.md}`). For Codex, the same scripts generate `ai/codex/skills/pr-review/SKILL.md` from `skill_head.md` + `pr_review_core.md` + `skill_tail.md`; edit those sources, not the generated `SKILL.md`.
+The pr-review shared body lives in `ai/common/pr_review_core.md` and is loaded at runtime by Claude (`` !`/bin/cat ~/.claude/common/pr_review_core.md` `` in the command) and Gemini (`!{cat ~/.gemini/common/pr_review_core.md}`). For Codex, the same scripts generate `ai/codex/skills/pr-review/SKILL.md` from `skill_head.md` + `pr_review_core.md` + `skill_tail.md`; edit those sources, not the generated `SKILL.md`. The pr-comment-review shared body follows the same pattern: `ai/common/pr_comment_review_core.md` is loaded at runtime by Claude/Gemini, and the same scripts generate `ai/codex/skills/pr-comment-review/SKILL.md` from `skill_head.md` + `pr_comment_review_core.md`.
 
 ### Claude Hooks
 `ai/claude/hooks/` contains notification hooks symlinked into `~/.claude/hooks/`:

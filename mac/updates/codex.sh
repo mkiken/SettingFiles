@@ -52,6 +52,9 @@ done
 # pr-review スキルは共通コアを連結して SKILL.md を生成（編集は skill_head.md / skill_tail.md / ai/common/pr_review_core.md へ）
 { /bin/cat "${Repo}ai/codex/skills/pr-review/skill_head.md"; echo; /bin/cat "${Repo}ai/common/pr_review_core.md"; echo; /bin/cat "${Repo}ai/codex/skills/pr-review/skill_tail.md"; } > "${Repo}ai/codex/skills/pr-review/SKILL.md"
 
+# pr-comment-review スキルは共通コアを連結して SKILL.md を生成（編集は skill_head.md / ai/common/pr_comment_review_core.md へ）
+{ /bin/cat "${Repo}ai/codex/skills/pr-comment-review/skill_head.md"; echo; /bin/cat "${Repo}ai/common/pr_comment_review_core.md"; } > "${Repo}ai/codex/skills/pr-comment-review/SKILL.md"
+
 # skills はディレクトリ単位でシンボリックリンク（skills/<name>/SKILL.md 構造のため）
 setup_ai_skills ~/.codex/skills "${Repo}ai/common/skills" "${Repo}ai/codex/skills"
 
