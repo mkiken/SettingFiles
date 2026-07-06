@@ -44,10 +44,11 @@ After generating the PR body content:
 
 3. **Display the machine-generated diff** between existing body and new body:
    - Show section header: "### 既存body → 新bodyの変更差分"
-   - Run the diff command and paste its output **verbatim** inside a ```diff code block:
+   - Run the diff command and paste its output **verbatim** inside a fenced code block with the `diff` language tag, so additions (`+`) render green and deletions (`-`) render red:
      ```bash
      diff -u <tmpdir>/pr_body_old.md <tmpdir>/pr_body_new.md
      ```
+   - The code fence must be longer than any backtick run inside the diff output — use at least four backticks (````diff). PR bodies usually contain ``` code blocks, and a three-backtick fence would be closed early by them, breaking the color highlighting. If the output contains a four-backtick run, use five
    - Never construct the diff from memory or prediction, and never omit, summarize, or annotate the output. The displayed diff must be exactly what the command printed
    - If existing body is empty/template-only: display "(既存bodyは空またはテンプレートのみのため、全て新規追加)" instead of the diff
    - Before asking for confirmation, inspect the actual diff output and check that manually written TODOs, notes, incomplete checklist items, HTML comments, review requests, and background context from the existing body were not removed. If any were removed, edit `pr_body_new.md` and redo this step
