@@ -15,6 +15,9 @@ Procedure for "shorten a prompt without changing meaning or behavior" tasks.
 - Replace narrative phrasing ("For X, always do Y before Z") with compact
   conditional lists, keeping every operative element
 - Drop connective filler; keep each rule self-contained and unambiguous
+- Generator-injected boilerplate (e.g. GENERATED-file notices) also loads
+  into runtime context; shorten the string inside the generator script,
+  never the generated output itself
 
 ## Workflow
 
@@ -22,9 +25,11 @@ Procedure for "shorten a prompt without changing meaning or behavior" tasks.
    (see CLAUDE.md); edit sources only, never generated files.
 2. Record before-size with `wc -w -c` on every affected file.
 3. Condense prose per the rules above.
-4. Regenerate Codex outputs (`mac/initialization/ai/codex.sh`) when a
-   concatenation source changed; verify with `git diff` that generated
-   diffs derive only from edited sources.
+4. Regenerate every affected output with its matching generator when a
+   source changed (`mac/initialization/ai/codex.sh` for concatenated
+   SKILL.md files, `generate_pr_reviewer_agents` in `mac/scripts/common.sh`
+   for reviewer agents — see CLAUDE.md); verify with `git diff` that
+   generated diffs derive only from edited sources.
 5. Self-review: list the operative elements of the original and confirm
    each survives in the shortened version.
 6. Report before/after `wc -w` numbers.
