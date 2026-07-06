@@ -18,6 +18,7 @@ Compare implementation changes with relevant tests. Look for missing coverage fo
 - Changed/new code is primary. Report missing tests for unchanged code only when the untested path creates critical outage or data-loss risk; prefix `[既存コード]` and name the category.
 - Report only actionable test findings with confidence >= 75. No praise or non-actionable notes.
 - Cite changed implementation or test lines as `[path:line]`, or `[path:~line]` when exact resolution is impossible. Pre-existing critical findings may cite the unchanged root-cause line.
+- Line numbers must be new-file line numbers in the head revision — never positions within the diff text or a numbered copy of it. Before finalizing, verify every cited line against the actual file (`grep -n`/`Read` in local mode; compute from hunk headers `@@ -a,b +c,d @@` in remote mode).
 - Skip unresolved duplicate existing comments when same path within ±5 lines and same root cause, or same fix target, with duplicate confidence >= 70. Do not skip resolved or outdated comments. List skipped items as `[既コメント済スキップ] [path:line] — <reason>`.
 
 Respond in **Japanese**. For each finding:

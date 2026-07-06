@@ -48,7 +48,7 @@ Start all simultaneously:
 6. If a bug and missing test share the same root cause, keep the bug as the finding and mention the test gap only as supporting detail unless a distinct test change is required.
 7. Output only actionable findings requiring a concrete response. No praise, compliance confirmations, or non-actionable observations.
 8. Reclassify by confidence: High 90-100, Medium 75-89, Low only when explicitly notable below threshold.
-9. Every final finding needs `[path:line]` or `[path:~line]`; drop findings without line references.
+9. Every final finding needs `[path:line]` or `[path:~line]`; drop findings without line references. Verify every surviving anchor against the head-revision file (`grep -n`/`Read` in local mode) — sub-agents may mistakenly report diff-text positions; correct mismatches or downgrade to `~line`.
 10. Number findings sequentially across regular, test, and pre-existing-code sections. Omit empty sections and omit `## レビュー注目ポイント` unless it adds concrete unresolved actions not already numbered.
 11. If no actionable findings remain, output only `対応が必要な指摘はありません。`
 12. If any finding was skipped as an existing-comment duplicate, add `## [既コメント済] スキップした指摘` immediately before `## 総合評価`, one line each:
