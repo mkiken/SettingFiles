@@ -41,6 +41,9 @@ for file in "${Repo}ai/codex/rules"/*; do
   fi
 done
 
+# pr-review-subagents のレビュアー定義を共有フラグメントから生成（編集は ai/common/pr_review_subagents/ と ai/codex/agents_src/ へ）
+generate_pr_reviewer_agents codex
+
 # agents はファイル単位でシンボリックリンク
 agents_dest=~/.codex/agents
 mkdir -p "$agents_dest"
@@ -55,6 +58,9 @@ done
 
 # pr-comment-review スキルは共通コアを連結して SKILL.md を生成（編集は skill_head.md / ai/common/pr_comment_review_core.md へ）
 { /bin/cat "${Repo}ai/codex/skills/pr-comment-review/skill_head.md"; echo; /bin/cat "${Repo}ai/common/pr_comment_review_core.md"; } > "${Repo}ai/codex/skills/pr-comment-review/SKILL.md"
+
+# pr-review-subagents スキルは共通コアを連結して SKILL.md を生成（編集は skill_head.md / skill_tail.md / ai/common/pr_review_subagents/orchestrator_core.md へ）
+{ /bin/cat "${Repo}ai/codex/skills/pr-review-subagents/skill_head.md"; echo; /bin/cat "${Repo}ai/common/pr_review_subagents/orchestrator_core.md"; echo; /bin/cat "${Repo}ai/codex/skills/pr-review-subagents/skill_tail.md"; } > "${Repo}ai/codex/skills/pr-review-subagents/SKILL.md"
 
 # skills はディレクトリ単位でシンボリックリンク（skills/<name>/SKILL.md 構造のため）
 setup_ai_skills ~/.codex/skills "${Repo}ai/common/skills" "${Repo}ai/codex/skills"

@@ -47,6 +47,8 @@ mac/initialization/ai/gemini.sh
 mac/initialization/ai/codex.sh
 ```
 
+After editing pr-review-subagents sources (`ai/common/pr_review_subagents/`, `ai/*/agents_src/`, codex `skill_head.md`/`skill_tail.md`), regenerate the committed outputs with the scripts above, or run `generate_pr_reviewer_agents <platform>` from `mac/scripts/common.sh` directly.
+
 ## Architecture
 
 ### Directory Structure
@@ -75,7 +77,7 @@ Key symlinks:
 
 Claude-specific files (commands, hooks) are individually symlinked into `~/.claude/`. Commands go to `~/.claude/commands/my/`.
 
-Skills (`ai/common/skills/`, `ai/{claude,gemini,codex}/skills/`) are symlinked per directory via `setup_ai_skills` (e.g. `~/.codex/skills/pr-review` → `ai/codex/skills/pr-review`), so edits to skill files take effect immediately — no rerun or regeneration needed. The whole `ai/common` directory is also symlinked to `~/.gemini/common` and `~/.claude/common` for runtime file references.
+Skills (`ai/common/skills/`, `ai/{claude,gemini,codex}/skills/`) are symlinked per directory via `setup_ai_skills` (e.g. `~/.codex/skills/pr-review` → `ai/codex/skills/pr-review`), so edits to skill files take effect immediately — no rerun or regeneration needed (exception: generated Codex `SKILL.md` files such as pr-review and pr-review-subagents must be regenerated from their sources). The whole `ai/common` directory is also symlinked to `~/.gemini/common` and `~/.claude/common` for runtime file references.
 
 `ai/claude/settings.json` is the exception: it is not symlinked. It is deep-merged into `~/.claude/settings.json` via `smart_merge_json`, and the two files diverge (the runtime file accumulates machine-local keys). Editing the repository source alone does not update the live file — apply changes with `mac/initialization/ai/claude.sh` / `mac/update`, or merge manually when immediate effect is needed.
 
@@ -89,6 +91,8 @@ Edit the source files directly (`ai/common/prompt_base.md`, `ai/common/character
 - **Codex** (`ai/codex/_AGENTS.md`): Codex's AGENTS.md does not support `@file` imports, so `mac/initialization/ai/codex.sh` (and `mac/updates/codex.sh`) generates `_AGENTS.md` by `cat`-concatenating `ai/common/prompt_base.md` + `ai/common/characters/nyaruko.md` + `ai/codex/codex_base.md`. The generated file is committed and symlinked to `~/.codex/AGENTS.md`. Edit the source files (not the generated `_AGENTS.md`); regenerate with `mac/initialization/ai/codex.sh`.
 
 The pr-review shared body lives in `ai/common/pr_review_core.md` and is loaded at runtime by Claude (`` !`/bin/cat ~/.claude/common/pr_review_core.md` `` in the command) and Gemini (`!{cat ~/.gemini/common/pr_review_core.md}`). For Codex, the same scripts generate `ai/codex/skills/pr-review/SKILL.md` from `skill_head.md` + `pr_review_core.md` + `skill_tail.md`; edit those sources, not the generated `SKILL.md`. The pr-comment-review shared body follows the same pattern: `ai/common/pr_comment_review_core.md` is loaded at runtime by Claude/Gemini, and the same scripts generate `ai/codex/skills/pr-comment-review/SKILL.md` from `skill_head.md` + `pr_comment_review_core.md`.
+
+The pr-review-subagents system is centralized in `ai/common/pr_review_subagents/`: `orchestrator_core.md` (Aggregate + Final Format) is loaded at runtime by Claude (`` !`/bin/cat ~/.claude/common/pr_review_subagents/orchestrator_core.md` `` in the skill) and Gemini (`!{cat ~/.gemini/common/pr_review_subagents/orchestrator_core.md}` in the command), and concatenated at build time into `ai/codex/skills/pr-review-subagents/SKILL.md` (from `skill_head.md` + `orchestrator_core.md` + `skill_tail.md`). The 18 reviewer subagent definitions (`ai/claude/agents/pr-reviewer-*.md`, `ai/gemini/agents/pr-reviewer-*.md`, `ai/codex/agents/pr_reviewer_*.toml`) are GENERATED and committed: `generate_pr_reviewer_agents` (`mac/scripts/common.sh`, called by the init/update scripts) assembles each from shared dimension fragments (`intro_<dim>.md`, `format_<dim>.md`) plus per-platform `ai/<platform>/agents_src/` files (`head_<dim>`, `rules_<dim>`, `rules_common`). Subagent definition files support no runtime file inclusion on any platform, hence build-time generation. Edit the sources, never the generated outputs.
 
 ### Claude Hooks
 `ai/claude/hooks/` contains notification hooks symlinked into `~/.claude/hooks/`:

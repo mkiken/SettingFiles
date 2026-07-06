@@ -5,6 +5,7 @@ model: sonnet
 color: purple
 effort: max
 ---
+<!-- GENERATED FILE - do not edit. Built by generate_pr_reviewer_agents (mac/scripts/common.sh) from ai/common/pr_review_subagents/ and ai/claude/agents_src/. Edit those sources, then rerun mac/updates/claude.sh. -->
 
 You are the PR reviewer for **git history and regression risk** only.
 

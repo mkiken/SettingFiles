@@ -7,6 +7,8 @@ description: >
   reviewers. Accepts an optional PR number; if omitted, detect the current branch PR.
 ---
 
+<!-- GENERATED FILE NOTICE: SKILL.md is generated from skill_head.md + ai/common/pr_review_subagents/orchestrator_core.md + skill_tail.md by mac/initialization/ai/codex.sh and mac/updates/codex.sh. Edit those sources, not SKILL.md. -->
+
 ## Instructions
 
 Review a PR with six read-only specialist Codex subagents.
@@ -51,19 +53,19 @@ Each subagent stays read-only and returns Japanese findings in its configured fo
 
 ### Aggregate
 
-- Drop "no findings" messages from final findings, but count them as zero in the summary.
-- Remove inter-agent duplicates by same root cause at the same file/line; keep the clearest/highest-confidence finding.
-- Recheck existing comments NDJSON. Skip an unresolved duplicate when same path within ±5 lines and same root cause, or same target symbol/concept fixable by the same change, with duplicate confidence >= 70. Do not skip resolved or outdated comments. Collect skipped findings for `[既コメント済]`.
-- Route findings agents marked `[既存コード]` (critical pre-existing issues) to `## 既存コードに関する指摘`, keeping the critical category noted in the detail line.
-- Route all other test-related findings to `## テストに関する指摘`, regardless of source agent. Decide pre-existing-vs-changed first: a `[既存コード]` finding about tests still goes to `## 既存コードに関する指摘`.
-- If a bug and missing test share the same root cause, keep the bug as the finding and mention the test gap only as supporting detail unless a distinct test change is required.
-- Output only actionable findings requiring a concrete response. No praise, compliance confirmations, or non-actionable observations.
-- Reclassify by confidence: High 90-100, Medium 75-89, Low only when explicitly notable below threshold.
-- Every final finding needs `[path:line]` or `[path:~line]`; drop findings without line references.
-- Number findings sequentially across regular, test, and pre-existing-code sections. Omit empty sections and omit `## レビュー注目ポイント` unless it adds concrete unresolved actions not already numbered.
-- If no actionable findings remain, output only `対応が必要な指摘はありません。`
-- If any finding was skipped as an existing-comment duplicate, add `## [既コメント済] スキップした指摘` immediately before `## 総合評価`, one line each:
-  `- **[path:line]** 領域: <area> / 既存コメント ID: <id> (resolved=<bool>, ai_origin=<value>) — <reason>`
+1. Drop "no findings" messages from final findings, but count them as zero in the summary.
+2. Remove inter-agent duplicates by same root cause at the same file/line; keep the clearest/highest-confidence finding.
+3. Recheck existing comments NDJSON. Skip an unresolved duplicate when same path within ±5 lines and same root cause, or same target symbol/concept fixable by the same change, with duplicate confidence >= 70. Do not skip resolved or outdated comments; if they overlap, re-report and mention the past resolved comment in the detail. Collect skipped findings for `[既コメント済]`.
+4. Route findings agents marked `[既存コード]` (critical pre-existing issues) to `## 既存コードに関する指摘`, keeping the critical category noted in the detail line.
+5. Route all other test-related findings to `## テストに関する指摘`, regardless of source agent. Decide pre-existing-vs-changed first: a `[既存コード]` finding about tests still goes to `## 既存コードに関する指摘`.
+6. If a bug and missing test share the same root cause, keep the bug as the finding and mention the test gap only as supporting detail unless a distinct test change is required.
+7. Output only actionable findings requiring a concrete response. No praise, compliance confirmations, or non-actionable observations.
+8. Reclassify by confidence: High 90-100, Medium 75-89, Low only when explicitly notable below threshold.
+9. Every final finding needs `[path:line]` or `[path:~line]`; drop findings without line references. Verify every surviving anchor against the head-revision file (read-only file inspection in local mode) — sub-agents may mistakenly report diff-text positions; correct mismatches or downgrade to `~line`.
+10. Number findings sequentially across regular, test, and pre-existing-code sections. Omit empty sections and omit `## レビュー注目ポイント` unless it adds concrete unresolved actions not already numbered.
+11. If no actionable findings remain, output only `対応が必要な指摘はありません。`
+12. If any finding was skipped as an existing-comment duplicate, add `## [既コメント済] スキップした指摘` immediately before `## 総合評価`, one line each:
+    `- **[path:line]** 領域: <area> / 既存コメント ID: <id> (resolved=<bool>, ai_origin=<value>) — <reason>`
 
 ### Final Format
 

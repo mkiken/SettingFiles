@@ -40,6 +40,9 @@ else
     smart_merge_json "${Repo}ai/gemini/settings.json" ~/.gemini/settings.json
 fi
 
+# pr-review-subagents のレビュアー定義を共有フラグメントから生成（編集は ai/common/pr_review_subagents/ と ai/gemini/agents_src/ へ）
+generate_pr_reviewer_agents gemini
+
 # commands,hooksなどはディレクトリ内のファイルをシンボリックリンク
 for item in agents commands hooks policies; do
   mkdir -p ~/.gemini/${item}

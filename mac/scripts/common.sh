@@ -58,6 +58,64 @@ function setup_ai_pr_tools() {
   make_symlink "$source_dir" "$dest_bin"
 }
 
+# pr-review-subagents のレビュアー定義を共有フラグメントから生成する
+# 生成物: ai/claude/agents/pr-reviewer-*.md, ai/gemini/agents/pr-reviewer-*.md, ai/codex/agents/pr_reviewer_*.toml
+# 編集は ai/common/pr_review_subagents/ と ai/<platform>/agents_src/ へ（生成物は編集しない）
+function generate_pr_reviewer_agents() {
+  local platform="$1"
+  local common="${Repo}ai/common/pr_review_subagents"
+  local src="${Repo}ai/${platform}/agents_src"
+  local notice="GENERATED FILE - do not edit. Built by generate_pr_reviewer_agents (mac/scripts/common.sh) from ai/common/pr_review_subagents/ and ai/${platform}/agents_src/. Edit those sources, then rerun mac/updates/${platform}.sh."
+  local dim out
+
+  for dim in bugs security architecture errors history tests; do
+    case "$platform" in
+      claude | gemini)
+        out="${Repo}ai/${platform}/agents/pr-reviewer-${dim}.md"
+        {
+          /bin/cat "${src}/head_${dim}.md"
+          printf '<!-- %s -->\n' "$notice"
+          echo
+          /bin/cat "${common}/intro_${dim}.md"
+          echo
+          /bin/cat "${src}/rules_${dim}.md"
+          /bin/cat "${src}/rules_common.md"
+          echo
+          if [[ "$platform" == "gemini" ]]; then
+            # Gemini のみ、指摘テンプレートのヘッダー行直後に行番号根拠の行を挿入する
+            awk '{print} /\(信頼度: XX\)$/{print "- **行番号根拠**: FILE path/to/file.ext / NEW 42 exact snippet from the line-numbered diff"}' "${common}/format_${dim}.md"
+          else
+            /bin/cat "${common}/format_${dim}.md"
+          fi
+        } > "$out"
+        ;;
+      codex)
+        out="${Repo}ai/codex/agents/pr_reviewer_${dim}.toml"
+        # 本文は TOML の ''' リテラル文字列に埋め込むため、フラグメントに ''' が混入したら生成を失敗させる
+        if /usr/bin/grep -q "'''" "${common}/intro_${dim}.md" "${common}/format_${dim}.md" "${src}/rules_${dim}.md" "${src}/rules_common.md"; then
+          echo "Error: ''' found in pr_reviewer_${dim} fragments; it would break the TOML literal string." >&2
+          return 1
+        fi
+        {
+          printf '# %s\n' "$notice"
+          /bin/cat "${src}/head_${dim}.toml"
+          /bin/cat "${common}/intro_${dim}.md"
+          echo
+          /bin/cat "${src}/rules_${dim}.md"
+          /bin/cat "${src}/rules_common.md"
+          echo
+          /bin/cat "${common}/format_${dim}.md"
+          printf "'''\n"
+        } > "$out"
+        ;;
+      *)
+        echo "Error: unknown platform '${platform}' for generate_pr_reviewer_agents." >&2
+        return 1
+        ;;
+    esac
+  done
+}
+
 function require_ai_setup_command() {
   local command_name="$1"
 
