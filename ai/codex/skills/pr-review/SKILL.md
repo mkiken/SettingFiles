@@ -9,7 +9,7 @@ description: >
 
 ## Instructions
 
-Perform a comprehensive code review for the specified PR (or the PR associated with the current branch if no number is given).
+Perform a comprehensive code review for the specified PR (or the PR associated with the current branch if no number is given), then report findings in the structured format below.
 
 PR number: extract from the user's message if provided. If not provided, run:
 ```bash
@@ -18,75 +18,79 @@ gh pr view --json number --jq .number
 
 ### Review Scope: Changed Code vs Pre-existing Code
 
-**Primary focus**: Review comments MUST target lines added or modified in this PR's diff. Do not surface issues whose root cause lives entirely in unchanged code that this PR did not touch.
+**Primary focus**: findings MUST target lines added or modified in this PR's diff. Do not surface issues whose root cause lives entirely in unchanged code this PR did not touch.
 
-**Pre-existing-code exception (critical only)**: You MAY report a pre-existing issue (one that exists entirely in unchanged code) only when it falls into one of these critical impact categories:
+**Pre-existing-code exception (critical only)**: report an issue that exists entirely in unchanged code only when it falls into one of these critical impact categories:
 
 - **Security breach**: concrete exploitable attack vector (auth bypass, RCE, injection, secret exposure)
 - **Data corruption/loss**: silent overwrite, missing transaction, irreversible mutation
 - **Service outage**: crash, infinite loop, deadlock, resource exhaustion under realistic load
 - **Compliance violation**: PII handling, license breach, audit trail loss
 
-For pre-existing findings, route them to `## 既存コードに関する指摘` (see **Pre-existing Code Finding Routing** below) and state which impact category applies. All other pre-existing issues MUST be omitted.
+Route such findings to `## 既存コードに関する指摘` (see routing below) and state the applicable category. All other pre-existing issues MUST be omitted.
 
 ### Local vs Remote File Access
 
-Before starting the review, determine the file access mode:
+Determine the file access mode before starting:
 
-1. Run `git branch --show-current` to get the current local branch name
-2. Fetch PR metadata: `gh pr view <PR_NUMBER> --json title,body,files,commits,baseRefName,headRefName`
-3. Compare the current branch with `headRefName`
+1. `git branch --show-current` — current local branch
+2. `gh pr view <PR_NUMBER> --json title,body,files,commits,baseRefName,headRefName` — PR metadata
+3. Compare the current branch with `headRefName`.
 
-**If they match (local mode)** — use local tools for deeper investigation:
-- Use the `Read` tool to read file contents directly (faster, includes uncommitted local changes)
-- Use the `Glob` tool to explore file structure (e.g., `Glob("src/**/*.ts")`)
+**If they match (local mode)** — investigate with the `Read` tool (faster, includes uncommitted local changes) and the `Glob` tool (e.g. `Glob("src/**/*.ts")`).
 
 **If they don't match (remote mode)** — use gh api:
-- `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefName} --jq '.content' | base64 -d` — Read any file
-- `gh api repos/{owner}/{repo}/git/trees/{headRefName}?recursive=1` — Explore file structure
+- `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefName} --jq '.content' | base64 -d` — read any file
+- `gh api repos/{owner}/{repo}/git/trees/{headRefName}?recursive=1` — explore file structure
 
 ### Review Workflow
 
-Fetch primary review materials:
-- PR metadata is already fetched in the step above
-- `gh pr diff <PR_NUMBER>` — Complete diff (**Note: file path arguments are not supported; always fetch the full diff and filter locally if needed**)
-- `bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <PR_NUMBER>` — Existing PR comments as NDJSON (inline, issue, and review-summary with resolved/outdated status)
+Fetch primary review materials (PR metadata is already fetched above):
 
-For deeper investigation (referencing files outside diff, checking surrounding context), use the method determined above.
+- `gh pr diff <PR_NUMBER>` — complete diff (file path arguments are not supported; always fetch the full diff and filter locally if needed)
+- `bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <PR_NUMBER>` — existing PR comments as NDJSON (inline, issue, and review-summary with resolved/outdated status)
+
+For deeper investigation (files outside the diff, surrounding context), use the access mode determined above.
 
 ### Existing Comment Deduplication
 
 Before finalizing each finding, check whether it is already covered by an existing PR comment:
 
-1. **Skip resolved/outdated from duplicate matching**: `is_resolved == true` or `is_outdated == true` → non-existing. Re-reporting is allowed; append `(参考: 過去にresolved済みの既存コメント #<id> と同様の指摘)` to the detail line.
+1. `is_resolved == true` or `is_outdated == true` → treat as non-existing. Re-reporting is allowed; append `(参考: 過去にresolved済みの既存コメント #<id> と同様の指摘)` to the detail line.
 2. **Mark as duplicate** when: same `path` + line within ±5 AND same root cause, OR same target symbol/concept addressable by the same fix.
 3. **Do NOT skip**: same problem type at a different file, or a more specific finding requiring a different fix.
-4. **Confidence threshold**: skip only when your duplicate confidence is ≥ 70. Below 70, output both.
-5. `ai_origin` does not affect the duplicate decision — judge on content only.
+4. Skip only when duplicate confidence is ≥ 70. Below 70, output both.
+5. `ai_origin` (author being human/bot/AI) does not affect the duplicate decision — judge on content only.
 
-When findings are skipped, add **`## [既コメント済] スキップした指摘`** immediately before the Post-Review block:
+When findings are skipped, add `## [既コメント済] スキップした指摘` immediately before the Post-Review block (omit entirely when nothing is skipped):
+
 ```
 - **[path:line]** Category / 既存コメント ID: <id> (resolved=<bool>, ai_origin=<value>) — <reason>
 ```
-Omit this section entirely when nothing is skipped.
 
-### Review Comment Priority
+### Priorities and Routing
 
-Assign priority to all review comments:
+Assign a priority to every finding:
 
-- 🔴 **High (Action Required)**: Bug risk, security vulnerabilities, data loss
-- 🟡 **Medium (Recommended)**: Architecture issues, performance, critical readability
-- 🟢 **Low (Optional)**: Maintainability, minor refactoring, style
+- 🔴 **High (Action Required)**: bug risk, security vulnerabilities, data loss
+- 🟡 **Medium (Recommended)**: architecture issues, performance, critical readability
+- 🟢 **Low (Optional)**: maintainability, minor refactoring, style
 
-**Group non-test findings by priority in descending order.**
+Route each finding, deciding in this order:
+
+1. `## 既存コードに関する指摘` — pre-existing-code findings per the critical-only exception above. Decided first: a pre-existing finding about tests still goes here, not in the test section. Each detail line must state the critical impact category (Security breach / Data corruption-loss / Service outage / Compliance violation).
+2. `## テストに関する指摘` — missing tests, weak assertions, brittle tests, incorrect mocks/fixtures, boundary-value tests, negative/error-path tests, integration coverage. If a runtime bug and a missing test share the same root cause, keep the bug in the regular section and mention the missing test in its detail line; create a separate test finding only when a distinct test change is required.
+3. Regular priority sections — everything else.
+
+Within every section, group findings by priority in descending order and omit empty priority levels. Number all findings sequentially across regular, test, and pre-existing sections — never restart numbering per section. Omit `## テストに関する指摘` and `## 既存コードに関する指摘` entirely when they have no actionable findings.
+
+### Code Quality Perspectives
+
+Review thoroughly from all of these perspectives: **Bug Risk** (potential bugs, error handling), **Coding Standards** (general rules, best practices), **Architecture** (separation of concerns, class/function design), **Readability** (intent clarity, naming, comments), **Performance** (issues, optimization opportunities), **Security** (vulnerabilities, sensitive data handling), **Maintainability** (change flexibility, technical debt).
 
 ### Actionable Findings Only
 
-Output only findings that require a concrete response: code changes, test additions, design changes, documentation updates, or explicit reviewer decisions.
-
-Do not output praise, compliance confirmations, or non-actionable observations such as "the code follows the convention", "this is well implemented", "no issue here", or "looks good".
-
-Do not include filler sections. `Review Focus Points` and `Recommendations` are optional and must be omitted unless they contain concrete unresolved actions that are not already covered by numbered findings.
+Output only findings that require a concrete response: code changes, test additions, design changes, documentation updates, or explicit reviewer decisions. Do not output praise, compliance confirmations, or non-actionable observations ("looks good", "no issue here"). Omit the `Review Focus Points` and `Recommendations` sections unless they contain concrete unresolved actions not already covered by numbered findings.
 
 If no actionable findings remain after deduplication, output only:
 
@@ -94,99 +98,39 @@ If no actionable findings remain after deduplication, output only:
 対応が必要な指摘はありません。
 ```
 
-### Test Finding Routing
+### Finding Format
 
-Separate test-related findings from regular code findings:
+Each finding MUST use this exact three-part structure:
 
-- Put findings about missing tests, weak assertions, brittle tests, incorrect mocks/fixtures, boundary-value tests, negative/error-path tests, and integration coverage under `## テストに関する指摘`.
-- Inside `## テストに関する指摘`, group findings by `High`, `Medium`, and `Low` using the same priority thresholds.
-- Keep numbering sequential across regular findings and test findings. Do not restart numbering in the test section.
-- Omit `## テストに関する指摘` entirely when there are no actionable test findings.
-- If a runtime bug and a missing test share the same root cause, keep the bug in the regular priority section. Mention the missing test in the detail line when it is only supporting evidence; create a separate test finding only when a distinct test change is required.
-- **Pre-existing code takes priority over test routing**: if a finding is about unchanged/pre-existing code (e.g., missing tests for pre-existing code), route it to `## 既存コードに関する指摘` instead of `## テストに関する指摘`, even though it is test-related. Whether the target is pre-existing code is decided first; only then is the test-vs-regular routing decided for the remainder.
+- **Header line**: `N. **[file:line]** Category: Short one-line summary` — path relative to repository root, `[path:line]` for single line or `[path:startLine-endLine]` for a range. Inside `## 既存コードに関する指摘`, append the critical impact category in parentheses.
+- **Detail line**: `   - Full explanation and recommendation (indented sub-bullet)`. Do not cram the explanation into the header line.
+- **Separator line**: `---` after every finding, including the last one — a hard structural requirement that must never be omitted.
 
-### Pre-existing Code Finding Routing
-
-Separate pre-existing-code findings (per the critical-impact exception above) from regular code findings and test findings:
-
-- Put findings whose root cause lives entirely in unchanged code — and that qualify under the critical impact categories (Security breach, Data corruption/loss, Service outage, Compliance violation) — under `## 既存コードに関する指摘`.
-- Inside `## 既存コードに関する指摘`, group findings by `High`, `Medium`, and `Low` using the same priority thresholds.
-- Keep numbering sequential across regular findings, test findings, and pre-existing-code findings. Do not restart numbering in this section.
-- Omit `## 既存コードに関する指摘` entirely when there are no actionable pre-existing-code findings.
-- Each finding's detail line must state which critical impact category applies (Security breach / Data corruption-loss / Service outage / Compliance violation).
-- This section takes priority over `## テストに関する指摘`: a pre-existing-code finding about tests still goes here, not in the test section.
-
-### Code Quality Review
-
-Review thoroughly from the following perspectives:
-
-- **Bug Risk**: Potential bugs and error handling issues
-- **Coding Standards**: Adherence to general rules and best practices
-- **Architecture**: Separation of concerns, appropriate class/function design
-- **Readability**: Code intent clarity, naming conventions, comments
-- **Performance**: Performance issues and optimization opportunities
-- **Security**: Security vulnerabilities and sensitive data handling
-- **Maintainability**: Future change flexibility, avoiding technical debt
-
-**IMPORTANT**: For each review comment, specify the full file path (relative to repository root) and line number(s) in the following format:
-
-- `[path/to/file.ext:line]` for single line comments
-- `[path/to/file.ext:startLine-endLine]` for multi-line comments
-
-**Number all findings sequentially across regular priority sections, `## テストに関する指摘`, and `## 既存コードに関する指摘` (continue numbering across sections — do not restart per section).**
-
-**Output must be grouped by priority level in descending order. Omit priority levels with no findings. Test findings must be moved to `## テストに関する指摘` and pre-existing-code findings must be moved to `## 既存コードに関する指摘` instead of appearing in the regular priority sections.**
-
-**Finding Format**: Each item MUST use this exact three-part structure — header, detail, then separator:
-- **Header line**: `N. **[file:line]** Category: Short one-line summary`
-- **Pre-existing header line** (used only inside `## 既存コードに関する指摘`): `N. **[file:line]** Category: Short one-line summary (critical impact category)`
-- **Detail line**: `   - Full explanation and recommendation (indented sub-bullet)`
-- **Separator line**: `---` (horizontal rule — MANDATORY after every finding, including the last one)
-
-The `---` separator after each item is a hard structural requirement that must never be omitted.
-
-✅ CORRECT:
-
-1. **[src/auth.ts:42]** Security: Token may be exposed in logs
-   - Auth token is passed directly to the logger. Add a masking step before logging to prevent credential leakage.
-
----
-
-2. **[src/auth.ts:87]** Bug Risk: Null check missing before user lookup
-   - `user` can be null when session expires mid-request, causing an unhandled TypeError.
-
----
-
-(A pre-existing-code finding such as a SQL injection in an unchanged helper would be numbered sequentially but placed under `## 既存コードに関する指摘` — see that section's template below, not here.)
-
-❌ WRONG (missing `---` separator and/or single long line):
-
-1. **[src/auth.ts:42]** Security: Auth token may be exposed in logs because it is passed directly to the logger without masking, which could lead to credential leakage in log aggregation systems.
-2. **[src/auth.ts:87]** Bug Risk: Null check missing before user lookup which can cause unhandled TypeError.
+Output skeleton (numbering continues across all sections):
 
 #### 🔴 High Priority
-1. **[path/to/file.ext:line]** Category: Short summary
-   - Detailed explanation and recommendation.
+1. **[src/services/auth.ts:42]** Security: Auth token may be exposed in logs
+   - Token is logged in plaintext. Apply a masking utility before passing to logger.
 
 ---
 
 #### 🟡 Medium Priority
-2. **[path/to/file.ext:line]** Category: Short summary
-   - Detailed explanation and recommendation.
+2. **[src/components/Button.tsx:15-20]** Architecture: Consider separating logic
+   - Click handler mixes UI event handling with business logic. Extract to a custom hook.
 
 ---
 
 #### 🟢 Low Priority
-3. **[path/to/file.ext:line]** Category: Short summary
-   - Detailed explanation and recommendation.
+3. **[src/utils/format.ts:8]** Readability: Use more descriptive variable names
+   - `d` and `v` obscure intent; rename to `date` and `value` for clarity.
 
 ---
 
 ## テストに関する指摘
 
 #### 🟡 Medium Priority
-4. **[path/to/file.ext:line]** Test Coverage: Short summary
-   - Detailed explanation and recommendation for the missing or weak test.
+4. **[src/services/auth.test.ts:1]** Test Coverage: Missing negative-path test for session expiry
+   - Add a test asserting `getUser()` behavior when the session has expired.
 
 ---
 
@@ -198,21 +142,11 @@ The `---` separator after each item is a hard structural requirement that must n
 
 ---
 
-### Review Focus Points
-
-Omit this section unless there are concrete unresolved review focus points that are not already covered by numbered findings.
-
-### Recommendations
-
-Omit this section unless there are concrete recommendations that are not already covered by numbered findings.
-
----
-
 ### Post-Review: Clean Up & Post to GitHub
 
 After completing the review, delete any temporary files you created during the process (e.g., `diff.txt`, `pr_diff.txt`).
 
-If at least one actionable finding remains, display the following message to the user after outputting the review results:
+If at least one actionable finding remains, display the following message after outputting the review results:
 
 > To post any findings as GitHub PR comments, use the `pr-comment-post` skill:
 > Tell me: "pr-comment-post スキルで 1 3 5 を投稿して" (specifying item numbers)
