@@ -16,7 +16,7 @@ $pr-comment-review <PR_COMMENT_URL> [analysis instructions...]
 ```
 
 - First token: `COMMENT_URL`; remaining text: `PROMPT`.
-- If missing or not a GitHub PR comment/review URL, ask for the URL in plain text.
-- Use plain-text clarification questions; do not use `request_user_input`.
+- If missing or not a GitHub PR comment/review URL, ask for the URL.
+- Ask clarifications in plain text; never `request_user_input`.
 
 ### Core Analysis Rules
