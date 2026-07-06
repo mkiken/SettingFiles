@@ -18,18 +18,9 @@ bash ~/.config/ai-pr/bin/fetch_existing_comments.sh {{args}}
 
 Compare current branch with `headRefName`; match means local mode.
 
-## Shared Agent Contract
-
-Pass each agent: PR number, metadata, repo owner/name, full diff, line-numbered diff, existing comments NDJSON, local mode, and head branch.
-
-Common rules:
-- Review changed code first. Report unchanged pre-existing code only for security breach, data corruption/loss, service outage, or compliance violation. Prefix `[既存コード]` and name the category (the Aggregate step routes these to `## 既存コードに関する指摘`).
-- Final line references must come from the line-numbered diff: prefer `NEW`; use current-side `CTX` only when no `NEW` line can carry the finding. Never use `OLD`, deleted-file records, hunk arithmetic, ranges, or approximate lines.
-- Every agent finding must include `行番号根拠: FILE <path> / NEW|CTX <line> <snippet>` matching its header.
-- Deduplicate against unresolved existing comments only when same path within ±5 lines and same root cause, or same fix target, with confidence >= 70. Do not skip resolved or outdated comments; list skipped items separately.
-- Output only actionable findings with confidence >= 75. No praise or "looks good" notes.
-
 ## Launch Agents
+
+Pass each agent: PR number, metadata, repo owner/name, full diff, line-numbered diff, existing comments NDJSON, local mode, and head branch. Each agent's focus and review rules are in its definition.
 
 Invoke all six with `wait_for_previous=false`:
 
@@ -42,17 +33,17 @@ Invoke all six with `wait_for_previous=false`:
 
 ## Aggregate
 
-Drop "no findings" messages. Remove inter-agent duplicates by root cause, keeping the clearest/highest-confidence finding. Recheck existing-comment duplicates and collect skipped items.
+Drop "no findings" messages. Remove inter-agent duplicates by root cause, keeping the clearest/highest-confidence finding. Recheck existing-comment duplicates (same path within ±5 lines and same root cause, or same fix target, with confidence >= 70; never skip resolved or outdated comments) and collect skipped items.
 
 Before final output, drop findings without valid `行番号根拠`, findings using `OLD`/deleted/approximate/range lines, and headers not present in the line-numbered diff. Do not show `行番号根拠` in final output.
 
-Route findings marked `[既存コード]` to `## 既存コードに関する指摘`, keeping their critical category noted in the detail line. Route all other test-related findings only to `## テストに関する指摘`. **Pre-existing code takes priority over test routing**: a `[既存コード]` finding about tests still goes to `## 既存コードに関する指摘`, not `## テストに関する指摘`. If a bug and missing test share one root cause, keep the bug in regular priority and mention testing only as supporting detail.
+Route findings agents marked `[既存コード]` (critical pre-existing issues) to `## 既存コードに関する指摘`, keeping their critical category noted in the detail line. Route all other test-related findings only to `## テストに関する指摘`; decide pre-existing-vs-changed first, so a `[既存コード]` finding about tests still goes to `## 既存コードに関する指摘`. If a bug and missing test share one root cause, keep the bug in regular priority and mention testing only as supporting detail.
 
 Priority: High 90-100, Medium 75-89, Low only for notable explicitly reported items below threshold. Number findings sequentially across regular, test, and pre-existing-code sections. Omit empty sections and `## レビュー注目ポイント` unless it adds unresolved actions not already listed. If no actionable findings remain, output only `対応が必要な指摘はありません。`
 
 ## Final Format
 
-Every finding must have a header, indented detail bullet, and `---`, including the last finding. Omit empty and skipped-comments sections when empty.
+Every finding must have a header, indented detail bullet, and `---`, including the last finding. Omit empty and skipped-comments sections when empty. Inside `## 既存コードに関する指摘`, append the critical category in parentheses to the summary.
 
 ```markdown
 ## レビューサマリー
@@ -75,35 +66,23 @@ Every finding must have a header, indented detail bullet, and `---`, including t
 
 ## 🟡 Medium Priority（信頼度75-89）
 
-2. **[file:line]** 領域 (信頼度: XX): 短い一行の要約
-   - 詳細説明と推奨対応。
-
----
+2. （同形式）
 
 ## 🟢 Low Priority（特筆すべきもの）
 
-3. **[file:line]** 領域 (信頼度: XX): 短い一行の要約
-   - 詳細説明と推奨対応。
-
----
+3. （同形式）
 
 ## テストに関する指摘
 
 ### 🟡 Medium Priority（信頼度75-89）
 
-4. **[file:line]** テスト品質 (信頼度: XX): 短い一行の要約
-   - 詳細説明と推奨対応。
-
----
+4. （同形式、領域はテスト品質）
 
 ## 既存コードに関する指摘
 
 ### 🔴 High Priority（信頼度90-100）
 
-5. **[src/db/query.ts:120]** セキュリティ (信頼度: XX): 既存ヘルパーにSQLインジェクション（Security breach category）
-   - PRの新機能から呼ばれる未変更コードが生のユーザー入力をクエリ文字列に連結している。具体的な攻撃ベクトル: 任意の文字列入力で任意のSQL実行が可能。
-
----
+5. （同形式、要約末尾に重大カテゴリ）
 
 ## [既コメント済] スキップした指摘
 - **[path:line]** 領域: <area> / 既存コメント ID: <id> (resolved=<bool>, ai_origin=<value>) — <reason>

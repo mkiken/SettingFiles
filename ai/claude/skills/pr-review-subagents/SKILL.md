@@ -11,10 +11,6 @@ effort: max
 
 Review PR #$ARGUMENTS with 6 read-only specialist sub-agents in parallel.
 
-### Scope Rule
-
-Findings must target PR-added or modified lines. Report unchanged pre-existing code only for critical impact: security breach, data corruption/loss, service outage, or compliance violation. Route these to `## 既存コードに関する指摘` (see Aggregate step 4 and Final Format) and name the category; omit all other pre-existing issues.
-
 ### Gather Once
 
 Fetch required context before launching sub-agents:
@@ -29,7 +25,7 @@ bash ~/.config/ai-pr/bin/fetch_existing_comments.sh $ARGUMENTS
 
 Compare `git branch --show-current` with `headRefName`. If they match, local mode is true and sub-agents may use `Read`/`Glob`; otherwise they must use `gh api` against `headRefName`.
 
-Pass every sub-agent: PR number, metadata, repo owner/name, full diff, existing comments NDJSON, local mode, head branch, focus area, and the scope rule.
+Pass every sub-agent: PR number, metadata, repo owner/name, full diff, existing comments NDJSON, local mode, and head branch. Each agent's focus and review rules are in its definition.
 
 ### Launch
 
@@ -47,16 +43,15 @@ Start all simultaneously:
 1. Drop "no findings" messages from final findings, but count them as zero in the summary.
 2. Remove inter-agent duplicates by same root cause at the same file/line; keep the clearest/highest-confidence finding.
 3. Recheck existing comments NDJSON. Skip an unresolved duplicate when same path within ±5 lines and same root cause, or same target symbol/concept fixable by the same change, with duplicate confidence >= 70. Do not skip resolved or outdated comments; if they overlap, re-report and mention the past resolved comment in the detail. Collect skipped findings for `[既コメント済]`.
-4. Route findings marked `[既存コード]` to `## 既存コードに関する指摘`, keeping their critical category noted in the detail line.
-5. Route all test-related findings to `## テストに関する指摘`, regardless of source agent.
-6. **Pre-existing code takes priority over test routing**: a `[既存コード]` finding about tests still goes to `## 既存コードに関する指摘`, not `## テストに関する指摘`. Decide pre-existing-vs-changed first, then test-vs-regular for the remainder.
-7. If a bug and missing test share the same root cause, keep the bug as the finding and mention the test gap only as supporting detail unless a distinct test change is required.
-8. Output only actionable findings requiring a concrete response. No praise, compliance confirmations, "looks good", or non-actionable observations.
-9. Reclassify by confidence: High 90-100, Medium 75-89, Low only when explicitly notable below threshold.
-10. Every final finding needs `[path:line]` or `[path:~line]`; drop findings without line references.
-11. Number findings sequentially across regular, test, and pre-existing-code sections. Omit empty sections and omit `## レビュー注目ポイント` unless it adds concrete unresolved actions not already numbered.
-12. If no actionable findings remain, output only `対応が必要な指摘はありません。`
-13. If any finding was skipped as an existing-comment duplicate, add `## [既コメント済] スキップした指摘` immediately before `## 総合評価`, one line each:
+4. Route findings agents marked `[既存コード]` (critical pre-existing issues) to `## 既存コードに関する指摘`, keeping the critical category noted in the detail line.
+5. Route all other test-related findings to `## テストに関する指摘`, regardless of source agent. Decide pre-existing-vs-changed first: a `[既存コード]` finding about tests still goes to `## 既存コードに関する指摘`.
+6. If a bug and missing test share the same root cause, keep the bug as the finding and mention the test gap only as supporting detail unless a distinct test change is required.
+7. Output only actionable findings requiring a concrete response. No praise, compliance confirmations, or non-actionable observations.
+8. Reclassify by confidence: High 90-100, Medium 75-89, Low only when explicitly notable below threshold.
+9. Every final finding needs `[path:line]` or `[path:~line]`; drop findings without line references.
+10. Number findings sequentially across regular, test, and pre-existing-code sections. Omit empty sections and omit `## レビュー注目ポイント` unless it adds concrete unresolved actions not already numbered.
+11. If no actionable findings remain, output only `対応が必要な指摘はありません。`
+12. If any finding was skipped as an existing-comment duplicate, add `## [既コメント済] スキップした指摘` immediately before `## 総合評価`, one line each:
     `- **[path:line]** 領域: <area> / 既存コメント ID: <id> (resolved=<bool>, ai_origin=<value>) — <reason>`
 
 ### Final Format
@@ -91,35 +86,23 @@ Use this structure and omit empty sections:
 
 ## 🟡 Medium Priority（信頼度75-89）
 
-2. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
-   - 詳細説明と推奨対応。
-
----
+2. （同形式）
 
 ## 🟢 Low Priority（特筆すべきもの）
 
-3. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
-   - 詳細説明と推奨対応。
-
----
+3. （同形式）
 
 ## テストに関する指摘
 
 ### 🟡 Medium Priority（信頼度75-89）
 
-4. **[path/to/file.ext:line]** テスト品質 (信頼度: XX): 短い一行の要約
-   - 詳細説明と推奨対応。
-
----
+4. （同形式、領域はテスト品質）
 
 ## 既存コードに関する指摘
 
 ### 🔴 High Priority（信頼度90-100）
 
-5. **[src/db/query.ts:120]** セキュリティ (信頼度: XX): 既存ヘルパーにSQLインジェクション（Security breach category）
-   - PRの新機能から呼ばれる未変更コードが生のユーザー入力をクエリ文字列に連結している。具体的な攻撃ベクトル: 任意の文字列入力で任意のSQL実行が可能。
-
----
+5. （同形式、要約末尾に重大カテゴリ）
 
 ## 総合評価
 

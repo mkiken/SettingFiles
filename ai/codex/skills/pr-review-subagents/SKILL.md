@@ -34,11 +34,7 @@ Compare the current branch with `headRefName`.
 - Match: local mode. Subagents may use read-only local commands such as `rg`, `git`, `sed`, and `gh`.
 - Mismatch: remote mode. Subagents must inspect `headRefName` with `gh api`.
 
-Pass every subagent: PR number, metadata, repo owner/name, full diff, existing comments NDJSON, local mode, head branch, focus area, and the scope rule below.
-
-### Scope Rule
-
-Findings must target PR-added or modified lines. Report unchanged pre-existing code only for critical impact: security breach, data corruption/loss, service outage, or compliance violation. Route these to `## 既存コードに関する指摘` (see Aggregate step and Final Format) and name the category; omit all other pre-existing issues.
+Pass every subagent: PR number, metadata, repo owner/name, full diff, existing comments NDJSON, local mode, and head branch. Each subagent's focus and review rules are in its definition.
 
 ### Spawn
 
@@ -58,11 +54,10 @@ Each subagent stays read-only and returns Japanese findings in its configured fo
 - Drop "no findings" messages from final findings, but count them as zero in the summary.
 - Remove inter-agent duplicates by same root cause at the same file/line; keep the clearest/highest-confidence finding.
 - Recheck existing comments NDJSON. Skip an unresolved duplicate when same path within ±5 lines and same root cause, or same target symbol/concept fixable by the same change, with duplicate confidence >= 70. Do not skip resolved or outdated comments. Collect skipped findings for `[既コメント済]`.
-- Route findings marked `[既存コード]` to `## 既存コードに関する指摘`, keeping their critical category noted in the detail line.
-- Route all test-related findings to `## テストに関する指摘`, regardless of source agent.
-- **Pre-existing code takes priority over test routing**: a `[既存コード]` finding about tests still goes to `## 既存コードに関する指摘`, not `## テストに関する指摘`. Decide pre-existing-vs-changed first, then test-vs-regular for the remainder.
+- Route findings agents marked `[既存コード]` (critical pre-existing issues) to `## 既存コードに関する指摘`, keeping the critical category noted in the detail line.
+- Route all other test-related findings to `## テストに関する指摘`, regardless of source agent. Decide pre-existing-vs-changed first: a `[既存コード]` finding about tests still goes to `## 既存コードに関する指摘`.
 - If a bug and missing test share the same root cause, keep the bug as the finding and mention the test gap only as supporting detail unless a distinct test change is required.
-- Output only actionable findings requiring a concrete response. No praise, compliance confirmations, "looks good", or non-actionable observations.
+- Output only actionable findings requiring a concrete response. No praise, compliance confirmations, or non-actionable observations.
 - Reclassify by confidence: High 90-100, Medium 75-89, Low only when explicitly notable below threshold.
 - Every final finding needs `[path:line]` or `[path:~line]`; drop findings without line references.
 - Number findings sequentially across regular, test, and pre-existing-code sections. Omit empty sections and omit `## レビュー注目ポイント` unless it adds concrete unresolved actions not already numbered.
@@ -102,35 +97,23 @@ Use this structure and omit empty sections:
 
 ## 🟡 Medium Priority（信頼度75-89）
 
-2. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
-   - 詳細説明と推奨対応。
-
----
+2. （同形式）
 
 ## 🟢 Low Priority（特筆すべきもの）
 
-3. **[path/to/file.ext:line]** 領域 (信頼度: XX): 短い一行の要約
-   - 詳細説明と推奨対応。
-
----
+3. （同形式）
 
 ## テストに関する指摘
 
 ### 🟡 Medium Priority（信頼度75-89）
 
-4. **[path/to/file.ext:line]** テスト品質 (信頼度: XX): 短い一行の要約
-   - 詳細説明と推奨対応。
-
----
+4. （同形式、領域はテスト品質）
 
 ## 既存コードに関する指摘
 
 ### 🔴 High Priority（信頼度90-100）
 
-5. **[src/db/query.ts:120]** セキュリティ (信頼度: XX): 既存ヘルパーにSQLインジェクション（Security breach category）
-   - PRの新機能から呼ばれる未変更コードが生のユーザー入力をクエリ文字列に連結している。具体的な攻撃ベクトル: 任意の文字列入力で任意のSQL実行が可能。
-
----
+5. （同形式、要約末尾に重大カテゴリ）
 
 ## 総合評価
 
