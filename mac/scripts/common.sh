@@ -65,7 +65,7 @@ function generate_pr_reviewer_agents() {
   local platform="$1"
   local common="${Repo}ai/common/pr_review_subagents"
   local src="${Repo}ai/${platform}/agents_src"
-  local notice="GENERATED FILE - do not edit. Built by generate_pr_reviewer_agents (mac/scripts/common.sh) from ai/common/pr_review_subagents/ and ai/${platform}/agents_src/. Edit those sources, then rerun mac/updates/${platform}.sh."
+  local notice="GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/, ai/${platform}/agents_src/. Regen: mac/updates/${platform}.sh."
   local dim out
 
   for dim in bugs security architecture errors history tests; do

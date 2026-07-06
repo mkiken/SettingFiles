@@ -1,4 +1,4 @@
-# GENERATED FILE - do not edit. Built by generate_pr_reviewer_agents (mac/scripts/common.sh) from ai/common/pr_review_subagents/ and ai/codex/agents_src/. Edit those sources, then rerun mac/updates/codex.sh.
+# GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/, ai/codex/agents_src/. Regen: mac/updates/codex.sh.
 name = "pr_reviewer_bugs"
 description = "Read-only PR reviewer for runtime bugs and logic errors."
 model = "gpt-5.4"

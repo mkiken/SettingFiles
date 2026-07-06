@@ -31,10 +31,7 @@ git branch --show-current
 bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <PR_NUMBER>
 ```
 
-Compare the current branch with `headRefName`.
-
-- Match: local mode. Subagents may use read-only local commands such as `rg`, `git`, `sed`, and `gh`.
-- Mismatch: remote mode. Subagents must inspect `headRefName` with `gh api`.
+Local mode = current branch matches `headRefName`; subagents may then use read-only local commands (`rg`, `git`, `sed`, `gh`), otherwise they must inspect `headRefName` with `gh api`.
 
 Pass every subagent: PR number, metadata, repo owner/name, full diff, existing comments NDJSON, local mode, and head branch. Each subagent's focus and review rules are in its definition.
 
@@ -53,28 +50,25 @@ Each subagent stays read-only and returns Japanese findings in its configured fo
 
 ### Aggregate
 
-1. Drop "no findings" messages from final findings, but count them as zero in the summary.
-2. Remove inter-agent duplicates by same root cause at the same file/line; keep the clearest/highest-confidence finding.
-3. Recheck existing comments NDJSON. Skip an unresolved duplicate when same path within ±5 lines and same root cause, or same target symbol/concept fixable by the same change, with duplicate confidence >= 70. Do not skip resolved or outdated comments; if they overlap, re-report and mention the past resolved comment in the detail. Collect skipped findings for `[既コメント済]`.
-4. Route findings agents marked `[既存コード]` (critical pre-existing issues) to `## 既存コードに関する指摘`, keeping the critical category noted in the detail line.
-5. Route all other test-related findings to `## テストに関する指摘`, regardless of source agent. Decide pre-existing-vs-changed first: a `[既存コード]` finding about tests still goes to `## 既存コードに関する指摘`.
-6. If a bug and missing test share the same root cause, keep the bug as the finding and mention the test gap only as supporting detail unless a distinct test change is required.
-7. Output only actionable findings requiring a concrete response. No praise, compliance confirmations, or non-actionable observations.
+1. Drop "no findings" messages from final findings but count them as zero in the summary.
+2. Remove inter-agent duplicates (same root cause at the same file/line); keep the clearest, highest-confidence finding.
+3. Recheck existing comments NDJSON. Skip an unresolved duplicate — same path within ±5 lines and same root cause, or same target symbol/concept fixable by the same change — with duplicate confidence >= 70. Never skip resolved or outdated comments; if they overlap, re-report and mention the past resolved comment in the detail. Collect skipped findings for `[既コメント済]`.
+4. Route `[既存コード]` findings (critical pre-existing issues) to `## 既存コードに関する指摘`, keeping the critical category in the detail line.
+5. Route all other test-related findings to `## テストに関する指摘` regardless of source agent. Pre-existing-vs-changed is decided first: a `[既存コード]` finding about tests goes to `## 既存コードに関する指摘`.
+6. If a bug and a missing test share a root cause, keep the bug and mention the test gap only as supporting detail unless a distinct test change is required.
+7. Keep only actionable findings requiring a concrete response — no praise, compliance confirmations, or non-actionable observations.
 8. Reclassify by confidence: High 90-100, Medium 75-89, Low only when explicitly notable below threshold.
-9. Every final finding needs `[path:line]` or `[path:~line]`; drop findings without line references. Verify every surviving anchor against the head-revision file (read-only file inspection in local mode) — sub-agents may mistakenly report diff-text positions; correct mismatches or downgrade to `~line`.
-10. Number findings sequentially across regular, test, and pre-existing-code sections. Omit empty sections and omit `## レビュー注目ポイント` unless it adds concrete unresolved actions not already numbered.
+9. Every finding needs `[path:line]` or `[path:~line]`; drop findings without line references. Verify each anchor against the head-revision file (read-only inspection in local mode) — sub-agents may report diff-text positions; fix mismatches or downgrade to `~line`.
+10. Number findings sequentially across regular, test, and pre-existing-code sections. Omit empty sections; omit `## レビュー注目ポイント` unless it adds concrete unresolved actions not already numbered.
 11. If no actionable findings remain, output only `対応が必要な指摘はありません。`
 12. If any finding was skipped as an existing-comment duplicate, add `## [既コメント済] スキップした指摘` immediately before `## 総合評価`, one line each:
     `- **[path:line]** 領域: <area> / 既存コメント ID: <id> (resolved=<bool>, ai_origin=<value>) — <reason>`
 
 ### Final Format
 
-Respond entirely in Japanese. Every finding must be header, indented detail bullet, then `---` separator, including the last finding.
+Respond entirely in Japanese. Each finding: header, indented detail bullet, then `---` separator (including the last finding).
 
-Header forms:
-
-- `N. **[file:line]** 領域 (信頼度: XX): 短い一行の要約`
-- `N. **[file:line]** 領域 (信頼度: XX): 短い一行の要約（重大カテゴリ）` (used only inside `## 既存コードに関する指摘`)
+Header: `N. **[file:line]** 領域 (信頼度: XX): 短い一行の要約` — inside `## 既存コードに関する指摘`, append `（重大カテゴリ）` to the summary.
 
 Use this structure and omit empty sections:
 

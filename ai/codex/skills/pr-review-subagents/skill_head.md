@@ -31,10 +31,7 @@ git branch --show-current
 bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <PR_NUMBER>
 ```
 
-Compare the current branch with `headRefName`.
-
-- Match: local mode. Subagents may use read-only local commands such as `rg`, `git`, `sed`, and `gh`.
-- Mismatch: remote mode. Subagents must inspect `headRefName` with `gh api`.
+Local mode = current branch matches `headRefName`; subagents may then use read-only local commands (`rg`, `git`, `sed`, `gh`), otherwise they must inspect `headRefName` with `gh api`.
 
 Pass every subagent: PR number, metadata, repo owner/name, full diff, existing comments NDJSON, local mode, and head branch. Each subagent's focus and review rules are in its definition.
 

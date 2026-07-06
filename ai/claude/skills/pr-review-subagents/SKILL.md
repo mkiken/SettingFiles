@@ -13,7 +13,7 @@ Review PR #$ARGUMENTS with 6 read-only specialist sub-agents in parallel.
 
 ### Gather Once
 
-Fetch required context before launching sub-agents:
+Fetch context first:
 
 ```bash
 gh pr view $ARGUMENTS --json title,body,baseRefName,headRefName,url
@@ -23,7 +23,7 @@ git branch --show-current
 bash ~/.config/ai-pr/bin/fetch_existing_comments.sh $ARGUMENTS
 ```
 
-Compare `git branch --show-current` with `headRefName`. If they match, local mode is true and sub-agents may use `Read`/`Glob`; otherwise they must use `gh api` against `headRefName`.
+Local mode = current branch matches `headRefName`; sub-agents may then use `Read`/`Glob`, otherwise they must use `gh api` against `headRefName`.
 
 Pass every sub-agent: PR number, metadata, repo owner/name, full diff, existing comments NDJSON, local mode, and head branch. Each agent's focus and review rules are in its definition.
 
