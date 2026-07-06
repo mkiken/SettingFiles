@@ -4,6 +4,15 @@
 - Reference symbols, file paths, or concepts instead.
 - Do not number comments; use descriptive comments.
 
+# Code Fences Around Dynamic Content
+
+When writing or editing an instruction (prompt, skill, command, doc) that tells an assistant to paste dynamic content — command output, file contents, diffs — into a fenced code block, the instruction must require:
+
+- a fence longer than the longest backtick run inside the pasted content (e.g. ````diff when the content may contain ``` blocks, as markdown PR bodies usually do), and
+- an appropriate language tag so highlighting works.
+
+A too-short fence is closed early by the content and the rest renders as unhighlighted plain text.
+
 # Command Usage
 
 Bash commands may be aliased:
