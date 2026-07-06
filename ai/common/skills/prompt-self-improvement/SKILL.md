@@ -49,6 +49,7 @@ Only change persistent prompt sources after you have evidence, a clear target be
    - Keep generated files generated.
 5. Prefer the smallest change that fixes the demonstrated failure.
 6. Remove or move noisy instructions instead of adding more rules when prompt size or conflicts are the real problem.
+   For "shorten without changing meaning" tasks, follow `ai/common/prompt_shortening_guide.md`.
 7. Validate with realistic prompts or scripts. For prompt behavior, include at least one ordinary case and one failure case that motivated the change.
 8. When the trigger originated from the Opportunistic Improvement Proposals rule rather than an explicit user request, stop at the analysis-only Response format and respect the per-session proposal budget defined there.
 
