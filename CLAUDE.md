@@ -111,6 +111,7 @@ When editing AI prompt files in this repository:
 
 - **Default to English** for new content and modifications (reduces token consumption)
 - **Exception**: If the original file uses a different language, follow that language (e.g., Japanese character dialogue examples)
+- **Write concisely**: express new or modified prompt content as concisely as the meaning and intent allow — every loaded prompt consumes context. When condensing existing files, follow `ai/common/prompt_shortening_guide.md`.
 
 ## Commit Message Convention
 

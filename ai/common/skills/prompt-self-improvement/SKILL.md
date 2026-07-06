@@ -47,7 +47,7 @@ Only change persistent prompt sources after you have evidence, a clear target be
    - Put reusable invocations in commands.
    - Put deterministic lifecycle enforcement in hooks or settings.
    - Keep generated files generated.
-5. Prefer the smallest change that fixes the demonstrated failure.
+5. Prefer the smallest change that fixes the demonstrated failure, and write any new or edited prompt text as concisely as the meaning and intent allow — loaded prompts consume context.
 6. Remove or move noisy instructions instead of adding more rules when prompt size or conflicts are the real problem.
    For "shorten without changing meaning" tasks, follow `ai/common/prompt_shortening_guide.md`.
 7. Validate with realistic prompts or scripts. For prompt behavior, include at least one ordinary case and one failure case that motivated the change.
