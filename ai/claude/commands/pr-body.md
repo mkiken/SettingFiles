@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(gh:*)
+allowed-tools: Bash(gh:*), Bash(diff:*), Bash(tr:*), Bash(rm:*), Write
 description: "Generate comprehensive PR body content using gh command for specified PR number"
 argument-hint: [prNumber]
 ---
@@ -33,32 +33,44 @@ argument-hint: [prNumber]
 
 After generating the PR body content:
 
-1. Display the generated body in a code block
-
-2. **Display visual diff** between existing body and new body:
-   - Show section header: "### 既存body → 新bodyの変更差分"
-   - Use `diff` code block format for color-highlighted diff:
-     ```diff
-     - removed line (shown in red)
-     + added line (shown in green)
-       unchanged line
+1. **Finalize both bodies as files** before showing anything. Use the session scratchpad directory as `<tmpdir>` (fall back to `mktemp -d` if unavailable):
+   - Save the existing body with CRLF normalized to LF (GitHub API bodies contain `\r\n`; without normalization the diff shows every line as changed):
+     ```bash
+     gh pr view $ARGUMENTS --json body --jq .body | tr -d '\r' > <tmpdir>/pr_body_old.md
      ```
-   - If existing body is empty/template-only: display "(既存bodyは空またはテンプレートのみのため、全て新規追加)"
-   - Keep diff concise: for very large changes, summarize with key sections
-   - Before asking for confirmation, check that manually written TODOs, notes, incomplete checklist items, HTML comments, review requests, and background context from the existing body were not removed. If any were removed, revise the generated body first
+   - Write the complete generated body to `<tmpdir>/pr_body_new.md` with the Write tool (LF line endings, exactly one trailing newline)
+   - From this point on, `pr_body_new.md` is the single source of truth for display, diff, and apply. Never reconstruct the body text in chat
 
-3. Use AskUserQuestion to confirm: "このPR bodyをPR #$ARGUMENTS に反映しますか？"
+2. Display the content of `pr_body_new.md` in a code block
+
+3. **Display the machine-generated diff** between existing body and new body:
+   - Show section header: "### 既存body → 新bodyの変更差分"
+   - Run the diff command and paste its output **verbatim** inside a ```diff code block:
+     ```bash
+     diff -u <tmpdir>/pr_body_old.md <tmpdir>/pr_body_new.md
+     ```
+   - Never construct the diff from memory or prediction, and never omit, summarize, or annotate the output. The displayed diff must be exactly what the command printed
+   - If existing body is empty/template-only: display "(既存bodyは空またはテンプレートのみのため、全て新規追加)" instead of the diff
+   - Before asking for confirmation, inspect the actual diff output and check that manually written TODOs, notes, incomplete checklist items, HTML comments, review requests, and background context from the existing body were not removed. If any were removed, edit `pr_body_new.md` and redo this step
+
+4. Use AskUserQuestion to confirm: "このPR bodyをPR #$ARGUMENTS に反映しますか？"
    - Options: "はい、反映する" / "いいえ、表示のみ"
 
-4. If user confirms:
-   - Apply the body using stdin pipe to avoid shell escaping issues:
+5. If user confirms:
+   - Apply the exact file that was diffed (do not rebuild the body via heredoc or chat text):
      ```bash
-     cat <<'EOF' | gh pr edit $ARGUMENTS --body-file -
-     <generated PR body here>
-     EOF
+     gh pr edit $ARGUMENTS --body-file <tmpdir>/pr_body_new.md
      ```
+   - If the user requested changes after the diff was shown, edit `pr_body_new.md` and restart from the diff display step instead of applying, so the displayed diff and the applied content never diverge
+   - Verify the applied body matches the file exactly:
+     ```bash
+     gh pr view $ARGUMENTS --json body --jq .body | tr -d '\r' | diff - <tmpdir>/pr_body_new.md
+     ```
+     Expect empty output (a trailing-newline-only difference is acceptable). If anything else differs, re-apply and re-verify
    - Show success message with PR URL
    - Display: "必要に応じて **Review Focus Points** を確認・編集してください"
 
-5. If user declines:
+6. If user declines:
    - End process (user can manually copy the displayed content)
+
+7. Delete the temporary files (`pr_body_old.md`, `pr_body_new.md`) before finishing
