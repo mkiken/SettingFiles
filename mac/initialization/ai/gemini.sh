@@ -40,7 +40,7 @@ else
     smart_merge_json "${Repo}ai/gemini/settings.json" ~/.gemini/settings.json
 fi
 
-# commands,hooksなどはディレクトリ内のファイルをコピー
+# commands,hooksなどはディレクトリ内のファイルをシンボリックリンク
 for item in agents commands hooks policies; do
   mkdir -p ~/.gemini/${item}
   for file in "${Repo}ai/gemini/${item}"/*; do
