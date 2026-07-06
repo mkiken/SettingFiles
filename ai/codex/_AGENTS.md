@@ -78,7 +78,7 @@ For one-off preferences (user taste, not a defect), keep an internal note instea
 
 At the end of implementation, fix, configuration, review, or investigation-delivery tasks, check the criteria above before the final completion response — after Temp File Cleanup and after the Post-Implementation Workflow's git action has completed, so proposals never block the commit/push flow.
 
-- If proposals qualify, present them in the required format, then ask approval per proposal via the `# User Confirmation` mechanism (`AskUserQuestion`; if unavailable, state why before falling back to text) — options per proposal: apply now / do not apply / decide later. Apply edits only to approved proposals.
+- If proposals qualify, present each proposal's full analysis as visible response text first (a bare one-line question is never sufficient), then ask approval per proposal via the `# User Confirmation` mechanism (`AskUserQuestion`; if unavailable, state why before falling back to text) — options per proposal: apply now / do not apply / decide later. Apply edits only to approved proposals.
 - If none qualify, include exactly `自己改善チェック: 該当なし` once in the final completion response; do not raise a confirmation question.
 - Do not include this in ordinary conversation, clarification-only turns, plan-only responses (the Plan Handoff record is allowed), active progress updates, or pre-completion confirmation questions.
 
