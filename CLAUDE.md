@@ -75,6 +75,8 @@ Key symlinks:
 
 Claude-specific files (commands, hooks) are individually symlinked into `~/.claude/`. Commands go to `~/.claude/commands/my/`.
 
+Skills (`ai/common/skills/`, `ai/{claude,gemini,codex}/skills/`) are symlinked per directory via `setup_ai_skills` (e.g. `~/.codex/skills/pr-review` → `ai/codex/skills/pr-review`), so edits to skill files take effect immediately — no rerun or regeneration needed. The whole `ai/common` directory is also symlinked to `~/.gemini/common` and `~/.claude/common` for runtime file references.
+
 `ai/claude/settings.json` is the exception: it is not symlinked. It is deep-merged into `~/.claude/settings.json` via `smart_merge_json`, and the two files diverge (the runtime file accumulates machine-local keys). Editing the repository source alone does not update the live file — apply changes with `mac/initialization/ai/claude.sh` / `mac/update`, or merge manually when immediate effect is needed.
 
 ### AI Configuration Generation
@@ -85,6 +87,8 @@ Both `_CLAUDE.md` and `_GEMINI.md` are static files using `@file` import syntax 
 Edit the source files directly (`ai/common/prompt_base.md`, `ai/common/characters/*.md`) — no build step needed. Gemini additionally merges `ai/common/mcp.json` (and `mcp.local.json` if present) into its `settings.json`.
 
 - **Codex** (`ai/codex/_AGENTS.md`): Codex's AGENTS.md does not support `@file` imports, so `mac/initialization/ai/codex.sh` (and `mac/updates/codex.sh`) generates `_AGENTS.md` by `cat`-concatenating `ai/common/prompt_base.md` + `ai/common/characters/nyaruko.md` + `ai/codex/codex_base.md`. The generated file is committed and symlinked to `~/.codex/AGENTS.md`. Edit the source files (not the generated `_AGENTS.md`); regenerate with `mac/initialization/ai/codex.sh`.
+
+The pr-review shared body lives in `ai/common/pr_review_core.md` and is loaded at runtime by Claude (`` !`/bin/cat ~/.claude/common/pr_review_core.md` `` in the command) and Gemini (`!{cat ~/.gemini/common/pr_review_core.md}`). For Codex, the same scripts generate `ai/codex/skills/pr-review/SKILL.md` from `skill_head.md` + `pr_review_core.md` + `skill_tail.md`; edit those sources, not the generated `SKILL.md`.
 
 ### Claude Hooks
 `ai/claude/hooks/` contains notification hooks symlinked into `~/.claude/hooks/`:

@@ -12,6 +12,7 @@ setup_ai_pr_tools
 echo "UPDATE ${Repo}ai/claude/_CLAUDE.md!"
 
 make_symlink "${Repo}ai/claude/_CLAUDE.md" ~/.claude/CLAUDE.md
+make_symlink "${Repo}ai/common" ~/.claude/common
 
 make_symlink "${Repo}ai/claude/statusline-command.sh" ~/.claude/statusline-command.sh
 
