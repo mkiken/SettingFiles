@@ -65,13 +65,25 @@ Inline comment body format, with no AI header and no item number:
 {priority_emoji} **{Priority}** / **{Category}**: {Description}
 ```
 
+### Newline Safety
+
+When building Markdown bodies in shell, never write `\n` inside a normal quoted string and expect it to become a newline. Build multiline bodies with `printf`, pass the resulting variable to `jq`/`gh`, and preflight that the body contains real blank lines and no literal `\n` sequences.
+
+```bash
+summary="{summary}"
+review_body=$(printf '🤖 **Codex Review**\n\n%s' "$summary")
+jq -n --arg body "$review_body" -e '$body | (contains("\\n") | not) and contains("\n\n")' >/dev/null
+```
+
 Prefer the Review API:
 
 ```bash
-api_response=$(jq -n \
-  --arg body "🤖 **Codex Review**
+summary="{summary}"
+review_body=$(printf '🤖 **Codex Review**\n\n%s' "$summary")
+jq -n --arg body "$review_body" -e '$body | (contains("\\n") | not) and contains("\n\n")' >/dev/null
 
-{summary}" \
+api_response=$(jq -n \
+  --arg body "$review_body" \
   --arg event "COMMENT" \
   --arg commit_id "{head_sha}" \
   --argjson comments '[
@@ -85,13 +97,25 @@ api_exit_code=$?
 
 If `api_exit_code == 0`, report success. If it fails and `$api_response` contains `one pending review` or `pending review per pull request`, handle PENDING. Otherwise use individual-comment fallback.
 
+After a successful Review API call, re-fetch the created review and verify the top-level body contains real newlines, not escaped text:
+
+```bash
+gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews/{review_id} \
+  --jq '.body | (contains("\\n") | not) and contains("\n\n")' \
+| grep -qx true
+```
+
 ## Fallbacks
 
 For non-PENDING Review API failures, post comments individually:
 
 ```bash
+comment_body="{comment_body}"
+comment_body_with_header=$(printf '> 🤖 **Codex Review**\n\n%s' "$comment_body")
+jq -n --arg body "$comment_body_with_header" -e '$body | (contains("\\n") | not) and contains("\n\n")' >/dev/null
+
 gh api repos/{owner}/{repo}/pulls/{pr_number}/comments \
-  -f body="{comment_body_with_header}" \
+  -f body="$comment_body_with_header" \
   -f commit_id="{head_sha}" \
   -f path="{file_path}" \
   -F line={end_line} \
@@ -109,7 +133,8 @@ For ranges, add `-F start_line={start_line} -f start_side="RIGHT"`. In individua
 If no file/line is available, use:
 
 ```bash
-gh pr comment {pr_number} --body "{comment_body}"
+comment_body="{comment_body}"
+gh pr comment {pr_number} --body "$comment_body"
 ```
 
 For PENDING conflicts, retrieve the existing pending review:
