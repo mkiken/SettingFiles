@@ -9,28 +9,41 @@ Check the working tree state first:
 git status --short
 ```
 
-During this phase, parse `PR_URL`, extract `OWNER`, `REPO`, `PULL_NUMBER`, and
-classify the fragment. For `#discussion_r{id}`, use that id as `COMMENT_ID`.
-For `#pullrequestreview-{review_id}`, fetch inline comments; use the only
-comment as `COMMENT_ID`, ask the user to choose when there are multiple, and
-treat the review as standalone when there are none.
+Parse `PR_URL`, extract `OWNER`, `REPO`, `PULL_NUMBER`, then classify the
+fragment. The result (`REPLY_PATH`, `COMMENT_ID`) is reused in Phase 5:
 
-For a concrete inline review comment target (`#discussion_r{id}` or a selected
-comment from `#pullrequestreview-{review_id}`), always read the complete same
-review thread before designing the change:
+| Fragment pattern | Action |
+|---|---|
+| `#discussion_r(\d+)` | Extract `COMMENT_ID` → `REPLY_PATH=thread` |
+| `#pullrequestreview-(\d+)` | Fetch inline comments (below) and resolve concrete target |
+| `#issuecomment-(\d+)` or no fragment | `REPLY_PATH=standalone` (no `COMMENT_ID`) |
 
-1. Fetch the target comment with
+If unclassified, ask which reply method to use.
+
+For `#pullrequestreview-{review_id}`, fetch inline comments:
+
+```bash
+gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/comments \
+  --jq '[.[] | {id: .id, path: .path, body: (.body | .[0:80])}]'
+```
+
+- 1 comment: use it as `COMMENT_ID`, `REPLY_PATH=thread`.
+- Multiple: ask the user to select the target; then `REPLY_PATH=thread`.
+- 0: treat the review as standalone (`REPLY_PATH=standalone`).
+
+When `REPLY_PATH=thread`, always read the complete review thread before
+designing the change:
+
+1. Fetch the target comment:
    `gh api "repos/${OWNER}/${REPO}/pulls/comments/${COMMENT_ID}"`.
-2. Set `ROOT_COMMENT_ID` to `in_reply_to_id` when present or the target `id`
-   otherwise.
-3. Fetch all PR review comments with
+2. `ROOT_COMMENT_ID` = `in_reply_to_id` when present, else the target `id`.
+3. Fetch all PR review comments:
    `gh api "repos/${OWNER}/${REPO}/pulls/${PULL_NUMBER}/comments" --paginate`.
-4. Filter to comments where `id == ROOT_COMMENT_ID` or
-   `in_reply_to_id == ROOT_COMMENT_ID`, then sort by `created_at`.
+4. Filter to `id == ROOT_COMMENT_ID` or `in_reply_to_id == ROOT_COMMENT_ID`,
+   sorted by `created_at`.
 
-Treat the URL target as primary, but use same-thread comments as required
-context. If replies add corrections, constraints, or implementation intent,
-reflect that in the design before editing.
+The URL target is primary; same-thread replies are required context. Reflect
+their corrections, constraints, or implementation intent in the design.
 
 Read affected files and surrounding code. If the comment targets stale code,
 inspect the current equivalent symbol or concept.
@@ -75,28 +88,23 @@ Before editing, present this Japanese design and wait for explicit approval:
 Wait for approval; revise and re-present if requested. Do not edit before
 approval.
 
-If this design will be used after a context reset, it must include enough PR
-reply and resolve target information for the next worker to continue the
-GitHub response workflow. If a reply or resolve target cannot be fully
-determined before implementation, state the exact item to re-fetch instead of
-omitting the handoff section.
-
-When operating in plan mode, write this design into the platform's plan
-artifact and keep the `PR返信引き継ぎ` section in it; the plan artifact is the
-handoff that survives the post-approval context reset.
+The `PR返信引き継ぎ` section is the handoff that survives a context reset: it
+must give the next worker enough reply/resolve target information to continue
+the GitHub response workflow. If a target cannot be fully determined before
+implementation, state the exact item to re-fetch instead of omitting it. In
+plan mode, write this design (including that section) into the platform's
+plan artifact.
 
 ### Phase 3: Implementation (Only after approval)
 
 Implement only the approved scope, preserve unrelated user changes, follow the
-codebase style, and update tests when behavior risk warrants it.
-
-Run the narrowest useful verification command. Broaden only when the touched
-surface is shared or high risk.
+codebase style, and update tests when behavior risk warrants it. Run the
+narrowest useful verification command; broaden only when the touched surface
+is shared or high risk.
 
 ### Phase 4: Review Changes
 
-Review modified files, confirm the diff matches the design, and check for
-missing tests or side effects:
+Confirm the diff matches the design; check for missing tests or side effects:
 
 ```bash
 git diff --check
@@ -106,35 +114,13 @@ git status --short
 
 ### Phase 5: Pre-Action Preparation
 
-Before final action selection, resolve all data needed to commit, push, reply,
-and possibly resolve.
+Using `REPLY_PATH` / `COMMENT_ID` from Phase 1, resolve all data needed to
+commit, push, reply, and possibly resolve.
 
 **⚠️ 原則**: 返信対象が review comment (`#discussion_r{id}`) またはスレッド可能な review comment の場合、**必ずスレッド返信API** (`gh api repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies`) を使用すること。`gh pr comment` は thread API が使えない場合 (純粋な issue comment やスレッド対象が無い review) に限定する。
 
 Draft a commit message that references the PR comment, summarizes the change,
 and follows the repository convention. Do **not** commit yet.
-
-Parse `PR_URL`, extract `OWNER`, `REPO`, `PULL_NUMBER`, then classify the
-fragment:
-
-| Fragment pattern | Action |
-|---|---|
-| `#discussion_r(\d+)` | Extract `COMMENT_ID` → `REPLY_PATH=thread` |
-| `#pullrequestreview-(\d+)` | Fetch review comments and resolve concrete target |
-| `#issuecomment-(\d+)` or no fragment | `REPLY_PATH=standalone` (no `COMMENT_ID`) |
-
-If unclassified, ask which reply method to use.
-
-For `#pullrequestreview-{review_id}`, fetch inline comments:
-
-```bash
-gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/comments \
-  --jq '[.[] | {id: .id, path: .path, body: (.body | .[0:80])}]'
-```
-
-- 1 comment: use it as `COMMENT_ID`, `REPLY_PATH=thread`.
-- Multiple: ask the user to select the target; then `REPLY_PATH=thread`.
-- 0: `REPLY_PATH=standalone`.
 
 For `thread`, determine whether the original author is bot/self:
 
@@ -184,11 +170,9 @@ Offer resolve only when `REPLY_PATH=thread`, author is bot/self,
 `THREAD_NODE_ID` exists, and `THREAD_IS_RESOLVED=false`.
 
 Compose the reply body from the implemented diff and the original review
-comment. Keep it specific; do not use vague bullets such as "修正しました" or
-"改善しました" without naming what changed. Include `背景・理由` only when the
-comment, implementation design, or diff provides a concrete reason for the
-approach. Omit the `背景・理由` section entirely when there is no reason worth
-calling out.
+comment, naming what changed — no vague bullets such as "修正しました" or
+"改善しました". Include `背景・理由` only when there is a concrete reason for
+the approach; otherwise omit that section entirely.
 
 ```
 ご指摘ありがとうございます。対応しました。
@@ -242,9 +226,9 @@ always add "コミット & push", "コミットのみ"
 Question: `実装が完了しました。以下のうちどこまで自動実行しますか？（プレビューは上記参照）`
 
 If the user declines every action (cancel or an equivalent `コミットしない`
-choice), stop without git or GitHub side effects and report that no action was
-taken. This question is the commit decision for this workflow; do not ask a
-generic post-implementation commit question again.
+choice), stop without git or GitHub side effects and report that. This
+question is the commit decision for this workflow; do not ask a generic
+post-implementation commit question again.
 
 Execute selected actions sequentially and stop on failure unless retry is chosen.
 
@@ -270,8 +254,8 @@ Commit list for the reply body:
 git log "${PRE_COMMIT_HEAD}..HEAD" --format='%H %s'
 ```
 
-Use this output to fill the `Commit` section of the previewed reply body. Do
-not replace the body with only commit lines.
+Fill the previewed reply body's `Commit` section with this output; do not
+replace the body with only commit lines.
 
 ```bash
 # Thread only
@@ -311,10 +295,3 @@ Final execution summary:
 Use `⚠️` for errors and `⏭️` for skipped steps. Final summary must include
 modified files, verification, commit hash/message, push, reply URL/result,
 resolve result, and remaining manual action.
-
-## Notes
-
-- Understand the existing code before making changes
-- Implement only the approved scope and test when applicable
-- Follow the project's git commit conventions
-- Commit / push / reply / resolve are selected in one unified action question
