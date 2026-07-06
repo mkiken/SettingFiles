@@ -14,8 +14,13 @@ Bash commands may be aliased:
 - `ls` -> `eza`
 - `cat` -> `bat --style=plain`
 - `rm` -> `trash`
+- `cp` -> `cp -i`
+- `mv` -> `mv -i`
 
 Use full paths such as `/bin/rm` when standard behavior matters.
+
+- The `-i` aliases (`cp`, `mv`) prompt before overwriting; in non-interactive runs the prompt auto-declines and the copy/move silently fails — use `/bin/cp` / `/bin/mv` to overwrite.
+- `trash` does not accept rm-style flags (`-r`, `-f`, `-rf` fail); pass files and directories without flags.
 
 To check what a zsh symbol resolves to, prefer `type <name>`; it covers functions, aliases, builtins, and external commands in one shot. `typeset -f` only lists functions and silently misses aliases.
 
