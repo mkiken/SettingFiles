@@ -94,4 +94,6 @@ For implementation work, make the edits, regenerate derived files if needed, run
 
 ## Presenting proposals for approval
 
+Never present a proposal before the task's deliverable output (e.g. review results) has been fully displayed; the proposal block always follows the deliverable.
+
 When asking the user to approve a proposal (mid-session or at the Completion-Time Check), first print each proposal's full analysis — Target behavior, Evidence, Diagnosis, Proposed source changes, and Affected assistants — as plain response text. Only after that analysis is visible may the approval question be asked. The question itself must be a short reference to an already-presented proposal; a bare question like "add X?" must never be the only description the user sees. Option labels and descriptions in a confirmation tool are supplements, not a substitute for the printed analysis.
