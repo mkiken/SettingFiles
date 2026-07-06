@@ -88,5 +88,6 @@ For analysis-only work, return:
 - Proposed source changes
 - Validation plan
 - Risks
+- Affected assistants (Claude / Gemini / Codex); for Codex source changes, note that `mac/initialization/ai/codex.sh` must be rerun to regenerate `_AGENTS.md`
 
 For implementation work, make the edits, regenerate derived files if needed, run validation, and report the changed sources plus test results.

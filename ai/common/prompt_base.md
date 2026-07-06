@@ -1,17 +1,11 @@
 # Code Comments
 
-- Do not reference mutable line numbers or positions.
-- Reference symbols, file paths, or concepts instead.
+- Reference symbols, file paths, or concepts — never mutable line numbers or positions.
 - Do not number comments; use descriptive comments.
 
 # Code Fences Around Dynamic Content
 
-When writing or editing an instruction (prompt, skill, command, doc) that tells an assistant to paste dynamic content — command output, file contents, diffs — into a fenced code block, the instruction must require:
-
-- a fence longer than the longest backtick run inside the pasted content (e.g. ````diff when the content may contain ``` blocks, as markdown PR bodies usually do), and
-- an appropriate language tag so highlighting works.
-
-A too-short fence is closed early by the content and the rest renders as unhighlighted plain text.
+When an instruction (prompt, skill, command, doc) tells an assistant to paste dynamic content — command output, file contents, diffs — into a fenced code block, it must require a fence longer than the longest backtick run inside the content (e.g. ````diff when the content may contain ``` blocks, as markdown PR bodies usually do) plus a language tag. A too-short fence is closed early by the content and the rest renders as unhighlighted plain text.
 
 # Command Usage
 
@@ -23,7 +17,7 @@ Bash commands may be aliased:
 
 Use full paths such as `/bin/rm` when standard behavior matters.
 
-When checking what a shell symbol resolves to (zsh), use `type <name>` as the first choice; it covers functions, aliases, builtins, and external commands in one shot. `typeset -f` only lists functions and silently misses aliases.
+To check what a zsh symbol resolves to, prefer `type <name>`; it covers functions, aliases, builtins, and external commands in one shot. `typeset -f` only lists functions and silently misses aliases.
 
 # Radical Honesty Protocol
 
@@ -31,25 +25,18 @@ For feedback, review, or critical analysis, be direct and unsparing. Challenge w
 
 # Side-Effect Verification
 
-After any side-effecting operation (git commit/push, API writes, deletes, deploys), confirm it actually took effect via an independent check (e.g. `git log -1`, re-fetch the record) before reporting done. Issue each as a real tool call — never narrate a command in prose and assume it ran. If verification fails or output is garbled, re-issue and re-verify; don't claim completion.
+After any side-effecting operation (git commit/push, API writes, deletes, deploys), confirm it took effect via an independent check issued as a real tool call (e.g. `git log -1`, re-fetch the record) before reporting done — never narrate a command in prose and assume it ran. If verification fails or output is garbled, re-issue and re-verify; don't claim completion.
 
 # Temp File Cleanup
 
-Before the Post-Implementation Workflow, clean up temporary files created by the AI during the session.
-
-- Track newly created AI files. Existing files edited in place are out of scope.
-- Temp files are AI-created scratch scripts, debug output, sample data, logs, dumps, notes, or other non-deliverables.
-- Deliverables are requested work products, including source, test, doc, fixture, or config changes needed for the task.
-
-Procedure:
+Before the Post-Implementation Workflow, clean up temp files newly created by the AI this session: scratch scripts, debug output, sample data, logs, dumps, notes, and other non-deliverables. Deliverables (requested source, test, doc, fixture, or config changes) and existing files edited in place are out of scope.
 
 - If no temp files were created, continue to the Post-Implementation Workflow.
-- Otherwise list each temp file and its purpose, then ask via the `# User Confirmation` mechanism. If that tool is unavailable, state why before falling back. Present exactly:
+- Otherwise list each temp file and its purpose, then ask via the `# User Confirmation` mechanism (if unavailable, state why before falling back). Present exactly:
   1. **すべて削除** — 一覧した一時ファイルをすべて削除する
   2. **個別に選択** — 残すファイルをユーザーが指定する
   3. **削除しない** — そのまま残す
-- Delete only the chosen files. Because `rm` is aliased to `trash`, deletion moves files to trash.
-- Then continue to the Post-Implementation Workflow.
+- Delete only the chosen files (`rm` is aliased to `trash`, so deletion moves them to trash), then continue to the Post-Implementation Workflow.
 
 # Opportunistic Improvement Proposals
 
@@ -64,9 +51,9 @@ Propose only with verifiable evidence of at least one:
 - Configuration files conflict, or a rule contradicts observed behavior.
 - A skill, command, or agent should have activated but did not because its trigger failed.
 - A rule is stale, ambiguous, or mismatched with real usage.
-- The AI made an execution mistake the user had to correct (wrong post, mismatched item, skipped step, and the like), and a prompt/skill/config change could prevent its recurrence. This applies even to a single occurrence; cross-session repetition is not required.
+- The AI made an execution mistake the user had to correct (wrong post, mismatched item, skipped step, and the like), and a prompt/skill/config change could prevent its recurrence — a defect, not a preference, so a single occurrence qualifies.
 
-For single one-off preferences (user taste, not a defect), keep an internal note instead of proposing. A corrected execution mistake is a defect, not a preference, so it qualifies above even when it happened only once.
+For one-off preferences (user taste, not a defect), keep an internal note instead of proposing.
 
 ## When not to propose
 
@@ -78,40 +65,31 @@ For single one-off preferences (user taste, not a defect), keep an internal note
 
 ## How to propose
 
-- Surface every proposal that meets the bar; there is no per-session cap. Order them by relevance and importance so the most useful come first.
-- Use the `prompt-self-improvement` format: Target behavior, Evidence, Diagnosis, Proposed source changes, Validation plan, Risks.
-- State affected assistants: Claude / Gemini / Codex. For Codex source changes, note that `mac/initialization/ai/codex.sh` must be rerun to regenerate `_AGENTS.md`.
-- Apply edits only after explicit approval using the assistant's confirmation mechanism — obtained via the per-proposal `AskUserQuestion` check described in Completion-Time Check.
-- Outside the completion-time check, say nothing when no proposal qualifies.
+- Surface every qualifying proposal (no per-session cap), ordered by relevance and importance.
+- Load the `prompt-self-improvement` skill and follow its analysis-only response format, including affected assistants and Codex regeneration notes.
+- Outside the Completion-Time Check, say nothing when no proposal qualifies.
 
 ## Plan Handoff
 
-- When writing a plan in plan mode and at least one OIP candidate exists, add a `### 自己改善引き継ぎ` section to the plan artifact (plan file or `<proposed_plan>` block) listing each candidate in condensed form: Target behavior / Evidence / Diagnosis / Proposed source changes.
-- This section is a record for surviving the post-approval context reset, not a proposal: do not ask for approval at plan time.
-- Omit the section entirely when no candidate exists.
-- At the Completion-Time Check after executing a plan, read the plan's `自己改善引き継ぎ` section and include those candidates alongside any noticed during implementation.
+- When writing a plan in plan mode and at least one OIP candidate exists, add a `### 自己改善引き継ぎ` section to the plan artifact (plan file or `<proposed_plan>` block) listing each candidate condensed: Target behavior / Evidence / Diagnosis / Proposed source changes. It is a record surviving the post-approval context reset, not a proposal — do not ask for approval at plan time. Omit the section when no candidate exists.
+- At the Completion-Time Check after executing a plan, include the plan's `### 自己改善引き継ぎ` candidates alongside any noticed during implementation.
 
 ## Completion-Time Check
 
-At the end of implementation, fix, configuration, review, or investigation-delivery tasks, check OIP criteria before the final completion response.
+At the end of implementation, fix, configuration, review, or investigation-delivery tasks, check the criteria above before the final completion response — after Temp File Cleanup and after the Post-Implementation Workflow's git action has completed, so proposals never block the commit/push flow.
 
-- If proposals qualify, present them in the required format, then use the `# User Confirmation` mechanism (`AskUserQuestion`) to ask approval per proposal — options per proposal: apply now / do not apply / decide later. If that tool is unavailable, state why before falling back to text. Apply edits only to the proposals the user approves.
-- If none qualify, include exactly `自己改善チェック: 該当なし` once in the final completion response; do not raise a confirmation question in this case.
+- If proposals qualify, present them in the required format, then ask approval per proposal via the `# User Confirmation` mechanism (`AskUserQuestion`; if unavailable, state why before falling back to text) — options per proposal: apply now / do not apply / decide later. Apply edits only to approved proposals.
+- If none qualify, include exactly `自己改善チェック: 該当なし` once in the final completion response; do not raise a confirmation question.
 - Do not include this in ordinary conversation, clarification-only turns, plan-only responses (the Plan Handoff record is allowed), active progress updates, or pre-completion confirmation questions.
-- If other completion workflows apply, preserve the order below: after temp cleanup, after the git action from the Post-Implementation Workflow has completed.
-
-## Workflow order
-
-At task end, run applicable workflows in this order: Temp File Cleanup -> Post-Implementation Workflow -> Opportunistic Improvement Proposals. OIP runs last, after the selected git action has completed, so it never blocks the commit/push flow. When proposals qualify, OIP asks for approval per proposal (see Completion-Time Check).
 
 # Post-Implementation Workflow
 
 Skip this workflow when no commit is needed: read-only work, planning, investigation, review-only work, no repository deliverable changes, only deleted temp files, or explicit "do not commit/use git".
 
-When implementation is complete and a commit is needed, inspect the working tree, then ask via the `# User Confirmation` mechanism. If unavailable, state why before falling back. Present exactly:
+When implementation is complete and a commit is needed, inspect the working tree, then ask via the `# User Confirmation` mechanism (if unavailable, state why before falling back). Present exactly:
 
 1. **コミットしてプッシュ** — コミットを作成し、リモートへプッシュする
 2. **コミットのみ** — コミットを作成するがプッシュはしない
 3. **コミットしない** — 変更をコミットせずそのまま残す
 
-Then perform the selected git action. After it completes, run the Opportunistic Improvement Proposals Completion-Time Check (see Workflow order).
+Perform the selected git action, then run the Opportunistic Improvement Proposals Completion-Time Check.
