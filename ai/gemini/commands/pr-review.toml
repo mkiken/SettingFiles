@@ -1,9 +1,5 @@
 description = "Comprehensive PR review using gh command for specified PR number"
 prompt = """
-!{cat ~/.gemini/common/pr_existing_comments_policy.md}
-
----
-
 Perform a comprehensive PR review for {{args}}.
 
 CRITICAL: Run these commands FIRST:
@@ -12,7 +8,7 @@ CRITICAL: Run these commands FIRST:
 !{bash ~/.config/ai-pr/bin/fetch_existing_comments.sh {{args}}}
 !{bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh {{args}}}
 
-`fetch_existing_comments.sh` above outputs existing PR comments as NDJSON — use it for duplicate detection per the policy loaded at the top of this prompt. `format_pr_diff_with_line_numbers.sh` is the authoritative source for review line numbers.
+`fetch_existing_comments.sh` above outputs existing PR comments as NDJSON — use it for duplicate detection per the Existing Comment Deduplication rules in the core rules below. `format_pr_diff_with_line_numbers.sh` is the authoritative source for review line numbers (see Line Number Source in the core rules).
 
 Via `run_shell_command`:
 - PR body: `gh pr view {{args}} --json body --jq '.body'`
@@ -31,17 +27,6 @@ Compare the `git branch --show-current` output with `headRefName` from the PR me
 - `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefName} --jq '.content' | base64 -d | grep -n ''` — read any file with stable line numbers
 - `gh api repos/{owner}/{repo}/git/trees/{headRefName}?recursive=1` — explore file structure
 
-### Line Number Source
-
-Use the `format_pr_diff_with_line_numbers.sh` output as the authoritative source for final `[path:line]` references:
-
-- `FILE <path>` — identifies the current file
-- `NEW <line>` — added or changed line in the PR head; the preferred review target
-- `CTX <line>` — unchanged context in the PR head; use only when a finding cannot be anchored to a `NEW` line
-- `OLD <line>` — removed base-side code; never use in final review comments
-
-Never calculate final review line numbers from `@@` hunk headers by memory. If a candidate finding is not present in the line-numbered diff, verify the exact current-side line with `grep -n ''` or omit the finding.
-
 ### Review Breadth
 
 Review ALL changed files individually, checking ALL 7 quality perspectives defined in the core rules below for each. Do not skip files or categories during analysis, but report only actionable issues with concrete impact and a concrete response. Do not invent findings to satisfy a target count — a clean PR may legitimately have zero findings.
@@ -49,18 +34,6 @@ Review ALL changed files individually, checking ALL 7 quality perspectives defin
 ### Core Review Rules
 
 !{cat ~/.gemini/common/pr_review_core.md}
-
-### [既コメント済] スキップした指摘
-
-If findings were skipped as duplicates of existing PR comments (per the policy at the top), add this section **before** the Post-Review block (omit entirely when nothing is skipped):
-
-```
-## [既コメント済] スキップした指摘
-
-> 既存PRコメントと意味的に重複したため出力から除外:
-
-- **[path:line]** Category / 既存コメント ID: <id> (resolved=<bool>, ai_origin=<value>) — <reason>
-```
 
 ### Post-Review
 

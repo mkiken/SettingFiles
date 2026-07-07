@@ -36,23 +36,8 @@ Fetch primary review materials (PR metadata is already fetched above):
 
 - `gh pr diff <PR_NUMBER>` — complete diff (file path arguments are not supported; always fetch the full diff and filter locally if needed)
 - `bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <PR_NUMBER>` — existing PR comments as NDJSON (inline, issue, and review-summary with resolved/outdated status)
+- `bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh <PR_NUMBER>` — line-numbered diff; the authoritative source for review line numbers (see Line Number Source in the core rules)
 
 For deeper investigation (files outside the diff, surrounding context), use the access mode determined above.
-
-### Existing Comment Deduplication
-
-Before finalizing each finding, check whether it is already covered by an existing PR comment:
-
-1. `is_resolved == true` or `is_outdated == true` → treat as non-existing. Re-reporting is allowed; append `(参考: 過去にresolved済みの既存コメント #<id> と同様の指摘)` to the detail line.
-2. **Mark as duplicate** when: same `path` + line within ±5 AND same root cause, OR same target symbol/concept addressable by the same fix.
-3. **Do NOT skip**: same problem type at a different file, or a more specific finding requiring a different fix.
-4. Skip only when duplicate confidence is ≥ 70. Below 70, output both.
-5. `ai_origin` (author being human/bot/AI) does not affect the duplicate decision — judge on content only.
-
-When findings are skipped, add `## [既コメント済] スキップした指摘` immediately before the Post-Review block (omit entirely when nothing is skipped):
-
-```
-- **[path:line]** Category / 既存コメント ID: <id> (resolved=<bool>, ai_origin=<value>) — <reason>
-```
 
 ### Core Review Rules

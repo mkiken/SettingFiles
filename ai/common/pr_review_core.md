@@ -41,6 +41,33 @@ If no actionable findings remain after deduplication, output only:
 対応が必要な指摘はありません。
 ```
 
+### Existing Comment Deduplication
+
+Before finalizing each finding, check whether it is already covered by an existing PR comment (fetched as NDJSON per the workflow above; fields: `id`, `kind`, `path`, `line`, `body`, `author`, `is_self`, `ai_origin`, `is_resolved`, `is_outdated`):
+
+1. `is_resolved == true` or `is_outdated == true` → treat as non-existing. Re-reporting is allowed; append `(参考: 過去にresolved済みの既存コメント #<id> と同様の指摘)` to the detail line.
+2. **Mark as duplicate** when: same `path` + line within ±5 AND same root cause, OR same target symbol/concept addressable by the same fix.
+3. **Do NOT skip**: same problem type at a different file, or a more specific finding requiring a different fix.
+4. Skip only when duplicate confidence is ≥ 70. Below 70, output both.
+5. `ai_origin` (author being human/bot/AI) does not affect the duplicate decision — judge on content only.
+
+When findings are skipped, add `## [既コメント済] スキップした指摘` immediately before the Post-Review block (omit entirely when nothing is skipped):
+
+```
+- **[path:line]** Category / 既存コメント ID: <id> (resolved=<bool>, ai_origin=<value>) — <reason>
+```
+
+### Line Number Source
+
+Use the `format_pr_diff_with_line_numbers.sh` output (fetched per the workflow above) as the authoritative source for final `[path:line]` references:
+
+- `FILE <path>` — identifies the current file
+- `NEW <line>` — added or changed line in the PR head; the preferred review target
+- `CTX <line>` — unchanged context in the PR head; use only when a finding cannot be anchored to a `NEW` line
+- `OLD <line>` — removed base-side code; never use in final review comments
+
+Never calculate final review line numbers from `@@` hunk headers by memory. If a candidate finding is not present in the line-numbered diff, verify the exact current-side line (e.g. `grep -n`) or omit the finding.
+
 ### Finding Format
 
 Each finding MUST use this exact three-part structure:
