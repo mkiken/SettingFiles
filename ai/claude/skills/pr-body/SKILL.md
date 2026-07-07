@@ -13,3 +13,5 @@ disable-model-invocation: true
 - Ask the confirmation question with AskUserQuestion.
 
 !`/bin/cat ~/.claude/common/pr_body_core.md`
+
+!`/bin/cat ~/.claude/common/pr_body_format.md`

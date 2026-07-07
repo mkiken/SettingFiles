@@ -10,4 +10,6 @@ To see the code changes, run `gh pr diff {{args}}` with your `run_shell_command`
 
 If the second command output above is "NO_TEMPLATE", `.github/PULL_REQUEST_TEMPLATE.md` does not exist.
 
-!{cat ~/.gemini/common/pr_body_core.md}"""
+!{cat ~/.gemini/common/pr_body_core.md}
+
+!{cat ~/.gemini/common/pr_body_format.md}"""

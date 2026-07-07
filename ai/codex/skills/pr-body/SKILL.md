@@ -31,17 +31,10 @@ gh pr diff <PR_NUMBER> --name-only
 
 ## Drafting Rules
 
-- If `.github/PULL_REQUEST_TEMPLATE.md` exists in the repository root, use its structure as the base and fill each section with the generated content, applying the same style as the default sections (short overview first, structured bullets for implementation details); otherwise use the default sections below.
+- Generate the body per the **PR Body Format** section below; it is displayed in the Confirmation Flow.
 - Preserve meaningful existing-body content (manually written TODOs, FIXME notes, free-form notes, incomplete checklists, HTML comments, review requests, useful background) even when it falls outside the generated structure — keep it in the closest matching section, or in **Additional Notes** when none fits. Template-only content (placeholders, empty sections) can be discarded.
-- Analyze the full diff and describe the **final state (HEAD)**: do not mention reverted changes, overwritten intermediate states, or trial-and-error. Reviewer-useful background (why this approach was chosen, alternatives considered) is acceptable.
 - If the diff is too large to read at once, redirect it to a file under the session temp/scratchpad directory (the same `<tmpdir>` used in the Confirmation Flow) and read it incrementally.
-- Default sections:
-  - **Summary**: Short overview (2–4 sentences): what this PR does and why, at a glance
-  - **実装内容**: Structured bullets grouped by logical change — one top-level bullet per change (**bold** short title), nested bullets listing the related files as `` `path` ``: what changed (DO NOT include line counts like +X/-Y). No separate file-by-file section — file details live here
-  - **Review Focus Points**: If the existing body has non-default content here (anything other than "特になし" or empty), preserve it exactly; write "特になし" only for a new PR body or an empty/default section.
-  - **Breaking Changes**: Any breaking changes or migration requirements
-  - **Additional Notes**: Any other relevant information for reviewers
-- Produce the body as raw markdown directly copyable to the PR body; it is displayed in the Confirmation Flow.
+- **Review Focus Points** — overrides the PR Body Format default: if the existing body has non-default content here (anything other than "特になし" or empty), preserve it exactly; use the format's default only for a new PR body or an empty/default section.
 
 ## Confirmation Flow
 
@@ -87,3 +80,39 @@ After generating the PR body content:
 6. If user declines: end process (user can manually copy the displayed content)
 
 7. Delete the temporary files (`pr_body_old.md`, `pr_body_new.md`) before finishing
+
+### PR Body Format
+
+If `.github/PULL_REQUEST_TEMPLATE.md` exists in the repository root, use its structure as the base and fill each section in the same style as the default sections below (short overview first, structured bullets for implementation details). Otherwise use:
+
+````markdown
+## Summary
+
+- 1–3 sentences: what this PR changes and why, at a glance.
+
+## 実装内容
+
+- One top-level bullet per logical change group (**bold** short title).
+  - Nested bullets listing the related files as `path`: what changed.
+
+## Review Focus Points
+
+特になし
+
+<!-- レビュー観点はPR作成者が記入 -->
+
+## Breaking Changes
+
+- Breaking changes or migration requirements; if none: "なし"
+
+## Additional Notes
+
+- Reviewer-useful background (e.g. why this approach was chosen); omit this section when empty.
+````
+
+Rules:
+
+- Describe the final state at HEAD: never reverted changes, overwritten intermediate states, or trial-and-error.
+- Group by logical change; no separate file-by-file section — file details live in 実装内容 as nested bullets. Do not include line counts like +X/-Y.
+- Keep Summary short; 実装内容 carries the structure. If the diff is large (e.g. exceeds 500 lines), summarize by change group rather than line-by-line.
+- Be concise, no filler; produce raw markdown directly usable as the PR body.

@@ -21,3 +21,5 @@ disable-model-invocation: true
 ## Core Workflow
 
 !`/bin/cat ~/.claude/common/pr_create_by_branch_core.md`
+
+!`/bin/cat ~/.claude/common/pr_body_format.md`

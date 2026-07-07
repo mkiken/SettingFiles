@@ -191,9 +191,9 @@ function generate_codex_skills() {
     "pr-review:pr_review_core.md pr_review_finding_format.md" \
     "pr-comment-review:pr_comment_review_core.md" \
     "pr-comment-implement:pr_comment_implement_core.md" \
-    "pr-body:pr_body_core.md" \
+    "pr-body:pr_body_core.md pr_body_format.md" \
     "pr-comment-post:pr_comment_post_core.md" \
-    "pr-create-by-branch:pr_create_by_branch_core.md" \
+    "pr-create-by-branch:pr_create_by_branch_core.md pr_body_format.md" \
     "pr-review-subagents:pr_review_subagents/orchestrator_core.md pr_review_finding_format.md" \
     "config-audit:config_audit_subagents/orchestrator_core.md" \
     "fact-based:fact_based_core.md"

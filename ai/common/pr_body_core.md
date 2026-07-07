@@ -1,16 +1,9 @@
 ## Drafting Rules
 
-- If `.github/PULL_REQUEST_TEMPLATE.md` exists in the repository root, use its structure as the base and fill each section with the generated content, applying the same style as the default sections (short overview first, structured bullets for implementation details); otherwise use the default sections below.
+- Generate the body per the **PR Body Format** section below; it is displayed in the Confirmation Flow.
 - Preserve meaningful existing-body content (manually written TODOs, FIXME notes, free-form notes, incomplete checklists, HTML comments, review requests, useful background) even when it falls outside the generated structure — keep it in the closest matching section, or in **Additional Notes** when none fits. Template-only content (placeholders, empty sections) can be discarded.
-- Analyze the full diff and describe the **final state (HEAD)**: do not mention reverted changes, overwritten intermediate states, or trial-and-error. Reviewer-useful background (why this approach was chosen, alternatives considered) is acceptable.
 - If the diff is too large to read at once, redirect it to a file under the session temp/scratchpad directory (the same `<tmpdir>` used in the Confirmation Flow) and read it incrementally.
-- Default sections:
-  - **Summary**: Short overview (2–4 sentences): what this PR does and why, at a glance
-  - **実装内容**: Structured bullets grouped by logical change — one top-level bullet per change (**bold** short title), nested bullets listing the related files as `` `path` ``: what changed (DO NOT include line counts like +X/-Y). No separate file-by-file section — file details live here
-  - **Review Focus Points**: If the existing body has non-default content here (anything other than "特になし" or empty), preserve it exactly; write "特になし" only for a new PR body or an empty/default section.
-  - **Breaking Changes**: Any breaking changes or migration requirements
-  - **Additional Notes**: Any other relevant information for reviewers
-- Produce the body as raw markdown directly copyable to the PR body; it is displayed in the Confirmation Flow.
+- **Review Focus Points** — overrides the PR Body Format default: if the existing body has non-default content here (anything other than "特になし" or empty), preserve it exactly; use the format's default only for a new PR body or an empty/default section.
 
 ## Confirmation Flow
 

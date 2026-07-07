@@ -11,7 +11,7 @@ git branch --show-current
 /bin/cat .github/PULL_REQUEST_TEMPLATE.md 2>/dev/null || echo "NO_TEMPLATE"
 ```
 
-If a template exists, use its structure as the body format instead of the default sections.
+Template handling is defined in the **PR Body Format** section below.
 
 Determine the target base branch: use `TARGET_BRANCH_ARG` when present; otherwise ask the user with the confirmation method from Instructions, offering `main`, `develop`, and manual entry.
 
@@ -46,39 +46,7 @@ refactor: extract payment processing into dedicated service
 
 ## Generate Body
 
-When a template exists, fill it with concrete generated content and remove unused placeholder text. Otherwise use:
-
-```markdown
-## Summary
-
-- 1–3 sentences: what this PR changes and why.
-
-## Implementation Details
-
-- One bullet per logical change group.
-  - Nested bullets with the concrete changes in that group.
-
-## Review Focus Points
-
-特になし
-
-<!-- レビュー観点はPR作成者が記入 -->
-
-## Breaking Changes
-
-- Breaking changes or migration requirements; if none: "なし"
-
-## Additional Notes
-
-- Background for reviewers (e.g. why this approach was chosen); omit this section when empty.
-```
-
-Rules:
-
-- Keep Summary short (1–3 sentences); Implementation Details carries the structure — group changes logically and nest specifics under each group.
-- Describe the final state at HEAD; never intermediate or reverted changes.
-- Do not include line counts.
-- Be concise; no filler. If the diff exceeds 500 lines, summarize by change group rather than line-by-line.
+Generate the body following the **PR Body Format** section below. When a template exists, fill it with concrete generated content and remove unused placeholder text.
 
 ## Confirm
 
