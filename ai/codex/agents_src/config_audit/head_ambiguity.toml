@@ -1,0 +1,7 @@
+name = "config_auditor_ambiguity"
+description = "Read-only config auditor for ambiguous rules."
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+sandbox_mode = "read-only"
+
+developer_instructions = '''

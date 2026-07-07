@@ -16,6 +16,17 @@ make_symlink "${Repo}ai/common" ~/.claude/common
 # pr-review-subagents のレビュアー定義を共有フラグメントから生成（編集は ai/common/pr_review_subagents/ と ai/claude/agents_src/ へ）
 generate_pr_reviewer_agents claude
 
+# config-audit の監査エージェント定義を共有フラグメントから生成（編集は ai/common/config_audit_subagents/ と ai/claude/agents_src/config_audit/ へ）
+generate_config_auditor_agents claude
+
+# agents はファイル単位でシンボリックリンク（生成分の反映）
+mkdir -p ~/.claude/agents
+for file in "${Repo}ai/claude/agents"/*; do
+  if [[ -f "$file" ]]; then
+    make_symlink "$file" ~/.claude/agents/$(basename "$file")
+  fi
+done
+
 setup_ai_skills ~/.claude/skills "${Repo}ai/common/skills" "${Repo}ai/claude/skills"
 
 claude update

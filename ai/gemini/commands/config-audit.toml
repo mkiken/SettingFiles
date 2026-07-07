@@ -1,4 +1,4 @@
-description = "Gemini CLIの全設定ファイル（GEMINI.md, skills, commands, policies等）を監査し、冗長性・コンフリクト・曖昧さをチェック・整理します。"
+description = "Gemini CLIの全設定ファイル（GEMINI.md, skills, commands, policies等）を6体の専門subagentで並列監査し、冗長性・コンフリクト・曖昧さをチェック・整理します。"
 
 prompt = """
 ## Instructions
@@ -14,6 +14,17 @@ prompt = """
 - Explore with `glob`/`list_directory` and read with `read_file`; apply approved changes with `replace`/`write_file`.
 - For every user confirmation, use the `ask_user` tool.
 
+### Launch
+
+In Phase 2, invoke all six with `wait_for_previous=false`, passing the payload defined there:
+
+1. **config-auditor-default** — デフォルト動作との重複
+2. **config-auditor-conflict** — コンフリクト
+3. **config-auditor-overlap** — ルール間の重複
+4. **config-auditor-patch** — 一時的な修正
+5. **config-auditor-ambiguity** — 曖昧なルール
+6. **config-auditor-concise** — 意味を変えないトークン削減
+
 ## Core Workflow
 
-!{cat ~/.gemini/common/config_audit_core.md}"""
+!{cat ~/.gemini/common/config_audit_subagents/orchestrator_core.md}"""

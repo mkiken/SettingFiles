@@ -1,0 +1,7 @@
+name = "config_auditor_default"
+description = "Read-only config auditor for default-behavior duplication."
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+sandbox_mode = "read-only"
+
+developer_instructions = '''

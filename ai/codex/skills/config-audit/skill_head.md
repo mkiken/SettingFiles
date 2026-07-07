@@ -2,9 +2,10 @@
 name: config-audit
 description: >
   Audit all Codex configuration files (AGENTS.md, config.toml, skills, agents,
-  hooks, rules) for redundancy, conflicts, ambiguity, and unnecessary rules.
-  Trigger keywords: "設定を監査", "コンフィグ監査", "設定の整理", "AGENTS.md最適化",
-  "audit config", "clean up config", "check for conflicts", "optimize prompts".
+  hooks, rules) for redundancy, conflicts, ambiguity, and unnecessary rules
+  with six parallel Codex custom subagents. Trigger keywords: "設定を監査",
+  "コンフィグ監査", "設定の整理", "AGENTS.md最適化", "audit config",
+  "clean up config", "check for conflicts", "optimize prompts".
 ---
 
 ## Instructions
@@ -19,5 +20,16 @@ description: >
   - Never audit runtime/state files under `~/.codex` (auth.json, history.jsonl, sessions/, cache, sqlite, logs).
 - `SOURCE_FILES`: `ai/common/prompt_base.md`, `ai/common/characters/nyaruko.md`, `ai/codex/codex_base.md` (concatenated into the generated `_AGENTS.md`; audit the sources, not the generated file)
 - For every user confirmation, ask a plain question and wait for the reply.
+
+### Spawn
+
+In Phase 2, spawn all six in parallel and wait for all, passing the payload defined there:
+
+1. **config_auditor_default** — デフォルト動作との重複
+2. **config_auditor_conflict** — コンフリクト
+3. **config_auditor_overlap** — ルール間の重複
+4. **config_auditor_patch** — 一時的な修正
+5. **config_auditor_ambiguity** — 曖昧なルール
+6. **config_auditor_concise** — 意味を変えないトークン削減
 
 ## Core Workflow

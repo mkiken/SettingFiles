@@ -1,39 +1,3 @@
----
-name: config-audit
-description: >
-  Audit all Codex configuration files (AGENTS.md, config.toml, skills, agents,
-  hooks, rules) for redundancy, conflicts, ambiguity, and unnecessary rules
-  with six parallel Codex custom subagents. Trigger keywords: "設定を監査",
-  "コンフィグ監査", "設定の整理", "AGENTS.md最適化", "audit config",
-  "clean up config", "check for conflicts", "optimize prompts".
----
-
-## Instructions
-
-- `PLATFORM_NAME` = `Codex`.
-- `SCOPE` = the scope keyword in the user's message (empty → `all`).
-- `ENTRY_SCOPE` = `agents-md`.
-- `GENERATED_ENTRY_FILE` = `~/.codex/AGENTS.md`.
-- `CONFIG_PATHS`:
-  - Global: `~/.codex/AGENTS.md`, `~/.codex/config.toml`, `~/.codex/skills/*/SKILL.md`, `~/.codex/agents/*.toml`, `~/.codex/hooks.json`, `~/.codex/hooks/*`, `~/.codex/rules/*`
-  - Project: `./AGENTS.md`, `./ai/codex/config.toml`, `./ai/codex/codex_base.md`, `./ai/codex/skills/*/skill_head.md`, `./ai/codex/agents/*.toml`, `./ai/codex/hooks.json`, `./ai/codex/rules/*`
-  - Never audit runtime/state files under `~/.codex` (auth.json, history.jsonl, sessions/, cache, sqlite, logs).
-- `SOURCE_FILES`: `ai/common/prompt_base.md`, `ai/common/characters/nyaruko.md`, `ai/codex/codex_base.md` (concatenated into the generated `_AGENTS.md`; audit the sources, not the generated file)
-- For every user confirmation, ask a plain question and wait for the reply.
-
-### Spawn
-
-In Phase 2, spawn all six in parallel and wait for all, passing the payload defined there:
-
-1. **config_auditor_default** — デフォルト動作との重複
-2. **config_auditor_conflict** — コンフリクト
-3. **config_auditor_overlap** — ルール間の重複
-4. **config_auditor_patch** — 一時的な修正
-5. **config_auditor_ambiguity** — 曖昧なルール
-6. **config_auditor_concise** — 意味を変えないトークン削減
-
-## Core Workflow
-
 ## Goal
 
 Audit every `PLATFORM_NAME` configuration file with six parallel specialist agents, then report deletion candidates, conflicts, ambiguities, meaning-preserving shortenings, and an optimized configuration proposal.

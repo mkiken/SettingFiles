@@ -18,6 +18,19 @@ make_symlink "${Repo}ai/common" ~/.gemini/common
 # pr-review-subagents のレビュアー定義を共有フラグメントから生成（編集は ai/common/pr_review_subagents/ と ai/gemini/agents_src/ へ）
 generate_pr_reviewer_agents gemini
 
+# config-audit の監査エージェント定義を共有フラグメントから生成（編集は ai/common/config_audit_subagents/ と ai/gemini/agents_src/config_audit/ へ）
+generate_config_auditor_agents gemini
+
+# agents はファイル単位でシンボリックリンク（生成分の反映）
+mkdir -p ~/.gemini/agents
+for file in "${Repo}ai/gemini/agents"/*; do
+  if [[ "$(basename "$file")" == test_*.py ]]; then
+    continue
+  elif [[ -f "$file" ]]; then
+    make_symlink "$file" ~/.gemini/agents/$(basename "$file")
+  fi
+done
+
 # 共有コアスキルの SKILL.md を生成（編集はソースの skill_head.md / skill_tail.md / ai/common のコアへ）
 generate_gemini_skills
 

@@ -111,6 +111,57 @@ function generate_pr_reviewer_agents() {
   done
 }
 
+# config-audit の監査エージェント定義を共有フラグメントから生成する
+# 生成物: ai/claude/agents/config-auditor-*.md, ai/gemini/agents/config-auditor-*.md, ai/codex/agents/config_auditor_*.toml
+# 編集は ai/common/config_audit_subagents/ と ai/<platform>/agents_src/config_audit/ へ（生成物は編集しない）
+function generate_config_auditor_agents() {
+  local platform="$1"
+  local common="${Repo}ai/common/config_audit_subagents"
+  local src="${Repo}ai/${platform}/agents_src/config_audit"
+  local notice="GENERATED FILE - do not edit. Sources: ai/common/config_audit_subagents/, ai/${platform}/agents_src/config_audit/. Regen: mac/updates/${platform}.sh."
+  local dim out
+
+  for dim in default conflict overlap patch ambiguity concise; do
+    case "$platform" in
+      claude | gemini)
+        out="${Repo}ai/${platform}/agents/config-auditor-${dim}.md"
+        {
+          # 実行時トークンを消費しないよう、注釈は本文ではなく frontmatter 内の YAML コメントに埋め込む
+          awk -v notice="$notice" 'NR > 1 && /^---$/ && !done { print "# " notice; done = 1 } { print }' "${src}/head_${dim}.md"
+          echo
+          /bin/cat "${common}/intro_${dim}.md"
+          echo
+          /bin/cat "${common}/rules_common.md"
+          echo
+          /bin/cat "${common}/format_${dim}.md"
+        } > "$out"
+        ;;
+      codex)
+        out="${Repo}ai/codex/agents/config_auditor_${dim}.toml"
+        # 本文は TOML の ''' リテラル文字列に埋め込むため、フラグメントに ''' が混入したら生成を失敗させる
+        if /usr/bin/grep -q "'''" "${common}/intro_${dim}.md" "${common}/rules_common.md" "${common}/format_${dim}.md"; then
+          echo "Error: ''' found in config_auditor_${dim} fragments; it would break the TOML literal string." >&2
+          return 1
+        fi
+        {
+          printf '# %s\n' "$notice"
+          /bin/cat "${src}/head_${dim}.toml"
+          /bin/cat "${common}/intro_${dim}.md"
+          echo
+          /bin/cat "${common}/rules_common.md"
+          echo
+          /bin/cat "${common}/format_${dim}.md"
+          printf "'''\n"
+        } > "$out"
+        ;;
+      *)
+        echo "Error: unknown platform '${platform}' for generate_config_auditor_agents." >&2
+        return 1
+        ;;
+    esac
+  done
+}
+
 # 共有コアスキルの SKILL.md を skill_head.md + ai/common のコア群 (+ skill_tail.md があれば) の連結で生成する
 # 引数: <skillsディレクトリ> <entries...>  entry形式: <skill名>:<ai/common からのコア相対パス（スペース区切りで複数可、記載順に連結）>
 # 生成物: <skillsディレクトリ>/<skill名>/SKILL.md（編集はソースへ、生成物は編集しない）
@@ -144,7 +195,7 @@ function generate_codex_skills() {
     "pr-comment-post:pr_comment_post_core.md" \
     "pr-create-by-branch:pr_create_by_branch_core.md" \
     "pr-review-subagents:pr_review_subagents/orchestrator_core.md pr_review_finding_format.md" \
-    "config-audit:config_audit_core.md" \
+    "config-audit:config_audit_subagents/orchestrator_core.md" \
     "fact-based:fact_based_core.md"
 }
 

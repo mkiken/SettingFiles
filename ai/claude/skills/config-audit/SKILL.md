@@ -1,13 +1,13 @@
 ---
 description: >
   Audit all Claude Code configuration files for redundancy, conflicts, ambiguity,
-  and unnecessary rules. Analyzes CLAUDE.md, skills, commands, agents, hooks, and
-  settings across global (~/.claude/) and project-level configs. Use when the user
-  wants to clean up config, check for conflicts, optimize prompts, or reduce token
-  consumption. Trigger keywords: "設定を監査", "コンフィグ監査", "設定の整理",
-  "ルールの重複チェック", "CLAUDE.md最適化", "audit config", "clean up config",
-  "check for conflicts", "optimize prompts", "config redundancy", "設定ファイルを整理",
-  "CLAUDE.mdを最適化".
+  and unnecessary rules using six parallel specialist subagents. Analyzes CLAUDE.md,
+  skills, commands, agents, hooks, and settings across global (~/.claude/) and
+  project-level configs. Use when the user wants to clean up config, check for
+  conflicts, optimize prompts, or reduce token consumption. Trigger keywords:
+  "設定を監査", "コンフィグ監査", "設定の整理", "ルールの重複チェック", "CLAUDE.md最適化",
+  "audit config", "clean up config", "check for conflicts", "optimize prompts",
+  "config redundancy", "設定ファイルを整理", "CLAUDE.mdを最適化".
 model: opus
 argument-hint: "[scope: all|claude-md|skills|agents|hooks|settings|global|project]"
 allowed-tools: Bash(/bin/cat:*), Bash(readlink:*), Read, Glob, Grep
@@ -25,6 +25,17 @@ allowed-tools: Bash(/bin/cat:*), Bash(readlink:*), Read, Glob, Grep
 - `SOURCE_FILES`: `ai/common/prompt_base.md`, the character file `@`-imported by `ai/claude/_CLAUDE.md`, `ai/claude/_CLAUDE.md` (inline extras beyond the @imports)
 - For every user confirmation, use `AskUserQuestion`.
 
+### Launch
+
+In Phase 2, start all six simultaneously with the payload defined there:
+
+1. **config-auditor-default** — デフォルト動作との重複
+2. **config-auditor-conflict** — コンフリクト
+3. **config-auditor-overlap** — ルール間の重複
+4. **config-auditor-patch** — 一時的な修正
+5. **config-auditor-ambiguity** — 曖昧なルール
+6. **config-auditor-concise** — 意味を変えないトークン削減
+
 ## Core Workflow
 
-!`/bin/cat ~/.claude/common/config_audit_core.md`
+!`/bin/cat ~/.claude/common/config_audit_subagents/orchestrator_core.md`
