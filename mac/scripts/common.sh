@@ -111,24 +111,15 @@ function generate_pr_reviewer_agents() {
   done
 }
 
-# Codex の共有コアスキルの SKILL.md を skill_head.md + ai/common のコア群 (+ skill_tail.md があれば) の連結で生成する
-# 生成物: ai/codex/skills/<name>/SKILL.md（編集はソースへ、生成物は編集しない）
-function generate_codex_skills() {
-  local skills_dir="${Repo}ai/codex/skills"
-  # 形式: <skill名>:<ai/common からのコア相対パス（スペース区切りで複数可、記載順に連結）>
-  local entries=(
-    "pr-review:pr_review_core.md pr_review_finding_format.md"
-    "pr-comment-review:pr_comment_review_core.md"
-    "pr-comment-implement:pr_comment_implement_core.md"
-    "pr-body:pr_body_core.md"
-    "pr-comment-post:pr_comment_post_core.md"
-    "pr-create-by-branch:pr_create_by_branch_core.md"
-    "pr-review-subagents:pr_review_subagents/orchestrator_core.md pr_review_finding_format.md"
-    "config-audit:config_audit_core.md"
-  )
+# 共有コアスキルの SKILL.md を skill_head.md + ai/common のコア群 (+ skill_tail.md があれば) の連結で生成する
+# 引数: <skillsディレクトリ> <entries...>  entry形式: <skill名>:<ai/common からのコア相対パス（スペース区切りで複数可、記載順に連結）>
+# 生成物: <skillsディレクトリ>/<skill名>/SKILL.md（編集はソースへ、生成物は編集しない）
+function generate_core_skills() {
+  local skills_dir="$1"
+  shift
   local entry skill_dir core
 
-  for entry in "${entries[@]}"; do
+  for entry in "$@"; do
     skill_dir="${skills_dir}/${entry%%:*}"
     {
       /bin/cat "${skill_dir}/skill_head.md"
@@ -142,6 +133,24 @@ function generate_codex_skills() {
       fi
     } > "${skill_dir}/SKILL.md"
   done
+}
+
+function generate_codex_skills() {
+  generate_core_skills "${Repo}ai/codex/skills" \
+    "pr-review:pr_review_core.md pr_review_finding_format.md" \
+    "pr-comment-review:pr_comment_review_core.md" \
+    "pr-comment-implement:pr_comment_implement_core.md" \
+    "pr-body:pr_body_core.md" \
+    "pr-comment-post:pr_comment_post_core.md" \
+    "pr-create-by-branch:pr_create_by_branch_core.md" \
+    "pr-review-subagents:pr_review_subagents/orchestrator_core.md pr_review_finding_format.md" \
+    "config-audit:config_audit_core.md" \
+    "fact-based:fact_based_core.md"
+}
+
+function generate_gemini_skills() {
+  generate_core_skills "${Repo}ai/gemini/skills" \
+    "fact-based:fact_based_core.md"
 }
 
 function require_ai_setup_command() {

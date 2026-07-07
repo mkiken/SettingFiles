@@ -1,4 +1,5 @@
 ---
+# GENERATED (SKILL.md): edit skill_head.md / skill_tail.md / ai/common/fact_based_core.md, then regenerate
 name: fact-based
 description: >
   Activate fact-based response mode that prioritizes factual accuracy, source citations,

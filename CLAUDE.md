@@ -49,7 +49,7 @@ mac/initialization/ai/codex.sh
 
 After editing pr-review-subagents sources (`ai/common/pr_review_subagents/`, `ai/*/agents_src/`, codex `skill_head.md`/`skill_tail.md`), regenerate the committed outputs with the scripts above, or run `generate_pr_reviewer_agents <platform>` from `mac/scripts/common.sh` directly.
 
-After editing shared-core skill sources (`ai/common/*_core.md`, `ai/codex/skills/*/skill_head.md`/`skill_tail.md`), regenerate the committed Codex `SKILL.md` files with `generate_codex_skills` from `mac/scripts/common.sh` (zsh: `zsh -c 'source mac/scripts/common.sh && generate_codex_skills'`) — no need to run the full init/update scripts.
+After editing shared-core skill sources (`ai/common/*_core.md`, `ai/{codex,gemini}/skills/*/skill_head.md`/`skill_tail.md`), regenerate the committed `SKILL.md` files with `generate_codex_skills` / `generate_gemini_skills` from `mac/scripts/common.sh` (zsh: `zsh -c 'source mac/scripts/common.sh && generate_codex_skills && generate_gemini_skills'`) — no need to run the full init/update scripts.
 
 ## Architecture
 
@@ -79,7 +79,7 @@ Key symlinks:
 
 Claude-specific files (agents, hooks, scripts) are individually symlinked into `~/.claude/`. Claude has no custom slash commands — former commands live as skills under `ai/claude/skills/`.
 
-Skills (`ai/common/skills/`, `ai/{claude,gemini,codex}/skills/`) are symlinked per directory via `setup_ai_skills` (e.g. `~/.codex/skills/pr-review` → `ai/codex/skills/pr-review`), so edits to skill files take effect immediately — no rerun or regeneration needed (exception: generated Codex `SKILL.md` files such as pr-review and pr-review-subagents must be regenerated from their sources). The whole `ai/common` directory is also symlinked to `~/.gemini/common` and `~/.claude/common` for runtime file references.
+Skills (`ai/common/skills/`, `ai/{claude,gemini,codex}/skills/`) are symlinked per directory via `setup_ai_skills` (e.g. `~/.codex/skills/pr-review` → `ai/codex/skills/pr-review`), so edits to skill files take effect immediately — no rerun or regeneration needed (exception: generated `SKILL.md` files — all Codex shared-core skills and Gemini fact-based — must be regenerated from their sources). The whole `ai/common` directory is also symlinked to `~/.gemini/common` and `~/.claude/common` for runtime file references.
 
 `ai/claude/settings.json` is the exception: it is not symlinked. It is deep-merged into `~/.claude/settings.json` via `smart_merge_json`, and the two files diverge (the runtime file accumulates machine-local keys). Editing the repository source alone does not update the live file — apply changes with `mac/initialization/ai/claude.sh` / `mac/update`, or merge manually when immediate effect is needed.
 
@@ -92,7 +92,7 @@ Edit the source files directly (`ai/common/prompt_base.md`, `ai/common/character
 
 - **Codex** (`ai/codex/_AGENTS.md`): Codex's AGENTS.md does not support `@file` imports, so `mac/initialization/ai/codex.sh` (and `mac/updates/codex.sh`) generates `_AGENTS.md` by `cat`-concatenating `ai/common/prompt_base.md` + `ai/common/characters/nyaruko.md` + `ai/codex/codex_base.md`. The generated file is committed and symlinked to `~/.codex/AGENTS.md`. Edit the source files (not the generated `_AGENTS.md`); regenerate with `mac/initialization/ai/codex.sh`.
 
-Shared-core skills follow one pattern: the skill body lives in core file(s) under `ai/common/`, loaded at runtime by Claude (`` !`/bin/cat ~/.claude/common/<core>.md` `` in the skill) and Gemini (`!{cat ~/.gemini/common/<core>.md}` in the command), and concatenated at build time by `generate_codex_skills` into the committed `ai/codex/skills/<name>/SKILL.md` (`skill_head.md` + core file(s) in listed order + `skill_tail.md` if present). Edit the sources, never the generated Codex `SKILL.md`. Platform-specific bits (placeholders, confirmation primitive) live in each platform's adapter (Claude `SKILL.md` / Gemini `.toml` / Codex `skill_head.md`).
+Shared-core skills follow one pattern: the skill body lives in core file(s) under `ai/common/`, loaded at runtime by Claude (`` !`/bin/cat ~/.claude/common/<core>.md` `` in the skill) and Gemini (`!{cat ~/.gemini/common/<core>.md}` in the command), and concatenated at build time by `generate_codex_skills` into the committed `ai/codex/skills/<name>/SKILL.md` (`skill_head.md` + core file(s) in listed order + `skill_tail.md` if present). When the Gemini adapter must stay a *skill* rather than a command (to keep keyword auto-activation), its `SKILL.md` is likewise generated at build time by `generate_gemini_skills` — Gemini skill files support no runtime inclusion (`!{...}` works only in commands). Edit the sources, never the generated `SKILL.md` files. Platform-specific bits (placeholders, confirmation primitive) live in each platform's adapter (Claude `SKILL.md` / Gemini `.toml` or `skill_head.md` / Codex `skill_head.md`).
 
 | Skill | Core file(s) in `ai/common/` | Notes |
 | --- | --- | --- |
@@ -104,6 +104,7 @@ Shared-core skills follow one pattern: the skill body lives in core file(s) unde
 | pr-body | `pr_body_core.md` | |
 | pr-create-by-branch | `pr_create_by_branch_core.md` | Claude and Codex only (no Gemini variant); adapter-head bits: `TARGET_BRANCH_ARG`, confirmation primitive |
 | config-audit | `config_audit_core.md` | adapter-head bits: `PLATFORM_NAME`, `SCOPE`, `ENTRY_SCOPE`, `CONFIG_PATHS`, `GENERATED_ENTRY_FILE`, `SOURCE_FILES`, confirmation primitive |
+| fact-based | `fact_based_core.md` | Gemini adapter is a generated skill (not a command); Claude adapter keeps `$ARGUMENTS` handling in head/tail around the runtime include |
 
 Beyond its shared core (table above), the pr-review-subagents system has 21 reviewer subagent definitions (7 dimensions × 3 platforms) (`ai/claude/agents/pr-reviewer-*.md`, `ai/gemini/agents/pr-reviewer-*.md`, `ai/codex/agents/pr_reviewer_*.toml`) which are GENERATED and committed: `generate_pr_reviewer_agents` (`mac/scripts/common.sh`, called by the init/update scripts) assembles each from shared dimension fragments (`intro_<dim>.md`, `format_<dim>.md`) plus per-platform `ai/<platform>/agents_src/` files (`head_<dim>`, `rules_<dim>`, `rules_common`). Subagent definition files support no runtime file inclusion on any platform, hence build-time generation. Edit the sources, never the generated outputs.
 

@@ -59,6 +59,9 @@ for item in agents commands hooks policies; do
   done
 done
 
+# 共有コアスキルの SKILL.md を生成（編集はソースの skill_head.md / skill_tail.md / ai/common のコアへ）
+generate_gemini_skills
+
 # skills はディレクトリ単位でシンボリックリンク（skills/<name>/SKILL.md 構造のため）
 setup_ai_skills ~/.gemini/skills "${Repo}ai/common/skills" "${Repo}ai/gemini/skills"
 

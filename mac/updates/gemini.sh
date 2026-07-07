@@ -18,6 +18,9 @@ make_symlink "${Repo}ai/common" ~/.gemini/common
 # pr-review-subagents のレビュアー定義を共有フラグメントから生成（編集は ai/common/pr_review_subagents/ と ai/gemini/agents_src/ へ）
 generate_pr_reviewer_agents gemini
 
+# 共有コアスキルの SKILL.md を生成（編集はソースの skill_head.md / skill_tail.md / ai/common のコアへ）
+generate_gemini_skills
+
 setup_ai_skills ~/.gemini/skills "${Repo}ai/common/skills" "${Repo}ai/gemini/skills"
 
 setup_gemini_superpowers
