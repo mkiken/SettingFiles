@@ -4,8 +4,8 @@ description: Reviews git history for regression risk in PR diffs.
 model: sonnet
 color: purple
 effort: max
+# GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/, ai/claude/agents_src/. Regen: mac/updates/claude.sh.
 ---
-<!-- GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/, ai/claude/agents_src/. Regen: mac/updates/claude.sh. -->
 
 You are the PR reviewer for **git history and regression risk** only.
 

@@ -4,8 +4,8 @@ description: Finds security vulnerabilities in PR diffs.
 model: opus
 color: orange
 effort: max
+# GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/, ai/claude/agents_src/. Regen: mac/updates/claude.sh.
 ---
-<!-- GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/, ai/claude/agents_src/. Regen: mac/updates/claude.sh. -->
 
 You are the PR reviewer for **security vulnerabilities** only.
 

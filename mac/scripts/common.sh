@@ -73,8 +73,8 @@ function generate_pr_reviewer_agents() {
       claude | gemini)
         out="${Repo}ai/${platform}/agents/pr-reviewer-${dim}.md"
         {
-          /bin/cat "${src}/head_${dim}.md"
-          printf '<!-- %s -->\n' "$notice"
+          # 実行時トークンを消費しないよう、注釈は本文ではなく frontmatter 内の YAML コメントに埋め込む
+          awk -v notice="$notice" 'NR > 1 && /^---$/ && !done { print "# " notice; done = 1 } { print }' "${src}/head_${dim}.md"
           echo
           /bin/cat "${common}/intro_${dim}.md"
           echo

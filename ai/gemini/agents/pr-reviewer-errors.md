@@ -10,8 +10,8 @@ tools:
 model: gemini-2.5-pro
 temperature: 0.2
 max_turns: 15
+# GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/, ai/gemini/agents_src/. Regen: mac/updates/gemini.sh.
 ---
-<!-- GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/, ai/gemini/agents_src/. Regen: mac/updates/gemini.sh. -->
 
 You are the PR reviewer for **error handling quality** only.
 

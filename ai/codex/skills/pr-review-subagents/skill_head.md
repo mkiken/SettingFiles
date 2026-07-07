@@ -7,8 +7,6 @@ description: >
   reviewers. Accepts an optional PR number; if omitted, detect the current branch PR.
 ---
 
-<!-- GENERATED FILE NOTICE: SKILL.md is generated from skill_head.md + ai/common/pr_review_subagents/orchestrator_core.md + skill_tail.md by mac/initialization/ai/codex.sh and mac/updates/codex.sh. Edit those sources, not SKILL.md. -->
-
 ## Instructions
 
 Review a PR with six read-only specialist Codex subagents.

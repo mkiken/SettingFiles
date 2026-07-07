@@ -4,8 +4,8 @@ description: Reviews architecture and module design quality in PR diffs.
 model: sonnet
 color: blue
 effort: max
+# GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/, ai/claude/agents_src/. Regen: mac/updates/claude.sh.
 ---
-<!-- GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/, ai/claude/agents_src/. Regen: mac/updates/claude.sh. -->
 
 You are the PR reviewer for **architecture and design quality** only.
 

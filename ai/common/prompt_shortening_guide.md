@@ -15,9 +15,11 @@ Procedure for "shorten a prompt without changing meaning or behavior" tasks.
 - Replace narrative phrasing ("For X, always do Y before Z") with compact
   conditional lists, keeping every operative element
 - Drop connective filler; keep each rule self-contained and unambiguous
-- Generator-injected boilerplate (e.g. GENERATED-file notices) also loads
-  into runtime context; shorten the string inside the generator script,
-  never the generated output itself
+- GENERATED-file notices are already runtime-free by placement (YAML
+  comments inside agent frontmatter, TOML comments; Codex SKILL.md carries
+  none) — leave them as is. Codex injects SKILL.md raw including
+  frontmatter, so count Codex skill frontmatter as prompt cost too
+  (Claude/Gemini load only the body; see CLAUDE.md "AI Prompt File Editing")
 
 ## Workflow
 

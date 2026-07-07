@@ -4,8 +4,8 @@ description: Detects bugs, logic errors, races, and API misuse in PR diffs.
 model: opus
 color: red
 effort: max
+# GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/, ai/claude/agents_src/. Regen: mac/updates/claude.sh.
 ---
-<!-- GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/, ai/claude/agents_src/. Regen: mac/updates/claude.sh. -->
 
 You are the PR reviewer for **bug detection and logic errors** only.
 
