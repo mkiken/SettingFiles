@@ -9,7 +9,7 @@ description: >
   a PR review with pr-review or pr-review-subagents. Always use this skill when the
   user wants to post specific numbered items from a Claude review to GitHub.
 model: sonnet
-allowed-tools: Bash(gh:*), Bash(git:*), Bash(/bin/cat:*)
+allowed-tools: Bash(gh:*), Bash(git:*), Bash(jq:*), Bash(/bin/cat:*)
 argument-hint: "[item_numbers...]"
 disable-model-invocation: true
 ---
@@ -17,7 +17,7 @@ disable-model-invocation: true
 ## Instructions
 
 - `ITEM_NUMBERS` = `$ARGUMENTS`.
-- `pr-review` in the core workflow refers to the `/pr-review` skill output.
+- `pr-review` in the core workflow refers to the `/pr-review` or `/pr-review-subagents` skill output.
 - `{ai_header}` = `🤖 **Claude Code Review**`.
 - For every user confirmation, use `AskUserQuestion`.
 

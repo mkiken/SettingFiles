@@ -10,6 +10,7 @@ Post selected numbered findings from a previous `pr-review` result as one GitHub
 2. Parse `ITEM_NUMBERS` as space- or comma-separated original serial numbers.
 3. For each requested number, copy that index entry's `file_path`, `line_spec`, `priority`, `category`, and full description verbatim — never reconstruct or infer an item's content from its number. If a number has no matching entry, stop and report the mismatch instead of substituting another item.
    - Priority emoji: High `🔴`, Medium `🟡`, Low `🟢`.
+   - Items anchored `[path:~line]` (pre-existing code outside the diff) cannot be inline comments: exclude them from the Review API `comments` array and post each via the no-file/line `gh pr comment` fallback, prefixing the body with `**[path:~line]**`.
 4. Get PR metadata:
 
 ```bash
@@ -51,7 +52,7 @@ Inline comment body format, with no AI header and no item number:
 
 ### Newline Safety
 
-Never write `\n` inside a normal quoted string in shell and expect it to become a newline. Build multiline bodies with `printf`, pass the resulting variable to `jq`/`gh`, and preflight that the body contains real blank lines and no literal `\n` sequences (the `jq -n ... -e` lines below).
+Never write `\n` inside a normal quoted string in shell and expect it to become a newline. Build multiline bodies with `printf`, pass the resulting variable to `jq`/`gh`, and preflight that the body contains real blank lines and no literal `\n` sequences (the `jq -n ... -e` lines below). If a preflight fails, rebuild the body with `printf` and re-run it; never post a body that failed preflight.
 
 Prefer the Review API:
 
@@ -71,6 +72,7 @@ api_response=$(jq -n \
   '{body:$body,event:$event,commit_id:$commit_id,comments:$comments}' \
 | gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --input - 2>&1)
 api_exit_code=$?
+review_id=$(printf '%s' "$api_response" | jq -r '.id')
 ```
 
 If `api_exit_code == 0`, report success. If it fails and `$api_response` contains `one pending review` or `pending review per pull request`, handle PENDING. Otherwise use individual-comment fallback.
@@ -78,14 +80,21 @@ If `api_exit_code == 0`, report success. If it fails and `$api_response` contain
 After a successful Review API call, re-fetch the created review and verify the top-level body contains real newlines, not escaped text:
 
 ```bash
-gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews/{review_id} \
+gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews/$review_id \
   --jq '.body | (contains("\\n") | not) and contains("\n\n")' \
 | grep -qx true
 ```
 
+If this verification fails, fix the body in place and re-verify — never post the review again:
+
+```bash
+gh api --method PUT repos/{owner}/{repo}/pulls/{pr_number}/reviews/$review_id \
+  -f body="$review_body"
+```
+
 ## Fallbacks
 
-For non-PENDING Review API failures, post comments individually:
+For non-PENDING Review API failures, first post the review summary once with `gh pr comment {pr_number} --body "$review_body"`, then post comments individually:
 
 ```bash
 comment_body="{comment_body}"
