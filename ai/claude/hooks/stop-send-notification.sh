@@ -3,6 +3,8 @@ export LANG="${LANG:-en_US.UTF-8}"
 
 # notification関数を読み込み (SETが未定義の場合はHOMEから解決)
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/alias/notification.zsh"
+# This hook notifies intentionally; bypass the AI-session suppression inherited from the parent process.
+export NOTIFY_FORCE=1
 # 絵文字アイコン定義を読み込み
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_emoji.conf"
 # tmuxウィンドウラベル取得関数を読み込み

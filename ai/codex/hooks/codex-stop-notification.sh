@@ -6,6 +6,8 @@ exec >/dev/null
 exec 2>>"${HOOK_ERROR_LOG}"
 
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/alias/notification.zsh"
+# This hook notifies intentionally; bypass the AI-session suppression inherited from the parent process.
+export NOTIFY_FORCE=1
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_emoji.conf"
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_window_info.sh"
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_notification_title.sh"

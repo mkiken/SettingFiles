@@ -1,4 +1,7 @@
 function _notify_should_suppress_for_ai() {
+  # Hooks that intentionally notify (session stop/approval) set NOTIFY_FORCE to bypass AI suppression.
+  [[ -n "${NOTIFY_FORCE:-}" ]] && return 1
+
   # AI sessions set DISABLE_NOTIFY so commands and hooks do not emit macOS notifications.
   [[ -n "${DISABLE_NOTIFY:-}" ]] && return 0
   [[ -n "${_DISABLE_NOTIFY_FOR_CURRENT_CMD:-}" ]] && return 0

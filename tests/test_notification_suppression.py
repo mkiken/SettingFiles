@@ -75,6 +75,29 @@ class NotificationSuppressionTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(log_path.read_text(encoding="utf-8"), "called\n")
 
+    def test_notify_force_bypasses_ai_suppression(self):
+        result, log_path = self.run_notify(
+            {
+                "NOTIFY_FORCE": "1",
+                "DISABLE_NOTIFY": "1",
+                "_DISABLE_NOTIFY_FOR_CURRENT_CMD": "1",
+                "CODEX_THREAD_ID": "session-id",
+            }
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(log_path.read_text(encoding="utf-8"), "called\n")
+
+    def test_notification_hooks_force_intentional_notifications(self):
+        for script_path in (
+            "ai/claude/hooks/stop-send-notification.sh",
+            "ai/codex/hooks/codex-stop-notification.sh",
+            "ai/gemini/hooks/notification.sh",
+        ):
+            with self.subTest(script=script_path):
+                script = (REPO_ROOT / script_path).read_text(encoding="utf-8")
+                self.assertIn("export NOTIFY_FORCE=1", script)
+
     @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
     def test_codex_subprocesses_inherit_notification_suppression(self):
         config = tomllib.loads((REPO_ROOT / "ai/codex/config.toml").read_text(encoding="utf-8"))
