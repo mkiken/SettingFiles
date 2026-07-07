@@ -18,9 +18,7 @@ $pr-comment-implement <PR_COMMENT_URL> [implementation instructions...]
 ```
 
 - First token: `PR_URL`; remaining text: `PROMPT`.
-- Use plain-text questions for all approvals, selections, retries, and the
-  final action selection. Do not use `request_user_input`. On the final action
-  question, offer an explicit `コミットしない` choice.
+- On the final action question, offer an explicit `コミットしない` choice.
 - In Plan Mode, the plan artifact is the `<proposed_plan>` block.
 
 ## Core Workflow

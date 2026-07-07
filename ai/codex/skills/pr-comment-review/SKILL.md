@@ -14,7 +14,6 @@ $pr-comment-review <PR_COMMENT_URL> [analysis instructions...]
 ```
 
 - First token: `COMMENT_URL`; remaining text: `PROMPT`.
-- Ask clarifications in plain text; never `request_user_input`.
 
 ### Core Analysis Rules
 

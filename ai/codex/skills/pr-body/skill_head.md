@@ -16,9 +16,8 @@ Extract the PR number from the user's message; if absent, run:
 gh pr view --json number --jq .number
 ```
 
-Ask all questions and confirmations in plain text, including asking for a PR
-number when none is found. In the rules below, `<PR_NUMBER>` refers to this PR
-number.
+If no PR number is found, ask the user for it. In the rules below,
+`<PR_NUMBER>` refers to this PR number.
 
 ## Gather Context
 

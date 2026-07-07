@@ -2,16 +2,37 @@ prefix_rule(
     pattern = ["git", "add"],
     decision = "allow",
     justification = "Allow Codex to stage changes without prompting",
-    match = ["git add ai/codex/config.toml", "git add -A", "git add ."],
-    not_match = ["git commit -m fix", "git push"],
+    match = ["git add ai/codex/config.toml"],
+    not_match = ["git commit -m fix", "git push", "git add -A", "git add ."],
+)
+
+prefix_rule(
+    pattern = ["git", "add", "-A"],
+    decision = "forbidden",
+    justification = "Broad staging can include unrelated user changes",
+    match = ["git add -A"],
+)
+
+prefix_rule(
+    pattern = ["git", "add", "."],
+    decision = "forbidden",
+    justification = "Broad staging can include unrelated user changes",
+    match = ["git add ."],
 )
 
 prefix_rule(
     pattern = ["git", "commit", "-m"],
     decision = "allow",
     justification = "Allow Codex to create normal local commits without prompting",
-    match = ["git commit -m fix", "git commit -m fix --no-verify"],
-    not_match = ["git commit --amend --no-edit", "git push"],
+    match = ["git commit -m fix"],
+    not_match = ["git commit --amend --no-edit", "git push", "git commit -m fix --no-verify"],
+)
+
+prefix_rule(
+    pattern = ["git", "commit", "-m", "fix", "--no-verify"],
+    decision = "forbidden",
+    justification = "Commit hooks enforce repository conventions",
+    match = ["git commit -m fix --no-verify"],
 )
 
 prefix_rule(

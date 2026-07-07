@@ -17,7 +17,7 @@ Bash commands may be aliased:
 - `cp` -> `cp -i`
 - `mv` -> `mv -i`
 
-Use full paths such as `/bin/rm` when standard behavior matters.
+Use an absolute path when standard behavior matters; verify non-obvious paths with `type <name>` or `command -v <name>` before hard-coding them.
 
 - The `-i` aliases (`cp`, `mv`) prompt before overwriting; in non-interactive runs the prompt auto-declines and the copy/move silently fails — use `/bin/cp` / `/bin/mv` to overwrite.
 - `trash` does not accept rm-style flags (`-r`, `-f`, `-rf` fail); pass files and directories without flags.
@@ -37,7 +37,7 @@ After any side-effecting operation (git commit/push, API writes, deletes, deploy
 Before the Post-Implementation Workflow, clean up temp files newly created by the AI this session: scratch scripts, debug output, sample data, logs, dumps, notes, and other non-deliverables. Deliverables (requested source, test, doc, fixture, or config changes) and existing files edited in place are out of scope.
 
 - If no temp files were created, continue to the Post-Implementation Workflow.
-- Otherwise list each temp file and its purpose, then ask via the `# User Confirmation` mechanism (if unavailable, state why before falling back). Present exactly:
+- Otherwise list each temp file and its purpose, then ask via the platform-specific `# User Confirmation` mechanism. Present exactly:
   1. **すべて削除** — 一覧した一時ファイルをすべて削除する
   2. **個別に選択** — 残すファイルをユーザーが指定する
   3. **削除しない** — そのまま残す
@@ -83,7 +83,7 @@ For one-off preferences (user taste, not a defect), keep an internal note instea
 
 At the end of implementation, fix, configuration, review, or investigation-delivery tasks, check the criteria above before the final completion response — after Temp File Cleanup and after the Post-Implementation Workflow's git action has completed, so proposals never block the commit/push flow. The task's deliverable output (review results, findings, answers, summaries) always comes first in the final response; the OIP section — proposal analyses or the 該当なし line — is always the last content, never before or interleaved with the deliverable.
 
-- If proposals qualify, print each proposal's full analysis immediately before the confirmation question with nothing in between, and make each question self-contained — a condensed background (matched trigger, concrete session events, which file gets what change) inside the question text itself; a bare one-line question is never sufficient. Then ask approval per proposal via the `# User Confirmation` mechanism (`AskUserQuestion`; if unavailable, state why before falling back to text) — options per proposal: apply now / do not apply / decide later. Apply edits only to approved proposals.
+- If proposals qualify, print each proposal's full analysis immediately before the confirmation question with nothing in between, and make each question self-contained — a condensed background (matched trigger, concrete session events, which file gets what change) inside the question text itself; a bare one-line question is never sufficient. Then ask approval per proposal via the platform-specific `# User Confirmation` mechanism — options per proposal: apply now / do not apply / decide later. Apply edits only to approved proposals.
 - If none qualify, include exactly `自己改善チェック: 該当なし` once in the final completion response; do not raise a confirmation question.
 - Do not include this in ordinary conversation, clarification-only turns, plan-only responses (the Plan Handoff record is allowed), active progress updates, or pre-completion confirmation questions.
 
@@ -91,7 +91,7 @@ At the end of implementation, fix, configuration, review, or investigation-deliv
 
 Skip this workflow when no commit is needed: read-only work, planning, investigation, review-only work, no repository deliverable changes, only deleted temp files, or explicit "do not commit/use git".
 
-When implementation is complete and a commit is needed, inspect the working tree, then ask via the `# User Confirmation` mechanism (if unavailable, state why before falling back). Present exactly:
+When implementation is complete and a commit is needed, inspect the working tree, then ask via the platform-specific `# User Confirmation` mechanism. Present exactly:
 
 1. **コミットしてプッシュ** — コミットを作成し、リモートへプッシュする
 2. **コミットのみ** — コミットを作成するがプッシュはしない
