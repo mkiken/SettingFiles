@@ -2,6 +2,7 @@
 allowed-tools: Bash(gh:*), Bash(/bin/cat:*)
 description: "Analyzes PR review comments based on user instructions."
 argument-hint: [prCommentUrl] [instructions...]
+disable-model-invocation: true
 effort: max
 ---
 

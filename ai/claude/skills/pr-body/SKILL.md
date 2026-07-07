@@ -2,6 +2,7 @@
 allowed-tools: Bash(gh:*), Bash(diff:*), Bash(tr:*), Bash(rm:*), Bash(/bin/cat:*), Write
 description: "Generate comprehensive PR body content using gh command for specified PR number"
 argument-hint: [prNumber]
+disable-model-invocation: true
 ---
 
 ## Instructions

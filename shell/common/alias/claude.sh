@@ -36,7 +36,7 @@ clor() { clo --resume "$@"; }
 clfr() { clf --resume "$@"; }
 
 cl-web-summary() {
-    clo "/my:web-summary $*"
+    clo "/web-summary $*"
 }
 
 cl-pr-review() {
@@ -45,7 +45,7 @@ cl-pr-review() {
         echo "現在のブランチに対応するPRが見つかりません。" >&2
         return 1
     }
-    clfm --dangerously-skip-permissions "/my:pr-review $pr_number $* ultrathink"
+    clfm --dangerously-skip-permissions "/pr-review $pr_number $* ultrathink"
 }
 
 cl-pr-review-subagents() {
@@ -58,11 +58,11 @@ cl-pr-review-subagents() {
 }
 
 _cl-pr-comment-review() {
-    clfm --dangerously-skip-permissions "/my:pr-comment-review $* ultrathink"
+    clfm --dangerously-skip-permissions "/pr-comment-review $* ultrathink"
 }
 
 _cl-pr-comment-implement() {
-    clpm "/my:pr-comment-implement $*"
+    clpm "/pr-comment-implement $*"
 }
 
 cl-pr-body() {
@@ -71,7 +71,7 @@ cl-pr-body() {
         echo "現在のブランチに対応するPRが見つかりません。" >&2
         return 1
     }
-    clo --dangerously-skip-permissions "/my:pr-body $pr_number $*"
+    clo --dangerously-skip-permissions "/pr-body $pr_number $*"
 }
 
 cl-pr-create() {
@@ -91,7 +91,7 @@ cl-pr-create() {
         echo "作成したPR番号を取得できませんでした。" >&2
         return 1
     }
-    clo --dangerously-skip-permissions "/my:pr-body $pr_number"
+    clo --dangerously-skip-permissions "/pr-body $pr_number"
 }
 
 cclog() {

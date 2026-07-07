@@ -23,13 +23,9 @@ done
 # pr-review-subagents のレビュアー定義を共有フラグメントから生成（編集は ai/common/pr_review_subagents/ と ai/claude/agents_src/ へ）
 generate_pr_reviewer_agents claude
 
-# agents,commands,hooks,scripts はディレクトリ内のファイルをシンボリックリンク
-for item in agents commands hooks scripts; do
-  if [[ "$item" == "commands" ]]; then
-    dest_dir=~/.claude/commands/my
-  else
-    dest_dir=~/.claude/${item}
-  fi
+# agents,hooks,scripts はディレクトリ内のファイルをシンボリックリンク
+for item in agents hooks scripts; do
+  dest_dir=~/.claude/${item}
 
   mkdir -p "$dest_dir"
 

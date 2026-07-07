@@ -2,6 +2,7 @@
 allowed-tools: WebFetch(domain:*),WebSearch
 description: "Generate comprehensive web page summary using WebFetch for specified URL"
 argument-hint: [url]
+disable-model-invocation: true
 ---
 
 ## Instructions

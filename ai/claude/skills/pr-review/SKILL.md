@@ -2,6 +2,7 @@
 allowed-tools: Bash(gh:*), Bash(git:*), Bash(/bin/cat:*), Read, Glob
 description: "Comprehensive PR review using gh command for specified PR number"
 argument-hint: [prNumber]
+disable-model-invocation: true
 effort: max
 ---
 
