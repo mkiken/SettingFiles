@@ -3,9 +3,6 @@ prompt = """Analyze PR review comments for {{args}}.
 
 **Arguments**: treat the first `{{args}}` token as `COMMENT_URL`; the rest is `PROMPT`.
 
-Fetch baseline PR comments with `run_shell_command`:
-`gh pr view {pull_number} --comments`
-
 Note: Dynamic `gh api` calls will require user confirmation during execution (Gemini CLI limitation).
 
 ### Core Analysis Rules
