@@ -11,6 +11,7 @@ description: >
 
 ## Instructions
 
-- `TARGET_BRANCH_ARG` = the target base branch in the user's message (a prompt
-  from `cx-pr-create` already includes the selected branch).
+- `TITLE_ARG` = the PR title in the user's message (quoted string preferred;
+  otherwise free text that is not a branch name).
+- `TARGET_BRANCH_ARG` = the target base branch in the user's message.
 - For every user confirmation, ask in plain text with numbered options.

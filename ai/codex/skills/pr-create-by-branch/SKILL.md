@@ -11,8 +11,9 @@ description: >
 
 ## Instructions
 
-- `TARGET_BRANCH_ARG` = the target base branch in the user's message (a prompt
-  from `cx-pr-create` already includes the selected branch).
+- `TITLE_ARG` = the PR title in the user's message (quoted string preferred;
+  otherwise free text that is not a branch name).
+- `TARGET_BRANCH_ARG` = the target base branch in the user's message.
 - For every user confirmation, ask in plain text with numbered options.
 
 ## Purpose
@@ -43,9 +44,11 @@ git diff origin/<TARGET_BRANCH>...HEAD
 
 If there are no commits or no diff, warn: 「このブランチにはまだコミットがないか、originにpushされていません。」
 
-## Generate Title
+## Determine Title
 
-Summarize the essence of the PR in one line:
+If `TITLE_ARG` is present, use it as the PR title as-is.
+
+Otherwise generate 2–3 candidate titles from the diff and ask the user to pick one or enter their own, with the confirmation method from Instructions. Candidate rules:
 
 - Within 70 characters.
 - Conventional prefix when it fits: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`, etc.
@@ -66,11 +69,12 @@ When a template exists, fill it with concrete generated content and remove unuse
 ```markdown
 ## Summary
 
-- Logical grouping of changes; focus on what changed and why.
+- 1–3 sentences: what this PR changes and why.
 
-## Files Changed Summary
+## Implementation Details
 
-- `path/to/file.ext`: What changed in this file.
+- One bullet per logical change group.
+  - Nested bullets with the concrete changes in that group.
 
 ## Review Focus Points
 
@@ -89,9 +93,10 @@ When a template exists, fill it with concrete generated content and remove unuse
 
 Rules:
 
+- Keep Summary short (1–3 sentences); Implementation Details carries the structure — group changes logically and nest specifics under each group.
 - Describe the final state at HEAD; never intermediate or reverted changes.
-- Do not include line counts in Files Changed Summary.
-- Be concise; no filler. If the diff exceeds 500 lines, summarize by file group rather than line-by-line.
+- Do not include line counts.
+- Be concise; no filler. If the diff exceeds 500 lines, summarize by change group rather than line-by-line.
 
 ## Confirm
 
