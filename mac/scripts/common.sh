@@ -116,6 +116,35 @@ function generate_pr_reviewer_agents() {
   done
 }
 
+# Codex の共有コアスキルの SKILL.md を skill_head.md + ai/common のコア (+ skill_tail.md があれば) の連結で生成する
+# 生成物: ai/codex/skills/<name>/SKILL.md（編集はソースへ、生成物は編集しない）
+function generate_codex_skills() {
+  local skills_dir="${Repo}ai/codex/skills"
+  # 形式: <skill名>:<ai/common からのコア相対パス>
+  local entries=(
+    "pr-review:pr_review_core.md"
+    "pr-comment-review:pr_comment_review_core.md"
+    "pr-comment-implement:pr_comment_implement_core.md"
+    "pr-body:pr_body_core.md"
+    "pr-review-subagents:pr_review_subagents/orchestrator_core.md"
+  )
+  local entry skill_dir core
+
+  for entry in "${entries[@]}"; do
+    skill_dir="${skills_dir}/${entry%%:*}"
+    core="${Repo}ai/common/${entry#*:}"
+    {
+      /bin/cat "${skill_dir}/skill_head.md"
+      echo
+      /bin/cat "$core"
+      if [[ -f "${skill_dir}/skill_tail.md" ]]; then
+        echo
+        /bin/cat "${skill_dir}/skill_tail.md"
+      fi
+    } > "${skill_dir}/SKILL.md"
+  done
+}
+
 function require_ai_setup_command() {
   local command_name="$1"
 

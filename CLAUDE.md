@@ -49,6 +49,8 @@ mac/initialization/ai/codex.sh
 
 After editing pr-review-subagents sources (`ai/common/pr_review_subagents/`, `ai/*/agents_src/`, codex `skill_head.md`/`skill_tail.md`), regenerate the committed outputs with the scripts above, or run `generate_pr_reviewer_agents <platform>` from `mac/scripts/common.sh` directly.
 
+After editing shared-core skill sources (`ai/common/*_core.md`, `ai/codex/skills/*/skill_head.md`/`skill_tail.md`), regenerate the committed Codex `SKILL.md` files with `generate_codex_skills` from `mac/scripts/common.sh` (zsh: `zsh -c 'source mac/scripts/common.sh && generate_codex_skills'`) — no need to run the full init/update scripts.
+
 ## Architecture
 
 ### Directory Structure
