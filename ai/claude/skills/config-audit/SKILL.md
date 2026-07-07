@@ -1,13 +1,7 @@
 ---
 description: >
   Audit all Claude Code configuration files for redundancy, conflicts, ambiguity,
-  and unnecessary rules using six parallel specialist subagents. Analyzes CLAUDE.md,
-  skills, commands, agents, hooks, and settings across global (~/.claude/) and
-  project-level configs. Use when the user wants to clean up config, check for
-  conflicts, optimize prompts, or reduce token consumption. Trigger keywords:
-  "設定を監査", "コンフィグ監査", "設定の整理", "ルールの重複チェック", "CLAUDE.md最適化",
-  "audit config", "clean up config", "check for conflicts", "optimize prompts",
-  "config redundancy", "設定ファイルを整理", "CLAUDE.mdを最適化".
+  and unnecessary rules.
 model: opus
 argument-hint: "[scope: all|claude-md|skills|agents|hooks|settings|global|project]"
 allowed-tools: Bash(/bin/cat:*), Bash(readlink:*), Read, Glob, Grep
