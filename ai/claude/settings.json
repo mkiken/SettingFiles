@@ -13,6 +13,7 @@
     "tsumiki@tsumiki": true
   },
   "env": {
+    "DISABLE_NOTIFY": "1",
     "ENABLE_EXPERIMENTAL_MCP_CLI": "false",
     "ENABLE_TOOL_SEARCH": "true"
   },

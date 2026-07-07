@@ -4,6 +4,10 @@ service_tier = 'fast'
 plan_mode_reasoning_effort = 'xhigh'
 suppress_unstable_features_warning = true
 
+[shell_environment_policy]
+# Codex-spawned shell commands inherit this so notify() suppresses macOS notifications during AI runs.
+set = { DISABLE_NOTIFY = "1" }
+
 [features]
 hooks = true
 plugin_hooks = true

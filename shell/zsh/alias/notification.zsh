@@ -1,4 +1,19 @@
+function _notify_should_suppress_for_ai() {
+  # AI sessions set DISABLE_NOTIFY so commands and hooks do not emit macOS notifications.
+  [[ -n "${DISABLE_NOTIFY:-}" ]] && return 0
+  [[ -n "${_DISABLE_NOTIFY_FOR_CURRENT_CMD:-}" ]] && return 0
+
+  # Codex already exports these in managed sessions; keep suppression working before config reloads.
+  [[ -n "${CODEX_CI:-}" || -n "${CODEX_THREAD_ID:-}" ]] && return 0
+
+  return 1
+}
+
 function notify() {
+  if _notify_should_suppress_for_ai; then
+    return 0
+  fi
+
   local title="$1"
   local message="$2"
   local sound="${3:-default}"
