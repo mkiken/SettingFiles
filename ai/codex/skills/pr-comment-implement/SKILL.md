@@ -52,7 +52,7 @@ fragment. The result (`REPLY_PATH`, `COMMENT_ID`) is reused in Phase 5:
 |---|---|
 | `#discussion_r(\d+)` | Extract `COMMENT_ID` → `REPLY_PATH=thread` |
 | `#pullrequestreview-(\d+)` | Fetch inline comments (below) and resolve concrete target |
-| `#issuecomment-(\d+)` or no fragment | `REPLY_PATH=standalone` (no `COMMENT_ID`) |
+| `#issuecomment-(\d+)` | `REPLY_PATH=standalone` (no `COMMENT_ID`) |
 
 If unclassified, ask which reply method to use.
 
