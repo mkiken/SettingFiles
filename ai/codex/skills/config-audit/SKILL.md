@@ -40,60 +40,33 @@ Read all `PLATFORM_NAME` configuration files, evaluate every rule against five c
 
 ### Phase 1: Discovery
 
-Explore `CONFIG_PATHS` and build a file manifest, narrowed by `SCOPE`. Run discovery in parallel where possible to save turns.
+Explore `CONFIG_PATHS` (in parallel where possible) and build a file manifest narrowed by `SCOPE`.
 
-**Source-file mode:** if `GENERATED_ENTRY_FILE` is a symlink, resolve it with `readlink`. When the resolved file's ancestor repository contains `ai/common/prompt_base.md` and an `ai/common/characters/` directory, enable source-file mode: audit `SOURCE_FILES` individually instead of the generated entry file. Expansion of sources into a generated file is normal build behavior, not duplication.
+**Source-file mode:** if `GENERATED_ENTRY_FILE` is a symlink, resolve it with `readlink`; when the resolved file's ancestor repository contains `ai/common/prompt_base.md` and an `ai/common/characters/` directory, audit `SOURCE_FILES` individually instead of the generated entry file. Source-to-generated expansion is normal build behavior, not duplication.
 
-After discovery, print the manifest as a table before proceeding:
-
-```text
-## 監査対象ファイル一覧
-
-| ファイル | 種別 | 備考 |
-|---------|------|------|
-| ... | ... | ... |
-```
+Before proceeding, print the manifest as a `## 監査対象ファイル一覧` table with columns ファイル / 種別 / 備考.
 
 ### Phase 2: Extraction
 
 Read every manifest file (in parallel where possible). Identify rules as semantic units — headings, bullets, prose instructions, frontmatter metadata, permission and hook settings — not mechanical line splits.
 
-Attach attributes to each rule:
+Attach to each rule: `source file` (path), `section` (enclosing heading, if any), `rule text`, and `category` — one of `behavior` (general behavioral guidance), `formatting` (output format), `workflow` (task procedures), `tool-usage`, `character` (persona settings from the adopted character file), `code-style`, `commit-convention`, `response-language`, `permission`.
 
-- `source file`: path where the rule is written
-- `section`: enclosing heading, if any
-- `rule text`
-- `category`: one of `behavior` (general behavioral guidance), `formatting` (output format), `workflow` (task procedures), `tool-usage`, `character` (persona settings from the adopted character file), `code-style`, `commit-convention`, `response-language`, `permission`
-
-**Exclusions:** files installed by third-party plugins or tools (e.g. Tsumiki) are listed in the manifest but excluded from analysis. Identify them by directory or filename prefix, or by symlinks resolving outside the dotfiles repository.
+**Exclusions:** files installed by third-party plugins or tools (e.g. Tsumiki) stay in the manifest but are excluded from analysis. Identify them by directory or filename prefix, or by symlinks resolving outside the dotfiles repository.
 
 ### Phase 3: Analysis
 
 Evaluate each extracted rule against the five criteria below. `character` rules are intentional customization: apply only criterion 2 (conflict) to them.
 
-**Criterion 1: Default behavior** — would the assistant do this without being told?
-- e.g. generic coding best practices, obvious safety instructions
-- Judge conservatively — do not flag rules that reinforce important behavior.
+**Criterion 1: Default behavior** — would the assistant do this without being told? (generic coding best practices, obvious safety instructions). Judge conservatively — do not flag rules that reinforce important behavior.
 
-**Criterion 2: Conflict** — does it contradict another file or rule?
-- global entry prompt vs project entry prompt
-- settings permissions vs skill tool allowlists
-- character settings vs behavior rules
-- skills/commands with overlapping purposes
+**Criterion 2: Conflict** — does it contradict another file or rule? (global vs project entry prompt, settings permissions vs skill tool allowlists, character settings vs behavior rules, skills/commands with overlapping purposes)
 
-**Criterion 3: Duplication** — does it overlap another rule or file?
-- exact text repeated in another file
-- semantic duplication (different wording, same instruction)
+**Criterion 3: Duplication** — does it overlap another rule or file, as exact repeated text or semantic duplication (different wording, same instruction)?
 
-**Criterion 4: One-off patch** — does it look added to fix one specific bad output rather than improve general quality?
-- very specific file paths or function names
-- wording implying a past incident (「〜しないように」「前回のように〜」)
-- overly narrow rules that apply to a single situation
+**Criterion 4: One-off patch** — does it look added to fix one specific bad output rather than improve general quality? (very specific file paths or function names, wording implying a past incident 「〜しないように」「前回のように〜」, overly narrow rules for a single situation)
 
-**Criterion 5: Ambiguity** — could each interpretation yield a different result?
-- subjective qualifiers (「より自然に」「適切に」)
-- no clear pass/fail criterion
-- vague conditions (「場合による」「適宜」)
+**Criterion 5: Ambiguity** — could each interpretation yield a different result? (subjective qualifiers 「より自然に」「適切に」, no clear pass/fail criterion, vague conditions 「場合による」「適宜」)
 
 ### Phase 4: Reporting
 
