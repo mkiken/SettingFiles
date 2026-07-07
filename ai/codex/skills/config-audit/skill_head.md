@@ -2,10 +2,7 @@
 name: config-audit
 description: >
   Audit all Codex configuration files (AGENTS.md, config.toml, skills, agents,
-  hooks, rules) for redundancy, conflicts, ambiguity, and unnecessary rules
-  with six parallel Codex custom subagents. Trigger keywords: "設定を監査",
-  "コンフィグ監査", "設定の整理", "AGENTS.md最適化", "audit config",
-  "clean up config", "check for conflicts", "optimize prompts".
+  hooks, rules) for redundancy, conflicts, ambiguity, and unnecessary rules.
 ---
 
 ## Instructions
