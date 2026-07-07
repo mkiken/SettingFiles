@@ -1,5 +1,6 @@
 description = "Generate comprehensive PR body content using gh command for specified PR number"
-prompt = """Generate a comprehensive PR body for {{args}}. In the rules below, `<PR_NUMBER>` refers to {{args}}.
+prompt = """Generate a comprehensive PR body. In the rules below, `<PR_NUMBER>` refers to {{args}}; if {{args}} is empty, resolve the current branch's PR number with `gh pr view --json number --jq .number` and use that; if that fails, ask the user for the PR number.
+For every user confirmation, use the `ask_user` tool.
 
 CRITICAL: Run these commands FIRST:
 !{gh pr view {{args}} --json number,url,title,body,author,headRefName,baseRefName}

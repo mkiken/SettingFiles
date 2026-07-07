@@ -4,8 +4,7 @@ description: >
   Generate and optionally update a GitHub Pull Request body using gh.
   Use this skill when the user asks Codex to create, regenerate, rewrite,
   or apply a PR description/body, says "PR body", "PR本文", "PR説明を作って",
-  or invokes `$pr-body`. Accepts an optional PR number; if omitted, detect
-  the PR for the current branch.
+  or invokes `$pr-body`.
 ---
 
 ## Inputs
@@ -25,7 +24,7 @@ Run these commands before drafting:
 
 ```bash
 gh pr view <PR_NUMBER> --json number,url,title,body,author,headRefName,baseRefName
-test -f .github/PULL_REQUEST_TEMPLATE.md && sed -n '1,240p' .github/PULL_REQUEST_TEMPLATE.md || printf '%s\n' 'NO_TEMPLATE'
+cat .github/PULL_REQUEST_TEMPLATE.md 2>/dev/null || printf '%s\n' 'NO_TEMPLATE'
 gh pr diff <PR_NUMBER>
 gh pr diff <PR_NUMBER> --name-only
 ```
@@ -35,7 +34,7 @@ gh pr diff <PR_NUMBER> --name-only
 - If `.github/PULL_REQUEST_TEMPLATE.md` exists in the repository root, use its structure as the base and fill each section with the generated content, applying the same style as the default sections (short overview first, structured bullets for implementation details); otherwise use the default sections below.
 - Preserve meaningful existing-body content (manually written TODOs, FIXME notes, free-form notes, incomplete checklists, HTML comments, review requests, useful background) even when it falls outside the generated structure — keep it in the closest matching section, or in **Additional Notes** when none fits. Template-only content (placeholders, empty sections) can be discarded.
 - Analyze the full diff and describe the **final state (HEAD)**: do not mention reverted changes, overwritten intermediate states, or trial-and-error. Reviewer-useful background (why this approach was chosen, alternatives considered) is acceptable.
-- If the diff is too large to read at once, redirect it to a file and read it incrementally.
+- If the diff is too large to read at once, redirect it to a file under the session temp/scratchpad directory (the same `<tmpdir>` used in the Confirmation Flow) and read it incrementally.
 - Default sections:
   - **Summary**: Short overview (2–4 sentences): what this PR does and why, at a glance
   - **実装内容**: Structured bullets grouped by logical change — one top-level bullet per change (**bold** short title), nested bullets listing the related files as `` `path` ``: what changed (DO NOT include line counts like +X/-Y). No separate file-by-file section — file details live here
@@ -56,7 +55,7 @@ After generating the PR body content:
    - Write the complete generated body to `<tmpdir>/pr_body_new.md` (LF line endings, exactly one trailing newline)
    - From here `pr_body_new.md` is the single source of truth for display, diff, and apply. Never reconstruct the body text in chat
 
-2. Display the content of `pr_body_new.md` in a fenced code block; the fence must be longer than any backtick run inside — at least four backticks (````markdown), since PR bodies usually contain ``` blocks
+2. Display the content of `pr_body_new.md` in a fenced code block, following the fence rule in step 3 (at least ````markdown)
 
 3. **Display the machine-generated diff**:
    - Show section header: "### 既存body → 新bodyの変更差分"
@@ -69,19 +68,19 @@ After generating the PR body content:
    - Before asking for confirmation, check in the actual diff output that no manually written TODOs, notes, incomplete checklist items, HTML comments, review requests, or background context were removed; if any were, edit `pr_body_new.md` and redo this step
 
 4. Ask the user: "このPR bodyをPR #<PR_NUMBER> に反映しますか？"
-   - Options: "はい、反映する" / "いいえ、表示のみ"
+   - Options: "はい、反映する" / "修正する" / "いいえ、表示のみ"
+   - If the user chooses 修正する or requests changes in free text, edit `pr_body_new.md` and restart from step 3, so the displayed diff and the applied content never diverge — never apply a body whose diff was not re-shown
 
 5. If user confirms:
    - Apply the exact file that was diffed (never rebuild via heredoc or chat text):
      ```bash
      gh pr edit <PR_NUMBER> --body-file <tmpdir>/pr_body_new.md
      ```
-   - If the user requested changes after the diff was shown, edit `pr_body_new.md` and restart from the diff display step, so the displayed diff and the applied content never diverge
    - Verify the applied body matches the file exactly:
      ```bash
      gh pr view <PR_NUMBER> --json body --jq .body | tr -d '\r' | diff - <tmpdir>/pr_body_new.md
      ```
-     Expect empty output (a trailing-newline-only difference is acceptable); otherwise re-apply and re-verify
+     Expect empty output (a trailing-newline-only difference is acceptable); otherwise re-apply and re-verify once; if it still differs, stop and report the discrepancy to the user instead of looping
    - Show success message with PR URL
    - Display: "必要に応じて **Review Focus Points** を確認・編集してください"
 
