@@ -126,6 +126,7 @@ function generate_codex_skills() {
     "pr-comment-review:pr_comment_review_core.md"
     "pr-comment-implement:pr_comment_implement_core.md"
     "pr-body:pr_body_core.md"
+    "pr-comment-post:pr_comment_post_core.md"
     "pr-review-subagents:pr_review_subagents/orchestrator_core.md"
   )
   local entry skill_dir core
