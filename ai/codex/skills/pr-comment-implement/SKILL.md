@@ -18,8 +18,6 @@ $pr-comment-implement <PR_COMMENT_URL> [implementation instructions...]
 ```
 
 - First token: `PR_URL`; remaining text: `PROMPT`.
-- If `PR_URL` is missing or not a GitHub PR comment/review URL, ask for it in
-  plain text.
 - Use plain-text questions for all approvals, selections, retries, and the
   final action selection. Do not use `request_user_input`. On the final action
   question, offer an explicit `コミットしない` choice.
@@ -29,14 +27,23 @@ $pr-comment-implement <PR_COMMENT_URL> [implementation instructions...]
 
 ### Phase 1: Analysis
 
+If `PR_URL` is missing or is not a GitHub PR comment/review URL, ask for it
+before proceeding.
+
 Analyze the target comment, `PROMPT`, affected files, and surrounding code
 before designing the change.
 
-Check the working tree state first:
+Check the working tree state and branch alignment first:
 
 ```bash
 git status --short
+git branch --show-current
+gh pr view "$PR_URL" --json headRefName --jq .headRefName
 ```
+
+If the current branch differs from `headRefName`, stop before editing and ask:
+checkout the PR branch / continue on the current branch / abort. Implementing
+on the wrong branch pushes commits the PR never receives.
 
 Parse `PR_URL`, extract `OWNER`, `REPO`, `PULL_NUMBER`, then classify the
 fragment. The result (`REPLY_PATH`, `COMMENT_ID`) is reused in Phase 5:
@@ -195,6 +202,9 @@ THREAD_NODE_ID=$(echo "$THREAD_JSON" | jq -r '.id // empty')
 THREAD_IS_RESOLVED=$(echo "$THREAD_JSON" | jq -r '.isResolved // false')
 ```
 
+If `THREAD_JSON` is empty, the thread may lie outside the `first:100` window;
+report resolve as unavailable for that reason instead of silently skipping it.
+
 Offer resolve only when `REPLY_PATH=thread`, author is bot/self,
 `THREAD_NODE_ID` exists, and `THREAD_IS_RESOLVED=false`.
 
@@ -239,6 +249,10 @@ Before asking the final action question, show:
 （または「対象外: standalone 経路 / 既に resolved / author が他人」）
 ```
 
+When displaying this preview, use a fence longer than the longest backtick run
+in the embedded content (e.g. ````markdown) — the reply body and commit
+message draft may contain code blocks.
+
 ### Phase 6: Unified Action Selection
 
 Ask one final action question. Build the options dynamically and show only
@@ -266,8 +280,13 @@ Commit:
 ```bash
 PRE_COMMIT_HEAD=$(git rev-parse HEAD)
 git add <reviewed files from Phase 4>
+git diff --cached --name-only
 git commit -m "<drafted message>"
 ```
+
+If `git diff --cached --name-only` lists paths you did not stage, commit with
+an explicit pathspec (`git commit -m "<message>" -- <paths>`) so only your
+paths are committed.
 
 If commit fails, abort before push/reply/resolve.
 
@@ -292,7 +311,7 @@ gh api "repos/${OWNER}/${REPO}/pulls/${PULL_NUMBER}/comments/${COMMENT_ID}/repli
   -X POST -f body="${BODY}"
 
 # Standalone only
-gh pr comment "${OWNER}/${REPO}#${PULL_NUMBER}" --body "${BODY}"
+gh pr comment "${PULL_NUMBER}" -R "${OWNER}/${REPO}" --body "${BODY}"
 ```
 
 If thread reply fails, report status/body and ask retry, standalone downgrade,

@@ -18,8 +18,6 @@ $pr-comment-implement <PR_COMMENT_URL> [implementation instructions...]
 ```
 
 - First token: `PR_URL`; remaining text: `PROMPT`.
-- If `PR_URL` is missing or not a GitHub PR comment/review URL, ask for it in
-  plain text.
 - Use plain-text questions for all approvals, selections, retries, and the
   final action selection. Do not use `request_user_input`. On the final action
   question, offer an explicit `コミットしない` choice.
