@@ -73,7 +73,7 @@ Review thoroughly from all of these perspectives, using the Japanese label as th
 
 ### Actionable Findings Only
 
-Output only findings that require a concrete response: code changes, test additions, design changes, documentation updates, or explicit reviewer decisions. Do not output praise, compliance confirmations, or non-actionable observations ("looks good", "no issue here"). Omit the `Review Focus Points` and `Recommendations` sections unless they contain concrete unresolved actions not already covered by numbered findings.
+Output only findings that require a concrete response: code changes, test additions, design changes, documentation updates, or explicit reviewer decisions. Do not output praise, compliance confirmations, or non-actionable observations ("looks good", "no issue here").
 
 ### Existing Comment Deduplication
 
@@ -163,7 +163,7 @@ If no actionable findings remain after deduplication, output only (no skeleton, 
 
 ### Post-Review: Clean Up & Post to GitHub
 
-After completing the review, delete any temporary files you created during the process (e.g., `diff.txt`, `pr_diff.txt`).
+After completing the review, delete any temporary files created during the process.
 
 If at least one actionable finding remains, display the following message after outputting the review results:
 

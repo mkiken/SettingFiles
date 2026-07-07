@@ -1,5 +1,5 @@
 ---
-allowed-tools: WebFetch(domain:*),WebSearch
+allowed-tools: WebFetch(domain:*)
 description: "Generate comprehensive web page summary using WebFetch for specified URL"
 argument-hint: [url]
 disable-model-invocation: true
@@ -8,9 +8,10 @@ disable-model-invocation: true
 ## Instructions
 
 - Use the WebFetch tool to fetch and analyze the web page at $ARGUMENTS
+  - If `$ARGUMENTS` is empty, ask for the URL with AskUserQuestion before proceeding
   - Generate comprehensive summary suitable for understanding the content
   - Extract key information and main points
-  - **IMPORTANT**: Always respond in Japanese regardless of the original language of the web page
+  - Respond in Japanese even when the page is in another language
 - Format in markdown with bullet points
 - Include the following sections:
   - **Page Title**: The title of the web page

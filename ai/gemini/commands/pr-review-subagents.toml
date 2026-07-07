@@ -1,19 +1,21 @@
 description = "Review a PR with seven parallel specialist agents. Expects [prNumber]."
 
 prompt = """
-Review PR #{{args}} with seven specialist agents in parallel. Respond in Japanese.
+Review the target PR with seven specialist agents in parallel. Respond in Japanese.
+
+PR number: use `{{args}}` if provided. If empty, resolve the current branch's PR with `gh pr view --json number --jq .number`. Use the resolved value as `<PR_NUMBER>` below.
 
 ## Gather Once
 
 Run with `run_shell_command`:
 
 ```bash
-gh pr view {{args}} --json title,body,baseRefName,headRefName,url
-gh pr diff {{args}}
-bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh {{args}}
+gh pr view <PR_NUMBER> --json title,body,baseRefName,headRefName,url
+gh pr diff <PR_NUMBER>
+bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh <PR_NUMBER>
 gh repo view --json nameWithOwner
 git branch --show-current
-bash ~/.config/ai-pr/bin/fetch_existing_comments.sh {{args}}
+bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <PR_NUMBER>
 ```
 
 Compare current branch with `headRefName`; match means local mode.

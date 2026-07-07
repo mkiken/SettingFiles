@@ -8,7 +8,7 @@ Run:
 
 ```bash
 git branch --show-current
-cat .github/PULL_REQUEST_TEMPLATE.md 2>/dev/null || echo "NO_TEMPLATE"
+/bin/cat .github/PULL_REQUEST_TEMPLATE.md 2>/dev/null || echo "NO_TEMPLATE"
 ```
 
 If a template exists, use its structure as the body format instead of the default sections.
@@ -104,7 +104,7 @@ On a modification choice, collect the corrected content, re-display, and confirm
 Pass the body via stdin to avoid escaping issues:
 
 ```bash
-cat <<'PREOF' | gh pr create --base <TARGET_BRANCH> --title "<TITLE>" --body-file -
+/bin/cat <<'PREOF' | gh pr create --base <TARGET_BRANCH> --title "<TITLE>" --body-file -
 <generated PR body>
 PREOF
 ```

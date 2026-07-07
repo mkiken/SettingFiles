@@ -9,19 +9,21 @@ effort: max
 
 ## Instructions
 
-Review PR #$ARGUMENTS with 7 read-only specialist sub-agents in parallel.
+Review the target PR with 7 read-only specialist sub-agents in parallel.
+
+PR number: use `$ARGUMENTS` if provided. If empty, resolve the current branch's PR with `gh pr view --json number --jq .number`. Use the resolved value as `<PR_NUMBER>` below.
 
 ### Gather Once
 
 Fetch context first:
 
 ```bash
-gh pr view $ARGUMENTS --json title,body,baseRefName,headRefName,url
-gh pr diff $ARGUMENTS
-bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh $ARGUMENTS
+gh pr view <PR_NUMBER> --json title,body,baseRefName,headRefName,url
+gh pr diff <PR_NUMBER>
+bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh <PR_NUMBER>
 gh repo view --json nameWithOwner
 git branch --show-current
-bash ~/.config/ai-pr/bin/fetch_existing_comments.sh $ARGUMENTS
+bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <PR_NUMBER>
 ```
 
 Local mode = current branch matches `headRefName`; sub-agents may then use `Read`/`Glob`, otherwise they must use `gh api` against `headRefName`.

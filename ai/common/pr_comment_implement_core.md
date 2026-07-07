@@ -106,8 +106,8 @@ plan artifact.
 
 ### Phase 3: Implementation (Only after approval)
 
-Implement only the approved scope, preserve unrelated user changes, follow the
-codebase style, and update tests when behavior risk warrants it. Run the
+Implement only the approved scope and update tests when behavior risk
+warrants it. Run the
 narrowest useful verification command; broaden only when the touched surface
 is shared or high risk.
 

@@ -48,7 +48,7 @@ For deeper investigation (files outside the diff, surrounding context), use the 
 
 ### Post-Review: Clean Up & Post to GitHub
 
-After completing the review, you MUST delete any temporary files you created during the process (e.g., `diff.txt`, `pr_diff.txt`) using the Bash tool.
+After completing the review, delete any temporary files created during the process.
 
 If at least one actionable finding remains, display the following message after outputting the review results and cleaning up:
 

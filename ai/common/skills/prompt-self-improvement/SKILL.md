@@ -42,7 +42,7 @@ Self-improvement is an engineering loop, not license to rewrite instructions fre
 5. Prefer the smallest change that fixes the demonstrated failure; write new or edited prompt text as concisely as meaning and intent allow — loaded prompts consume context.
 6. When prompt size or conflicts are the real problem, remove or move noisy instructions instead of adding rules. For "shorten without changing meaning" tasks, follow `ai/common/prompt_shortening_guide.md`.
 7. Validate with realistic prompts or scripts; for prompt behavior include at least one ordinary case and one failure case that motivated the change.
-8. If triggered by the Opportunistic Improvement Proposals rule rather than an explicit user request, stop at the analysis-only Response format and respect the per-session proposal budget defined there.
+8. If triggered by the Opportunistic Improvement Proposals rule rather than an explicit user request, stop at the analysis-only Response format and follow the proposal ordering and timing rules defined there.
 
 ## Guardrails
 

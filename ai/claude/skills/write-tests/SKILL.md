@@ -86,7 +86,7 @@ Example: if a function accepts ages 0-120:
 
 ### Phase 4: Review Test Cases with User
 
-Present ALL enumerated test cases in a structured list using AskUserQuestion. Format:
+Present ALL enumerated test cases as a structured markdown table in the response text, then confirm which to implement with AskUserQuestion (multiSelect). Format:
 
 For each test case, include:
 - **Name**: short descriptive name

@@ -39,7 +39,7 @@ Review ALL changed files individually, checking ALL 7 quality perspectives defin
 
 ### Post-Review
 
-After completing the review, you MUST delete any temporary files you created during the process (e.g., `diff.txt`, `pr_diff.txt`) using the `run_shell_command` tool.
+After completing the review, delete any temporary files created during the process (e.g. `diff.txt`).
 
 If at least one actionable finding remains, display the following message after outputting the review results and cleaning up:
 
