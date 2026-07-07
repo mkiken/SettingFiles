@@ -98,8 +98,8 @@ Shared-core skills follow one pattern: the skill body lives in core file(s) unde
 | pr-comment-review | `pr_comment_review_core.md` | |
 | pr-comment-implement | `pr_comment_implement_core.md` | |
 | pr-comment-post | `pr_comment_post_core.md` | adapter-head bits: `ITEM_NUMBERS`, `{ai_header}`, confirmation primitive |
-| pr-body | `pr_body_core.md` | |
-| pr-create-by-branch | `pr_create_by_branch_core.md` | Claude and Codex only (no Gemini variant); adapter-head bits: `TARGET_BRANCH_ARG`, confirmation primitive |
+| pr-body | `pr_body_core.md` + `pr_body_format.md` | `pr_body_format.md` defines the shared PR body format (section skeleton, drafting rules) — also used by pr-create-by-branch |
+| pr-create-by-branch | `pr_create_by_branch_core.md` + `pr_body_format.md` | Claude and Codex only (no Gemini variant); adapter-head bits: `TITLE_ARG`, `TARGET_BRANCH_ARG`, confirmation primitive |
 | config-audit | `config_audit_subagents/orchestrator_core.md` | auditor agents are separately generated — see below; adapter-head bits: `PLATFORM_NAME`, `SCOPE`, `ENTRY_SCOPE`, `CONFIG_PATHS`, `GENERATED_ENTRY_FILE`, `SOURCE_FILES`, confirmation primitive |
 | fact-based | `fact_based_core.md` | Gemini adapter is a generated skill (not a command); Claude adapter keeps `$ARGUMENTS` handling in head/tail around the runtime include |
 
