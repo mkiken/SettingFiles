@@ -21,13 +21,11 @@ Post selected numbered findings from a previous `pr-review` result as one GitHub
 
 ## Workflow
 
-1. Build an internal numbered index from the previous `pr-review` output. The serial numbers assigned by `pr-review` are the source of truth: preserve them exactly and never renumber.
-   - Format: `N. [path/to/file.ext:line] Priority | Category: 概要`, where `N` is the original `pr-review` serial number for that item.
-   - Include regular priority sections and `## テストに関する指摘`, keeping the single continuous numbering used by `pr-review` (do not restart at 1 per section).
-   - If `ITEM_NUMBERS` already has numbers, do not display the full index.
-   - If `ITEM_NUMBERS` is empty, ask the user which numbers to post and show the available numbered items.
-2. Parse `ITEM_NUMBERS` as space- or comma-separated numbers. These refer to the original serial numbers from step 1.
-3. For each requested number, look it up in the step 1 index and copy that entry's `file_path`, `line_spec`, `priority`, `category`, and full description verbatim. Do not reconstruct or infer an item's content from its number, and do not reorder or renumber. If a requested number has no matching entry, stop and report the mismatch instead of substituting another item.
+1. Build an internal numbered index from the previous `pr-review` output. Its serial numbers are the source of truth: preserve them exactly and never reorder or renumber, across regular priority sections and `## テストに関する指摘` (single continuous numbering; never restart at 1).
+   - Format: `N. [path/to/file.ext:line] Priority | Category: 概要`, where `N` is the original serial number.
+   - If `ITEM_NUMBERS` is empty, show the available numbered items and ask which to post; otherwise do not display the index.
+2. Parse `ITEM_NUMBERS` as space- or comma-separated original serial numbers.
+3. For each requested number, copy that index entry's `file_path`, `line_spec`, `priority`, `category`, and full description verbatim — never reconstruct or infer an item's content from its number. If a number has no matching entry, stop and report the mismatch instead of substituting another item.
    - Priority emoji: High `🔴`, Medium `🟡`, Low `🟢`.
 4. Get PR metadata:
 
@@ -36,11 +34,11 @@ gh pr view --json number,headRefOid
 gh repo view --json owner,name
 ```
 
-If `gh pr view` fails, ask the user for the PR number. A valid `commit_id` is required for inline comments; if it cannot be retrieved, fall back to `gh pr comment`.
+If `gh pr view` fails, ask the user for the PR number. Inline comments require a valid `commit_id`; if it cannot be retrieved, fall back to `gh pr comment`.
 
 ## Preview And Confirm
 
-Show only the selected posting list, keeping each item's original `pr-review` serial number (do not renumber from 1):
+Show only the selected items, keeping their original serial numbers:
 
 ```text
 投稿予定のレビューコメント一覧:
@@ -48,9 +46,7 @@ Show only the selected posting list, keeping each item's original `pr-review` se
 4. [src/auth.ts:42] 🔴 High | Security: トークンがログに露出する可能性
 ```
 
-Do not display any items that are not in the posting list.
-
-Before asking for confirmation, self-check every item in the posting list: confirm its serial number, `file:line`, and 概要 match the same-numbered entry in the original `pr-review` output. If any number, file/line, or summary does not match its source item, stop and report the discrepancy instead of proceeding.
+Before asking for confirmation, verify each listed item's serial number, `file:line`, and 概要 match the same-numbered entry in the original `pr-review` output; on any mismatch, stop and report the discrepancy instead of proceeding.
 
 Ask the user:
 
@@ -58,9 +54,9 @@ Ask the user:
 上記 N 件をまとめて Pull Request Review として投稿しますか？
 ```
 
-If confirmed, continue with exactly the displayed list. Otherwise abort without posting and ask the user to rerun the request with the desired item numbers.
+If confirmed, post exactly the displayed list. Otherwise abort without posting and ask the user to rerun with the desired item numbers.
 
-Generate a 1-3 sentence Japanese review summary for the top-level review body. Mention general concern areas, not file names or line numbers.
+Generate a 1-3 sentence Japanese review summary for the top-level review body, mentioning general concern areas, not file names or line numbers.
 
 ## Posting
 
@@ -72,13 +68,7 @@ Inline comment body format, with no AI header and no item number:
 
 ### Newline Safety
 
-When building Markdown bodies in shell, never write `\n` inside a normal quoted string and expect it to become a newline. Build multiline bodies with `printf`, pass the resulting variable to `jq`/`gh`, and preflight that the body contains real blank lines and no literal `\n` sequences.
-
-```bash
-summary="{summary}"
-review_body=$(printf '{ai_header}\n\n%s' "$summary")
-jq -n --arg body "$review_body" -e '$body | (contains("\\n") | not) and contains("\n\n")' >/dev/null
-```
+Never write `\n` inside a normal quoted string in shell and expect it to become a newline. Build multiline bodies with `printf`, pass the resulting variable to `jq`/`gh`, and preflight that the body contains real blank lines and no literal `\n` sequences (the `jq -n ... -e` lines below).
 
 Prefer the Review API:
 
