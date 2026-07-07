@@ -1,11 +1,11 @@
 # Code Comments
 
 - Reference symbols, file paths, or concepts — never mutable line numbers or positions.
-- Do not number comments; use descriptive comments.
+- Do not number comments; instead describe what the code does or why it exists.
 
 # Code Fences Around Dynamic Content
 
-When an instruction (prompt, skill, command, doc) tells an assistant to paste dynamic content — command output, file contents, diffs — into a fenced code block, it must require a fence longer than the longest backtick run inside the content (e.g. ````diff when the content may contain ``` blocks, as markdown PR bodies usually do) plus a language tag. A too-short fence is closed early by the content and the rest renders as unhighlighted plain text.
+When an instruction tells an assistant to paste dynamic content (command output, file contents, diffs) into a fenced code block, require a fence longer than the longest backtick run inside the content (e.g. ````diff for content with ``` blocks, as markdown PR bodies usually have) plus a language tag. A too-short fence closes early and the rest renders as plain text.
 
 # Command Usage
 
@@ -55,7 +55,7 @@ While doing the user's task, notice reusable improvements to this repository's A
 
 Propose only with verifiable evidence of at least one:
 
-- The same friction or correction appeared at least twice in this or recent sessions.
+- The same friction or correction appeared at least twice — in this session, or counting an earlier occurrence you can concretely cite.
 - A reusable workflow the user followed is undocumented.
 - Configuration files conflict, or a rule contradicts observed behavior.
 - A skill, command, or agent should have activated but did not because its trigger failed.
@@ -85,7 +85,7 @@ For one-off preferences (user taste, not a defect), keep an internal note instea
 
 ## Completion-Time Check
 
-At the end of implementation, fix, configuration, review, or investigation-delivery tasks, check the criteria above before the final completion response — after Temp File Cleanup and after the Post-Implementation Workflow's git action has completed, so proposals never block the commit/push flow. The task's deliverable output (review results, findings, answers, summaries) always comes first in the final response; the OIP section — proposal analyses or the 該当なし line — is always the last content, never before or interleaved with the deliverable.
+At the end of implementation, fix, configuration, review, or investigation-delivery tasks, check the criteria above before the final completion response — after Temp File Cleanup and the Post-Implementation Workflow's git action, so proposals never block the commit/push flow. The task's deliverable output (review results, findings, answers, summaries) always comes first in the final response; the OIP section — proposal analyses or the 該当なし line — is always the last content, never before or interleaved with the deliverable.
 
 - If proposals qualify, present each per the skill's "Presenting proposals for approval" rules (full analysis immediately before the question; self-contained question text), then ask approval per proposal via the platform-specific `# User Confirmation` mechanism — options per proposal: apply now / do not apply / decide later. Apply edits only to approved proposals.
 - If none qualify, include exactly `自己改善チェック: 該当なし` once in the final completion response; do not raise a confirmation question.

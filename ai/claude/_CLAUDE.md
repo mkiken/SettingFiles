@@ -7,7 +7,7 @@
 
 When asking for confirmation, clarification, or any question requiring a user response, you MUST use the `AskUserQuestion` tool instead of plain text output. Plain text fallbacks are forbidden except when the tool truly cannot be invoked in the current mode, in which case you must state explicitly why the fallback is needed.
 
-Plain text questions end the current turn and trigger the Stop hook, sending a "finished" notification indistinguishable from task completion. `AskUserQuestion` keeps the turn active and triggers the correct "awaiting input" notification instead.
+Plain text questions end the turn and trigger the Stop hook, sending a "finished" notification indistinguishable from task completion; `AskUserQuestion` keeps the turn active and triggers the correct "awaiting input" notification.
 
 `AskUserQuestion` supports 2–4 options per question; design confirmation menus within 4 options and route overflow choices (e.g. "do nothing") through the auto-provided free-form "Other".
 
@@ -17,4 +17,4 @@ When a question depends on explanatory context (proposals, trade-offs, anything 
 
 # Settings Changes
 
-Before editing `settings.json` / `settings.local.json` — or any of its `hooks`, `permissions`, or `env` — in the repository source or the live `~/.claude/` files, consider whether the `update-config` skill applies and invoke it when it does. Its description explicitly covers settings edits, permission changes, env vars, and hook troubleshooting. This check applies even inside the plan-mode implementation flow, where it is easy to skip. Skip the skill only for trivial mechanical edits (e.g. reverting a prior commit) where no configuration-domain judgment is needed.
+Before editing `settings.json` / `settings.local.json` — or its `hooks`, `permissions`, or `env` — in the repository source or the live `~/.claude/` files, invoke the `update-config` skill; its description covers settings edits, permission changes, env vars, and hook troubleshooting. Skip it only for trivial mechanical edits (e.g. a verbatim revert) where no configuration-domain judgment is needed.
