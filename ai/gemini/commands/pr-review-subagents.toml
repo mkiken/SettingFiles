@@ -1,7 +1,7 @@
-description = "Review a PR with six parallel specialist agents. Expects [prNumber]."
+description = "Review a PR with seven parallel specialist agents. Expects [prNumber]."
 
 prompt = """
-Review PR #{{args}} with six specialist agents in parallel. Respond in Japanese.
+Review PR #{{args}} with seven specialist agents in parallel. Respond in Japanese.
 
 ## Gather Once
 
@@ -22,7 +22,7 @@ Compare current branch with `headRefName`; match means local mode.
 
 Pass each agent: PR number, metadata, repo owner/name, full diff, line-numbered diff, existing comments NDJSON, local mode, and head branch. Each agent's focus and review rules are in its definition.
 
-Invoke all six with `wait_for_previous=false`:
+Invoke all seven with `wait_for_previous=false`:
 
 1. **pr-reviewer-bugs** — バグ検出・ロジックエラー
 2. **pr-reviewer-security** — セキュリティ脆弱性
@@ -30,12 +30,9 @@ Invoke all six with `wait_for_previous=false`:
 4. **pr-reviewer-errors** — エラーハンドリング品質
 5. **pr-reviewer-history** — Git履歴・リグレッションリスク
 6. **pr-reviewer-tests** — テスト品質・カバレッジ
+7. **pr-reviewer-performance** — パフォーマンス
 
 !{cat ~/.gemini/common/pr_review_subagents/orchestrator_core.md}
-
-### Aggregate (Gemini additions)
-
-- Before final output, drop findings without valid `行番号根拠`, findings using `OLD`/deleted/approximate/range lines, and headers not present in the line-numbered diff. Do not show `行番号根拠` in final output.
 
 If at least one actionable finding remains, append:
 

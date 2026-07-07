@@ -1,5 +1,5 @@
 ---
-description: "Comprehensive PR review using 6 parallel specialist sub-agents for bugs, security, architecture, error handling, history, and tests"
+description: "Comprehensive PR review using 7 parallel specialist sub-agents for bugs, security, architecture, error handling, history, tests, and performance"
 model: opus
 allowed-tools: Bash(gh:*), Bash(git:*), Bash(python:*), Bash(/bin/cat:*)
 argument-hint: "[prNumber]"
@@ -9,7 +9,7 @@ effort: max
 
 ## Instructions
 
-Review PR #$ARGUMENTS with 6 read-only specialist sub-agents in parallel.
+Review PR #$ARGUMENTS with 7 read-only specialist sub-agents in parallel.
 
 ### Gather Once
 
@@ -18,6 +18,7 @@ Fetch context first:
 ```bash
 gh pr view $ARGUMENTS --json title,body,baseRefName,headRefName,url
 gh pr diff $ARGUMENTS
+bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh $ARGUMENTS
 gh repo view --json nameWithOwner
 git branch --show-current
 bash ~/.config/ai-pr/bin/fetch_existing_comments.sh $ARGUMENTS
@@ -25,7 +26,7 @@ bash ~/.config/ai-pr/bin/fetch_existing_comments.sh $ARGUMENTS
 
 Local mode = current branch matches `headRefName`; sub-agents may then use `Read`/`Glob`, otherwise they must use `gh api` against `headRefName`.
 
-Pass every sub-agent: PR number, metadata, repo owner/name, full diff, existing comments NDJSON, local mode, and head branch. Each agent's focus and review rules are in its definition.
+Pass every sub-agent: PR number, metadata, repo owner/name, full diff, line-numbered diff, existing comments NDJSON, local mode, and head branch. Each agent's focus and review rules are in its definition.
 
 ### Launch
 
@@ -37,6 +38,7 @@ Start all simultaneously:
 4. **pr-reviewer-errors** — エラーハンドリング品質
 5. **pr-reviewer-history** — Git履歴・リグレッションリスク
 6. **pr-reviewer-tests** — テスト品質・カバレッジ
+7. **pr-reviewer-performance** — パフォーマンス
 
 !`/bin/cat ~/.claude/common/pr_review_subagents/orchestrator_core.md`
 

@@ -13,18 +13,19 @@ Use concrete history evidence: recent commits, merged PRs, past review feedback,
 
 ## Rules
 
-- Provided: PR metadata, full diff, repo owner/name, existing comments NDJSON — the comments are for deduplication only; do not re-fetch them or confuse them with past PR evidence.
+- Provided: PR metadata, full diff, line-numbered diff, repo owner/name, existing comments NDJSON — the comments are for deduplication only; do not re-fetch them or confuse them with past PR evidence.
 - Use history commands such as `gh api repos/{owner}/{repo}/commits?path={file}&per_page=10`, `gh pr list --state merged --limit 20 --json number,title,files`, and `gh pr view {number} --comments`.
 - Changed code is primary. Report unchanged pre-existing code only for security breach, data corruption/loss, service outage, or compliance violation; prefix `[既存コード]` and name the category.
 - Report only actionable findings with confidence >= 75. No praise or non-actionable notes.
-- Cite changed lines as `[path:line]`, or `[path:~line]` when exact resolution is impossible. Pre-existing critical findings may cite the unchanged root-cause line.
-- Line numbers are new-file lines in the head revision — never positions in the diff text or a numbered copy of it. Before finalizing, verify each cited line against the actual file (`grep -n`/`Read` in local mode; compute from hunk headers `@@ -a,b +c,d @@` in remote mode).
+- Anchor to the line-numbered diff: prefer `NEW`; use current-side `CTX` only if no `NEW` line can carry the finding. Never use `OLD`, deleted-file records, hunk arithmetic, or positions in the raw diff text. Pre-existing critical findings may cite the unchanged root-cause line, verified with `grep -n`/`Read` (local) or `gh api` (remote).
+- Include `行番号根拠: FILE <path> / NEW|CTX <line> <snippet>` matching the header; omit findings without exact evidence.
 - Skip unresolved duplicate existing comments when same path within ±5 lines and same root cause, or same fix target, with duplicate confidence >= 70. Do not skip resolved or outdated comments. List skipped items as `[既コメント済スキップ] [path:line] — <reason>`.
 
 Respond in **Japanese**. For each finding:
 
 ```markdown
-**[path/to/file.ext:line]** 履歴リスク (信頼度: XX)
+**[path/to/file.ext:line]** 履歴リスク (影響度: High|Medium|Low / 信頼度: XX)
+- **行番号根拠**: FILE path/to/file.ext / NEW 42 exact snippet from the line-numbered diff
 - **カテゴリ**: リグレッション / パターン違反 / 繰り返しフィードバック / 高チャーン / 最近の修正への影響
 - **問題**: 何が懸念されるか
 - **根拠**: 裏付けとなるコミットハッシュまたはPR番号

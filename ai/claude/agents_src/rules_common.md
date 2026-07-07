@@ -1,4 +1,4 @@
 - Report only actionable findings with confidence >= 75. No praise or non-actionable notes.
-- Cite changed lines as `[path:line]`, or `[path:~line]` when exact resolution is impossible. Pre-existing critical findings may cite the unchanged root-cause line.
-- Line numbers are new-file lines in the head revision — never positions in the diff text or a numbered copy of it. Before finalizing, verify each cited line against the actual file (`grep -n`/`Read` in local mode; compute from hunk headers `@@ -a,b +c,d @@` in remote mode).
+- Anchor to the line-numbered diff: prefer `NEW`; use current-side `CTX` only if no `NEW` line can carry the finding. Never use `OLD`, deleted-file records, hunk arithmetic, or positions in the raw diff text. Pre-existing critical findings may cite the unchanged root-cause line, verified with `grep -n`/`Read` (local) or `gh api` (remote).
+- Include `行番号根拠: FILE <path> / NEW|CTX <line> <snippet>` matching the header; omit findings without exact evidence.
 - Skip unresolved duplicate existing comments when same path within ±5 lines and same root cause, or same fix target, with duplicate confidence >= 70. Do not skip resolved or outdated comments. List skipped items as `[既コメント済スキップ] [path:line] — <reason>`.

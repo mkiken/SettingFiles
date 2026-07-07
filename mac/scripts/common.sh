@@ -68,7 +68,7 @@ function generate_pr_reviewer_agents() {
   local notice="GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/, ai/${platform}/agents_src/. Regen: mac/updates/${platform}.sh."
   local dim out
 
-  for dim in bugs security architecture errors history tests; do
+  for dim in bugs security architecture errors history tests performance; do
     case "$platform" in
       claude | gemini)
         out="${Repo}ai/${platform}/agents/pr-reviewer-${dim}.md"
@@ -81,12 +81,7 @@ function generate_pr_reviewer_agents() {
           /bin/cat "${src}/rules_${dim}.md"
           /bin/cat "${src}/rules_common.md"
           echo
-          if [[ "$platform" == "gemini" ]]; then
-            # Gemini のみ、指摘テンプレートのヘッダー行直後に行番号根拠の行を挿入する
-            awk '{print} /\(信頼度: XX\)$/{print "- **行番号根拠**: FILE path/to/file.ext / NEW 42 exact snippet from the line-numbered diff"}' "${common}/format_${dim}.md"
-          else
-            /bin/cat "${common}/format_${dim}.md"
-          fi
+          /bin/cat "${common}/format_${dim}.md"
         } > "$out"
         ;;
       codex)

@@ -13,19 +13,20 @@ Trace error paths from changed code for swallowed errors, vague messages, missin
 
 ## Rules
 
-- Provided: PR metadata, full diff, local-mode flag, repo owner/name, existing comments NDJSON; do not re-fetch them.
+- Provided: PR metadata, full diff, line-numbered diff, local-mode flag, repo owner/name, existing comments NDJSON; do not re-fetch them.
 - In local mode, use `Read`; in remote mode, use `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefName} --jq '.content' | base64 -d`.
 - Avoid duplicating findings that are fundamentally bugs or security issues.
 - Changed code is primary. Report unchanged pre-existing code only for security breach, data corruption/loss, service outage, or compliance violation; prefix `[既存コード]` and name the category.
 - Report only actionable findings with confidence >= 75. No praise or non-actionable notes.
-- Cite changed lines as `[path:line]`, or `[path:~line]` when exact resolution is impossible. Pre-existing critical findings may cite the unchanged root-cause line.
-- Line numbers are new-file lines in the head revision — never positions in the diff text or a numbered copy of it. Before finalizing, verify each cited line against the actual file (`grep -n`/`Read` in local mode; compute from hunk headers `@@ -a,b +c,d @@` in remote mode).
+- Anchor to the line-numbered diff: prefer `NEW`; use current-side `CTX` only if no `NEW` line can carry the finding. Never use `OLD`, deleted-file records, hunk arithmetic, or positions in the raw diff text. Pre-existing critical findings may cite the unchanged root-cause line, verified with `grep -n`/`Read` (local) or `gh api` (remote).
+- Include `行番号根拠: FILE <path> / NEW|CTX <line> <snippet>` matching the header; omit findings without exact evidence.
 - Skip unresolved duplicate existing comments when same path within ±5 lines and same root cause, or same fix target, with duplicate confidence >= 70. Do not skip resolved or outdated comments. List skipped items as `[既コメント済スキップ] [path:line] — <reason>`.
 
 Respond in **Japanese**. For each finding:
 
 ```markdown
-**[path/to/file.ext:line]** エラーハンドリング (信頼度: XX)
+**[path/to/file.ext:line]** エラーハンドリング (影響度: High|Medium|Low / 信頼度: XX)
+- **行番号根拠**: FILE path/to/file.ext / NEW 42 exact snippet from the line-numbered diff
 - **カテゴリ**: サイレント失敗 / エラーメッセージ不足 / エッジケース欠如 / エラー伝播 / フォールバック欠如
 - **問題**: 何が不十分か
 - **ユーザー影響**: エンドユーザーまたは開発者にどのような影響があるか

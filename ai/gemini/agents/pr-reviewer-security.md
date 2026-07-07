@@ -29,7 +29,7 @@ Rules:
 Respond in **Japanese**. For each finding:
 
 ```markdown
-**[path/to/file.ext:line]** セキュリティ (信頼度: XX)
+**[path/to/file.ext:line]** セキュリティ (影響度: High|Medium|Low / 信頼度: XX)
 - **行番号根拠**: FILE path/to/file.ext / NEW 42 exact snippet from the line-numbered diff
 - **カテゴリ**: インジェクション / 認証/認可 / データ露出 / 暗号化 / SSRF / 依存関係
 - **問題**: 何が脆弱か
