@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to AI coding agents working in this repository. `AGENTS.md` at the repository root is a symlink to this file, so Codex reads the same content — keep instructions platform-neutral (no agent-specific plugin or skill references).
 
 ## Repository Overview
 
@@ -10,7 +10,7 @@ Personal dotfiles repository for managing development environment configurations
 
 In this repository, implementation work may start directly on `main` or `master`.
 
-If a workflow or skill such as `superpowers:executing-plans` requires explicit consent before starting implementation on `main` or `master`, treat this section as that standing consent for this repository.
+If a workflow or skill requires explicit consent before starting implementation on `main` or `master`, treat this section as that standing consent for this repository.
 
 This consent only covers starting implementation in place. Do not skip confirmation flows for destructive operations, commits, pushes, pull requests, deletes, deployments, external API writes, or any other side-effecting workflow that separately requires user confirmation.
 
@@ -18,7 +18,7 @@ This consent only covers starting implementation in place. Do not skip confirmat
 
 ### Initial Setup
 ```bash
-# Mac (8-step setup: copy_files → homebrew → dev_tools → tmux → notify_icons → git_setup → system_setup → AI assistants)
+# Mac
 cd mac && ./initialize
 
 # Windows (PowerShell)
@@ -27,7 +27,7 @@ cd windows && ./initialize.ps1
 
 ### Update Environment
 ```bash
-# Mac: submodules → brew → npm → pipx → AI tools → nvim plugins → znap → gh extensions → zcompile
+# Mac
 cd mac && ./update
 
 # Windows (PowerShell)
@@ -40,16 +40,14 @@ cd mac && brew bundle
 ```
 
 ### Regenerate AI Prompts
-```bash
-# After editing source files in ai/common/ or ai/claude/ or ai/gemini/ or ai/codex/
-mac/initialization/ai/claude.sh
-mac/initialization/ai/gemini.sh
-mac/initialization/ai/codex.sh
-```
 
-After editing pr-review-subagents sources (`ai/common/pr_review_subagents/`, `ai/*/agents_src/`, codex `skill_head.md`/`skill_tail.md`), regenerate the committed outputs with the scripts above, or run `generate_pr_reviewer_agents <platform>` from `mac/scripts/common.sh` directly.
+Canonical source-to-command mapping for regenerating committed outputs after editing prompt sources. The full init scripts (`mac/initialization/ai/{claude,gemini,codex}.sh`) cover everything; the targeted commands below are faster.
 
-After editing shared-core skill sources (`ai/common/*_core.md`, `ai/{codex,gemini}/skills/*/skill_head.md`/`skill_tail.md`), regenerate the committed `SKILL.md` files with `generate_codex_skills` / `generate_gemini_skills` from `mac/scripts/common.sh` (zsh: `zsh -c 'source mac/scripts/common.sh && generate_codex_skills && generate_gemini_skills'`) — no need to run the full init/update scripts.
+| Edited source | Regenerate with |
+| --- | --- |
+| `ai/common/prompt_base.md`, `ai/common/characters/*.md` (Claude/Gemini load these at runtime via `@file` — no regeneration needed) | Codex only: `mac/initialization/ai/codex.sh` (regenerates `_AGENTS.md`) |
+| Shared-core skill sources (`ai/common/*_core.md`, `ai/{codex,gemini}/skills/*/skill_head.md`/`skill_tail.md`) | `zsh -c 'source mac/scripts/common.sh && generate_codex_skills && generate_gemini_skills'` |
+| pr-review-subagents sources (`ai/common/pr_review_subagents/`, `ai/*/agents_src/`, codex `skill_head.md`/`skill_tail.md`) | `generate_pr_reviewer_agents <platform>` from `mac/scripts/common.sh` |
 
 ## Architecture
 
@@ -79,7 +77,7 @@ Key symlinks:
 
 Claude-specific files (agents, hooks, scripts) are individually symlinked into `~/.claude/`. Claude has no custom slash commands — former commands live as skills under `ai/claude/skills/`.
 
-Skills (`ai/common/skills/`, `ai/{claude,gemini,codex}/skills/`) are symlinked per directory via `setup_ai_skills` (e.g. `~/.codex/skills/pr-review` → `ai/codex/skills/pr-review`), so edits to skill files take effect immediately — no rerun or regeneration needed (exception: generated `SKILL.md` files — all Codex shared-core skills and Gemini fact-based — must be regenerated from their sources). The whole `ai/common` directory is also symlinked to `~/.gemini/common` and `~/.claude/common` for runtime file references.
+Skills (`ai/common/skills/`, `ai/{claude,gemini,codex}/skills/`) are symlinked per directory via `setup_ai_skills` (e.g. `~/.codex/skills/pr-review` → `ai/codex/skills/pr-review`), so edits to skill files take effect immediately — no rerun or regeneration needed (exception: generated `SKILL.md` files — all Codex shared-core skills and Gemini fact-based — must be regenerated from their sources; see "Regenerate AI Prompts" under Key Commands). The whole `ai/common` directory is also symlinked to `~/.gemini/common` and `~/.claude/common` for runtime file references.
 
 `ai/claude/settings.json` is the exception: it is not symlinked. It is deep-merged into `~/.claude/settings.json` via `smart_merge_json`, and the two files diverge (the runtime file accumulates machine-local keys). Editing the repository source alone does not update the live file — apply changes with `mac/initialization/ai/claude.sh` / `mac/update`, or merge manually when immediate effect is needed.
 
@@ -90,7 +88,7 @@ Both `_CLAUDE.md` and `_GEMINI.md` are static files using `@file` import syntax 
 
 Edit the source files directly (`ai/common/prompt_base.md`, `ai/common/characters/*.md`) — no build step needed. Gemini additionally merges `ai/common/mcp.json` (and `mcp.local.json` if present) into its `settings.json`.
 
-- **Codex** (`ai/codex/_AGENTS.md`): Codex's AGENTS.md does not support `@file` imports, so `mac/initialization/ai/codex.sh` (and `mac/updates/codex.sh`) generates `_AGENTS.md` by `cat`-concatenating `ai/common/prompt_base.md` + `ai/common/characters/nyaruko.md` + `ai/codex/codex_base.md`. The generated file is committed and symlinked to `~/.codex/AGENTS.md`. Edit the source files (not the generated `_AGENTS.md`); regenerate with `mac/initialization/ai/codex.sh`.
+- **Codex** (`ai/codex/_AGENTS.md`): Codex's AGENTS.md does not support `@file` imports, so `mac/initialization/ai/codex.sh` (and `mac/updates/codex.sh`) generates `_AGENTS.md` by `cat`-concatenating `ai/common/prompt_base.md` + `ai/common/characters/nyaruko.md` + `ai/codex/codex_base.md`. The generated file is committed and symlinked to `~/.codex/AGENTS.md`. Edit the source files, never the generated `_AGENTS.md` (see "Regenerate AI Prompts" under Key Commands).
 
 Shared-core skills follow one pattern: the skill body lives in core file(s) under `ai/common/`, loaded at runtime by Claude (`` !`/bin/cat ~/.claude/common/<core>.md` `` in the skill) and Gemini (`!{cat ~/.gemini/common/<core>.md}` in the command), and concatenated at build time by `generate_codex_skills` into the committed `ai/codex/skills/<name>/SKILL.md` (`skill_head.md` + core file(s) in listed order + `skill_tail.md` if present). When the Gemini adapter must stay a *skill* rather than a command (to keep keyword auto-activation), its `SKILL.md` is likewise generated at build time by `generate_gemini_skills` — Gemini skill files support no runtime inclusion (`!{...}` works only in commands). Edit the sources, never the generated `SKILL.md` files. Platform-specific bits (placeholders, confirmation primitive) live in each platform's adapter (Claude `SKILL.md` / Gemini `.toml` or `skill_head.md` / Codex `skill_head.md`).
 
@@ -111,7 +109,7 @@ Beyond its shared core (table above), the pr-review-subagents system has 21 revi
 ### Claude Hooks
 `ai/claude/hooks/` contains notification hooks symlinked into `~/.claude/hooks/`:
 - `claude-hook.py` - Updates tmux window name to reflect Claude Code session status
-- `stop-send-notification.sh` - Sends rich session notifications on completion (transcript analysis, duration, task type inference)
+- `stop-send-notification.sh` - Sends rich session notifications on completion
 
 ### Plugin Management
 
