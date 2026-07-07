@@ -1,17 +1,6 @@
 ---
 name: prompt-self-improvement
-description: >
-  Improve Claude, Gemini, or Codex prompt configuration through evidence-based
-  diagnosis, candidate prompt changes, evaluation design, and reviewable source
-  edits. Use both when the user explicitly asks to improve, audit, optimize,
-  refactor, or fix AI prompts, instructions, memories, skills, commands, agents,
-  hooks, settings, or AGENTS.md / GEMINI.md / CLAUDE.md behavior, AND when you
-  opportunistically detect a configuration gap during another task and need the
-  response format, source map, and guardrails to surface a proposal under the
-  `# Opportunistic Improvement Proposals` rule in `ai/common/prompt_base.md`.
-  Trigger keywords: improve prompt, audit config, optimize CLAUDE.md, fix skill
-  trigger, document workflow, resolve config conflict, propose improvement,
-  プロンプト改善, 設定を見直し, ワークフロー文書化.
+description: Improve AI prompt configuration with evidence-based diagnosis; also loaded when surfacing Opportunistic Improvement Proposals.
 ---
 
 # Prompt Self-Improvement
@@ -31,6 +20,7 @@ Self-improvement is an engineering loop, not license to rewrite instructions fre
 - Codex generated file: `ai/codex/_AGENTS.md`; do not edit it directly
 - Tool-specific workflows: `ai/*/skills/`, `ai/*/commands/`, `ai/*/agents/`
 - Shared workflow skills: `ai/common/skills/`
+- Shared-core generation sources: `ai/common/*_core.md` plus platform adapters (`skill_head.md`/`skill_tail.md`) and `ai/*/agents_src/`; generated outputs (Codex/Gemini generated `SKILL.md`, pr-reviewer agents, `_AGENTS.md`) are never edited directly — regenerate per the "Regenerate AI Prompts" table in the repository `CLAUDE.md`
 - Sync scripts: `mac/initialization/ai/*.sh` and `mac/updates/*.sh`
 
 ## Improvement workflow
@@ -54,26 +44,25 @@ Self-improvement is an engineering loop, not license to rewrite instructions fre
 - No editing character files for workflow behavior unless the change is specifically about character voice.
 - No volatile line numbers in prompt comments or documentation.
 - No changes that broaden your own automatic activation surface (skill descriptions, trigger keywords, hook matchers) unless the user explicitly asks.
-- After a proposal is declined or deferred in a session, do not re-raise the topic until the next session.
 
 ## Evaluation loop
 
 For measurable optimization: define success criteria before rewriting; build a small eval set from real tasks and known failures; score the current prompt as baseline; generate candidate edits; score candidates on the same evals, keeping a holdout case for regression detection; recommend a candidate only if it improves the target behavior without worsening core workflows; ask for review before applying persistent changes unless the user already requested implementation.
 
-Research optimizers (prompt improvers, OPRO, Promptbreeder, TextGrad, DSPy) are optional for larger eval-backed efforts — not substitutes for repository-specific evidence and manual review.
+External prompt optimizers are optional for larger eval-backed efforts — not substitutes for repository-specific evidence and manual review.
 
 ## Response format
 
 For analysis-only work, return:
 
-- Background — plain-language narrative for a reader with no session context: which "When to propose" criterion matched, and the concrete session events that triggered it (what happened, when)
+- Background — plain-language narrative for a reader with no session context: for OIP-triggered proposals, which "When to propose" criterion matched and the concrete session events that triggered it (what happened, when); for explicit user requests, the request and what prompted it
 - Target behavior
 - Evidence
 - Diagnosis
 - Proposed source changes
 - Validation plan
 - Risks
-- Affected assistants (Claude / Gemini / Codex); for Codex source changes, note that `mac/initialization/ai/codex.sh` must be rerun to regenerate `_AGENTS.md`
+- Affected assistants (Claude / Gemini / Codex); for changes to generated-output sources, name the required regeneration command (see the "Regenerate AI Prompts" table in the repository `CLAUDE.md`)
 
 For implementation work: make the edits, regenerate derived files if needed, run validation, and report the changed sources plus test results.
 

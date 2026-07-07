@@ -71,7 +71,7 @@ For one-off preferences (user taste, not a defect), keep an internal note instea
 ## How to propose
 
 - Surface every qualifying proposal (no per-session cap), ordered by relevance and importance.
-- Load the `prompt-self-improvement` skill and follow its analysis-only response format, including affected assistants and Codex regeneration notes.
+- Load the `prompt-self-improvement` skill and follow its analysis-only response format, including affected assistants and regeneration notes.
 - Outside the Completion-Time Check, say nothing when no proposal qualifies.
 
 ## Plan Handoff
@@ -83,7 +83,7 @@ For one-off preferences (user taste, not a defect), keep an internal note instea
 
 At the end of implementation, fix, configuration, review, or investigation-delivery tasks, check the criteria above before the final completion response — after Temp File Cleanup and after the Post-Implementation Workflow's git action has completed, so proposals never block the commit/push flow. The task's deliverable output (review results, findings, answers, summaries) always comes first in the final response; the OIP section — proposal analyses or the 該当なし line — is always the last content, never before or interleaved with the deliverable.
 
-- If proposals qualify, print each proposal's full analysis immediately before the confirmation question with nothing in between, and make each question self-contained — a condensed background (matched trigger, concrete session events, which file gets what change) inside the question text itself; a bare one-line question is never sufficient. Then ask approval per proposal via the platform-specific `# User Confirmation` mechanism — options per proposal: apply now / do not apply / decide later. Apply edits only to approved proposals.
+- If proposals qualify, present each per the skill's "Presenting proposals for approval" rules (full analysis immediately before the question; self-contained question text), then ask approval per proposal via the platform-specific `# User Confirmation` mechanism — options per proposal: apply now / do not apply / decide later. Apply edits only to approved proposals.
 - If none qualify, include exactly `自己改善チェック: 該当なし` once in the final completion response; do not raise a confirmation question.
 - Do not include this in ordinary conversation, clarification-only turns, plan-only responses (the Plan Handoff record is allowed), active progress updates, or pre-completion confirmation questions.
 
