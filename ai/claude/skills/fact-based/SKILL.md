@@ -11,7 +11,7 @@ allowed-tools: Bash(/bin/cat:*)
 
 ## Fact-Based Response Mode
 
-Apply the following protocol for this conversation (or for `$ARGUMENTS` if provided).
+Apply the following protocol for this conversation.
 
 !`/bin/cat ~/.claude/common/fact_based_core.md`
 
