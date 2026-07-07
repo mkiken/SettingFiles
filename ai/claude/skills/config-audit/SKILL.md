@@ -18,6 +18,7 @@ allowed-tools: Bash(/bin/cat:*), Bash(readlink:*), Read, Glob, Grep
   - Project: `./CLAUDE.md`, `./.claude/CLAUDE.md`, `./.claude/settings.json`, `./.claude/settings.local.json`, `./.claude/skills/*/SKILL.md`, `./.claude/agents/*.md`
 - `SOURCE_FILES`: `ai/common/prompt_base.md`, the character file `@`-imported by `ai/claude/_CLAUDE.md`, `ai/claude/_CLAUDE.md` (inline extras beyond the @imports)
 - For every user confirmation, use `AskUserQuestion`.
+- Phase 4 exception to "conversation only": response text preceding `AskUserQuestion` may not be displayed — also save the report to a scratchpad file and cite its path in every Phase 5 question.
 
 ### Launch
 

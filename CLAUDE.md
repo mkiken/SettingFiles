@@ -127,6 +127,7 @@ When editing AI prompt files in this repository:
 - **Write concisely**: as concise as meaning and intent allow — every loaded prompt consumes context. When condensing existing files, follow `ai/common/prompt_shortening_guide.md`.
 - **Runtime loading differs per platform**: Claude Code and Gemini CLI load only the markdown body of agent/skill files as the prompt — frontmatter (including YAML `#` comments) costs zero runtime tokens. Codex instead injects the whole SKILL.md raw at invocation, so every Codex skill frontmatter line counts as prompt cost. Codex agent TOML files are parsed; `#` comments there cost nothing.
 - **GENERATED-file notices** are placed where they cost no runtime tokens: YAML frontmatter comments for Claude/Gemini `pr-reviewer-*.md`, a `#` comment for Codex `pr_reviewer_*.toml`. Codex `SKILL.md` files intentionally carry no notice (raw injection would bill it) — the adjacent `skill_head.md` sources and this file are the edit guard. Do not add visible-body notices to generated files.
+- **Verify regeneration before committing generated outputs**: when a change touches a generated committed output (Codex `SKILL.md`s, `_AGENTS.md`, pr-reviewer / config-auditor agents), re-run its generator and confirm `git diff` on that file is clean — a dirty diff means the output was edited instead of its source.
 
 ## Commit Message Convention
 
