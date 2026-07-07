@@ -9,8 +9,8 @@ description: >
   "check for conflicts", "optimize prompts", "config redundancy", "設定ファイルを整理",
   "CLAUDE.mdを最適化".
 model: opus
-argument-hint: "[scope: all|claude-md|skills|commands|agents|hooks|settings|global|project]"
-allowed-tools: Bash(/bin/cat:*), Bash(readlink:*), Read, Glob
+argument-hint: "[scope: all|claude-md|skills|agents|hooks|settings|global|project]"
+allowed-tools: Bash(/bin/cat:*), Bash(readlink:*), Read, Glob, Grep
 ---
 
 ## Instructions
@@ -20,9 +20,9 @@ allowed-tools: Bash(/bin/cat:*), Bash(readlink:*), Read, Glob
 - `ENTRY_SCOPE` = `claude-md`.
 - `GENERATED_ENTRY_FILE` = `~/.claude/CLAUDE.md`.
 - `CONFIG_PATHS`:
-  - Global: `~/.claude/CLAUDE.md`, `~/.claude/settings.json`, `~/.claude/settings.local.json`, `~/.claude/skills/*/SKILL.md`, `~/.claude/commands/**/*.md`, `~/.claude/agents/*.md`, `~/.claude/hooks/*`
-  - Project: `./CLAUDE.md`, `./.claude/CLAUDE.md`, `./.claude/settings.local.json`
-- `SOURCE_FILES`: `ai/common/prompt_base.md`, `ai/common/characters/reimu.md` (or whichever character file exists), `ai/claude/_CLAUDE.md` (inline extras beyond the @imports)
+  - Global: `~/.claude/CLAUDE.md`, `~/.claude/settings.json`, `~/.claude/settings.local.json`, `~/.claude/skills/*/SKILL.md`, `~/.claude/agents/*.md`, `~/.claude/hooks/*`
+  - Project: `./CLAUDE.md`, `./.claude/CLAUDE.md`, `./.claude/settings.json`, `./.claude/settings.local.json`, `./.claude/skills/*/SKILL.md`, `./.claude/agents/*.md`
+- `SOURCE_FILES`: `ai/common/prompt_base.md`, the character file `@`-imported by `ai/claude/_CLAUDE.md`, `ai/claude/_CLAUDE.md` (inline extras beyond the @imports)
 - For every user confirmation, use `AskUserQuestion`.
 
 ## Core Workflow

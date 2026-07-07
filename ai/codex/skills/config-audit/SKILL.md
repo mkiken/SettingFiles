@@ -167,7 +167,8 @@ After the report, confirm the next action with the user:
 2. **番号指定で部分適用** — apply only the items named by their continuous serial numbers (e.g. 「1, 3, 5 を適用」)
 3. **特定セクションの深掘り** — analyze one area in more depth
 4. **レポートのファイル保存** — save the report to a file
-5. **何もしない（終了）**
+
+Ending without action or any other request is expressed as a free-form reply (or the auto-provided "Other" choice), not a listed option.
 
 Apply file changes only after explicit user approval.
 
