@@ -57,12 +57,10 @@ Each subagent stays read-only and returns Japanese findings in its configured fo
 5. Route all other test-related findings to `## テストに関する指摘` regardless of source agent. Pre-existing-vs-changed is decided first: a `[既存コード]` finding about tests goes to `## 既存コードに関する指摘`.
 6. Same-root-cause cross-agent overlaps: bug + missing test → keep the bug, mention the test gap as supporting detail unless a distinct test change is required; bug + error-handling gap → keep the bug, fold the handling aspect into its detail unless the handling fix is a separate change; bug + security vulnerability → keep the security finding (attack framing drives the fix), fold the bug behavior into its detail. A merged finding takes the highest confidence and 影響度 of the pair.
 7. Keep only actionable findings requiring a concrete response — no praise, compliance confirmations, or non-actionable observations.
-8. Assign priority from 影響度 × 信頼度. 影響度: High = data loss/outage/vulnerability/broad breakage, Medium = limited malfunction or degradation, Low = minor. Priority: High = 影響度High & 信頼度>=75; Medium = 影響度Medium & 信頼度>=75, or 影響度High & 信頼度<75 (append 「要検証」); Low = 影響度Low & notable. If an agent omitted 影響度, infer it from category and description.
+8. Assign priority from 影響度 × 信頼度 per the Output Format section below. If an agent omitted 影響度, infer it from category and description.
 9. Every finding needs `[path:line]` backed by 行番号根拠 (`[path:~line]` only for pre-existing code outside the diff). Drop findings whose 行番号根拠 is missing, uses `OLD`/deleted/approximate lines, or does not match the line-numbered diff. Spot-check suspicious anchors against the head-revision file. Never show 行番号根拠 in final output.
-10. Number findings sequentially across regular, test, and pre-existing-code sections. Omit empty sections; omit `## レビュー注目ポイント` unless it adds concrete unresolved actions not already numbered.
-11. If no actionable findings remain, output only `対応が必要な指摘はありません。`
-12. If any finding was skipped as an existing-comment duplicate, add `## [既コメント済] スキップした指摘` immediately before `## 総合評価`, one line each:
-    `- **[path:line]** 領域: <area> / 既存コメント ID: <id> (resolved=<bool>, ai_origin=<value>) — <reason>`
+10. Omit `## レビュー注目ポイント` unless it adds concrete unresolved actions not already numbered.
+11. If any finding was skipped as an existing-comment duplicate, report it in the `[既コメント済]` section per the Output Format section below.
 
 ### Verify High Findings
 
@@ -75,11 +73,9 @@ Re-verify every High-priority finding as a skeptic before final output; do not v
 
 ### Final Format
 
-Respond entirely in Japanese. Each finding: header, indented detail bullet, then `---` separator (including the last finding).
+Finding-header 領域 labels: バグ検出, セキュリティ, アーキテクチャ, エラーハンドリング, Git履歴, テスト品質, パフォーマンス.
 
-Header: `N. **[file:line]** 領域 (影響度: XX / 信頼度: XX): 短い一行の要約` — inside `## 既存コードに関する指摘`, append `（重大カテゴリ）` to the summary.
-
-Use this structure and omit empty sections:
+Prepend this summary table before the first priority section of the Output Format skeleton below:
 
 ```markdown
 ## レビューサマリー
@@ -93,7 +89,25 @@ Use this structure and omit empty sections:
 | Git履歴 | N | XX |
 | テスト品質 | N | XX |
 | パフォーマンス | N | XX |
+```
 
+### Output Format
+
+Respond entirely in Japanese.
+
+**Priority mapping (影響度 × 信頼度)** — self-assessed per finding. 影響度: High = data loss/outage/vulnerability/broad breakage, Medium = limited malfunction or degradation, Low = minor. 信頼度 = 0–100 certainty that the issue is real. Priority: High = 影響度High & 信頼度>=75; Medium = 影響度Medium & 信頼度>=75, or 影響度High & 信頼度<75 (append 「要検証」 to the detail); Low = 影響度Low & notable, or 影響度Medium & 信頼度<75 (append 「要検証」). The mapping decides priority only, never whether a finding is reported — the calling skill's actionability rules decide that.
+
+Each finding MUST use this exact three-part structure:
+
+- **Header line**: `N. **[file:line]** 領域 (影響度: XX / 信頼度: XX): 短い一行の要約` — path relative to repository root, `[path:line]` for a single line or `[path:startLine-endLine]` for a range; 領域 is a Japanese area label from the calling skill's dimension list. Inside `## 既存コードに関する指摘`, append `（重大カテゴリ）` to the summary.
+- **Detail line**: `   - Full explanation and recommendation (indented sub-bullet)`. Do not cram the explanation into the header line.
+- **Separator line**: `---` after every finding, including the last one — a hard structural requirement that must never be omitted.
+
+Number findings sequentially across all sections — never restart numbering per section.
+
+Use this skeleton, omitting empty sections and empty priority levels. The calling skill may prepend extra leading sections (e.g. a summary table) before the first priority section:
+
+```markdown
 ## 🔴 High Priority（影響度High・信頼度75+）
 
 1. **[path/to/file.ext:line]** 領域 (影響度: XX / 信頼度: XX): 短い一行の要約
@@ -121,11 +135,23 @@ Use this structure and omit empty sections:
 
 5. （同形式、要約末尾に重大カテゴリ）
 
+## [既コメント済] スキップした指摘
+
+- **[path:line]** 領域: <area> / 既存コメント ID: <id> (resolved=<bool>, ai_origin=<value>) — <reason>
+
 ## 総合評価
 
 **マージ可否**: ✅ マージ可 / ⚠️ 条件付きマージ可 / ❌ マージ不可
 
 総合コメント。
+```
+
+Place `## [既コメント済] スキップした指摘` immediately before `## 総合評価`, one line per skipped finding as shown; omit the section when nothing was skipped. `## 総合評価` states the merge verdict line plus a short overall comment.
+
+If no actionable findings remain after deduplication, output only (no skeleton, no 総合評価):
+
+```markdown
+対応が必要な指摘はありません。
 ```
 
 If at least one actionable finding remains, append:

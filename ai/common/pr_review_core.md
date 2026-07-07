@@ -13,11 +13,7 @@ Route such findings to `## 既存コードに関する指摘` (see routing below
 
 ### Priorities and Routing
 
-Assign a priority to every finding:
-
-- 🔴 **High (Action Required)**: bug risk, security vulnerabilities, data loss
-- 🟡 **Medium (Recommended)**: architecture issues, performance, critical readability
-- 🟢 **Low (Optional)**: maintainability, minor refactoring, style
+Self-assess 影響度 and 信頼度 (0–100) for every finding and assign priority per the Output Format section below. Low 信頼度 never suppresses a finding — it only lowers priority.
 
 Route each finding, deciding in this order:
 
@@ -25,21 +21,15 @@ Route each finding, deciding in this order:
 2. `## テストに関する指摘` — missing tests, weak assertions, brittle tests, incorrect mocks/fixtures, boundary-value tests, negative/error-path tests, integration coverage. If a runtime bug and a missing test share the same root cause, keep the bug in the regular section and mention the missing test in its detail line; create a separate test finding only when a distinct test change is required.
 3. Regular priority sections — everything else.
 
-Within every section, group findings by priority in descending order and omit empty priority levels. Number all findings sequentially across regular, test, and pre-existing sections — never restart numbering per section. Omit `## テストに関する指摘` and `## 既存コードに関する指摘` entirely when they have no actionable findings.
+Within every section, group findings by priority in descending order. Omit `## テストに関する指摘` and `## 既存コードに関する指摘` entirely when they have no actionable findings.
 
 ### Code Quality Perspectives
 
-Review thoroughly from all of these perspectives: **Bug Risk** (potential bugs, error handling), **Coding Standards** (general rules, best practices), **Architecture** (separation of concerns, class/function design), **Readability** (intent clarity, naming, comments), **Performance** (issues, optimization opportunities), **Security** (vulnerabilities, sensitive data handling), **Maintainability** (change flexibility, technical debt).
+Review thoroughly from all of these perspectives, using the Japanese label as the finding header's 領域: **バグリスク** (potential bugs, error handling), **コーディング規約** (general rules, best practices), **アーキテクチャ** (separation of concerns, class/function design), **可読性** (intent clarity, naming, comments), **パフォーマンス** (issues, optimization opportunities), **セキュリティ** (vulnerabilities, sensitive data handling), **保守性** (change flexibility, technical debt). Findings in `## テストに関する指摘` use 領域 **テスト品質**.
 
 ### Actionable Findings Only
 
 Output only findings that require a concrete response: code changes, test additions, design changes, documentation updates, or explicit reviewer decisions. Do not output praise, compliance confirmations, or non-actionable observations ("looks good", "no issue here"). Omit the `Review Focus Points` and `Recommendations` sections unless they contain concrete unresolved actions not already covered by numbered findings.
-
-If no actionable findings remain after deduplication, output only:
-
-```markdown
-対応が必要な指摘はありません。
-```
 
 ### Existing Comment Deduplication
 
@@ -51,11 +41,7 @@ Before finalizing each finding, check whether it is already covered by an existi
 4. Skip only when duplicate confidence is ≥ 70. Below 70, output both.
 5. `ai_origin` (author being human/bot/AI) does not affect the duplicate decision — judge on content only.
 
-When findings are skipped, add `## [既コメント済] スキップした指摘` immediately before the Post-Review block (omit entirely when nothing is skipped):
-
-```
-- **[path:line]** Category / 既存コメント ID: <id> (resolved=<bool>, ai_origin=<value>) — <reason>
-```
+Record each skipped finding in the `[既コメント済]` section defined in the Output Format section below.
 
 ### Line Number Source
 
@@ -67,47 +53,3 @@ Use the `format_pr_diff_with_line_numbers.sh` output (fetched per the workflow a
 - `OLD <line>` — removed base-side code; never use in final review comments
 
 Never calculate final review line numbers from `@@` hunk headers by memory. If a candidate finding is not present in the line-numbered diff, verify the exact current-side line (e.g. `grep -n`) or omit the finding.
-
-### Finding Format
-
-Each finding MUST use this exact three-part structure:
-
-- **Header line**: `N. **[file:line]** Category: Short one-line summary` — path relative to repository root, `[path:line]` for single line or `[path:startLine-endLine]` for a range. Inside `## 既存コードに関する指摘`, append the critical impact category in parentheses.
-- **Detail line**: `   - Full explanation and recommendation (indented sub-bullet)`. Do not cram the explanation into the header line.
-- **Separator line**: `---` after every finding, including the last one — a hard structural requirement that must never be omitted.
-
-Output skeleton (numbering continues across all sections):
-
-#### 🔴 High Priority
-1. **[src/services/auth.ts:42]** Security: Auth token may be exposed in logs
-   - Token is logged in plaintext. Apply a masking utility before passing to logger.
-
----
-
-#### 🟡 Medium Priority
-2. **[src/components/Button.tsx:15-20]** Architecture: Consider separating logic
-   - Click handler mixes UI event handling with business logic. Extract to a custom hook.
-
----
-
-#### 🟢 Low Priority
-3. **[src/utils/format.ts:8]** Readability: Use more descriptive variable names
-   - `d` and `v` obscure intent; rename to `date` and `value` for clarity.
-
----
-
-## テストに関する指摘
-
-#### 🟡 Medium Priority
-4. **[src/services/auth.test.ts:1]** Test Coverage: Missing negative-path test for session expiry
-   - Add a test asserting `getUser()` behavior when the session has expired.
-
----
-
-## 既存コードに関する指摘
-
-#### 🔴 High Priority
-5. **[src/db/query.ts:120]** Security: SQL injection in pre-existing helper (Security breach category)
-   - Unchanged code called by this PR's new feature concatenates raw user input into a query string. Concrete attack vector: any string input allows arbitrary SQL execution.
-
----

@@ -35,6 +35,8 @@ Review ALL changed files individually, checking ALL 7 quality perspectives defin
 
 !{cat ~/.gemini/common/pr_review_core.md}
 
+!{cat ~/.gemini/common/pr_review_finding_format.md}
+
 ### Post-Review
 
 After completing the review, you MUST delete any temporary files you created during the process (e.g., `diff.txt`, `pr_diff.txt`) using the `run_shell_command` tool.

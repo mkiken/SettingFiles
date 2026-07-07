@@ -42,6 +42,8 @@ Start all simultaneously:
 
 !`/bin/cat ~/.claude/common/pr_review_subagents/orchestrator_core.md`
 
+!`/bin/cat ~/.claude/common/pr_review_finding_format.md`
+
 If at least one actionable finding remains, append:
 
 > To post any findings as GitHub PR comments, run:

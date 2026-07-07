@@ -34,6 +34,8 @@ Invoke all seven with `wait_for_previous=false`:
 
 !{cat ~/.gemini/common/pr_review_subagents/orchestrator_core.md}
 
+!{cat ~/.gemini/common/pr_review_finding_format.md}
+
 If at least one actionable finding remains, append:
 
 > To post any findings as GitHub PR comments, run:

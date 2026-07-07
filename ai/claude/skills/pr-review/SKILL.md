@@ -44,6 +44,8 @@ For deeper investigation (files outside the diff, surrounding context), use the 
 
 !`/bin/cat ~/.claude/common/pr_review_core.md`
 
+!`/bin/cat ~/.claude/common/pr_review_finding_format.md`
+
 ### Post-Review: Clean Up & Post to GitHub
 
 After completing the review, you MUST delete any temporary files you created during the process (e.g., `diff.txt`, `pr_diff.txt`) using the Bash tool.
