@@ -1,20 +1,3 @@
----
-name: pr-create-by-branch
-description: >
-  Create a GitHub Pull Request from the current branch to a target base branch.
-  Analyze the branch diff to generate a PR title and body, confirm with the
-  user, then run gh pr create. Use when the user wants to create or open a PR,
-  says "PRを作って", "PR作成", "プルリクエスト作りたい", "create PR",
-  "open a pull request", or invokes `$pr-create-by-branch`. Accepts an
-  optional target base branch.
----
-
-## Instructions
-
-- `TARGET_BRANCH_ARG` = the target base branch in the user's message (a prompt
-  from `cx-pr-create` already includes the selected branch).
-- For every user confirmation, ask in plain text with numbered options.
-
 ## Purpose
 
 Create a new GitHub Pull Request from the current branch by analyzing the diff against the target base branch to auto-generate the PR title and body.
