@@ -16,13 +16,11 @@ description: >
 
 # Prompt Self-Improvement
 
-Use this skill to improve this repository's AI assistant prompts without letting them drift.
+Improve this repository's AI assistant prompts without letting them drift.
 
 ## Core rule
 
-Treat self-improvement as an engineering loop, not as permission to rewrite instructions freely.
-
-Only change persistent prompt sources after you have evidence, a clear target behavior, and a validation plan. If the user only asks for analysis, stop at a reviewable proposal.
+Self-improvement is an engineering loop, not license to rewrite instructions freely. Change persistent prompt sources only with evidence, a clear target behavior, and a validation plan. If the user asks only for analysis, stop at a reviewable proposal.
 
 ## Source map
 
@@ -37,53 +35,38 @@ Only change persistent prompt sources after you have evidence, a clear target be
 
 ## Improvement workflow
 
-1. Identify the behavior to improve and the assistant(s) affected.
+1. Identify the behavior to improve and the affected assistant(s).
 2. Read the relevant source files before proposing changes.
-3. Gather evidence from user corrections, failed outputs, duplicated instructions, conflicts, stale docs, or repeated manual workflow.
-4. Classify the fix:
-   - Put short universal rules in `prompt_base.md`.
-   - Put assistant-specific mechanics in that assistant's base file or entrypoint.
-   - Put multi-step, task-specific procedures in a skill.
-   - Put reusable invocations in commands.
-   - Put deterministic lifecycle enforcement in hooks or settings.
-   - Keep generated files generated.
-5. Prefer the smallest change that fixes the demonstrated failure, and write any new or edited prompt text as concisely as the meaning and intent allow — loaded prompts consume context.
-6. Remove or move noisy instructions instead of adding more rules when prompt size or conflicts are the real problem.
-   For "shorten without changing meaning" tasks, follow `ai/common/prompt_shortening_guide.md`.
-7. Validate with realistic prompts or scripts. For prompt behavior, include at least one ordinary case and one failure case that motivated the change.
-8. When the trigger originated from the Opportunistic Improvement Proposals rule rather than an explicit user request, stop at the analysis-only Response format and respect the per-session proposal budget defined there.
+3. Gather evidence: user corrections, failed outputs, duplicated instructions, conflicts, stale docs, repeated manual workflow.
+4. Classify the fix: short universal rules → `prompt_base.md`; assistant-specific mechanics → that assistant's base file or entrypoint; multi-step task-specific procedures → a skill; reusable invocations → commands; deterministic lifecycle enforcement → hooks or settings; generated files stay generated.
+5. Prefer the smallest change that fixes the demonstrated failure; write new or edited prompt text as concisely as meaning and intent allow — loaded prompts consume context.
+6. When prompt size or conflicts are the real problem, remove or move noisy instructions instead of adding rules. For "shorten without changing meaning" tasks, follow `ai/common/prompt_shortening_guide.md`.
+7. Validate with realistic prompts or scripts; for prompt behavior include at least one ordinary case and one failure case that motivated the change.
+8. If triggered by the Opportunistic Improvement Proposals rule rather than an explicit user request, stop at the analysis-only Response format and respect the per-session proposal budget defined there.
 
 ## Guardrails
 
-- Do not add instructions that let an assistant silently rewrite its own persistent prompts.
-- Do not optimize based on a single anecdote unless the user explicitly wants that preference encoded.
-- Do not merge Claude/Gemini/Codex rules when their tool behavior differs.
-- Do not store long procedures in always-on prompt files.
-- Do not weaken confirmation, cleanup, commit, or safety workflows while trying to reduce friction.
-- Do not edit character files for workflow behavior unless the requested change is specifically about character voice.
-- Do not cite volatile line numbers in prompt comments or documentation.
-- Do not propose changes that increase your own automatic activation surface (skill descriptions, trigger keywords, hook matchers) unless the user explicitly asks to broaden activation.
-- After a proposal is declined or deferred in a session, do not re-raise the same topic until the next session.
+- No instructions letting an assistant silently rewrite its own persistent prompts.
+- No optimizing from a single anecdote unless the user explicitly wants that preference encoded.
+- No merging Claude/Gemini/Codex rules when their tool behavior differs.
+- No long procedures in always-on prompt files.
+- No weakening confirmation, cleanup, commit, or safety workflows to reduce friction.
+- No editing character files for workflow behavior unless the change is specifically about character voice.
+- No volatile line numbers in prompt comments or documentation.
+- No changes that broaden your own automatic activation surface (skill descriptions, trigger keywords, hook matchers) unless the user explicitly asks.
+- After a proposal is declined or deferred in a session, do not re-raise the topic until the next session.
 
 ## Evaluation loop
 
-When the user wants measurable optimization, use this sequence:
+For measurable optimization: define success criteria before rewriting; build a small eval set from real tasks and known failures; score the current prompt as baseline; generate candidate edits; score candidates on the same evals, keeping a holdout case for regression detection; recommend a candidate only if it improves the target behavior without worsening core workflows; ask for review before applying persistent changes unless the user already requested implementation.
 
-- Define success criteria before rewriting.
-- Build a small eval set from real tasks and known failures.
-- Score the current prompt as the baseline.
-- Generate candidate prompt edits.
-- Score candidates against the same evals and keep a holdout case for regression detection.
-- Recommend the candidate only if it improves the target behavior without worsening core workflows.
-- Ask for review before applying persistent changes unless the user has already requested implementation.
-
-Research-style optimizers such as prompt improvers, OPRO, Promptbreeder, TextGrad, or DSPy are optional tools for larger eval-backed efforts. They are not a substitute for repository-specific evidence and manual review.
+Research optimizers (prompt improvers, OPRO, Promptbreeder, TextGrad, DSPy) are optional for larger eval-backed efforts — not substitutes for repository-specific evidence and manual review.
 
 ## Response format
 
 For analysis-only work, return:
 
-- Background — plain-language narrative for a reader with no session context: which "When to propose" criterion matched, and the concrete events in this session that triggered it (what happened, when)
+- Background — plain-language narrative for a reader with no session context: which "When to propose" criterion matched, and the concrete session events that triggered it (what happened, when)
 - Target behavior
 - Evidence
 - Diagnosis
@@ -92,12 +75,12 @@ For analysis-only work, return:
 - Risks
 - Affected assistants (Claude / Gemini / Codex); for Codex source changes, note that `mac/initialization/ai/codex.sh` must be rerun to regenerate `_AGENTS.md`
 
-For implementation work, make the edits, regenerate derived files if needed, run validation, and report the changed sources plus test results.
+For implementation work: make the edits, regenerate derived files if needed, run validation, and report the changed sources plus test results.
 
 ## Presenting proposals for approval
 
-Never present a proposal before the task's deliverable output (e.g. review results) has been fully displayed; the proposal block always follows the deliverable.
+The proposal block always follows the task's fully displayed deliverable output (e.g. review results), never precedes it.
 
-When asking the user to approve a proposal (mid-session or at the Completion-Time Check), print each proposal's full analysis — Background, Target behavior, Evidence, Diagnosis, Proposed source changes, and Affected assistants — as plain response text placed immediately before the confirmation tool call, with nothing in between. Re-print it there even if it already appeared earlier in the turn or in a past turn: response text that precedes a tool call in the same turn may not be displayed to the user, or may not appear adjacent to the question dialog.
+When asking approval (mid-session or at the Completion-Time Check), print each proposal's full analysis — Background, Target behavior, Evidence, Diagnosis, Proposed source changes, Affected assistants — as plain response text immediately before the confirmation tool call, nothing in between. Re-print it there even if already shown earlier: text preceding a tool call may not be displayed, or may not appear adjacent to the dialog.
 
-For the same reason, each proposal's question must be self-contained: the `question` field itself must carry a condensed Background — the matched trigger criterion, the concrete session events behind it, and which file gets what change (3-5 sentences) — so the user can decide from the dialog alone. A bare question like "add X?" must never be the only description the user sees. Option labels and descriptions in a confirmation tool are supplements, not a substitute for the analysis.
+For the same reason each question must be self-contained: the `question` field itself carries a condensed Background — the matched trigger criterion, the concrete session events, and which file gets what change (3-5 sentences) — so the user can decide from the dialog alone. A bare "add X?" is never sufficient; option labels and descriptions are supplements, not a substitute for the analysis.
