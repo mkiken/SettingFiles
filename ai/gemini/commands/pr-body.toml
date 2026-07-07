@@ -5,7 +5,7 @@ CRITICAL: Run these commands FIRST:
 !{gh pr view {{args}} --json number,url,title,body,author,headRefName,baseRefName}
 !{cat .github/PULL_REQUEST_TEMPLATE.md 2>/dev/null || echo "NO_TEMPLATE"}
 
-To see the code changes, run `gh pr diff {{args}}` with your `run_shell_command` tool; if the diff is too large, redirect it to a file (e.g. `gh pr diff {{args}} > diff.txt`) and read it incrementally.
+To see the code changes, run `gh pr diff {{args}}` with your `run_shell_command` tool.
 
 If the second command output above is "NO_TEMPLATE", `.github/PULL_REQUEST_TEMPLATE.md` does not exist.
 

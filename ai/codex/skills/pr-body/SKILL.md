@@ -36,19 +36,20 @@ gh pr diff <PR_NUMBER> --name-only
 - If `.github/PULL_REQUEST_TEMPLATE.md` exists in the repository root, use its structure as the base and fill each section with the generated content; otherwise use the default sections below.
 - Preserve meaningful existing-body content (manually written TODOs, FIXME notes, free-form notes, incomplete checklists, HTML comments, review requests, useful background) even when it falls outside the generated structure — keep it in the closest matching section, or in **Additional Notes** when none fits. Template-only content (placeholders, empty sections) can be discarded.
 - Analyze the full diff and describe the **final state (HEAD)**: do not mention reverted changes, overwritten intermediate states, or trial-and-error. Reviewer-useful background (why this approach was chosen, alternatives considered) is acceptable.
+- If the diff is too large to read at once, redirect it to a file and read it incrementally.
 - Default sections:
   - **Summary**: Comprehensive overview grouped by logical changes
   - **Files Changed Summary**: File-by-file breakdown with brief descriptions (DO NOT include line counts like +X/-Y)
   - **Review Focus Points**: If the existing body has non-default content here (anything other than "特になし" or empty), preserve it exactly; write "特になし" only for a new PR body or an empty/default section.
   - **Breaking Changes**: Any breaking changes or migration requirements
   - **Additional Notes**: Any other relevant information for reviewers
-- Output **raw markdown format** directly copyable to the PR body, wrapped in ``` code blocks.
+- Produce the body as raw markdown directly copyable to the PR body; it is displayed in the Confirmation Flow.
 
 ## Confirmation Flow
 
 After generating the PR body content:
 
-1. **Finalize both bodies as files** before showing anything. Use the session scratchpad directory as `<tmpdir>` (fall back to `mktemp -d`):
+1. **Finalize both bodies as files** before showing anything. Use the platform's session temp/scratchpad directory as `<tmpdir>` if one exists (fall back to `mktemp -d`):
    - Save the existing body with CRLF normalized to LF (GitHub API bodies contain `\r\n`; unnormalized, the diff shows every line as changed):
      ```bash
      gh pr view <PR_NUMBER> --json body --jq .body | tr -d '\r' > <tmpdir>/pr_body_old.md
@@ -56,7 +57,7 @@ After generating the PR body content:
    - Write the complete generated body to `<tmpdir>/pr_body_new.md` (LF line endings, exactly one trailing newline)
    - From here `pr_body_new.md` is the single source of truth for display, diff, and apply. Never reconstruct the body text in chat
 
-2. Display the content of `pr_body_new.md` in a code block
+2. Display the content of `pr_body_new.md` in a fenced code block; the fence must be longer than any backtick run inside — at least four backticks (````markdown), since PR bodies usually contain ``` blocks
 
 3. **Display the machine-generated diff**:
    - Show section header: "### 既存body → 新bodyの変更差分"

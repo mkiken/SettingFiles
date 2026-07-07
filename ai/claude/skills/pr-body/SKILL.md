@@ -7,8 +7,8 @@ disable-model-invocation: true
 
 ## Instructions
 
-- In the rules below, `<PR_NUMBER>` refers to $ARGUMENTS.
-- Fetch the existing PR body with `gh pr view $ARGUMENTS --json body`, then fetch and analyze the full diff with `gh pr diff $ARGUMENTS`. Check whether `.github/PULL_REQUEST_TEMPLATE.md` exists in the repository root.
+- In the rules below, `<PR_NUMBER>` refers to $ARGUMENTS; if $ARGUMENTS is empty, resolve the current branch's PR number with `gh pr view --json number --jq .number` and use that.
+- Fetch the existing PR body and URL with `gh pr view <PR_NUMBER> --json body,url`, then fetch and analyze the full diff with `gh pr diff <PR_NUMBER>`. Check whether `.github/PULL_REQUEST_TEMPLATE.md` exists in the repository root.
 - Write `pr_body_new.md` with the Write tool.
 - Ask the confirmation question with AskUserQuestion.
 
