@@ -4,6 +4,10 @@
 
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
+# sudo 待ちで気づけるようベルを仕込む（子プロセス=公式インストーラや cask にも継承される）
+source "${SCRIPT_DIR}/../scripts/common.sh"
+enable_sudo_bell
+
 echo "Starting macOS initialization..."
 
 # Execute all initialization scripts in order

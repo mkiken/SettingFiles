@@ -5,6 +5,7 @@ SET="${REPO}SettingFiles/"
 SUBMODULE_DIR="${SET}submodules/"
 
 source "$(dirname "$0")/scripts/common.sh"
+enable_sudo_bell
 
 smart_merge_json ~/.config/karabiner/karabiner.json "${SET}mac/karabiner.json"
 smart_copy ~/Library/Application\ Support/Code/User/settings.json "${Repo}vscode/base_setting.jsonc"
@@ -20,7 +21,9 @@ untap_stale_homebrew_taps
 brew update -v
 brew upgrade -v
 brew cleanup -s
+begin_sudo_notice "brew bundle (cask) で管理者パスワードを求められる可能性があります"
 brew bundle --file="${SET}mac/Brewfile" -v
+end_sudo_notice
 echo "end brew update."
 
 echo "start tmux plugin update."

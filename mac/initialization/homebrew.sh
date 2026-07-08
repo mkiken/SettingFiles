@@ -8,7 +8,9 @@ if ! command -v brew > /dev/null 2>&1; then
   elif [[ -x /usr/local/bin/brew ]]; then
     eval "$(/usr/local/bin/brew shellenv)"
   else
+    begin_sudo_notice "Homebrew のインストールで管理者パスワードを求められる可能性があります"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    end_sudo_notice
   fi
 fi
 
@@ -34,4 +36,6 @@ if ! /usr/bin/grep -Fqx "$profile_line" "$HOME/.zprofile" 2>/dev/null; then
 fi
 
 untap_stale_homebrew_taps
+begin_sudo_notice "brew bundle (cask) で管理者パスワードを求められる可能性があります"
 brew bundle --file="${Repo}mac/Brewfile" -v
+end_sudo_notice

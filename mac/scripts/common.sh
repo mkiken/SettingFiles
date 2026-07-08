@@ -7,6 +7,50 @@ source "$(dirname "$(dirname "$(dirname "$(realpath "${(%):-%x}")")")")/shell/zs
 Repo="$(dirname "$(dirname "$(dirname "$(realpath "${(%):-%x}")")")")/"
 Repo_shell="${Repo}shell/"
 
+# sudo のパスワード待ちで気づけるよう、SUDO_PROMPT にベル(\a)と目立つ文言を仕込む。
+# 環境変数なので brew bundle → cask インストーラ内部の sudo にも継承され、
+# 実際に sudo が端末を掴んだ瞬間にベルが鳴る（NOPASSWD のような危険な回避はしない）。
+function enable_sudo_bell() {
+  export SUDO_PROMPT=$'\a🔔 [sudo] %p のパスワードを入力してください: '
+}
+
+# これから sudo が発生しうる処理に入る前に、Mac通知 + tmuxアイコン(✋)で予告する。
+# ユーザーが別ウィンドウを見ていても気づけるようにする（ベルだけでは環境依存で不確実なため）。
+# tmuxアイコンは update_tmux_window_name を使わず直接プレフィックスの先頭に✋を足す形にする。
+# （update_tmux_window_name は既存の状態アイコン=✴️🤖等を丸ごと置き換える設計のため、
+#   AIセッション中に呼ぶとClaude等の状態アイコンを消して end_sudo_notice でも復元できなくなる）
+# 引数: $1 = 通知メッセージ（何の処理でパスワードを聞かれうるか）
+function begin_sudo_notice() {
+  local message="${1:-パスワードの入力を求められる可能性があります}"
+
+  # tmuxアイコンを立てる（tmux外では no-op）。既存プレフィックスは保持し、先頭に✋を追加するだけ。
+  if [[ -n "${TMUX_PANE}" && "${TERM_PROGRAM:-}" == "tmux" ]]; then
+    local current_name window_id
+    current_name=$(tmux display-message -p -t "${TMUX_PANE}" "#W" 2>/dev/null)
+    window_id=$(tmux display-message -p -t "${TMUX_PANE}" "#{window_id}" 2>/dev/null)
+    if [[ -n "$current_name" && -n "$window_id" ]]; then
+      tmux rename-window -t "${window_id}" "✋${current_name}" 2>/dev/null || true
+    fi
+  fi
+
+  # Mac通知（AIセッション抑制を NOTIFY_FORCE でバイパス）
+  if (( ${+functions[notify]} )); then
+    NOTIFY_FORCE=1 notify "🔑 パスワード入力が必要かも" "$message" default
+  fi
+}
+
+# begin_sudo_notice で足した先頭の✋だけを外す（処理完了時に呼ぶ）。他の状態アイコンは保持する。
+function end_sudo_notice() {
+  if [[ -n "${TMUX_PANE}" && "${TERM_PROGRAM:-}" == "tmux" ]]; then
+    local current_name window_id
+    current_name=$(tmux display-message -p -t "${TMUX_PANE}" "#W" 2>/dev/null)
+    window_id=$(tmux display-message -p -t "${TMUX_PANE}" "#{window_id}" 2>/dev/null)
+    if [[ "$current_name" == "✋"* && -n "$window_id" ]]; then
+      tmux rename-window -t "${window_id}" "${current_name#✋}" 2>/dev/null || true
+    fi
+  fi
+}
+
 function untap_stale_homebrew_taps() {
   local stale_taps=(
     "aku11i/tap"
