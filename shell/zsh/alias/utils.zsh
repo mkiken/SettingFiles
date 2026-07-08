@@ -43,7 +43,33 @@ function make_symlink () {
       source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/alias/notification.zsh" 2>/dev/null
     fi
 
-    if confirm "シンボリックリンクではない既存パスがあります: $link_path。$src へのsymlinkで上書きしますか？" --default-no --no-cancel-msg; then
+    local review_signature=""
+    local last_reviewed_at=""
+    local repeated_action=""
+
+    review_signature=$(_diff_review_symlink_signature "$src" "$link_path" 2>/dev/null || true)
+    if [[ -n "$review_signature" ]]; then
+      last_reviewed_at=$(_diff_review_last_reviewed_at "$review_signature" 2>/dev/null || true)
+      if [[ -n "$last_reviewed_at" ]]; then
+        repeated_action=$(_diff_review_prompt_repeated_symlink "$review_signature" "$last_reviewed_at" "$src" "$link_path")
+        case "$repeated_action" in
+          skip)
+            echo "Skipped: $link_path"
+            return 0
+            ;;
+          view)
+            _diff_review_show_symlink_change "$src" "$link_path"
+            ;;
+          overwrite)
+            ;;
+        esac
+      fi
+    fi
+
+    if [[ "$repeated_action" == "overwrite" ]] || {
+      [[ -n "$review_signature" && -z "$last_reviewed_at" ]] && _diff_review_record "$review_signature"
+      confirm "シンボリックリンクではない既存パスがあります: $link_path。$src へのsymlinkで上書きしますか？" --default-no --no-cancel-msg
+    }; then
       if [[ -d "$link_path" ]]; then
         echo "rm -rf $link_path"
         /bin/rm -rf "$link_path"
@@ -219,8 +245,8 @@ function show_json_diff() {
     echo "Diff direction: $label2 -> $label1"
     echo ""
 
-    local sorted1=$(mktemp).json
-    local sorted2=$(mktemp).json
+    local sorted1="$(_diff_review_mktemp_json)"
+    local sorted2="$(_diff_review_mktemp_json)"
     jq -S . "$file1" > "$sorted1"
     jq -S . "$file2" > "$sorted2"
 
@@ -246,8 +272,8 @@ function show_json_diff() {
 function json_files_semantically_equal() {
     local file1="$1"
     local file2="$2"
-    local sorted1=$(mktemp).json
-    local sorted2=$(mktemp).json
+    local sorted1="$(_diff_review_mktemp_json)"
+    local sorted2="$(_diff_review_mktemp_json)"
 
     if ! jq -S . "$file1" > "$sorted1" || ! jq -S . "$file2" > "$sorted2"; then
         /bin/rm -f "$sorted1" "$sorted2"
@@ -258,6 +284,191 @@ function json_files_semantically_equal() {
     local result=$?
     /bin/rm -f "$sorted1" "$sorted2"
     return $result
+}
+
+function _diff_review_state_dir() {
+    if [[ -n "${SETTINGFILES_DIFF_REVIEW_DIR:-}" ]]; then
+        print -r -- "$SETTINGFILES_DIFF_REVIEW_DIR"
+    else
+        print -r -- "${XDG_STATE_HOME:-$HOME/.local/state}/SettingFiles/diff-reviews"
+    fi
+}
+
+function _diff_review_sha256() {
+    if command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 | awk '{print $1}'
+    elif command -v sha256sum >/dev/null 2>&1; then
+        sha256sum | awk '{print $1}'
+    else
+        python3 -c 'import hashlib, sys; print(hashlib.sha256(sys.stdin.buffer.read()).hexdigest())'
+    fi
+}
+
+function _diff_review_mktemp_json() {
+    mktemp "${TMPDIR:-/tmp}/settingfiles_diff_review_XXXXXX.json"
+}
+
+function _diff_review_file_hash() {
+    local file="$1"
+    _diff_review_sha256 < "$file"
+}
+
+function _diff_review_state_file() {
+    local signature="$1"
+    print -r -- "$(_diff_review_state_dir)/${signature}.state"
+}
+
+function _diff_review_last_reviewed_at() {
+    local signature="$1"
+    local state_file="$(_diff_review_state_file "$signature")"
+    local line
+
+    [[ -f "$state_file" ]] || return 1
+
+    line=$(awk -F= '$1 == "last_reviewed_at" { sub(/^[^=]*=/, ""); print; exit }' "$state_file")
+    [[ -n "$line" ]] || return 1
+    print -r -- "$line"
+}
+
+function _diff_review_record() {
+    local signature="$1"
+    local state_dir="$(_diff_review_state_dir)"
+    local state_file="$state_dir/${signature}.state"
+    local timestamp
+
+    mkdir -p "$state_dir" || return 1
+    timestamp=$(date '+%Y-%m-%d %H:%M:%S %z')
+    {
+        print -r -- "signature=$signature"
+        print -r -- "last_reviewed_at=$timestamp"
+    } >| "$state_file"
+}
+
+function _diff_review_smart_merge_auto_enabled() {
+    case "${SMART_MERGE_ACTION:-}" in
+        overwrite|keep|merge_src|merge_dst)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+function _diff_review_file_signature() {
+    local operation="$1"
+    local src="$2"
+    local dst="$3"
+    local src_label="${4:-$src}"
+    local dst_label="${5:-$dst}"
+
+    {
+        print -r -- "operation=$operation"
+        print -r -- "src_label=$src_label"
+        print -r -- "dst_label=$dst_label"
+        print -r -- "src_sha256=$(_diff_review_file_hash "$src")"
+        print -r -- "dst_sha256=$(_diff_review_file_hash "$dst")"
+        diff -u --label "$dst_label" --label "$src_label" "$dst" "$src" || true
+    } | _diff_review_sha256
+}
+
+function _diff_review_json_signature() {
+    local operation="$1"
+    local src="$2"
+    local dst="$3"
+    local src_label="${4:-$src}"
+    local dst_label="${5:-$dst}"
+    local sorted_src="$(_diff_review_mktemp_json)"
+    local sorted_dst="$(_diff_review_mktemp_json)"
+
+    if ! jq -S . "$src" > "$sorted_src" || ! jq -S . "$dst" > "$sorted_dst"; then
+        /bin/rm -f "$sorted_src" "$sorted_dst"
+        _diff_review_file_signature "$operation" "$src" "$dst" "$src_label" "$dst_label"
+        return $?
+    fi
+
+    {
+        print -r -- "operation=$operation"
+        print -r -- "src_label=$src_label"
+        print -r -- "dst_label=$dst_label"
+        print -r -- "--- sorted semantic diff ---"
+        diff -u --label "$dst_label.sorted" --label "$src_label.sorted" "$sorted_dst" "$sorted_src" || true
+        print -r -- "--- raw diff ---"
+        diff -u --label "$dst_label" --label "$src_label" "$dst" "$src" || true
+    } | _diff_review_sha256
+    local result=$?
+
+    /bin/rm -f "$sorted_src" "$sorted_dst"
+    return $result
+}
+
+function _diff_review_path_type() {
+    local path="$1"
+
+    if [[ -L "$path" ]]; then
+        print -r -- "symlink -> $(readlink "$path")"
+    elif [[ -d "$path" ]]; then
+        print -r -- "directory"
+    elif [[ -f "$path" ]]; then
+        print -r -- "file"
+    elif [[ -e "$path" ]]; then
+        print -r -- "other"
+    else
+        print -r -- "missing"
+    fi
+}
+
+function _diff_review_path_fingerprint() {
+    local path="$1"
+
+    if [[ -L "$path" ]]; then
+        print -r -- "symlink	$(readlink "$path")"
+    elif [[ -f "$path" ]]; then
+        print -r -- "file	$(_diff_review_file_hash "$path")"
+    elif [[ -d "$path" ]]; then
+        print -r -- "directory"
+        (
+            cd "$path" || exit 1
+            find . -print | LC_ALL=C sort | while IFS= read -r item; do
+                if [[ "$item" == "." ]]; then
+                    continue
+                elif [[ -L "$item" ]]; then
+                    print -r -- "symlink	$item	$(readlink "$item")"
+                elif [[ -f "$item" ]]; then
+                    print -r -- "file	$item	$(_diff_review_file_hash "$item")"
+                elif [[ -d "$item" ]]; then
+                    print -r -- "directory	$item"
+                else
+                    print -r -- "other	$item"
+                fi
+            done
+        )
+    elif [[ -e "$path" ]]; then
+        print -r -- "other"
+    else
+        print -r -- "missing"
+    fi
+}
+
+function _diff_review_symlink_signature() {
+    local src="$1"
+    local link_path="$2"
+
+    {
+        print -r -- "operation=make_symlink"
+        print -r -- "link_path=$link_path"
+        print -r -- "intended_target=$src"
+        _diff_review_path_fingerprint "$link_path"
+    } | _diff_review_sha256
+}
+
+function _diff_review_show_symlink_change() {
+    local src="$1"
+    local link_path="$2"
+
+    echo "Existing path: $link_path"
+    echo "Existing type: $(_diff_review_path_type "$link_path")"
+    echo "Intended symlink: $link_path -> $src"
 }
 
 function _ensure_prompt_notify_available() {
@@ -384,6 +595,97 @@ function prompt_merge_action() {
             ;;
         *)
             echo "keep"
+            ;;
+    esac
+}
+
+function _diff_review_prompt_repeated_copy() {
+    local signature="$1"
+    local timestamp="$2"
+    local notification_message="$3"
+    local choice
+
+    if [[ -n "$notification_message" ]]; then
+        _start_prompt_wait_notification "$notification_message" "smart-merge-json-prompt"
+    fi
+
+    echo "前回確認時と同じ差分です: $timestamp" >&2
+    echo -n "[s]kip / [v]iew diff / [o]verwrite (default: s): " >&2
+    _diff_review_record "$signature"
+    read -r choice
+
+    if [[ -n "$notification_message" ]]; then
+        _finish_prompt_wait_notification
+    fi
+
+    case "$choice" in
+        v|V|view)
+            echo "view"
+            ;;
+        o|O|overwrite)
+            echo "overwrite"
+            ;;
+        *)
+            echo "skip"
+            ;;
+    esac
+}
+
+function _diff_review_prompt_repeated_merge() {
+    local signature="$1"
+    local timestamp="$2"
+    local notification_message="${3:-smart_merge_json action required}"
+    local choice
+
+    _start_prompt_wait_notification "$notification_message" "smart-merge-json-prompt"
+    echo "前回確認時と同じ差分です: $timestamp" >&2
+    echo -n "[k]eep / [v]iew diff / [o]verwrite / [m]erge source priority / [d]merge destination priority (default: k): " >&2
+    _diff_review_record "$signature"
+    read -r choice
+    _finish_prompt_wait_notification
+
+    case "$choice" in
+        v|V|view)
+            echo "view"
+            ;;
+        o|O|overwrite)
+            echo "overwrite"
+            ;;
+        m|M)
+            echo "merge_src"
+            ;;
+        d|D)
+            echo "merge_dst"
+            ;;
+        *)
+            echo "keep"
+            ;;
+    esac
+}
+
+function _diff_review_prompt_repeated_symlink() {
+    local signature="$1"
+    local timestamp="$2"
+    local src="$3"
+    local link_path="$4"
+    local choice
+
+    _start_prompt_wait_notification "make_symlink overwrite required: $link_path -> $src" "confirm-prompt"
+    echo "前回確認時と同じ差分です: $timestamp" >&2
+    echo -n "[s]kip / [v]iew change / [o]verwrite (default: s): " >&2
+    _diff_review_record "$signature"
+    read -r choice
+    _finish_prompt_wait_notification
+
+    case "$choice" in
+        v|V|view)
+            echo "view"
+            ;;
+        o|O|overwrite)
+            echo "overwrite"
+            ;;
+        *)
+            echo "skip"
             ;;
     esac
 }
@@ -530,11 +832,40 @@ function smart_copy() {
         return 0
     fi
 
+    local review_signature=""
+    local last_reviewed_at=""
+    local repeated_action=""
+
+    review_signature=$(_diff_review_file_signature "smart_copy" "$src" "$dst" 2>/dev/null || true)
+    if [[ -n "$review_signature" ]] && ! _diff_review_smart_merge_auto_enabled; then
+        last_reviewed_at=$(_diff_review_last_reviewed_at "$review_signature" 2>/dev/null || true)
+        if [[ -n "$last_reviewed_at" ]]; then
+            repeated_action=$(_diff_review_prompt_repeated_copy "$review_signature" "$last_reviewed_at")
+            case "$repeated_action" in
+                overwrite)
+                    echo "cp \"$src\" \"$dst\""
+                    cp "$src" "$dst"
+                    return $?
+                    ;;
+                skip)
+                    echo "Skipped: $dst"
+                    return 0
+                    ;;
+                view)
+                    ;;
+            esac
+        fi
+    fi
+
     # Show differences and prompt user
     echo ""
     echo "=== Differences found ==="
     show_file_diff "$src" "$dst"
     echo "========================="
+
+    if [[ -n "$review_signature" ]] && ! _diff_review_smart_merge_auto_enabled; then
+        _diff_review_record "$review_signature"
+    fi
 
     if prompt_copy_action; then
         echo "cp \"$src\" \"$dst\""
@@ -638,10 +969,40 @@ function smart_merge_json() {
             return 1
         fi
 
+        local review_signature=""
+        local last_reviewed_at=""
+        local repeated_action=""
+
+        review_signature=$(_diff_review_file_signature "smart_merge_json_fallback" "$src" "$dst" "$src_label" "$dst_label" 2>/dev/null || true)
+        if [[ -n "$review_signature" ]] && ! _diff_review_smart_merge_auto_enabled; then
+            last_reviewed_at=$(_diff_review_last_reviewed_at "$review_signature" 2>/dev/null || true)
+            if [[ -n "$last_reviewed_at" ]]; then
+                repeated_action=$(_diff_review_prompt_repeated_copy "$review_signature" "$last_reviewed_at" "smart_merge_json overwrite/skip required: $src_label -> $dst_label")
+                case "$repeated_action" in
+                    overwrite)
+                        echo "Applying source to destination: $src_label -> $dst_label"
+                        echo "cp \"$src\" \"$dst\""
+                        cp "$src" "$dst"
+                        return $?
+                        ;;
+                    skip)
+                        echo "Skipped: $dst_label"
+                        return 0
+                        ;;
+                    view)
+                        ;;
+                esac
+            fi
+        fi
+
         echo ""
         echo "=== Differences found ==="
         show_file_diff "$src" "$dst" "$src_label" "$dst_label"
         echo "========================="
+
+        if [[ -n "$review_signature" ]] && ! _diff_review_smart_merge_auto_enabled; then
+            _diff_review_record "$review_signature"
+        fi
 
         if prompt_copy_action "smart_merge_json overwrite/skip required: $src_label -> $dst_label"; then
             echo "Applying source to destination: $src_label -> $dst_label"
@@ -660,14 +1021,30 @@ function smart_merge_json() {
         return 0
     fi
 
-    # Show differences
-    echo ""
-    echo "=== Differences found ==="
-    show_json_diff "$src" "$dst" "$src_label" "$dst_label"
-    echo "========================="
+    local review_signature=""
+    local last_reviewed_at=""
+    local action=""
 
-    # Prompt for action
-    local action=$(prompt_merge_action "smart_merge_json merge action required: $src_label -> $dst_label")
+    review_signature=$(_diff_review_json_signature "smart_merge_json" "$src" "$dst" "$src_label" "$dst_label" 2>/dev/null || true)
+    if [[ -n "$review_signature" ]] && ! _diff_review_smart_merge_auto_enabled; then
+        last_reviewed_at=$(_diff_review_last_reviewed_at "$review_signature" 2>/dev/null || true)
+        if [[ -n "$last_reviewed_at" ]]; then
+            action=$(_diff_review_prompt_repeated_merge "$review_signature" "$last_reviewed_at" "smart_merge_json merge action required: $src_label -> $dst_label")
+        fi
+    fi
+
+    if [[ -z "$action" || "$action" == "view" ]]; then
+        echo ""
+        echo "=== Differences found ==="
+        show_json_diff "$src" "$dst" "$src_label" "$dst_label"
+        echo "========================="
+
+        if [[ -n "$review_signature" ]] && ! _diff_review_smart_merge_auto_enabled; then
+            _diff_review_record "$review_signature"
+        fi
+
+        action=$(prompt_merge_action "smart_merge_json merge action required: $src_label -> $dst_label")
+    fi
 
     case "$action" in
         overwrite)
