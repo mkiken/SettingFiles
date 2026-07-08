@@ -21,11 +21,11 @@ gmp() {
 }
 
 gmh() {
-    gm --model flash "$@"
+    gmp "$@"
 }
 
 gml() {
-    gm --model pro "$@"
+    gmf "$@"
 }
 
 gmfp() {
