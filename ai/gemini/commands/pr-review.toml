@@ -1,19 +1,26 @@
-description = "Comprehensive PR review using gh command for specified PR number"
+description = "Comprehensive PR review using gh command for specified PR number and optional extra instructions"
 prompt = """
-Perform a comprehensive PR review for {{args}}.
+Perform a comprehensive PR review.
 
-CRITICAL: Run these commands FIRST:
-!{gh pr view {{args}} --json number,url,title,author,headRefName,baseRefName,isDraft,mergeable,state,additions,deletions,changedFiles}
-!{git branch --show-current}
-!{bash ~/.config/ai-pr/bin/fetch_existing_comments.sh {{args}}}
-!{bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh {{args}}}
+Inputs: parse `{{args}}` as `[prNumber] [additionalInstructions...]`. If the first token is a PR number (`123` or `#123`) or PR URL, use it as `<PR_NUMBER>` and treat the rest as `<ADDITIONAL_INSTRUCTIONS>`. Otherwise, resolve the current branch's PR with `gh pr view --json number --jq .number` and treat all arguments as `<ADDITIONAL_INSTRUCTIONS>`.
+
+Use only `<PR_NUMBER>` in gh commands. If `<ADDITIONAL_INSTRUCTIONS>` is non-empty, apply it as review emphasis without overriding mandatory duplicate detection, line-number, safety, or output-format rules.
+
+CRITICAL: Run these commands FIRST with `run_shell_command`:
+
+```bash
+gh pr view <PR_NUMBER> --json number,url,title,author,headRefName,baseRefName,isDraft,mergeable,state,additions,deletions,changedFiles
+git branch --show-current
+bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <PR_NUMBER>
+bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh <PR_NUMBER>
+```
 
 `fetch_existing_comments.sh` above outputs existing PR comments as NDJSON — use it for duplicate detection per the Existing Comment Deduplication rules in the core rules below. `format_pr_diff_with_line_numbers.sh` is the authoritative source for review line numbers (see Line Number Source in the core rules).
 
-Via `run_shell_command`:
-- PR body: `gh pr view {{args}} --json body --jq '.body'`
-- Code changes: `gh pr diff {{args}}` (if too large, redirect to a file, e.g. `gh pr diff {{args}} > diff.txt`, and read it incrementally)
-- Changed files only: `gh pr diff {{args}} --name-only`
+For more detail via `run_shell_command`:
+- PR body: `gh pr view <PR_NUMBER> --json body --jq '.body'`
+- Code changes: `gh pr diff <PR_NUMBER>` (if too large, redirect to a file, e.g. `gh pr diff <PR_NUMBER> > diff.txt`, and read it incrementally)
+- Changed files only: `gh pr diff <PR_NUMBER> --name-only`
 
 ### Local vs Remote File Access
 

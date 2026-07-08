@@ -57,21 +57,15 @@ cx-pr-create() {
 }
 
 cx-pr-review() {
-    local pr_number
-    pr_number=$(gh pr view --json number --jq .number) || {
-        echo "現在のブランチに対応するPRが見つかりません。" >&2
-        return 1
-    }
-    cx -c 'model_reasoning_effort="xhigh"' --dangerously-bypass-approvals-and-sandbox "\$pr-review PR #$pr_number をレビューして $*"
+    local pr_number review_prompt
+    _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
+    cx -c 'model_reasoning_effort="xhigh"' --dangerously-bypass-approvals-and-sandbox "\$pr-review PR #$pr_number をレビューして${review_prompt:+ $review_prompt}"
 }
 
 cx-pr-review-subagent() {
-    local pr_number
-    pr_number=$(gh pr view --json number --jq .number) || {
-        echo "現在のブランチに対応するPRが見つかりません。" >&2
-        return 1
-    }
-    cx -c 'model_reasoning_effort="xhigh"' --dangerously-bypass-approvals-and-sandbox "\$pr-review-subagents PR #$pr_number をレビューして $*"
+    local pr_number review_prompt
+    _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
+    cx -c 'model_reasoning_effort="xhigh"' --dangerously-bypass-approvals-and-sandbox "\$pr-review-subagents PR #$pr_number をレビューして${review_prompt:+ $review_prompt}"
 }
 
 alias cx-pr-comment-review='noglob _cx-pr-comment-review'

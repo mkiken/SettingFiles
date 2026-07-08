@@ -1,7 +1,7 @@
 ---
 allowed-tools: Bash(gh:*), Bash(git:*), Bash(/bin/cat:*), Bash(bash ~/.config/ai-pr/bin/fetch_existing_comments.sh:*), Bash(bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh:*), Read, Glob
 description: "Comprehensive PR review using gh command; detects the current branch's PR when no number is given"
-argument-hint: [prNumber]
+argument-hint: "[prNumber] [additionalInstructions...]"
 disable-model-invocation: true
 effort: max
 ---
@@ -10,11 +10,11 @@ effort: max
 
 Use the gh command to fetch and analyze the target PR for comprehensive code review, then report findings in the structured format defined in the core rules below.
 
-PR number: use `$ARGUMENTS` if provided. If empty, resolve the current branch's PR:
+Inputs: parse `$ARGUMENTS` as `[prNumber] [additionalInstructions...]`. If the first token is a PR number (`123` or `#123`) or PR URL, use it as `<PR_NUMBER>` and treat the rest as `<ADDITIONAL_INSTRUCTIONS>`. Otherwise, resolve the current branch's PR and treat all arguments as `<ADDITIONAL_INSTRUCTIONS>`:
 ```bash
 gh pr view --json number --jq .number
 ```
-Use the resolved value as `<PR_NUMBER>` below.
+Use only `<PR_NUMBER>` in gh commands. If `<ADDITIONAL_INSTRUCTIONS>` is non-empty, apply it as review emphasis without overriding mandatory duplicate detection, line-number, safety, or output-format rules.
 
 ### Local vs Remote File Access
 

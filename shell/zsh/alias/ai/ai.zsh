@@ -42,6 +42,52 @@ _ai_tmux_command() {
     esac
 }
 
+_ai_pr_review_arg_is_pr_ref() {
+    [[ "$1" =~ '^(#?[0-9]+|https?://[^[:space:]]+/pull/[0-9]+([/?#].*)?)$' ]]
+}
+
+_ai_pr_review_assign() {
+    local name="$1"
+    local value="$2"
+
+    [[ "${name}" =~ '^[A-Za-z_][A-Za-z0-9_]*$' ]] || return 1
+    eval "${name}=${(q)value}"
+}
+
+_ai_pr_review_resolve_args() {
+    local pr_var="$1"
+    local prompt_var="$2"
+    shift 2
+
+    local resolved_pr_number resolved_review_prompt
+    if [[ $# -gt 0 ]] && _ai_pr_review_arg_is_pr_ref "$1"; then
+        resolved_pr_number="${1#\#}"
+        shift
+    else
+        resolved_pr_number=$(gh pr view --json number --jq .number) || {
+            echo "現在のブランチに対応するPRが見つかりません。" >&2
+            return 1
+        }
+    fi
+
+    resolved_review_prompt="$*"
+    _ai_pr_review_assign "${pr_var}" "${resolved_pr_number}" || return 1
+    _ai_pr_review_assign "${prompt_var}" "${resolved_review_prompt}" || return 1
+}
+
+_ai_review_tmux_command() {
+    local func_name="$1"
+    shift
+
+    local command="${func_name}"
+    local arg
+    for arg in "$@"; do
+        command+=" ${(q)arg}"
+    done
+
+    print -r -- "${command}; zsh"
+}
+
 ai-all() {
     if [[ $# -eq 0 ]]; then
         echo "Usage: ai-all <prompt>" >&2
@@ -78,56 +124,63 @@ ai-all() {
 }
 
 review() {
-    local pr_number
-    pr_number=$(gh pr view --json number --jq .number) || {
-        echo "現在のブランチに対応するPRが見つかりません。" >&2
-        return 1
-    }
+    local pr_number review_prompt
+    _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
 
-    local review_name current_window
+    local review_args=("${pr_number}")
+    [[ -n "${review_prompt}" ]] && review_args+=("${review_prompt}")
+
+    local review_name current_window gemini_command codex_command
     current_window=$(tmux display-message -p '#{window_id}')
     review_name=$(_review_window_name)
+    gemini_command=$(_ai_review_tmux_command gm-pr-review "${review_args[@]}") || return 1
+    codex_command=$(_ai_review_tmux_command cx-pr-review "${review_args[@]}") || return 1
 
-    tmux new-window -n "${review_name}" "zsh -ic 'gm-pr-review; zsh'"
-    tmux new-window -n "${review_name}" "zsh -ic 'cx-pr-review; zsh'"
+    tmux new-window -n "${review_name}" "zsh -ic ${(q)gemini_command}"
+    tmux new-window -n "${review_name}" "zsh -ic ${(q)codex_command}"
 
     tmux rename-window -t "${current_window}" "${review_name}"
-    cl-pr-review
+    cl-pr-review "${review_args[@]}"
 }
 
 review-subagents() {
-    local pr_number
-    pr_number=$(gh pr view --json number --jq .number) || {
-        echo "現在のブランチに対応するPRが見つかりません。" >&2
-        return 1
-    }
+    local pr_number review_prompt
+    _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
 
-    local review_name current_window
+    local review_args=("${pr_number}")
+    [[ -n "${review_prompt}" ]] && review_args+=("${review_prompt}")
+
+    local review_name current_window gemini_command codex_command
     current_window=$(tmux display-message -p '#{window_id}')
     review_name=$(_review_window_name)
+    gemini_command=$(_ai_review_tmux_command gm-pr-review-subagents "${review_args[@]}") || return 1
+    codex_command=$(_ai_review_tmux_command cx-pr-review-subagent "${review_args[@]}") || return 1
 
-    tmux new-window -n "${review_name}" "zsh -ic 'gm-pr-review-subagents; zsh'"
-    tmux new-window -n "${review_name}" "zsh -ic 'cx-pr-review-subagent; zsh'"
+    tmux new-window -n "${review_name}" "zsh -ic ${(q)gemini_command}"
+    tmux new-window -n "${review_name}" "zsh -ic ${(q)codex_command}"
 
     tmux rename-window -t "${current_window}" "${review_name}"
-    cl-pr-review-subagents
+    cl-pr-review-subagents "${review_args[@]}"
 }
 
 review-all() {
-    local pr_number
-    pr_number=$(gh pr view --json number --jq .number) || {
-        echo "現在のブランチに対応するPRが見つかりません。" >&2
-        return 1
-    }
+    local pr_number review_prompt
+    _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
 
-    local review_name current_window
+    local review_args=("${pr_number}")
+    [[ -n "${review_prompt}" ]] && review_args+=("${review_prompt}")
+
+    local review_name current_window claude_command gemini_command codex_command
     current_window=$(tmux display-message -p '#{window_id}')
     review_name=$(_review_window_name)
+    claude_command=$(_ai_review_tmux_command cl-pr-review-subagents "${review_args[@]}") || return 1
+    gemini_command=$(_ai_review_tmux_command gm-pr-review-subagents "${review_args[@]}") || return 1
+    codex_command=$(_ai_review_tmux_command cx-pr-review-subagent "${review_args[@]}") || return 1
 
-    tmux new-window -n "${review_name}" "zsh -ic 'cl-pr-review-subagents; zsh'"
-    tmux new-window -n "${review_name}" "zsh -ic 'gm-pr-review-subagents; zsh'"
-    tmux new-window -n "${review_name}" "zsh -ic 'cx-pr-review-subagent; zsh'"
+    tmux new-window -n "${review_name}" "zsh -ic ${(q)claude_command}"
+    tmux new-window -n "${review_name}" "zsh -ic ${(q)gemini_command}"
+    tmux new-window -n "${review_name}" "zsh -ic ${(q)codex_command}"
 
     tmux rename-window -t "${current_window}" "${review_name}"
-    cl-pr-review
+    cl-pr-review "${review_args[@]}"
 }

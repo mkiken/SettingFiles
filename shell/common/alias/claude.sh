@@ -40,21 +40,35 @@ cl-web-summary() {
 }
 
 cl-pr-review() {
-    local pr_number
-    pr_number=$(gh pr view --json number --jq .number) || {
-        echo "現在のブランチに対応するPRが見つかりません。" >&2
-        return 1
-    }
-    clfm --dangerously-skip-permissions "/pr-review $pr_number $* ultrathink"
+    local pr_number review_prompt
+    if [[ $# -gt 0 && "$1" =~ ^(#?[0-9]+|https?://[^[:space:]]+/pull/[0-9]+([/?#].*)?)$ ]]; then
+        pr_number="${1#\#}"
+        shift
+    else
+        pr_number=$(gh pr view --json number --jq .number) || {
+            echo "現在のブランチに対応するPRが見つかりません。" >&2
+            return 1
+        }
+    fi
+
+    review_prompt="$*"
+    clfm --dangerously-skip-permissions "/pr-review $pr_number${review_prompt:+ $review_prompt} ultrathink"
 }
 
 cl-pr-review-subagents() {
-    local pr_number
-    pr_number=$(gh pr view --json number --jq .number) || {
-        echo "現在のブランチに対応するPRが見つかりません。" >&2
-        return 1
-    }
-    clfm --dangerously-skip-permissions "/pr-review-subagents $pr_number $* ultrathink"
+    local pr_number review_prompt
+    if [[ $# -gt 0 && "$1" =~ ^(#?[0-9]+|https?://[^[:space:]]+/pull/[0-9]+([/?#].*)?)$ ]]; then
+        pr_number="${1#\#}"
+        shift
+    else
+        pr_number=$(gh pr view --json number --jq .number) || {
+            echo "現在のブランチに対応するPRが見つかりません。" >&2
+            return 1
+        }
+    fi
+
+    review_prompt="$*"
+    clfm --dangerously-skip-permissions "/pr-review-subagents $pr_number${review_prompt:+ $review_prompt} ultrathink"
 }
 
 _cl-pr-comment-review() {

@@ -1,3 +1,7 @@
+### Additional Review Instructions
+
+If `<ADDITIONAL_INSTRUCTIONS>` is non-empty, ensure every specialist received it and use it to prioritize aggregation. It must not override mandatory duplicate detection, line-number, safety, or output-format rules.
+
 ### Aggregate
 
 1. Drop "no findings" messages from final findings but count them as zero in the summary.

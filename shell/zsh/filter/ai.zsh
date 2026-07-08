@@ -55,7 +55,10 @@ _fwmon-review() {
     if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
         return $EXIT_CODE_SIGINT
     fi
-    tmux new-window -c "$worktree_path" "zsh -ic '${func_name}; zsh'"
+
+    local review_command
+    review_command=$(_ai_review_tmux_command "$func_name" "$@") || return 1
+    tmux new-window -c "$worktree_path" "zsh -ic ${(q)review_command}"
 }
 
 fwmon-review()           { _fwmon-review review "$@" }

@@ -2,7 +2,7 @@
 description: "Comprehensive PR review using 7 parallel specialist sub-agents for bugs, security, architecture, error handling, history, tests, and performance"
 model: opus
 allowed-tools: Bash(gh:*), Bash(git:*), Bash(python:*), Bash(/bin/cat:*)
-argument-hint: "[prNumber]"
+argument-hint: "[prNumber] [additionalInstructions...]"
 disable-model-invocation: true
 effort: max
 ---
@@ -11,7 +11,7 @@ effort: max
 
 Review the target PR with 7 read-only specialist sub-agents in parallel.
 
-PR number: use `$ARGUMENTS` if provided. If empty, resolve the current branch's PR with `gh pr view --json number --jq .number`. Use the resolved value as `<PR_NUMBER>` below.
+Inputs: parse `$ARGUMENTS` as `[prNumber] [additionalInstructions...]`. If the first token is a PR number (`123` or `#123`) or PR URL, use it as `<PR_NUMBER>` and treat the rest as `<ADDITIONAL_INSTRUCTIONS>`. Otherwise, resolve the current branch's PR with `gh pr view --json number --jq .number` and treat all arguments as `<ADDITIONAL_INSTRUCTIONS>`.
 
 ### Gather Once
 
@@ -28,7 +28,7 @@ bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <PR_NUMBER>
 
 Local mode = current branch matches `headRefName`; sub-agents may then use `Read`/`Glob`, otherwise they must use `gh api` against `headRefName`.
 
-Pass every sub-agent: PR number, metadata, repo owner/name, full diff, line-numbered diff, existing comments NDJSON, local mode, and head branch. Each agent's focus and review rules are in its definition.
+Pass every sub-agent: PR number, metadata, repo owner/name, full diff, line-numbered diff, existing comments NDJSON, local mode, head branch, and `<ADDITIONAL_INSTRUCTIONS>`. Each agent's focus and review rules are in its definition.
 
 ### Launch
 

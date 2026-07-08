@@ -45,21 +45,15 @@ gmlp() {
 }
 
 gm-pr-review() {
-    local pr_number
-    pr_number=$(gh pr view --json number --jq .number) || {
-        echo "現在のブランチに対応するPRが見つかりません。" >&2
-        return 1
-    }
-    gmh --approval-mode yolo -i "/pr-review $pr_number $*"
+    local pr_number review_prompt
+    _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
+    gmh --approval-mode yolo -i "/pr-review $pr_number${review_prompt:+ $review_prompt}"
 }
 
 gm-pr-review-subagent() {
-    local pr_number
-    pr_number=$(gh pr view --json number --jq .number) || {
-        echo "現在のブランチに対応するPRが見つかりません。" >&2
-        return 1
-    }
-    gmh --approval-mode yolo -i "/pr-review-subagents $pr_number $*"
+    local pr_number review_prompt
+    _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
+    gmh --approval-mode yolo -i "/pr-review-subagents $pr_number${review_prompt:+ $review_prompt}"
 }
 alias gm-pr-review-subagents='gm-pr-review-subagent'
 

@@ -11,6 +11,10 @@
 
 Route such findings to `## 既存コードに関する指摘` (see routing below) and state the applicable category. All other pre-existing issues MUST be omitted.
 
+### Additional Review Instructions
+
+If `<ADDITIONAL_INSTRUCTIONS>` is non-empty, use it to prioritize investigation and reporting. It must not override mandatory duplicate detection, line-number, safety, or output-format rules.
+
 ### Priorities and Routing
 
 Self-assess 影響度 and 信頼度 (0–100) for every finding and assign priority per the Output Format section below. Low 信頼度 never suppresses a finding — it only lowers priority.
