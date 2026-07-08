@@ -64,6 +64,8 @@ Initialize scripts symlink repository files to system locations; core utility fu
 - `smart_copy` - Diff-aware file copy with interactive overwrite prompt
 - `smart_merge_json` - Deep-merge JSON files with conflict resolution (supports overwrite, keep, merge-with-priority)
 
+When editing shell helpers, do not use global variables for temporary return values or cross-call state. Prefer stdout, explicit arguments, or safe assignment into caller-owned `local` variables so parallel shells and nested calls cannot observe stale state.
+
 Key symlinks:
 - `ai/claude/_CLAUDE.md` → `~/.claude/CLAUDE.md`
 - `ai/gemini/_GEMINI.md` → `~/.gemini/GEMINI.md`
