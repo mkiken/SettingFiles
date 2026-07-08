@@ -37,9 +37,9 @@ emit_diff() {
   fi
 
   if [[ -n "${pr_ref}" ]]; then
-    gh pr diff "${pr_ref}" --patch --color=never
+    gh pr diff "${pr_ref}" --color=never
   else
-    gh pr diff --patch --color=never
+    gh pr diff --color=never
   fi
 }
 
