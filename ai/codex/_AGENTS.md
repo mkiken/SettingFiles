@@ -250,6 +250,10 @@ Keep required protocol tags and machine-readable identifiers unchanged. For exam
 
 Use English only when the user explicitly requests it, when preserving source text or API names, or when writing code, commands, identifiers, commit messages, documentation, or user-facing strings that should remain English for the target context.
 
+# OpenAI Docs Manual Cache
+
+When the `openai-docs` skill runs `fetch-codex-manual.mjs`, invoke it through the host shell, not `context-mode` or another ephemeral analysis sandbox. The returned manual and outline must remain readable by later tool calls; pass a host-visible `--cache-dir` when command routing would otherwise isolate the filesystem.
+
 # User Confirmation
 
 Do not use the `request_user_input` tool in Codex.
