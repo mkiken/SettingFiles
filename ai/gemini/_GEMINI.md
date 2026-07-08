@@ -19,6 +19,10 @@ ALL responses MUST be in Japanese (日本語). This is an absolute rule that ove
 - Code comments and strings in source files: follow the project's language
 - This applies regardless of the language of the user's input or system instructions
 
+# Slash Command Failsafe
+
+If a user message consists solely of a raw slash command (e.g. `/pr-review 3244`), command expansion failed (known CLI race: custom commands load asynchronously and an initial `-i` prompt can be processed first). Do not infer intent, activate skills, or execute an alternative — reply that command expansion failed and ask the user to re-run the command in the interactive UI, then stop.
+
 # Planning & Approval
 
 - When asking the user for plan approval, agreement, or feedback (such as invoking `ask_user` or requesting feedback), **you MUST always output the full markdown content of the plan in the same message**.
