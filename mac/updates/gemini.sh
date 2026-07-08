@@ -15,7 +15,8 @@ smart_merge_json ~/.gemini/settings.json "${Repo}ai/gemini/settings.json"
 # コマンド内の実行時 cat が依存する共通ディレクトリリンクを再作成（消失時の自己修復）
 make_symlink "${Repo}ai/common" ~/.gemini/common
 # Gemini CLI loads ~/.gemini/.env; keep AI-launched notifications suppressed.
-make_symlink "${Repo}ai/gemini/.env" ~/.gemini/.env
+sync_gemini_env_home_to_repo
+sync_gemini_env_repo_to_home
 
 # pr-review-subagents のレビュアー定義を共有フラグメントから生成（編集は ai/common/pr_review_subagents/ と ai/gemini/agents_src/ へ）
 generate_pr_reviewer_agents gemini

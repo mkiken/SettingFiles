@@ -2,6 +2,38 @@
 
 source "${Repo}mac/scripts/ai/claude_mem.sh"
 
+function _remove_gemini_env_destination_symlink() {
+  local dst="$1"
+
+  if [[ -L "$dst" ]]; then
+    echo "rm $dst"
+    /bin/rm "$dst" || return 1
+  fi
+}
+
+function sync_gemini_env_repo_to_home() {
+  local src="${Repo}ai/gemini/.env"
+  local dst="$HOME/.gemini/.env"
+
+  echo "Syncing Gemini .env to home..."
+  _remove_gemini_env_destination_symlink "$dst" || return 1
+  smart_copy "$src" "$dst"
+}
+
+function sync_gemini_env_home_to_repo() {
+  local src="$HOME/.gemini/.env"
+  local dst="${Repo}ai/gemini/.env"
+
+  if [[ ! -e "$src" && ! -L "$src" ]]; then
+    echo "Skipping Gemini .env repo sync; source not found: $src"
+    return 0
+  fi
+
+  echo "Syncing Gemini .env to repository..."
+  _remove_gemini_env_destination_symlink "$dst" || return 1
+  smart_copy "$src" "$dst"
+}
+
 function setup_gemini_context_mode() {
   echo "Ensuring Gemini context-mode CLI..."
 
