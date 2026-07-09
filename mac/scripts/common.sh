@@ -220,10 +220,42 @@ NODE
     return 0
   fi
 
+  local review_signature=""
+  local last_reviewed_at=""
+  local repeated_action=""
+  local candidate_label="VSCode extension sync candidate for $brewfile"
+
+  review_signature=$(_diff_review_file_signature "vscode_extension_sync" "$candidate" "$brewfile" "$candidate_label" "$brewfile" 2>/dev/null || true)
+  if [[ -n "$review_signature" ]] && ! _diff_review_smart_merge_auto_enabled; then
+    last_reviewed_at=$(_diff_review_last_reviewed_at "$review_signature" 2>/dev/null || true)
+    if [[ -n "$last_reviewed_at" ]]; then
+      repeated_action=$(_diff_review_prompt_repeated_copy "$review_signature" "$last_reviewed_at" "VSCode extension Brewfile sync action required: $brewfile")
+      case "$repeated_action" in
+        overwrite)
+          echo "/bin/cp \"$candidate\" \"$brewfile\""
+          /bin/cp "$candidate" "$brewfile"
+          /bin/rm -f "$candidate" "$installed_file" "$disabled_file"
+          return $?
+          ;;
+        skip)
+          echo "Skipped: $brewfile"
+          /bin/rm -f "$candidate" "$installed_file" "$disabled_file"
+          return 0
+          ;;
+        view)
+          ;;
+      esac
+    fi
+  fi
+
   echo ""
   echo "=== VSCode extensions Brewfile sync candidate ==="
-  show_file_diff "$candidate" "$brewfile" "$candidate" "$brewfile"
+  show_file_diff "$candidate" "$brewfile" "$candidate_label" "$brewfile"
   echo "================================================="
+
+  if [[ -n "$review_signature" ]] && ! _diff_review_smart_merge_auto_enabled; then
+    _diff_review_record "$review_signature"
+  fi
 
   if confirm "VSCodeの有効拡張同期候補で ${brewfile} を上書きしますか？" --default-no --no-cancel-msg; then
     echo "/bin/cp \"$candidate\" \"$brewfile\""
