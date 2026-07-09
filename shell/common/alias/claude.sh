@@ -13,6 +13,10 @@ clom() {
     clo --effort max "$@"
 }
 
+clhm() {
+    clom "$@"
+}
+
 clf() {
     cl --model 'fable' "$@"
 }
@@ -52,7 +56,7 @@ cl-pr-review() {
     fi
 
     review_prompt="$*"
-    clfm --dangerously-skip-permissions "/pr-review $pr_number${review_prompt:+ $review_prompt} ultrathink"
+    clhm --dangerously-skip-permissions "/pr-review $pr_number${review_prompt:+ $review_prompt} ultrathink"
 }
 
 cl-pr-review-subagents() {
@@ -68,11 +72,11 @@ cl-pr-review-subagents() {
     fi
 
     review_prompt="$*"
-    clfm --dangerously-skip-permissions "/pr-review-subagents $pr_number${review_prompt:+ $review_prompt} ultrathink"
+    clhm --dangerously-skip-permissions "/pr-review-subagents $pr_number${review_prompt:+ $review_prompt} ultrathink"
 }
 
 _cl-pr-comment-review() {
-    clfm --dangerously-skip-permissions "/pr-comment-review $* ultrathink"
+    clhm --dangerously-skip-permissions "/pr-comment-review $* ultrathink"
 }
 
 _cl-pr-comment-implement() {
