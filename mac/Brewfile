@@ -44,7 +44,6 @@ brew "zoxide"
 cask "jazzyalex/agent-sessions/agent-sessions", trusted: true
 cask "alt-tab"
 cask "claude"
-cask "cursor"
 cask "docker-desktop"
 cask "dropbox"
 cask "font-meslo-for-powerlevel10k"
