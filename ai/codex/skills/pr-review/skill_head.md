@@ -12,6 +12,9 @@ description: >
 
 Perform a comprehensive code review for the specified PR (or the PR associated with the current branch if no number is given), then report findings in the structured format defined in the core rules below.
 
+Keep the review read-only and do not create scratch files: never redirect diffs, comments, or command output to files in the repository or elsewhere.
+Inspect command output or indexed sources, or run read-only commands directly.
+
 Inputs: parse the user's message as `[prNumber] [additionalInstructions...]`. If the first PR-like token is a PR number (`123` or `#123`) or PR URL, use it as `<PR_NUMBER>` and treat the rest as `<ADDITIONAL_INSTRUCTIONS>`. Otherwise, resolve the current branch's PR and treat any remaining request text as `<ADDITIONAL_INSTRUCTIONS>`:
 ```bash
 gh pr view --json number --jq .number

@@ -50,6 +50,8 @@ Run all seven in parallel and wait for all:
 - `pr_reviewer_performance`
 
 Each subagent stays read-only and returns Japanese findings in its configured format.
+Read-only includes not creating scratch files: never redirect diffs, comments, or command output to files in the repository or elsewhere.
+Inspect the passed context or indexed sources, or run read-only commands directly.
 
 ### Additional Review Instructions
 
