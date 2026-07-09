@@ -10,6 +10,7 @@ enable_sudo_bell
 smart_merge_json ~/.config/karabiner/karabiner.json "${SET}mac/karabiner.json"
 smart_copy ~/Library/Application\ Support/Code/User/settings.json "${Repo}vscode/base_setting.jsonc"
 smart_copy ~/Library/Application\ Support/Code/User/keybindings.json "${Repo}vscode/base_keybindings.json"
+sync_enabled_vscode_extensions_to_brewfile "${SET}mac/Brewfile"
 
 echo "start git submodule setting."
 git submodule sync

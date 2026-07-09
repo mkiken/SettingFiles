@@ -66,6 +66,175 @@ function untap_stale_homebrew_taps() {
   done
 }
 
+function sync_enabled_vscode_extensions_to_brewfile() {
+  local brewfile="${1:-${Repo}mac/Brewfile}"
+  local state_db="${HOME}/Library/Application Support/Code/User/globalStorage/state.vscdb"
+
+  if [[ ! -f "$brewfile" ]]; then
+    echo "Warning: Brewfile not found, skipping VSCode extension sync: $brewfile" >&2
+    return 0
+  fi
+
+  if ! command -v code >/dev/null 2>&1; then
+    echo "Warning: code command not found, skipping VSCode extension sync." >&2
+    return 0
+  fi
+
+  if ! command -v sqlite3 >/dev/null 2>&1; then
+    echo "Warning: sqlite3 command not found, skipping VSCode extension sync." >&2
+    return 0
+  fi
+
+  if ! command -v node >/dev/null 2>&1; then
+    echo "Warning: node command not found, skipping VSCode extension sync." >&2
+    return 0
+  fi
+
+  if [[ ! -f "$state_db" ]]; then
+    echo "Warning: VSCode state database not found, skipping VSCode extension sync: $state_db" >&2
+    return 0
+  fi
+
+  local candidate installed_file disabled_file
+  candidate="$(mktemp "${TMPDIR:-/tmp}/settingfiles_brewfile_vscode_candidate_XXXXXX")" || return 1
+  installed_file="$(mktemp "${TMPDIR:-/tmp}/settingfiles_vscode_installed_XXXXXX")" || {
+    /bin/rm -f "$candidate"
+    return 1
+  }
+  disabled_file="$(mktemp "${TMPDIR:-/tmp}/settingfiles_vscode_disabled_XXXXXX")" || {
+    /bin/rm -f "$candidate" "$installed_file"
+    return 1
+  }
+
+  if ! /bin/cp -p "$brewfile" "$candidate"; then
+    echo "Warning: failed to prepare VSCode extension sync candidate, skipping." >&2
+    /bin/rm -f "$candidate" "$installed_file" "$disabled_file"
+    return 0
+  fi
+
+  if ! code --list-extensions >| "$installed_file"; then
+    echo "Warning: failed to list VSCode extensions, skipping VSCode extension sync." >&2
+    /bin/rm -f "$candidate" "$installed_file" "$disabled_file"
+    return 0
+  fi
+
+  if ! sqlite3 "$state_db" "select value from ItemTable where key in ('extensionsIdentifiers/disabled', 'vscode/extensionsIdentifiers/disabled');" >| "$disabled_file"; then
+    echo "Warning: failed to read VSCode disabled extension state, skipping VSCode extension sync." >&2
+    /bin/rm -f "$candidate" "$installed_file" "$disabled_file"
+    return 0
+  fi
+
+  local summary additions_count
+  summary="$(
+    node - "$brewfile" "$candidate" "$installed_file" "$disabled_file" <<'NODE'
+const fs = require("fs");
+
+const [brewfile, candidate, installedFile, disabledFile] = process.argv.slice(2);
+const content = fs.readFileSync(brewfile, "utf8");
+
+const normalize = (value) => String(value).trim().toLowerCase();
+const unique = (values) => [...new Set(values.filter(Boolean))];
+
+const installed = unique(
+  fs.readFileSync(installedFile, "utf8")
+    .split(/\r?\n/)
+    .map(normalize)
+);
+
+const disabled = new Set();
+for (const raw of fs.readFileSync(disabledFile, "utf8").split(/\r?\n/)) {
+  if (!raw.trim()) continue;
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      for (const item of parsed) {
+        if (item && item.id) disabled.add(normalize(item.id));
+      }
+    }
+  } catch {
+    // Ignore unknown state rows; only the disabled extension JSON arrays matter.
+  }
+}
+
+const hasFinalNewline = content.endsWith("\n");
+const lines = hasFinalNewline ? content.slice(0, -1).split("\n") : content.split("\n");
+const vscodePattern = /^vscode\s+"([^"]+)"/;
+const existing = [];
+const vscodeIndexes = [];
+
+lines.forEach((line, index) => {
+  const match = line.match(vscodePattern);
+  if (!match) return;
+  existing.push(match[1]);
+  vscodeIndexes.push(index);
+});
+
+const existingLower = new Set(existing.map(normalize));
+const additions = installed
+  .filter((id) => !disabled.has(id) && !existingLower.has(id))
+  .sort((a, b) => a.localeCompare(b));
+
+let outputLines = lines;
+if (additions.length > 0) {
+  const vscodeLines = [...existing, ...additions]
+    .sort((a, b) => normalize(a).localeCompare(normalize(b)))
+    .map((id) => `vscode "${id}"`);
+
+  if (vscodeIndexes.length > 0) {
+    const firstVscodeIndex = vscodeIndexes[0];
+    outputLines = [];
+    lines.forEach((line, index) => {
+      if (index === firstVscodeIndex) outputLines.push(...vscodeLines);
+      if (!vscodePattern.test(line)) outputLines.push(line);
+    });
+  } else {
+    const masIndex = lines.findIndex((line) => /^mas\s+"/.test(line));
+    const insertIndex = masIndex === -1 ? lines.length : masIndex;
+    outputLines = [...lines];
+    outputLines.splice(insertIndex, 0, ...vscodeLines, "");
+  }
+}
+
+fs.writeFileSync(candidate, outputLines.join("\n") + (hasFinalNewline ? "\n" : ""));
+
+console.log(`Installed VSCode extensions: ${installed.length}`);
+console.log(`Globally disabled VSCode extensions: ${[...disabled].sort().join(", ") || "none"}`);
+console.log(`ADDED_COUNT=${additions.length}`);
+if (additions.length > 0) {
+  console.log("Additions:");
+  for (const id of additions) console.log(`  ${id}`);
+}
+NODE
+  )" || {
+    echo "Warning: failed to build VSCode extension sync candidate, skipping." >&2
+    /bin/rm -f "$candidate" "$installed_file" "$disabled_file"
+    return 0
+  }
+
+  print -r -- "$summary"
+  additions_count="$(print -r -- "$summary" | /usr/bin/awk -F= '$1 == "ADDED_COUNT" { print $2; exit }')"
+
+  if [[ -z "$additions_count" || "$additions_count" -eq 0 ]]; then
+    echo "✓ Brewfile already contains all enabled VSCode extensions."
+    /bin/rm -f "$candidate" "$installed_file" "$disabled_file"
+    return 0
+  fi
+
+  echo ""
+  echo "=== VSCode extensions Brewfile sync candidate ==="
+  show_file_diff "$candidate" "$brewfile" "$candidate" "$brewfile"
+  echo "================================================="
+
+  if confirm "VSCodeの有効拡張同期候補で ${brewfile} を上書きしますか？" --default-no --no-cancel-msg; then
+    echo "/bin/cp \"$candidate\" \"$brewfile\""
+    /bin/cp "$candidate" "$brewfile"
+  else
+    echo "Skipped: $brewfile"
+  fi
+
+  /bin/rm -f "$candidate" "$installed_file" "$disabled_file"
+}
+
 function setup_ai_skills() {
   local dest_dir="$1"
   shift
