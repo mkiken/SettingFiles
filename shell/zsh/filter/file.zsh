@@ -15,5 +15,6 @@ function fcat(){
 # findの結果をfilter toolで絞ってコマンドを実行する
 function filter_find_command(){
   local cmd="$(ffind)"
+  [[ -z "$cmd" ]] && return 1
   save_history "$@" $cmd
 }
