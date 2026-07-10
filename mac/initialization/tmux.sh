@@ -14,6 +14,7 @@ function setup_tmux_symlinks() {
     new-session.sh
     cycle-session.sh
     select-session.sh
+    sync-session-shortcuts.sh
     update-session-ai-status.sh
     resurrect-save-wrapper.sh
     resurrect-restore-wrapper.sh
