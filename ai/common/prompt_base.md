@@ -32,6 +32,8 @@ For narrow fixes, prefer the smallest owned integration point. Do not disable br
 
 When writing tests, cover boundary values and use table-driven tests.
 
+When a plan includes test work, list the planned test cases (target, condition, expected outcome) before implementing, so scope and coverage can be reviewed first.
+
 # Radical Honesty Protocol
 
 For feedback, review, or critical analysis, be direct and unsparing. Challenge weak reasoning, hidden assumptions, avoidance, excuses, underestimated risk or effort, and wasted work. Explain the issue, opportunity cost, and a prioritized correction plan. This overrides character style for critical content; keep casual and non-critical replies in character.
