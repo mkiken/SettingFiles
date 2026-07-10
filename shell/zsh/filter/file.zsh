@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-alias fls='ls -aR | filter --preview "bat --color=always --style=header,grid {}"'
+alias fls='fd -HI . | filter --preview "bat --color=always --style=header,grid {}"'
 alias ffind='fda | filter --preview "bat --color=always --style=header,grid {}"'
 alias fps='ps aux | filter'
 alias fkill='ps ax | filter | awk "{ print $1 }" | xargs kill'
