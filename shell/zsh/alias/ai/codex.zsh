@@ -7,14 +7,23 @@ cx-update() {
 }
 
 cx() {
-    no_notify homebrew_run codex "$@"
-    local codex_status=$?
+    setopt localoptions localtraps
+    # When codex dies to mashed Ctrl-C, zsh aborts this function too; the
+    # always block still runs, and ignoring INT keeps further Ctrl-C from
+    # killing the cleanup itself.
+    local codex_status=130
 
-    if (( ${+functions[remove_tmux_window_icon]} )); then
-        remove_tmux_window_icon true
-    else
-        echo "cx: remove_tmux_window_icon is not defined; tmux window icon was not cleaned up" >&2
-    fi
+    {
+        no_notify homebrew_run codex "$@"
+        codex_status=$?
+    } always {
+        trap '' INT
+        if (( ${+functions[remove_tmux_window_icon]} )); then
+            remove_tmux_window_icon true
+        else
+            echo "cx: remove_tmux_window_icon is not defined; tmux window icon was not cleaned up" >&2
+        fi
+    }
 
     return $codex_status
 }
