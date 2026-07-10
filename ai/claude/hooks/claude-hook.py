@@ -1,43 +1,23 @@
 #!/usr/bin/env python3
 # [Claude Code Hooksでtmuxのウィンドウ名を変更して通知の代わりにする #ClaudeCode - Qiita](https://qiita.com/miya10kei/items/d9dd12e8fde42fb222e2)
 import json
-import os
-import re
-import subprocess
 import sys
 from enum import Enum
+from functools import partial
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "shell" / "tmux"))
-from tmux_emoji import EMOJI_PATTERN, EMOJI_ID_CLAUDE
-
-
-class HookStatus(Enum):
-    COMPLETED = "✅"
-    NOTIFICATION = "✋"
-    ONGOING = "🤖"
-
+import tmux_window_name as _twn
+from tmux_emoji import EMOJI_ID_CLAUDE
+from tmux_window_name import HookStatus, remove_tmux_window_icon
 
 IDENTIFIER = EMOJI_ID_CLAUDE
+update_tmux_window_name = partial(_twn.update_tmux_window_name, identifier=IDENTIFIER)
 
 
 class SoundType(Enum):
     STOP = "stop"
     NOTIFICATION = "notification"
-
-
-def _get_tmux_pane_id() -> str | None:
-    """tmuxセッション内の場合のみpane_idを返す。それ以外はNone。
-    VSCode等からtmuxを起動した際にTMUX_PANEが継承されるケースを除外するため、
-    TERM_PROGRAM=="tmux"も確認する。
-    """
-    pane_id = os.environ.get("TMUX_PANE")
-    if not pane_id:
-        return None
-    term_program = os.environ.get("TERM_PROGRAM", "")
-    if term_program != "tmux":
-        return None
-    return pane_id
 
 
 def main():
@@ -100,85 +80,6 @@ def _has_running_background_tasks(input_data: dict) -> bool:
 def handle_session_end_hook(_: dict):
     """セッション終了時にtmuxウィンドウ名からアイコンを削除"""
     remove_tmux_window_icon()
-
-
-def update_tmux_window_name(status: HookStatus):
-    """指定されたステータスでtmuxウィンドウ名を更新"""
-    try:
-        # 実際のtmuxセッション内でのみ更新（VSCode等からの継承を除外）
-        pane_id = _get_tmux_pane_id()
-        if not pane_id:
-            return
-
-        # pane_idから直接ウィンドウ名を取得（pane_idはグローバルにユニーク）
-        result = subprocess.run(
-            ["tmux", "display-message", "-p", "-t", pane_id, "#W"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        current_name = result.stdout.strip()
-
-        # pane_idからグローバルにユニークなwindow_idを取得
-        result = subprocess.run(
-            ["tmux", "display-message", "-p", "-t", pane_id, "#{window_id}"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        window_id = result.stdout.strip()
-
-        emoji = f"{IDENTIFIER}{status.value}"
-        # 既存の絵文字を置き換え（または追加）
-        emoji_pattern = EMOJI_PATTERN
-        new_name = re.sub(rf"^[{emoji_pattern}]*", f"{emoji}", current_name)
-        if not new_name.startswith(emoji):
-            new_name = f"{emoji}{current_name}"
-
-        # グローバルにユニークなwindow_idでrename
-        subprocess.run(["tmux", "rename-window", "-t", window_id, new_name], check=True)
-    except Exception:
-        pass  # tmux環境外やエラーは無視
-
-
-def remove_tmux_window_icon():
-    """tmuxウィンドウ名から状態アイコンを削除"""
-    try:
-        # 実際のtmuxセッション内でのみ更新（VSCode等からの継承を除外）
-        pane_id = _get_tmux_pane_id()
-        if not pane_id:
-            return
-
-        # pane_idから直接ウィンドウ名を取得（pane_idはグローバルにユニーク）
-        result = subprocess.run(
-            ["tmux", "display-message", "-p", "-t", pane_id, "#W"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        current_name = result.stdout.strip()
-
-        # pane_idからグローバルにユニークなwindow_idを取得
-        result = subprocess.run(
-            ["tmux", "display-message", "-p", "-t", pane_id, "#{window_id}"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        window_id = result.stdout.strip()
-
-        # 先頭の絵文字パターンを削除
-        emoji_pattern = EMOJI_PATTERN
-        new_name = re.sub(rf"^[{emoji_pattern}]+", "", current_name)
-
-        # 名前が変わった場合のみ更新
-        if new_name != current_name:
-            subprocess.run(
-                ["tmux", "rename-window", "-t", window_id, new_name],
-                check=True
-            )
-    except Exception:
-        pass
 
 
 if __name__ == "__main__":

@@ -1,27 +1,21 @@
 #!/usr/bin/env python3
 import json
 import os
-import re
-import subprocess
 import sys
 from datetime import datetime, timezone
-from enum import Enum
+from functools import partial
 from pathlib import Path
 
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "shell" / "tmux"))
+import tmux_window_name as _twn
 from codex_hook_common import analyze_hook_input
-from tmux_emoji import EMOJI_PATTERN, EMOJI_ID_CODEX
-
-
-class HookStatus(Enum):
-    COMPLETED = "✅"
-    NOTIFICATION = "✋"
-    ONGOING = "🤖"
-
+from tmux_emoji import EMOJI_ID_CODEX
+from tmux_window_name import HookStatus
 
 IDENTIFIER = EMOJI_ID_CODEX
+update_tmux_window_name = partial(_twn.update_tmux_window_name, identifier=IDENTIFIER)
 
 
 def _hook_error_log_path() -> Path:
@@ -80,20 +74,6 @@ def load_hook_input() -> tuple[dict | None, str | None]:
     return input_data, None
 
 
-def _get_tmux_pane_id() -> str | None:
-    """tmuxセッション内の場合のみpane_idを返す。それ以外はNone。
-    VSCode等からtmuxを起動した際にTMUX_PANEが継承されるケースを除外するため、
-    TERM_PROGRAM=="tmux"も確認する。
-    """
-    pane_id = os.environ.get("TMUX_PANE")
-    if not pane_id:
-        return None
-    term_program = os.environ.get("TERM_PROGRAM", "")
-    if term_program != "tmux":
-        return None
-    return pane_id
-
-
 def main() -> int:
     input_data, input_error = load_hook_input()
     if input_data is None:
@@ -148,40 +128,6 @@ def handle_stop_hook(input_data: dict):
         update_tmux_window_name(HookStatus.NOTIFICATION)
     else:
         update_tmux_window_name(HookStatus.COMPLETED)
-
-
-def update_tmux_window_name(status: HookStatus):
-    """指定されたステータスでtmuxウィンドウ名を更新"""
-    try:
-        pane_id = _get_tmux_pane_id()
-        if not pane_id:
-            return
-
-        result = subprocess.run(
-            ["tmux", "display-message", "-p", "-t", pane_id, "#W"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        current_name = result.stdout.strip()
-
-        result = subprocess.run(
-            ["tmux", "display-message", "-p", "-t", pane_id, "#{window_id}"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        window_id = result.stdout.strip()
-
-        emoji = f"{IDENTIFIER}{status.value}"
-        emoji_pattern = EMOJI_PATTERN
-        new_name = re.sub(rf"^[{emoji_pattern}]*", f"{emoji}", current_name)
-        if not new_name.startswith(emoji):
-            new_name = f"{emoji}{current_name}"
-
-        subprocess.run(["tmux", "rename-window", "-t", window_id, new_name], check=True)
-    except Exception:
-        pass
 
 
 if __name__ == "__main__":
