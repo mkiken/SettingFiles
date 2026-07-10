@@ -35,6 +35,12 @@ cd windows && ./update.ps1
 cd mac && brew bundle
 ```
 
+### Run Tests
+```bash
+python3 -m unittest discover -s tests
+```
+Run before committing code changes (the suite takes seconds). Fix failures, or report them explicitly at the commit confirmation — never leave the suite red.
+
 ### Regenerate AI Prompts
 
 Canonical source-to-command mapping for regenerating committed outputs. The full init scripts (`mac/initialization/ai/{claude,gemini,codex}.sh`) cover everything; the targeted commands below are faster.
