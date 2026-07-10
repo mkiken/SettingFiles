@@ -1,3 +1,4 @@
+import json
 import shlex
 import shutil
 import subprocess
@@ -54,6 +55,35 @@ def combined_output(result: subprocess.CompletedProcess[str]) -> str:
 
 
 class DiffReviewStateTest(unittest.TestCase):
+    def test_diff_review_mktemp_json_returns_distinct_files_with_trailing_tmpdir_slash(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            session = ZshSession(Path(tmpdir))
+            temp_dir = Path(tmpdir) / "tmp"
+            temp_dir.mkdir()
+            stale_literal = temp_dir / "settingfiles_diff_review_XXXXXX.json"
+            script = (
+                "source shell/zsh/alias/utils.zsh; "
+                "first=$(_diff_review_mktemp_json); "
+                "second=$(_diff_review_mktemp_json); "
+                "print -r -- \"$first\"; "
+                "print -r -- \"$second\"; "
+                "[[ -e \"$first\" && -e \"$second\" ]]"
+            )
+
+            result = session.run(script, extra_env={"TMPDIR": f"{temp_dir}/"})
+            output = combined_output(result)
+            paths = [Path(line) for line in result.stdout.splitlines()]
+
+            self.assertEqual(result.returncode, 0, output)
+            self.assertEqual(len(paths), 2, output)
+            self.assertNotEqual(paths[0], paths[1])
+            self.assertTrue(paths[0].exists())
+            self.assertTrue(paths[1].exists())
+            self.assertNotEqual(paths[0], stale_literal)
+            self.assertNotEqual(paths[1], stale_literal)
+            self.assertNotIn("//", paths[0].as_posix())
+            self.assertNotIn("//", paths[1].as_posix())
+
     def test_smart_copy_repeated_same_diff_shows_skip_first_prompt(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             session = ZshSession(Path(tmpdir))
@@ -181,6 +211,50 @@ class DiffReviewStateTest(unittest.TestCase):
             output = combined_output(result)
 
             self.assertEqual(result.returncode, 0, output)
+            self.assertEqual(list(temp_dir.iterdir()), [])
+
+    @unittest.skipIf(shutil.which("jq", path=SYSTEM_PATH) is None, "jq is required")
+    def test_smart_merge_json_works_with_stale_literal_mktemp_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            session = ZshSession(Path(tmpdir))
+            temp_dir = Path(tmpdir) / "tmp"
+            temp_dir.mkdir()
+            stale_literal = temp_dir / "settingfiles_diff_review_XXXXXX.json"
+            stale_literal.write_text("stale\n", encoding="utf-8")
+            src = Path(tmpdir) / "src.json"
+            dst = Path(tmpdir) / "dst.json"
+            src.write_text('{"a":2,"b":1}\n', encoding="utf-8")
+            dst.write_text('{"a":1,"c":3}\n', encoding="utf-8")
+            script = f"source shell/zsh/alias/utils.zsh; smart_merge_json {quote(src)} {quote(dst)} src dst"
+
+            result = session.run(script, "k\n", extra_env={"TMPDIR": f"{temp_dir}/"})
+            output = combined_output(result)
+
+            self.assertEqual(result.returncode, 0, output)
+            self.assertIn("Skipped: dst", output)
+            self.assertEqual(stale_literal.read_text(encoding="utf-8"), "stale\n")
+
+    @unittest.skipIf(shutil.which("jq", path=SYSTEM_PATH) is None, "jq is required")
+    def test_smart_merge_json_merge_action_removes_tmpdir_files(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            session = ZshSession(Path(tmpdir))
+            temp_dir = Path(tmpdir) / "tmp"
+            temp_dir.mkdir()
+            src = Path(tmpdir) / "src.json"
+            dst = Path(tmpdir) / "dst.json"
+            src.write_text('{"a":2,"b":1}\n', encoding="utf-8")
+            dst.write_text('{"a":1,"c":3}\n', encoding="utf-8")
+            script = f"source shell/zsh/alias/utils.zsh; smart_merge_json {quote(src)} {quote(dst)} src dst"
+
+            result = session.run(
+                script,
+                extra_env={"TMPDIR": f"{temp_dir}/", "SMART_MERGE_ACTION": "merge_src"},
+            )
+            output = combined_output(result)
+
+            self.assertEqual(result.returncode, 0, output)
+            self.assertIn("Applying merge result to destination: dst", output)
+            self.assertEqual(json.loads(dst.read_text(encoding="utf-8")), {"a": 2, "b": 1, "c": 3})
             self.assertEqual(list(temp_dir.iterdir()), [])
 
     def test_make_symlink_repeated_conflict_shows_skip_first_prompt(self):

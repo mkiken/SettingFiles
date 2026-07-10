@@ -305,7 +305,9 @@ function _diff_review_sha256() {
 }
 
 function _diff_review_mktemp_json() {
-    mktemp "${TMPDIR:-/tmp}/settingfiles_diff_review_XXXXXX.json"
+    local tmpdir="${TMPDIR:-/tmp}"
+    tmpdir="${tmpdir%/}"
+    mktemp "${tmpdir}/settingfiles_diff_review_json.XXXXXX"
 }
 
 function _diff_review_file_hash() {
@@ -1059,7 +1061,7 @@ function smart_merge_json() {
             ;;
         merge_src|merge_dst)
             # Create temporary file for merge result
-            local tmp_file=$(mktemp).json
+            local tmp_file="$(_diff_review_mktemp_json)"
 
             # deepmerge: オブジェクトは再帰的にマージ、配列は初出順を保ったunionで結合する。
             # 例外: mcpServers.*.args と _disabledMcpServers.*.args はunionせず優先側の値で置換する。
