@@ -12,7 +12,27 @@ function _notify_should_suppress_for_ai() {
   return 1
 }
 
+# Usage: notify [--tmux-icon <emoji>] <title> <message> [sound] [group] [time_override]
 function notify() {
+  local tmux_icon=""
+  while [[ "$1" == --* ]]; do
+    case "$1" in
+      --tmux-icon) tmux_icon="$2"; shift 2 ;;
+      *) break ;;
+    esac
+  done
+
+  # tmuxアイコンは通知抑制と独立に設定する（AIセッション中の入力待ち✋等を維持するため）
+  if [[ -n "$tmux_icon" ]]; then
+    if ! command -v update_tmux_window_name >/dev/null 2>&1; then
+      local _twn="${HOME}/Desktop/repository/SettingFiles/shell/tmux/tmux_window_name.sh"
+      [[ -f "$_twn" ]] && source "$_twn"
+    fi
+    if command -v update_tmux_window_name >/dev/null 2>&1; then
+      update_tmux_window_name "$tmux_icon" || true
+    fi
+  fi
+
   if _notify_should_suppress_for_ai; then
     return 0
   fi
