@@ -14,7 +14,7 @@ setup_ai_mcp install
 setup_ai_pr_tools
 
 # 共通プロンプトを連結して _AGENTS.md を生成し、~/.codex/AGENTS.md にシンボリックリンク
-{ /bin/cat "${Repo}ai/common/prompt_base.md"; echo; /bin/cat "${Repo}ai/common/characters/nyaruko.md"; echo; /bin/cat "${Repo}ai/codex/codex_base.md"; } > "${Repo}ai/codex/_AGENTS.md"
+generate_codex_agents
 make_symlink "${Repo}ai/codex/_AGENTS.md" ~/.codex/AGENTS.md
 
 # hooks はファイル単位でシンボリックリンク

@@ -303,6 +303,11 @@ function setup_ai_pr_tools() {
   make_symlink "$source_dir" "$dest_bin"
 }
 
+# Codex の共通プロンプトとキャラクター設定を _AGENTS.md に連結する
+function generate_codex_agents() {
+  { /bin/cat "${Repo}ai/common/prompt_base.md"; echo; /bin/cat "${Repo}ai/common/characters/nyaruko.md"; echo; /bin/cat "${Repo}ai/codex/codex_base.md"; } > "${Repo}ai/codex/_AGENTS.md"
+}
+
 # pr-review-subagents のレビュアー定義を共有フラグメントから生成する
 # 生成物: ai/claude/agents/pr-reviewer-*.md, ai/gemini/agents/pr-reviewer-*.md, ai/codex/agents/pr_reviewer_*.toml
 # 編集は ai/common/pr_review_subagents/ と ai/<platform>/agents_src/ へ（生成物は編集しない）

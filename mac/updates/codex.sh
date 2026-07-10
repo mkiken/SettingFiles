@@ -14,7 +14,7 @@ setup_ai_mcp update
 setup_ai_pr_tools
 
 # 共通プロンプトの更新を _AGENTS.md に反映
-{ /bin/cat "${Repo}ai/common/prompt_base.md"; echo; /bin/cat "${Repo}ai/common/characters/nyaruko.md"; echo; /bin/cat "${Repo}ai/codex/codex_base.md"; } > "${Repo}ai/codex/_AGENTS.md"
+generate_codex_agents
 
 # hooks はファイル単位でシンボリックリンク
 mkdir -p ~/.codex/hooks
