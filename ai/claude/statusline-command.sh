@@ -5,6 +5,7 @@ input=$(cat)
 
 # Extract fields from JSON
 model=$(echo "$input" | jq -r '.model.display_name // ""')
+effort=$(echo "$input" | jq -r '.effort.level // ""')
 ctx_used=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
 ctx_current=$(echo "$input" | jq -r '
   .context_window.current_usage as $cu |
@@ -100,9 +101,13 @@ format_duration_ms() {
 
 # --- Line 1: Model | Context Cost Duration | Rate limits ---
 
-# 🤖 Model
+# 🤖 Model (+ reasoning effort level, when the model supports it)
 if [ -n "$model" ]; then
-  printf '\033[34m🤖 %s\033[0m' "$model"
+  if [ -n "$effort" ]; then
+    printf '\033[34m🤖 %s (%s)\033[0m' "$model" "$effort"
+  else
+    printf '\033[34m🤖 %s\033[0m' "$model"
+  fi
 fi
 
 printf ' |'
