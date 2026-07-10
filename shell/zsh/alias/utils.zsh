@@ -493,9 +493,6 @@ function _start_prompt_wait_notification() {
             _title="入力待ち"
         fi
         notify --tmux-icon "${EMOJI_STATUS_NOTIFICATION:-✋}" "$_title" "$message" "default" "$group" || true
-    elif (( ${+functions[update_tmux_window_name]} )); then
-        # notify が読み込めない環境でもアイコンだけは従来どおり出す
-        update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION:-✋}" || true
     fi
 
     return 0
