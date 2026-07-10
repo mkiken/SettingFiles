@@ -591,6 +591,34 @@ function fglp-hash() {
 
   save_history git log -p "$commit_hash"
 }
+
+# コミット一覧からfzfで選択し、完全なコミットハッシュをクリップボードへコピー
+function fghc() {
+  if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    echo "エラー: 現在のディレクトリはgitリポジトリではありません"
+    return 1
+  fi
+
+  local commit_hash
+  commit_hash=$(_select_commit_hash "コピーするコミットを選択してください" 100)
+  local selection_status=$?
+  if [[ $selection_status -ne 0 ]]; then
+    return $selection_status
+  fi
+
+  local full_hash
+  full_hash=$(git rev-parse --verify "${commit_hash}^{commit}")
+  local resolve_status=$?
+  if [[ $resolve_status -ne 0 ]]; then
+    return $resolve_status
+  fi
+
+  if ! print -rn -- "$full_hash" | /usr/bin/pbcopy; then
+    return 1
+  fi
+
+  echo "コピーしました: $full_hash"
+}
 alias fdi='fdigit'
 
 # fzfを使用してコミットを選択し、選択されたコミットをrevertする
