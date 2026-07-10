@@ -28,6 +28,7 @@ brew "mas"
 brew "neovim"
 brew "node"
 brew "nvm"
+brew "pam-reattach"
 brew "powerlevel10k"
 brew "raine/workmux/workmux", trusted: true
 brew "reattach-to-user-namespace"

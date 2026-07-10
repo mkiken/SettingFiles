@@ -24,4 +24,47 @@ else
   chsh -s "$target_shell"
 fi
 
+# Touch ID で sudo を承認できるようにする。/etc/pam.d/sudo_local は OS アップデート後も保持される公式の拡張ポイント。
+# sudo プロンプトが画面中央のダイアログになるため、長時間スクリプト途中のパスワード要求にも気づける。
+# tmux 内でも Touch ID を使えるようにする pam_reattach.so（Homebrew の pam-reattach）は必ず pam_tid.so より前の行に置く。
+function setup_touchid_sudo() {
+  local sudo_local="/etc/pam.d/sudo_local"
+  local reattach_module="$(brew --prefix 2>/dev/null)/lib/pam/pam_reattach.so"
+
+  # sudo_local 非対応の古い macOS（Sonoma 未満）ではテンプレートが無いためスキップ
+  if [[ ! -f "${sudo_local}.template" ]]; then
+    echo "注意: ${sudo_local}.template が無いため Touch ID sudo 設定をスキップします。" >&2
+    return 0
+  fi
+
+  if [[ -f "$sudo_local" ]]; then
+    if /usr/bin/grep -q "pam_tid.so" "$sudo_local"; then
+      echo "✓ Touch ID sudo は設定済みです (${sudo_local})。"
+    else
+      # 想定外の既存内容は上書きせず、報告して手動対応を促す（make_symlink と同じ方針）
+      echo "注意: ${sudo_local} が既に存在しますが pam_tid.so が含まれていません。必要なら手動で追記してください:" >&2
+      echo "  auth       optional       ${reattach_module}" >&2
+      echo "  auth       sufficient     pam_tid.so" >&2
+    fi
+    return 0
+  fi
+
+  local content="auth       sufficient     pam_tid.so"
+  if [[ -f "$reattach_module" ]]; then
+    content="auth       optional       ${reattach_module}"$'\n'"${content}"
+  else
+    echo "注意: pam_reattach.so が見つかりません。tmux 内では Touch ID が効きません（brew bundle 後に再実行してください）。" >&2
+  fi
+
+  begin_sudo_notice "Touch ID sudo 設定 (${sudo_local} の作成) で管理者パスワードを求められる可能性があります"
+  if print -r -- "$content" | sudo /usr/bin/tee "$sudo_local" >/dev/null; then
+    echo "✓ Touch ID sudo を設定しました (${sudo_local})。"
+  else
+    echo "Warning: ${sudo_local} の作成に失敗しました。" >&2
+  fi
+  end_sudo_notice
+}
+
+setup_touchid_sudo
+
 echo 'System setup completed.'
