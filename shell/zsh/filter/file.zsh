@@ -18,3 +18,14 @@ function filter_find_command(){
   [[ -z "$cmd" ]] && return 1
   save_history "$@" $cmd
 }
+
+# findの結果をfilter toolで絞って git log の対象ファイルとして実行する
+function filter_find_git_log(){
+  local file="$(ffind)"
+  [[ -z "$file" ]] && return 1
+  save_history git log "$@" -- "$file"
+}
+
+alias fglf='filter_find_git_log'
+alias fglfn='fglf --name-status'
+alias fglfp='fglf -p'
