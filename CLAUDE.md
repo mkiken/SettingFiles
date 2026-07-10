@@ -64,6 +64,8 @@ Initialize scripts symlink repository files to system locations; core utility fu
 - `smart_copy` - Diff-aware file copy with interactive overwrite prompt
 - `smart_merge_json` - Deep-merge JSON files with conflict resolution (supports overwrite, keep, merge-with-priority)
 
+When adding a managed symlink, apply it to the live environment and verify it with `readlink`; if the target exists unexpectedly, stop and report it instead of overwriting it.
+
 When editing shell helpers, do not use global variables for temporary return values or cross-call state. Prefer stdout, explicit arguments, or safe assignment into caller-owned `local` variables so parallel shells and nested calls cannot observe stale state.
 
 Key symlinks:
