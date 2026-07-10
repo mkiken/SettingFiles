@@ -55,7 +55,7 @@ While doing the user's task, notice reusable improvements to this repository's A
 
 Propose only with verifiable evidence of at least one:
 
-- The same friction or correction appeared at least twice — in this session, or counting an earlier occurrence you can concretely cite.
+- A reusable friction or correction appeared, even once.
 - A reusable workflow the user followed is undocumented.
 - Configuration files conflict, or a rule contradicts observed behavior.
 - A skill, command, or agent should have activated but did not because its trigger failed.

@@ -37,7 +37,7 @@ Self-improvement is an engineering loop, not license to rewrite instructions fre
 ## Guardrails
 
 - No instructions letting an assistant silently rewrite its own persistent prompts.
-- No optimizing from a single anecdote unless the user explicitly wants that preference encoded.
+- Do not treat a one-off preference as reusable unless the user explicitly wants it encoded.
 - No merging Claude/Gemini/Codex rules when their tool behavior differs.
 - No long procedures in always-on prompt files.
 - No weakening confirmation, cleanup, commit, or safety workflows to reduce friction.
