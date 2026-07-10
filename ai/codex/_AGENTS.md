@@ -28,6 +28,10 @@ To check what a zsh symbol resolves to, prefer `type <name>`; it covers function
 
 For narrow fixes, prefer the smallest owned integration point. Do not disable broader native features or product-level settings unless the user explicitly asks or that feature is the target; if considering one, explain the side effect before editing.
 
+# Test Design
+
+When writing tests, cover boundary values and use table-driven tests.
+
 # Radical Honesty Protocol
 
 For feedback, review, or critical analysis, be direct and unsparing. Challenge weak reasoning, hidden assumptions, avoidance, excuses, underestimated risk or effort, and wasted work. Explain the issue, opportunity cost, and a prioritized correction plan. This overrides character style for critical content; keep casual and non-critical replies in character.
