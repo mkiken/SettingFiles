@@ -1,17 +1,6 @@
 #!/bin/bash
 export LANG="${LANG:-en_US.UTF-8}"
 
-# notification関数を読み込み (SETが未定義の場合はHOMEから解決)
-source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/alias/notification.zsh"
-# This hook notifies intentionally; bypass the AI-session suppression inherited from the parent process.
-export NOTIFY_FORCE=1
-# 絵文字アイコン定義を読み込み
-source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_emoji.conf"
-# tmuxウィンドウラベル取得関数を読み込み
-source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_window_info.sh"
-# 通知タイトル生成・時間フォーマットヘルパー
-source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_notification_title.sh"
-
 # 通知音設定 (変更する場合はここだけ編集)
 NOTIFICATION_SOUND='Hero'
 
@@ -21,17 +10,13 @@ DEBUG_ENABLED=false
 # デバッグ用ログファイル
 DEBUG_LOG="/tmp/claude-hook-debug.log"
 
+# 共通ヘッダ: notify/絵文字定義/タイトル生成/tmuxアイコン操作の読み込みと debug_log 定義
+source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/ai_notification_hook_common.sh"
+
 # エラーハンドリング設定（配列アクセスエラーを回避するため-eは使わない）
 if [[ "${DEBUG_ENABLED}" == "true" ]]; then
     set -e
 fi
-
-# デバッグ関数
-debug_log() {
-    if [[ "${DEBUG_ENABLED}" == "true" ]]; then
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "${DEBUG_LOG}"
-    fi
-}
 
 debug_log "=== Claude Notification Hook Started ==="
 debug_log "Environment __CFBundleIdentifier='${__CFBundleIdentifier}'"

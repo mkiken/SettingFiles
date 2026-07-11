@@ -5,27 +5,17 @@ HOOK_ERROR_LOG="${TMPDIR:-/tmp}/codex-stop-notification-error.log"
 exec >/dev/null
 exec 2>>"${HOOK_ERROR_LOG}"
 
-source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/alias/notification.zsh"
-# This hook notifies intentionally; bypass the AI-session suppression inherited from the parent process.
-export NOTIFY_FORCE=1
-source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_emoji.conf"
-source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_window_info.sh"
-source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/tmux_notification_title.sh"
-
 NOTIFICATION_SOUND='Glass'
 
 DEBUG_ENABLED=false
 DEBUG_LOG="/tmp/codex-hook-debug.log"
 
+# 共通ヘッダ: notify/絵文字定義/タイトル生成/tmuxアイコン操作の読み込みと debug_log 定義
+source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/ai_notification_hook_common.sh"
+
 if [[ "${DEBUG_ENABLED}" == "true" ]]; then
     set -e
 fi
-
-debug_log() {
-    if [[ "${DEBUG_ENABLED}" == "true" ]]; then
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "${DEBUG_LOG}"
-    fi
-}
 
 HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 CODEX_HOOK_COMMON="${HOOK_DIR}/codex_hook_common.py"

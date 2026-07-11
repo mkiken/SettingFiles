@@ -144,6 +144,12 @@ class NotificationSuppressionTest(unittest.TestCase):
         self.assertEqual(log_path.read_text(encoding="utf-8"), "called\n")
 
     def test_notification_hooks_force_intentional_notifications(self):
+        # NOTIFY_FORCE の export は共通ヘッダに集約されており、各フックはそれを source する
+        common_header = (REPO_ROOT / "shell/tmux/ai_notification_hook_common.sh").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("export NOTIFY_FORCE=1", common_header)
+
         for script_path in (
             "ai/claude/hooks/stop-send-notification.sh",
             "ai/codex/hooks/codex-stop-notification.sh",
@@ -151,7 +157,7 @@ class NotificationSuppressionTest(unittest.TestCase):
         ):
             with self.subTest(script=script_path):
                 script = (REPO_ROOT / script_path).read_text(encoding="utf-8")
-                self.assertIn("export NOTIFY_FORCE=1", script)
+                self.assertIn("shell/tmux/ai_notification_hook_common.sh", script)
 
     @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
     def test_codex_subprocesses_inherit_notification_suppression(self):
