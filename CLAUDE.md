@@ -140,6 +140,7 @@ Standalone skills (no shared core, hand-maintained): `web-summary` — Claude `a
 - `stop-send-notification.sh` - Owns approval-wait/stop events: sets the tmux icon (✋/✅) immediately on event detection, then sends a rich Mac notification after transcript analysis. Icons are set directly (not via `notify --tmux-icon`) so they appear before the slow summary generation.
 - Shared shell header for the three platform notification hooks (sources + `NOTIFY_FORCE` + `debug_log`): `shell/tmux/ai_notification_hook_common.sh`
 - Hook critical paths: python3 startup costs ~45ms vs ~7ms for jq/date on this machine — add a python3 process only when it replaces many subprocess launches; otherwise fold work into an existing jq query or pure bash, and benchmark baseline vs candidate before restructuring.
+- Benchmarking hooks: `/bin/bash` is 3.2 (no `EPOCHREALTIME`); time hook benchmarks with perl `Time::HiRes` or zsh.
 
 ### Plugin Management
 

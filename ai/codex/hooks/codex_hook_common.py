@@ -3,11 +3,15 @@ import json
 import os
 import re
 import shlex
-import sqlite3
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+# 時間フィールド計算はClaude analyzer（shell/tmux/）と共有する。
+# symlinkデプロイでも resolve() がリポジトリ実体へ解決するため相対で辿れる。
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "shell" / "tmux"))
+from claude_transcript_analyze import build_time_fields
 
 
 QUESTION_SCAN_TAIL_LENGTH = 500
@@ -241,6 +245,10 @@ def iter_log_assistant_messages(session_id: str | None):
     if not session_id:
         return
 
+    # sqlite fallbackは transcript も history も空のときだけ通る稀な経路のため、
+    # 通常経路の起動コストを増やさないよう遅延importする
+    import sqlite3
+
     logs_path = codex_home() / "logs_2.sqlite"
     if not logs_path.is_file():
         return
@@ -371,7 +379,12 @@ def format_analysis_for_eval(result: dict[str, Any]) -> str:
 
     claude_transcript_analyze.py と同じ出力契約。boolはシェル側の
     `== "true"` 比較に合わせて小文字の true/false で出力する。
+    時間フィールドもここで計算し、シェル側のdateサブプロセス連鎖を不要にする。
     """
+    duration, completion = build_time_fields(
+        str(result.get("first_timestamp") or ""),
+        str(result.get("last_timestamp") or ""),
+    )
     return "\n".join(
         [
             f"IS_SUBAGENT_SESSION={str(bool(result.get('is_subagent_session'))).lower()}",
@@ -382,6 +395,8 @@ def format_analysis_for_eval(result: dict[str, Any]) -> str:
             f"ASSISTANT_MESSAGE_COUNT={int(result.get('assistant_message_count') or 0)}",
             f"FIRST_TIMESTAMP={shlex.quote(str(result.get('first_timestamp') or ''))}",
             f"LAST_TIMESTAMP={shlex.quote(str(result.get('last_timestamp') or ''))}",
+            f"SESSION_DURATION_FORMATTED={shlex.quote(duration)}",
+            f"COMPLETION_TIME_JST={shlex.quote(completion)}",
         ]
     )
 

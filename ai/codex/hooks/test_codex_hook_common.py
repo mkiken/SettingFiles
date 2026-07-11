@@ -1,6 +1,8 @@
 import json
 import os
+import shlex
 import sqlite3
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -9,7 +11,12 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from codex_hook_common import analyze_hook_input, assistant_response_needs_user_input, extract_context_usage
+from codex_hook_common import (
+    analyze_hook_input,
+    assistant_response_needs_user_input,
+    extract_context_usage,
+    format_analysis_for_eval,
+)
 
 
 def write_jsonl(path: Path, events: list[dict]):
@@ -347,6 +354,78 @@ class ExtractContextUsageTest(unittest.TestCase):
             result = extract_context_usage({"transcript_path": str(transcript_path)})
 
         self.assertEqual(result, {})
+
+
+class FormatAnalysisForEvalTimeFieldsTest(unittest.TestCase):
+    @staticmethod
+    def build_result(first_timestamp, last_timestamp):
+        return {
+            "is_subagent_session": False,
+            "waiting_for_user_response": False,
+            "last_user_message": "hello",
+            "last_assistant_message": "done",
+            "user_message_count": 1,
+            "assistant_message_count": 1,
+            "first_timestamp": first_timestamp,
+            "last_timestamp": last_timestamp,
+        }
+
+    @staticmethod
+    def parse_fields(output):
+        return dict(line.split("=", 1) for line in output.splitlines())
+
+    def test_time_fields(self):
+        cases = [
+            ("both timestamps", "2026-07-12T00:00:00.000Z", "2026-07-12T01:23:45.000Z", "1h23m", "10:23:45"),
+            ("first missing keeps completion", "", "2026-07-12T01:23:45.000Z", "", "10:23:45"),
+            ("last missing", "2026-07-12T00:00:00.000Z", "", "", ""),
+            ("both missing", "", "", "", ""),
+            ("invalid last", "2026-07-12T00:00:00.000Z", "not-a-timestamp", "", ""),
+            ("no fractional seconds", "2026-07-12T00:00:00Z", "2026-07-12T00:00:05Z", "5s", "09:00:05"),
+        ]
+        for label, first, last, duration, completion in cases:
+            with self.subTest(label):
+                fields = self.parse_fields(format_analysis_for_eval(self.build_result(first, last)))
+                self.assertEqual(fields["SESSION_DURATION_FORMATTED"], shlex.quote(duration))
+                self.assertEqual(fields["COMPLETION_TIME_JST"], shlex.quote(completion))
+
+    def test_analyze_output_round_trips_through_bash_eval(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            transcript_path = Path(tmp_dir) / "rollout-test.jsonl"
+            write_jsonl(
+                transcript_path,
+                [
+                    {
+                        "timestamp": "2026-07-12T00:00:00.000Z",
+                        "type": "response_item",
+                        "payload": {
+                            "type": "message",
+                            "role": "user",
+                            "content": [{"type": "input_text", "text": "it's a \"test\" $var `cmd`"}],
+                        },
+                    },
+                    {
+                        "timestamp": "2026-07-12T01:23:45.000Z",
+                        "type": "response_item",
+                        "payload": {
+                            "type": "message",
+                            "role": "assistant",
+                            "content": [{"type": "output_text", "text": "done"}],
+                        },
+                    },
+                ],
+            )
+
+            analysis = format_analysis_for_eval(analyze_hook_input({"transcript_path": str(transcript_path)}))
+
+        script = 'eval "$1"; printf "%s|%s|%s" "$SESSION_DURATION_FORMATTED" "$COMPLETION_TIME_JST" "$LAST_USER_MESSAGE"'
+        completed = subprocess.run(
+            ["bash", "-c", script, "_", analysis],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        self.assertEqual(completed.stdout, '1h23m|10:23:45|it\'s a "test" $var `cmd`')
 
 
 if __name__ == "__main__":

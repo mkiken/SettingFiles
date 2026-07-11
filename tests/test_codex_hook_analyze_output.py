@@ -31,6 +31,8 @@ EVAL_VAR_NAMES = [
     "ASSISTANT_MESSAGE_COUNT",
     "FIRST_TIMESTAMP",
     "LAST_TIMESTAMP",
+    "SESSION_DURATION_FORMATTED",
+    "COMPLETION_TIME_JST",
 ]
 
 
@@ -124,10 +126,10 @@ class TestFormatAnalysisForEval(unittest.TestCase):
                 output = chc.format_analysis_for_eval(analysis_dict(last_assistant_message=message))
                 self.assertEqual(eval_roundtrip(output, "LAST_ASSISTANT_MESSAGE"), message)
 
-    def test_empty_analysis_emits_exactly_eight_default_lines(self):
+    def test_empty_analysis_emits_exactly_default_lines(self):
         output = chc.format_analysis_for_eval(analysis_dict())
         lines = output.split("\n")
-        self.assertEqual(len(lines), 8)
+        self.assertEqual(len(lines), len(EVAL_VAR_NAMES))
         self.assertEqual([line.split("=", 1)[0] for line in lines], EVAL_VAR_NAMES)
         self.assertIn("LAST_USER_MESSAGE=''", output)
         self.assertIn("USER_MESSAGE_COUNT=0", output)

@@ -12,6 +12,8 @@ DEBUG_LOG="/tmp/codex-hook-debug.log"
 
 # プラットフォーム識別（共通ヘッダの build_ai_title / hook_fallback_notify 等が参照）
 AI_HOOK_LABEL='Codex'
+# 直接定義して共通ヘッダのtr起動によるフォールバック導出を省く
+AI_HOOK_LABEL_LOWER='codex'
 
 # 共通ヘッダ: notify/絵文字定義/タイトル生成/tmuxアイコン操作の読み込みと debug_log 定義
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/ai_notification_hook_common.sh"
@@ -54,18 +56,23 @@ debug_log "Hook event: ${hook_event_name}"
 debug_log "Transcript path: ${transcript_path}"
 
 # セッションID（グループ通知用）: hook入力から抽出済みの値を優先し、
-# 無い場合のみ共通ヘルパーでtranscript_pathから導出する
+# 無い場合のみtranscript_pathのファイル名から導出する
+# （derive_session_id のbasenameスタイルと同じ結果を純bashで得て、jq/basename起動を省く）
 if [[ -z "${session_id}" ]]; then
-    session_id=$(derive_session_id '{}' "${transcript_path}")
+    if [[ -n "${transcript_path}" && "${transcript_path}" != "null" ]]; then
+        session_id="${transcript_path##*/}"
+        session_id="${session_id%.jsonl}"
+    fi
+    [[ -z "${session_id}" || "${session_id}" == "." ]] && session_id="default"
 fi
-notification_group=$(build_notification_group "${session_id}")
+notification_group="${AI_HOOK_LABEL_LOWER}-${session_id}"
 debug_log "Session ID: ${session_id}"
 
 # Mac通知とtmuxアイコンの両方をこのフックが所有する（pyフックは進行中🤖のみ担当）。
 # アイコンは notify --tmux-icon に統合せず、イベント確定直後に先行設定する。
 # notify は要約生成の後になり、統合するとアイコン表示が遅れるため。
 if [[ "${hook_event_name}" == "PermissionRequest" ]]; then
-    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}"
+    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}" &
 
     if [[ -n "${approval_reason}" ]]; then
         notification_body="${approval_reason}"
@@ -105,6 +112,8 @@ USER_MESSAGE_COUNT="${USER_MESSAGE_COUNT:-0}"
 ASSISTANT_MESSAGE_COUNT="${ASSISTANT_MESSAGE_COUNT:-0}"
 FIRST_TIMESTAMP="${FIRST_TIMESTAMP:-}"
 LAST_TIMESTAMP="${LAST_TIMESTAMP:-}"
+SESSION_DURATION_FORMATTED="${SESSION_DURATION_FORMATTED:-}"
+COMPLETION_TIME_JST="${COMPLETION_TIME_JST:-}"
 
 if [[ "${hook_event_name}" == "Stop" && "${IS_SUBAGENT_SESSION}" == "true" ]]; then
     debug_log "Skipping completion notification for subagent session: ${session_id}"
@@ -112,22 +121,20 @@ if [[ "${hook_event_name}" == "Stop" && "${IS_SUBAGENT_SESSION}" == "true" ]]; t
 fi
 
 # tmuxアイコン先行設定（応答待ちなら✋、完了なら✅）。notify に統合しない理由は PermissionRequest 側のコメント参照。
+# バックグラウンド実行で python3+tmux 呼び出しを notify と並列化する
 if [[ "${WAITING_FOR_USER_RESPONSE}" == "true" ]]; then
-    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}"
+    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}" &
 else
-    update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}"
+    update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}" &
 fi
 
 debug_log "Total user messages: ${USER_MESSAGE_COUNT}, assistant messages: ${ASSISTANT_MESSAGE_COUNT}"
 debug_log "Waiting for user response: ${WAITING_FOR_USER_RESPONSE}"
 
-# セッション時間計算
+# セッション時間はanalyzer側で計算済み（dateサブプロセス連鎖の削減）
 debug_log "First timestamp: ${FIRST_TIMESTAMP}"
 debug_log "Last timestamp: ${LAST_TIMESTAMP}"
-
-session_duration_formatted=$(format_session_duration "${FIRST_TIMESTAMP}" "${LAST_TIMESTAMP}")
-completion_time=$(format_completion_time_jst "${LAST_TIMESTAMP}")
-debug_log "Session duration: ${session_duration_formatted}, completion time (JST): ${completion_time}"
+debug_log "Session duration: ${SESSION_DURATION_FORMATTED}, completion time (JST): ${COMPLETION_TIME_JST}"
 
 # タスク種別推測
 task_type=$(guess_task_type_emoji "${LAST_USER_MESSAGE}")
@@ -140,7 +147,7 @@ if [[ "${WAITING_FOR_USER_RESPONSE}" == "true" ]]; then
     summary_task_type="✋"
 fi
 debug_log "Final summary_message: ${summary_message:0:100}"
-summary=$(build_session_summary "${summary_task_type}" "${summary_message}" "${USER_MESSAGE_COUNT}" "${session_duration_formatted}")
+summary=$(build_session_summary "${summary_task_type}" "${summary_message}" "${USER_MESSAGE_COUNT}" "${SESSION_DURATION_FORMATTED}")
 
 notification_sound="${NOTIFICATION_SOUND}"
 if [[ "${WAITING_FOR_USER_RESPONSE}" == "true" ]]; then
@@ -151,6 +158,6 @@ else
 fi
 
 debug_log "Sending notification: title='${notification_title}', message='${summary}'"
-notify "${notification_title}" "${summary:-💭 セッションが開始されましたが、メッセージはありませんでした}" "${notification_sound}" "${notification_group}" "${completion_time}"
+notify "${notification_title}" "${summary:-💭 セッションが開始されましたが、メッセージはありませんでした}" "${notification_sound}" "${notification_group}" "${COMPLETION_TIME_JST}"
 
 debug_log "=== Codex Notification Hook Completed ==="
