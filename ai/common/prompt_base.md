@@ -87,7 +87,7 @@ For one-off preferences (user taste, not a defect), keep an internal note instea
 
 ## Completion-Time Check
 
-At the end of implementation, fix, configuration, review, or investigation-delivery tasks, check the criteria above before the final completion response — after Temp File Cleanup and the Post-Implementation Workflow's git action, so proposals never block the commit/push flow. The task's deliverable output (review results, findings, answers, summaries) always comes first in the final response; the OIP section — proposal analyses or the 該当なし line — is always the last content, never before or interleaved with the deliverable.
+At the end of implementation, fix, configuration, review, or investigation-delivery tasks, sweep the whole session against each "When to propose" criterion and collect every qualifying candidate — do not stop at the first match. Run this before the final completion response, after Temp File Cleanup and the Post-Implementation Workflow's git action, so proposals never block the commit/push flow. The task's deliverable output (review results, findings, answers, summaries) always comes first in the final response; the OIP section — proposal analyses or the 該当なし line — is always the last content, never before or interleaved with the deliverable.
 
 - If proposals qualify, present each per the skill's "Presenting proposals for approval" rules, then ask approval per proposal via the platform-specific `# User Confirmation` mechanism — options per proposal: apply now / do not apply. Apply edits only to approved proposals.
 - If none qualify, include exactly `自己改善チェック: 該当なし` once in the final completion response; do not raise a confirmation question.
