@@ -56,13 +56,11 @@ function setup_touchid_sudo() {
     echo "注意: pam_reattach.so が見つかりません。tmux 内では Touch ID が効きません（brew bundle 後に再実行してください）。" >&2
   fi
 
-  begin_sudo_notice "Touch ID sudo 設定 (${sudo_local} の作成) で管理者パスワードを求められる可能性があります"
   if print -r -- "$content" | sudo /usr/bin/tee "$sudo_local" >/dev/null; then
     echo "✓ Touch ID sudo を設定しました (${sudo_local})。"
   else
     echo "Warning: ${sudo_local} の作成に失敗しました。" >&2
   fi
-  end_sudo_notice
 }
 
 setup_touchid_sudo

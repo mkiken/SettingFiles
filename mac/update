@@ -22,9 +22,7 @@ untap_stale_homebrew_taps
 brew update -v
 brew upgrade -v
 brew cleanup -s
-begin_sudo_notice "brew bundle (cask) で管理者パスワードを求められる可能性があります"
 brew bundle --file="${SET}mac/Brewfile" -v
-end_sudo_notice
 echo "end brew update."
 
 echo "start tmux plugin update."
