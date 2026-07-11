@@ -47,11 +47,7 @@ After any side-effecting operation (git commit/push, API writes, deletes, deploy
 At task completion — before the Post-Implementation Workflow, and even when that workflow is skipped — clean up temp files newly created by the AI this session: scratch scripts, debug output, sample data, logs, dumps, notes, and other non-deliverables. Deliverables (requested source, test, doc, fixture, or config changes) and existing files edited in place are out of scope.
 
 - If no temp files were created, continue to the Post-Implementation Workflow.
-- Otherwise list each temp file and its purpose, then ask via the platform-specific `# User Confirmation` mechanism. Present exactly:
-  1. **すべて削除** — 一覧した一時ファイルをすべて削除する
-  2. **個別に選択** — 残すファイルをユーザーが指定する
-  3. **削除しない** — そのまま残す
-- Delete only the chosen files (`rm` is aliased to `trash`, so deletion moves them to trash), then continue to the Post-Implementation Workflow.
+- Otherwise delete them all without asking (`rm` is aliased to `trash`, so deletion moves them to trash), briefly report what was deleted in the completion response, then continue to the Post-Implementation Workflow.
 
 # Opportunistic Improvement Proposals
 
