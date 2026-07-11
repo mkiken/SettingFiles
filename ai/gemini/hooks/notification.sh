@@ -41,12 +41,48 @@ if ! command -v jq &> /dev/null; then
     exit 1
 fi
 
+# hook入力の必要フィールドを1回のjqでまとめて抽出（フィールドごとのjq起動を削減）。
+# ACTION_DETAILはnotificationイベント専用の派生値だが、hook_inputのみから決まるためここに同居させる
+# （after_agentでは .details がnullなのでelse経由で空になるだけ）。
+# try/catchは必須: 統合evalではACTION_DETAIL部の失敗が他フィールドまで巻き込むため、
+# 失敗をフィールド単位の空文字列に隔離する。抽出全体の失敗時はevalが空になり、
+# 直後のデフォルト代入で既存のフォールバック分岐へ劣化する。
+eval "$(printf '%s' "${hook_input}" | jq -r '
+    @sh "NOTIFICATION_TYPE=\(.notification_type // "")",
+    @sh "transcript_path=\(.transcript_path // "")",
+    @sh "session_id=\(.session_id // "")",
+    @sh "ACTION_DETAIL=\(try (.details |
+        if (.tool_name == "ask_user") then
+            "❓ " + (.tool_input.questions | map(.question) | join(" / "))
+        elif (.tool_name == "replace" or .tool_name == "write_file") then
+            "📝 " + .tool_name + " (" + (.tool_input.file_path | split("/") | last) + ")"
+        elif (.tool_name == "run_shell_command") then
+            "💻 cmd (" + (.tool_input.command | split("\n")[0] | if length > 40 then .[0:40] + "..." else . end) + ")"
+        elif (.type == "exec") then
+            if (.rootCommand != null and .rootCommand != "") then ("Shell (" + .rootCommand + ")")
+            elif (.command != null and .command != "") then ("Shell (" + (.command | split(" ")[0]) + ")")
+            else "Shell" end
+        elif (.type == "edit") then
+            if (.fileName != null and .fileName != "") then ("Edit (" + .fileName + ")")
+            else "Edit" end
+        elif (.tool_name != null and .tool_name != "") then
+             if (.rootCommand != null and .rootCommand != "") then (.tool_name + " (" + .rootCommand + ")")
+             else .tool_name end
+        elif (.rootCommand != null and .rootCommand != "") then .rootCommand
+        elif (.title != null and .title != "") then .title
+        else "" end
+    ) catch "")"
+' 2>/dev/null)"
+NOTIFICATION_TYPE="${NOTIFICATION_TYPE:-}"
+transcript_path="${transcript_path:-}"
+session_id="${session_id:-}"
+ACTION_DETAIL="${ACTION_DETAIL:-}"
+
 # --- tmuxアイコン先行設定 ---
 # Mac通知とtmuxアイコンの両方をこのフックが所有する（pyフックは進行中🤖とsession_endのみ担当）。
 # アイコンは notify --tmux-icon に統合せず、イベント確定直後のここで設定する。
 # notify は後続のトランスクリプト解析（要約生成）の後になり、統合するとアイコン表示が遅れるため。
 if [[ "${EVENT_TYPE}" == "notification" ]]; then
-    NOTIFICATION_TYPE=$(echo "${hook_input}" | jq -r '.notification_type // ""')
     if [[ "${NOTIFICATION_TYPE}" != "ToolPermission" ]]; then
         debug_log "Ignoring notification type: ${NOTIFICATION_TYPE}"
         exit 0
@@ -60,12 +96,15 @@ fi
 # トランスクリプト情報の抽出と要約生成 (共通処理)
 # ------------------------------------------------------------------
 
-# JSONからtranscript_pathを抽出
-transcript_path=$(echo "${hook_input}" | jq -r '.transcript_path')
-
-# セッションIDを取得（グループ通知用）
-# Geminiのtranscript_pathは .../<uuid>/transcript.json となることが多いので親ディレクトリ名から導出
-session_id=$(derive_session_id "${hook_input}" "${transcript_path}" parent-dir)
+# セッションID（グループ通知用）: hook入力から抽出済みの値を優先。
+# Geminiのhook入力はsession_id欠落が普通なので、フォールバックの親ディレクトリ名導出
+# （derive_session_id parent-dir相当）をサブプロセスなしの純bashで行う。
+# ヘルパー本体は他プラットフォーム共用のため変更しない。
+if [[ -z "${session_id}" && -n "${transcript_path}" && "${transcript_path}" != "null" && "${transcript_path}" == */* ]]; then
+    _parent="${transcript_path%/*}"
+    session_id="${_parent##*/}"
+fi
+[[ -z "${session_id}" || "${session_id}" == "." ]] && session_id="default"
 notification_group=$(build_notification_group "${session_id}")
 debug_log "Session ID: ${session_id}, Notification group: ${notification_group}"
 
@@ -111,9 +150,12 @@ if [[ -n "${transcript_path}" && "${transcript_path}" != "null" && -f "${transcr
     completion_time=$(format_completion_time_jst "${END_TIME}")
 
     # 要約テキスト生成（メッセージなしのセッションでは空のまま）
-    # コマンド履歴っぽく見せる処理（コメントアウトされたコマンド部分の除去など）
-    # 簡易的に、先頭の # /command ... を除去したりする
-    LAST_MSG=$(echo "${LAST_MSG}" | sed 's/^[[:space:]]*#[[:space:]]*//')
+    # コマンド履歴っぽく見せる処理: 先頭の # /command ... のコメントマーカーを除去する
+    # （旧sed版は全行の先頭#を剥がしていたが、下流のnormalize_onelineが改行を潰すため
+    #   文字列先頭のみで十分。sedのサブプロセス起動も省ける）
+    if [[ "${LAST_MSG}" =~ ^[[:space:]]*#[[:space:]]*(.*)$ ]]; then
+        LAST_MSG="${BASH_REMATCH[1]}"
+    fi
 
     # タスク種別推測（スラッシュコマンド→⚡は共通ヘルパー側で判定）
     task_type=$(guess_task_type_emoji "${LAST_MSG}")
@@ -126,30 +168,8 @@ fi
 # ------------------------------------------------------------------
 
 # ToolPermission 以外の notification はアイコン先行設定の時点で exit 済み
+# （ACTION_DETAILは冒頭の統合jq evalで抽出済み）
 if [[ "${EVENT_TYPE}" == "notification" ]]; then
-    ACTION_DETAIL=$(echo "${hook_input}" | jq -r '
-        .details |
-        if (.tool_name == "ask_user") then
-            "❓ " + (.tool_input.questions | map(.question) | join(" / "))
-        elif (.tool_name == "replace" or .tool_name == "write_file") then
-            "📝 " + .tool_name + " (" + (.tool_input.file_path | split("/") | last) + ")"
-        elif (.tool_name == "run_shell_command") then
-            "💻 cmd (" + (.tool_input.command | split("\n")[0] | if length > 40 then .[0:40] + "..." else . end) + ")"
-        elif (.type == "exec") then
-            if (.rootCommand != null and .rootCommand != "") then ("Shell (" + .rootCommand + ")")
-            elif (.command != null and .command != "") then ("Shell (" + (.command | split(" ")[0]) + ")")
-            else "Shell" end
-        elif (.type == "edit") then
-            if (.fileName != null and .fileName != "") then ("Edit (" + .fileName + ")")
-            else "Edit" end
-        elif (.tool_name != null and .tool_name != "") then
-             if (.rootCommand != null and .rootCommand != "") then (.tool_name + " (" + .rootCommand + ")")
-             else .tool_name end
-        elif (.rootCommand != null and .rootCommand != "") then .rootCommand
-        elif (.title != null and .title != "") then .title
-        else "" end
-    ')
-
     if [[ -n "${ACTION_DETAIL}" ]]; then
         MSG_BODY="${ACTION_DETAIL}"
     else
@@ -175,80 +195,26 @@ debug_log "Sending notification: title='${notification_title}', message='${summa
 notify "${notification_title}" "${summary:-💭 メッセージなし}" "Purr" "${notification_group}" "${completion_time}"
 
 # --- context逼迫アラート ---
+# 最新chat JSONLの探索（旧find|stat|sort|head|cut連鎖）とトークン抽出（旧インライン
+# python + jq3回 + bc）を gemini_context_usage.py の1回起動に集約。
 debug_log "Evaluating Gemini context alert..."
 _gemini_chat_dir="${HOME}/.gemini/tmp"
 # session_idの先頭8文字（または全体）でchat JSONLを引き当て
 _session_prefix="${session_id:0:8}"
-_gemini_chat_jsonl=""
-if [[ -n "${_session_prefix}" && "${_session_prefix}" != "defa" ]]; then
-    _gemini_chat_jsonl=$(find "${_gemini_chat_dir}" -path "*/chats/*${_session_prefix}*.jsonl" \
-        -type f -exec stat -f '%m %N' {} + 2>/dev/null \
-        | sort -nr | head -1 | cut -d' ' -f2-)
-fi
-debug_log "Gemini chat JSONL: ${_gemini_chat_jsonl}"
+if [[ -n "${_session_prefix}" && "${_session_prefix}" != "defa" && -d "${_gemini_chat_dir}" ]]; then
+    GEMINI_CTX_USAGE="${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/gemini_context_usage.py"
+    _ctx_out=$(python3 "${GEMINI_CTX_USAGE}" "${_gemini_chat_dir}" "${_session_prefix}" 2>/dev/null)
+    [[ -n "${_ctx_out}" ]] && eval "${_ctx_out}"
+    GEMINI_CONTEXT_TOKENS="${GEMINI_CONTEXT_TOKENS:-0}"
+    GEMINI_WINDOW="${GEMINI_WINDOW:-0}"
+    debug_log "Gemini context tokens: ${GEMINI_CONTEXT_TOKENS}, total tokens: ${GEMINI_TOTAL_TOKENS:-0}, model: ${GEMINI_MODEL:-}, used_pct: ${GEMINI_USED_PCT:-0.0}%"
 
-if [[ -n "${_gemini_chat_jsonl}" && -f "${_gemini_chat_jsonl}" ]]; then
-    # 最後の gemini タイプ行から context window 使用量と model を取得
-    _gemini_ctx_json=$(python3 -c "
-import json, sys
-path = sys.argv[1]
-last = None
-try:
-    with open(path) as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                d = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            if d.get('type') == 'gemini' and 'tokens' in d:
-                last = d
-except Exception:
-    pass
-if last:
-    tokens = last.get('tokens', {})
-    model = last.get('model', '')
-    context_tokens = tokens.get('input')
-    if not isinstance(context_tokens, (int, float)) or context_tokens <= 0:
-        context_tokens = tokens.get('total', 0)
-    print(json.dumps({
-        'context_tokens': int(context_tokens or 0),
-        'total_tokens': tokens.get('total', context_tokens or 0),
-        'model': model,
-    }))
-" "${_gemini_chat_jsonl}" 2>/dev/null)
-
-    if [[ -n "${_gemini_ctx_json}" ]]; then
-        _gemini_context_tokens=$(echo "${_gemini_ctx_json}" | jq -r '.context_tokens // 0')
-        _gemini_total_tokens=$(echo "${_gemini_ctx_json}" | jq -r '.total_tokens // 0')
-        _gemini_model=$(echo "${_gemini_ctx_json}" | jq -r '.model // ""')
-        debug_log "Gemini context tokens: ${_gemini_context_tokens}, total tokens: ${_gemini_total_tokens}, model: ${_gemini_model}"
-
-        # モデル別 context window テーブル
-        # gemini-* モデルは基本的に 1M トークン
-        _gemini_window=1048576
-        case "${_gemini_model}" in
-            gemini-2.5-flash*|gemini-2.0-flash*|gemini-1.5-flash*)
-                _gemini_window=1048576 ;;
-            gemini-2.5-pro*|gemini-2.0-pro*|gemini-1.5-pro*|gemini-3*-pro*)
-                _gemini_window=1048576 ;;
-            gemini-3*-flash*)
-                _gemini_window=1048576 ;;
-            *)
-                _gemini_window=1048576 ;;
-        esac
-
-        if [[ "${_gemini_context_tokens}" -gt 0 && "${_gemini_window}" -gt 0 ]]; then
-            _gemini_used_pct=$(echo "scale=1; ${_gemini_context_tokens} * 100 / ${_gemini_window}" | bc 2>/dev/null)
-            debug_log "Gemini used_pct: ${_gemini_used_pct}%"
-            source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/alias/context-alert.zsh" 2>/dev/null || true
-            if declare -f ctx_alert_evaluate >/dev/null 2>&1; then
-                ctx_alert_evaluate "gemini" "${session_id}" "${_gemini_used_pct}" \
-                    "${EMOJI_ID_GEMINI:-💎}" "${_gemini_window}" "${_gemini_context_tokens}" \
-                    >/dev/null 2>&1 || true
-            fi
+    if [[ "${GEMINI_CONTEXT_TOKENS}" -gt 0 && "${GEMINI_WINDOW}" -gt 0 ]]; then
+        source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/alias/context-alert.zsh" 2>/dev/null || true
+        if declare -f ctx_alert_evaluate >/dev/null 2>&1; then
+            ctx_alert_evaluate "gemini" "${session_id}" "${GEMINI_USED_PCT:-0.0}" \
+                "${EMOJI_ID_GEMINI:-💎}" "${GEMINI_WINDOW}" "${GEMINI_CONTEXT_TOKENS}" \
+                >/dev/null 2>&1 || true
         fi
     fi
 fi

@@ -63,6 +63,10 @@ class GeminiNotificationContextTest(unittest.TestCase):
                 REPO_ROOT / "shell" / "tmux" / "ai_notification_summary.sh",
                 fake_repo / "shell" / "tmux" / "ai_notification_summary.sh",
             )
+            shutil.copy(
+                REPO_ROOT / "shell" / "tmux" / "gemini_context_usage.py",
+                fake_repo / "shell" / "tmux" / "gemini_context_usage.py",
+            )
 
             older_chat = fake_home / ".gemini" / "tmp" / "project" / "chats" / f"session-{session_id[:8]}.jsonl"
             newer_chat = (
