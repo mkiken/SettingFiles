@@ -69,5 +69,24 @@ class FormatCompletionTimeJstTest(unittest.TestCase):
         self.assertEqual(result.stdout.strip(), "")
 
 
+class GuessTaskTypeEmojiTest(unittest.TestCase):
+    CASES = [
+        ("バグを修正して", "💻"),
+        ("原因を調べて", "🔍"),
+        ("なぜ動くのか", "📚"),
+        ("testを実行", "🧪"),
+        ("こんにちは", "💬"),
+        # 「テスト」より先に「追加」（コーディング分岐）がマッチする既存優先順位を固定
+        ("テストを追加", "💻"),
+    ]
+
+    def test_keyword_classification(self):
+        for message, expected in self.CASES:
+            with self.subTest(message=message):
+                result = run_fn(f'guess_task_type_emoji "{message}"')
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout.strip(), expected)
+
+
 if __name__ == "__main__":
     unittest.main()

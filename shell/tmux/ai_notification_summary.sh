@@ -28,3 +28,15 @@ format_completion_time_jst() {
     [[ -z "${end_epoch}" ]] && return 0
     date -r $((end_epoch + 32400)) "+%H:%M:%S" 2>/dev/null
 }
+
+# 最終ユーザーメッセージからタスク種別絵文字を推測して出力（デフォルト 💬）
+# Usage: guess_task_type_emoji <message>
+guess_task_type_emoji() {
+    local msg="$1"
+    if [[ "${msg}" =~ (実装|コード|プログラム|関数|バグ|修正|追加|作成) ]]; then echo "💻" # コーディング
+    elif [[ "${msg}" =~ (検索|調べ|探し|find|grep|確認) ]]; then echo "🔍" # 検索・調査
+    elif [[ "${msg}" =~ (説明|教え|解説|どう|なぜ|what|how) ]]; then echo "📚" # 説明・学習
+    elif [[ "${msg}" =~ (テスト|test|チェック|確認) ]]; then echo "🧪" # テスト・検証
+    else echo "💬" # 一般的な質問
+    fi
+}

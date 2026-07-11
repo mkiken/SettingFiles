@@ -118,15 +118,11 @@ if [[ -n "${transcript_path}" && "${transcript_path}" != "null" && -f "${transcr
         # 簡易的に、先頭の # /command ... を除去したりする
         LAST_MSG=$(echo "${LAST_MSG}" | sed 's/^[[:space:]]*#[[:space:]]*//')
 
-        # タスク種別推測
-        task_type="💬"
-
-        # キーワードによるアイコンの出し分け
-        if [[ "${LAST_MSG}" =~ ^\/ ]]; then task_type="⚡" # スラッシュコマンド
-        elif [[ "${LAST_MSG}" =~ (実装|コード|プログラム|関数|バグ|修正|追加|作成) ]]; then task_type="💻"
-        elif [[ "${LAST_MSG}" =~ (検索|調べ|探し|find|grep|確認) ]]; then task_type="🔍"
-        elif [[ "${LAST_MSG}" =~ (説明|教え|解説|どう|なぜ|what|how) ]]; then task_type="📚"
-        elif [[ "${LAST_MSG}" =~ (テスト|test|チェック|確認) ]]; then task_type="🧪"
+        # タスク種別推測（スラッシュコマンドはGemini固有の前置チェック）
+        if [[ "${LAST_MSG}" =~ ^\/ ]]; then
+            task_type="⚡"
+        else
+            task_type=$(guess_task_type_emoji "${LAST_MSG}")
         fi
 
         # 統計情報行（1行目）

@@ -238,16 +238,7 @@ if [[ -f "${transcript_path}" ]]; then
 fi
 
 # タスクの種類を推測
-task_type="💬" # 一般的な質問
-if [[ "$last_user_message" =~ (実装|コード|プログラム|関数|バグ|修正|追加|作成) ]]; then
-    task_type="💻" # コーディング
-elif [[ "$last_user_message" =~ (検索|調べ|探し|find|grep|確認) ]]; then
-    task_type="🔍" # 検索・調査
-elif [[ "$last_user_message" =~ (説明|教え|解説|どう|なぜ|what|how) ]]; then
-    task_type="📚" # 説明・学習
-elif [[ "$last_user_message" =~ (テスト|test|チェック|確認) ]]; then
-    task_type="🧪" # テスト・検証
-fi
+task_type=$(guess_task_type_emoji "${last_user_message}")
 
 # 概要を作成
 # 配列の安全な長さチェック

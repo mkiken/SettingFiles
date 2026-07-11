@@ -124,16 +124,7 @@ completion_time=$(format_completion_time_jst "${last_timestamp}")
 debug_log "Session duration: ${session_duration_formatted}, completion time (JST): ${completion_time}"
 
 # タスク種別推測
-task_type="💬"
-if [[ "$last_user_message" =~ (実装|コード|プログラム|関数|バグ|修正|追加|作成) ]]; then
-    task_type="💻"
-elif [[ "$last_user_message" =~ (検索|調べ|探し|find|grep|確認) ]]; then
-    task_type="🔍"
-elif [[ "$last_user_message" =~ (説明|教え|解説|どう|なぜ|what|how) ]]; then
-    task_type="📚"
-elif [[ "$last_user_message" =~ (テスト|test|チェック|確認) ]]; then
-    task_type="🧪"
-fi
+task_type=$(guess_task_type_emoji "${last_user_message}")
 
 # 要約を作成
 if [[ ${user_count} -gt 0 ]]; then
