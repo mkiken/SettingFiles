@@ -10,6 +10,10 @@ Personal dotfiles for Mac and Windows development environments, synchronized via
 
 Implementation work may start directly on `main`/`master`; when a workflow or skill requires explicit consent for that, treat this section as standing consent. It covers only starting implementation in place — never skip separately required confirmation flows for destructive or side-effecting operations (commits, pushes, pull requests, deletes, deployments, external API writes).
 
+## CLAUDE.md Maintenance
+
+At implementation completion, before the commit confirmation in the post-implementation flow, check whether the work surfaced repository knowledge this file should carry: new or changed commands, architecture or workflow changes, conventions, pitfalls — or existing statements the work proved stale or contradicted. If so, draft the addition or correction, present it to the user for approval, and edit this file only when approved — never silently. Proposing before the commit confirmation lets an approved change land in the same commit. If nothing qualifies, propose nothing.
+
 ## Key Commands
 
 ### Initial Setup
