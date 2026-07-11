@@ -165,6 +165,10 @@ class NormalizeOnelineTest(unittest.TestCase):
         ("  padded  ", "padded"),
         ("", ""),
         ("single", "single"),
+        # 連続改行はスペース化後に1個へ圧縮される
+        ("a\\n\\nb", "a b"),
+        # スペースのみは空になる
+        ("   ", ""),
     ]
 
     def test_normalization(self):
@@ -173,6 +177,19 @@ class NormalizeOnelineTest(unittest.TestCase):
                 result = run_fn(f"normalize_oneline $'{raw}'")
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(result.stdout.strip(), expected)
+
+    def test_tabs_preserved_and_only_spaces_trimmed(self):
+        # 旧 tr|sed 実装とのパリティ: 圧縮・前後トリムはスペースのみでタブは温存する。
+        # .strip()はタブも落とすため、stdoutを生のまま比較する
+        cases = [
+            ("タブ周りのスペースのみ圧縮", "a  \\t  b", "a \t b\n"),
+            ("前後トリムはタブに触れない", " \\tx\\t ", "\tx\t\n"),
+        ]
+        for desc, raw, expected in cases:
+            with self.subTest(desc=desc):
+                result = run_fn(f"normalize_oneline $'{raw}'")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout, expected)
 
 
 class TruncateLineTest(unittest.TestCase):

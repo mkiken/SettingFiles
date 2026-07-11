@@ -12,6 +12,8 @@ DEBUG_LOG="/tmp/claude-hook-debug.log"
 
 # プラットフォーム識別（共通ヘッダの build_ai_title / hook_fallback_notify 等が参照）
 AI_HOOK_LABEL='Claude'
+# 小文字形を直接定義して共通ヘッダのtrフォールバック起動を省く
+AI_HOOK_LABEL_LOWER='claude'
 
 # 共通ヘッダ: notify/絵文字定義/タイトル生成/tmuxアイコン操作の読み込みと debug_log 定義
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/ai_notification_hook_common.sh"
@@ -75,14 +77,16 @@ fi
 # アイコンは notify --tmux-icon に統合せず、イベント確定直後のここで設定する。
 # notify は後続のトランスクリプト解析（要約生成、長セッションで数秒〜十数秒）の後になり、
 # 統合するとアイコン表示がそのぶん遅れるため。
+# バックグラウンド起動でpython3起動(数十ms)をクリティカルパスから外す。
+# 後続の解析+notifyが必ず長く走るため、フック終了前にアイコン設定は完了する。
 if [[ "${hook_event_name}" == "Notification" ]]; then
     if [[ "${notification_type}" != "permission_prompt" && "${notification_type}" != "elicitation_dialog" ]]; then
         debug_log "Notification type ${notification_type} does not require notification, exiting"
         exit 0
     fi
-    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}"
+    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}" &
 elif [[ "${hook_event_name}" == "Stop" ]]; then
-    update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}"
+    update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}" &
 fi
 
 # セッションID（グループ通知用）: hook入力から抽出済みの値を優先し、
@@ -125,18 +129,17 @@ USER_MESSAGE_COUNT="${USER_MESSAGE_COUNT:-0}"
 ASSISTANT_MESSAGE_COUNT="${ASSISTANT_MESSAGE_COUNT:-0}"
 FIRST_TIMESTAMP="${FIRST_TIMESTAMP:-}"
 LAST_TIMESTAMP="${LAST_TIMESTAMP:-}"
+# セッション時間と完了時刻も解析スクリプトが算出済み（dateサブプロセス削減）
+SESSION_DURATION_FORMATTED="${SESSION_DURATION_FORMATTED:-}"
+COMPLETION_TIME_JST="${COMPLETION_TIME_JST:-}"
 debug_log "Analysis: user_count=${USER_MESSAGE_COUNT}, assistant_count=${ASSISTANT_MESSAGE_COUNT}, last_msg_len=${#LAST_USER_MESSAGE}, first_ts=${FIRST_TIMESTAMP}, last_ts=${LAST_TIMESTAMP}"
-
-# セッション時間と完了時刻
-session_duration_formatted=$(format_session_duration "${FIRST_TIMESTAMP}" "${LAST_TIMESTAMP}")
-completion_time=$(format_completion_time_jst "${LAST_TIMESTAMP}")
-debug_log "Session duration: ${session_duration_formatted}, completion time (JST): ${completion_time}"
+debug_log "Session duration: ${SESSION_DURATION_FORMATTED}, completion time (JST): ${COMPLETION_TIME_JST}"
 
 # タスクの種類を推測
 task_type=$(guess_task_type_emoji "${LAST_USER_MESSAGE}")
 
 # 概要を作成（メッセージなしのセッションでは空になる）
-summary=$(build_session_summary "${task_type}" "${LAST_USER_MESSAGE}" "${USER_MESSAGE_COUNT}" "${session_duration_formatted}")
+summary=$(build_session_summary "${task_type}" "${LAST_USER_MESSAGE}" "${USER_MESSAGE_COUNT}" "${SESSION_DURATION_FORMATTED}")
 debug_log "Summary: ${summary}"
 
 # --- イベント別通知 ---
@@ -157,6 +160,6 @@ fi
 notification_title=$(build_ai_title "✅" "終了")
 
 debug_log "Sending stop notification: title='${notification_title}', message='${summary}'"
-notify "${notification_title}" "${summary:-💭 セッションが開始されましたが、メッセージはありませんでした}" "Hero" "${notification_group}" "${completion_time}"
+notify "${notification_title}" "${summary:-💭 セッションが開始されましたが、メッセージはありませんでした}" "Hero" "${notification_group}" "${COMPLETION_TIME_JST}"
 
 debug_log "=== Claude Notification Hook Completed ==="

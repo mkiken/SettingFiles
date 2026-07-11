@@ -66,15 +66,16 @@ function notify() {
   local terminal_emulator=""
 
   if [[ -n "$TMUX" ]]; then
-    local val
-    val=$(tmux show-environment __CFBundleIdentifier 2>/dev/null)
-    [[ "$val" == __CFBundleIdentifier=* ]] && bundle_id="${val#*=}"
-
-    val=$(tmux show-environment TERM_PROGRAM 2>/dev/null)
-    [[ "$val" == TERM_PROGRAM=* ]] && term_program="${val#*=}"
-
-    val=$(tmux show-environment TERMINAL_EMULATOR 2>/dev/null)
-    [[ "$val" == TERMINAL_EMULATOR=* ]] && terminal_emulator="${val#*=}"
+    # 3変数を1回のtmux起動でまとめて取得する（変数ごとのshow-environment起動を削減）。
+    # 未設定変数は行が無い（または削除印`-VAR`行でcaseに不一致）ため空のまま既存フォールバックへ進む
+    local env_line
+    while IFS= read -r env_line; do
+      case "$env_line" in
+        __CFBundleIdentifier=*) bundle_id="${env_line#*=}" ;;
+        TERM_PROGRAM=*) term_program="${env_line#*=}" ;;
+        TERMINAL_EMULATOR=*) terminal_emulator="${env_line#*=}" ;;
+      esac
+    done < <(tmux show-environment 2>/dev/null)
   else
     bundle_id="${__CFBundleIdentifier}"
     term_program="${TERM_PROGRAM}"

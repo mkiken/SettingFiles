@@ -41,6 +41,11 @@ if [[ -n "${AI_HOOK_LABEL:-}" && -z "${AI_HOOK_EMOJI_ID:-}" ]]; then
     AI_HOOK_EMOJI_ID="$(_resolve_ai_hook_emoji_id "${AI_HOOK_LABEL}")"
 fi
 
+# 通知グループ名用の小文字ラベル。呼び出し側フックが直接定義すればtr起動を省ける
+if [[ -z "${AI_HOOK_LABEL_LOWER:-}" ]]; then
+    AI_HOOK_LABEL_LOWER="$(echo "${AI_HOOK_LABEL:-}" | tr '[:upper:]' '[:lower:]')"
+fi
+
 # 通知タイトルを組み立て（例: build_ai_title "✅" "終了" → "✅ Claude終了 <ウィンドウ情報>"）
 # Usage: build_ai_title <status_emoji> <title_suffix>
 build_ai_title() {
@@ -50,7 +55,7 @@ build_ai_title() {
 # グループ通知用のグループ名を出力（例: claude-<session_id>）
 # Usage: build_notification_group <session_id>
 build_notification_group() {
-    echo "$(echo "${AI_HOOK_LABEL}" | tr '[:upper:]' '[:lower:]')-$1"
+    echo "${AI_HOOK_LABEL_LOWER}-$1"
 }
 
 # エラー時フォールバック通知（🤖 <AI>終了 タイトル + 呼び出し側の NOTIFICATION_SOUND）

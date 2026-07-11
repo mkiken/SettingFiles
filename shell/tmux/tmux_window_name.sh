@@ -6,7 +6,10 @@
 
 _TMUX_WINDOW_NAME_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 # EMOJI_* 変数は呼び出し側（notify等）が参照するため引き続き公開する
-source "${_TMUX_WINDOW_NAME_DIR}/tmux_emoji.conf"
+# ai_notification_hook_common.sh 経由では読み込み済みのため二重sourceを避ける
+if [[ -z "${EMOJI_ID_CLAUDE:-}" ]]; then
+    source "${_TMUX_WINDOW_NAME_DIR}/tmux_emoji.conf"
+fi
 
 # tmuxセッション内かどうかを判定してpane_idを返す
 # VSCode等からTMUX_PANEが継承されるケースを除外するためTERM_PROGRAM==tmuxも確認

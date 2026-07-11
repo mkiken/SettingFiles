@@ -218,6 +218,87 @@ class TestAnalyzeLines(unittest.TestCase):
         self.assertEqual(result["last_user_message"], "/plan foo bar")
 
 
+class TestBuildTimeFields(unittest.TestCase):
+    def test_duration_boundaries(self):
+        base = "2026-07-11T00:00:00.000Z"
+        cases = [
+            # (説明, last, 期待duration)
+            ("0秒", "2026-07-11T00:00:00.000Z", "0s"),
+            ("59秒（分繰り上げ境界の下）", "2026-07-11T00:00:59.000Z", "59s"),
+            ("60秒（分表記へ切り替わる境界）", "2026-07-11T00:01:00.000Z", "1m0s"),
+            ("3599秒（時繰り上げ境界の下）", "2026-07-11T00:59:59.000Z", "59m59s"),
+            ("3600秒（時表記へ切り替わる境界）", "2026-07-11T01:00:00.000Z", "1h0m"),
+            ("3661秒", "2026-07-11T01:01:01.000Z", "1h1m"),
+        ]
+        for desc, last, expected in cases:
+            with self.subTest(desc=desc):
+                duration, _ = cta.build_time_fields(base, last)
+                self.assertEqual(duration, expected)
+
+    def test_completion_time_jst(self):
+        cases = [
+            # (説明, last, 期待completion)
+            ("+9h変換と小数秒除去", "2026-07-11T16:30:05.123Z", "01:30:05"),
+            ("小数秒なし・末尾Zは無視（BSD dateパリティ）", "2026-07-11T00:01:00Z", "09:01:00"),
+        ]
+        for desc, last, expected in cases:
+            with self.subTest(desc=desc):
+                _, completion = cta.build_time_fields("", last)
+                self.assertEqual(completion, expected)
+
+    def test_missing_or_invalid_timestamps(self):
+        cases = [
+            # (説明, first, last, 期待duration, 期待completion)
+            ("両方欠落", "", "", "", ""),
+            ("first欠落はdurationのみ空", "", TS1, "", "21:00:00"),
+            ("last欠落は両方空", TS1, "", "", ""),
+            ("last=nullは両方空", TS1, "null", "", ""),
+            ("first不正はdurationのみ空", "garbage", TS1, "", "21:00:00"),
+            ("last不正は両方空", TS1, "garbage", "", ""),
+        ]
+        for desc, first, last, expected_duration, expected_completion in cases:
+            with self.subTest(desc=desc):
+                duration, completion = cta.build_time_fields(first, last)
+                self.assertEqual(duration, expected_duration)
+                self.assertEqual(completion, expected_completion)
+
+
+@unittest.skipUnless(sys.platform == "darwin", "BSD date (-j -f / -r) required")
+class TestBashHelperParity(unittest.TestCase):
+    """置き換え元のbashヘルパー（format_session_duration / format_completion_time_jst）と
+    同一入力で出力が一致することを固定する。"""
+
+    def _run_bash_helpers(self, first, last):
+        script = (
+            f'source "{REPO_ROOT}/shell/tmux/tmux_notification_title.sh"; '
+            f'source "{REPO_ROOT}/shell/tmux/ai_notification_summary.sh"; '
+            f'printf "%s\\n%s\\n" '
+            f'"$(format_session_duration "{first}" "{last}")" '
+            f'"$(format_completion_time_jst "{last}")"'
+        )
+        proc = subprocess.run(
+            ["bash", "-c", script], capture_output=True, text=True, check=True
+        )
+        duration, completion, _ = proc.stdout.split("\n")
+        return duration, completion
+
+    def test_parity_with_bash_helpers(self):
+        cases = [
+            # (説明, first, last)
+            ("時間スケール", "2026-06-27T00:00:00.000Z", "2026-06-27T01:01:01.000Z"),
+            ("秒スケール", "2026-06-27T00:00:00.000Z", "2026-06-27T00:00:30.000Z"),
+            ("日またぎのJST変換", "2026-07-11T16:00:00.000Z", "2026-07-11T23:59:59.000Z"),
+            ("first欠落", "", TS1),
+            ("first不正", "garbage", TS1),
+        ]
+        for desc, first, last in cases:
+            with self.subTest(desc=desc):
+                self.assertEqual(
+                    cta.build_time_fields(first, last),
+                    self._run_bash_helpers(first, last),
+                )
+
+
 class TestMain(unittest.TestCase):
     def test_wrong_argc_exits_1(self):
         stderr = io.StringIO()
@@ -233,6 +314,8 @@ class TestMain(unittest.TestCase):
         self.assertIn("LAST_USER_MESSAGE=''", output)
         self.assertIn("USER_MESSAGE_COUNT=0", output)
         self.assertIn("FIRST_TIMESTAMP=''", output)
+        self.assertIn("SESSION_DURATION_FORMATTED=''", output)
+        self.assertIn("COMPLETION_TIME_JST=''", output)
 
     def test_output_roundtrips_through_bash_eval(self):
         message = "it's a \"quoted\"  message\nwith 'newline' and  spaces"
@@ -246,7 +329,9 @@ class TestMain(unittest.TestCase):
                     "bash",
                     "-c",
                     f'eval "$(python3 "$1" "$2")"; '
-                    f'printf "%s\\n%s\\n" "${{LAST_USER_MESSAGE}}" "${{USER_MESSAGE_COUNT}}"',
+                    f'printf "%s\\n%s\\n%s\\n%s\\n" "${{LAST_USER_MESSAGE}}" '
+                    f'"${{USER_MESSAGE_COUNT}}" "${{SESSION_DURATION_FORMATTED}}" '
+                    f'"${{COMPLETION_TIME_JST}}"',
                     "bash",
                     str(ANALYZER),
                     path,
@@ -257,7 +342,8 @@ class TestMain(unittest.TestCase):
             )
         finally:
             Path(path).unlink()
-        self.assertEqual(proc.stdout, f"{expected}\n1\n")
+        # 単一行transcriptのためfirst==last: duration=0s, TS1(12:00Z)+9h=21:00:00
+        self.assertEqual(proc.stdout, f"{expected}\n1\n0s\n21:00:00\n")
 
 
 if __name__ == "__main__":

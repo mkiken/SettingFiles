@@ -36,10 +36,17 @@ build_stats_line() {
     if [[ -n "${duration}" ]]; then echo "🔄${user_count} ⏳${duration}"; else echo "🔄${user_count}"; fi
 }
 
-# 改行をスペース化・連続空白を圧縮・前後空白を除去して1行で出力
+# 改行をスペース化・連続スペースを圧縮（タブは温存）・前後スペースを除去して1行で出力
+# 旧 echo|tr|sed|sed パイプライン（プロセス×4）の純bash置き換え
 # Usage: normalize_oneline <text>
 normalize_oneline() {
-    echo "$1" | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//'
+    local text="${1//$'\n'/ }"
+    while [[ "${text}" == *"  "* ]]; do
+        text="${text//  / }"
+    done
+    # 圧縮後は前後に残るスペースは高々1個ずつ
+    text="${text# }"
+    echo "${text% }"
 }
 
 # 最大長超過時に切り詰めて"..."を付与（超過しなければそのまま出力）

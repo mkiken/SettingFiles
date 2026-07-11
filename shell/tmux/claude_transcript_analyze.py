@@ -13,6 +13,7 @@ import json
 import re
 import shlex
 import sys
+from datetime import datetime, timedelta
 
 # 旧bash実装 `sed 's/  */ /g'` と同じ「スペースのみ」を詰める（タブは温存）
 _SQUEEZE_RE = re.compile(r" +")
@@ -80,6 +81,55 @@ def is_system_message(msg):
 
 def _is_valid_timestamp(value):
     return isinstance(value, str) and value not in ("", "null")
+
+
+# bashヘルパー iso8601_to_epoch は `date -j -f "%Y-%m-%dT%H:%M:%S"` で
+# 先頭が一致すれば末尾の余剰文字（Z等）を無視する。先頭マッチで同じ挙動を再現する。
+_TS_NAIVE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}")
+
+
+def parse_naive_timestamp(value):
+    """小数秒（最後の`.`以降）を捨ててnaiveにパースする。失敗時はNone。"""
+    if not _is_valid_timestamp(value):
+        return None
+    match = _TS_NAIVE_RE.match(value.rsplit(".", 1)[0])
+    if not match:
+        return None
+    try:
+        return datetime.strptime(match.group(0), "%Y-%m-%dT%H:%M:%S")
+    except ValueError:
+        return None
+
+
+def format_duration(total_seconds):
+    """tmux_notification_title.sh の format_duration と同一フォーマット（1h1m / 1m2s / 5s）。"""
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    seconds = total_seconds % 60
+    if hours > 0:
+        return f"{hours}h{minutes}m"
+    if minutes > 0:
+        return f"{minutes}m{seconds}s"
+    return f"{seconds}s"
+
+
+def build_time_fields(first_timestamp, last_timestamp):
+    """(セッション時間, JST完了時刻) を返す。計算不能な要素は空文字。
+
+    bashヘルパー format_session_duration / format_completion_time_jst の置き換え
+    （dateサブプロセス×4の削減）。両者はTZなしパース→+9h表示のため、マシンTZが
+    パースと表示で相殺され、naive演算で出力が完全一致する。
+    """
+    duration = ""
+    completion = ""
+    end = parse_naive_timestamp(last_timestamp)
+    if end is None:
+        return duration, completion
+    completion = (end + timedelta(hours=9)).strftime("%H:%M:%S")
+    start = parse_naive_timestamp(first_timestamp)
+    if start is not None:
+        duration = format_duration(int((end - start).total_seconds()))
+    return duration, completion
 
 
 def analyze_lines(lines):
@@ -151,11 +201,16 @@ def main(argv):
     except OSError:
         # フック側でファイル存在を確認済み。読めない場合はゼロ値で劣化させる
         result = analyze_lines([])
+    duration, completion = build_time_fields(
+        result["first_timestamp"], result["last_timestamp"]
+    )
     print(f"LAST_USER_MESSAGE={shlex.quote(result['last_user_message'])}")
     print(f"USER_MESSAGE_COUNT={result['user_count']}")
     print(f"ASSISTANT_MESSAGE_COUNT={result['assistant_count']}")
     print(f"FIRST_TIMESTAMP={shlex.quote(result['first_timestamp'])}")
     print(f"LAST_TIMESTAMP={shlex.quote(result['last_timestamp'])}")
+    print(f"SESSION_DURATION_FORMATTED={shlex.quote(duration)}")
+    print(f"COMPLETION_TIME_JST={shlex.quote(completion)}")
     return 0
 
 
