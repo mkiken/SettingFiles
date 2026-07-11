@@ -10,10 +10,7 @@ DEBUG_LOG="/tmp/gemini-hook-debug.log"
 # 共通ヘッダ: notify/絵文字定義/タイトル生成/tmuxアイコン操作の読み込みと debug_log 定義
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/ai_notification_hook_common.sh"
 
-# エラーハンドリング設定
-if [[ "${DEBUG_ENABLED}" == "true" ]]; then
-    set +e # デバッグ中はエラーで止まらないようにする
-fi
+# エラーハンドリング方針: set -e は使わない（共通ヘッダのコメント参照）
 
 debug_log "=== Gemini Notification Hook Started ==="
 

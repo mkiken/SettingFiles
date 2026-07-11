@@ -3,6 +3,8 @@
 # 契約: 呼び出し側フックは DEBUG_ENABLED / DEBUG_LOG を定義してから source する
 # （debug_log は実行時に変数を参照するため source 後の定義でも動くが、契約として先に定義する）
 # Codexには ~/.codex/common が無いため、フック共有モジュールは shell/tmux/ に置く（CLAUDE.md参照）
+# エラーハンドリング方針: 通知フックでは set -e を有効化しない（DEBUG時も含む）。
+# bashの配列アクセス等で意図せず中断し、通知が届かなくなるため。
 
 _AI_HOOK_SET_DIR="${SET:-$HOME/Desktop/repository/SettingFiles/}"
 

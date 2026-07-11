@@ -13,9 +13,7 @@ DEBUG_LOG="/tmp/codex-hook-debug.log"
 # 共通ヘッダ: notify/絵文字定義/タイトル生成/tmuxアイコン操作の読み込みと debug_log 定義
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/ai_notification_hook_common.sh"
 
-if [[ "${DEBUG_ENABLED}" == "true" ]]; then
-    set -e
-fi
+# エラーハンドリング方針: set -e は使わない（共通ヘッダのコメント参照）
 
 HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 CODEX_HOOK_COMMON="${HOOK_DIR}/codex_hook_common.py"
