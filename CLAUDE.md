@@ -49,6 +49,8 @@ When changing the notification hooks (`ai/*/hooks/*notification*.sh`, `shell/tmu
 
 The Gemini hook's context-alert e2e test lives outside the main discovery path — when changing the Gemini notification hook or `shell/tmux/gemini_context_usage.py`, also run `python3 -m unittest discover -s ai/gemini/hooks/tests`.
 
+The Codex hook unit tests also live outside the main discovery path — when changing `ai/codex/hooks/*.py`, also run `python3 -m unittest discover -s ai/codex/hooks`.
+
 ### Regenerate AI Prompts
 
 Canonical source-to-command mapping for regenerating committed outputs. The full init scripts (`mac/initialization/ai/{claude,gemini,codex}.sh`) cover everything; the targeted commands below are faster.
