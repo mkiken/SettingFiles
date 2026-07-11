@@ -33,9 +33,15 @@ main() {
     local gemini_hook="${REPO_ROOT}/ai/gemini/hooks/notification.sh"
 
     # --- フィクスチャ生成 ---
+    # summary行・sidechain行・isMeta行・command-nameタグ行を含め、
+    # 単一パス解析（claude_transcript_analyze.py）のスキップ/展開経路も通す
     local claude_transcript="${WORK_DIR}/smoke-claude.jsonl"
     cat > "${claude_transcript}" <<'EOF'
+{"type":"summary","summary":"過去セッションの要約","timestamp":"2026-07-11T11:00:00.000Z"}
 {"timestamp":"2026-07-11T12:00:00.000Z","message":{"role":"user","content":"通知フックのスモークテストを実行して"},"isSidechain":false}
+{"timestamp":"2026-07-11T12:01:00.000Z","message":{"role":"user","content":"サイドチェーン上のメッセージ"},"isSidechain":true}
+{"timestamp":"2026-07-11T12:02:00.000Z","isMeta":true,"message":{"role":"user","content":"スラッシュコマンドの展開テキスト"}}
+{"timestamp":"2026-07-11T12:03:00.000Z","message":{"role":"user","content":"<command-name>/plan</command-name><command-args>foo</command-args>"}}
 {"timestamp":"2026-07-11T12:05:30.000Z","message":{"role":"assistant","content":[{"type":"text","text":"完了しました"}]}}
 EOF
 
