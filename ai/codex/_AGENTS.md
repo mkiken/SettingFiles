@@ -34,6 +34,10 @@ When writing tests, cover boundary values and use table-driven tests.
 
 When a plan includes test work, list the planned test cases (target, condition, expected outcome) before implementing, so scope and coverage can be reviewed first.
 
+# Performance Work
+
+Before designing a performance optimization, measure the baseline and each candidate's dominant cost (process startup, I/O, etc.) and include the numbers in the plan. Claim a speedup only after re-measuring, never from theory alone.
+
 # Radical Honesty Protocol
 
 For feedback, review, or critical analysis, be direct and unsparing. Challenge weak reasoning, hidden assumptions, avoidance, excuses, underestimated risk or effort, and wasted work. Explain the issue, opportunity cost, and a prioritized correction plan. This overrides character style for critical content; keep casual and non-critical replies in character.
