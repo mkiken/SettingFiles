@@ -10,6 +10,8 @@ DEBUG_LOG="/tmp/gemini-hook-debug.log"
 
 # プラットフォーム識別（共通ヘッダの build_ai_title / hook_fallback_notify 等が参照）
 AI_HOOK_LABEL='Gemini'
+# 小文字形を直接定義して共通ヘッダのtrフォールバック起動を省く
+AI_HOOK_LABEL_LOWER='gemini'
 
 # 共通ヘッダ: notify/絵文字定義/タイトル生成/tmuxアイコン操作の読み込みと debug_log 定義
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/ai_notification_hook_common.sh"
@@ -82,14 +84,16 @@ ACTION_DETAIL="${ACTION_DETAIL:-}"
 # Mac通知とtmuxアイコンの両方をこのフックが所有する（pyフックは進行中🤖とsession_endのみ担当）。
 # アイコンは notify --tmux-icon に統合せず、イベント確定直後のここで設定する。
 # notify は後続のトランスクリプト解析（要約生成）の後になり、統合するとアイコン表示が遅れるため。
+# バックグラウンド起動でpython3起動(数十ms)をクリティカルパスから外す。
+# 後続の解析+notifyが必ず長く走るため、フック終了前にアイコン設定は完了する。
 if [[ "${EVENT_TYPE}" == "notification" ]]; then
     if [[ "${NOTIFICATION_TYPE}" != "ToolPermission" ]]; then
         debug_log "Ignoring notification type: ${NOTIFICATION_TYPE}"
         exit 0
     fi
-    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}"
+    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}" &
 elif [[ "${EVENT_TYPE}" == "after_agent" ]]; then
-    update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}"
+    update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}" &
 fi
 
 # ------------------------------------------------------------------
@@ -118,36 +122,16 @@ USER_COUNT=0
 if [[ -n "${transcript_path}" && "${transcript_path}" != "null" && -f "${transcript_path}" ]]; then
     debug_log "Processing transcript: ${transcript_path}"
 
-    # トランスクリプト(JSON/JSONL)から情報を一括抽出
-    eval $(jq -s -r '
-      (if (length == 1 and (.[0].messages | type) == "array") then .[0].messages else . end) as $msgs |
-      (if (.[0].startTime != null) then .[0].startTime else null end) as $start |
-      (if (length == 1 and (.[0].messages | type) == "array") then .[0].lastUpdated else ((map(select(."$set" != null and ."$set".lastUpdated != null)) | last | ."$set".lastUpdated) // .[0].lastUpdated) end) as $end |
-      ($msgs | map(select(.type == "user" and (
-        ((.content | type) == "array" and .content[-1].text != null) or
-        ((.displayContent | type) == "array" and .displayContent[-1].text != null) or
-        ((.content | type) == "string")
-      )))) as $user_msgs |
-      ($user_msgs | length) as $count |
-      (if $count > 0 then
-        if ($user_msgs[-1].displayContent != null and ($user_msgs[-1].displayContent | type) == "array" and ($user_msgs[-1].displayContent | length) > 0) then
-          $user_msgs[-1].displayContent[-1].text
-        elif ($user_msgs[-1].content != null and ($user_msgs[-1].content | type) == "array" and ($user_msgs[-1].content | length) > 0) then
-          $user_msgs[-1].content[-1].text
-        elif ($user_msgs[-1].content | type) == "string" then
-          $user_msgs[-1].content
-        else
-          ""
-        end
-       else
-        ""
-       end) as $last_msg |
-      @sh "START_TIME=\($start) END_TIME=\($end) USER_COUNT=\($count) LAST_MSG=\($last_msg)"
-    ' "${transcript_path}")
-
-    # 時間計算
-    session_duration_formatted=$(format_session_duration "${START_TIME}" "${END_TIME}")
-    completion_time=$(format_completion_time_jst "${END_TIME}")
+    # トランスクリプト(JSON/JSONL)から情報を一括抽出。
+    # 時間計算（セッション時間/JST完了時刻）もjqクエリ内で行い、旧実装の
+    # format_session_duration / format_completion_time_jst の date 起動×4を削減する。
+    # クエリ失敗時はevalが空になり、既定値のまま空summaryフォールバックへ劣化する。
+    GEMINI_SUMMARY_QUERY="${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/gemini_transcript_summary.jq"
+    eval "$(jq -s -r -f "${GEMINI_SUMMARY_QUERY}" "${transcript_path}" 2>/dev/null)"
+    USER_COUNT="${USER_COUNT:-0}"
+    LAST_MSG="${LAST_MSG:-}"
+    session_duration_formatted="${SESSION_DURATION_FORMATTED:-}"
+    completion_time="${COMPLETION_TIME_JST:-}"
 
     # 要約テキスト生成（メッセージなしのセッションでは空のまま）
     # コマンド履歴っぽく見せる処理: 先頭の # /command ... のコメントマーカーを除去する
