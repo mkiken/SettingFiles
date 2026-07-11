@@ -29,6 +29,42 @@ format_completion_time_jst() {
     date -r $((end_epoch + 32400)) "+%H:%M:%S" 2>/dev/null
 }
 
+# 統計行を出力（例: "🔄3 ⏳5m2s"、時間なしは "🔄3"）
+# Usage: build_stats_line <user_count> <duration_formatted>
+build_stats_line() {
+    local user_count="$1" duration="$2"
+    if [[ -n "${duration}" ]]; then echo "🔄${user_count} ⏳${duration}"; else echo "🔄${user_count}"; fi
+}
+
+# メッセージ行を組み立て（改行除去・空白正規化・最大長超は短縮して"..."付与）
+# Usage: build_summary_msg_line <task_emoji> <message> [max_len=80]
+build_summary_msg_line() {
+    local emoji="$1" message="$2" max_len="${3:-80}"
+    local msg_line prefix_length max_message_length
+    message=$(echo "${message}" | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
+    msg_line="${emoji} ${message}"
+    if [[ ${#msg_line} -gt ${max_len} ]]; then
+        prefix_length=$(( ${#emoji} + 1 ))
+        max_message_length=$((max_len - prefix_length - 3))
+        msg_line="${emoji} ${message:0:${max_message_length}}..."
+        # 全角絵文字などで幅計算がずれた場合の再短縮
+        if [[ ${#msg_line} -gt ${max_len} ]]; then
+            max_message_length=$((max_message_length - 5))
+            msg_line="${emoji} ${message:0:${max_message_length}}..."
+        fi
+    fi
+    echo "${msg_line}"
+}
+
+# hook入力JSONのsession_id、無ければtranscriptファイル名から導出（claude/codex共通形）
+# Usage: derive_session_id <hook_input_json> <transcript_path>
+derive_session_id() {
+    local sid
+    sid=$(echo "$1" | jq -r '.session_id // empty')
+    [[ -z "${sid}" ]] && sid=$(basename "$2" .jsonl)
+    echo "${sid}"
+}
+
 # 最終ユーザーメッセージからタスク種別絵文字を推測して出力（デフォルト 💬）
 # Usage: guess_task_type_emoji <message>
 guess_task_type_emoji() {

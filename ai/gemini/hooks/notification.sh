@@ -1,4 +1,5 @@
 #!/bin/bash
+export LANG="${LANG:-en_US.UTF-8}"
 
 # 通知音設定 (変更する場合はここだけ編集)
 NOTIFICATION_SOUND='Purr'
@@ -125,33 +126,8 @@ if [[ -n "${transcript_path}" && "${transcript_path}" != "null" && -f "${transcr
             task_type=$(guess_task_type_emoji "${LAST_MSG}")
         fi
 
-        # 統計情報行（1行目）
-        if [[ -n "${session_duration_formatted}" ]]; then
-            stats_line="🔄${USER_COUNT} ⏳${session_duration_formatted}"
-        else
-            stats_line="🔄${USER_COUNT}"
-        fi
-
-        # 改行を削除して1行にする
-        clean_msg=$(echo "${LAST_MSG}" | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
-        msg_line="${task_type} ${clean_msg}"
-
-        # 長さ制限（メッセージ行のみ）
-        max_msg_length=80
-        if [[ ${#msg_line} -gt ${max_msg_length} ]]; then
-            emoji_display_length=2
-            space_length=1
-            ellipsis_length=3
-            max_message_length=$((max_msg_length - emoji_display_length - space_length - ellipsis_length))
-            truncated_message=$(echo "${clean_msg}" | sed -E "s/^(.{0,${max_message_length}}).*/\1/")
-            msg_line="${task_type} ${truncated_message}..."
-            if [[ ${#msg_line} -gt ${max_msg_length} ]]; then
-                 max_message_length=$((max_message_length - 5))
-                 truncated_message=$(echo "${clean_msg}" | sed -E "s/^(.{0,${max_message_length}}).*/\1/")
-                 msg_line="${task_type} ${truncated_message}..."
-            fi
-        fi
-
+        stats_line=$(build_stats_line "${USER_COUNT}" "${session_duration_formatted}")
+        msg_line=$(build_summary_msg_line "${task_type}" "${LAST_MSG}")
         summary="${msg_line}"$'\n'"${stats_line}"
     fi
 fi

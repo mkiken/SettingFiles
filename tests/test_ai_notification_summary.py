@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 import sys
 import unittest
@@ -86,6 +87,52 @@ class GuessTaskTypeEmojiTest(unittest.TestCase):
                 result = run_fn(f'guess_task_type_emoji "{message}"')
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(result.stdout.strip(), expected)
+
+
+class BuildStatsLineTest(unittest.TestCase):
+    def test_with_duration(self):
+        result = run_fn('build_stats_line 3 "5m2s"')
+        self.assertEqual(result.stdout.strip(), "🔄3 ⏳5m2s")
+
+    def test_without_duration(self):
+        result = run_fn('build_stats_line 3 ""')
+        self.assertEqual(result.stdout.strip(), "🔄3")
+
+
+class BuildSummaryMsgLineTest(unittest.TestCase):
+    def test_short_message_unchanged(self):
+        result = run_fn('build_summary_msg_line "💻" "short message"')
+        self.assertEqual(result.stdout.strip(), "💻 short message")
+
+    def test_long_message_truncated_with_ellipsis(self):
+        long_message = "a" * 100
+        result = run_fn(f'build_summary_msg_line "💻" "{long_message}"')
+        line = result.stdout.strip()
+        self.assertLessEqual(len(line), 80)
+        self.assertTrue(line.endswith("..."))
+
+    def test_boundary_exactly_80_chars_unchanged(self):
+        # 絵文字1文字 + 空白 + 78文字 = ちょうど80文字（bashの${#}基準）は短縮しない
+        message = "b" * 78
+        result = run_fn(f'build_summary_msg_line "💻" "{message}"')
+        self.assertEqual(result.stdout.strip(), f"💻 {message}")
+
+    def test_newlines_collapsed_to_single_line(self):
+        result = run_fn("build_summary_msg_line '💬' 'line1\nline2   line3'")
+        self.assertEqual(result.stdout.strip(), "💬 line1 line2 line3")
+
+
+@unittest.skipUnless(shutil.which("jq"), "jq required")
+class DeriveSessionIdTest(unittest.TestCase):
+    def test_prefers_session_id_from_hook_input(self):
+        result = run_fn(
+            "derive_session_id '{\"session_id\": \"abc-123\"}' '/tmp/whatever.jsonl'"
+        )
+        self.assertEqual(result.stdout.strip(), "abc-123")
+
+    def test_falls_back_to_transcript_basename(self):
+        result = run_fn("derive_session_id '{}' '/tmp/session-xyz.jsonl'")
+        self.assertEqual(result.stdout.strip(), "session-xyz")
 
 
 if __name__ == "__main__":

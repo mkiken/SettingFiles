@@ -36,10 +36,7 @@ transcript_path=$(echo "${hook_input}" | jq -r '.transcript_path')
 debug_log "Hook event: ${hook_event_name}"
 debug_log "Transcript path: ${transcript_path}"
 
-session_id=$(echo "${hook_input}" | jq -r '.session_id // empty')
-if [[ -z "${session_id}" ]]; then
-    session_id=$(basename "${transcript_path}" .jsonl)
-fi
+session_id=$(derive_session_id "${hook_input}" "${transcript_path}")
 notification_group="codex-${session_id}"
 debug_log "Session ID: ${session_id}"
 
@@ -128,12 +125,6 @@ task_type=$(guess_task_type_emoji "${last_user_message}")
 
 # 要約を作成
 if [[ ${user_count} -gt 0 ]]; then
-    if [[ -n "${session_duration_formatted}" ]]; then
-        stats_line="🔄${user_count} ⏳${session_duration_formatted}"
-    else
-        stats_line="🔄${user_count}"
-    fi
-
     summary_message="${last_user_message}"
     summary_task_type="${task_type}"
     if [[ "${waiting_for_user_response}" == "true" ]]; then
@@ -143,24 +134,8 @@ if [[ ${user_count} -gt 0 ]]; then
 
     debug_log "Final summary_message: ${summary_message:0:100}"
 
-    msg_line="${summary_task_type} ${summary_message}"
-
-    max_msg_length=80
-    if [[ ${#msg_line} -gt ${max_msg_length} ]]; then
-        prefix_length=$(( ${#summary_task_type} + 1 ))
-        ellipsis_length=3
-        max_message_length=$((max_msg_length - prefix_length - ellipsis_length))
-
-        truncated_message="${summary_message:0:${max_message_length}}"
-        msg_line="${summary_task_type} ${truncated_message}..."
-
-        if [[ ${#msg_line} -gt ${max_msg_length} ]]; then
-            max_message_length=$((max_message_length - 5))
-            truncated_message="${summary_message:0:${max_message_length}}"
-            msg_line="${summary_task_type} ${truncated_message}..."
-        fi
-    fi
-
+    stats_line=$(build_stats_line "${user_count}" "${session_duration_formatted}")
+    msg_line=$(build_summary_msg_line "${summary_task_type}" "${summary_message}")
     summary="${msg_line}"$'\n'"${stats_line}"
 else
     summary="💭 セッションが開始されましたが、メッセージはありませんでした"

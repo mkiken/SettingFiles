@@ -71,10 +71,7 @@ fi
 
 # セッションIDを取得（グループ通知用）
 # hook入力JSONにsession_idがあればそれを優先、なければtranscript_pathから導出
-session_id=$(echo "${hook_input}" | jq -r '.session_id // empty')
-if [[ -z "${session_id}" ]]; then
-    session_id=$(basename "${transcript_path}" .jsonl)
-fi
+session_id=$(derive_session_id "${hook_input}" "${transcript_path}")
 notification_group="claude-${session_id}"
 debug_log "Session ID: ${session_id}, Notification group: ${notification_group}"
 
@@ -248,40 +245,9 @@ if [[ -n "${user_messages[*]:-}" ]]; then
 fi
 
 if [[ ${user_count} -gt 0 ]]; then
-    # 統計情報行（1行目）
-    if [[ -n "${session_duration_formatted}" ]]; then
-        stats_line="🔄${user_count} ⏳${session_duration_formatted}"
-    else
-        stats_line="🔄${user_count}"
-    fi
-
-    # 最終的な改行除去（念のため）
-    last_user_message=$(echo "${last_user_message}" | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
-    debug_log "Final last_user_message after newline removal: ${last_user_message:0:100}"
-
-    # メッセージ行（2行目）を作成
-    msg_line="${task_type} ${last_user_message}"
-
-    # 80文字を超える場合、メッセージ行を短縮
-    max_msg_length=80
-    if [[ ${#msg_line} -gt ${max_msg_length} ]]; then
-        prefix_length=$(( ${#task_type} + 1 ))  # emoji + space
-        ellipsis_length=3  # "..."
-        max_message_length=$((max_msg_length - prefix_length - ellipsis_length))
-
-        debug_log "Truncating message: original_length=${#msg_line}, max_allowed=${max_msg_length}, max_message=${max_message_length}"
-
-        truncated_message="${last_user_message:0:${max_message_length}}"
-        msg_line="${task_type} ${truncated_message}..."
-
-        if [[ ${#msg_line} -gt ${max_msg_length} ]]; then
-            max_message_length=$((max_message_length - 5))
-            truncated_message="${last_user_message:0:${max_message_length}}"
-            msg_line="${task_type} ${truncated_message}..."
-            debug_log "Re-truncated to: ${#msg_line} chars"
-        fi
-    fi
-
+    stats_line=$(build_stats_line "${user_count}" "${session_duration_formatted}")
+    msg_line=$(build_summary_msg_line "${task_type}" "${last_user_message}")
+    debug_log "Summary msg_line: ${msg_line}"
     summary="${msg_line}"$'\n'"${stats_line}"
 else
     summary="💭 セッションが開始されましたが、メッセージはありませんでした"
