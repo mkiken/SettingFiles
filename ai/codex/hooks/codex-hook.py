@@ -7,10 +7,8 @@ from functools import partial
 from pathlib import Path
 
 sys.dont_write_bytecode = True
-sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "shell" / "tmux"))
 import tmux_window_name as _twn
-from codex_hook_common import analyze_hook_input
 from tmux_emoji import EMOJI_ID_CODEX
 from tmux_window_name import HookStatus
 
@@ -82,10 +80,10 @@ def main() -> int:
 
     hook_event = input_data.get("hook_event_name")
 
+    # 承認待ち(PermissionRequest)と終了/応答待ち(Stop)のアイコンは
+    # codex-stop-notification.sh がMac通知とセットで所有する。ここは進行中🤖のみ担当。
     handlers = {
-        "PermissionRequest": handle_permission_request_hook,
         "PostToolUse": handle_post_tool_use_hook,
-        "Stop": handle_stop_hook,
         "UserPromptSubmit": handle_user_prompt_submit_hook,
     }
 
@@ -111,23 +109,8 @@ def handle_post_tool_use_hook(_: dict):
     update_tmux_window_name(HookStatus.ONGOING)
 
 
-def handle_permission_request_hook(_: dict):
-    update_tmux_window_name(HookStatus.NOTIFICATION)
-
-
 def handle_user_prompt_submit_hook(_: dict):
     update_tmux_window_name(HookStatus.ONGOING)
-
-
-def handle_stop_hook(input_data: dict):
-    analysis = analyze_hook_input(input_data)
-    if analysis["is_subagent_session"]:
-        return
-
-    if analysis["waiting_for_user_response"]:
-        update_tmux_window_name(HookStatus.NOTIFICATION)
-    else:
-        update_tmux_window_name(HookStatus.COMPLETED)
 
 
 if __name__ == "__main__":

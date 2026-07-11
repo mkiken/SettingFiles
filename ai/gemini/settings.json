@@ -56,10 +56,6 @@
           {
             "type": "command",
             "command": "~/.gemini/hooks/notification.sh --event after_agent"
-          },
-          {
-            "type": "command",
-            "command": "python3 ~/.gemini/hooks/gemini-hook.py after_agent"
           }
         ]
       }
@@ -102,10 +98,6 @@
           {
             "type": "command",
             "command": "~/.gemini/hooks/notification.sh --event notification"
-          },
-          {
-            "type": "command",
-            "command": "python3 ~/.gemini/hooks/gemini-hook.py notification"
           }
         ]
       }

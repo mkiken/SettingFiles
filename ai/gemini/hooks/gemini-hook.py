@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import json
 import sys
 from functools import partial
 from pathlib import Path
@@ -20,20 +19,16 @@ def main():
 
     event_name = sys.argv[1]
 
-    # 標準入力からJSONを読み込む（必要に応じて）
-    data = {}
+    # 標準入力は読み捨てる（書き込み側のSIGPIPEを避けるため）
     try:
         if not sys.stdin.isatty():
-             data = json.load(sys.stdin)
+            sys.stdin.read()
     except Exception:
         pass
 
-    if event_name == "notification":
-        if data.get("notification_type") == "ToolPermission":
-            update_tmux_window_name(HookStatus.NOTIFICATION)
-    elif event_name in ["after_agent"]:
-        update_tmux_window_name(HookStatus.COMPLETED)
-    elif event_name in ["before_agent", "before_tool"]:
+    # 承認待ち(notification)と終了(after_agent)のアイコンは notification.sh が
+    # Mac通知とセットで所有する。ここは進行中🤖とsession_endの掃除のみ担当。
+    if event_name in ["before_agent", "before_tool"]:
         update_tmux_window_name(HookStatus.ONGOING)
     elif event_name in ["after_tool"]:
         update_tmux_window_name(HookStatus.ONGOING)

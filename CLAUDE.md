@@ -121,9 +121,10 @@ Beyond their shared cores (table above), two skill families have GENERATED, comm
 - **config-audit** — 18 auditor agents (6 dimensions × 3 platforms: `config-auditor-*.md` / `config_auditor_*.toml` in the same `agents` dirs): `generate_config_auditor_agents` assembles each from `ai/common/config_audit_subagents/` fragments (`intro_<dim>.md`, shared `rules_common.md`, `format_<dim>.md`) plus per-platform `ai/<platform>/agents_src/config_audit/head_<dim>` files.
 
 ### Claude Hooks
-`ai/claude/hooks/` contains notification hooks symlinked into `~/.claude/hooks/`:
-- `claude-hook.py` - Updates tmux window name to reflect Claude Code session status
-- `stop-send-notification.sh` - Sends rich session notifications on completion
+`ai/claude/hooks/` contains notification hooks symlinked into `~/.claude/hooks/` (Gemini/Codex follow the same split):
+- `claude-hook.py` - Sets the in-progress tmux window icon (🤖) and removes icons on SessionEnd
+- `stop-send-notification.sh` - Owns approval-wait/stop events: sets the tmux icon (✋/✅) immediately on event detection, then sends a rich Mac notification after transcript analysis. Icons are set directly (not via `notify --tmux-icon`) so they appear before the slow summary generation.
+- Shared shell header for the three platform notification hooks (sources + `NOTIFY_FORCE` + `debug_log`): `shell/tmux/ai_notification_hook_common.sh`
 
 ### Plugin Management
 

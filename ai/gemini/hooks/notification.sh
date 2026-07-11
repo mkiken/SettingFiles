@@ -40,6 +40,21 @@ if ! command -v jq &> /dev/null; then
     exit 1
 fi
 
+# --- tmuxアイコン先行設定 ---
+# Mac通知とtmuxアイコンの両方をこのフックが所有する（pyフックは進行中🤖とsession_endのみ担当）。
+# アイコンは notify --tmux-icon に統合せず、イベント確定直後のここで設定する。
+# notify は後続のトランスクリプト解析（要約生成）の後になり、統合するとアイコン表示が遅れるため。
+if [[ "${EVENT_TYPE}" == "notification" ]]; then
+    NOTIFICATION_TYPE=$(echo "${hook_input}" | jq -r '.notification_type // ""')
+    if [[ "${NOTIFICATION_TYPE}" != "ToolPermission" ]]; then
+        debug_log "Ignoring notification type: ${NOTIFICATION_TYPE}"
+        exit 0
+    fi
+    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${EMOJI_ID_GEMINI}"
+elif [[ "${EVENT_TYPE}" == "after_agent" ]]; then
+    update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${EMOJI_ID_GEMINI}"
+fi
+
 # ------------------------------------------------------------------
 # トランスクリプト情報の抽出と要約生成 (共通処理)
 # ------------------------------------------------------------------
@@ -170,50 +185,45 @@ fi
 # イベント別処理
 # ------------------------------------------------------------------
 
+# ToolPermission 以外の notification はアイコン先行設定の時点で exit 済み
 if [[ "${EVENT_TYPE}" == "notification" ]]; then
-    NOTIFICATION_TYPE=$(echo "${hook_input}" | jq -r '.notification_type // ""')
+    ACTION_DETAIL=$(echo "${hook_input}" | jq -r '
+        .details |
+        if (.tool_name == "ask_user") then
+            "❓ " + (.tool_input.questions | map(.question) | join(" / "))
+        elif (.tool_name == "replace" or .tool_name == "write_file") then
+            "📝 " + .tool_name + " (" + (.tool_input.file_path | split("/") | last) + ")"
+        elif (.tool_name == "run_shell_command") then
+            "💻 cmd (" + (.tool_input.command | split("\n")[0] | if length > 40 then .[0:40] + "..." else . end) + ")"
+        elif (.type == "exec") then
+            if (.rootCommand != null and .rootCommand != "") then ("Shell (" + .rootCommand + ")")
+            elif (.command != null and .command != "") then ("Shell (" + (.command | split(" ")[0]) + ")")
+            else "Shell" end
+        elif (.type == "edit") then
+            if (.fileName != null and .fileName != "") then ("Edit (" + .fileName + ")")
+            else "Edit" end
+        elif (.tool_name != null and .tool_name != "") then
+             if (.rootCommand != null and .rootCommand != "") then (.tool_name + " (" + .rootCommand + ")")
+             else .tool_name end
+        elif (.rootCommand != null and .rootCommand != "") then .rootCommand
+        elif (.title != null and .title != "") then .title
+        else "" end
+    ')
 
-    if [[ "${NOTIFICATION_TYPE}" == "ToolPermission" ]]; then
-        ACTION_DETAIL=$(echo "${hook_input}" | jq -r '
-            .details |
-            if (.tool_name == "ask_user") then
-                "❓ " + (.tool_input.questions | map(.question) | join(" / "))
-            elif (.tool_name == "replace" or .tool_name == "write_file") then
-                "📝 " + .tool_name + " (" + (.tool_input.file_path | split("/") | last) + ")"
-            elif (.tool_name == "run_shell_command") then
-                "💻 cmd (" + (.tool_input.command | split("\n")[0] | if length > 40 then .[0:40] + "..." else . end) + ")"
-            elif (.type == "exec") then
-                if (.rootCommand != null and .rootCommand != "") then ("Shell (" + .rootCommand + ")")
-                elif (.command != null and .command != "") then ("Shell (" + (.command | split(" ")[0]) + ")")
-                else "Shell" end
-            elif (.type == "edit") then
-                if (.fileName != null and .fileName != "") then ("Edit (" + .fileName + ")")
-                else "Edit" end
-            elif (.tool_name != null and .tool_name != "") then
-                 if (.rootCommand != null and .rootCommand != "") then (.tool_name + " (" + .rootCommand + ")")
-                 else .tool_name end
-            elif (.rootCommand != null and .rootCommand != "") then .rootCommand
-            elif (.title != null and .title != "") then .title
-            else "" end
-        ')
-
-        if [[ -n "${ACTION_DETAIL}" ]]; then
-            MSG_BODY="${ACTION_DETAIL}"
-        else
-            MSG_BODY="承認が必要です"
-        fi
-
-        # 要約を追記
-        if [[ "${summary}" != "💭 メッセージなし" ]]; then
-            MSG_BODY="${MSG_BODY}"$'\n'"${summary}"
-        fi
-
-        debug_log "Sending ToolPermission notification: ${MSG_BODY}"
-
-        notify "$(build_notification_title "⚠️" "Gemini承認待ち" "${EMOJI_ID_GEMINI}")" "${MSG_BODY}" "Purr" "${notification_group}"
+    if [[ -n "${ACTION_DETAIL}" ]]; then
+        MSG_BODY="${ACTION_DETAIL}"
     else
-        debug_log "Ignoring notification type: ${NOTIFICATION_TYPE}"
+        MSG_BODY="承認が必要です"
     fi
+
+    # 要約を追記
+    if [[ "${summary}" != "💭 メッセージなし" ]]; then
+        MSG_BODY="${MSG_BODY}"$'\n'"${summary}"
+    fi
+
+    debug_log "Sending ToolPermission notification: ${MSG_BODY}"
+
+    notify "$(build_notification_title "⚠️" "Gemini承認待ち" "${EMOJI_ID_GEMINI}")" "${MSG_BODY}" "Purr" "${notification_group}"
     exit 0
 fi
 

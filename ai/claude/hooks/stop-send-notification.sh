@@ -56,6 +56,22 @@ if [[ "${hook_event_name}" == "Stop" ]]; then
     fi
 fi
 
+# --- tmuxアイコン先行設定 ---
+# Mac通知とtmuxアイコンの両方をこのフックが所有する（pyフックは進行中🤖とSessionEndのみ担当）。
+# アイコンは notify --tmux-icon に統合せず、イベント確定直後のここで設定する。
+# notify は後続のトランスクリプト解析（要約生成、長セッションで数秒〜十数秒）の後になり、
+# 統合するとアイコン表示がそのぶん遅れるため。
+if [[ "${hook_event_name}" == "Notification" ]]; then
+    notification_type=$(echo "${hook_input}" | jq -r '.notification_type')
+    if [[ "${notification_type}" != "permission_prompt" && "${notification_type}" != "elicitation_dialog" ]]; then
+        debug_log "Notification type ${notification_type} does not require notification, exiting"
+        exit 0
+    fi
+    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${EMOJI_ID_CLAUDE}"
+elif [[ "${hook_event_name}" == "Stop" ]]; then
+    update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${EMOJI_ID_CLAUDE}"
+fi
+
 # セッションIDを取得（グループ通知用）
 # hook入力JSONにsession_idがあればそれを優先、なければtranscript_pathから導出
 session_id=$(echo "${hook_input}" | jq -r '.session_id // empty')
@@ -300,23 +316,18 @@ else
 fi
 
 # --- イベント別通知 ---
+# 承認が不要な notification_type はアイコン先行設定の時点で exit 済み
 if [[ "${hook_event_name}" == "Notification" ]]; then
-    notification_type=$(echo "${hook_input}" | jq -r '.notification_type')
+    message=$(echo "${hook_input}" | jq -r '.message // empty')
 
-    if [[ "${notification_type}" == "permission_prompt" || "${notification_type}" == "elicitation_dialog" ]]; then
-        message=$(echo "${hook_input}" | jq -r '.message // empty')
-
-        notification_body="${message}"
-        # 共通処理で生成された整形済みsummaryを追記
-        if [[ -n "${summary}" && "${summary}" != "💭 セッションが開始されましたが、メッセージはありませんでした" ]]; then
-            notification_body="${notification_body}"$'\n'"${summary}"
-        fi
-
-        debug_log "Sending approval notification: ${notification_body}"
-        notify "$(build_notification_title "⚠️" "Claude承認待ち" "${EMOJI_ID_CLAUDE}")" "${notification_body}" "Hero" "${notification_group}"
-    else
-        debug_log "Notification type ${notification_type} does not require notification, exiting"
+    notification_body="${message}"
+    # 共通処理で生成された整形済みsummaryを追記
+    if [[ -n "${summary}" && "${summary}" != "💭 セッションが開始されましたが、メッセージはありませんでした" ]]; then
+        notification_body="${notification_body}"$'\n'"${summary}"
     fi
+
+    debug_log "Sending approval notification: ${notification_body}"
+    notify "$(build_notification_title "⚠️" "Claude承認待ち" "${EMOJI_ID_CLAUDE}")" "${notification_body}" "Hero" "${notification_group}"
     exit 0
 fi
 

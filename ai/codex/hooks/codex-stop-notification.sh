@@ -45,7 +45,12 @@ fi
 notification_group="codex-${session_id}"
 debug_log "Session ID: ${session_id}"
 
+# Mac通知とtmuxアイコンの両方をこのフックが所有する（pyフックは進行中🤖のみ担当）。
+# アイコンは notify --tmux-icon に統合せず、イベント確定直後に先行設定する。
+# notify は要約生成の後になり、統合するとアイコン表示が遅れるため。
 if [[ "${hook_event_name}" == "PermissionRequest" ]]; then
+    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${EMOJI_ID_CODEX}"
+
     tool_name=$(echo "${hook_input}" | jq -r '.tool_name // "tool"')
     approval_reason=$(echo "${hook_input}" | jq -r '.tool_input.description // empty')
     tool_command=$(echo "${hook_input}" | jq -r '.tool_input.command // empty')
@@ -92,10 +97,18 @@ if [[ "${hook_event_name}" == "Stop" && "${is_subagent}" == "true" ]]; then
     exit 0
 fi
 
+waiting_for_user_response=$(echo "${analysis_json}" | jq -r '.waiting_for_user_response // false')
+
+# tmuxアイコン先行設定（応答待ちなら✋、完了なら✅）。notify に統合しない理由は PermissionRequest 側のコメント参照。
+if [[ "${waiting_for_user_response}" == "true" ]]; then
+    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${EMOJI_ID_CODEX}"
+else
+    update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${EMOJI_ID_CODEX}"
+fi
+
 summary=""
 last_user_message=$(echo "${analysis_json}" | jq -r '.last_user_message // ""')
 last_assistant_message=$(echo "${analysis_json}" | jq -r '.last_assistant_message // ""')
-waiting_for_user_response=$(echo "${analysis_json}" | jq -r '.waiting_for_user_response // false')
 user_count=$(echo "${analysis_json}" | jq -r '.user_message_count // 0')
 assistant_count=$(echo "${analysis_json}" | jq -r '.assistant_message_count // 0')
 first_timestamp=$(echo "${analysis_json}" | jq -r '.first_timestamp // ""')
