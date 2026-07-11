@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -48,6 +49,15 @@ class GeminiNotificationContextTest(unittest.TestCase):
             write_executable(
                 fake_repo / "shell" / "zsh" / "alias" / "context-alert.zsh",
                 "ctx_alert_evaluate() { printf '%s\\n' \"$*\" > \"${TMPDIR}/gemini-context-args\"; }\n",
+            )
+            write_executable(
+                fake_repo / "shell" / "tmux" / "tmux_window_name.sh",
+                "update_tmux_window_name() { :; }\n",
+            )
+            # 共通ヘッダは実物をコピーする（手書きスタブだと実装追加に追随できず再破損するため）
+            shutil.copy(
+                REPO_ROOT / "shell" / "tmux" / "ai_notification_hook_common.sh",
+                fake_repo / "shell" / "tmux" / "ai_notification_hook_common.sh",
             )
 
             older_chat = fake_home / ".gemini" / "tmp" / "project" / "chats" / f"session-{session_id[:8]}.jsonl"
