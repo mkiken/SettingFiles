@@ -212,9 +212,10 @@ class TestCli(unittest.TestCase):
         cases = [
             ("removeは非tmuxでコード2", ["remove"], twn.CLEANUP_NOT_TMUX),
             ("updateは常に0", ["update", WAIT], 0),
+            ("update+identifierも0", ["update", WAIT, ID], 0),
             ("引数なしはusageエラー", [], twn._EX_USAGE),
             ("不正コマンドはusageエラー", ["bogus"], twn._EX_USAGE),
-            ("update引数過多はusageエラー", ["update", WAIT, "extra"], twn._EX_USAGE),
+            ("update引数過多はusageエラー", ["update", WAIT, ID, "extra"], twn._EX_USAGE),
             ("remove不正フラグはusageエラー", ["remove", "--bogus"], twn._EX_USAGE),
             ("remove-badgeは非tmuxで0", ["remove-badge"], 0),
         ]
@@ -224,6 +225,19 @@ class TestCli(unittest.TestCase):
                     stderr = io.StringIO()
                     with contextlib.redirect_stderr(stderr):
                         self.assertEqual(twn.main(argv), expected)
+
+    def test_update_passes_identifier_through(self):
+        cases = [
+            # (説明, argv, update_tmux_window_nameへ渡る引数)
+            ("identifier省略は空文字", ["update", WAIT], (WAIT, "")),
+            ("identifier指定はそのまま", ["update", WAIT, ID], (WAIT, ID)),
+            ("identifier空文字は省略と同じ", ["update", WAIT, ""], (WAIT, "")),
+        ]
+        for desc, argv, expected in cases:
+            with self.subTest(desc):
+                with mock.patch.object(twn, "update_tmux_window_name") as fake_update:
+                    self.assertEqual(twn.main(argv), 0)
+                    fake_update.assert_called_once_with(*expected)
 
 
 if __name__ == "__main__":

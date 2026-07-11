@@ -17,10 +17,11 @@ _get_tmux_pane_id_for_window_name() {
 }
 
 # 指定した絵文字ステータスをtmuxウィンドウ名のプレフィックスに設定する
-# Usage: update_tmux_window_name "✋"
+# 第2引数でAI識別絵文字（EMOJI_ID_*）を状態アイコンの前に付けられる
+# Usage: update_tmux_window_name "✋" ["✴️"]
 update_tmux_window_name() {
     _get_tmux_pane_id_for_window_name >/dev/null || return 0
-    python3 "${_TMUX_WINDOW_NAME_DIR}/tmux_window_name.py" update "$1" 2>/dev/null || true
+    python3 "${_TMUX_WINDOW_NAME_DIR}/tmux_window_name.py" update "$1" "${2:-}" 2>/dev/null || true
 }
 
 # context逼迫バッジを状態アイコンとは独立して追加する

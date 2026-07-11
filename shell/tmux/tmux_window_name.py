@@ -191,7 +191,7 @@ def remove_context_alert_badge(*, run=subprocess.run, env=None) -> int:
 
 _USAGE = (
     "usage: tmux_window_name.py"
-    " {update <emoji-prefix> | remove [--report-error] | add-badge | remove-badge}"
+    " {update <emoji-prefix> [identifier] | remove [--report-error] | add-badge | remove-badge}"
 )
 _EX_USAGE = 64
 
@@ -201,8 +201,8 @@ def main(argv: list[str]) -> int:
         print(_USAGE, file=sys.stderr)
         return _EX_USAGE
     command, args = argv[0], argv[1:]
-    if command == "update" and len(args) == 1:
-        update_tmux_window_name(args[0])
+    if command == "update" and len(args) in (1, 2):
+        update_tmux_window_name(args[0], args[1] if len(args) == 2 else "")
         return 0
     if command == "remove" and args in ([], ["--report-error"]):
         return remove_tmux_window_icon(report_error=bool(args))
