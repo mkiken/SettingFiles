@@ -13,6 +13,8 @@ Self-improvement is an engineering loop, not license to rewrite instructions fre
 
 ## Source map
 
+All paths below are relative to the SettingFiles repository root. When the current project is not that repository, resolve the root first by dereferencing the platform's global prompt symlink (`~/.claude/CLAUDE.md`, `~/.gemini/GEMINI.md`, or `~/.codex/AGENTS.md` points into `<repo>/ai/<platform>/`).
+
 - Shared always-on behavior: `ai/common/prompt_base.md`
 - Claude entrypoint: `ai/claude/_CLAUDE.md`
 - Gemini entrypoint: `ai/gemini/_GEMINI.md`
