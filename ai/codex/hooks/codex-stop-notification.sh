@@ -34,12 +34,30 @@ if ! command -v jq &> /dev/null; then
     exit 1
 fi
 
-hook_event_name=$(echo "${hook_input}" | jq -r '.hook_event_name')
-transcript_path=$(echo "${hook_input}" | jq -r '.transcript_path')
+# hook入力の必要フィールドを1回のjqでまとめて抽出（フィールドごとのjq起動を削減）。
+# 抽出失敗時はevalが空になり、直後のデフォルト代入で既存のフォールバック分岐へ劣化する。
+eval "$(printf '%s' "${hook_input}" | jq -r '
+    @sh "hook_event_name=\(.hook_event_name // "")",
+    @sh "transcript_path=\(.transcript_path // "")",
+    @sh "session_id=\(.session_id // "")",
+    @sh "tool_name=\(.tool_name // "tool")",
+    @sh "approval_reason=\(.tool_input.description // "")",
+    @sh "tool_command=\(.tool_input.command // "")"
+' 2>/dev/null)"
+hook_event_name="${hook_event_name:-}"
+transcript_path="${transcript_path:-}"
+session_id="${session_id:-}"
+tool_name="${tool_name:-tool}"
+approval_reason="${approval_reason:-}"
+tool_command="${tool_command:-}"
 debug_log "Hook event: ${hook_event_name}"
 debug_log "Transcript path: ${transcript_path}"
 
-session_id=$(derive_session_id "${hook_input}" "${transcript_path}")
+# セッションID（グループ通知用）: hook入力から抽出済みの値を優先し、
+# 無い場合のみ共通ヘルパーでtranscript_pathから導出する
+if [[ -z "${session_id}" ]]; then
+    session_id=$(derive_session_id '{}' "${transcript_path}")
+fi
 notification_group=$(build_notification_group "${session_id}")
 debug_log "Session ID: ${session_id}"
 
@@ -48,10 +66,6 @@ debug_log "Session ID: ${session_id}"
 # notify は要約生成の後になり、統合するとアイコン表示が遅れるため。
 if [[ "${hook_event_name}" == "PermissionRequest" ]]; then
     update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}"
-
-    tool_name=$(echo "${hook_input}" | jq -r '.tool_name // "tool"')
-    approval_reason=$(echo "${hook_input}" | jq -r '.tool_input.description // empty')
-    tool_command=$(echo "${hook_input}" | jq -r '.tool_input.command // empty')
 
     if [[ -n "${approval_reason}" ]]; then
         notification_body="${approval_reason}"
@@ -74,66 +88,62 @@ if [[ ! -f "${CODEX_HOOK_COMMON}" ]]; then
 fi
 
 debug_log "Processing hook input with common analyzer..."
-analysis_json=$(printf '%s' "${hook_input}" | python3 "${CODEX_HOOK_COMMON}" analyze 2>>"${HOOK_ERROR_LOG}")
+# 解析結果はshlex引用済みの VAR=値 行（claude_transcript_analyze.py と同じ契約）。
+# eval 1回で取り込めるため、旧実装のjq検証＋フィールドごとのjq抽出は不要。
+analysis=$(printf '%s' "${hook_input}" | python3 "${CODEX_HOOK_COMMON}" analyze 2>>"${HOOK_ERROR_LOG}")
 analysis_status=$?
-if [[ ${analysis_status} -ne 0 || -z "${analysis_json}" ]]; then
+if [[ ${analysis_status} -ne 0 || -z "${analysis}" ]]; then
     hook_fallback_notify 'hook解析に失敗しました'
     exit 0
 fi
-if ! echo "${analysis_json}" | jq -e . >/dev/null 2>&1; then
-    hook_fallback_notify 'hook解析結果が不正です'
-    exit 0
-fi
+eval "${analysis}"
+IS_SUBAGENT_SESSION="${IS_SUBAGENT_SESSION:-false}"
+WAITING_FOR_USER_RESPONSE="${WAITING_FOR_USER_RESPONSE:-false}"
+LAST_USER_MESSAGE="${LAST_USER_MESSAGE:-}"
+LAST_ASSISTANT_MESSAGE="${LAST_ASSISTANT_MESSAGE:-}"
+USER_MESSAGE_COUNT="${USER_MESSAGE_COUNT:-0}"
+ASSISTANT_MESSAGE_COUNT="${ASSISTANT_MESSAGE_COUNT:-0}"
+FIRST_TIMESTAMP="${FIRST_TIMESTAMP:-}"
+LAST_TIMESTAMP="${LAST_TIMESTAMP:-}"
 
-is_subagent=$(echo "${analysis_json}" | jq -r '.is_subagent_session // false')
-if [[ "${hook_event_name}" == "Stop" && "${is_subagent}" == "true" ]]; then
+if [[ "${hook_event_name}" == "Stop" && "${IS_SUBAGENT_SESSION}" == "true" ]]; then
     debug_log "Skipping completion notification for subagent session: ${session_id}"
     exit 0
 fi
 
-waiting_for_user_response=$(echo "${analysis_json}" | jq -r '.waiting_for_user_response // false')
-
 # tmuxアイコン先行設定（応答待ちなら✋、完了なら✅）。notify に統合しない理由は PermissionRequest 側のコメント参照。
-if [[ "${waiting_for_user_response}" == "true" ]]; then
+if [[ "${WAITING_FOR_USER_RESPONSE}" == "true" ]]; then
     update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}"
 else
     update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}"
 fi
 
-summary=""
-last_user_message=$(echo "${analysis_json}" | jq -r '.last_user_message // ""')
-last_assistant_message=$(echo "${analysis_json}" | jq -r '.last_assistant_message // ""')
-user_count=$(echo "${analysis_json}" | jq -r '.user_message_count // 0')
-assistant_count=$(echo "${analysis_json}" | jq -r '.assistant_message_count // 0')
-first_timestamp=$(echo "${analysis_json}" | jq -r '.first_timestamp // ""')
-last_timestamp=$(echo "${analysis_json}" | jq -r '.last_timestamp // ""')
-
-debug_log "Total user messages: ${user_count}, assistant messages: ${assistant_count}"
-debug_log "Waiting for user response: ${waiting_for_user_response}"
+debug_log "Total user messages: ${USER_MESSAGE_COUNT}, assistant messages: ${ASSISTANT_MESSAGE_COUNT}"
+debug_log "Waiting for user response: ${WAITING_FOR_USER_RESPONSE}"
 
 # セッション時間計算
-debug_log "First timestamp: ${first_timestamp}"
-debug_log "Last timestamp: ${last_timestamp}"
+debug_log "First timestamp: ${FIRST_TIMESTAMP}"
+debug_log "Last timestamp: ${LAST_TIMESTAMP}"
 
-session_duration_formatted=$(format_session_duration "${first_timestamp}" "${last_timestamp}")
-completion_time=$(format_completion_time_jst "${last_timestamp}")
+session_duration_formatted=$(format_session_duration "${FIRST_TIMESTAMP}" "${LAST_TIMESTAMP}")
+completion_time=$(format_completion_time_jst "${LAST_TIMESTAMP}")
 debug_log "Session duration: ${session_duration_formatted}, completion time (JST): ${completion_time}"
 
 # タスク種別推測
-task_type=$(guess_task_type_emoji "${last_user_message}")
+task_type=$(guess_task_type_emoji "${LAST_USER_MESSAGE}")
 
 # 要約を作成（メッセージなしのセッションでは空になる）
-summary_message="${last_user_message}"
+summary_message="${LAST_USER_MESSAGE}"
 summary_task_type="${task_type}"
-if [[ "${waiting_for_user_response}" == "true" ]]; then
-    summary_message="${last_assistant_message}"
+if [[ "${WAITING_FOR_USER_RESPONSE}" == "true" ]]; then
+    summary_message="${LAST_ASSISTANT_MESSAGE}"
     summary_task_type="✋"
 fi
 debug_log "Final summary_message: ${summary_message:0:100}"
-summary=$(build_session_summary "${summary_task_type}" "${summary_message}" "${user_count}" "${session_duration_formatted}")
+summary=$(build_session_summary "${summary_task_type}" "${summary_message}" "${USER_MESSAGE_COUNT}" "${session_duration_formatted}")
 
 notification_sound="${NOTIFICATION_SOUND}"
-if [[ "${waiting_for_user_response}" == "true" ]]; then
+if [[ "${WAITING_FOR_USER_RESPONSE}" == "true" ]]; then
     notification_title=$(build_ai_title "✋" "応答待ち")
     notification_sound="Hero"
 else

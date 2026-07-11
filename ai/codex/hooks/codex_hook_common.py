@@ -2,6 +2,7 @@
 import json
 import os
 import re
+import shlex
 import sqlite3
 import sys
 from datetime import datetime, timezone
@@ -365,6 +366,26 @@ def is_subagent_session(input_data: dict[str, Any]) -> bool:
     return bool(analyze_hook_input(input_data)["is_subagent_session"])
 
 
+def format_analysis_for_eval(result: dict[str, Any]) -> str:
+    """analyze結果をシェルがeval 1回で取り込めるshlex引用済み VAR=値 行に整形する。
+
+    claude_transcript_analyze.py と同じ出力契約。boolはシェル側の
+    `== "true"` 比較に合わせて小文字の true/false で出力する。
+    """
+    return "\n".join(
+        [
+            f"IS_SUBAGENT_SESSION={str(bool(result.get('is_subagent_session'))).lower()}",
+            f"WAITING_FOR_USER_RESPONSE={str(bool(result.get('waiting_for_user_response'))).lower()}",
+            f"LAST_USER_MESSAGE={shlex.quote(str(result.get('last_user_message') or ''))}",
+            f"LAST_ASSISTANT_MESSAGE={shlex.quote(str(result.get('last_assistant_message') or ''))}",
+            f"USER_MESSAGE_COUNT={int(result.get('user_message_count') or 0)}",
+            f"ASSISTANT_MESSAGE_COUNT={int(result.get('assistant_message_count') or 0)}",
+            f"FIRST_TIMESTAMP={shlex.quote(str(result.get('first_timestamp') or ''))}",
+            f"LAST_TIMESTAMP={shlex.quote(str(result.get('last_timestamp') or ''))}",
+        ]
+    )
+
+
 def extract_context_usage(input_data: dict[str, Any]) -> dict[str, Any]:
     """transcript から context 使用率を抽出する。
 
@@ -439,7 +460,7 @@ def main() -> int:
         print(json.dumps(extract_context_usage(input_data), ensure_ascii=False))
         return 0
 
-    print(json.dumps(analyze_hook_input(input_data), ensure_ascii=False))
+    print(format_analysis_for_eval(analyze_hook_input(input_data)))
     return 0
 
 
