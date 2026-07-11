@@ -8,6 +8,9 @@ NOTIFICATION_SOUND='Purr'
 DEBUG_ENABLED=false
 DEBUG_LOG="/tmp/gemini-hook-debug.log"
 
+# プラットフォーム識別（共通ヘッダの build_ai_title / hook_fallback_notify 等が参照）
+AI_HOOK_LABEL='Gemini'
+
 # 共通ヘッダ: notify/絵文字定義/タイトル生成/tmuxアイコン操作の読み込みと debug_log 定義
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/ai_notification_hook_common.sh"
 
@@ -34,7 +37,7 @@ debug_log "Hook input received: ${hook_input}"
 # jqが利用可能かチェック
 if ! command -v jq &> /dev/null; then
     debug_log "Error: jq not found"
-    notify "$(build_notification_title "🤖" "Gemini終了" "${EMOJI_ID_GEMINI}")" 'jqが見つかりません' "${NOTIFICATION_SOUND}"
+    hook_fallback_notify 'jqが見つかりません'
     exit 1
 fi
 
@@ -48,9 +51,9 @@ if [[ "${EVENT_TYPE}" == "notification" ]]; then
         debug_log "Ignoring notification type: ${NOTIFICATION_TYPE}"
         exit 0
     fi
-    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${EMOJI_ID_GEMINI}"
+    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}"
 elif [[ "${EVENT_TYPE}" == "after_agent" ]]; then
-    update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${EMOJI_ID_GEMINI}"
+    update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}"
 fi
 
 # ------------------------------------------------------------------
@@ -61,15 +64,9 @@ fi
 transcript_path=$(echo "${hook_input}" | jq -r '.transcript_path')
 
 # セッションIDを取得（グループ通知用）
-session_id=$(echo "${hook_input}" | jq -r '.session_id // empty')
-if [[ -z "${session_id}" && -n "${transcript_path}" && "${transcript_path}" != "null" ]]; then
-    # Geminiの場合、transcript_pathは .../<uuid>/transcript.json となることが多いので親ディレクトリ名を使う
-    session_id=$(basename "$(dirname "${transcript_path}")")
-fi
-if [[ -z "${session_id}" || "${session_id}" == "." ]]; then
-    session_id="default"
-fi
-notification_group="gemini-${session_id}"
+# Geminiのtranscript_pathは .../<uuid>/transcript.json となることが多いので親ディレクトリ名から導出
+session_id=$(derive_session_id "${hook_input}" "${transcript_path}" parent-dir)
+notification_group=$(build_notification_group "${session_id}")
 debug_log "Session ID: ${session_id}, Notification group: ${notification_group}"
 
 summary=""
@@ -113,27 +110,15 @@ if [[ -n "${transcript_path}" && "${transcript_path}" != "null" && -f "${transcr
     session_duration_formatted=$(format_session_duration "${START_TIME}" "${END_TIME}")
     completion_time=$(format_completion_time_jst "${END_TIME}")
 
-    # 要約テキスト生成
-    if [[ ${USER_COUNT} -gt 0 ]]; then
-        # コマンド履歴っぽく見せる処理（コメントアウトされたコマンド部分の除去など）
-        # 簡易的に、先頭の # /command ... を除去したりする
-        LAST_MSG=$(echo "${LAST_MSG}" | sed 's/^[[:space:]]*#[[:space:]]*//')
+    # 要約テキスト生成（メッセージなしのセッションでは空のまま）
+    # コマンド履歴っぽく見せる処理（コメントアウトされたコマンド部分の除去など）
+    # 簡易的に、先頭の # /command ... を除去したりする
+    LAST_MSG=$(echo "${LAST_MSG}" | sed 's/^[[:space:]]*#[[:space:]]*//')
 
-        # タスク種別推測（スラッシュコマンドはGemini固有の前置チェック）
-        if [[ "${LAST_MSG}" =~ ^\/ ]]; then
-            task_type="⚡"
-        else
-            task_type=$(guess_task_type_emoji "${LAST_MSG}")
-        fi
+    # タスク種別推測（スラッシュコマンド→⚡は共通ヘルパー側で判定）
+    task_type=$(guess_task_type_emoji "${LAST_MSG}")
 
-        stats_line=$(build_stats_line "${USER_COUNT}" "${session_duration_formatted}")
-        msg_line=$(build_summary_msg_line "${task_type}" "${LAST_MSG}")
-        summary="${msg_line}"$'\n'"${stats_line}"
-    fi
-fi
-
-if [[ -z "${summary}" ]]; then
-    summary="💭 メッセージなし"
+    summary=$(build_session_summary "${task_type}" "${LAST_MSG}" "${USER_COUNT}" "${session_duration_formatted}")
 fi
 
 # ------------------------------------------------------------------
@@ -172,22 +157,22 @@ if [[ "${EVENT_TYPE}" == "notification" ]]; then
     fi
 
     # 要約を追記
-    if [[ "${summary}" != "💭 メッセージなし" ]]; then
+    if [[ -n "${summary}" ]]; then
         MSG_BODY="${MSG_BODY}"$'\n'"${summary}"
     fi
 
     debug_log "Sending ToolPermission notification: ${MSG_BODY}"
 
-    notify "$(build_notification_title "⚠️" "Gemini承認待ち" "${EMOJI_ID_GEMINI}")" "${MSG_BODY}" "Purr" "${notification_group}"
+    notify "$(build_ai_title "⚠️" "承認待ち")" "${MSG_BODY}" "Purr" "${notification_group}"
     exit 0
 fi
 
 # after_agent の場合
-notification_title=$(build_notification_title "✅" "Gemini終了" "${EMOJI_ID_GEMINI}")
+notification_title=$(build_ai_title "✅" "終了")
 
 debug_log "Sending notification: title='${notification_title}', message='${summary}'"
 
-notify "${notification_title}" "${summary}" "Purr" "${notification_group}" "${completion_time}"
+notify "${notification_title}" "${summary:-💭 メッセージなし}" "Purr" "${notification_group}" "${completion_time}"
 
 # --- context逼迫アラート ---
 debug_log "Evaluating Gemini context alert..."

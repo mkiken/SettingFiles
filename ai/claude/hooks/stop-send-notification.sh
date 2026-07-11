@@ -10,6 +10,9 @@ DEBUG_ENABLED=false
 # デバッグ用ログファイル
 DEBUG_LOG="/tmp/claude-hook-debug.log"
 
+# プラットフォーム識別（共通ヘッダの build_ai_title / hook_fallback_notify 等が参照）
+AI_HOOK_LABEL='Claude'
+
 # 共通ヘッダ: notify/絵文字定義/タイトル生成/tmuxアイコン操作の読み込みと debug_log 定義
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/ai_notification_hook_common.sh"
 
@@ -24,7 +27,7 @@ debug_log "Hook input received: ${hook_input}"
 
 # jqが利用可能かチェック
 if ! command -v jq &> /dev/null; then
-    notify "$(build_notification_title "🤖" "Claude終了" "${EMOJI_ID_CLAUDE}")" 'jqが見つかりません' "${NOTIFICATION_SOUND}"
+    hook_fallback_notify 'jqが見つかりません'
     exit 1
 fi
 
@@ -64,28 +67,28 @@ if [[ "${hook_event_name}" == "Notification" ]]; then
         debug_log "Notification type ${notification_type} does not require notification, exiting"
         exit 0
     fi
-    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${EMOJI_ID_CLAUDE}"
+    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}"
 elif [[ "${hook_event_name}" == "Stop" ]]; then
-    update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${EMOJI_ID_CLAUDE}"
+    update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}"
 fi
 
 # セッションIDを取得（グループ通知用）
 # hook入力JSONにsession_idがあればそれを優先、なければtranscript_pathから導出
 session_id=$(derive_session_id "${hook_input}" "${transcript_path}")
-notification_group="claude-${session_id}"
+notification_group=$(build_notification_group "${session_id}")
 debug_log "Session ID: ${session_id}, Notification group: ${notification_group}"
 
 # transcript_pathが取得できているかチェック
 if [[ -z "${transcript_path}" || "${transcript_path}" == "null" ]]; then
     debug_log "No transcript path found"
-    notify "$(build_notification_title "🤖" "Claude終了" "${EMOJI_ID_CLAUDE}")" 'transcript pathが見つかりません' "${NOTIFICATION_SOUND}"
+    hook_fallback_notify 'transcript pathが見つかりません'
     exit 0
 fi
 
 # transcriptファイルが存在するかチェック
 if [[ ! -f "${transcript_path}" ]]; then
     debug_log "Transcript file not found: ${transcript_path}"
-    notify "$(build_notification_title "🤖" "Claude終了" "${EMOJI_ID_CLAUDE}")" 'セッションが終了しました' "${NOTIFICATION_SOUND}"
+    hook_fallback_notify 'セッションが終了しました'
     exit 0
 fi
 
@@ -97,6 +100,43 @@ summary=""
 user_messages=()
 assistant_messages=()
 total_messages=0
+
+# システムメッセージかどうかを判定する関数
+is_system_message() {
+    local msg="$1"
+
+    # スラッシュコマンド（/で始まる）はユーザーの意図的な入力として扱う
+    if [[ "${msg}" =~ ^/ ]]; then
+        return 1  # false - not a system message
+    fi
+
+    # Claude Codeの既知システムタグのみマッチ（メッセージ先頭のみ）
+    if [[ "${msg}" =~ ^[[:space:]]*'<'(command-message|command-name|command-args|local-command-caveat|local-command-stdout|system-reminder|user-prompt-submit-hook|tool-result|antml) ]]; then
+        return 0  # true
+    fi
+
+    # Caveatで始まる
+    if [[ "${msg}" =~ ^Caveat: ]]; then
+        return 0
+    fi
+
+    # コマンド説明パターン (例: "# /command - Command Reference")
+    if [[ "${msg}" =~ ^'#'[[:space:]]*'/'[a-z:-]+[[:space:]]*'-' ]]; then
+        return 0
+    fi
+
+    # "ARGUMENTS:"で始まる（コマンド説明の一部）
+    if [[ "${msg}" =~ ^ARGUMENTS:[[:space:]] ]]; then
+        return 0
+    fi
+
+    # 日本語の短い指示を許容（4文字未満に緩和）
+    if [[ ${#msg} -lt 4 ]]; then
+        return 0
+    fi
+
+    return 1  # false
+}
 
 # JSONLファイルを読んでメッセージを抽出
 while IFS= read -r line; do
@@ -152,43 +192,6 @@ while IFS= read -r line; do
 
             debug_log "Found message: role=${role}, content_type=${content_type}, content_length=${#content}"
 
-            # システムメッセージかどうかを判定する関数
-            is_system_message() {
-                local msg="$1"
-
-                # スラッシュコマンド（/で始まる）はユーザーの意図的な入力として扱う
-                if [[ "${msg}" =~ ^/ ]]; then
-                    return 1  # false - not a system message
-                fi
-
-                # Claude Codeの既知システムタグのみマッチ（メッセージ先頭のみ）
-                if [[ "${msg}" =~ ^[[:space:]]*'<'(command-message|command-name|command-args|local-command-caveat|local-command-stdout|system-reminder|user-prompt-submit-hook|tool-result|antml) ]]; then
-                    return 0  # true
-                fi
-
-                # Caveatで始まる
-                if [[ "${msg}" =~ ^Caveat: ]]; then
-                    return 0
-                fi
-
-                # コマンド説明パターン (例: "# /command - Command Reference")
-                if [[ "${msg}" =~ ^'#'[[:space:]]*'/'[a-z:-]+[[:space:]]*'-' ]]; then
-                    return 0
-                fi
-
-                # "ARGUMENTS:"で始まる（コマンド説明の一部）
-                if [[ "${msg}" =~ ^ARGUMENTS:[[:space:]] ]]; then
-                    return 0
-                fi
-
-                # 日本語の短い指示を許容（4文字未満に緩和）
-                if [[ ${#msg} -lt 4 ]]; then
-                    return 0
-                fi
-
-                return 1  # false
-            }
-
             if [[ "${role}" == "user" && -n "${content}" && "${content}" != "null" ]]; then
                 if ! is_system_message "${content}"; then
                     user_messages+=("${content}")
@@ -237,21 +240,15 @@ fi
 # タスクの種類を推測
 task_type=$(guess_task_type_emoji "${last_user_message}")
 
-# 概要を作成
+# 概要を作成（メッセージなしのセッションでは空になる）
 # 配列の安全な長さチェック
 user_count=0
 if [[ -n "${user_messages[*]:-}" ]]; then
     user_count=${#user_messages[@]}
 fi
 
-if [[ ${user_count} -gt 0 ]]; then
-    stats_line=$(build_stats_line "${user_count}" "${session_duration_formatted}")
-    msg_line=$(build_summary_msg_line "${task_type}" "${last_user_message}")
-    debug_log "Summary msg_line: ${msg_line}"
-    summary="${msg_line}"$'\n'"${stats_line}"
-else
-    summary="💭 セッションが開始されましたが、メッセージはありませんでした"
-fi
+summary=$(build_session_summary "${task_type}" "${last_user_message}" "${user_count}" "${session_duration_formatted}")
+debug_log "Summary: ${summary}"
 
 # --- イベント別通知 ---
 # 承認が不要な notification_type はアイコン先行設定の時点で exit 済み
@@ -260,19 +257,19 @@ if [[ "${hook_event_name}" == "Notification" ]]; then
 
     notification_body="${message}"
     # 共通処理で生成された整形済みsummaryを追記
-    if [[ -n "${summary}" && "${summary}" != "💭 セッションが開始されましたが、メッセージはありませんでした" ]]; then
+    if [[ -n "${summary}" ]]; then
         notification_body="${notification_body}"$'\n'"${summary}"
     fi
 
     debug_log "Sending approval notification: ${notification_body}"
-    notify "$(build_notification_title "⚠️" "Claude承認待ち" "${EMOJI_ID_CLAUDE}")" "${notification_body}" "Hero" "${notification_group}"
+    notify "$(build_ai_title "⚠️" "承認待ち")" "${notification_body}" "Hero" "${notification_group}"
     exit 0
 fi
 
 # Stopイベント: 終了通知
-notification_title=$(build_notification_title "✅" "Claude終了" "${EMOJI_ID_CLAUDE}")
+notification_title=$(build_ai_title "✅" "終了")
 
 debug_log "Sending stop notification: title='${notification_title}', message='${summary}'"
-notify "${notification_title}" "${summary}" "Hero" "${notification_group}" "${completion_time}"
+notify "${notification_title}" "${summary:-💭 セッションが開始されましたが、メッセージはありませんでした}" "Hero" "${notification_group}" "${completion_time}"
 
 debug_log "=== Claude Notification Hook Completed ==="

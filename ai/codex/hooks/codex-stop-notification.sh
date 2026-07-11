@@ -10,6 +10,9 @@ NOTIFICATION_SOUND='Glass'
 DEBUG_ENABLED=false
 DEBUG_LOG="/tmp/codex-hook-debug.log"
 
+# プラットフォーム識別（共通ヘッダの build_ai_title / hook_fallback_notify 等が参照）
+AI_HOOK_LABEL='Codex'
+
 # 共通ヘッダ: notify/絵文字定義/タイトル生成/tmuxアイコン操作の読み込みと debug_log 定義
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/ai_notification_hook_common.sh"
 
@@ -27,7 +30,7 @@ hook_input=$(cat)
 debug_log "Hook input received: ${hook_input}"
 
 if ! command -v jq &> /dev/null; then
-    notify "$(build_notification_title "🤖" "Codex終了" "${EMOJI_ID_CODEX}")" 'jqが見つかりません' "${NOTIFICATION_SOUND}"
+    hook_fallback_notify 'jqが見つかりません'
     exit 1
 fi
 
@@ -37,14 +40,14 @@ debug_log "Hook event: ${hook_event_name}"
 debug_log "Transcript path: ${transcript_path}"
 
 session_id=$(derive_session_id "${hook_input}" "${transcript_path}")
-notification_group="codex-${session_id}"
+notification_group=$(build_notification_group "${session_id}")
 debug_log "Session ID: ${session_id}"
 
 # Mac通知とtmuxアイコンの両方をこのフックが所有する（pyフックは進行中🤖のみ担当）。
 # アイコンは notify --tmux-icon に統合せず、イベント確定直後に先行設定する。
 # notify は要約生成の後になり、統合するとアイコン表示が遅れるため。
 if [[ "${hook_event_name}" == "PermissionRequest" ]]; then
-    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${EMOJI_ID_CODEX}"
+    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}"
 
     tool_name=$(echo "${hook_input}" | jq -r '.tool_name // "tool"')
     approval_reason=$(echo "${hook_input}" | jq -r '.tool_input.description // empty')
@@ -58,19 +61,15 @@ if [[ "${hook_event_name}" == "PermissionRequest" ]]; then
         notification_body="${tool_name} の承認が必要です"
     fi
 
-    notification_body=$(echo "${notification_body}" | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
-    max_permission_length=140
-    if [[ ${#notification_body} -gt ${max_permission_length} ]]; then
-        notification_body="${notification_body:0:${max_permission_length}}..."
-    fi
+    notification_body=$(truncate_line "$(normalize_oneline "${notification_body}")" 140)
 
     debug_log "Sending permission request notification: ${notification_body}"
-    notify "$(build_notification_title "⚠️" "Codex承認待ち" "${EMOJI_ID_CODEX}")" "${notification_body}" "Hero" "${notification_group}" || true
+    notify "$(build_ai_title "⚠️" "承認待ち")" "${notification_body}" "Hero" "${notification_group}" || true
     exit 0
 fi
 
 if [[ ! -f "${CODEX_HOOK_COMMON}" ]]; then
-    notify "$(build_notification_title "🤖" "Codex終了" "${EMOJI_ID_CODEX}")" 'hook共通モジュールが見つかりません' "${NOTIFICATION_SOUND}"
+    hook_fallback_notify 'hook共通モジュールが見つかりません'
     exit 0
 fi
 
@@ -78,11 +77,11 @@ debug_log "Processing hook input with common analyzer..."
 analysis_json=$(printf '%s' "${hook_input}" | python3 "${CODEX_HOOK_COMMON}" analyze 2>>"${HOOK_ERROR_LOG}")
 analysis_status=$?
 if [[ ${analysis_status} -ne 0 || -z "${analysis_json}" ]]; then
-    notify "$(build_notification_title "🤖" "Codex終了" "${EMOJI_ID_CODEX}")" 'hook解析に失敗しました' "${NOTIFICATION_SOUND}"
+    hook_fallback_notify 'hook解析に失敗しました'
     exit 0
 fi
 if ! echo "${analysis_json}" | jq -e . >/dev/null 2>&1; then
-    notify "$(build_notification_title "🤖" "Codex終了" "${EMOJI_ID_CODEX}")" 'hook解析結果が不正です' "${NOTIFICATION_SOUND}"
+    hook_fallback_notify 'hook解析結果が不正です'
     exit 0
 fi
 
@@ -96,9 +95,9 @@ waiting_for_user_response=$(echo "${analysis_json}" | jq -r '.waiting_for_user_r
 
 # tmuxアイコン先行設定（応答待ちなら✋、完了なら✅）。notify に統合しない理由は PermissionRequest 側のコメント参照。
 if [[ "${waiting_for_user_response}" == "true" ]]; then
-    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${EMOJI_ID_CODEX}"
+    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}"
 else
-    update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${EMOJI_ID_CODEX}"
+    update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}"
 fi
 
 summary=""
@@ -123,33 +122,25 @@ debug_log "Session duration: ${session_duration_formatted}, completion time (JST
 # タスク種別推測
 task_type=$(guess_task_type_emoji "${last_user_message}")
 
-# 要約を作成
-if [[ ${user_count} -gt 0 ]]; then
-    summary_message="${last_user_message}"
-    summary_task_type="${task_type}"
-    if [[ "${waiting_for_user_response}" == "true" ]]; then
-        summary_message="${last_assistant_message}"
-        summary_task_type="✋"
-    fi
-
-    debug_log "Final summary_message: ${summary_message:0:100}"
-
-    stats_line=$(build_stats_line "${user_count}" "${session_duration_formatted}")
-    msg_line=$(build_summary_msg_line "${summary_task_type}" "${summary_message}")
-    summary="${msg_line}"$'\n'"${stats_line}"
-else
-    summary="💭 セッションが開始されましたが、メッセージはありませんでした"
+# 要約を作成（メッセージなしのセッションでは空になる）
+summary_message="${last_user_message}"
+summary_task_type="${task_type}"
+if [[ "${waiting_for_user_response}" == "true" ]]; then
+    summary_message="${last_assistant_message}"
+    summary_task_type="✋"
 fi
+debug_log "Final summary_message: ${summary_message:0:100}"
+summary=$(build_session_summary "${summary_task_type}" "${summary_message}" "${user_count}" "${session_duration_formatted}")
 
 notification_sound="${NOTIFICATION_SOUND}"
 if [[ "${waiting_for_user_response}" == "true" ]]; then
-    notification_title=$(build_notification_title "✋" "Codex応答待ち" "${EMOJI_ID_CODEX}")
+    notification_title=$(build_ai_title "✋" "応答待ち")
     notification_sound="Hero"
 else
-    notification_title=$(build_notification_title "✅" "Codex終了" "${EMOJI_ID_CODEX}")
+    notification_title=$(build_ai_title "✅" "終了")
 fi
 
 debug_log "Sending notification: title='${notification_title}', message='${summary}'"
-notify "${notification_title}" "${summary}" "${notification_sound}" "${notification_group}" "${completion_time}"
+notify "${notification_title}" "${summary:-💭 セッションが開始されましたが、メッセージはありませんでした}" "${notification_sound}" "${notification_group}" "${completion_time}"
 
 debug_log "=== Codex Notification Hook Completed ==="

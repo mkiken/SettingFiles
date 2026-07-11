@@ -79,6 +79,9 @@ class GuessTaskTypeEmojiTest(unittest.TestCase):
         ("こんにちは", "💬"),
         # 「テスト」より先に「追加」（コーディング分岐）がマッチする既存優先順位を固定
         ("テストを追加", "💻"),
+        # スラッシュコマンドは内容キーワードより優先して⚡（先頭空白も許容）
+        ("/pr-review 123", "⚡"),
+        ("  /修正コマンド", "⚡"),
     ]
 
     def test_keyword_classification(self):
@@ -133,6 +136,78 @@ class DeriveSessionIdTest(unittest.TestCase):
     def test_falls_back_to_transcript_basename(self):
         result = run_fn("derive_session_id '{}' '/tmp/session-xyz.jsonl'")
         self.assertEqual(result.stdout.strip(), "session-xyz")
+
+    def test_parent_dir_style_uses_directory_name(self):
+        result = run_fn(
+            "derive_session_id '{}' '/tmp/chats/uuid-777/transcript.json' parent-dir"
+        )
+        self.assertEqual(result.stdout.strip(), "uuid-777")
+
+    def test_session_id_from_hook_input_ignores_style(self):
+        result = run_fn(
+            "derive_session_id '{\"session_id\": \"abc-123\"}' "
+            "'/tmp/uuid-777/transcript.json' parent-dir"
+        )
+        self.assertEqual(result.stdout.strip(), "abc-123")
+
+    def test_empty_inputs_fall_back_to_default(self):
+        result = run_fn("derive_session_id '{}' ''")
+        self.assertEqual(result.stdout.strip(), "default")
+
+    def test_null_transcript_path_falls_back_to_default(self):
+        result = run_fn("derive_session_id '{}' 'null'")
+        self.assertEqual(result.stdout.strip(), "default")
+
+
+class NormalizeOnelineTest(unittest.TestCase):
+    CASES = [
+        ("line1\\nline2   line3", "line1 line2 line3"),
+        ("  padded  ", "padded"),
+        ("", ""),
+        ("single", "single"),
+    ]
+
+    def test_normalization(self):
+        for raw, expected in self.CASES:
+            with self.subTest(raw=raw):
+                result = run_fn(f"normalize_oneline $'{raw}'")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout.strip(), expected)
+
+
+class TruncateLineTest(unittest.TestCase):
+    def test_under_max_unchanged(self):
+        result = run_fn('truncate_line "abc" 5')
+        self.assertEqual(result.stdout.strip(), "abc")
+
+    def test_boundary_exactly_max_unchanged(self):
+        result = run_fn(f'truncate_line "{"a" * 5}" 5')
+        self.assertEqual(result.stdout.strip(), "a" * 5)
+
+    def test_over_max_truncated_with_ellipsis(self):
+        result = run_fn(f'truncate_line "{"a" * 10}" 5')
+        self.assertEqual(result.stdout.strip(), "a" * 5 + "...")
+
+
+class BuildSessionSummaryTest(unittest.TestCase):
+    def test_with_duration(self):
+        result = run_fn('build_session_summary "💻" "fix the bug" 3 "5m2s"')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, "💻 fix the bug\n🔄3 ⏳5m2s\n")
+
+    def test_without_duration(self):
+        result = run_fn('build_session_summary "💬" "hello" 1 ""')
+        self.assertEqual(result.stdout, "💬 hello\n🔄1\n")
+
+    def test_zero_user_count_outputs_nothing(self):
+        result = run_fn('build_session_summary "💬" "" 0 ""')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, "")
+
+    def test_non_numeric_user_count_outputs_nothing(self):
+        result = run_fn('build_session_summary "💬" "msg" "" ""')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, "")
 
 
 if __name__ == "__main__":

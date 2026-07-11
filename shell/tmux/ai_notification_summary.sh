@@ -36,12 +36,29 @@ build_stats_line() {
     if [[ -n "${duration}" ]]; then echo "🔄${user_count} ⏳${duration}"; else echo "🔄${user_count}"; fi
 }
 
+# 改行をスペース化・連続空白を圧縮・前後空白を除去して1行で出力
+# Usage: normalize_oneline <text>
+normalize_oneline() {
+    echo "$1" | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//'
+}
+
+# 最大長超過時に切り詰めて"..."を付与（超過しなければそのまま出力）
+# Usage: truncate_line <text> <max_len>
+truncate_line() {
+    local text="$1" max_len="$2"
+    if [[ ${#text} -gt ${max_len} ]]; then
+        echo "${text:0:${max_len}}..."
+    else
+        echo "${text}"
+    fi
+}
+
 # メッセージ行を組み立て（改行除去・空白正規化・最大長超は短縮して"..."付与）
 # Usage: build_summary_msg_line <task_emoji> <message> [max_len=80]
 build_summary_msg_line() {
     local emoji="$1" message="$2" max_len="${3:-80}"
     local msg_line prefix_length max_message_length
-    message=$(echo "${message}" | tr '\n' ' ' | sed 's/  */ /g' | sed 's/^ *//;s/ *$//')
+    message=$(normalize_oneline "${message}")
     msg_line="${emoji} ${message}"
     if [[ ${#msg_line} -gt ${max_len} ]]; then
         prefix_length=$(( ${#emoji} + 1 ))
@@ -56,20 +73,41 @@ build_summary_msg_line() {
     echo "${msg_line}"
 }
 
-# hook入力JSONのsession_id、無ければtranscriptファイル名から導出（claude/codex共通形）
-# Usage: derive_session_id <hook_input_json> <transcript_path>
+# hook入力JSONのsession_id、無ければtranscript_pathから導出。導出不能時は "default"。
+# style: basename（既定、ファイル名から.jsonl除去、claude/codex形）| parent-dir（親ディレクトリ名、gemini形）
+# Usage: derive_session_id <hook_input_json> <transcript_path> [style]
 derive_session_id() {
-    local sid
+    local sid style="${3:-basename}"
     sid=$(echo "$1" | jq -r '.session_id // empty')
-    [[ -z "${sid}" ]] && sid=$(basename "$2" .jsonl)
+    if [[ -z "${sid}" && -n "$2" && "$2" != "null" ]]; then
+        if [[ "${style}" == "parent-dir" ]]; then
+            sid=$(basename "$(dirname "$2")")
+        else
+            sid=$(basename "$2" .jsonl)
+        fi
+    fi
+    [[ -z "${sid}" || "${sid}" == "." ]] && sid="default"
     echo "${sid}"
+}
+
+# セッション要約（メッセージ行 + 改行 + 統計行）を出力。user_count==0 のときは空出力とし、
+# 呼び出し側が ${summary:-<フォールバック文言>} や「非空なら追記」で扱えるようにする。
+# Usage: build_session_summary <task_emoji> <message> <user_count> <duration_formatted>
+build_session_summary() {
+    local emoji="$1" message="$2" user_count="$3" duration="$4"
+    local stats_line msg_line
+    [[ "${user_count}" -gt 0 ]] 2>/dev/null || return 0
+    stats_line=$(build_stats_line "${user_count}" "${duration}")
+    msg_line=$(build_summary_msg_line "${emoji}" "${message}")
+    printf '%s\n%s\n' "${msg_line}" "${stats_line}"
 }
 
 # 最終ユーザーメッセージからタスク種別絵文字を推測して出力（デフォルト 💬）
 # Usage: guess_task_type_emoji <message>
 guess_task_type_emoji() {
     local msg="$1"
-    if [[ "${msg}" =~ (実装|コード|プログラム|関数|バグ|修正|追加|作成) ]]; then echo "💻" # コーディング
+    if [[ "${msg}" =~ ^[[:space:]]*/ ]]; then echo "⚡" # スラッシュコマンド
+    elif [[ "${msg}" =~ (実装|コード|プログラム|関数|バグ|修正|追加|作成) ]]; then echo "💻" # コーディング
     elif [[ "${msg}" =~ (検索|調べ|探し|find|grep|確認) ]]; then echo "🔍" # 検索・調査
     elif [[ "${msg}" =~ (説明|教え|解説|どう|なぜ|what|how) ]]; then echo "📚" # 説明・学習
     elif [[ "${msg}" =~ (テスト|test|チェック|確認) ]]; then echo "🧪" # テスト・検証
