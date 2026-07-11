@@ -5,7 +5,7 @@
 
 # Code Fences Around Dynamic Content
 
-When an instruction tells an assistant to paste dynamic content (command output, file contents, diffs) into a fenced code block, require a fence longer than the longest backtick run inside the content (e.g. ````diff for content with ``` blocks, as markdown PR bodies usually have) plus a language tag. A too-short fence closes early and the rest renders as plain text.
+When pasting dynamic content (command output, file contents, diffs) into a fenced code block — directly or via instructions you write for an assistant — use a fence longer than the longest backtick run inside the content (e.g. ````diff for content with ``` blocks, as markdown PR bodies usually have) plus a language tag. A too-short fence closes early and the rest renders as plain text.
 
 # Command Usage
 
@@ -44,7 +44,7 @@ After any side-effecting operation (git commit/push, API writes, deletes, deploy
 
 # Temp File Cleanup
 
-Before the Post-Implementation Workflow, clean up temp files newly created by the AI this session: scratch scripts, debug output, sample data, logs, dumps, notes, and other non-deliverables. Deliverables (requested source, test, doc, fixture, or config changes) and existing files edited in place are out of scope.
+At task completion — before the Post-Implementation Workflow, and even when that workflow is skipped — clean up temp files newly created by the AI this session: scratch scripts, debug output, sample data, logs, dumps, notes, and other non-deliverables. Deliverables (requested source, test, doc, fixture, or config changes) and existing files edited in place are out of scope.
 
 - If no temp files were created, continue to the Post-Implementation Workflow.
 - Otherwise list each temp file and its purpose, then ask via the platform-specific `# User Confirmation` mechanism. Present exactly:
@@ -55,7 +55,7 @@ Before the Post-Implementation Workflow, clean up temp files newly created by th
 
 # Opportunistic Improvement Proposals
 
-While doing the user's task, notice reusable improvements to this repository's AI configuration. Surface proposals only; never edit persistent prompt/config files silently.
+While doing the user's task, notice reusable improvements to the AI configuration in this prompt's source repository (SettingFiles). Surface proposals only; never edit persistent prompt/config files silently.
 
 ## When to propose
 
@@ -86,14 +86,14 @@ For one-off preferences (user taste, not a defect), keep an internal note instea
 
 ## Plan Handoff
 
-- When writing a plan in plan mode and at least one OIP candidate exists, add a `### 自己改善引き継ぎ` section to the plan artifact (plan file or `<proposed_plan>` block) listing each candidate condensed: Target behavior / Evidence / Diagnosis / Proposed source changes. It is a record surviving the post-approval context reset, not a proposal — do not ask for approval at plan time. Omit the section when no candidate exists.
+- When writing an implementation plan for approval and at least one OIP candidate exists, add a `### 自己改善引き継ぎ` section to the plan artifact (plan file, `<proposed_plan>` block, or the plan text shown for approval) listing each candidate condensed: Target behavior / Evidence / Diagnosis / Proposed source changes. It is a record surviving the post-approval context reset, not a proposal — do not ask for approval at plan time. Omit the section when no candidate exists.
 - At the Completion-Time Check after executing a plan, include the plan's `### 自己改善引き継ぎ` candidates alongside any noticed during implementation.
 
 ## Completion-Time Check
 
 At the end of implementation, fix, configuration, review, or investigation-delivery tasks, check the criteria above before the final completion response — after Temp File Cleanup and the Post-Implementation Workflow's git action, so proposals never block the commit/push flow. The task's deliverable output (review results, findings, answers, summaries) always comes first in the final response; the OIP section — proposal analyses or the 該当なし line — is always the last content, never before or interleaved with the deliverable.
 
-- If proposals qualify, present each per the skill's "Presenting proposals for approval" rules (full analysis immediately before the question; self-contained question text), then ask approval per proposal via the platform-specific `# User Confirmation` mechanism — options per proposal: apply now / do not apply / decide later. Apply edits only to approved proposals.
+- If proposals qualify, present each per the skill's "Presenting proposals for approval" rules, then ask approval per proposal via the platform-specific `# User Confirmation` mechanism — options per proposal: apply now / do not apply. Apply edits only to approved proposals.
 - If none qualify, include exactly `自己改善チェック: 該当なし` once in the final completion response; do not raise a confirmation question.
 - Do not include this in ordinary conversation, clarification-only turns, plan-only responses (the Plan Handoff record is allowed), active progress updates, or pre-completion confirmation questions.
 
