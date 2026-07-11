@@ -92,12 +92,7 @@
     "footer",
     "confirmCommit"
   ],
-  "issuePrefixes": [
-    {
-      "value": "closed",
-      "name": "closed:   ISSUES has been processed"
-    }
-  ],
+  "issuePrefixes": [],
   "customIssuePrefixAlign": "top",
   "emptyIssuePrefixAlias": "skip",
   "customIssuePrefixAlias": "custom",
