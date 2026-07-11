@@ -1,6 +1,13 @@
 #!/bin/zsh
 # AI cross-tool aliases
 
+# カレントウィンドウの絵文字プレフィックス操作に共有実装を使う（未ロード時のみ遅延source）
+_ai_ensure_window_name_helper() {
+    if ! command -v update_tmux_window_name >/dev/null 2>&1; then
+        source "${SET:-$HOME/Desktop/repository/SettingFiles}/shell/tmux/tmux_window_name.sh"
+    fi
+}
+
 # rename-window-git.sh を呼んで git ベースのウィンドウ名を計算し、🔍プレフィックス付きで返す
 _review_window_name() {
     local set_dir="${SET:-$HOME/Desktop/repository/SettingFiles}"
@@ -102,13 +109,11 @@ ai-all() {
     local set_dir="${SET:-$HOME/Desktop/repository/SettingFiles}"
     source "${set_dir}/shell/tmux/tmux_emoji.conf"
 
-    local prompt base_name current_window
+    local prompt base_name
     prompt="$*"
-    current_window=$(tmux display-message -p '#{window_id}') || return 1
     base_name=$(_ai_window_base_name) || return 1
 
-    local claude_name gemini_name codex_name
-    claude_name="${EMOJI_ID_CLAUDE}${base_name}"
+    local gemini_name codex_name
     gemini_name="${EMOJI_ID_GEMINI}${base_name}"
     codex_name="${EMOJI_ID_CODEX}${base_name}"
 
@@ -119,7 +124,9 @@ ai-all() {
     tmux new-window -d -n "${gemini_name}" -c "${PWD}" "zsh -ic ${(q)gemini_command}" || return 1
     tmux new-window -d -n "${codex_name}" -c "${PWD}" "zsh -ic ${(q)codex_command}" || return 1
 
-    tmux rename-window -t "${current_window}" "${claude_name}" || return 1
+    # カレントウィンドウは Claude 識別絵文字のみ付与（_ai_window_base_name が git 名へ改名済み）
+    _ai_ensure_window_name_helper
+    update_tmux_window_name "" "${EMOJI_ID_CLAUDE}"
     clhm --permission-mode plan "${prompt}"
 }
 
@@ -130,8 +137,7 @@ review() {
     local review_args=("${pr_number}")
     [[ -n "${review_prompt}" ]] && review_args+=("${review_prompt}")
 
-    local review_name current_window gemini_command codex_command
-    current_window=$(tmux display-message -p '#{window_id}')
+    local review_name gemini_command codex_command
     review_name=$(_review_window_name)
     gemini_command=$(_ai_review_tmux_command gm-pr-review "${review_args[@]}") || return 1
     codex_command=$(_ai_review_tmux_command cx-pr-review "${review_args[@]}") || return 1
@@ -139,7 +145,9 @@ review() {
     tmux new-window -n "${review_name}" "zsh -ic ${(q)gemini_command}"
     tmux new-window -n "${review_name}" "zsh -ic ${(q)codex_command}"
 
-    tmux rename-window -t "${current_window}" "${review_name}"
+    # カレントウィンドウは共有実装で🔍を付与（_review_window_name が git 名へ改名済み）
+    _ai_ensure_window_name_helper
+    update_tmux_window_name "${EMOJI_STATUS_REVIEW}"
     cl-pr-review "${review_args[@]}"
 }
 
@@ -150,8 +158,7 @@ review-subagents() {
     local review_args=("${pr_number}")
     [[ -n "${review_prompt}" ]] && review_args+=("${review_prompt}")
 
-    local review_name current_window gemini_command codex_command
-    current_window=$(tmux display-message -p '#{window_id}')
+    local review_name gemini_command codex_command
     review_name=$(_review_window_name)
     gemini_command=$(_ai_review_tmux_command gm-pr-review-subagents "${review_args[@]}") || return 1
     codex_command=$(_ai_review_tmux_command cx-pr-review-subagent "${review_args[@]}") || return 1
@@ -159,7 +166,9 @@ review-subagents() {
     tmux new-window -n "${review_name}" "zsh -ic ${(q)gemini_command}"
     tmux new-window -n "${review_name}" "zsh -ic ${(q)codex_command}"
 
-    tmux rename-window -t "${current_window}" "${review_name}"
+    # カレントウィンドウは共有実装で🔍を付与（_review_window_name が git 名へ改名済み）
+    _ai_ensure_window_name_helper
+    update_tmux_window_name "${EMOJI_STATUS_REVIEW}"
     cl-pr-review-subagents "${review_args[@]}"
 }
 
@@ -170,8 +179,7 @@ review-all() {
     local review_args=("${pr_number}")
     [[ -n "${review_prompt}" ]] && review_args+=("${review_prompt}")
 
-    local review_name current_window claude_command gemini_command codex_command
-    current_window=$(tmux display-message -p '#{window_id}')
+    local review_name claude_command gemini_command codex_command
     review_name=$(_review_window_name)
     claude_command=$(_ai_review_tmux_command cl-pr-review-subagents "${review_args[@]}") || return 1
     gemini_command=$(_ai_review_tmux_command gm-pr-review-subagents "${review_args[@]}") || return 1
@@ -181,6 +189,8 @@ review-all() {
     tmux new-window -n "${review_name}" "zsh -ic ${(q)gemini_command}"
     tmux new-window -n "${review_name}" "zsh -ic ${(q)codex_command}"
 
-    tmux rename-window -t "${current_window}" "${review_name}"
+    # カレントウィンドウは共有実装で🔍を付与（_review_window_name が git 名へ改名済み）
+    _ai_ensure_window_name_helper
+    update_tmux_window_name "${EMOJI_STATUS_REVIEW}"
     cl-pr-review "${review_args[@]}"
 }
