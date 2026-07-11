@@ -116,26 +116,12 @@ debug_log "Total user messages: ${user_count}, assistant messages: ${assistant_c
 debug_log "Waiting for user response: ${waiting_for_user_response}"
 
 # セッション時間計算
-session_duration=""
-session_duration_formatted=""
-completion_time=""
 debug_log "First timestamp: ${first_timestamp}"
 debug_log "Last timestamp: ${last_timestamp}"
 
-if [[ -n "${first_timestamp}" && "${first_timestamp}" != "null" && -n "${last_timestamp}" && "${last_timestamp}" != "null" ]]; then
-    start_epoch=$(date -j -f "%Y-%m-%dT%H:%M:%S" "${first_timestamp%.*}" "+%s" 2>/dev/null)
-    end_epoch=$(date -j -f "%Y-%m-%dT%H:%M:%S" "${last_timestamp%.*}" "+%s" 2>/dev/null)
-
-    if [[ -n "${start_epoch}" && -n "${end_epoch}" ]]; then
-        session_duration=$((end_epoch - start_epoch))
-        session_duration_formatted=$(format_duration ${session_duration})
-        debug_log "Session duration: ${session_duration}s (${session_duration_formatted})"
-
-        jst_epoch=$((end_epoch + 32400))
-        completion_time=$(date -r "${jst_epoch}" "+%H:%M:%S" 2>/dev/null)
-        debug_log "Completion time (JST): ${completion_time}"
-    fi
-fi
+session_duration_formatted=$(format_session_duration "${first_timestamp}" "${last_timestamp}")
+completion_time=$(format_completion_time_jst "${last_timestamp}")
+debug_log "Session duration: ${session_duration_formatted}, completion time (JST): ${completion_time}"
 
 # タスク種別推測
 task_type="💬"

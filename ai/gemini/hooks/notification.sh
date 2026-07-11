@@ -109,22 +109,8 @@ if [[ -n "${transcript_path}" && "${transcript_path}" != "null" && -f "${transcr
     ' "${transcript_path}")
 
     # 時間計算
-    if [[ -n "${START_TIME}" && "${START_TIME}" != "null" && -n "${END_TIME}" && "${END_TIME}" != "null" ]]; then
-        start_str="${START_TIME%.*}"
-        end_str="${END_TIME%.*}"
-
-        start_epoch=$(date -j -f "%Y-%m-%dT%H:%M:%S" "${start_str}" "+%s" 2>/dev/null)
-        end_epoch=$(date -j -f "%Y-%m-%dT%H:%M:%S" "${end_str}" "+%s" 2>/dev/null)
-
-        if [[ -n "${start_epoch}" && -n "${end_epoch}" ]]; then
-            session_duration=$((end_epoch - start_epoch))
-            session_duration_formatted=$(format_duration ${session_duration})
-
-            # 完了時刻 (JST)
-            jst_epoch=$((end_epoch + 32400))
-            completion_time=$(date -r "${jst_epoch}" "+%H:%M:%S" 2>/dev/null)
-        fi
-    fi
+    session_duration_formatted=$(format_session_duration "${START_TIME}" "${END_TIME}")
+    completion_time=$(format_completion_time_jst "${END_TIME}")
 
     # 要約テキスト生成
     if [[ ${USER_COUNT} -gt 0 ]]; then

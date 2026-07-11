@@ -20,6 +20,8 @@ source "${_AI_HOOK_SET_DIR}shell/tmux/tmux_window_info.sh"
 source "${_AI_HOOK_SET_DIR}shell/tmux/tmux_notification_title.sh"
 # tmuxウィンドウ名のアイコン操作（承認待ち/終了アイコンの先行設定用）
 source "${_AI_HOOK_SET_DIR}shell/tmux/tmux_window_name.sh"
+# 通知要約ヘルパー（セッション時間計算など）
+source "${_AI_HOOK_SET_DIR}shell/tmux/ai_notification_summary.sh"
 
 # デバッグ関数
 debug_log() {
