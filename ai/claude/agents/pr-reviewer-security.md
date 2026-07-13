@@ -3,7 +3,7 @@ name: pr-reviewer-security
 description: Finds security vulnerabilities in PR diffs.
 model: opus
 color: orange
-effort: max
+effort: high
 # GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/, ai/claude/agents_src/. Regen: mac/updates/claude.sh.
 ---
 

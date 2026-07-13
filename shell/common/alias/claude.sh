@@ -56,7 +56,7 @@ cl-pr-review() {
     fi
 
     review_prompt="$*"
-    clhm --dangerously-skip-permissions "/pr-review $pr_number${review_prompt:+ $review_prompt} ultrathink"
+    clo --effort xhigh --dangerously-skip-permissions "/pr-review $pr_number${review_prompt:+ $review_prompt} ultrathink"
 }
 
 cl-pr-review-subagents() {
@@ -72,15 +72,19 @@ cl-pr-review-subagents() {
     fi
 
     review_prompt="$*"
-    clhm --dangerously-skip-permissions "/pr-review-subagents $pr_number${review_prompt:+ $review_prompt} ultrathink"
+    clo --effort high --dangerously-skip-permissions "/pr-review-subagents $pr_number${review_prompt:+ $review_prompt} ultrathink"
 }
 
 _cl-pr-comment-review() {
-    clhm --dangerously-skip-permissions "/pr-comment-review $* ultrathink"
+    clo --effort high --dangerously-skip-permissions "/pr-comment-review $* ultrathink"
 }
 
 _cl-pr-comment-implement() {
-    clpm "/pr-comment-implement $*"
+    clp "/pr-comment-implement $*"
+}
+
+_clh-pr-comment-implement() {
+    clp --effort high "/pr-comment-implement $*"
 }
 
 cl-pr-body() {
