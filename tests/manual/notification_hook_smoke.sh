@@ -67,6 +67,9 @@ EOF
     run_case "claude Notification (permission_prompt)" "${claude_hook}" \
         "{\"hook_event_name\":\"Notification\",\"notification_type\":\"permission_prompt\",\"message\":\"Bashの実行を許可しますか？\",\"transcript_path\":\"${claude_transcript}\",\"session_id\":\"smoke-claude\"}" \
         || failures=$((failures + 1))
+    run_case "claude StopFailure" "${claude_hook}" \
+        "{\"hook_event_name\":\"StopFailure\",\"error\":\"invalid_request\",\"transcript_path\":\"${claude_transcript}\",\"session_id\":\"smoke-claude\"}" \
+        || failures=$((failures + 1))
 
     run_case "codex PermissionRequest" "${codex_hook}" \
         "{\"hook_event_name\":\"PermissionRequest\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"ls -la\\ngit status\"},\"transcript_path\":\"${codex_transcript}\",\"session_id\":\"smoke-codex\"}" \

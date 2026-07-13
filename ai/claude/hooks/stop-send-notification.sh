@@ -41,6 +41,7 @@ eval "$(printf '%s' "${hook_input}" | jq -r '
     @sh "transcript_path=\(.transcript_path // "")",
     @sh "notification_type=\(.notification_type // "")",
     @sh "notification_message=\(.message // "")",
+    @sh "stop_failure_error=\(.error // "")",
     @sh "session_id=\(.session_id // "")",
     @sh "running_task_count=\([(.background_tasks // [])[] | select(.status == "running")] | length)"
 ' 2>/dev/null)"
@@ -49,6 +50,7 @@ hook_event_name="${hook_event_name:-}"
 transcript_path="${transcript_path:-}"
 notification_type="${notification_type:-}"
 notification_message="${notification_message:-}"
+stop_failure_error="${stop_failure_error:-}"
 session_id="${session_id:-}"
 running_task_count="${running_task_count:-0}"
 
@@ -87,6 +89,8 @@ if [[ "${hook_event_name}" == "Notification" ]]; then
     update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}" &
 elif [[ "${hook_event_name}" == "Stop" ]]; then
     update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}" &
+elif [[ "${hook_event_name}" == "StopFailure" ]]; then
+    update_tmux_window_name "${EMOJI_STATUS_ERROR}" "${AI_HOOK_EMOJI_ID}" &
 fi
 
 # セッションID（グループ通知用）: hook入力から抽出済みの値を優先し、
@@ -153,6 +157,19 @@ if [[ "${hook_event_name}" == "Notification" ]]; then
 
     debug_log "Sending approval notification: ${notification_body}"
     notify "$(build_ai_title "⚠️" "承認待ち")" "${notification_body}" "Hero" "${notification_group}"
+    exit 0
+fi
+
+# StopFailureイベント: エラー停止通知（パースエラー・APIエラー等でターンが中断された場合。
+# Stopフックは発火しないため、この分岐がないとエラー終了が無通知になる）
+if [[ "${hook_event_name}" == "StopFailure" ]]; then
+    notification_body="エラー種別: ${stop_failure_error:-unknown}"
+    if [[ -n "${summary}" ]]; then
+        notification_body="${notification_body}"$'\n'"${summary}"
+    fi
+
+    debug_log "Sending stop-failure notification: ${notification_body}"
+    notify "$(build_ai_title "❌" "エラー停止")" "${notification_body}" "Basso" "${notification_group}" "${COMPLETION_TIME_JST}"
     exit 0
 fi
 
