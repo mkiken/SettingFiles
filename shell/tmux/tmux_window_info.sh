@@ -6,6 +6,6 @@ get_tmux_label() {
     [[ -z "${pane_id}" ]] && echo "" && return
     [[ "${TERM_PROGRAM:-}" != "tmux" ]] && echo "" && return
     local label
-    label=$(tmux display-message -p -t "${pane_id}" '#{?#{@session_shortcut_index},#{@session_shortcut_index},x}-#{window_index}' 2>/dev/null)
+    label=$(tmux display-message -p -t "${pane_id}" '#{?#{!=:#{@session_shortcut_index},},#{@session_shortcut_index},x}-#{window_index}' 2>/dev/null)
     [[ -n "${label}" ]] && echo " 🖥️${label}" || echo ""
 }
