@@ -12,6 +12,10 @@ Use English only when the user explicitly requests it, when preserving source te
 
 When the `openai-docs` skill runs `fetch-codex-manual.mjs`, invoke it through the host shell, not `context-mode` or another ephemeral analysis sandbox. The returned manual and outline must remain readable by later tool calls; pass a host-visible `--cache-dir` when command routing would otherwise isolate the filesystem.
 
+# Context-Mode Batch Commands
+
+For `ctx_batch_execute`, use one `commands` entry per target; avoid shell `for`/`while` loops inside a command string because the runner may not parse them.
+
 # User Confirmation
 
 Do not use the `request_user_input` tool in Codex.
