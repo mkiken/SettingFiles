@@ -3,6 +3,10 @@
 - Reference symbols, file paths, or concepts — never mutable line numbers or positions.
 - Do not number comments; instead describe what the code does or why it exists.
 
+# File References When Addressing the User
+
+When pointing the user at a file or code location — in questions, confirmation dialogs, or findings — use a repository-root-relative path plus `:line` when known; bare filenames are ambiguous in large repositories and not self-contained. (Line numbers are fine here — unlike code comments, these messages are ephemeral.)
+
 # Code Fences Around Dynamic Content
 
 When pasting dynamic content (command output, file contents, diffs) into a fenced code block — directly or via instructions you write for an assistant — use a fence longer than the longest backtick run inside the content (e.g. ````diff for content with ``` blocks, as markdown PR bodies usually have) plus a language tag. A too-short fence closes early and the rest renders as plain text.
