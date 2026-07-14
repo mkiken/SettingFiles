@@ -1,7 +1,7 @@
 ---
 name: pr-reviewer-tests
 description: Reviews test coverage and quality in PR diffs.
-model: sonnet
+model: fable
 color: green
 effort: high
 ---

@@ -1,7 +1,7 @@
 ---
 name: config-auditor-conflict
 description: Detects contradictions between configuration rules.
-model: opus
+model: fable
 color: red
 effort: high
 # GENERATED FILE - do not edit. Sources: ai/common/config_audit_subagents/, ai/claude/agents_src/config_audit/. Regen: mac/updates/claude.sh.

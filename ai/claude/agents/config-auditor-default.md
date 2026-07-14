@@ -1,7 +1,7 @@
 ---
 name: config-auditor-default
 description: Flags config rules duplicating assistant default behavior.
-model: opus
+model: fable
 color: blue
 effort: high
 # GENERATED FILE - do not edit. Sources: ai/common/config_audit_subagents/, ai/claude/agents_src/config_audit/. Regen: mac/updates/claude.sh.

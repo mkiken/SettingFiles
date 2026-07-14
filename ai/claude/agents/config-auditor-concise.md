@@ -1,7 +1,7 @@
 ---
 name: config-auditor-concise
 description: Proposes meaning-preserving token reductions in config prompts.
-model: opus
+model: fable
 color: green
 effort: high
 # GENERATED FILE - do not edit. Sources: ai/common/config_audit_subagents/, ai/claude/agents_src/config_audit/. Regen: mac/updates/claude.sh.

@@ -1,7 +1,7 @@
 ---
 name: pr-reviewer-errors
 description: Reviews error handling quality in PR diffs.
-model: sonnet
+model: fable
 color: yellow
 effort: high
 ---

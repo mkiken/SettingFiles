@@ -1,7 +1,7 @@
 ---
 name: config-auditor-ambiguity
 description: Flags ambiguous config rules with unstable interpretations.
-model: opus
+model: fable
 color: cyan
 effort: high
 # GENERATED FILE - do not edit. Sources: ai/common/config_audit_subagents/, ai/claude/agents_src/config_audit/. Regen: mac/updates/claude.sh.

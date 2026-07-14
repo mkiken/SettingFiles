@@ -1,7 +1,7 @@
 ---
 name: config-auditor-patch
 description: Flags one-off patch rules lacking general value.
-model: opus
+model: fable
 color: orange
 effort: high
 # GENERATED FILE - do not edit. Sources: ai/common/config_audit_subagents/, ai/claude/agents_src/config_audit/. Regen: mac/updates/claude.sh.

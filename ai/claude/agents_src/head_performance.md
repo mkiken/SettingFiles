@@ -1,7 +1,7 @@
 ---
 name: pr-reviewer-performance
 description: Detects runtime performance regressions in PR diffs.
-model: sonnet
+model: fable
 color: cyan
 effort: high
 ---

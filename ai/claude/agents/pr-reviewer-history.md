@@ -1,7 +1,7 @@
 ---
 name: pr-reviewer-history
 description: Reviews git history for regression risk in PR diffs.
-model: sonnet
+model: fable
 color: purple
 effort: high
 # GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/, ai/claude/agents_src/. Regen: mac/updates/claude.sh.

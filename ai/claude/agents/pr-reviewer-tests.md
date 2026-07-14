@@ -1,7 +1,7 @@
 ---
 name: pr-reviewer-tests
 description: Reviews test coverage and quality in PR diffs.
-model: sonnet
+model: fable
 color: green
 effort: high
 # GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/, ai/claude/agents_src/. Regen: mac/updates/claude.sh.

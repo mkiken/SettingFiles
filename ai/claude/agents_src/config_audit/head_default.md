@@ -1,7 +1,7 @@
 ---
 name: config-auditor-default
 description: Flags config rules duplicating assistant default behavior.
-model: opus
+model: fable
 color: blue
 effort: high
 ---

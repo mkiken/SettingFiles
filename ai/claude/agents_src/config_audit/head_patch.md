@@ -1,7 +1,7 @@
 ---
 name: config-auditor-patch
 description: Flags one-off patch rules lacking general value.
-model: opus
+model: fable
 color: orange
 effort: high
 ---

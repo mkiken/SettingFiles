@@ -1,7 +1,7 @@
 ---
 name: config-auditor-concise
 description: Proposes meaning-preserving token reductions in config prompts.
-model: opus
+model: fable
 color: green
 effort: high
 ---

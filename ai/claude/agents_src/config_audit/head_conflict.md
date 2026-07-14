@@ -1,7 +1,7 @@
 ---
 name: config-auditor-conflict
 description: Detects contradictions between configuration rules.
-model: opus
+model: fable
 color: red
 effort: high
 ---
