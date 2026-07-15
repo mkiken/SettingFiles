@@ -56,7 +56,7 @@ cl-pr-review() {
     fi
 
     review_prompt="$*"
-    clo --effort xhigh --dangerously-skip-permissions "/pr-review $pr_number${review_prompt:+ $review_prompt} ultrathink"
+    clf --effort xhigh --dangerously-skip-permissions "/pr-review $pr_number${review_prompt:+ $review_prompt} ultrathink"
 }
 
 cl-pr-review-subagents() {
@@ -72,7 +72,7 @@ cl-pr-review-subagents() {
     fi
 
     review_prompt="$*"
-    clo --effort high --dangerously-skip-permissions "/pr-review-subagents $pr_number${review_prompt:+ $review_prompt} ultrathink"
+    clf --effort high --dangerously-skip-permissions "/pr-review-subagents $pr_number${review_prompt:+ $review_prompt} ultrathink"
 }
 
 _cl-pr-comment-review() {
