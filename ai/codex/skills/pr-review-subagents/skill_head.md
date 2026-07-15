@@ -25,15 +25,16 @@ Use only `<PR_NUMBER>` in gh commands. If `<ADDITIONAL_INSTRUCTIONS>` is non-emp
 Fetch context in the parent session:
 
 ```bash
-gh pr view <PR_NUMBER> --json title,body,baseRefName,headRefName,url,files,commits
+gh pr view <PR_NUMBER> --json title,body,baseRefName,headRefName,headRefOid,url,files,commits
 gh pr diff <PR_NUMBER>
 bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh <PR_NUMBER>
 gh repo view --json nameWithOwner
 git branch --show-current
+git rev-parse HEAD
 bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <PR_NUMBER>
 ```
 
-Local mode = current branch matches `headRefName`; subagents may then use read-only local commands (`rg`, `git`, `sed`, `gh`), otherwise they must inspect `headRefName` with `gh api`.
+Local mode = current branch matches `headRefName` **and** `git rev-parse HEAD` matches `headRefOid`. If either check fails, use remote mode: subagents must inspect the PR head with `gh api`, not local files. This prevents unpushed or unrelated local commits from being reviewed as part of the PR.
 
 Pass every subagent: PR number, metadata, repo owner/name, full diff, line-numbered diff, existing comments NDJSON, local mode, head branch, and `<ADDITIONAL_INSTRUCTIONS>`. Each subagent's focus and review rules are in its definition.
 
