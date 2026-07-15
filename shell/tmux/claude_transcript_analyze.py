@@ -19,9 +19,11 @@ from datetime import datetime, timedelta
 _SQUEEZE_RE = re.compile(r" +")
 
 # Claude Codeの既知システムタグ（メッセージ先頭のみ、先頭の空白/タブを許容）
+# task-notificationはサブエージェント完了通知（Task tool）がrole:userで記録されたもの
 _SYSTEM_TAG_RE = re.compile(
     r"^[ \t]*<(?:command-message|command-name|command-args|local-command-caveat"
-    r"|local-command-stdout|system-reminder|user-prompt-submit-hook|tool-result|antml)"
+    r"|local-command-stdout|system-reminder|user-prompt-submit-hook|tool-result"
+    r"|task-notification|antml)"
 )
 # コマンド説明パターン（例: "# /command - Command Reference"）
 _COMMAND_DOC_RE = re.compile(r"^#[ \t]*/[a-z:-]+[ \t]*-")

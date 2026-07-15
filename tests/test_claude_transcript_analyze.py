@@ -48,6 +48,14 @@ class TestIsSystemMessage(unittest.TestCase):
             ("4文字ちょうどは非システム（境界）", "abcd", False),
             ("日本語4文字は非システム（境界）", "あいうえ", False),
             ("3文字はシステム扱い", "あいう", True),
+            ("task-notificationタグ", "<task-notification><task-id>abc</task-id>", True),
+            ("先頭空白付きtask-notificationタグ", "  <task-notification>x", True),
+            (
+                "task-notification改行潰れ形",
+                "<task-notification> <task-id>abc</task-id> <tool-use-id>toolu_x</tool-use-id>",
+                True,
+            ),
+            ("task-で始まる別タグはマッチ対象外", "<task-summary>x", False),
         ]
         for desc, msg, expected in cases:
             with self.subTest(desc=desc):
@@ -200,6 +208,23 @@ class TestAnalyzeLines(unittest.TestCase):
         )
         self.assertEqual(result["user_count"], 2)
         self.assertEqual(result["last_user_message"], "最後の依頼メッセージ")
+
+    def test_task_notification_not_adopted_as_last_user_message(self):
+        # 実データ相当: role=user / string content / isMeta・isSidechainなしで記録される
+        # サブエージェント完了通知（task-notification）は last_user_message に採用されない
+        tn = (
+            "<task-notification>\n<task-id>abc123</task-id>\n"
+            "<tool-use-id>toolu_x</tool-use-id>\n<status>completed</status>\n"
+            "<summary>Agent finished</summary>\n</task-notification>"
+        )
+        result = cta.analyze_lines(
+            [
+                user_line("本当のユーザー依頼です", timestamp=TS1),
+                user_line(tn, timestamp=TS2),
+            ]
+        )
+        self.assertEqual(result["last_user_message"], "本当のユーザー依頼です")
+        self.assertEqual(result["user_count"], 1)
 
     def test_multiline_user_string_normalized(self):
         result = cta.analyze_lines([user_line("a\n\nb  c teststring")])
