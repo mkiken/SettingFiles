@@ -56,7 +56,9 @@ def assistant_response_needs_user_input(message: str) -> bool:
     if assistant_response_contains_proposed_plan(message):
         return True
 
-    if re.search(r"[？?]", assistant_response_question_scan_text(message)):
+    request_scan_text = assistant_response_question_scan_text(message)
+
+    if re.search(r"[？?]", request_scan_text):
         return True
 
     if "コミット操作を選択して" in normalized or "コミット方針を指示して" in normalized:
@@ -68,10 +70,13 @@ def assistant_response_needs_user_input(message: str) -> bool:
     if all(option in normalized for option in ("すべて削除", "個別に選択", "削除しない")):
         return True
 
-    if re.search(r"(選択|指定|指示|返信|返答|回答|入力)して(ください)?[。.!！]*$", normalized):
+    if re.search(
+        r"(選択|指定|指示|返信|返答|回答|入力)して(ください)?(?=[。.!！]|$)",
+        request_scan_text,
+    ):
         return True
 
-    if re.search(r"教えて(ください)?[。.!！]*$", normalized):
+    if re.search(r"教えて(ください)?(?=[。.!！]|$)", request_scan_text):
         return True
 
     if re.search(

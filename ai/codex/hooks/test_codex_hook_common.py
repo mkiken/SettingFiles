@@ -28,6 +28,38 @@ def write_jsonl(path: Path, events: list[dict]):
 
 
 class AssistantResponseNeedsUserInputTest(unittest.TestCase):
+    def test_detects_only_recent_plain_text_requests(self):
+        cases = [
+            (
+                "implementation design regression",
+                "この設計で進める場合、JenkinsジョブのURLと利用可能な起動方法を教えてください。"
+                "あるいは、両ビルドURLを共有してください。承認と情報受領後に実装へ進みます。",
+                True,
+            ),
+            (
+                "input request followed by next step",
+                "必要な値を入力してください。受領後に処理を再開します。",
+                True,
+            ),
+            ("request at end", "利用方法を教えてください。", True),
+            ("request outside scan tail", "利用方法を教えてください。" + (" 完了。" * 200), False),
+            (
+                "reported request",
+                "ユーザーから利用方法を教えてくださいと依頼された。対応は完了した。",
+                False,
+            ),
+            (
+                "inline code request",
+                "表示文言は `利用方法を教えてください。` です。実装済み。",
+                False,
+            ),
+            ("completion summary", "実装した。テストも通過した。変更はコミットしていない。", False),
+        ]
+
+        for name, message, expected in cases:
+            with self.subTest(name=name):
+                self.assertEqual(assistant_response_needs_user_input(message), expected)
+
     def test_detects_approval_question_followed_by_revision_request(self):
         message = """
         ## 実装設計
