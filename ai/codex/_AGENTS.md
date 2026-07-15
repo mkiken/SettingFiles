@@ -28,6 +28,8 @@ Use an absolute path when standard behavior matters; verify non-obvious paths wi
 
 To check what a zsh symbol resolves to, prefer `type <name>`; it covers functions, aliases, builtins, and external commands in one shot. `typeset -f` only lists functions and silently misses aliases.
 
+In zsh scripts, do not assign temporary exit codes to read-only special parameters such as `status`; use names like `rc` or `exit_code`.
+
 # Configuration Change Scope
 
 For narrow fixes, prefer the smallest owned integration point. Do not disable broader native features or product-level settings unless the user explicitly asks or that feature is the target; if considering one, explain the side effect before editing.
