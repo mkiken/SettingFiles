@@ -50,6 +50,10 @@ For feedback, review, or critical analysis, be direct and unsparing. Challenge w
 
 After any side-effecting operation (git commit/push, API writes, deletes, deploys), confirm it took effect via an independent check issued as a real tool call (e.g. `git log -1`, re-fetch the record) before reporting done — never narrate a command in prose and assume it ran. If verification fails or output is garbled, re-issue and re-verify; don't claim completion.
 
+# Destructive-Command Verification Safety
+
+When verifying newly written code or shell functions that invoke destructive commands (`git restore`, `git clean`, `rm`, force-overwrite, etc.), never run that verification against a real project repository — set up a disposable throwaway repo/directory (e.g. `mktemp -d` + `git init`) and exercise the code there instead. When mocking a confirmation gate (e.g. a `confirm` function) to test the flow, also mock or stub out the destructive commands gated behind it — mocking only the gate while leaving real destructive commands live is not a safe test.
+
 # Temp File Cleanup
 
 At task completion — before the Post-Implementation Workflow, and even when that workflow is skipped — clean up temp files newly created by the AI this session: scratch scripts, debug output, sample data, logs, dumps, notes, and other non-deliverables. Deliverables (requested source, test, doc, fixture, or config changes) and existing files edited in place are out of scope.
