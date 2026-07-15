@@ -16,6 +16,7 @@ from codex_hook_common import (
     assistant_response_needs_user_input,
     extract_context_usage,
     format_analysis_for_eval,
+    is_system_user_message,
 )
 
 
@@ -119,7 +120,159 @@ class AssistantResponseNeedsUserInputTest(unittest.TestCase):
         self.assertFalse(assistant_response_needs_user_input(message))
 
 
+class IsSystemUserMessageTest(unittest.TestCase):
+    def test_internal_injections_and_user_message_boundaries(self):
+        cases = [
+            (
+                "path-qualified AGENTS injection",
+                "# AGENTS.md instructions for /repo\n\n<INSTRUCTIONS>rules</INSTRUCTIONS>",
+                True,
+            ),
+            (
+                "path-qualified AGENTS injection with environment context",
+                "# AGENTS.md instructions for /repo <INSTRUCTIONS>rules</INSTRUCTIONS> "
+                "<environment_context><cwd>/repo</cwd></environment_context>",
+                True,
+            ),
+            (
+                "path-qualified AGENTS injection with missing scope",
+                "# AGENTS.md instructions for <INSTRUCTIONS>rules</INSTRUCTIONS>",
+                False,
+            ),
+            (
+                "incomplete path-qualified AGENTS injection",
+                "# AGENTS.md instructions for /repo <INSTRUCTIONS>rules",
+                False,
+            ),
+            (
+                "path-qualified AGENTS injection with trailing user text",
+                "# AGENTS.md instructions for /repo <INSTRUCTIONS>rules</INSTRUCTIONS> please help",
+                False,
+            ),
+            (
+                "path-qualified AGENTS injection with sibling blocks",
+                "# AGENTS.md instructions for /repo <INSTRUCTIONS>one</INSTRUCTIONS> "
+                "<INSTRUCTIONS>two</INSTRUCTIONS>",
+                False,
+            ),
+            (
+                "AGENTS instructions format user text",
+                "# AGENTS.md instructions format this response",
+                False,
+            ),
+            (
+                "normalized AGENTS injection",
+                "# AGENTS.md instructions <INSTRUCTIONS>rules</INSTRUCTIONS>",
+                True,
+            ),
+            (
+                "normalized AGENTS injection with environment context",
+                "# AGENTS.md instructions <INSTRUCTIONS>rules</INSTRUCTIONS> "
+                "<environment_context><cwd>/repo</cwd></environment_context>",
+                True,
+            ),
+            (
+                "incomplete normalized AGENTS injection",
+                "# AGENTS.md instructions <INSTRUCTIONS>rules",
+                False,
+            ),
+            (
+                "normalized AGENTS injection with trailing user text",
+                "# AGENTS.md instructions <INSTRUCTIONS>rules</INSTRUCTIONS> please help",
+                False,
+            ),
+            (
+                "normalized AGENTS injection with incomplete environment context",
+                "# AGENTS.md instructions <INSTRUCTIONS>rules</INSTRUCTIONS> "
+                "<environment_context><cwd>/repo</cwd>",
+                False,
+            ),
+            ("skill block", "<skill>skill instructions</skill>", True),
+            (
+                "subagent notification block with surrounding whitespace",
+                "  <subagent_notification>done</subagent_notification>\n",
+                True,
+            ),
+            ("empty turn aborted block", "<turn_aborted></turn_aborted>", True),
+            (
+                "multiline shell command block",
+                "<user_shell_command>\necho hello\n</user_shell_command>",
+                True,
+            ),
+            ("ordinary request", "通知内容を直して", False),
+            ("skill command", "$pr-comment-implement", False),
+            (
+                "skill tag mentioned in ordinary text",
+                "通知に `<skill>` と表示されるのを直して",
+                False,
+            ),
+            ("similar tag", "<skills>skill instructions</skills>", False),
+            ("incomplete block", "<skill>skill instructions", False),
+            (
+                "mismatched closing tag",
+                "<skill>skill instructions</subagent_notification>",
+                False,
+            ),
+            ("block with leading user text", "explain <skill>instructions</skill>", False),
+            ("block with trailing user text", "<skill>instructions</skill> please", False),
+            (
+                "sibling blocks with user text between them",
+                "<skill>one</skill> please help <skill>two</skill>",
+                False,
+            ),
+        ]
+
+        for label, message, expected in cases:
+            with self.subTest(label):
+                self.assertEqual(is_system_user_message(message), expected)
+
+
 class AnalyzeHookInputFallbackTest(unittest.TestCase):
+    def test_ignores_internal_injections_when_selecting_last_user_message(self):
+        real_command = "$pr-comment-implement https://github.com/example/repo/pull/123#discussion_r456"
+
+        with tempfile.TemporaryDirectory() as codex_home:
+            transcript_path = Path(codex_home) / "sessions" / "internal-injections.jsonl"
+            user_messages = [
+                "# AGENTS.md instructions for /repo\n\n<INSTRUCTIONS>rules</INSTRUCTIONS>",
+                "# AGENTS.md instructions\n\n<INSTRUCTIONS>normalized rules</INSTRUCTIONS>\n"
+                "<environment_context><cwd>/repo</cwd></environment_context>",
+                real_command,
+                "<skill>skill instructions</skill>",
+                "<subagent_notification>subagent finished</subagent_notification>",
+                "<turn_aborted>the previous turn was aborted</turn_aborted>",
+                "<user_shell_command>echo hello</user_shell_command>",
+            ]
+            events = [
+                {
+                    "timestamp": f"2026-07-15T14:00:0{index}.000Z",
+                    "type": "response_item",
+                    "payload": {
+                        "type": "message",
+                        "role": "user",
+                        "content": [{"type": "input_text", "text": message}],
+                    },
+                }
+                for index, message in enumerate(user_messages)
+            ]
+            events.append(
+                {
+                    "timestamp": "2026-07-15T14:00:10.000Z",
+                    "type": "response_item",
+                    "payload": {
+                        "type": "message",
+                        "role": "assistant",
+                        "content": [{"type": "output_text", "text": "対応しました。"}],
+                    },
+                }
+            )
+            write_jsonl(transcript_path, events)
+
+            result = analyze_hook_input({"transcript_path": str(transcript_path)})
+
+        self.assertEqual(result["last_user_message"], real_command)
+        self.assertEqual(result["user_message_count"], 1)
+
     def test_detects_proposed_plan_from_transcript_without_normalizing_detection_text(self):
         session_id = "019ea532-60d3-7c03-a1d5-09e8778c32a5"
 

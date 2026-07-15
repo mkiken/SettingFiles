@@ -99,7 +99,22 @@ def is_subagent_metadata(data: dict[str, Any]) -> bool:
 
 
 def is_system_user_message(message: str) -> bool:
-    if message.startswith("# AGENTS.md instructions for"):
+    if re.fullmatch(
+        r"# AGENTS\.md instructions "
+        r"(?:for\b\s+(?:(?!</?INSTRUCTIONS>|\s+<INSTRUCTIONS>).)+\s+)?"
+        r"<INSTRUCTIONS>(?:(?!</?INSTRUCTIONS>).)*</INSTRUCTIONS>\s*"
+        r"(?:<environment_context>"
+        r"(?:(?!</?environment_context>).)*</environment_context>\s*)?",
+        message,
+        flags=re.DOTALL,
+    ):
+        return True
+    if re.fullmatch(
+        r"\s*<(?P<tag>skill|subagent_notification|turn_aborted|user_shell_command)>"
+        r"(?:(?!</?(?P=tag)>).)*</(?P=tag)>\s*",
+        message,
+        flags=re.DOTALL,
+    ):
         return True
     if message.startswith("<environment_context>"):
         return True
