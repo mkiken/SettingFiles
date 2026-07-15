@@ -147,7 +147,7 @@ _select_zoxide_dir() {
   # Use fzf to select directories from zoxide's list.
   # The '|| true' prevents the script from exiting if the user cancels fzf.
   local dirs
-  dirs=$(zoxide query -l | SHELL=/bin/bash fzf --multi --reverse --preview "$zoxide_preview_cmd" || true)
+  dirs=$(zoxide query -l | SHELL=/bin/bash fzf --multi --cycle --reverse --preview "$zoxide_preview_cmd" || true)
   echo "$dirs"
 }
 
@@ -348,10 +348,10 @@ main() {
   local selected_files_str
   if [[ ${#search_dirs[@]} -eq 1 ]]; then
     # Single directory: cd into it for cleaner relative paths in fzf
-    selected_files_str=$(cd "${search_dirs[0]}" && "$fd_cmd" "${fd_flags_array[@]}" | SHELL=/bin/bash fzf --multi --reverse --freeze-right=1 --bind 'tab:toggle' --preview "$preview_cmd" "${grep_toggle_flags[@]}" || true)
+    selected_files_str=$(cd "${search_dirs[0]}" && "$fd_cmd" "${fd_flags_array[@]}" | SHELL=/bin/bash fzf --multi --cycle --reverse --freeze-right=1 --bind 'tab:toggle' --preview "$preview_cmd" "${grep_toggle_flags[@]}" || true)
   else
     # Multiple directories: pass them as arguments to fd (returns absolute paths)
-    selected_files_str=$("$fd_cmd" "${fd_flags_array[@]}" "${search_dirs[@]}" | SHELL=/bin/bash fzf --multi --reverse --freeze-right=1 --bind 'tab:toggle' --preview "$preview_cmd" "${grep_toggle_flags[@]}" || true)
+    selected_files_str=$("$fd_cmd" "${fd_flags_array[@]}" "${search_dirs[@]}" | SHELL=/bin/bash fzf --multi --cycle --reverse --freeze-right=1 --bind 'tab:toggle' --preview "$preview_cmd" "${grep_toggle_flags[@]}" || true)
   fi
 
   if [[ -z $selected_files_str ]]; then
