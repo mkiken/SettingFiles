@@ -1,17 +1,15 @@
 #!/bin/bash
-# Cycle to next/previous tmux session in session_id numeric order.
-# This matches the status bar order produced by #{S:...} iteration in tmux-power.
+# Cycle to next/previous tmux session in the same order as @session_shortcut_index
+# (list-sessions -O index order), matching the status bar / select-session.sh.
 # Usage: cycle-session.sh [next|prev]
 
 DIR="${1:-next}"
 
 CUR_ID=$(tmux display-message -p '#{session_id}')
-CUR_ID="${CUR_ID#\$}"
 
-# Strip '$' prefix from session_id and sort numerically
-LIST=$(tmux list-sessions -F '#{session_id}|#{session_name}' \
-  | sed 's/^\$//' \
-  | sort -t'|' -k1 -n)
+# list-sessions -O index is the same ordering sync-session-shortcuts.sh uses
+# to assign @session_shortcut_index, so this matches the footer order.
+LIST=$(tmux list-sessions -O index -F '#{session_id}|#{session_name}')
 
 COUNT=$(printf '%s\n' "$LIST" | wc -l | tr -d ' ')
 [ "$COUNT" -le 1 ] && tmux display-message "no other session" && exit 0

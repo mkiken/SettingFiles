@@ -8,13 +8,13 @@ set -euo pipefail
 # login PATH, so ensure Homebrew paths are visible to `tmux` calls inside it.
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 
-LIST=$(tmux list-windows -a -F $'#{session_name}:#{window_index}\t#{s/[$]//:session_id}:#{session_name} > #{window_index}: #{window_name} · #{pane_current_path}')
+LIST=$(tmux list-windows -a -F $'#{session_name}:#{window_index}\t#{@session_shortcut_index}:#{session_name} > #{window_index}: #{window_name} · #{pane_current_path}')
 LIST=${LIST//"$HOME"/\~}
 [ -z "$LIST" ] && exit 0
 
 PREVIEW='
 target={1}
-info=$(tmux list-windows -a -f "#{==:#{session_name}:#{window_index},$target}" -F "#{s/[$]//:session_id}|#{session_name}|#{window_index}|#{window_name}|#{pane_current_path}")
+info=$(tmux list-windows -a -f "#{==:#{session_name}:#{window_index},$target}" -F "#{@session_shortcut_index}|#{session_name}|#{window_index}|#{window_name}|#{pane_current_path}")
 sid=${info%%|*}
 rest=${info#*|}
 sess=${rest%%|*}
