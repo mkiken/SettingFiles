@@ -32,10 +32,36 @@ _preview_directory() {
   fi
 }
 
+_is_image() {
+  local mime
+  mime=$(file --brief --dereference --mime-type -- "$1" 2>/dev/null)
+  [[ $mime == image/* ]]
+}
+
+_preview_image() {
+  local target="$1"
+  local cols="${FZF_PREVIEW_COLUMNS:-80}" lines="${FZF_PREVIEW_LINES:-24}"
+
+  # ANSI シンボル描画(モザイク調だが tmux popup + fzf で確実に動く)。
+  # kitty graphics + Unicode プレースホルダも試したが、fzf のプレビュー経由では
+  # Ghostty が合成せず断念(転送の tty 直書き・行分割・インライン化すべて不発)。
+  if command -v chafa >/dev/null 2>&1; then
+    # sextant/legacy シンボルで実効解像度を上げる(Ghostty はこれらを自前描画する)
+    chafa -f symbols -c full -w 9 \
+      --symbols "block+border+space+quad+sextant+wedge+legacy-wide-inverted" \
+      --animate off -s "${cols}x$((lines - 1))" -- "$target"
+    echo
+  else
+    file -- "$target"
+  fi
+}
+
 _preview_file() {
   local target="$1"
 
-  if command -v bat >/dev/null 2>&1; then
+  if _is_image "$target"; then
+    _preview_image "$target"
+  elif command -v bat >/dev/null 2>&1; then
     bat --style=numbers --color=always --line-range :200 -- "$target"
   elif command -v batcat >/dev/null 2>&1; then
     batcat --style=numbers --color=always --line-range :200 -- "$target"

@@ -167,13 +167,23 @@ local function preview_entry_path(entry, cwd)
   return cwd .. "/" .. path
 end
 
+local image_extensions = {
+  png = true, jpg = true, jpeg = true, gif = true, bmp = true,
+  webp = true, tiff = true, heic = true, avif = true, icns = true, ico = true,
+}
+
+local function is_image_path(path)
+  local ext = path:match("%.([%a%d]+)$")
+  return ext ~= nil and image_extensions[ext:lower()] == true
+end
+
 local function path_picker_previewer(cwd, mode_state)
   local previewers = require('telescope.previewers')
   local action_state = require('telescope.actions.state')
 
   return previewers.new_termopen_previewer({
     title = "Path Preview",
-    get_command = function(entry)
+    get_command = function(entry, status)
       local path = preview_entry_path(entry, mode_state.cwd or cwd)
       if not path then
         return nil
@@ -208,6 +218,31 @@ local function path_picker_previewer(cwd, mode_state)
           "--max-columns-preview",
           "--",
           query,
+          path,
+        }
+      end
+
+      -- 画像は chafa の ANSI シンボル描画(termopen の端末バッファで動く)。
+      -- termopen 内では COLORTERM が伝わらず 256 色に落ちるため truecolor を明示する。
+      -- sextant/legacy シンボルで実効解像度を上げる(Ghostty はこれらを自前描画する)。
+      -- pty がプレビュー窓と違うサイズで作られるため、窓の実寸を -s で明示する
+      if is_image_path(path) and executable("chafa") then
+        local width, height = 80, 24
+        local winid = status and status.preview_win
+          or (status and status.layout and status.layout.preview and status.layout.preview.winid)
+        if winid and vim.api.nvim_win_is_valid(winid) then
+          width = vim.api.nvim_win_get_width(winid)
+          height = vim.api.nvim_win_get_height(winid)
+        end
+
+        return {
+          "chafa",
+          "-f", "symbols",
+          "-c", "full",
+          "-w", "9",
+          "--symbols", "block+border+space+quad+sextant+wedge+legacy-wide-inverted",
+          "--animate", "off",
+          "-s", string.format("%dx%d", width, math.max(1, height - 1)),
           path,
         }
       end
@@ -380,6 +415,8 @@ local function insert_at_paths()
     prompt_title = "Insert @ Path",
     results_title = "C-s: grep/files | C-d: desktop/files",
     prompt_prefix = "Paths> ",
+    -- プレビューを広く取り chafa 画像プレビューの実効解像度(セル数)を稼ぐ
+    layout_config = { width = 0.95, height = 0.95, preview_width = 0.6 },
   }, {
     finder = initial_finder,
     previewer = path_picker_previewer(cwd, mode_state),
