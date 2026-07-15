@@ -157,6 +157,60 @@ class CodexContextAlertHookTest(unittest.TestCase):
                         for notice, expected_notice in zip(notices, expected_notices):
                             self.assertIn(expected_notice, notice)
 
+    def test_sibling_rollouts_do_not_change_parent_alert_state(self):
+        session_id = "shared-session"
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            parent_transcript = tmp_path / "sessions" / f"rollout-{session_id}.jsonl"
+            sibling_transcript = tmp_path / "sessions" / "rollout-sibling.jsonl"
+            env = hook_environment(tmp_path)
+            env["CODEX_CONTEXT_ALERT_RECHECK_DELAY_SECONDS"] = "0.05"
+            state_path = tmp_path / "ai-context-alert" / f"codex-{session_id}.state"
+            notify_log = tmp_path / "notify.log"
+            tmux_log = tmp_path / "tmux.log"
+
+            write_jsonl(parent_transcript, [token_count_event(70)])
+            result = run_hook(parent_transcript, session_id, env)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(state_path.read_text(encoding="utf-8").strip(), "70 70")
+            self.assertEqual(len(notify_log.read_text(encoding="utf-8").splitlines()), 1)
+            self.assertEqual(tmux_log.read_text(encoding="utf-8").splitlines(), ["add"])
+
+            sibling_cases = ((26, "PostToolUse"), (85, "Stop"))
+            for used_pct, hook_event_name in sibling_cases:
+                with self.subTest(sibling_used_pct=used_pct):
+                    write_jsonl(sibling_transcript, [token_count_event(used_pct)])
+                    result = run_hook(
+                        sibling_transcript,
+                        session_id,
+                        env,
+                        hook_event_name=hook_event_name,
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+
+            time.sleep(0.15)
+            self.assertEqual(state_path.read_text(encoding="utf-8").strip(), "70 70")
+            self.assertEqual(len(notify_log.read_text(encoding="utf-8").splitlines()), 1)
+            self.assertEqual(tmux_log.read_text(encoding="utf-8").splitlines(), ["add"])
+
+            write_jsonl(parent_transcript, [token_count_event(80)])
+            result = run_hook(parent_transcript, session_id, env)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(state_path.read_text(encoding="utf-8").strip(), "70 80")
+            self.assertEqual(len(notify_log.read_text(encoding="utf-8").splitlines()), 1)
+
+            write_jsonl(parent_transcript, [token_count_event(20)])
+            result = run_hook(parent_transcript, session_id, env)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(state_path.read_text(encoding="utf-8").strip(), "0 20")
+
+            write_jsonl(parent_transcript, [token_count_event(70)])
+            result = run_hook(parent_transcript, session_id, env)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(state_path.read_text(encoding="utf-8").strip(), "70 70")
+            self.assertEqual(len(notify_log.read_text(encoding="utf-8").splitlines()), 2)
+
     def test_low_context_usage_clears_existing_alert_state(self):
         session_id = "test-session"
 

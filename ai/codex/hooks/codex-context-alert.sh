@@ -27,6 +27,15 @@ if [[ -z "${session_id}" && -n "${transcript_path}" && "${transcript_path}" != "
     session_id=$(basename "${transcript_path}" .jsonl)
 fi
 
+# Multi-agent rollouts share the parent session_id but have distinct transcript names.
+# Only the parent transcript represents the context shown by the Codex TUI.
+if [[ -n "${session_id}" && -n "${transcript_path}" && "${transcript_path}" != "null" ]]; then
+    transcript_filename=$(basename "${transcript_path}")
+    if [[ "${transcript_filename}" != *-"${session_id}".jsonl ]]; then
+        exit 0
+    fi
+fi
+
 source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/alias/context-alert.zsh" 2>/dev/null || true
 
 evaluate_context_alert() {
