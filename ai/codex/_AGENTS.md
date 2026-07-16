@@ -34,6 +34,12 @@ To check what a zsh symbol resolves to, prefer `type <name>`; it covers function
 
 In zsh scripts, do not assign temporary exit codes to read-only special parameters such as `status`; use names like `rc` or `exit_code`.
 
+# Context-Mode Commands
+
+For `ctx_batch_execute`, use one `commands` entry per target. Avoid shell `for`/`while` loops and parenthesized command groups or subshells inside a command string because the runner may not parse them. When the operation requires those constructs, use a host-shell command and keep its output bounded with focused filters, counts, or summaries.
+
+If a context-mode tool rejects a read because the target resolves outside the active project root, do not retry the same call. Run a host-shell command from the target repository and keep its output bounded instead of printing the full file or result set.
+
 # Configuration Change Scope
 
 For narrow fixes, prefer the smallest owned integration point. Do not disable broader native features or product-level settings unless the user explicitly asks or that feature is the target; if considering one, explain the side effect before editing.
@@ -277,12 +283,6 @@ Use English only when the user explicitly requests it, when preserving source te
 # OpenAI Docs Manual Cache
 
 When the `openai-docs` skill runs `fetch-codex-manual.mjs`, invoke it through the host shell, not `context-mode` or another ephemeral analysis sandbox. The returned manual and outline must remain readable by later tool calls; pass a host-visible `--cache-dir` when command routing would otherwise isolate the filesystem.
-
-# Context-Mode Batch Commands
-
-For `ctx_batch_execute`, use one `commands` entry per target; avoid shell `for`/`while` loops inside a command string because the runner may not parse them.
-
-If a context-mode tool rejects a read because the target resolves outside the active project root, do not retry the same call. Run a host-shell command from the target repository and keep its output bounded with focused filters, counts, or summaries instead of printing the full file or result set.
 
 # User Confirmation
 
