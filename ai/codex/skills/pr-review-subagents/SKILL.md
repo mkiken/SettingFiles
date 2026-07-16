@@ -1,8 +1,8 @@
 ---
 name: pr-review-subagents
 description: >
-  Comprehensive PR review using seven parallel Codex custom subagents for bugs,
-  security, architecture, error handling, git history, tests, and performance. Use when the
+  Comprehensive PR review using seven Codex custom subagents, parallelized up to the
+  runtime limit, for bugs, security, architecture, error handling, git history, tests, and performance. Use when the
   user wants PR review with subagents, review-subagents, or parallel specialist
   reviewers. Accepts an optional PR number plus extra review instructions; if omitted,
   detect the current branch PR.
@@ -36,11 +36,13 @@ bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <PR_NUMBER>
 
 Local mode = current branch matches `headRefName` **and** `git rev-parse HEAD` matches `headRefOid`. If either check fails, use remote mode: subagents must inspect the PR head with `gh api`, not local files. This prevents unpushed or unrelated local commits from being reviewed as part of the PR.
 
-Pass every subagent: PR number, metadata, repo owner/name, full diff, line-numbered diff, existing comments NDJSON, local mode, head branch, and `<ADDITIONAL_INSTRUCTIONS>`. Each subagent's focus and review rules are in its definition.
+Before spawning, derive a compact existing-comment manifest from the NDJSON. Include one record for every top-level inline thread (`kind=inline` and `in_reply_to_id=null`) with `id`, `path`, `line`, `start_line`, `is_resolved`, `is_outdated`, `thread_id`, `ai_origin`, and a concise body excerpt that preserves the root cause and requested fix. Keep the full NDJSON in the parent for final aggregation.
+
+Pass every subagent directly: PR number, metadata, repo owner/name, full diff, line-numbered diff, the compact existing-comment manifest, local mode, head branch, and `<ADDITIONAL_INSTRUCTIONS>`. Do not make duplicate detection depend only on an indexed-source reference. Each subagent's focus and review rules are in its definition.
 
 ### Spawn
 
-Run all seven in parallel and wait for all:
+Run all seven exactly once, parallelized up to the child-agent slots available at runtime:
 
 - `pr_reviewer_bugs`
 - `pr_reviewer_security`
@@ -49,6 +51,8 @@ Run all seven in parallel and wait for all:
 - `pr_reviewer_history`
 - `pr_reviewer_tests`
 - `pr_reviewer_performance`
+
+If fewer than seven child-agent slots are available, use waves. Launch the maximum safe number, start the next specialist whenever a slot becomes free, and continue until all seven have completed. Never combine review dimensions merely to fit the slot limit.
 
 Each subagent stays read-only and returns Japanese findings in its configured format.
 Read-only includes not creating scratch files: never redirect diffs, comments, or command output to files in the repository or elsewhere.
