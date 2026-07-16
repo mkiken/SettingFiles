@@ -61,21 +61,25 @@ summary="{summary}"
 review_body=$(printf '{ai_header}\n\n%s' "$summary")
 jq -n --arg body "$review_body" -e '$body | (contains("\\n") | not) and contains("\n\n")' >/dev/null
 
+comments='[
+  {"path":"path/to/file.ext","line":42,"side":"RIGHT","body":"🔴 **High** / **Security**: Description"},
+  {"path":"path/to/file2.ext","start_line":15,"start_side":"RIGHT","line":20,"side":"RIGHT","body":"🟡 **Medium** / **Architecture**: Description"}
+]'
+
 api_response=$(jq -n \
   --arg body "$review_body" \
   --arg event "COMMENT" \
   --arg commit_id "{head_sha}" \
-  --argjson comments '[
-    {"path":"path/to/file.ext","line":42,"body":"🔴 **High** / **Security**: Description"},
-    {"path":"path/to/file2.ext","start_line":15,"line":20,"body":"🟡 **Medium** / **Architecture**: Description"}
-  ]' \
+  --argjson comments "$comments" \
   '{body:$body,event:$event,commit_id:$commit_id,comments:$comments}' \
 | gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --input - 2>&1)
 api_exit_code=$?
 review_id=$(printf '%s' "$api_response" | jq -r '.id')
 ```
 
-If `api_exit_code == 0`, report success. If it fails and `$api_response` contains `one pending review` or `pending review per pull request`, handle PENDING. Otherwise use individual-comment fallback.
+Every Review API comment must pair `line` with `side`. For a range, also pair `start_line` with `start_side`. Use `RIGHT` for lines in the PR head. Never send line-only objects: GitHub can interpret an unqualified location as a legacy diff position instead of a file line.
+
+If `api_exit_code == 0`, continue to post-verification before reporting success. If it fails and `$api_response` contains `one pending review` or `pending review per pull request`, handle PENDING. Otherwise use individual-comment fallback.
 
 After a successful Review API call, re-fetch the created review and verify the top-level body contains real newlines, not escaped text:
 
@@ -91,6 +95,32 @@ If this verification fails, fix the body in place and re-verify — never post t
 gh api --method PUT repos/{owner}/{repo}/pulls/{pr_number}/reviews/$review_id \
   -f body="$review_body"
 ```
+
+Then re-fetch the created review comments and verify every requested inline comment. Match by path and body, and require the expected commit, file line, side, and range start fields:
+
+```bash
+posted_comments=$(gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews/$review_id/comments)
+jq -n \
+  --argjson expected "$comments" \
+  --argjson actual "$posted_comments" \
+  --arg commit_id "{head_sha}" \
+  -e '
+    ($actual | length) == ($expected | length) and
+    all($expected[]; . as $want |
+      any($actual[];
+        .path == $want.path and
+        .body == $want.body and
+        .commit_id == $commit_id and
+        .line == $want.line and
+        .side == $want.side and
+        (.start_line // null) == ($want.start_line // null) and
+        (.start_side // null) == ($want.start_side // null)
+      )
+    )
+  ' >/dev/null
+```
+
+Treat a null `line`, a legacy-only `position`, a count mismatch, or any anchor/body/commit mismatch as verification failure. Do not retry or repost, because that can create duplicate review comments. Report the review URL or ID and the exact mismatch for manual correction. Report success only after both the review-body and inline-comment verifications pass.
 
 ## Fallbacks
 
