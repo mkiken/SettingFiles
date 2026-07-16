@@ -11,6 +11,10 @@ When pointing the user at a file or code location — in questions, confirmation
 
 When pasting dynamic content (command output, file contents, diffs) into a fenced code block — directly or via instructions you write for an assistant — use a fence longer than the longest backtick run inside the content (e.g. ````diff for content with ``` blocks, as markdown PR bodies usually have) plus a language tag. A too-short fence closes early and the rest renders as plain text.
 
+# Dynamic Result Output
+
+Before printing a dynamically selected result set, count it. If it exceeds 100 lines or may otherwise overwhelm context, print the count and a focused summary, then narrow or paginate deliberately instead of dumping all matches.
+
 # Command Usage
 
 Bash commands may be aliased:
