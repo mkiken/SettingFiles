@@ -39,9 +39,22 @@ git branch --show-current
 gh pr view "$PR_URL" --json headRefName --jq .headRefName
 ```
 
-If the current branch differs from `headRefName`, stop before editing and ask:
-checkout the PR branch / continue on the current branch / abort. Implementing
-on the wrong branch pushes commits the PR never receives.
+If the current branch differs from `headRefName`, stop before editing. Check
+for an existing worktree first — `git worktree list` — since checking out the
+PR branch in place can collide with work already in progress in another
+worktree:
+
+```bash
+git worktree list
+```
+
+If a worktree already has `headRefName` checked out, offer using that
+worktree's directory as an option alongside checkout / continue on the
+current branch / abort. When the worktree option is chosen, run every
+subsequent Phase 1–6 command (read, edit, build, test, git add/commit/push)
+from that worktree's directory instead of the current one; note the absolute
+path in the design (Phase 2) so it survives a context reset. Implementing on
+the wrong branch pushes commits the PR never receives.
 
 Parse `PR_URL`, extract `OWNER`, `REPO`, `PULL_NUMBER`, then classify the
 fragment. The result (`REPLY_PATH`, `COMMENT_ID`) is reused in Phase 5:
