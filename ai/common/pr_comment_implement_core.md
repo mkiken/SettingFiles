@@ -83,6 +83,7 @@ Before editing, present this Japanese design and wait for explicit approval:
 - 要旨:
 
 ### 変更方針
+- 対応種別: code change / no code change
 - 変更する振る舞い:
 - 変更しない範囲:
 
@@ -101,7 +102,7 @@ Before editing, present this Japanese design and wait for explicit approval:
 - Reply target: <comment_id or pull number, or なし>
 - Resolve候補: <thread id and unresolved status, or why resolve is unavailable>
 - 実装後の手順: Phase 5 と Phase 6 を必ず継続する
-- Reply本文作成: 実装差分、検証結果、作成commitを反映して実装後に作成する
+- Reply本文作成: 実装差分、または変更不要の根拠と検証結果を反映して作成する
 - 省略禁止: context reset後もPRへの返信とresolve判断を省略しない
 
 この設計で実装を進めてよろしいですか？修正点があればお知らせください。
@@ -117,12 +118,21 @@ implementation, state the exact item to re-fetch instead of omitting it. In
 plan mode, write this design (including that section) into the platform's
 plan artifact.
 
+If the analysis shows that the requested behavior already matches repository
+conventions or that no code change is warranted, set `NO_CODE_CHANGE=true` in
+the design and explain the evidence. Approval of that design authorizes the
+no-change workflow below; it does not authorize a GitHub reply yet.
+
 ### Phase 3: Implementation (Only after approval)
 
 Implement only the approved scope and update tests when behavior risk
 warrants it. Run the
 narrowest useful verification command; broaden only when the touched surface
 is shared or high risk.
+
+When `NO_CODE_CHANGE=true`, do not edit files or create an empty commit.
+Preserve the concrete findings and verification results for the reply body,
+then continue to Phase 4.
 
 ### Phase 4: Review Changes
 
@@ -134,6 +144,9 @@ git diff
 git status --short
 ```
 
+When `NO_CODE_CHANGE=true`, confirm that the task introduced no file changes
+and report any pre-existing or unrelated changes separately.
+
 ### Phase 5: Pre-Action Preparation
 
 Using `REPLY_PATH` / `COMMENT_ID` from Phase 1, resolve all data needed to
@@ -141,8 +154,10 @@ commit, push, reply, and possibly resolve.
 
 **⚠️ 原則**: 返信対象が review comment (`#discussion_r{id}`) またはスレッド可能な review comment の場合、**必ずスレッド返信API** (`gh api repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies`) を使用すること。`gh pr comment` は thread API が使えない場合 (純粋な issue comment やスレッド対象が無い review) に限定する。
 
-Draft a commit message that references the PR comment, summarizes the change,
-and follows the repository convention. Do **not** commit yet.
+Unless `NO_CODE_CHANGE=true`, draft a commit message that references the PR
+comment, summarizes the change, and follows the repository convention. Do
+**not** commit yet. For the no-change workflow, omit commit preparation and
+all commit placeholders.
 
 For `thread`, determine whether the original author is bot/self:
 
@@ -196,8 +211,10 @@ Offer resolve only when `REPLY_PATH=thread`, author is bot/self,
 
 Compose the reply body from the implemented diff and the original review
 comment, naming what changed — no vague bullets such as "修正しました" or
-"改善しました". Include `背景・理由` only when there is a concrete reason for
-the approach; otherwise omit that section entirely.
+"改善しました". When `NO_CODE_CHANGE=true`, instead state what was inspected,
+the concrete evidence, and why no change is warranted. Include `背景・理由`
+only when there is a concrete reason for the approach; otherwise omit that
+section entirely.
 
 ```
 ご指摘ありがとうございます。対応しました。
@@ -213,11 +230,24 @@ Commit:
   - {commit_subject}
 ```
 
+For `NO_CODE_CHANGE=true`, use this shape and do not add a `Commit` section:
+
+```
+ご指摘ありがとうございます。確認しました。
+
+確認結果:
+- {what was inspected and found}
+
+対応方針:
+- {why no code change is warranted}
+```
+
 Preview with placeholder hashes before commit; fill real hashes after commit.
-Before asking the final action question, show:
+Before asking the final action question, show the applicable sections below.
+Omit the commit-message section when `NO_CODE_CHANGE=true`:
 
 ```markdown
-## 実装完了。以下を実行する準備ができました。
+## 対応完了。以下を実行する準備ができました。
 
 ### コミットメッセージ（草案）
 {commit message draft}
@@ -245,14 +275,21 @@ Ask one final action question. Build the options dynamically and show only
 executable options:
 
 ```
-if CAN_OFFER_RESOLVE:
-  add "コミット & push & 返信 & resolve"
-if REPLY_PATH in ("thread", "standalone"):
-  add "コミット & push & 返信"
-always add "コミット & push", "コミットのみ"
+if NO_CODE_CHANGE:
+  if CAN_OFFER_RESOLVE:
+    add "返信 & resolve"
+  if REPLY_PATH in ("thread", "standalone"):
+    add "返信のみ"
+else:
+  if CAN_OFFER_RESOLVE:
+    add "コミット & push & 返信 & resolve"
+  if REPLY_PATH in ("thread", "standalone"):
+    add "コミット & push & 返信"
+  add "コミット & push", "コミットのみ"
+always add "コミットしない"
 ```
 
-Question: `実装が完了しました。以下のうちどこまで自動実行しますか？（プレビューは上記参照）`
+Question: `対応が完了しました。以下のうちどこまで自動実行しますか？（プレビューは上記参照）`
 
 If the user declines every action (cancel or an equivalent `コミットしない`
 choice), stop without git or GitHub side effects and report that. This
@@ -261,7 +298,12 @@ post-implementation commit question again.
 
 Execute selected actions sequentially and stop on failure unless retry is chosen.
 
-Commit:
+For `NO_CODE_CHANGE=true`, skip commit and push. Execute a selected reply via
+the same thread or standalone API below, then resolve only when that option was
+offered and selected. A reply failure still requires the same retry,
+standalone-downgrade, or abort decision.
+
+When `NO_CODE_CHANGE=false`, commit:
 
 ```bash
 PRE_COMMIT_HEAD=$(git rev-parse HEAD)
@@ -327,5 +369,5 @@ Final execution summary:
 ```
 
 Use `⚠️` for errors and `⏭️` for skipped steps. Final summary must include
-modified files, verification, commit hash/message, push, reply URL/result,
-resolve result, and remaining manual action.
+modified files, verification, commit hash/message or an explicit no-change
+result, push, reply URL/result, resolve result, and remaining manual action.
