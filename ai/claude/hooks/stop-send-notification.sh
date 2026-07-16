@@ -84,11 +84,22 @@ fi
 if [[ "${hook_event_name}" == "Notification" ]]; then
     # idle_prompt（応答待ち60秒経過）も通知対象。Stop通知がバックグラウンドタスク実行中で
     # 抑制された場合や承認待ち通知を見逃した場合、これが唯一のリマインダーになるため。
-    if [[ "${notification_type}" != "permission_prompt" && "${notification_type}" != "elicitation_dialog" && "${notification_type}" != "idle_prompt" ]]; then
+    # agent_needs_input/agent_completedは claude agents（エージェントビュー）/`/bg`のバック
+    # グラウンドセッションが入力待ち・完了になったときの通知（v2.1.198〜）。エージェントビュー
+    # が開いている間のみ発火する制約があるが、開いていれば拾えるようにする。
+    if [[ "${notification_type}" != "permission_prompt" \
+       && "${notification_type}" != "elicitation_dialog" \
+       && "${notification_type}" != "idle_prompt" \
+       && "${notification_type}" != "agent_needs_input" \
+       && "${notification_type}" != "agent_completed" ]]; then
         debug_log "Notification type ${notification_type} does not require notification, exiting"
         exit 0
     fi
-    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}" &
+    if [[ "${notification_type}" == "agent_completed" ]]; then
+        update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}" &
+    else
+        update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}" &
+    fi
 elif [[ "${hook_event_name}" == "Stop" ]]; then
     update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}" &
 elif [[ "${hook_event_name}" == "StopFailure" ]]; then
@@ -157,9 +168,15 @@ if [[ "${hook_event_name}" == "Notification" ]]; then
         notification_body="${notification_body}"$'\n'"${summary}"
     fi
 
-    # 承認待ち（permission_prompt / elicitation_dialog）と入力待ち（idle_prompt）でタイトルを区別する
+    # 承認待ち（permission_prompt / elicitation_dialog）・入力待ち（idle_prompt）・
+    # バックグラウンドセッション（agent_needs_input / agent_completed）でタイトルを区別する。
+    # agent_completedはメイン自身のStop（✅終了）と紛らわしいため「バックグラウンド」を明示する。
     if [[ "${notification_type}" == "idle_prompt" ]]; then
         notification_title=$(build_ai_title "⏳" "入力待ち")
+    elif [[ "${notification_type}" == "agent_needs_input" ]]; then
+        notification_title=$(build_ai_title "🙋" "バックグラウンド入力待ち")
+    elif [[ "${notification_type}" == "agent_completed" ]]; then
+        notification_title=$(build_ai_title "✅" "バックグラウンド完了")
     else
         notification_title=$(build_ai_title "⚠️" "承認待ち")
     fi
