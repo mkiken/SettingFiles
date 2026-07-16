@@ -82,7 +82,9 @@ fi
 # バックグラウンド起動でpython3起動(数十ms)をクリティカルパスから外す。
 # 後続の解析+notifyが必ず長く走るため、フック終了前にアイコン設定は完了する。
 if [[ "${hook_event_name}" == "Notification" ]]; then
-    if [[ "${notification_type}" != "permission_prompt" && "${notification_type}" != "elicitation_dialog" ]]; then
+    # idle_prompt（応答待ち60秒経過）も通知対象。Stop通知がバックグラウンドタスク実行中で
+    # 抑制された場合や承認待ち通知を見逃した場合、これが唯一のリマインダーになるため。
+    if [[ "${notification_type}" != "permission_prompt" && "${notification_type}" != "elicitation_dialog" && "${notification_type}" != "idle_prompt" ]]; then
         debug_log "Notification type ${notification_type} does not require notification, exiting"
         exit 0
     fi
@@ -155,8 +157,14 @@ if [[ "${hook_event_name}" == "Notification" ]]; then
         notification_body="${notification_body}"$'\n'"${summary}"
     fi
 
-    debug_log "Sending approval notification: ${notification_body}"
-    notify "$(build_ai_title "⚠️" "承認待ち")" "${notification_body}" "Hero" "${notification_group}"
+    # 承認待ち（permission_prompt / elicitation_dialog）と入力待ち（idle_prompt）でタイトルを区別する
+    if [[ "${notification_type}" == "idle_prompt" ]]; then
+        notification_title=$(build_ai_title "⏳" "入力待ち")
+    else
+        notification_title=$(build_ai_title "⚠️" "承認待ち")
+    fi
+    debug_log "Sending awaiting-input notification (${notification_type}): ${notification_body}"
+    notify "${notification_title}" "${notification_body}" "Hero" "${notification_group}"
     exit 0
 fi
 
