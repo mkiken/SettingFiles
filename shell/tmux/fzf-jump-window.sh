@@ -8,9 +8,16 @@ set -euo pipefail
 # login PATH, so ensure Homebrew paths are visible to `tmux` calls inside it.
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 
-LIST=$(tmux list-windows -a -F $'#{session_name}:#{window_index}\t#{@session_shortcut_index}:#{session_name} > #{window_index}: #{window_name} · #{pane_current_path}')
+LIST=$(tmux list-windows -a -F $'#{@session_shortcut_index}\t#{window_index}\t#{session_name}:#{window_index}\t#{@session_shortcut_index}:#{session_name} > #{window_index}: #{window_name} · #{pane_current_path}')
 LIST=${LIST//"$HOME"/\~}
 [ -z "$LIST" ] && exit 0
+
+# 先頭2列(@session_shortcut_index, window_index)はソート専用の隠しキー。
+# セッション番号→window番号の数値昇順に並べ、番号未設定のセッションは末尾に回す。
+LIST=$(printf "%s\n" "$LIST" \
+  | awk -F'\t' 'BEGIN{OFS="\t"} {$1=($1==""?999999:$1); print}' \
+  | sort -t$'\t' -k1,1n -k2,2n \
+  | cut -f3-)
 
 PREVIEW='
 target={1}
