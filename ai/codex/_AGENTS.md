@@ -282,6 +282,8 @@ When the `openai-docs` skill runs `fetch-codex-manual.mjs`, invoke it through th
 
 For `ctx_batch_execute`, use one `commands` entry per target; avoid shell `for`/`while` loops inside a command string because the runner may not parse them.
 
+If a context-mode tool rejects a read because the target resolves outside the active project root, do not retry the same call. Run a host-shell command from the target repository and keep its output bounded with focused filters, counts, or summaries instead of printing the full file or result set.
+
 # User Confirmation
 
 Do not use the `request_user_input` tool in Codex.
