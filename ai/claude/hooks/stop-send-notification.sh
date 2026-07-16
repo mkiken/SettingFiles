@@ -82,14 +82,14 @@ fi
 # バックグラウンド起動でpython3起動(数十ms)をクリティカルパスから外す。
 # 後続の解析+notifyが必ず長く走るため、フック終了前にアイコン設定は完了する。
 if [[ "${hook_event_name}" == "Notification" ]]; then
-    # idle_prompt（応答待ち60秒経過）も通知対象。Stop通知がバックグラウンドタスク実行中で
-    # 抑制された場合や承認待ち通知を見逃した場合、これが唯一のリマインダーになるため。
+    # idle_prompt（ターン終了後60秒無入力のリマインダー）は意図的に対象外。
+    # 放置しただけで完了✅アイコンが✋に上書きされ、承認待ちと紛らわしいため、
+    # 通知もアイコン更新もせず無視する。
     # agent_needs_input/agent_completedは claude agents（エージェントビュー）/`/bg`のバック
     # グラウンドセッションが入力待ち・完了になったときの通知（v2.1.198〜）。エージェントビュー
     # が開いている間のみ発火する制約があるが、開いていれば拾えるようにする。
     if [[ "${notification_type}" != "permission_prompt" \
        && "${notification_type}" != "elicitation_dialog" \
-       && "${notification_type}" != "idle_prompt" \
        && "${notification_type}" != "agent_needs_input" \
        && "${notification_type}" != "agent_completed" ]]; then
         debug_log "Notification type ${notification_type} does not require notification, exiting"
@@ -168,12 +168,10 @@ if [[ "${hook_event_name}" == "Notification" ]]; then
         notification_body="${notification_body}"$'\n'"${summary}"
     fi
 
-    # 承認待ち（permission_prompt / elicitation_dialog）・入力待ち（idle_prompt）・
+    # 承認待ち（permission_prompt / elicitation_dialog）・
     # バックグラウンドセッション（agent_needs_input / agent_completed）でタイトルを区別する。
     # agent_completedはメイン自身のStop（✅終了）と紛らわしいため「バックグラウンド」を明示する。
-    if [[ "${notification_type}" == "idle_prompt" ]]; then
-        notification_title=$(build_ai_title "⏳" "入力待ち")
-    elif [[ "${notification_type}" == "agent_needs_input" ]]; then
+    if [[ "${notification_type}" == "agent_needs_input" ]]; then
         notification_title=$(build_ai_title "🙋" "バックグラウンド入力待ち")
     elif [[ "${notification_type}" == "agent_completed" ]]; then
         notification_title=$(build_ai_title "✅" "バックグラウンド完了")
