@@ -113,10 +113,11 @@ gh api --method PUT repos/{owner}/{repo}/pulls/{pr_number}/reviews/$review_id \
   -f body="$review_body"
 ```
 
-Then re-fetch the created review comments and verify every requested inline comment. Match by path and body, and require the expected commit, file line, side, and range start fields:
+Then re-fetch the created review comments and verify every requested inline comment. Match by path and body, and require the expected commit, file line, side, and range start fields. Fetch via `pulls/{pr_number}/comments` filtered by `pull_request_review_id` — the `reviews/{review_id}/comments` endpoint returns legacy-schema objects without `line`/`side` and always fails this verification:
 
 ```bash
-posted_comments=$(gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews/$review_id/comments)
+posted_comments=$(gh api "repos/{owner}/{repo}/pulls/{pr_number}/comments?per_page=100" --paginate \
+  | jq --argjson rid "$review_id" '[.[] | select(.pull_request_review_id == $rid)]')
 jq -n \
   --argjson expected "$comments" \
   --argjson actual "$posted_comments" \
