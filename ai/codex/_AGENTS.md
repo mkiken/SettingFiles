@@ -99,7 +99,7 @@ For one-off preferences (user taste, not a defect), keep an internal note instea
 ## How to propose
 
 - Surface every qualifying proposal (no per-session cap), ordered by relevance and importance.
-- Load the `prompt-self-improvement` skill and follow its analysis-only response format, including affected assistants and regeneration notes.
+- Load the `prompt-self-improvement` skill and follow its analysis-only response format. Under Proposed source changes, include a `Planned files` list of every repository-root-relative file that approval would edit or regenerate, plus affected assistants and regeneration notes.
 - Outside the Completion-Time Check, say nothing when no proposal qualifies.
 
 ## Plan Handoff
