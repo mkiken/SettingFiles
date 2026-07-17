@@ -18,17 +18,22 @@ Inputs: parse `$ARGUMENTS` as `[prNumber] [additionalInstructions...]`. If the f
 Fetch context first:
 
 ```bash
-gh pr view <PR_NUMBER> --json title,body,baseRefName,headRefName,url
+gh pr view <PR_NUMBER> --json title,body,baseRefName,headRefName,headRefOid,url,files,commits
 gh pr diff <PR_NUMBER>
 bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh <PR_NUMBER>
 gh repo view --json nameWithOwner
 git branch --show-current
+git rev-parse HEAD
 bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <PR_NUMBER>
 ```
 
-Local mode = current branch matches `headRefName`; sub-agents may then use `Read`/`Glob`, otherwise they must use `gh api` against `headRefName`.
+Local mode = current branch matches `headRefName` **and** local HEAD matches `headRefOid`. Otherwise use remote mode and inspect `headRefOid`, never local files.
 
-Pass every sub-agent: PR number, metadata, repo owner/name, full diff, line-numbered diff, existing comments NDJSON, local mode, head branch, and `<ADDITIONAL_INSTRUCTIONS>`. Each agent's focus and review rules are in its definition.
+Capture the full and line-numbered diffs through the configured large-output path, using source labels unique to the PR and `headRefOid`. Count the line-numbered diff before expanding it in the parent context.
+
+Derive a compact manifest for every top-level inline thread (`kind=inline` and `in_reply_to_id=null`) with `id`, `path`, `line`, `start_line`, `is_resolved`, `is_outdated`, `thread_id`, `ai_origin`, and a concise root-cause/fix excerpt. Keep the full NDJSON in the parent for final aggregation.
+
+Pass every sub-agent directly: PR number, metadata, repo owner/name, the compact comment manifest, local mode, base/head names, `headRefOid`, and `<ADDITIONAL_INSTRUCTIONS>`. For a line-numbered diff of at most 100 lines, also pass both diffs directly. For a larger diff, do not paste either full payload; pass the changed-file list and captured source labels instead. Every sub-agent must inspect every changed file and its relevant diff at the exact head revision (local mode: local head file plus `git diff <base>...<headRefOid>`; remote mode: `gh api` contents at `headRefOid` plus the PR-files patch). Indexed snippets alone are insufficient. Do not refetch the whole PR diff or make duplicate detection depend only on an indexed source. Each agent's focus and review rules are in its definition.
 
 ### Launch
 
