@@ -78,6 +78,7 @@ When showing the user something to visually confirm (e.g. a tmux popup), state w
 
 At task completion — before the Post-Implementation Workflow, and even when that workflow is skipped — clean up temp files newly created by the AI this session: scratch scripts, debug output, sample data, logs, dumps, notes, and other non-deliverables. Deliverables (requested source, test, doc, fixture, or config changes) and existing files edited in place are out of scope.
 
+- Establish provenance before deleting a temp-looking file: use a pre-task baseline or direct evidence that this session created it. Never infer ownership from its name, contents, or timestamps alone; if provenance is uncertain, leave it in place and report it.
 - If no temp files were created, continue to the Post-Implementation Workflow.
 - Otherwise delete them all without asking (`rm` is aliased to `trash`, so deletion moves them to trash), briefly report what was deleted in the completion response, then continue to the Post-Implementation Workflow.
 
