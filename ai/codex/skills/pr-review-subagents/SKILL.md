@@ -60,6 +60,10 @@ Each subagent stays read-only and returns Japanese findings in its configured fo
 Read-only includes not creating scratch files: never redirect diffs, comments, or command output to files in the repository or elsewhere.
 Inspect the passed context or indexed sources, or run read-only commands directly.
 
+### Context Handoff
+
+Embed the compact existing-comment manifest records in every specialist's task payload. References to parent tool output, indexed sources, source labels, or inherited/forked context do not count as direct handoff.
+
 ### Additional Review Instructions
 
 If `<ADDITIONAL_INSTRUCTIONS>` is non-empty, ensure every specialist received it and use it to prioritize aggregation. It must not override mandatory duplicate detection, line-number, safety, or output-format rules.
