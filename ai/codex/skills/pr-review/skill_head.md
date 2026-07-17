@@ -27,8 +27,10 @@ Use only `<PR_NUMBER>` in gh commands. If `<ADDITIONAL_INSTRUCTIONS>` is non-emp
 Determine the file access mode before starting:
 
 1. `git branch --show-current` — current local branch
-2. `gh pr view <PR_NUMBER> --json title,body,files,commits,baseRefName,headRefName` — PR metadata
+2. `gh pr view <PR_NUMBER> --json title,body,files,commits,baseRefName,headRefName --jq '{title,body,baseRefName,headRefName,files:[.files[]|{path,additions,deletions,changeType}],commits:[.commits[]|{oid,messageHeadline}]}'` — bounded PR metadata
 3. Compare the current branch with `headRefName`.
+
+Commit bodies, authors, and dates are intentionally omitted. If a headline needs investigation, fetch that commit on demand with `git show <oid> --no-patch` (local mode) or `gh api repos/{owner}/{repo}/commits/{oid}` (remote mode).
 
 **If they match (local mode)** — investigate with the `Read` tool (faster, includes uncommitted local changes) and the `Glob` tool (e.g. `Glob("src/**/*.ts")`).
 
