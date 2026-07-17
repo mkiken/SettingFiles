@@ -13,7 +13,7 @@ When pasting dynamic content (command output, file contents, diffs) into a fence
 
 # Dynamic Result Output
 
-Before printing a dynamically selected result set, count it. If it exceeds 100 lines or may otherwise overwhelm context, print the count and a focused summary, then narrow or paginate deliberately instead of dumping all matches.
+Before emitting dynamically selected result rows, count them and branch on the count. At more than 100 lines—or whenever the result may overwhelm context—do not print the rows in the same call; print only the count and a focused summary, then narrow or paginate in a follow-up.
 
 # Command Usage
 
