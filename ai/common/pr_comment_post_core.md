@@ -20,6 +20,8 @@ gh repo view --json owner,name
 
 If `gh pr view` fails, ask the user for the PR number. Inline comments require a valid `commit_id`; if it cannot be retrieved, fall back to `gh pr comment`.
 
+5. If the `pr-review` result was produced against a different head commit (its headRefOid, when known, differs from the current one), do not post with stale anchors: diff the two revisions for the affected files, re-anchor each selected item's line to the current head, and check whether the newer commits already addressed an item. Surface every adjustment (old→new line) and each already-addressed candidate in the preview so the user decides whether to post or skip it.
+
 ## Preview And Confirm
 
 Show only the selected items, keeping their original serial numbers:
