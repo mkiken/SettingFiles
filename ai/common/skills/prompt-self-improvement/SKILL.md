@@ -27,7 +27,7 @@ All paths below are relative to the SettingFiles repository root. When the curre
 
 ## Improvement workflow
 
-1. Identify the behavior to improve and the affected assistant(s). For tool or workflow changes, inspect any corresponding Claude, Gemini, and Codex adapters, verify each assistant's activation or installation settings, and record why each platform is included or excluded before naming the affected assistants.
+1. Identify the behavior to improve and the affected assistant(s). For tool or workflow changes, inspect any corresponding Claude, Gemini, and Codex adapters, verify each assistant's activation or installation settings, and record why each platform is included or excluded before naming the affected assistants. Before proposing identical adapter edits, prefer an existing shared core unless placement or tool semantics differ, and record why any adapter-specific copy is necessary.
 2. Read the relevant source files before proposing changes.
 3. Gather evidence: user corrections, failed outputs, duplicated instructions, conflicts, stale docs, repeated manual workflow.
 4. Classify the fix: short universal rules → `prompt_base.md`; assistant-specific mechanics → that assistant's base file or entrypoint; multi-step task-specific procedures → a skill; reusable invocations → commands; deterministic lifecycle enforcement → hooks or settings; generated files stay generated.
