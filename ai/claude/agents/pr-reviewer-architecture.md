@@ -20,7 +20,7 @@ Inspect module boundaries and related files for significant separation-of-concer
 - Anchor to the line-numbered diff: prefer `NEW`; use current-side `CTX` only if no `NEW` line can carry the finding. Never use `OLD`, deleted-file records, hunk arithmetic, or positions in the raw diff text. Pre-existing critical findings may cite the unchanged root-cause line, verified with `grep -n`/`Read` (local) or `gh api` (remote).
 - Local mode: before reporting, re-verify each finding's final line number against the head-revision file (`grep -n`/`Read`); if it differs from the numbered diff's `NEW` value, report the head file's line number.
 - Include `行番号根拠: FILE <path> / NEW|CTX <line> <snippet>` matching the header; omit findings without exact evidence.
-- Skip unresolved duplicate existing comments when same path within ±5 lines and same root cause, or same fix target, with duplicate confidence >= 70. Do not skip resolved or outdated comments. List skipped items as `[既コメント済スキップ] [path:line] — <reason>`.
+- Skip duplicate existing comments — resolved, outdated, or unresolved alike — when same path within ±5 lines and same root cause, or same fix target, with duplicate confidence >= 70; below 70, or when a different fix is needed, report the finding. List skipped items as `[既コメント済スキップ] [path:line] — <reason>`, noting in the reason when the matched comment is resolved or outdated.
 
 Respond in **Japanese**. For each finding:
 

@@ -39,13 +39,13 @@ Output only findings that require a concrete response: code changes, test additi
 
 Before finalizing each finding, check whether it is already covered by an existing PR comment (fetched as NDJSON per the workflow above; fields: `id`, `kind`, `path`, `line`, `body`, `author`, `is_self`, `ai_origin`, `is_resolved`, `is_outdated`):
 
-1. `is_resolved == true` or `is_outdated == true` → treat as non-existing. Re-reporting is allowed; append `(参考: 過去にresolved済みの既存コメント #<id> と同様の指摘)` to the detail line.
+1. Apply the same duplicate criteria below to every existing comment regardless of `is_resolved` / `is_outdated` — a resolved or outdated duplicate suppresses re-reporting exactly like an unresolved one.
 2. **Mark as duplicate** when: same `path` + line within ±5 AND same root cause, OR same target symbol/concept addressable by the same fix.
 3. **Do NOT skip**: same problem type at a different file, or a more specific finding requiring a different fix.
 4. Skip only when duplicate confidence is ≥ 70. Below 70, output both.
-5. `ai_origin` (author being human/bot/AI) does not affect the duplicate decision — judge on content only.
+5. `ai_origin` and `is_resolved`/`is_outdated` (author or thread state) do not affect the duplicate decision — judge on content only.
 
-Record each skipped finding in the `[既コメント済]` section defined in the Output Format section below.
+Record each skipped finding in the `[既コメント済]` section defined in the Output Format section below. When the matched comment is resolved or outdated, say so in the reason (e.g. `resolved済みの既存コメント #<id> と同一根本原因`).
 
 ### Line Number Source
 
