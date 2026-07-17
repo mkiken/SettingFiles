@@ -82,7 +82,7 @@ At task completion — before the Post-Implementation Workflow, and even when th
 
 - Establish provenance before deleting a temp-looking file: use a pre-task baseline or direct evidence that this session created it. Never infer ownership from its name, contents, or timestamps alone; if provenance is uncertain, leave it in place and report it.
 - If no temp files were created, continue to the Post-Implementation Workflow.
-- Otherwise delete them all without asking (`rm` is aliased to `trash`, so deletion moves them to trash), briefly report what was deleted in the completion response, then continue to the Post-Implementation Workflow.
+- Otherwise delete them all without asking — invoke `trash` directly, not `rm` (non-interactive shells skip the alias and `rm` is permission-denied; `trash` keeps deletion reversible) — briefly report what was deleted in the completion response, then continue to the Post-Implementation Workflow.
 
 # Opportunistic Improvement Proposals
 
