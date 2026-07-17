@@ -24,11 +24,13 @@ Bash commands may be aliased:
 - `rm` -> `trash`
 - `cp` -> `cp -i`
 - `mv` -> `mv -i`
+- `rg` -> `RIPGREP_CONFIG_PATH=${SET}/configs/.ripgreprc rg`
 
 Use an absolute path when standard behavior matters; verify non-obvious paths with `type <name>` or `command -v <name>` before hard-coding them.
 
 - The `-i` aliases (`cp`, `mv`) prompt before overwriting; in non-interactive runs the prompt auto-declines and the copy/move silently fails — use `/bin/cp` / `/bin/mv` to overwrite.
 - `trash` does not accept rm-style flags (`-r`, `-f`, `-rf` fail); pass files and directories without flags.
+- The `rg` alias reads `RIPGREP_CONFIG_PATH` from `$SET`, which is undefined in non-interactive runs, so every call emits a non-fatal config-read error on stderr — run `rg --no-config`.
 
 To check what a zsh symbol resolves to, prefer `type <name>`; it covers functions, aliases, builtins, and external commands in one shot. `typeset -f` only lists functions and silently misses aliases.
 
