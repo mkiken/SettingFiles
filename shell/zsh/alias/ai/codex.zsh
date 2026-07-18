@@ -42,7 +42,7 @@ cx-pr-body() {
         echo "現在のブランチに対応するPRが見つかりません。" >&2
         return 1
     }
-    cx --dangerously-bypass-approvals-and-sandbox "\$pr-body PR #$pr_number のbodyを生成して $*"
+    cxh --dangerously-bypass-approvals-and-sandbox "\$pr-body PR #$pr_number のbodyを生成して $*"
 }
 
 cx-pr-create() {
@@ -62,13 +62,13 @@ cx-pr-create() {
         echo "作成したPR番号を取得できませんでした。" >&2
         return 1
     }
-    cx --dangerously-bypass-approvals-and-sandbox "\$pr-body PR #$pr_number のbodyを生成して"
+    cxh --dangerously-bypass-approvals-and-sandbox "\$pr-body PR #$pr_number のbodyを生成して"
 }
 
 cx-pr-review() {
     local pr_number review_prompt
     _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
-    cx -c 'model_reasoning_effort="xhigh"' --dangerously-bypass-approvals-and-sandbox "\$pr-review PR #$pr_number をレビューして${review_prompt:+ $review_prompt}"
+    cxh --dangerously-bypass-approvals-and-sandbox "\$pr-review PR #$pr_number をレビューして${review_prompt:+ $review_prompt}"
 }
 
 cx-pr-review-subagent() {
