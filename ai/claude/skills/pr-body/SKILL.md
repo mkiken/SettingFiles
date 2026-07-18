@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(gh:*), Bash(diff:*), Bash(tr:*), Bash(rm:*), Bash(mktemp:*), Bash(/bin/cat:*), Write
+allowed-tools: Bash(gh:*), Bash(diff:*), Bash(tr:*), Bash(trash:*), Bash(mktemp:*), Bash(/bin/cat:*), Write
 description: "Generate comprehensive PR body content using gh command for specified PR number"
 argument-hint: [prNumber]
 disable-model-invocation: true

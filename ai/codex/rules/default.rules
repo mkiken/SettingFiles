@@ -94,3 +94,18 @@ prefix_rule(
     match = ["gh api --method GET repos/{owner}/{repo}/pulls/123/comments --paginate", "gh api --method GET repos/{owner}/{repo}/pulls/123/reviews --paginate"],
     not_match = ["gh api repos/{owner}/{repo}/pulls/123/comments --method POST", "gh api --method PATCH repos/{owner}/{repo}/pulls/123"],
 )
+
+prefix_rule(
+    pattern = ["rm"],
+    decision = "forbidden",
+    justification = "Deletions must use trash (reversible); rm is banned",
+    match = ["rm foo", "rm -rf dir"],
+    not_match = ["trash foo"],
+)
+
+prefix_rule(
+    pattern = ["/bin/rm"],
+    decision = "forbidden",
+    justification = "Deletions must use trash (reversible); /bin/rm is banned",
+    match = ["/bin/rm foo", "/bin/rm -rf dir"],
+)

@@ -147,6 +147,7 @@
       "Bash(pwd:*)",
       "Bash(rg:*)",
       "Bash(tail:*)",
+      "Bash(trash:*)",
       "LS",
       "Read",
       "WebFetch(domain:*)",
@@ -158,6 +159,8 @@
       "Bash(rm -rf /*)",
       "Bash(rm -rf ~)",
       "Bash(rm -rf ~/*)",
+      "Bash(rm:*)",
+      "Bash(/bin/rm:*)",
       "Bash(sudo :*)",
       "NotebookEdit"
     ]

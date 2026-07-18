@@ -140,3 +140,21 @@ toolName = "run_shell_command"
 commandPrefix = "gh repo view"
 decision = "allow"
 priority = 100
+
+[[rule]]
+toolName = "run_shell_command"
+commandPrefix = "trash "
+decision = "allow"
+priority = 100
+
+[[rule]]
+toolName = "run_shell_command"
+commandPrefix = "rm "
+decision = "deny"
+priority = 1000
+
+[[rule]]
+toolName = "run_shell_command"
+commandPrefix = "/bin/rm "
+decision = "deny"
+priority = 1000
