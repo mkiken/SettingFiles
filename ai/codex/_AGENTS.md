@@ -72,6 +72,8 @@ After any side-effecting operation (git commit/push, API writes, deletes, deploy
 
 When verifying newly written code or shell functions that invoke destructive commands (`git restore`, `git clean`, `rm`, force-overwrite, etc.), never run that verification against a real project repository — set up a disposable throwaway repo/directory (e.g. `mktemp -d` + `git init`) and exercise the code there instead. When mocking a confirmation gate (e.g. a `confirm` function) to test the flow, also mock or stub out the destructive commands gated behind it — mocking only the gate while leaving real destructive commands live is not a safe test.
 
+Before running an external installer in a disposable target, identify and baseline its known shared or global state roots; a temporary destination alone does not prove isolation. Compare those roots afterward and clean up only artifacts attributable to the run.
+
 # Visual Verification
 
 When showing the user something to visually confirm (e.g. a tmux popup), state what to check before opening it, keep it open until the user dismisses it (never close on a timer), and use a dedicated unambiguous fixture as the test subject — not whatever file happens to be newest.
