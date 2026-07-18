@@ -140,6 +140,6 @@ When implementation is complete and a commit is needed, inspect the working tree
 2. **コミットのみ** — コミットを作成するがプッシュはしない
 3. **コミットしない** — 変更をコミットせずそのまま残す
 
-When staging, add only the paths this session changed or created (explicit `git add <paths>`; never `git add -A` or `git add .`). If `git status` shows unrelated changes (e.g. from a parallel session), leave them unstaged and mention them to the user. Immediately before committing, re-check `git diff --cached --name-only`; if it lists paths you did not stage (e.g. staged by a parallel session), commit with an explicit pathspec (`git commit -- <paths>`) so only your paths are committed.
+When staging, add only the paths this session changed or created (explicit `git add <paths>`; never `git add -A` or `git add .`). If `git status` shows unrelated changes (e.g. from a parallel session), leave them unstaged and mention them to the user. Immediately before committing, re-check `git diff --cached --name-only`; if it lists paths you did not stage (e.g. staged by a parallel session), commit with an explicit pathspec (`git commit -m "<message>" -- <paths>`) so only your paths are committed.
 
 Perform the selected git action, then run the Opportunistic Improvement Proposals Completion-Time Check.
