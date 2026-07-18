@@ -14,7 +14,7 @@ clom() {
 }
 
 clhm() {
-    clom "$@"
+    clfm "$@"
 }
 
 clf() {
