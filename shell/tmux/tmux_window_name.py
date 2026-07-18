@@ -41,6 +41,20 @@ CLEANUP_MESSAGES = {
     CLEANUP_RENAME_FAILED: "tmux window icon cleanup failed: could not rename tmux window",
 }
 
+# updateはcleanupと同じ失敗段階の終了コードを使い、tmux外は成功扱いにする。
+UPDATE_OK = CLEANUP_OK
+UPDATE_NAME_READ_FAILED = CLEANUP_NAME_READ_FAILED
+UPDATE_WINDOW_ID_FAILED = CLEANUP_WINDOW_ID_FAILED
+UPDATE_NAME_BUILD_FAILED = CLEANUP_STRIP_FAILED
+UPDATE_RENAME_FAILED = CLEANUP_RENAME_FAILED
+
+UPDATE_MESSAGES = {
+    UPDATE_NAME_READ_FAILED: "tmux window icon update failed: could not read current tmux window name",
+    UPDATE_WINDOW_ID_FAILED: "tmux window icon update failed: could not resolve tmux window id",
+    UPDATE_NAME_BUILD_FAILED: "tmux window icon update failed: could not build tmux window name",
+    UPDATE_RENAME_FAILED: "tmux window icon update failed: could not rename tmux window",
+}
+
 
 def get_tmux_pane_id(env=None) -> str | None:
     """tmuxセッション内の場合のみpane_idを返す。それ以外はNone。
@@ -101,21 +115,47 @@ def _rename_window(window_id: str, new_name: str, run):
 
 
 def update_tmux_window_name(
-    status: HookStatus | str, identifier: str = "", *, run=subprocess.run, env=None
-):
+    status: HookStatus | str,
+    identifier: str = "",
+    *,
+    report_error: bool = False,
+    run=subprocess.run,
+    env=None,
+) -> int:
     """指定された状態アイコンをtmuxウィンドウ名のプレフィックスに設定する。
-    statusはHookStatusまたは絵文字文字列。フック契約としてtmux環境外やエラーは無視する。
+    statusはHookStatusまたは絵文字文字列。tmux環境外は成功扱いにする。
+    戻り値はUPDATE_*。report_error時は失敗理由をstderrに出力する。
     """
+
+    def fail(code: int) -> int:
+        if report_error:
+            message = UPDATE_MESSAGES.get(
+                code, f"tmux window icon update failed: unexpected status {code}"
+            )
+            print(message, file=sys.stderr)
+        return code
+
+    emoji = status.value if isinstance(status, HookStatus) else status
+    pane_id = get_tmux_pane_id(env)
+    if not pane_id:
+        return UPDATE_OK
     try:
-        emoji = status.value if isinstance(status, HookStatus) else status
-        pane_id = get_tmux_pane_id(env)
-        if not pane_id:
-            return
         current_name = _read_current_name(pane_id, run)
-        window_id = _read_window_id(pane_id, run)
-        _rename_window(window_id, build_updated_name(current_name, emoji, identifier), run)
     except Exception:
-        pass
+        return fail(UPDATE_NAME_READ_FAILED)
+    try:
+        window_id = _read_window_id(pane_id, run)
+    except Exception:
+        return fail(UPDATE_WINDOW_ID_FAILED)
+    try:
+        new_name = build_updated_name(current_name, emoji, identifier)
+    except Exception:
+        return fail(UPDATE_NAME_BUILD_FAILED)
+    try:
+        _rename_window(window_id, new_name, run)
+    except Exception:
+        return fail(UPDATE_RENAME_FAILED)
+    return UPDATE_OK
 
 
 def remove_tmux_window_icon(report_error: bool = False, *, run=subprocess.run, env=None) -> int:
@@ -191,7 +231,8 @@ def remove_context_alert_badge(*, run=subprocess.run, env=None) -> int:
 
 _USAGE = (
     "usage: tmux_window_name.py"
-    " {update <emoji-prefix> [identifier] | remove [--report-error] | add-badge | remove-badge}"
+    " {update <emoji-prefix> [identifier] [--report-error]"
+    " | remove [--report-error] | add-badge | remove-badge}"
 )
 _EX_USAGE = 64
 
@@ -201,9 +242,16 @@ def main(argv: list[str]) -> int:
         print(_USAGE, file=sys.stderr)
         return _EX_USAGE
     command, args = argv[0], argv[1:]
-    if command == "update" and len(args) in (1, 2):
-        update_tmux_window_name(args[0], args[1] if len(args) == 2 else "")
-        return 0
+    if command == "update":
+        report_error = bool(args) and args[-1] == "--report-error"
+        update_args = args[:-1] if report_error else args
+        if len(update_args) in (1, 2) and "--report-error" not in update_args:
+            code = update_tmux_window_name(
+                update_args[0],
+                update_args[1] if len(update_args) == 2 else "",
+                report_error=report_error,
+            )
+            return code if report_error else UPDATE_OK
     if command == "remove" and args in ([], ["--report-error"]):
         return remove_tmux_window_icon(report_error=bool(args))
     if command == "add-badge" and not args:

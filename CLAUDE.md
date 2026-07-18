@@ -141,6 +141,7 @@ Standalone skills (no shared core, hand-maintained): `web-summary` — Claude `a
 `ai/claude/hooks/` contains notification hooks symlinked into `~/.claude/hooks/` (Gemini/Codex follow the same split):
 - `claude-hook.py` - Sets the in-progress tmux window icon (🤖) and removes icons on SessionEnd
 - `stop-send-notification.sh` - Owns Notification / Stop / StopFailure events: sets the tmux icon (✋/✅/❌) immediately on event detection, then sends a rich Mac notification after transcript analysis. Icons are set directly (not via `notify --tmux-icon`) so they appear before the slow summary generation. StopFailure fires when a turn aborts on an API error or a malformed tool call (Stop does NOT fire then) — without this registration such failures are silent.
+- When one hook emits both a macOS notification and tmux state for the same event, complete the tmux update synchronously before calling `notify`. Use strict error reporting so tmux failures reach the hook error log without blocking the Mac notification, and cover the ordering with isolated tests.
 - Shared shell header for the three platform notification hooks (sources + `NOTIFY_FORCE` + `debug_log`): `shell/tmux/ai_notification_hook_common.sh`
 - Hooks that intentionally send macOS notifications must set `NOTIFY_FORCE=1` (prefer the shared header) and test delivery with `DISABLE_NOTIFY=1`; ordinary AI-spawned commands must remain suppressed.
 - Stateful hooks must define their state scope and test multiple transcripts or agents sharing one session ID so one cannot reset another's state.

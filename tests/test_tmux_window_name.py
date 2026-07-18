@@ -2,8 +2,10 @@
 import contextlib
 import io
 import os
+import stat
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
@@ -104,12 +106,56 @@ class TestGetTmuxPaneId(unittest.TestCase):
 class TestUpdateTmuxWindowName(unittest.TestCase):
     def test_outside_tmux_spawns_nothing(self):
         fake = FakeTmux()
-        twn.update_tmux_window_name(twn.HookStatus.ONGOING, ID, run=fake, env={})
+        code = twn.update_tmux_window_name(twn.HookStatus.ONGOING, ID, run=fake, env={})
+        self.assertEqual(code, twn.UPDATE_OK)
         self.assertEqual(fake.calls, [])
 
-    def test_rename_failure_is_swallowed(self):
-        fake = FakeTmux(window_name="main", fail_on={"rename"})
-        twn.update_tmux_window_name(twn.HookStatus.ONGOING, ID, run=fake, env=TMUX_ENV)
+    def test_status_and_error_reporting_table(self):
+        cases = [
+            # (説明, fail_on, expected_code)
+            ("名前取得失敗", {"name"}, twn.UPDATE_NAME_READ_FAILED),
+            ("window_id取得失敗", {"window_id"}, twn.UPDATE_WINDOW_ID_FAILED),
+            ("rename失敗", {"rename"}, twn.UPDATE_RENAME_FAILED),
+        ]
+        for desc, fail_on, expected_code in cases:
+            with self.subTest(desc):
+                stderr = io.StringIO()
+                with contextlib.redirect_stderr(stderr):
+                    code = twn.update_tmux_window_name(
+                        twn.HookStatus.ONGOING,
+                        ID,
+                        report_error=True,
+                        run=FakeTmux(window_name="main", fail_on=fail_on),
+                        env=TMUX_ENV,
+                    )
+                self.assertEqual(code, expected_code)
+                self.assertEqual(stderr.getvalue(), twn.UPDATE_MESSAGES[expected_code] + "\n")
+
+    def test_name_build_failure_reports_distinct_status(self):
+        stderr = io.StringIO()
+        with mock.patch.object(twn, "build_updated_name", side_effect=ValueError("invalid")):
+            with contextlib.redirect_stderr(stderr):
+                code = twn.update_tmux_window_name(
+                    BUSY,
+                    ID,
+                    report_error=True,
+                    run=FakeTmux(window_name="main"),
+                    env=TMUX_ENV,
+                )
+        self.assertEqual(code, twn.UPDATE_NAME_BUILD_FAILED)
+        self.assertEqual(stderr.getvalue(), twn.UPDATE_MESSAGES[code] + "\n")
+
+    def test_failure_is_silent_without_report_error(self):
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = twn.update_tmux_window_name(
+                BUSY,
+                ID,
+                run=FakeTmux(window_name="main", fail_on={"rename"}),
+                env=TMUX_ENV,
+            )
+        self.assertEqual(code, twn.UPDATE_RENAME_FAILED)
+        self.assertEqual(stderr.getvalue(), "")
 
     def test_hook_status_and_raw_emoji_are_equivalent(self):
         by_status, by_emoji = FakeTmux(window_name="main"), FakeTmux(window_name="main")
@@ -211,11 +257,17 @@ class TestCli(unittest.TestCase):
         # tmux外の環境に固定して実tmuxウィンドウへの副作用を防ぐ
         cases = [
             ("removeは非tmuxでコード2", ["remove"], twn.CLEANUP_NOT_TMUX),
-            ("updateは常に0", ["update", WAIT], 0),
+            ("updateは非tmuxで0", ["update", WAIT], 0),
             ("update+identifierも0", ["update", WAIT, ID], 0),
+            ("update strictも非tmuxで0", ["update", WAIT, "--report-error"], 0),
             ("引数なしはusageエラー", [], twn._EX_USAGE),
             ("不正コマンドはusageエラー", ["bogus"], twn._EX_USAGE),
             ("update引数過多はusageエラー", ["update", WAIT, ID, "extra"], twn._EX_USAGE),
+            (
+                "report-errorは末尾のみ",
+                ["update", "--report-error", WAIT],
+                twn._EX_USAGE,
+            ),
             ("remove不正フラグはusageエラー", ["remove", "--bogus"], twn._EX_USAGE),
             ("remove-badgeは非tmuxで0", ["remove-badge"], 0),
         ]
@@ -228,16 +280,102 @@ class TestCli(unittest.TestCase):
 
     def test_update_passes_identifier_through(self):
         cases = [
-            # (説明, argv, update_tmux_window_nameへ渡る引数)
-            ("identifier省略は空文字", ["update", WAIT], (WAIT, "")),
-            ("identifier指定はそのまま", ["update", WAIT, ID], (WAIT, ID)),
-            ("identifier空文字は省略と同じ", ["update", WAIT, ""], (WAIT, "")),
+            # (説明, argv, update_tmux_window_nameへ渡る引数, report_error)
+            ("identifier省略は空文字", ["update", WAIT], (WAIT, ""), False),
+            ("identifier指定はそのまま", ["update", WAIT, ID], (WAIT, ID), False),
+            ("identifier空文字は省略と同じ", ["update", WAIT, ""], (WAIT, ""), False),
+            (
+                "strictフラグを渡す",
+                ["update", WAIT, ID, "--report-error"],
+                (WAIT, ID),
+                True,
+            ),
         ]
-        for desc, argv, expected in cases:
+        for desc, argv, expected, report_error in cases:
             with self.subTest(desc):
-                with mock.patch.object(twn, "update_tmux_window_name") as fake_update:
+                with mock.patch.object(
+                    twn, "update_tmux_window_name", return_value=twn.UPDATE_OK
+                ) as fake_update:
                     self.assertEqual(twn.main(argv), 0)
-                    fake_update.assert_called_once_with(*expected)
+                    fake_update.assert_called_once_with(*expected, report_error=report_error)
+
+    def test_update_strict_propagates_failure_status(self):
+        with mock.patch.object(
+            twn, "update_tmux_window_name", return_value=twn.UPDATE_RENAME_FAILED
+        ) as fake_update:
+            code = twn.main(["update", WAIT, ID, "--report-error"])
+        self.assertEqual(code, twn.UPDATE_RENAME_FAILED)
+        fake_update.assert_called_once_with(WAIT, ID, report_error=True)
+
+
+class TestShellWrapper(unittest.TestCase):
+    def test_update_default_and_strict_table(self):
+        cases = [
+            # (説明, strict, expected_code, expected_stderr, expected_argv)
+            ("既定は失敗を抑制", False, 0, "", ["update", WAIT, ID]),
+            (
+                "strictは失敗を伝播",
+                True,
+                6,
+                "fake update failure\n",
+                ["update", WAIT, ID, "--report-error"],
+            ),
+        ]
+        for desc, strict, expected_code, expected_stderr, expected_argv in cases:
+            with self.subTest(desc):
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    root = Path(temp_dir)
+                    fake_bin = root / "bin"
+                    fake_bin.mkdir()
+                    argv_log = root / "argv.log"
+                    home_log = root / "home.log"
+                    fake_python = fake_bin / "python3"
+                    fake_python.write_text(
+                        "#!/bin/sh\n"
+                        "printf '%s\\n' \"$@\" > \"$TMUX_WRAPPER_ARGV_LOG\"\n"
+                        "printf '%s' \"${HOME-}\" > \"$TMUX_WRAPPER_HOME_LOG\"\n"
+                        "printf 'fake update failure\\n' >&2\n"
+                        "exit 6\n",
+                        encoding="utf-8",
+                    )
+                    fake_python.chmod(fake_python.stat().st_mode | stat.S_IXUSR)
+
+                    env = os.environ.copy()
+                    original_home = env.get("HOME", "")
+                    env.update(
+                        {
+                            "PATH": f"{fake_bin}:{env['PATH']}",
+                            "TMUX_PANE": "%1",
+                            "TERM_PROGRAM": "tmux",
+                            "TMUX_WRAPPER_ARGV_LOG": str(argv_log),
+                            "TMUX_WRAPPER_HOME_LOG": str(home_log),
+                        }
+                    )
+                    shell_command = 'source "$1"; update_tmux_window_name "$2" "$3"'
+                    command = [
+                        "bash",
+                        "-c",
+                        shell_command + (' "true"' if strict else ""),
+                        "wrapper-test",
+                        str(REPO_ROOT / "shell" / "tmux" / "tmux_window_name.sh"),
+                        WAIT,
+                        ID,
+                    ]
+                    result = subprocess.run(
+                        command,
+                        cwd=REPO_ROOT,
+                        env=env,
+                        text=True,
+                        capture_output=True,
+                        check=False,
+                        timeout=5,
+                    )
+
+                    self.assertEqual(result.returncode, expected_code)
+                    self.assertEqual(result.stderr, expected_stderr)
+                    argv = argv_log.read_text(encoding="utf-8").splitlines()
+                    self.assertEqual(argv[-len(expected_argv) :], expected_argv)
+                    self.assertEqual(home_log.read_text(encoding="utf-8"), original_home)
 
 
 if __name__ == "__main__":

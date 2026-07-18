@@ -68,11 +68,21 @@ fi
 notification_group="${AI_HOOK_LABEL_LOWER}-${session_id}"
 debug_log "Session ID: ${session_id}"
 
+# 通知より先にtmuxアイコン更新を完了させる。失敗は記録するがMac通知は継続する。
+update_notification_icon() {
+    local icon_status=0
+    update_tmux_window_name "$1" "${AI_HOOK_EMOJI_ID}" true || icon_status=$?
+    if [[ ${icon_status} -ne 0 ]]; then
+        printf 'Codex notification hook: tmux icon update failed (status=%s)\n' "${icon_status}" >&2
+    fi
+    return 0
+}
+
 # Mac通知とtmuxアイコンの両方をこのフックが所有する（pyフックは進行中🤖のみ担当）。
 # アイコンは notify --tmux-icon に統合せず、イベント確定直後に先行設定する。
 # notify は要約生成の後になり、統合するとアイコン表示が遅れるため。
 if [[ "${hook_event_name}" == "PermissionRequest" ]]; then
-    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}" &
+    update_notification_icon "${EMOJI_STATUS_NOTIFICATION}"
 
     if [[ -n "${approval_reason}" ]]; then
         notification_body="${approval_reason}"
@@ -121,11 +131,10 @@ if [[ "${hook_event_name}" == "Stop" && "${IS_SUBAGENT_SESSION}" == "true" ]]; t
 fi
 
 # tmuxアイコン先行設定（応答待ちなら✋、完了なら✅）。notify に統合しない理由は PermissionRequest 側のコメント参照。
-# バックグラウンド実行で python3+tmux 呼び出しを notify と並列化する
 if [[ "${WAITING_FOR_USER_RESPONSE}" == "true" ]]; then
-    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}" &
+    update_notification_icon "${EMOJI_STATUS_NOTIFICATION}"
 else
-    update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}" &
+    update_notification_icon "${EMOJI_STATUS_COMPLETED}"
 fi
 
 debug_log "Total user messages: ${USER_MESSAGE_COUNT}, assistant messages: ${ASSISTANT_MESSAGE_COUNT}"

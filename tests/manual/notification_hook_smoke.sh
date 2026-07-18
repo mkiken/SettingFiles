@@ -52,6 +52,12 @@ EOF
 {"timestamp":"2026-07-11T12:03:00.000Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"レビュー完了"}]}}
 EOF
 
+    local codex_waiting_transcript="${WORK_DIR}/smoke-codex-waiting.jsonl"
+    cat > "${codex_waiting_transcript}" <<'EOF'
+{"timestamp":"2026-07-11T12:00:00.000Z","type":"response_item","payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"実装計画を作って"}]}}
+{"timestamp":"2026-07-11T12:03:00.000Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"この計画で進めてよろしいですか？修正点があれば教えてください。"}]}}
+EOF
+
     # Geminiは .../<uuid>/transcript.json 形式（session_id無し入力でparent-dir導出も踏む）
     local gemini_dir="${WORK_DIR}/smoke-gemini-uuid-1234"
     mkdir -p "${gemini_dir}"
@@ -76,6 +82,9 @@ EOF
         || failures=$((failures + 1))
     run_case "codex Stop" "${codex_hook}" \
         "{\"hook_event_name\":\"Stop\",\"transcript_path\":\"${codex_transcript}\",\"session_id\":\"smoke-codex\"}" \
+        || failures=$((failures + 1))
+    run_case "codex Stop (response wait)" "${codex_hook}" \
+        "{\"hook_event_name\":\"Stop\",\"transcript_path\":\"${codex_waiting_transcript}\",\"session_id\":\"smoke-codex-waiting\"}" \
         || failures=$((failures + 1))
 
     run_case "gemini after_agent" "${gemini_hook}" \
