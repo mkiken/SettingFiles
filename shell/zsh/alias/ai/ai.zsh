@@ -41,7 +41,7 @@ _ai_tmux_command() {
             print -r -- "gmh --approval-mode plan -i ${prompt_quoted}; zsh"
             ;;
         codex)
-            print -r -- "cx -c 'model_reasoning_effort=\"xhigh\"' ${prompt_quoted}; zsh"
+            print -r -- "cxh ${prompt_quoted}; zsh"
             ;;
         *)
             return 1
