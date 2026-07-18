@@ -12,9 +12,15 @@ cx() {
     # always block still runs, and ignoring INT keeps further Ctrl-C from
     # killing the cleanup itself.
     local codex_status=130
+    local -a codex_args
+    if (( ${argv[(I)--model]} || ${argv[(I)--model=*]} || ${argv[(I)-m]} )); then
+        codex_args=("$@")
+    else
+        codex_args=(--model gpt-5.6-terra "$@")
+    fi
 
     {
-        no_notify homebrew_run codex "$@"
+        no_notify homebrew_run codex "${codex_args[@]}"
         codex_status=$?
     } always {
         trap '' INT
@@ -29,7 +35,7 @@ cx() {
 }
 
 cxh() {
-    cx -c 'model_reasoning_effort="xhigh"' "$@"
+    cx --model gpt-5.6-sol -c 'model_reasoning_effort="xhigh"' "$@"
 }
 
 cxr() { cx resume "$@" }

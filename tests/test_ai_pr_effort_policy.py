@@ -47,6 +47,16 @@ eval "$TEST_COMMAND"''',
     )
 
 
+def run_codex_command(command: str) -> list[str]:
+    return run_zsh(
+        f'''source "{CODEX_ALIASES}"
+no_notify() {{ printf '<%s>\\n' "$@"; }}
+remove_tmux_window_icon() {{ :; }}
+eval "$TEST_COMMAND"''',
+        command,
+    )
+
+
 def frontmatter_value(path: Path, field: str) -> str:
     match = re.search(rf"^{re.escape(field)}: ?(.+)$", path.read_text(encoding="utf-8"), re.MULTILINE)
     if match is None:
@@ -105,11 +115,33 @@ class PrCommentImplementAliasTest(unittest.TestCase):
                     else:
                         self.assertEqual(captured[4:6], ["--effort", "high"])
                 else:
-                    self.assertNotIn("--model", captured)
                     if tier == "light":
+                        self.assertNotIn("--model", captured)
                         self.assertNotIn("-c", captured)
                     else:
-                        self.assertEqual(captured[:2], ["-c", 'model_reasoning_effort="high"'])
+                        self.assertEqual(captured[:2], ["--model", "gpt-5.6-sol"])
+                        self.assertEqual(captured[2:4], ["-c", 'model_reasoning_effort="xhigh"'])
+
+
+class CodexModelSelectionTest(unittest.TestCase):
+    def test_commands_select_the_expected_model(self):
+        cases = (
+            ("cx task", ["--model", "gpt-5.6-terra", "task"]),
+            ("cx --model custom-model task", ["--model", "custom-model", "task"]),
+            ("cx --model=custom-model task", ["--model=custom-model", "task"]),
+            ("cx -m custom-model task", ["-m", "custom-model", "task"]),
+            (
+                "cxh task",
+                ["--model", "gpt-5.6-sol", "-c", 'model_reasoning_effort="xhigh"', "task"],
+            ),
+        )
+
+        for command, expected in cases:
+            with self.subTest(command=command):
+                captured = run_codex_command(command)
+                self.assertEqual(captured[:2], ["homebrew_run", "codex"])
+                self.assertEqual(captured[2:], expected)
+
 
 class ReviewEntrypointEffortPolicyTest(unittest.TestCase):
     def test_claude_review_roles_use_the_expected_effort(self):
@@ -129,14 +161,15 @@ class ReviewEntrypointEffortPolicyTest(unittest.TestCase):
     def test_codex_review_roles_use_the_expected_effort(self):
         cases = (
             ("cx-pr-review 123 focus on errors", "xhigh", "$pr-review PR #123 をレビューして focus on errors"),
-            ("cx-pr-review-subagent 123 focus on errors", "high", "$pr-review-subagents PR #123 をレビューして focus on errors"),
-            ("cx-pcr https://github.com/acme/widget/pull/42#discussion_r123 focus", "high", "$pr-comment-review https://github.com/acme/widget/pull/42#discussion_r123 focus"),
+            ("cx-pr-review-subagent 123 focus on errors", "xhigh", "$pr-review-subagents PR #123 をレビューして focus on errors"),
+            ("cx-pcr https://github.com/acme/widget/pull/42#discussion_r123 focus", "xhigh", "$pr-comment-review https://github.com/acme/widget/pull/42#discussion_r123 focus"),
         )
 
         for command, effort, prompt in cases:
             with self.subTest(command=command):
                 captured = run_codex_alias(command)
-                self.assertEqual(captured[:2], ["-c", f'model_reasoning_effort="{effort}"'])
+                self.assertEqual(captured[:2], ["--model", "gpt-5.6-sol"])
+                self.assertEqual(captured[2:4], ["-c", f'model_reasoning_effort="{effort}"'])
                 self.assertIn("--dangerously-bypass-approvals-and-sandbox", captured)
                 self.assertEqual(captured[-1], prompt)
 
