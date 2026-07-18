@@ -38,6 +38,6 @@ trap cleanup EXIT
 tmux capture-pane -epS - -t "$target_pane" > "$tmpfile"
 
 printf -v quoted_tmpfile "%q" "$tmpfile"
-tmux split-window -d "$split_flag" -t "$target_pane" -c "$pane_path" "LESS= less -R +G -- $quoted_tmpfile; /bin/rm -f -- $quoted_tmpfile"
+tmux split-window "$split_flag" -t "$target_pane" -c "$pane_path" "LESS= less -R +G -- $quoted_tmpfile; /bin/rm -f -- $quoted_tmpfile"
 
 trap - EXIT
