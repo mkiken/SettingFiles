@@ -74,13 +74,13 @@ cx-pr-review() {
 cx-pr-review-subagent() {
     local pr_number review_prompt
     _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
-    cx -c 'model_reasoning_effort="high"' --dangerously-bypass-approvals-and-sandbox "\$pr-review-subagents PR #$pr_number をレビューして${review_prompt:+ $review_prompt}"
+    cxh --dangerously-bypass-approvals-and-sandbox "\$pr-review-subagents PR #$pr_number をレビューして${review_prompt:+ $review_prompt}"
 }
 
 alias cx-pr-comment-review='noglob _cx-pr-comment-review'
 alias cx-pcr='noglob _cx-pr-comment-review'
 _cx-pr-comment-review() {
-    cx -c 'model_reasoning_effort="high"' --dangerously-bypass-approvals-and-sandbox "\$pr-comment-review $*"
+    cxh --dangerously-bypass-approvals-and-sandbox "\$pr-comment-review $*"
 }
 
 alias cx-pr-comment-implement='noglob _cx-pr-comment-implement'
@@ -92,5 +92,5 @@ _cx-pr-comment-implement() {
 alias cxh-pr-comment-implement='noglob _cxh-pr-comment-implement'
 alias cxh-pci='noglob _cxh-pr-comment-implement'
 _cxh-pr-comment-implement() {
-    cx -c 'model_reasoning_effort="high"' "\$pr-comment-implement $*"
+    cxh "\$pr-comment-implement $*"
 }
