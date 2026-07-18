@@ -153,6 +153,8 @@ Standalone skills (no shared core, hand-maintained): `web-summary` — Claude `a
 
 **Neovim (lazy.nvim)**: Plugins in `vimfiles/nvim/lua/plugins/`. VSCode Neovim uses separate `plugins_vscode/`. Updated via `nvim --headless "+Lazy! sync | TSUpdate" +qa` in `mac/update`.
 
+**GSD Core**: `setup_gsd_core_for_runtime` installs `@opengsd/gsd-core@latest` for Claude Code and Codex with the `standard` profile and portable hooks. Generated assets stay under the home directory and are not vendored here. The Codex installer replaces the managed `~/.codex/hooks.json` symlink and emits machine-specific commands, so the setup helper validates its normalized GSD hook set against `ai/codex/hooks.json` before restoring the symlink; an unknown upstream hook change stops the update and preserves the generated file for review. Do not use Codex local or custom staging installs: they write generated skills containing absolute paths into `~/.agents/skills`.
+
 ## AI Prompt File Editing
 
 When editing AI prompt files in this repository:

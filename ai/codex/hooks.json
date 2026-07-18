@@ -8,6 +8,26 @@
             "type": "command"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "command": "node ~/.codex/hooks/gsd-context-monitor.js",
+            "timeout": 10,
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "hooks": [
+          {
+            "command": "node ~/.codex/hooks/gsd-context-monitor.js",
+            "timeout": 10,
+            "type": "command"
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -19,6 +39,69 @@
           },
           {
             "command": "python3 ~/.codex/hooks/codex-hook.py",
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "command": "node ~/.codex/hooks/gsd-context-monitor.js",
+            "timeout": 10,
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "command": "node ~/.codex/hooks/gsd-context-monitor.js",
+            "timeout": 10,
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "node ~/.codex/hooks/gsd-context-monitor.js",
+            "timeout": 10,
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "node ~/.codex/hooks/gsd-check-update.js",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "command": "node ~/.codex/hooks/gsd-context-monitor.js",
+            "timeout": 10,
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "command": "node ~/.codex/hooks/gsd-context-monitor.js",
+            "timeout": 10,
             "type": "command"
           }
         ]
@@ -36,6 +119,15 @@
             "type": "command"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "command": "node ~/.codex/hooks/gsd-context-monitor.js",
+            "timeout": 10,
+            "type": "command"
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
@@ -47,6 +139,15 @@
           },
           {
             "command": "python3 ~/.codex/hooks/codex-hook.py",
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "command": "node ~/.codex/hooks/gsd-context-monitor.js",
+            "timeout": 10,
             "type": "command"
           }
         ]

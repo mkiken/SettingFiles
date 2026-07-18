@@ -1,6 +1,7 @@
 #!/bin/zsh
 
 source "${Repo}mac/scripts/ai/claude_mem.sh"
+source "${Repo}mac/scripts/ai/gsd_core.sh"
 
 function setup_claude_context_mode() {
   echo "Ensuring Claude context-mode plugin..."
