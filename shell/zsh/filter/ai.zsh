@@ -46,19 +46,92 @@ fwmo-review()           { _fwmo-review review "$@" }
 fwmo-review-subagents() { _fwmo-review review-subagents "$@" }
 fwmo-review-all()       { _fwmo-review review-all "$@" }
 
-# worktreeをfilterで選択し、新しいtmuxウィンドウでAIレビュー関数を実行する共通ヘルパー
+# zoxide候補から .git ディレクトリを持つメインリポジトリだけを絞り、filterで1つ選ぶ
+# 戻り値: 選択されたリポジトリのフルパス、キャンセル/候補ゼロ時は $EXIT_CODE_SIGINT
+_filter_zoxide_git_repo() {
+    if ! command -v zoxide >/dev/null 2>&1; then
+        echo "zoxide が見つかりません" >&2
+        return $EXIT_CODE_SIGINT
+    fi
+
+    local repos
+    repos=$(zoxide query --list | while IFS= read -r d; do
+        [[ -d "$d/.git" ]] && print -r -- "$d"
+    done)
+
+    if [[ -z "$repos" ]]; then
+        echo "選択可能なリポジトリがありません" >&2
+        return $EXIT_CODE_SIGINT
+    fi
+
+    local selected
+    selected=$(print -r -- "$repos" | filter \
+        --header "リポジトリを選択" \
+        --prompt "repo> " \
+        --preview 'git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"')
+
+    [[ -z "$selected" ]] && return $EXIT_CODE_SIGINT
+    print -r -- "$selected"
+}
+
+# worktreeパスから "リポジトリ名/ブランチ末尾"（デフォルトブランチならリポジトリ名のみ）を計算して出力
+# rename-window-git.sh の命名ロジックを流用（tmuxへの副作用なし）
+_review_window_git_name() {
+    local target="$1"
+    (
+        cd "$target" 2>/dev/null || exit 1
+        local repo_root repo_name branch default_branch abbrev
+        repo_root=$(git rev-parse --show-toplevel 2>/dev/null)
+        if [[ -z "$repo_root" ]]; then
+            print -r -- "$(basename "$target")"; exit 0
+        fi
+        repo_name=$(basename "$repo_root")
+        branch=$(git branch --show-current 2>/dev/null)
+        [[ -z "$branch" ]] && branch=$(git rev-parse --short HEAD 2>/dev/null)
+        default_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null)
+        default_branch="${default_branch##refs/remotes/origin/}"
+        if [[ -n "$default_branch" && "$branch" = "$default_branch" ]]; then
+            print -r -- "$repo_name"; exit 0
+        fi
+        abbrev="${branch##*/}"
+        (( ${#abbrev} > 20 )) && abbrev="${abbrev:0:20}…"
+        print -r -- "${repo_name}/${abbrev}"
+    )
+}
+
+# リポジトリ→worktreeの2段階選択後、reviewセッションに新windowを作りAIレビューを実行する共通ヘルパー
 # 引数: 元関数名, [元関数に渡す追加引数...]
 _fwmon-review() {
     local func_name="$1"; shift
+
+    local repo_path
+    repo_path=$(_filter_zoxide_git_repo)
+    if [[ $? -ne 0 ]] || [[ -z "$repo_path" ]]; then
+        return $EXIT_CODE_SIGINT
+    fi
+
     local worktree_path
-    worktree_path=$(_filter_workmux_worktree_path)
+    worktree_path=$(cd "$repo_path" && _filter_workmux_worktree_path)
     if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
         return $EXIT_CODE_SIGINT
     fi
 
+    local window_name
+    window_name=$(_review_window_git_name "$worktree_path")
+    [[ -z "$window_name" ]] && window_name="review"
+
     local review_command
     review_command=$(_ai_review_tmux_command "$func_name" "$@") || return 1
-    tmux new-window -c "$worktree_path" "zsh -ic ${(q)review_command}"
+
+    if tmux has-session -t=review 2>/dev/null; then
+        # 既存reviewセッションに移動せず新window追加
+        tmux new-window -d -t review: -c "$worktree_path" \
+            -n "$window_name" "zsh -ic ${(q)review_command}"
+    else
+        # reviewセッションを作成し、初期windowにレビューを載せる（空window回避）
+        tmux new-session -d -s review -c "$worktree_path" \
+            -n "$window_name" "zsh -ic ${(q)review_command}"
+    fi
 }
 
 fwmon-review()           { _fwmon-review review "$@" }
