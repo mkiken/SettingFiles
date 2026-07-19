@@ -51,6 +51,10 @@ Before working on files in a repository other than the session's project — edi
 
 For narrow fixes, prefer the smallest owned integration point. Do not disable broader native features or product-level settings unless the user explicitly asks or that feature is the target; if considering one, explain the side effect before editing.
 
+# Fail-Safe Defaults
+
+When introducing a flag or parameter that gates a destructive or billable operation (dry-run, force, auto-approve, etc.), propose the fail-safe default (e.g. dry-run enabled, force disabled). If existing codebase convention points the other way, do not silently follow it — surface the default-value choice as an explicit confirmation item.
+
 # Test Design
 
 When writing tests, cover boundary values and use table-driven tests.
