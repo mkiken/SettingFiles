@@ -97,6 +97,19 @@ derive_session_id() {
     echo "${sid}"
 }
 
+# hookに渡されたtranscript_pathが存在しない場合（サンドボックス実行でtarget名前空間の
+# パスが渡るObsidian等）に、session_idからhost上の実transcriptを探し直す。
+# Usage: resolve_host_transcript <session_id> [config_dir]
+resolve_host_transcript() {
+    local sid="$1"
+    local config_dir="${2:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}}"
+    [[ -z "${sid}" || "${sid}" == "default" ]] && return 1
+    local match
+    match=$(ls -t "${config_dir}"/projects/*/"${sid}".jsonl 2>/dev/null | head -1)
+    [[ -n "${match}" && -f "${match}" ]] && { printf '%s\n' "${match}"; return 0; }
+    return 1
+}
+
 # セッション要約（メッセージ行 + 改行 + 統計行）を出力。user_count==0 のときは空出力とし、
 # 呼び出し側が ${summary:-<フォールバック文言>} や「非空なら追記」で扱えるようにする。
 # Usage: build_session_summary <task_emoji> <message> <user_count> <duration_formatted>

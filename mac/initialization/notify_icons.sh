@@ -11,6 +11,7 @@ app_icons=(
   "com.mitchellh.ghostty"   "Ghostty.app/Contents/Resources/Ghostty.icns"
   "com.microsoft.VSCode"    "Visual Studio Code.app/Contents/Resources/Code.icns"
   "com.jetbrains.goland"    "GoLand.app/Contents/Resources/goland.icns"
+  "md.obsidian"             "Obsidian.app/Contents/Resources/icon.icns"
 )
 
 for bundle_id icns_path in "${(@kv)app_icons}"; do

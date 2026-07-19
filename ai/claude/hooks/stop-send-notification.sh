@@ -121,11 +121,19 @@ if [[ -z "${transcript_path}" ]]; then
     exit 0
 fi
 
-# transcriptファイルが存在するかチェック
+# transcriptファイルが存在するかチェック。不在ならsession_idからhost上の実transcriptを
+# 探し直す（realclaudian等サンドボックス実行でtarget名前空間のパスが渡るケースの救済）。
 if [[ ! -f "${transcript_path}" ]]; then
-    debug_log "Transcript file not found: ${transcript_path}"
-    hook_fallback_notify 'セッションが終了しました'
-    exit 0
+    debug_log "Transcript not found at hook-provided path: ${transcript_path}"
+    recovered=$(resolve_host_transcript "${session_id}")
+    if [[ -n "${recovered}" ]]; then
+        debug_log "Recovered host transcript by session_id: ${recovered}"
+        transcript_path="${recovered}"
+    else
+        debug_log "Host transcript recovery failed (session_id=${session_id})"
+        hook_fallback_notify 'セッションが終了しました'
+        exit 0
+    fi
 fi
 
 # 共通処理: トランスクリプト解析（単一パスPythonで要約に必要な値のみ抽出）
