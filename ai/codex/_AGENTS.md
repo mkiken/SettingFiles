@@ -55,6 +55,8 @@ For narrow fixes, prefer the smallest owned integration point. Do not disable br
 
 When writing tests, cover boundary values and use table-driven tests.
 
+Before writing tests, inspect how the target module or repository is already tested — framework, file location, and invocation pattern — and match it; introduce a new test mechanism only when none exists.
+
 When a plan includes test work, list the planned test cases (target, condition, expected outcome) before implementing, so scope and coverage can be reviewed first.
 
 # Performance Work
