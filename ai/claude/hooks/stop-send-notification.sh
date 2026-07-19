@@ -42,8 +42,7 @@ eval "$(printf '%s' "${hook_input}" | jq -r '
     @sh "notification_type=\(.notification_type // "")",
     @sh "notification_message=\(.message // "")",
     @sh "stop_failure_error=\(.error // "")",
-    @sh "session_id=\(.session_id // "")",
-    @sh "running_task_count=\([(.background_tasks // [])[] | select(.status == "running")] | length)"
+    @sh "session_id=\(.session_id // "")"
 ' 2>/dev/null)"
 agent_id="${agent_id:-}"
 hook_event_name="${hook_event_name:-}"
@@ -52,7 +51,6 @@ notification_type="${notification_type:-}"
 notification_message="${notification_message:-}"
 stop_failure_error="${stop_failure_error:-}"
 session_id="${session_id:-}"
-running_task_count="${running_task_count:-0}"
 
 # サブエージェント由来のイベントは無視（メインエージェントの動向のみ通知）。
 # agent_id はサブエージェント内で発火した場合のみ存在する（公式仕様）。
@@ -64,23 +62,15 @@ fi
 debug_log "Hook event: ${hook_event_name}"
 debug_log "Transcript path extracted: ${transcript_path}"
 
-# バックグラウンドタスク（サブエージェント等）がrunning中のStop発火では、
-# 実際はまだ作業中なので「完了」通知を送らずにスキップする。
-# 完了済みタスクが配列に残っても誤判定しないよう、status=="running"の有無で判定する。
-if [[ "${hook_event_name}" == "Stop" ]]; then
-    if [[ "${running_task_count}" -gt 0 ]] 2>/dev/null; then
-        debug_log "Running background tasks detected (${running_task_count}), skipping stop notification"
-        exit 0
-    fi
-fi
-
-# --- tmuxアイコン先行設定 ---
+# --- tmuxアイコン先行設定（Notification / StopFailure のみ） ---
 # Mac通知とtmuxアイコンの両方をこのフックが所有する（pyフックは進行中🤖とSessionEndのみ担当）。
 # アイコンは notify --tmux-icon に統合せず、イベント確定直後のここで設定する。
 # notify は後続のトランスクリプト解析（要約生成、長セッションで数秒〜十数秒）の後になり、
 # 統合するとアイコン表示がそのぶん遅れるため。
 # バックグラウンド起動でpython3起動(数十ms)をクリティカルパスから外す。
 # 後続の解析+notifyが必ず長く走るため、フック終了前にアイコン設定は完了する。
+# Stopの✅は先行設定しない: バックグラウンド作業継続の判定にトランスクリプト解析が必要なため、
+# 解析後（PENDING_BACKGROUND_WORKチェック通過後）に設定する。
 if [[ "${hook_event_name}" == "Notification" ]]; then
     # idle_prompt（ターン終了後60秒無入力のリマインダー）は意図的に対象外。
     # 放置しただけで完了✅アイコンが✋に上書きされ、承認待ちと紛らわしいため、
@@ -100,8 +90,6 @@ if [[ "${hook_event_name}" == "Notification" ]]; then
     else
         update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}" &
     fi
-elif [[ "${hook_event_name}" == "Stop" ]]; then
-    update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}" &
 elif [[ "${hook_event_name}" == "StopFailure" ]]; then
     update_tmux_window_name "${EMOJI_STATUS_ERROR}" "${AI_HOOK_EMOJI_ID}" &
 fi
@@ -157,6 +145,8 @@ LAST_TIMESTAMP="${LAST_TIMESTAMP:-}"
 # セッション時間と完了時刻も解析スクリプトが算出済み（dateサブプロセス削減）
 SESSION_DURATION_FORMATTED="${SESSION_DURATION_FORMATTED:-}"
 COMPLETION_TIME_JST="${COMPLETION_TIME_JST:-}"
+# 解析失敗時は0（作業なし）に劣化させ、通知が完全に止まる事故を避ける
+PENDING_BACKGROUND_WORK="${PENDING_BACKGROUND_WORK:-0}"
 debug_log "Analysis: user_count=${USER_MESSAGE_COUNT}, assistant_count=${ASSISTANT_MESSAGE_COUNT}, last_msg_len=${#LAST_USER_MESSAGE}, first_ts=${FIRST_TIMESTAMP}, last_ts=${LAST_TIMESTAMP}"
 debug_log "Session duration: ${SESSION_DURATION_FORMATTED}, completion time (JST): ${COMPLETION_TIME_JST}"
 
@@ -205,6 +195,19 @@ if [[ "${hook_event_name}" == "StopFailure" ]]; then
 fi
 
 # Stopイベント: 終了通知
+# Stopはターン終了ごとに発火するが、async Agentの完了待ちやScheduleWakeup武装中は
+# 会話がまだ継続する（ハーネスが再起動する）ため、完了アイコン・終了通知とも送らない。
+# Stop hook入力にbackground_tasks等のフィールドは存在しない（公式スキーマ・実入力とも確認済み）ため、
+# transcript解析（claude_transcript_analyze.py）が判定したPENDING_BACKGROUND_WORKを用いる。
+if [[ "${PENDING_BACKGROUND_WORK}" == "1" ]]; then
+    debug_log "Pending background work detected, skipping stop notification"
+    exit 0
+fi
+
+# ✅アイコンは解析後のここで設定する（先行設定すると作業継続中でも✅になる）。
+# 直後にnotifyを呼ぶため、tmux更新は同期で完了させる（CLAUDE.mdのフック規約）。
+update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}"
+
 notification_title=$(build_ai_title "✅" "終了")
 
 debug_log "Sending stop notification: title='${notification_title}', message='${summary}'"

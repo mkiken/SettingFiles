@@ -324,6 +324,166 @@ class TestBashHelperParity(unittest.TestCase):
                 )
 
 
+def launch_result_line(*agent_ids, **extra):
+    """async Agent起動のtool_result（実transcriptの形状を再現）を持つuser行。"""
+    items = []
+    for agent_id in agent_ids:
+        text = (
+            "Async agent launched successfully. (This tool result is internal metadata)\n"
+            f"agentId: {agent_id} (internal ID - do not mention to user)"
+        )
+        items.append(
+            {
+                "type": "tool_result",
+                "tool_use_id": "toolu_x",
+                "content": [{"type": "text", "text": text}],
+            }
+        )
+    return user_line(items, **extra)
+
+
+def task_notification_line(task_id, **extra):
+    return user_line(
+        f"<task-notification>\n<task-id>{task_id}</task-id>\n"
+        "<status>completed</status>\n</task-notification>",
+        **extra,
+    )
+
+
+def schedule_wakeup_line(tool_input, **extra):
+    return assistant_line(
+        [{"type": "tool_use", "id": "t1", "name": "ScheduleWakeup", "input": tool_input}],
+        **extra,
+    )
+
+
+def task_stop_line(task_id, **extra):
+    return assistant_line(
+        [{"type": "tool_use", "id": "t2", "name": "TaskStop", "input": {"taskId": task_id}}],
+        **extra,
+    )
+
+
+class TestPendingBackgroundWork(unittest.TestCase):
+    def test_cases(self):
+        armed = {"delaySeconds": 1200, "prompt": "<<autonomous-loop-dynamic>>", "reason": "待機"}
+        cases = [
+            # (説明, 行リスト, 期待値)
+            (
+                "起動あり・全IDに通知あり",
+                [
+                    launch_result_line("a0f4c886c975458d3", timestamp=TS1),
+                    task_notification_line("a0f4c886c975458d3", timestamp=TS2),
+                ],
+                0,
+            ),
+            (
+                "起動あり・一部ID未通知",
+                [
+                    launch_result_line("a0f4c886c975458d3", "a7f5fbcb58a095e87", timestamp=TS1),
+                    task_notification_line("a0f4c886c975458d3", timestamp=TS2),
+                ],
+                1,
+            ),
+            (
+                "同一IDに重複通知・他に未通知なし（集合判定の境界）",
+                [
+                    launch_result_line("a0f4c886c975458d3", timestamp=TS1),
+                    task_notification_line("a0f4c886c975458d3", timestamp=TS2),
+                    task_notification_line("a0f4c886c975856d3", timestamp=TS3),
+                    task_notification_line("a0f4c886c975458d3", timestamp=TS3),
+                ],
+                0,
+            ),
+            (
+                "TaskStopで停止済みの起動IDは未完了扱いしない",
+                [
+                    launch_result_line("a0f4c886c975458d3", timestamp=TS1),
+                    task_stop_line("a0f4c886c975458d3", timestamp=TS2),
+                ],
+                0,
+            ),
+            (
+                "末尾ターンがScheduleWakeup武装で終了（発火予定が未来）",
+                [
+                    user_line("調査を続けて", timestamp=TS1),
+                    schedule_wakeup_line(armed, timestamp=TS2),
+                ],
+                1,
+            ),
+            (
+                "最後のScheduleWakeupがstop:true",
+                [
+                    schedule_wakeup_line(armed, timestamp=TS1),
+                    schedule_wakeup_line({"stop": True}, timestamp=TS2),
+                ],
+                0,
+            ),
+            (
+                "武装wakeupの発火予定を過ぎている（発火済み残骸で抑止しない境界）",
+                [
+                    schedule_wakeup_line({"delaySeconds": 60, "reason": "待機"}, timestamp=TS1),
+                    user_line("その後の実ユーザー入力です", timestamp=TS3),
+                ],
+                0,
+            ),
+            (
+                "async活動なしの通常セッション",
+                [
+                    user_line("普通の依頼メッセージ", timestamp=TS1),
+                    assistant_line([{"type": "text", "text": "完了しました"}], timestamp=TS2),
+                ],
+                0,
+            ),
+            (
+                "ターン途中着の通知はqueue-operationのみで記録される（userメッセージなし）",
+                [
+                    launch_result_line("aefc7d35e7d4178fb", timestamp=TS1),
+                    json.dumps(
+                        {
+                            "type": "queue-operation",
+                            "operation": "enqueue",
+                            "timestamp": TS2,
+                            "content": "<task-notification>\n"
+                            "<task-id>aefc7d35e7d4178fb</task-id>\n</task-notification>",
+                        }
+                    ),
+                ],
+                0,
+            ),
+            (
+                "ターン途中着の通知がattachment(queued_command)で記録される",
+                [
+                    launch_result_line("aefc7d35e7d4178fb", timestamp=TS1),
+                    json.dumps(
+                        {
+                            "type": "attachment",
+                            "isSidechain": False,
+                            "attachment": {
+                                "type": "queued_command",
+                                "prompt": "<task-notification>\n"
+                                "<task-id>aefc7d35e7d4178fb</task-id>\n</task-notification>",
+                            },
+                        }
+                    ),
+                ],
+                0,
+            ),
+            (
+                "未通知エージェントとstop済みwakeupの複合（エージェント側で1）",
+                [
+                    launch_result_line("a7f5fbcb58a095e87", timestamp=TS1),
+                    schedule_wakeup_line({"stop": True}, timestamp=TS2),
+                ],
+                1,
+            ),
+        ]
+        for desc, lines, expected in cases:
+            with self.subTest(desc=desc):
+                result = cta.analyze_lines(lines)
+                self.assertEqual(result["pending_background_work"], expected)
+
+
 class TestMain(unittest.TestCase):
     def test_wrong_argc_exits_1(self):
         stderr = io.StringIO()
@@ -341,6 +501,7 @@ class TestMain(unittest.TestCase):
         self.assertIn("FIRST_TIMESTAMP=''", output)
         self.assertIn("SESSION_DURATION_FORMATTED=''", output)
         self.assertIn("COMPLETION_TIME_JST=''", output)
+        self.assertIn("PENDING_BACKGROUND_WORK=0", output)
 
     def test_output_roundtrips_through_bash_eval(self):
         message = "it's a \"quoted\"  message\nwith 'newline' and  spaces"

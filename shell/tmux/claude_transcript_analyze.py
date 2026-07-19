@@ -32,6 +32,16 @@ _ARGUMENTS_RE = re.compile(r"^ARGUMENTS:[ \t]")
 _COMMAND_NAME_RE = re.compile(r"<command-name>([^<]*)</command-name>")
 _COMMAND_ARGS_RE = re.compile(r"<command-args>([^<]*)</command-args>")
 
+# バックグラウンド作業の検出（PENDING_BACKGROUND_WORK）:
+# Stop hook入力にはbackground_tasks等のフィールドが存在しない（公式スキーマ・実入力とも確認済み）ため、
+# transcriptから「async Agent起動済み・完了通知未着」「ScheduleWakeup武装中」を判定する。
+# 対象はAgentツールのasync起動とScheduleWakeupのみ（Bash run_in_background / Workflowは対象外）。
+_AGENT_LAUNCH_MARKER = "Async agent launched successfully"
+_AGENT_ID_RE = re.compile(r"agentId: ([0-9a-z]+)")
+_TASK_ID_RE = re.compile(r"<task-id>([0-9a-z]+)</task-id>")
+# TaskStopのinputスキーマは未固定のため、ID形状の文字列値だけを停止対象として拾う
+_TASK_STOP_ID_RE = re.compile(r"^[0-9a-z_-]{6,}$")
+
 
 def squeeze_spaces(text):
     return _SQUEEZE_RE.sub(" ", text)
@@ -134,6 +144,83 @@ def build_time_fields(first_timestamp, last_timestamp):
     return duration, completion
 
 
+def _tool_result_text(item):
+    """tool_result要素からテキストを連結して返す（content: str | [{type:text}] 両対応）。"""
+    inner = item.get("content")
+    if isinstance(inner, str):
+        return inner
+    if isinstance(inner, list):
+        return " ".join(
+            part.get("text", "")
+            for part in inner
+            if isinstance(part, dict) and part.get("type") == "text"
+        )
+    return ""
+
+
+def _collect_background_signals(obj, role, raw_content, state):
+    """1メッセージ分のバックグラウンド作業シグナルをstateへ蓄積する。
+
+    - launched: async Agent起動結果(tool_result)のagentId
+    - completed: task-notificationのtask-id、およびTaskStop対象ID
+    - wakeup_deadline: 武装中ScheduleWakeupの発火予定時刻（stop:trueでリセット）
+    """
+    if role == "user":
+        if isinstance(raw_content, list):
+            for item in raw_content:
+                if not isinstance(item, dict):
+                    continue
+                if item.get("type") == "tool_result":
+                    text = _tool_result_text(item)
+                    if _AGENT_LAUNCH_MARKER in text:
+                        state["launched"].update(_AGENT_ID_RE.findall(text))
+                elif item.get("type") == "text":
+                    state["completed"].update(_TASK_ID_RE.findall(item.get("text", "")))
+        elif isinstance(raw_content, str):
+            state["completed"].update(_TASK_ID_RE.findall(raw_content))
+    elif role == "assistant" and isinstance(raw_content, list):
+        for item in raw_content:
+            if not isinstance(item, dict) or item.get("type") != "tool_use":
+                continue
+            name = item.get("name")
+            tool_input = item.get("input")
+            if not isinstance(tool_input, dict):
+                tool_input = {}
+            if name == "ScheduleWakeup":
+                if tool_input.get("stop") is True:
+                    state["wakeup_deadline"] = None
+                else:
+                    armed_at = parse_naive_timestamp(obj.get("timestamp"))
+                    delay = tool_input.get("delaySeconds")
+                    if armed_at is not None and isinstance(delay, (int, float)):
+                        deadline = armed_at + timedelta(seconds=delay)
+                        current = state["wakeup_deadline"]
+                        if current is None or deadline > current:
+                            state["wakeup_deadline"] = deadline
+            elif name == "TaskStop":
+                state["completed"].update(
+                    value
+                    for value in tool_input.values()
+                    if isinstance(value, str) and _TASK_STOP_ID_RE.match(value)
+                )
+
+
+def _resolve_pending_background_work(state, last_timestamp):
+    """蓄積シグナルからPENDING_BACKGROUND_WORK(0/1)を決定する。
+
+    武装中wakeupは発火予定時刻がtranscript末尾時刻より未来の場合のみ有効
+    （発火済みwakeupの残骸で完了通知を抑止し続けないため）。
+    """
+    if state["launched"] - state["completed"]:
+        return 1
+    deadline = state["wakeup_deadline"]
+    if deadline is not None:
+        end = parse_naive_timestamp(last_timestamp)
+        if end is None or end < deadline:
+            return 1
+    return 0
+
+
 def analyze_lines(lines):
     result = {
         "last_user_message": "",
@@ -142,6 +229,7 @@ def analyze_lines(lines):
         "first_timestamp": "",
         "last_timestamp": "",
     }
+    background_state = {"launched": set(), "completed": set(), "wakeup_deadline": None}
     for line in lines:
         line = line.strip()
         if not line:
@@ -168,11 +256,32 @@ def analyze_lines(lines):
         if obj.get("isMeta") in (True, "true"):
             continue
 
+        # ターン途中に届いたtask-notificationはuserメッセージにならず、
+        # queue-operation（enqueue時点でエージェント完了が確定）や
+        # attachment（queued_commandとしてターンへ添付）としてのみ記録されるため、
+        # message以外の経路からも完了task-idを収集する
+        entry_type = obj.get("type")
+        if entry_type == "queue-operation":
+            queue_content = obj.get("content")
+            if isinstance(queue_content, str):
+                background_state["completed"].update(_TASK_ID_RE.findall(queue_content))
+        elif entry_type == "attachment":
+            attachment = obj.get("attachment")
+            if isinstance(attachment, dict):
+                attachment_prompt = attachment.get("prompt")
+                if isinstance(attachment_prompt, str):
+                    background_state["completed"].update(
+                        _TASK_ID_RE.findall(attachment_prompt)
+                    )
+
         message = obj.get("message")
         if not isinstance(message, dict):
             continue
         role = message.get("role")
         raw_content = message.get("content")
+        # tool_resultのみのメッセージは後段のcontent空チェックでスキップされるため、
+        # バックグラウンド作業シグナルはここで収集する
+        _collect_background_signals(obj, role, raw_content, background_state)
         if isinstance(raw_content, str):
             content = apply_command_tags(extract_string_content(raw_content))
         elif isinstance(raw_content, list):
@@ -190,6 +299,9 @@ def analyze_lines(lines):
                 result["user_count"] += 1
         elif role == "assistant":
             result["assistant_count"] += 1
+    result["pending_background_work"] = _resolve_pending_background_work(
+        background_state, result["last_timestamp"]
+    )
     return result
 
 
@@ -213,6 +325,7 @@ def main(argv):
     print(f"LAST_TIMESTAMP={shlex.quote(result['last_timestamp'])}")
     print(f"SESSION_DURATION_FORMATTED={shlex.quote(duration)}")
     print(f"COMPLETION_TIME_JST={shlex.quote(completion)}")
+    print(f"PENDING_BACKGROUND_WORK={result['pending_background_work']}")
     return 0
 
 
