@@ -38,6 +38,12 @@ Local mode = current branch matches `headRefName` **and** `git rev-parse HEAD` m
 
 Capture the full and line-numbered diffs through the configured large-output path, using source labels unique to the PR and `headRefOid`. Count the line-numbered diff before expanding it in the parent context.
 
+When that path is context-mode:
+
+- Use one batch command per gather target. Emit `DIFF_LINE_COUNT` before `NUMBERED_DIFF`; derive and emit `COMPACT_MANIFEST` before `FULL_NDJSON` from one `fetch_existing_comments.sh` result.
+- Capture `FULL_DIFF` without querying raw hunks, and query only the bounded sections during capture. Design each capture query to return at most 100 lines, querying only a count and focused summary first when the result may be larger.
+- Never append the manifest after the raw NDJSON or refetch a captured payload.
+
 Before spawning, derive a compact existing-comment manifest from the NDJSON. Include one record for every top-level inline thread (`kind=inline` and `in_reply_to_id=null`) with `id`, `path`, `line`, `start_line`, `is_resolved`, `is_outdated`, `thread_id`, `ai_origin`, and a concise body excerpt that preserves the root cause and requested fix. Keep the full NDJSON in the parent for final aggregation.
 
 Pass every subagent directly: PR number, metadata, repo owner/name, the compact comment manifest, local mode, base/head names, `headRefOid`, and `<ADDITIONAL_INSTRUCTIONS>`. For a line-numbered diff of at most 100 lines, also pass both diffs directly. For a larger diff, do not paste either full payload; pass the changed-file list and captured source labels instead. Every subagent must inspect every changed file and its relevant diff at the exact head revision (local mode: local head file plus `git diff <base>...<headRefOid>`; remote mode: `gh api` contents at `headRefOid` plus the PR-files patch). Indexed snippets alone are insufficient. Do not refetch the whole PR diff or make duplicate detection depend only on an indexed source. Each subagent's focus and review rules are in its definition.
@@ -59,6 +65,10 @@ If fewer than seven child-agent slots are available, use waves. Launch the maxim
 Each subagent stays read-only and returns Japanese findings in its configured format.
 Read-only includes not creating scratch files: never redirect diffs, comments, or command output to files in the repository or elsewhere.
 Inspect the passed context or indexed sources, or run read-only commands directly.
+
+### Large-Output Invariants
+
+Fetch each gather target at most once. Preserve the full raw payload for final aggregation, but return only bounded derived results to the parent. Count dynamically selected rows before emitting them; above 100 lines, or whenever the result may overwhelm context, return only the count and a focused summary, then narrow or paginate. Never repeat a fetch to recover data that the configured large-output path already captured.
 
 ### Context Handoff
 

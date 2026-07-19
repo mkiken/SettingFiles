@@ -1,3 +1,7 @@
+### Large-Output Invariants
+
+Fetch each gather target at most once. Preserve the full raw payload for final aggregation, but return only bounded derived results to the parent. Count dynamically selected rows before emitting them; above 100 lines, or whenever the result may overwhelm context, return only the count and a focused summary, then narrow or paginate. Never repeat a fetch to recover data that the configured large-output path already captured.
+
 ### Context Handoff
 
 Embed the compact existing-comment manifest records in every specialist's task payload. References to parent tool output, indexed sources, source labels, or inherited/forked context do not count as direct handoff.
