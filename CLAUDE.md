@@ -147,6 +147,7 @@ Standalone skills (no shared core, hand-maintained): `web-summary` — Claude `a
 - Shared shell header for the three platform notification hooks (sources + `NOTIFY_FORCE` + `debug_log`): `shell/tmux/ai_notification_hook_common.sh`
 - Hooks that intentionally send macOS notifications must set `NOTIFY_FORCE=1` (prefer the shared header) and test delivery with `DISABLE_NOTIFY=1`; ordinary AI-spawned commands must remain suppressed.
 - Stateful hooks must define their state scope and test multiple transcripts or agents sharing one session ID so one cannot reset another's state.
+- Before referencing a new hook input field, confirm it actually exists: check the official hooks schema, or capture a real event (enable the hook's `DEBUG_ENABLED` log) and inspect the payload. A guard keyed to a nonexistent field degrades silently — the `background_tasks` Stop guard shipped dead and went unnoticed for weeks.
 - Hook critical paths: python3 startup costs ~45ms vs ~7ms for jq/date on this machine — add a python3 process only when it replaces many subprocess launches; otherwise fold work into an existing jq query or pure bash, and benchmark baseline vs candidate before restructuring.
 - Benchmarking hooks: `/bin/bash` is 3.2 (no `EPOCHREALTIME`); time hook benchmarks with perl `Time::HiRes` or zsh.
 
