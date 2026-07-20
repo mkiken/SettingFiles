@@ -47,6 +47,18 @@ description = "open shell popup"
 width = "99%"
 height = "99%"
 
+[[keys.command]]
+key = "prefix+ctrl+s"
+type = "shell"
+command = "bash -lc 'src=\"$HERDR_ACTIVE_PANE_ID\"; out=$(herdr pane split --pane \"$src\" --direction down --ratio 0.5 --focus); new=$(echo \"$out\" | jq -r .result.pane.pane_id); sleep 2; herdr pane run \"$new\" \"herdr pane read $src --source recent --lines 5000 --format text | less -R +G\"'"
+description = "snapshot current pane output -> down split"
+
+[[keys.command]]
+key = "prefix+ctrl+v"
+type = "shell"
+command = "bash -lc 'src=\"$HERDR_ACTIVE_PANE_ID\"; out=$(herdr pane split --pane \"$src\" --direction right --ratio 0.5 --focus); new=$(echo \"$out\" | jq -r .result.pane.pane_id); sleep 2; herdr pane run \"$new\" \"herdr pane read $src --source recent --lines 5000 --format text | less -R +G\"'"
+description = "snapshot current pane output -> right split"
+
 [ui]
 mouse_capture = true
 copy_on_select = true
