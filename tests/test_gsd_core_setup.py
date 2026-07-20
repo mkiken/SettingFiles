@@ -30,6 +30,10 @@ function _restore_managed_codex_gsd_hooks() {{
   return 0
 }}
 
+function _fix_claude_gsd_write_permissions() {{
+  return 0
+}}
+
 setup_gsd_core_for_runtime "$@"
 '''
         result = subprocess.run(

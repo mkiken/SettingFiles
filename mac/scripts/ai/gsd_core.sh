@@ -195,8 +195,10 @@ function _fix_claude_gsd_write_permissions() {
 
   require_ai_setup_command jq || return 1
 
+  local settings_dir="${settings_file:h}"
+  local settings_name="${settings_file:t}"
   local tmp_out
-  tmp_out="$(mktemp "${settings_file}.gsdfix.XXXXXX")" || return 1
+  tmp_out="$(mktemp "$settings_dir/.${settings_name}.gsdfix.XXXXXX")" || return 1
 
   if ! jq '
     if (.permissions? | type) == "object"
@@ -214,31 +216,31 @@ function _fix_claude_gsd_write_permissions() {
     end
   ' "$settings_file" > "$tmp_out"; then
     echo "Error: failed to rewrite GSD Write permissions in $settings_file." >&2
-    /bin/rm -f "$tmp_out"
+    _gsd_trash_artifact "$tmp_out" || true
     return 1
   fi
 
-  # 変更が無ければ確認を出さずスキップ（既に修正済み / Write不在 / permissions不在）
+  # 変更が無ければ確認を出さずスキップ(既に修正済み / Write不在 / permissions不在)
   if json_files_semantically_equal "$settings_file" "$tmp_out"; then
-    /bin/rm -f "$tmp_out"
+    _gsd_trash_artifact "$tmp_out" || true
     return 0
   fi
 
-  # 変更差分を表示してユーザー確認（他の設定を壊していないか目視できる）
+  # 変更差分を表示してユーザー確認(他の設定を壊していないか目視できる)
   echo "GSDが追加した Write() permission を Edit() に修正します。変更差分:"
   show_json_diff "$tmp_out" "$settings_file" \
     "修正後 (proposed)" "現在の ~/.claude/settings.json"
 
   if ! confirm "この差分を ~/.claude/settings.json に適用しますか？" --default-no --no-cancel-msg; then
-    echo "GSD permission 修正をスキップしました（settings.json は変更されません）。"
-    /bin/rm -f "$tmp_out"
+    echo "GSD permission 修正をスキップしました(settings.json は変更されません)。"
+    _gsd_trash_artifact "$tmp_out" || true
     return 0
   fi
 
-  # 承認された → アトミックに置換（同一ディレクトリのtmpからのmv）
-  if ! /bin/mv "$tmp_out" "$settings_file"; then
+  # 承認された → アトミックに置換(同一ディレクトリのtmpからのmv)
+  if ! _gsd_atomic_replace "$tmp_out" "$settings_file"; then
     echo "Error: failed to write updated Claude settings to $settings_file." >&2
-    /bin/rm -f "$tmp_out"
+    _gsd_trash_artifact "$tmp_out" || true
     return 1
   fi
 }
@@ -261,5 +263,7 @@ function setup_gsd_core_for_runtime() {
 
   if [[ "$runtime" == "codex" ]]; then
     _restore_managed_codex_gsd_hooks || return 1
+  elif [[ "$runtime" == "claude" ]]; then
+    _fix_claude_gsd_write_permissions || return 1
   fi
 }
