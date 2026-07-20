@@ -828,9 +828,32 @@ function _filter_zoxide_git_repo() {
   print -r -- "$selected"
 }
 
+# `git worktree list --porcelain` からworktree（メインリポジトリ含む）をfilterで選択する内部関数
+# workmux（wm）に依存せず、gitのみで完結する
+# 戻り値: 選択されたworktreeのフルパス、キャンセル/候補ゼロ時は $EXIT_CODE_SIGINT
+function _filter_git_worktree_path() {
+  local worktrees
+  worktrees=$(git worktree list --porcelain 2>/dev/null | awk '
+      /^worktree / { print substr($0, 10) }')
+
+  if [[ -z "$worktrees" ]]; then
+    echo "選択可能なworktreeがありません" >&2
+    return $EXIT_CODE_SIGINT
+  fi
+
+  local selected
+  selected=$(print -r -- "$worktrees" | filter \
+    --header "worktreeを選択" \
+    --prompt "worktree> " \
+    --preview 'git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"')
+
+  [[ -z "$selected" ]] && return $EXIT_CODE_SIGINT
+  print -r -- "$selected"
+}
+
 # zoxideからリポジトリ、続けてそのリポジトリのworktreeを選択する
 # 戻り値: 選択されたworktreeのフルパス、キャンセル/候補ゼロ時は $EXIT_CODE_SIGINT
-function _filter_zoxide_workmux_worktree_path() {
+function _filter_zoxide_git_worktree_path() {
   local repo_path
   repo_path=$(_filter_zoxide_git_repo)
   if [[ $? -ne 0 ]] || [[ -z "$repo_path" ]]; then
@@ -838,7 +861,7 @@ function _filter_zoxide_workmux_worktree_path() {
   fi
 
   local worktree_path
-  worktree_path=$(cd "$repo_path" && _filter_workmux_worktree_path)
+  worktree_path=$(cdq "$repo_path" && _filter_git_worktree_path)
   if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
     return $EXIT_CODE_SIGINT
   fi
@@ -889,7 +912,7 @@ function fwt() {
   fi
 
   local worktree_path
-  worktree_path=$(_filter_zoxide_workmux_worktree_path)
+  worktree_path=$(_filter_zoxide_git_worktree_path)
   if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
     return $EXIT_CODE_SIGINT
   fi

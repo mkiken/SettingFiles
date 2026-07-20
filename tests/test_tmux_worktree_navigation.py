@@ -42,9 +42,19 @@ class FwtTest(unittest.TestCase):
             "#!/bin/sh\nprintf '%s\\n' \"$FWT_ZOXIDE_LIST\"\n",
         )
         self._write_executable(
-            "wml",
-            "#!/bin/sh\nprintf 'worktree branch x x x path\\n'\n"
-            "printf 'feature x x x x %s\\n' \"$FWT_WORKTREE\"\n",
+            "git",
+            "#!/bin/sh\n"
+            "if [ \"$1\" = rev-parse ] && [ \"$2\" = --show-toplevel ]; then\n"
+            "  printf '%s\\n' \"$FWT_REPO\"\n"
+            "  exit 0\n"
+            "fi\n"
+            "if [ \"$1\" = worktree ] && [ \"$2\" = list ]; then\n"
+            "  [ \"${FWT_NO_WORKTREE_OUTPUT:-}\" = 1 ] && exit 0\n"
+            "  printf 'worktree %s\\n' \"$FWT_REPO\"\n"
+            "  printf 'worktree %s\\n' \"$FWT_WORKTREE\"\n"
+            "  exit 0\n"
+            "fi\n"
+            "exec /usr/bin/git \"$@\"\n",
         )
         self._write_executable(
             "filter",
@@ -56,8 +66,10 @@ class FwtTest(unittest.TestCase):
             "[ \"${FWT_FILTER_CANCEL:-}\" = 1 ] && exit 0\n"
             "if [ \"$count\" -eq 0 ]; then\n"
             "  printf '%s\\n' \"$FWT_REPO\"\n"
+            "elif [ \"${FWT_FILTER_TARGET:-worktree}\" = repo ]; then\n"
+            "  printf '%s\\n' \"$FWT_REPO\"\n"
             "else\n"
-            "  printf 'feature\t%s\\n' \"$FWT_WORKTREE\"\n"
+            "  printf '%s\\n' \"$FWT_WORKTREE\"\n"
             "fi\n",
         )
         self._write_executable(
@@ -90,6 +102,13 @@ class FwtTest(unittest.TestCase):
         script = f'''
             source "{TMUX_ALIASES}"
             source "{GIT_FILTER}"
+            _chpwd_noise() {{ print -r -- "NOISE $PWD"; }}
+            cdq() {{
+                _CDQ_QUIET=1
+                builtin cd "$@" 2>/dev/null
+                unset _CDQ_QUIET
+            }}
+            chpwd() {{ [[ -z "$_CDQ_QUIET" ]] && _chpwd_noise; }}
             save_history() {{ "$@"; }}
             eval {command_line!r}
             exit_code=$?
@@ -181,6 +200,7 @@ class FwtTest(unittest.TestCase):
             ("zoxide is unavailable", {"PATH": "/nonexistent"}),
             ("no repositories", {"FWT_ZOXIDE_LIST": ""}),
             ("selection cancelled", {"FWT_FILTER_CANCEL": "1"}),
+            ("no worktrees at all", {"FWT_NO_WORKTREE_OUTPUT": "1"}),
         )
         for description, extra_env in cases:
             with self.subTest(description=description):
@@ -188,6 +208,13 @@ class FwtTest(unittest.TestCase):
 
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(values["__STATUS"], "130", result.stderr)
+
+    def test_can_move_to_the_main_repository_itself(self):
+        result, values = self.run_fwt(extra_env={"FWT_FILTER_TARGET": "repo"})
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        self.assertEqual(values["__PWD"], str(self.repo))
 
 
 if __name__ == "__main__":
