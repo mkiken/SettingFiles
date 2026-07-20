@@ -1,6 +1,6 @@
 ### Large-Output Invariants
 
-Fetch each gather target at most once. Preserve the full raw payload for final aggregation, but return only bounded derived results to the parent. Count dynamically selected rows before emitting them; above 100 lines, or whenever the result may overwhelm context, return only the count and a focused summary, then narrow or paginate. Never repeat a fetch to recover data that the configured large-output path already captured.
+Fetch each gather target at most once. Preserve the full raw payload for final aggregation, but return only bounded derived results to the parent. Count dynamically selected rows before emitting them; above 100 lines, or whenever the result may overwhelm context, return only the count and a focused summary, then narrow or paginate. Never repeat a fetch to recover data that the configured large-output path already captured. If the large-output path writes any temp files (e.g. a redirected diff or comment dump), delete them before finishing the review.
 
 ### Context Handoff
 
