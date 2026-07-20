@@ -77,39 +77,123 @@ _normalize_codex_gsd_hooks "$2" "$3" "$1"
         self,
         variant: str,
         *,
-        trash_succeeds: bool = True,
+        failure: str = "",
     ) -> tuple[subprocess.CompletedProcess[str], dict[str, object]]:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_root = Path(temp_dir)
             repo_root = temp_root / "repo"
             home = temp_root / "home"
+            codex_dir = home / ".codex"
             managed_path = repo_root / "ai/codex/hooks.json"
-            live_path = home / ".codex/hooks.json"
+            live_path = codex_dir / "hooks.json"
+            trash_dir = temp_root / "trash"
+            process_temp_dir = temp_root / "tmp"
             managed_path.parent.mkdir(parents=True)
-            live_path.parent.mkdir(parents=True)
+            trash_dir.mkdir()
+            process_temp_dir.mkdir()
 
             managed_hooks = json.loads(read_text("ai/codex/hooks.json"))
             live_hooks = json.loads(json.dumps(managed_hooks))
-            for groups in live_hooks["hooks"].values():
-                for group in groups:
-                    for hook in group["hooks"]:
-                        command = hook["command"]
-                        if command.startswith("node ~/.codex/hooks/gsd-"):
-                            script_name = command.rsplit("/", 1)[1]
-                            hook["command"] = (
-                                f'"/opt/homebrew/bin/node" '
-                                f'"{home}/.codex/hooks/{script_name}"'
-                            )
+
+            def absolute_gsd_group(group: dict[str, object], hook_home: Path) -> dict[str, object]:
+                absolute_group = json.loads(json.dumps(group))
+                for hook in absolute_group["hooks"]:
+                    command = hook["command"]
+                    if command.startswith("node ~/.codex/hooks/gsd-"):
+                        script_name = command.rsplit("/", 1)[1]
+                        hook["command"] = (
+                            f'"/opt/homebrew/bin/node" '
+                            f'"{hook_home}/.codex/hooks/{script_name}"'
+                        )
+                return absolute_group
+
+            def add_gsd_duplicates(copies: int) -> None:
+                for groups in live_hooks["hooks"].values():
+                    gsd_groups = [
+                        group
+                        for group in groups
+                        if any(
+                            hook["command"].startswith("node ~/.codex/hooks/gsd-")
+                            for hook in group["hooks"]
+                        )
+                    ]
+                    for group in gsd_groups:
+                        groups.extend(
+                            absolute_gsd_group(group, home)
+                            for _ in range(copies)
+                        )
+
+            if variant == "portable-absolute-duplicate":
+                add_gsd_duplicates(1)
+            elif variant == "multiple-gsd-duplicates":
+                add_gsd_duplicates(3)
+            elif variant == "non-gsd-duplicate":
+                notification_group = live_hooks["hooks"]["PermissionRequest"][0]
+                live_hooks["hooks"]["PermissionRequest"].append(
+                    json.loads(json.dumps(notification_group))
+                )
+            elif variant == "foreign-home":
+                gsd_group = live_hooks["hooks"]["PreCompact"][0]
+                live_hooks["hooks"]["PreCompact"][0] = absolute_gsd_group(
+                    gsd_group,
+                    Path("/Users/other"),
+                )
+            elif variant == "unknown-hook":
+                live_hooks["hooks"]["SessionStart"].append(
+                    {
+                        "hooks": [
+                            {
+                                "command": "node ~/.codex/hooks/gsd-unknown.js",
+                                "type": "command",
+                            }
+                        ]
+                    }
+                )
+            elif variant == "missing-gsd":
+                live_hooks["hooks"]["PreCompact"] = []
+            elif variant == "missing-herdr":
+                live_hooks["hooks"]["SessionStart"] = [
+                    group
+                    for group in live_hooks["hooks"]["SessionStart"]
+                    if not any("herdr-agent-state.sh" in hook["command"] for hook in group["hooks"])
+                ]
 
             managed_path.write_text(json.dumps(managed_hooks), encoding="utf-8")
-            if variant == "unexpected-symlink":
+            if variant == "correct-symlink":
+                codex_dir.mkdir(parents=True)
+                live_path.symlink_to(managed_path)
+            elif variant == "wrong-symlink":
+                codex_dir.mkdir(parents=True)
                 unexpected_target = temp_root / "unexpected-hooks.json"
                 unexpected_target.write_text(json.dumps(live_hooks), encoding="utf-8")
                 live_path.symlink_to(unexpected_target)
+            elif variant == "directory-symlink":
+                external_codex_dir = temp_root / "external-codex"
+                external_codex_dir.mkdir()
+                (external_codex_dir / "hooks.json").write_text(
+                    json.dumps(live_hooks),
+                    encoding="utf-8",
+                )
+                home.mkdir(parents=True)
+                codex_dir.symlink_to(external_codex_dir, target_is_directory=True)
             else:
-                if variant == "mismatch":
-                    live_hooks["hooks"]["UnknownUpstreamEvent"] = []
+                codex_dir.mkdir(parents=True)
                 live_path.write_text(json.dumps(live_hooks), encoding="utf-8")
+                live_path.chmod(0o640)
+
+            def snapshot(target: Path) -> tuple[str, object]:
+                if target.is_symlink():
+                    return "symlink", str(target.readlink())
+                if target.is_file():
+                    return "file", (target.read_bytes(), target.stat().st_mode & 0o777)
+                if target.is_dir():
+                    return "directory", tuple(sorted(entry.name for entry in target.iterdir()))
+                return "missing", None
+
+            before_state = {
+                "codex_dir": snapshot(codex_dir),
+                "live": snapshot(live_path),
+            }
 
             script = f'''
 source "{GSD_HELPER}"
@@ -119,13 +203,25 @@ function require_ai_setup_command() {{
 }}
 
 function trash() {{
-  if [[ "$GSD_TEST_TRASH_SUCCEEDS" != "yes" ]]; then
+  if [[ "$GSD_TEST_FAILURE" == "cleanup-trash" && "$1" == */gsd-codex-live-hooks.* ]]; then
+    return 91
+  fi
+  if [[ "$GSD_TEST_FAILURE" == "backup-trash" && "$1" == *.gsd-backup.* ]]; then
     return 1
   fi
-  /bin/mv "$1" "$1.trashed"
+  /bin/mv "$1" "$GSD_TEST_TRASH_DIR/${{1:t}}.$$.$RANDOM"
 }}
 
-GSD_TEST_TRASH_SUCCEEDS="$3"
+function _gsd_atomic_replace() {{
+  if [[ "$GSD_TEST_FAILURE" == "mv" ]]; then
+    return 92
+  fi
+  /bin/mv -f "$1" "$2"
+}}
+
+GSD_TEST_FAILURE="$3"
+GSD_TEST_TRASH_DIR="$4"
+TMPDIR="$5"
 _restore_managed_codex_gsd_hooks "$1" "$2"
 '''
             result = subprocess.run(
@@ -136,7 +232,9 @@ _restore_managed_codex_gsd_hooks "$1" "$2"
                     "gsd-reconcile-test",
                     str(repo_root),
                     str(home),
-                    "yes" if trash_succeeds else "no",
+                    failure,
+                    str(trash_dir),
+                    str(process_temp_dir),
                 ],
                 cwd=REPO_ROOT,
                 capture_output=True,
@@ -144,12 +242,21 @@ _restore_managed_codex_gsd_hooks "$1" "$2"
                 check=False,
             )
             state = {
-                "live_exists": live_path.exists() or live_path.is_symlink(),
-                "live_is_symlink": live_path.is_symlink(),
-                "live_target": str(live_path.readlink()) if live_path.is_symlink() else None,
+                "before": before_state,
+                "after": {
+                    "codex_dir": snapshot(codex_dir),
+                    "live": snapshot(live_path),
+                },
                 "managed_path": str(managed_path),
-                "trashed_exists": Path(f"{live_path}.trashed").exists(),
-                "replacement_links": list(live_path.parent.glob("hooks.json.gsd-managed-link.*")),
+                "same_dir_artifacts": sorted(
+                    entry.name
+                    for entry in codex_dir.glob(".hooks.json.gsd-*")
+                ),
+                "normalization_artifacts": sorted(
+                    str(entry)
+                    for entry in process_temp_dir.glob("gsd-codex-*")
+                ),
+                "trash_artifacts": sorted(entry.name for entry in trash_dir.iterdir()),
             }
 
         return result, state
@@ -202,12 +309,15 @@ _restore_managed_codex_gsd_hooks "$1" "$2"
         self.assertIn('jq --sort-keys . "$managed_hooks"', helper)
         self.assertIn('cmp -s "$live_normalized" "$managed_normalized"', helper)
         self.assertIn("preserving $live_hooks for review", helper)
-        self.assertIn('if ! trash "$live_hooks"; then', helper)
+        self.assertIn('backup_file="$(mktemp "$live_dir/.${live_name}.gsd-backup.XXXXXX")"', helper)
         self.assertIn('/bin/ln -s "$managed_hooks" "$replacement_link"', helper)
-        self.assertIn('/bin/mv "$replacement_link" "$live_hooks"', helper)
+        self.assertIn('_gsd_atomic_replace "$replacement_link" "$live_hooks"', helper)
+        self.assertIn('/bin/mv -f "$backup_file" "$live_hooks"', helper)
+        self.assertIn('_gsd_trash_artifact "$replacement_link"', helper)
+        self.assertNotIn("/bin/rm", helper)
         self.assertLess(
             helper.index('cmp -s "$live_normalized" "$managed_normalized"'),
-            helper.index('if ! trash "$live_hooks"; then'),
+            helper.index('backup_file="$(mktemp "$live_dir/.${live_name}.gsd-backup.XXXXXX")"'),
         )
 
     def test_hook_normalization_requires_current_home_and_absolute_node(self):
@@ -233,37 +343,89 @@ _restore_managed_codex_gsd_hooks "$1" "$2"
             with self.subTest(case=name):
                 self.assertEqual(self.normalize_hook_command(command, home), expected)
 
-    def test_hook_reconciliation_restores_only_an_exact_generated_file(self):
-        result, state = self.run_reconcile("matching")
+    def test_hook_reconciliation_deduplicates_only_generated_gsd_hooks(self):
+        for variant in ("portable-absolute-duplicate", "multiple-gsd-duplicates"):
+            with self.subTest(variant=variant):
+                result, state = self.run_reconcile(variant)
 
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertTrue(state["live_is_symlink"])
-        self.assertEqual(state["live_target"], state["managed_path"])
-        self.assertTrue(state["trashed_exists"])
-        self.assertEqual(state["replacement_links"], [])
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(
+                    state["after"]["live"],
+                    ("symlink", state["managed_path"]),
+                )
+                self.assertEqual(state["same_dir_artifacts"], [])
+                self.assertEqual(state["normalization_artifacts"], [])
+                self.assertTrue(
+                    any("gsd-backup" in name for name in state["trash_artifacts"])
+                )
 
-    def test_hook_reconciliation_preserves_mismatch_and_unexpected_link(self):
-        for variant, expected_error in (
-            ("mismatch", "preserving"),
-            ("unexpected-symlink", "unexpected symlink target"),
-        ):
+    def test_hook_reconciliation_rejects_non_exact_managed_sets(self):
+        cases = {
+            "non-gsd-duplicate": "preserving",
+            "foreign-home": "preserving",
+            "unknown-hook": "preserving",
+            "missing-gsd": "preserving",
+            "missing-herdr": "preserving",
+        }
+
+        for variant, expected_error in cases.items():
             with self.subTest(variant=variant):
                 result, state = self.run_reconcile(variant)
 
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn(expected_error, result.stderr)
-                self.assertTrue(state["live_exists"])
-                self.assertFalse(state["trashed_exists"])
-                self.assertEqual(state["replacement_links"], [])
+                self.assertEqual(state["after"], state["before"])
+                self.assertEqual(state["same_dir_artifacts"], [])
+                self.assertEqual(state["normalization_artifacts"], [])
 
-    def test_hook_reconciliation_preserves_live_file_when_trash_fails(self):
-        result, state = self.run_reconcile("matching", trash_succeeds=False)
+    def test_hook_reconciliation_handles_symlinks_without_mutation(self):
+        cases = {
+            "correct-symlink": (0, ""),
+            "wrong-symlink": (1, "unexpected symlink target"),
+            "directory-symlink": (1, "directory is an unexpected symlink"),
+        }
+
+        for variant, (expected_rc, expected_error) in cases.items():
+            with self.subTest(variant=variant):
+                result, state = self.run_reconcile(variant)
+
+                self.assertEqual(result.returncode, expected_rc, result.stderr)
+                if expected_error:
+                    self.assertIn(expected_error, result.stderr)
+                self.assertEqual(state["after"], state["before"])
+                self.assertEqual(state["same_dir_artifacts"], [])
+                self.assertEqual(state["normalization_artifacts"], [])
+                self.assertEqual(state["trash_artifacts"], [])
+
+    def test_hook_reconciliation_rolls_back_replace_and_backup_trash_failures(self):
+        for failure in ("mv", "backup-trash"):
+            with self.subTest(failure=failure):
+                result, state = self.run_reconcile(
+                    "portable-absolute-duplicate",
+                    failure=failure,
+                )
+
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual(state["before"]["live"][1][1], 0o640)
+                self.assertEqual(
+                    state["after"]["live"][1][1],
+                    state["before"]["live"][1][1],
+                )
+                self.assertEqual(state["after"], state["before"])
+                self.assertEqual(state["same_dir_artifacts"], [])
+                self.assertEqual(state["normalization_artifacts"], [])
+
+    def test_hook_reconciliation_reports_exact_cleanup_artifact(self):
+        result, state = self.run_reconcile(
+            "portable-absolute-duplicate",
+            failure="cleanup-trash",
+        )
 
         self.assertNotEqual(result.returncode, 0)
-        self.assertTrue(state["live_exists"])
-        self.assertFalse(state["live_is_symlink"])
-        self.assertFalse(state["trashed_exists"])
-        self.assertEqual(state["replacement_links"], [])
+        self.assertEqual(state["after"], state["before"])
+        self.assertEqual(state["same_dir_artifacts"], [])
+        self.assertEqual(len(state["normalization_artifacts"]), 1)
+        self.assertIn(state["normalization_artifacts"][0], result.stderr)
 
     def test_managed_codex_gsd_hooks_are_portable_and_match_current_events(self):
         hooks = json.loads(read_text("ai/codex/hooks.json"))["hooks"]
