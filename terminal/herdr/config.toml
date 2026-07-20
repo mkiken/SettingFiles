@@ -31,6 +31,14 @@ description = "run difit"
 width = "90%"
 height = "80%"
 
+[[keys.command]]
+key = "prefix+t"
+type = "popup"
+command = "zsh"
+description = "open shell popup"
+width = "99%"
+height = "99%"
+
 [ui]
 mouse_capture = true
 copy_on_select = true
