@@ -14,18 +14,6 @@ manifest_check = true
 
 [keys]
 prefix = "ctrl+t"
-new_tab = "prefix+c"
-previous_tab = "prefix+p"
-next_tab = "prefix+n"
-focus_pane_left = "prefix+h"
-focus_pane_down = "prefix+j"
-focus_pane_up = "prefix+k"
-focus_pane_right = "prefix+l"
-split_vertical = "prefix+v"
-split_horizontal = "prefix+minus"
-close_pane = "prefix+x"
-copy_mode = "prefix+["
-detach = "prefix+q"
 reload_config = "prefix+shift+r"
 
 [ui]
