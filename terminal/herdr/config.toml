@@ -15,6 +15,22 @@ manifest_check = true
 [keys]
 prefix = "ctrl+t"
 
+[[keys.command]]
+key = "prefix+ctrl+g"
+type = "popup"
+command = "XDG_CONFIG_HOME=\"$HOME/.config\" lazygit"
+description = "run lazygit"
+width = "99%"
+height = "99%"
+
+[[keys.command]]
+key = "prefix+ctrl+shift+g"
+type = "popup"
+command = "zsh -ic \"dia\""
+description = "run difit"
+width = "90%"
+height = "80%"
+
 [ui]
 mouse_capture = true
 copy_on_select = true
