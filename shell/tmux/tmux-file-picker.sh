@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# tmux popup から fzf でファイル/ディレクトリを多選択し、現在ペインへ送り込むスクリプト。
-# 親プロセスに claude / gemini / codex を検出した場合は @path 形式で書き戻す。
-# 起動例: bind @ display-popup -E -d '#{pane_current_path}' -w 90% -h 90% '$HOME/.tmux/scripts/tmux-file-picker.sh'
+# tmux/Herdr の popup から fzf でファイル/ディレクトリを多選択し、元ペインへ送り込むスクリプト。
+# AI エージェント（claude / gemini / codex）が動いているペインを検出した場合は @path 形式で書き戻す。
+# tmux/Herdr のどちらで動いているかは _mux_detect で判定し、ペイン操作は _mux_* 関数に切り出している。
+# 起動例 (tmux): bind @ display-popup -E -d '#{pane_current_path}' -w 90% -h 90% '$HOME/.tmux/scripts/tmux-file-picker.sh'
+# 起動例 (Herdr): [[keys.command]] key = "prefix+@" type = "popup" command = "$HOME/.tmux/scripts/tmux-file-picker.sh"
 # Options: --git-root | --zoxide | --dir-only | --directories
 #
 # 出典:
@@ -161,6 +163,82 @@ _has_ai_descendant() {
     return 1
 }
 
+# --- Multiplexer abstraction (tmux / Herdr) ---
+# tmux を優先（tmux セッション内で HERDR_ENV が漏れ継承していても既存の tmux フローを変えないため）。
+_mux_detect() {
+  if [[ -n ${TMUX-} ]]; then
+    echo tmux
+  elif [[ ${HERDR_ENV-} == 1 ]]; then
+    echo herdr
+  else
+    echo none
+  fi
+}
+
+# 送信先ペイン ID を返す。
+_mux_pane_id() {
+  local mux="$1"
+  case "$mux" in
+  tmux)
+    tmux display-message -p '#{pane_id}'
+    ;;
+  herdr)
+    # popup 内では HERDR_PANE_ID は注入されず、元ペインは HERDR_ACTIVE_PANE_ID が指す。
+    echo "${HERDR_ACTIVE_PANE_ID:?Error: HERDR_ACTIVE_PANE_ID is not set (not running inside a Herdr popup?)}"
+    ;;
+  esac
+}
+
+# 検索起点ディレクトリを返す。
+_mux_pane_dir() {
+  local mux="$1" pane_id="$2"
+  case "$mux" in
+  tmux)
+    tmux display-message -p '#{pane_current_path}'
+    ;;
+  herdr)
+    # Herdr は popup に元ペインの cwd を HERDR_ACTIVE_PANE_CWD として直接渡すため CLI 呼び出しは不要。
+    echo "${HERDR_ACTIVE_PANE_CWD:?Error: HERDR_ACTIVE_PANE_CWD is not set}"
+    ;;
+  esac
+}
+
+# 指定ペインで AI エージェント（claude/gemini/codex）が動いていれば真を返す。
+_mux_is_ai_pane() {
+  local mux="$1" pane_id="$2"
+  case "$mux" in
+  tmux)
+    # tmux では pane_pid 起点の ps 子孫探索で判定する（引数の pane_id は使わない）。
+    local pane_pid
+    pane_pid=$(tmux display-message -p '#{pane_pid}')
+    _has_ai_descendant "$pane_pid"
+    ;;
+  herdr)
+    local herdr_bin agent
+    herdr_bin="${HERDR_BIN_PATH:-herdr}"
+    agent=$("$herdr_bin" pane get "$pane_id" 2>/dev/null | jq -r '.result.pane.agent // empty' 2>/dev/null || true)
+    [[ $agent =~ ^(claude|gemini|codex)$ ]]
+    ;;
+  esac
+}
+
+# 指定ペインへテキストを送り込む（改行なし挿入）。
+_mux_send_text() {
+  local mux="$1" pane_id="$2" text="$3"
+  case "$mux" in
+  tmux)
+    tmux send-keys -t "$pane_id" "$text"
+    ;;
+  herdr)
+    local herdr_bin
+    herdr_bin="${HERDR_BIN_PATH:-herdr}"
+    # `herdr pane send-text` は <pane_id> <text> の2引数固定で `--` セパレータを解釈しない
+    # （挟むと "--" がリテラルな text 先頭に混入する）。素直に2引数で渡す。
+    "$herdr_bin" pane send-text "$pane_id" "$text"
+    ;;
+  esac
+}
+
 _select_zoxide_dir() {
   if ! command -v zoxide >/dev/null 2>&1; then
     echo "Error: Required command 'zoxide' not found. Please install it." >&2
@@ -178,17 +256,17 @@ _select_zoxide_dir() {
 }
 
 main() {
-  if [[ -z ${TMUX-} ]]; then
-    echo "Error: This script must be run inside a tmux session." >&2
+  local mux
+  mux=$(_mux_detect)
+  if [[ $mux == none ]]; then
+    echo "Error: This script must be run inside a tmux session or a Herdr popup." >&2
     exit 1
   fi
 
   local pane_id
   local pane_dir
-  local pane_pid
-  pane_id=$(tmux display-message -p '#{pane_id}')
-  pane_dir=$(tmux display-message -p '#{pane_current_path}')
-  pane_pid=$(tmux display-message -p '#{pane_pid}')
+  pane_id=$(_mux_pane_id "$mux")
+  pane_dir=$(_mux_pane_dir "$mux" "$pane_id")
 
   # --- Argument Parsing ---
   local use_git_root=false
@@ -282,7 +360,7 @@ main() {
 
   # --- Mode Detection ---
   local at_prefix_mode=false
-  if _has_ai_descendant "$pane_pid"; then
+  if _mux_is_ai_pane "$mux" "$pane_id"; then
     at_prefix_mode=true
   fi
 
@@ -309,7 +387,7 @@ main() {
       done
       output_str=$(printf "%s " "${escaped_paths[@]}")
     fi
-    tmux send-keys -t "$pane_id" "$output_str"
+    _mux_send_text "$mux" "$pane_id" "$output_str"
     exit 0
   fi
 
@@ -461,8 +539,10 @@ main() {
     files_oneline=$(printf "%s " "${escaped_paths[@]}")
   fi
 
-  # --- Send to Tmux ---
-  tmux send-keys -t "$pane_id" "$files_oneline"
+  # --- Send to the multiplexer ---
+  _mux_send_text "$mux" "$pane_id" "$files_oneline"
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi

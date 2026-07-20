@@ -32,6 +32,14 @@ width = "90%"
 height = "80%"
 
 [[keys.command]]
+key = "prefix+@"
+type = "popup"
+command = "$HOME/.tmux/scripts/tmux-file-picker.sh"
+description = "file picker (@path insert when AI agent detected)"
+width = "90%"
+height = "90%"
+
+[[keys.command]]
 key = "prefix+t"
 type = "popup"
 command = "zsh"
