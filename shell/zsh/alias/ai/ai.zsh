@@ -82,7 +82,8 @@ _ai_pr_review_resolve_args() {
     _ai_pr_review_assign "${prompt_var}" "${resolved_review_prompt}" || return 1
 }
 
-_ai_review_tmux_command() {
+# func_name + クォート済み引数を連結したコマンド文字列を返す（マルチプレクサ非依存）
+_ai_review_command() {
     local func_name="$1"
     shift
 
@@ -92,7 +93,56 @@ _ai_review_tmux_command() {
         command+=" ${(q)arg}"
     done
 
-    print -r -- "${command}; zsh"
+    print -r -- "${command}"
+}
+
+# tmux new-window用: コマンド実行後もwindowにシェルを残すため "; zsh" を付与
+_ai_review_tmux_command() {
+    print -r -- "$(_ai_review_command "$@"); zsh"
+}
+
+# 現在の実行環境のマルチプレクサ種別を返す: "herdr" | "tmux" | ""
+# auto_multiplexer.zsh / plugin.zsh と同じ優先順位（HERDR_ENV最優先、次にTMUX）
+_ai_multiplexer_kind() {
+    if [[ "${HERDR_ENV:-}" == "1" ]]; then
+        print -r -- "herdr"
+    elif [[ -n "${TMUX:-}" ]]; then
+        print -r -- "tmux"
+    else
+        print -r -- ""
+    fi
+}
+
+# Herdrで新しいtabを作りコマンドを実行する（tmux new-window相当）
+# 引数: workspace_id(空ならカレントworkspace), cwd, label, command
+# herdr pane run は既存の対話シェルにコマンドを投入する方式のため、
+# tmux版と違い ";  zsh" のようなシェル残存サフィックスは不要
+_herdr_run_in_new_tab() {
+    local workspace_id="$1"
+    local cwd="$2"
+    local label="$3"
+    local command="$4"
+
+    local -a create_args=(tab create --cwd "${cwd}" --label "${label}" --no-focus)
+    [[ -n "${workspace_id}" ]] && create_args+=(--workspace "${workspace_id}")
+
+    local json
+    json=$(herdr "${create_args[@]}") || {
+        echo "herdr tab createに失敗しました" >&2
+        return 1
+    }
+
+    local pane_id
+    pane_id=$(print -r -- "${json}" | jq -r '.result.root_pane.pane_id')
+    if [[ -z "${pane_id}" || "${pane_id}" == "null" ]]; then
+        echo "herdr tab createの結果からpane_idを取得できませんでした" >&2
+        return 1
+    fi
+
+    herdr pane run "${pane_id}" "${command}" || {
+        echo "herdr pane runに失敗しました (pane_id=${pane_id})" >&2
+        return 1
+    }
 }
 
 ai-all() {
@@ -130,12 +180,24 @@ ai-all() {
     clhm --permission-mode plan "${prompt}"
 }
 
-review() {
-    local pr_number review_prompt
-    _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
+# worktree非依存・tmux非依存でreview系のラベル(🔍+git名)を計算する
+# filter/ai.zsh の _review_window_git_name（純git実装）を流用する
+_ai_review_herdr_label() {
+    local set_dir="${SET:-$HOME/Desktop/repository/SettingFiles}"
+    source "${set_dir}/shell/tmux/tmux_emoji.conf"
 
-    local review_args=("${pr_number}")
-    [[ -n "${review_prompt}" ]] && review_args+=("${review_prompt}")
+    if ! command -v _review_window_git_name >/dev/null 2>&1; then
+        echo "_review_window_git_name が見つかりません（filter/ai.zsh が未ロード）" >&2
+        return 1
+    fi
+
+    local git_name
+    git_name=$(_review_window_git_name "${PWD}")
+    echo "${EMOJI_STATUS_REVIEW}${git_name}"
+}
+
+_review_tmux() {
+    local -a review_args=("$@")
 
     local review_name gemini_command codex_command
     review_name=$(_review_window_name)
@@ -151,12 +213,39 @@ review() {
     cl-pr-review "${review_args[@]}"
 }
 
-review-subagents() {
+_review_herdr() {
+    local -a review_args=("$@")
+
+    local label gemini_command codex_command
+    label=$(_ai_review_herdr_label) || return 1
+    gemini_command=$(_ai_review_command gm-pr-review "${review_args[@]}") || return 1
+    codex_command=$(_ai_review_command cx-pr-review "${review_args[@]}") || return 1
+
+    _herdr_run_in_new_tab "" "${PWD}" "${label}" "${gemini_command}" || return 1
+    _herdr_run_in_new_tab "" "${PWD}" "${label}" "${codex_command}" || return 1
+
+    cl-pr-review "${review_args[@]}"
+}
+
+review() {
     local pr_number review_prompt
     _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
 
     local review_args=("${pr_number}")
     [[ -n "${review_prompt}" ]] && review_args+=("${review_prompt}")
+
+    case "$(_ai_multiplexer_kind)" in
+        herdr) _review_herdr "${review_args[@]}" ;;
+        tmux) _review_tmux "${review_args[@]}" ;;
+        *)
+            echo "tmuxまたはHerdr内で実行してください" >&2
+            return 1
+            ;;
+    esac
+}
+
+_review_subagents_tmux() {
+    local -a review_args=("$@")
 
     local review_name gemini_command codex_command
     review_name=$(_review_window_name)
@@ -172,12 +261,39 @@ review-subagents() {
     cl-pr-review-subagents "${review_args[@]}"
 }
 
-review-all() {
+_review_subagents_herdr() {
+    local -a review_args=("$@")
+
+    local label gemini_command codex_command
+    label=$(_ai_review_herdr_label) || return 1
+    gemini_command=$(_ai_review_command gm-pr-review-subagents "${review_args[@]}") || return 1
+    codex_command=$(_ai_review_command cx-pr-review-subagent "${review_args[@]}") || return 1
+
+    _herdr_run_in_new_tab "" "${PWD}" "${label}" "${gemini_command}" || return 1
+    _herdr_run_in_new_tab "" "${PWD}" "${label}" "${codex_command}" || return 1
+
+    cl-pr-review-subagents "${review_args[@]}"
+}
+
+review-subagents() {
     local pr_number review_prompt
     _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
 
     local review_args=("${pr_number}")
     [[ -n "${review_prompt}" ]] && review_args+=("${review_prompt}")
+
+    case "$(_ai_multiplexer_kind)" in
+        herdr) _review_subagents_herdr "${review_args[@]}" ;;
+        tmux) _review_subagents_tmux "${review_args[@]}" ;;
+        *)
+            echo "tmuxまたはHerdr内で実行してください" >&2
+            return 1
+            ;;
+    esac
+}
+
+_review_all_tmux() {
+    local -a review_args=("$@")
 
     local review_name claude_command gemini_command codex_command
     review_name=$(_review_window_name)
@@ -193,4 +309,37 @@ review-all() {
     _ai_ensure_window_name_helper
     update_tmux_window_name "${EMOJI_STATUS_REVIEW}"
     cl-pr-review "${review_args[@]}"
+}
+
+_review_all_herdr() {
+    local -a review_args=("$@")
+
+    local label claude_command gemini_command codex_command
+    label=$(_ai_review_herdr_label) || return 1
+    claude_command=$(_ai_review_command cl-pr-review-subagents "${review_args[@]}") || return 1
+    gemini_command=$(_ai_review_command gm-pr-review-subagents "${review_args[@]}") || return 1
+    codex_command=$(_ai_review_command cx-pr-review-subagent "${review_args[@]}") || return 1
+
+    _herdr_run_in_new_tab "" "${PWD}" "${label}" "${claude_command}" || return 1
+    _herdr_run_in_new_tab "" "${PWD}" "${label}" "${gemini_command}" || return 1
+    _herdr_run_in_new_tab "" "${PWD}" "${label}" "${codex_command}" || return 1
+
+    cl-pr-review "${review_args[@]}"
+}
+
+review-all() {
+    local pr_number review_prompt
+    _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
+
+    local review_args=("${pr_number}")
+    [[ -n "${review_prompt}" ]] && review_args+=("${review_prompt}")
+
+    case "$(_ai_multiplexer_kind)" in
+        herdr) _review_all_herdr "${review_args[@]}" ;;
+        tmux) _review_all_tmux "${review_args[@]}" ;;
+        *)
+            echo "tmuxまたはHerdr内で実行してください" >&2
+            return 1
+            ;;
+    esac
 }

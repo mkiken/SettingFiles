@@ -71,13 +71,13 @@ _review_window_git_name() {
     )
 }
 
-# リポジトリ→worktreeの2段階選択後、reviewセッションに新windowを作りAIレビューを実行する共通ヘルパー
+# リポジトリ→worktreeの2段階選択後、reviewセッションに新windowを作りAIレビューを実行する（tmux版）
 # 引数: 元関数名, [元関数に渡す追加引数...]
-_fwmon-review() {
+_fwmon_review_tmux() {
     local func_name="$1"; shift
 
     local worktree_path
-    worktree_path=$(_filter_zoxide_workmux_worktree_path)
+    worktree_path=$(_filter_zoxide_git_worktree_path)
     if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
         return $EXIT_CODE_SIGINT
     fi
@@ -98,6 +98,65 @@ _fwmon-review() {
         tmux new-session -d -s review -c "$worktree_path" \
             -n "$window_name" "zsh -ic ${(q)review_command}"
     fi
+}
+
+# リポジトリ→worktreeの2段階選択後、新規Herdr workspaceを作りその中でAIレビューを実行する（Herdr版）
+# tmuxのnamed session "review" のような名前指定はHerdrにはできないため、都度新規workspaceを作る
+# 引数: 元関数名, [元関数に渡す追加引数...]
+_fwmon_review_herdr() {
+    local func_name="$1"; shift
+
+    local worktree_path
+    worktree_path=$(_filter_zoxide_git_worktree_path)
+    if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
+        return $EXIT_CODE_SIGINT
+    fi
+
+    local window_name
+    window_name=$(_review_window_git_name "$worktree_path")
+    [[ -z "$window_name" ]] && window_name="review"
+
+    local review_command
+    review_command=$(_ai_review_command "$func_name" "$@") || return 1
+
+    local ws_json
+    ws_json=$(herdr workspace create --label review --cwd "$worktree_path" --no-focus) || {
+        echo "herdr workspace createに失敗しました" >&2
+        return 1
+    }
+
+    local ws_id
+    ws_id=$(print -r -- "$ws_json" | jq -r '.result.workspace.workspace_id')
+    if [[ -z "$ws_id" || "$ws_id" == "null" ]]; then
+        echo "herdr workspace createの結果からworkspace_idを取得できませんでした" >&2
+        return 1
+    fi
+
+    # 新規workspaceの初期tabのpaneでレビューを実行する
+    local pane_id
+    pane_id=$(print -r -- "$ws_json" | jq -r '.result.root_pane.pane_id')
+    if [[ -z "$pane_id" || "$pane_id" == "null" ]]; then
+        echo "herdr workspace createの結果からpane_idを取得できませんでした" >&2
+        return 1
+    fi
+
+    herdr pane run "$pane_id" "$review_command" || {
+        echo "herdr pane runに失敗しました (pane_id=${pane_id})" >&2
+        return 1
+    }
+}
+
+# リポジトリ→worktreeの2段階選択後、reviewセッション相当の場所に新windowを作りAIレビューを実行する
+# 引数: 元関数名, [元関数に渡す追加引数...]
+_fwmon-review() {
+    case "$(_ai_multiplexer_kind)" in
+        herdr) _fwmon_review_herdr "$@" ;;
+        tmux) _fwmon_review_tmux "$@" ;;
+        *)
+            echo "tmuxまたはHerdr内で実行してください" >&2
+            return 1
+            ;;
+    esac
 }
 
 fwmon-review()           { _fwmon-review review "$@" }
