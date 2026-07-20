@@ -34,12 +34,13 @@ copy_on_select = true
 confirm_close = true
 pane_borders = true
 
+show_agent_labels_on_pane_borders = true
 [ui.toast]
 delivery = "system"
 delay_seconds = 1
 
 [ui.sound]
-enabled = false
+enabled = true
 
 [session]
 resume_agents_on_restore = true
