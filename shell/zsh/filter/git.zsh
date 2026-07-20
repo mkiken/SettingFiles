@@ -800,6 +800,119 @@ function _filter_workmux_worktree_path() {
   echo "$selected" | cut -f2
 }
 
+# zoxide候補から .git ディレクトリを持つメインリポジトリだけを絞り、filterで1つ選ぶ
+# 戻り値: 選択されたリポジトリのフルパス、キャンセル/候補ゼロ時は $EXIT_CODE_SIGINT
+function _filter_zoxide_git_repo() {
+  if ! command -v zoxide >/dev/null 2>&1; then
+    echo "zoxide が見つかりません" >&2
+    return $EXIT_CODE_SIGINT
+  fi
+
+  local repos
+  repos=$(zoxide query --list | while IFS= read -r d; do
+    [[ -d "$d/.git" ]] && print -r -- "$d"
+  done)
+
+  if [[ -z "$repos" ]]; then
+    echo "選択可能なリポジトリがありません" >&2
+    return $EXIT_CODE_SIGINT
+  fi
+
+  local selected
+  selected=$(print -r -- "$repos" | filter \
+    --header "リポジトリを選択" \
+    --prompt "repo> " \
+    --preview 'git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"')
+
+  [[ -z "$selected" ]] && return $EXIT_CODE_SIGINT
+  print -r -- "$selected"
+}
+
+# zoxideからリポジトリ、続けてそのリポジトリのworktreeを選択する
+# 戻り値: 選択されたworktreeのフルパス、キャンセル/候補ゼロ時は $EXIT_CODE_SIGINT
+function _filter_zoxide_workmux_worktree_path() {
+  local repo_path
+  repo_path=$(_filter_zoxide_git_repo)
+  if [[ $? -ne 0 ]] || [[ -z "$repo_path" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  local worktree_path
+  worktree_path=$(cd "$repo_path" && _filter_workmux_worktree_path)
+  if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  print -r -- "$worktree_path"
+}
+
+# zoxideからリポジトリとworktreeを選択して移動する
+# Usage: fwt [-w|-s]
+function fwt() {
+  local mode=""
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -w)
+        if [[ -n "$mode" ]]; then
+          echo "Usage: fwt [-w|-s]" >&2
+          return 2
+        fi
+        mode="window"
+        ;;
+      -s)
+        if [[ -n "$mode" ]]; then
+          echo "Usage: fwt [-w|-s]" >&2
+          return 2
+        fi
+        mode="session"
+        ;;
+      --)
+        shift
+        break
+        ;;
+      *)
+        echo "Usage: fwt [-w|-s]" >&2
+        return 2
+        ;;
+    esac
+    shift
+  done
+
+  if [[ $# -gt 0 ]]; then
+    echo "Usage: fwt [-w|-s]" >&2
+    return 2
+  fi
+
+  if [[ -n "$mode" ]] && ! _tmux_require_client; then
+    return 1
+  fi
+
+  local worktree_path
+  worktree_path=$(_filter_zoxide_workmux_worktree_path)
+  if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  case "$mode" in
+    window)
+      tmux new-window -c "$worktree_path"
+      ;;
+    session)
+      local session_name
+      session_name=$(tmux new-session -d -P -F '#S' -c "$worktree_path") || return $?
+      [[ -n "$session_name" ]] || return 1
+      tmux switch-client -t "$session_name"
+      ;;
+    *)
+      save_history cd "$worktree_path"
+      ;;
+  esac
+}
+
+alias fwtw='fwt -w'
+alias fwts='fwt -s'
+
 # workmux listからworktree名とフルパスをfilterで選択する内部関数
 # 戻り値: "<name>\t<path>"、キャンセル時は $EXIT_CODE_SIGINT で終了
 function _filter_workmux_worktree_with_path() {

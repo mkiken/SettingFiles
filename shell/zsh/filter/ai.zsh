@@ -46,34 +46,6 @@ fwmo-review()           { _fwmo-review review "$@" }
 fwmo-review-subagents() { _fwmo-review review-subagents "$@" }
 fwmo-review-all()       { _fwmo-review review-all "$@" }
 
-# zoxide候補から .git ディレクトリを持つメインリポジトリだけを絞り、filterで1つ選ぶ
-# 戻り値: 選択されたリポジトリのフルパス、キャンセル/候補ゼロ時は $EXIT_CODE_SIGINT
-_filter_zoxide_git_repo() {
-    if ! command -v zoxide >/dev/null 2>&1; then
-        echo "zoxide が見つかりません" >&2
-        return $EXIT_CODE_SIGINT
-    fi
-
-    local repos
-    repos=$(zoxide query --list | while IFS= read -r d; do
-        [[ -d "$d/.git" ]] && print -r -- "$d"
-    done)
-
-    if [[ -z "$repos" ]]; then
-        echo "選択可能なリポジトリがありません" >&2
-        return $EXIT_CODE_SIGINT
-    fi
-
-    local selected
-    selected=$(print -r -- "$repos" | filter \
-        --header "リポジトリを選択" \
-        --prompt "repo> " \
-        --preview 'git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"')
-
-    [[ -z "$selected" ]] && return $EXIT_CODE_SIGINT
-    print -r -- "$selected"
-}
-
 # worktreeパスから "リポジトリ名/ブランチ末尾"（デフォルトブランチならリポジトリ名のみ）を計算して出力
 # rename-window-git.sh の命名ロジックを流用（tmuxへの副作用なし）
 _review_window_git_name() {
@@ -104,14 +76,8 @@ _review_window_git_name() {
 _fwmon-review() {
     local func_name="$1"; shift
 
-    local repo_path
-    repo_path=$(_filter_zoxide_git_repo)
-    if [[ $? -ne 0 ]] || [[ -z "$repo_path" ]]; then
-        return $EXIT_CODE_SIGINT
-    fi
-
     local worktree_path
-    worktree_path=$(cd "$repo_path" && _filter_workmux_worktree_path)
+    worktree_path=$(_filter_zoxide_workmux_worktree_path)
     if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
         return $EXIT_CODE_SIGINT
     fi
