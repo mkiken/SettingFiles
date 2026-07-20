@@ -1,4 +1,7 @@
 function _notify_should_suppress_for_ai() {
+  # Smoke test / silent mode: suppress even hooks that set NOTIFY_FORCE.
+  [[ -n "${NOTIFY_SILENT:-}" ]] && return 0
+
   # Hooks that intentionally notify (session stop/approval) set NOTIFY_FORCE to bypass AI suppression.
   [[ -n "${NOTIFY_FORCE:-}" ]] && return 1
 

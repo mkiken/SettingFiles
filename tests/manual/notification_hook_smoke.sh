@@ -1,15 +1,29 @@
 #!/bin/bash
 # AI通知フック3本（claude/codex/gemini）の手動スモークテスト。
 # 各フックへ代表イベントのhook JSONを投入し、exit codeを検証する。
-# 実行すると実際のMac通知とtmuxウィンドウアイコン変更が発生するため、
+# デフォルトでは実行すると実際のMac通知とtmuxウィンドウアイコン変更が発生するため、
 # unittestの自動discover対象外（tests/manual/）に置く手動実行専用。
-# Usage: bash tests/manual/notification_hook_smoke.sh
+# --silent を付けるとNOTIFY_SILENT=1を設定し、通知・アイコン変更を出さずに
+# フックのロジック（exit code）だけを検証できる。
+# Usage: bash tests/manual/notification_hook_smoke.sh [--silent]
 
 set -u
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 WORK_DIR="$(mktemp -d)"
 trap '/bin/rm -rf "${WORK_DIR}"' EXIT
+
+for arg in "$@"; do
+    case "${arg}" in
+        --silent)
+            export NOTIFY_SILENT=1
+            ;;
+        *)
+            echo "unknown arg: ${arg}" >&2
+            exit 2
+            ;;
+    esac
+done
 
 # 1ケース実行: stdinへhook JSONを投入し、exit 0ならPASS
 # Usage: run_case <label> <hook_path> <input_json> [hook_args...]

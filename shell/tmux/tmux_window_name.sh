@@ -24,6 +24,7 @@ _get_tmux_pane_id_for_window_name() {
 # 第3引数をtrueにすると失敗理由と終了コードを呼び出し側へ伝える
 # Usage: update_tmux_window_name "✋" ["✴️"] [true]
 update_tmux_window_name() {
+    [[ -n "${NOTIFY_SILENT:-}" ]] && return 0
     _get_tmux_pane_id_for_window_name >/dev/null || return 0
     if [[ "${3:-false}" == "true" ]]; then
         python3 "${_TMUX_WINDOW_NAME_DIR}/tmux_window_name.py" update "$1" "${2:-}" --report-error
@@ -34,12 +35,14 @@ update_tmux_window_name() {
 
 # context逼迫バッジを状態アイコンとは独立して追加する
 add_tmux_context_alert_badge() {
+    [[ -n "${NOTIFY_SILENT:-}" ]] && return 0
     _get_tmux_pane_id_for_window_name >/dev/null || return 0
     python3 "${_TMUX_WINDOW_NAME_DIR}/tmux_window_name.py" add-badge 2>/dev/null || true
 }
 
 # context逼迫バッジだけを外し、AI状態アイコンは残す（バッジ不在時は1を返す）
 remove_tmux_context_alert_badge() {
+    [[ -n "${NOTIFY_SILENT:-}" ]] && return 0
     _get_tmux_pane_id_for_window_name >/dev/null || return 0
     python3 "${_TMUX_WINDOW_NAME_DIR}/tmux_window_name.py" remove-badge 2>/dev/null
 }
@@ -48,6 +51,7 @@ remove_tmux_context_alert_badge() {
 # 終了コード契約（0=成功/1=対象なし/2〜6=失敗理由）とreport_error時のstderr文言は
 # tmux_window_name.py の remove サブコマンドが提供する
 remove_tmux_window_icon() {
+    [[ -n "${NOTIFY_SILENT:-}" ]] && return 0
     if [[ "${1:-false}" == "true" ]]; then
         python3 "${_TMUX_WINDOW_NAME_DIR}/tmux_window_name.py" remove --report-error
     else
