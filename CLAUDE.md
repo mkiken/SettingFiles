@@ -101,6 +101,9 @@ Key symlinks:
 - `vimfiles/nvim` → `~/.config/nvim`
 - `gitfiles/.gitconfig` → `~/.gitconfig`
 
+### No Personal Paths
+Never hardcode a user-specific absolute path (e.g. `/Users/<name>/…`, a real home directory, or an account-name-derived path) in committed sources — scripts, tests, fixtures, or config. Use `$HOME`/`~`, `$SET`, a repo-root-relative path, or a clearly generic placeholder (`/Users/testuser/…`) instead. Machine- or account-specific values belong in un-tracked `*.local` files, not the repository.
+
 When moving or removing tmux key bindings, `source-file` does not clear old bindings; explicitly `unbind` old keys and verify the live state with `tmux list-keys`.
 
 When adding or changing key bindings in `terminal/herdr/config.toml`, Herdr is an environment independent of tmux — ignore tmux (`.tmux.conf`) bindings even though both share the `ctrl+t` prefix. Do not judge conflicts from the committed `config.toml` alone: it lists only overrides, while Herdr ships ~146 default action bindings (e.g. `prefix+g`=goto, `prefix+shift+g`=new_worktree). Confirm the live default keymap with `herdr --default-config` before choosing a key.

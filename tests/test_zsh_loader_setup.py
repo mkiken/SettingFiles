@@ -31,7 +31,7 @@ class ZshLoaderSetupTest(unittest.TestCase):
             bun_block = "\n".join(
                 (
                     "# bun completions",
-                    '[ -s "/Users/morikensuke/.bun/_bun" ] && source "/Users/morikensuke/.bun/_bun"',
+                    '[ -s "/Users/testuser/.bun/_bun" ] && source "/Users/testuser/.bun/_bun"',
                     "",
                     "# bun",
                     'export BUN_INSTALL="$HOME/.bun"',
