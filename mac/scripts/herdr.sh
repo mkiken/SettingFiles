@@ -530,10 +530,24 @@ function setup_herdr_integrations() {
   return "$setup_rc"
 }
 
+function setup_herdr_service() {
+  # herdr本体のupgrade後もサーバーを常駐させるため brew services で launchd 登録する。
+  # restart は未登録・未起動でも start 相当に動くので冪等。upgrade後の新binaryも同時に反映。
+  _herdr_require_command herdr || return 1
+  _herdr_require_command brew || return 1
+  # brew services は macOS の launchd 専用。Linux 等ではスキップ。
+  [[ "$(uname -s)" == "Darwin" ]] || return 0
+  brew services restart herdr
+}
+
 function setup_herdr() {
   local repo_root="${1:-$Repo}"
   local target_home="${2:-$HOME}"
 
   setup_herdr_config "$repo_root" "$target_home" || return 1
-  setup_herdr_integrations "$repo_root" "$target_home"
+  setup_herdr_integrations "$repo_root" "$target_home" || return 1
+  # service常駐化は best-effort。失敗しても config/hook 登録という本体処理は成立済みなので
+  # initialize/update 全体を止めない。
+  setup_herdr_service || echo "Warning: failed to (re)start herdr brew service; server persistence not applied" >&2
+  return 0
 }

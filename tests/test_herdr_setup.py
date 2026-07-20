@@ -230,5 +230,79 @@ class HerdrShellToolSelectionTest(unittest.TestCase):
                 self.assertEqual(result.stdout.strip(), expected)
 
 
+class HerdrServiceSetupTest(unittest.TestCase):
+    def run_setup_herdr_service(
+        self,
+        *,
+        herdr_present: bool = True,
+        brew_present: bool = True,
+        brew_rc: int = 0,
+        uname_output: str = "Darwin",
+    ) -> subprocess.CompletedProcess[str]:
+        definitions = []
+        if herdr_present:
+            definitions.append("function herdr() { return 0; }")
+        if brew_present:
+            definitions.append(
+                f"function brew() {{ print -r -- \"brew $*\"; return {brew_rc}; }}"
+            )
+        definitions.append(f"function uname() {{ print -r -- {uname_output}; }}")
+
+        script = "; ".join(
+            (
+                *definitions,
+                "source mac/scripts/herdr.sh",
+                "setup_herdr_service",
+                "print -r -- rc=$?",
+            )
+        )
+        return run_zsh(script)
+
+    def test_darwin_restarts_brew_service(self):
+        result = self.run_setup_herdr_service()
+
+        self.assertEqual(result.stdout.splitlines(), ["brew services restart herdr", "rc=0"])
+
+    def test_non_darwin_skips_brew_entirely(self):
+        result = self.run_setup_herdr_service(uname_output="Linux")
+
+        self.assertEqual(result.stdout.splitlines(), ["rc=0"])
+
+    def test_missing_herdr_command_fails_before_brew(self):
+        result = self.run_setup_herdr_service(herdr_present=False)
+
+        self.assertEqual(result.stdout.splitlines(), ["rc=1"])
+        self.assertIn("required command not found: herdr", result.stderr)
+
+    def test_missing_brew_command_fails(self):
+        result = self.run_setup_herdr_service(brew_present=False)
+
+        self.assertEqual(result.stdout.splitlines(), ["rc=1"])
+        self.assertIn("required command not found: brew", result.stderr)
+
+    def test_brew_failure_propagates_as_nonzero(self):
+        result = self.run_setup_herdr_service(brew_rc=1)
+
+        self.assertEqual(result.stdout.splitlines(), ["brew services restart herdr", "rc=1"])
+
+    def test_setup_herdr_treats_service_failure_as_best_effort(self):
+        # source が本物の setup_herdr_config/integrations/service を定義するため、
+        # モックは source の後で上書きする。
+        script = "; ".join(
+            (
+                "source mac/scripts/herdr.sh",
+                "function setup_herdr_config() { return 0; }",
+                "function setup_herdr_integrations() { return 0; }",
+                "function setup_herdr_service() { return 1; }",
+                'setup_herdr "/tmp/repo" "/tmp/home"',
+                "print -r -- rc=$?",
+            )
+        )
+        result = run_zsh(script)
+
+        self.assertEqual(result.stdout.splitlines()[-1], "rc=0")
+        self.assertIn("Warning: failed to (re)start herdr brew service", result.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()
