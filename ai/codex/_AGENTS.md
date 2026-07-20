@@ -39,7 +39,7 @@ In zsh scripts, do not assign temporary exit codes to read-only special paramete
 
 # Context-Mode Commands
 
-For `ctx_batch_execute`, use one `commands` entry per target. Avoid shell `for`/`while` loops and parenthesized command groups or subshells inside a command string because the runner may not parse them. When the operation requires those constructs, use a host-shell command and keep its output bounded with focused filters, counts, or summaries.
+For `ctx_batch_execute`, use one `commands` entry per target. Avoid shell control-flow or compound constructs (`if`/`case`/`for`/`while`, parenthesized command groups, and subshells) inside a command string because the runner may not parse them. When the operation requires those constructs, use a host-shell command and keep its output bounded with focused filters, counts, or summaries.
 
 If a context-mode tool rejects a read because the target resolves outside the active project root, do not retry the same call. Run a host-shell command from the target repository and keep its output bounded instead of printing the full file or result set.
 
