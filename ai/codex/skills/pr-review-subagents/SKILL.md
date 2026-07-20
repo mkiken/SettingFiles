@@ -44,6 +44,13 @@ When that path is context-mode:
 - Capture `FULL_DIFF` without querying raw hunks, and query only the bounded sections during capture. Design each capture query to return at most 100 lines, querying only a count and focused summary first when the result may be larger.
 - Never append the manifest after the raw NDJSON or refetch a captured payload.
 
+If a context-mode gather errors or times out before yielding results:
+
+- Query the expected source labels once; reuse every confirmed capture and never refetch it.
+- If verification fails or a target remains unconfirmed, enter degraded mode and recover only that target once with bounded host-shell processing. Record recovered targets, count before emitting, and create no scratch files.
+- Recover diffs at the exact `baseRefOid...headRefOid` locally or exact PR revisions via `gh api` remotely. Recover comments by running `fetch_existing_comments.sh` once in one process and emit only the compact manifest; fetch a specific comment by ID only when final duplicate adjudication needs its full body.
+- Treat an unconfirmed failed attempt as incomplete and allow at most one degraded recovery. This path is the only exception to retaining the full raw payload in the parent; never dump it into context merely to satisfy that invariant.
+
 Before spawning, derive a compact existing-comment manifest from the NDJSON. Include one record for every top-level inline thread (`kind=inline` and `in_reply_to_id=null`) with `id`, `path`, `line`, `start_line`, `is_resolved`, `is_outdated`, `thread_id`, `ai_origin`, and a concise body excerpt that preserves the root cause and requested fix. Keep the full NDJSON in the parent for final aggregation.
 
 Pass every subagent directly: PR number, metadata, repo owner/name, the compact comment manifest, local mode, base/head names, `baseRefOid`, `headRefOid`, and `<ADDITIONAL_INSTRUCTIONS>`. For a line-numbered diff of at most 100 lines, also pass both diffs directly. For a larger diff, do not paste either full payload; pass the changed-file list and captured source labels instead. Every subagent must inspect every changed file and its relevant diff at the exact PR revisions (local mode: local head file plus `git diff <baseRefOid>...<headRefOid>`; remote mode: `gh api` contents at `headRefOid` plus the PR-files patch). Indexed snippets alone are insufficient. Do not refetch the whole PR diff or make duplicate detection depend only on an indexed source. Each subagent's focus and review rules are in its definition.
