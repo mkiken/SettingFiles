@@ -61,7 +61,7 @@ Canonical source-to-command mapping for regenerating committed outputs. The full
 | --- | --- |
 | `ai/common/prompt_base.md`, `ai/common/characters/*.md` (Claude/Gemini load these at runtime via `@file`) | Codex only: `zsh -c 'source mac/scripts/common.sh && generate_codex_agents'` |
 | `ai/codex/codex_base.md` | `zsh -c 'source mac/scripts/common.sh && generate_codex_agents'` |
-| Shared-core skill sources (`ai/common/*_core.md`, `ai/{codex,gemini}/skills/*/skill_head.md`/`skill_tail.md`; includes pr-review-subagents skill adapters) | `zsh -c 'source mac/scripts/common.sh && generate_codex_skills && generate_gemini_skills'` |
+| Shared-core skill sources (`ai/common/*_core.md`, `ai/{codex,gemini}/skills/*/skill_head.md`/`skill_tail.md`; includes pr-review-subagents skill adapters) | `zsh -c 'source mac/scripts/common.sh && verify_ai_skill_generation_idempotency'` |
 | pr-reviewer agent sources (`ai/common/pr_review_subagents/intro_*.md`, `ai/common/pr_review_subagents/format_*.md`, `ai/*/agents_src/`) | `zsh -c 'source mac/scripts/common.sh && generate_pr_reviewer_agents <platform>'` |
 | config-audit auditor sources (`ai/common/config_audit_subagents/`, `ai/*/agents_src/config_audit/`) | `generate_config_auditor_agents <platform>` from `mac/scripts/common.sh` |
 
@@ -167,7 +167,7 @@ When editing AI prompt files in this repository:
 - **Write concisely**: as concise as meaning and intent allow — every loaded prompt consumes context. When condensing existing files, follow `ai/common/prompt_shortening_guide.md`.
 - **Runtime loading differs per platform**: Claude Code and Gemini CLI load only the markdown body of agent/skill files as the prompt — frontmatter (including YAML `#` comments) costs zero runtime tokens. Codex instead injects the whole SKILL.md raw at invocation, so every Codex skill frontmatter line counts as prompt cost. Codex agent TOML files are parsed; `#` comments there cost nothing.
 - **GENERATED-file notices** are placed where they cost no runtime tokens: YAML frontmatter comments for Claude/Gemini `pr-reviewer-*.md`, a `#` comment for Codex `pr_reviewer_*.toml`. Codex `SKILL.md` files intentionally carry no notice (raw injection would bill it) — the adjacent `skill_head.md` sources and this file are the edit guard. Do not add visible-body notices to generated files.
-- **Verify regeneration before committing generated outputs**: after updating sources and running the generator once, record each generated output's hash, re-run the generator, and confirm the hash is unchanged. The output may legitimately differ from `HEAD`; review that diff separately. A changed hash on the second run means the first output was stale or generation is not idempotent.
+- **Verify regeneration before committing generated outputs**: for shared-core skills, use `verify_ai_skill_generation_idempotency` from the regeneration table; it generates twice and fails if any SHA-256 changes. For other generators, after updating sources and running the generator once, record each generated output's hash, re-run the generator, and confirm the hash is unchanged. The output may legitimately differ from `HEAD`; review that diff separately. A changed hash on the second run means the first output was stale or generation is not idempotent.
 
 ## Commit Message Convention
 

@@ -417,6 +417,108 @@ function generate_gemini_skills() {
     "fact-based:fact_based_core.md"
 }
 
+function generate_ai_skills() {
+  generate_codex_skills && generate_gemini_skills
+}
+
+# generator を2回実行し、指定された生成物の SHA-256 が変化しないことを検証する。
+# 引数: <generator関数名> <生成物パス...>
+function verify_generator_idempotency() {
+  local generator_name="${1:-}"
+  shift 2>/dev/null || true
+
+  if [[ -z "$generator_name" || "$#" -eq 0 ]]; then
+    echo "Error: usage: verify_generator_idempotency <generator-function> <output-path...>" >&2
+    return 2
+  fi
+  if ! typeset -f "$generator_name" >/dev/null; then
+    echo "Error: generator function not found: $generator_name" >&2
+    return 2
+  fi
+
+  local output_count="$#"
+  local generated_file hash_line file_hash exit_code
+  local mismatch_count=0
+  typeset -A before_hashes
+
+  "$generator_name"
+  exit_code=$?
+  if (( exit_code != 0 )); then
+    echo "Error: generator failed on first pass: $generator_name" >&2
+    return "$exit_code"
+  fi
+
+  for generated_file in "$@"; do
+    if [[ ! -f "$generated_file" ]]; then
+      echo "Error: generated output not found after first pass: $generated_file" >&2
+      return 1
+    fi
+    hash_line="$(shasum -a 256 "$generated_file")"
+    exit_code=$?
+    if (( exit_code != 0 )); then
+      echo "Error: failed to hash generated output: $generated_file" >&2
+      return "$exit_code"
+    fi
+    if [[ -z "$hash_line" ]]; then
+      echo "Error: failed to hash generated output: $generated_file" >&2
+      return 1
+    fi
+    file_hash="${hash_line%% *}"
+    before_hashes[$generated_file]="$file_hash"
+  done
+
+  "$generator_name"
+  exit_code=$?
+  if (( exit_code != 0 )); then
+    echo "Error: generator failed on second pass: $generator_name" >&2
+    return "$exit_code"
+  fi
+
+  for generated_file in "$@"; do
+    if [[ ! -f "$generated_file" ]]; then
+      echo "Error: generated output not found after second pass: $generated_file" >&2
+      return 1
+    fi
+    hash_line="$(shasum -a 256 "$generated_file")"
+    exit_code=$?
+    if (( exit_code != 0 )); then
+      echo "Error: failed to hash generated output: $generated_file" >&2
+      return "$exit_code"
+    fi
+    if [[ -z "$hash_line" ]]; then
+      echo "Error: failed to hash generated output: $generated_file" >&2
+      return 1
+    fi
+    file_hash="${hash_line%% *}"
+    if [[ "${before_hashes[$generated_file]}" != "$file_hash" ]]; then
+      echo "Error: generated output changed on second pass: $generated_file" >&2
+      mismatch_count=$((mismatch_count + 1))
+    fi
+  done
+
+  if (( mismatch_count != 0 )); then
+    return 1
+  fi
+  echo "Verified idempotent generation for ${output_count} output(s)."
+}
+
+function verify_ai_skill_generation_idempotency() {
+  local generated_files=(
+    "${Repo}ai/codex/skills/pr-review/SKILL.md"
+    "${Repo}ai/codex/skills/pr-comment-review/SKILL.md"
+    "${Repo}ai/codex/skills/pr-comment-implement/SKILL.md"
+    "${Repo}ai/codex/skills/pr-body/SKILL.md"
+    "${Repo}ai/codex/skills/pr-comment-post/SKILL.md"
+    "${Repo}ai/codex/skills/pr-create-by-branch/SKILL.md"
+    "${Repo}ai/codex/skills/pr-review-subagents/SKILL.md"
+    "${Repo}ai/codex/skills/config-audit/SKILL.md"
+    "${Repo}ai/codex/skills/fact-based/SKILL.md"
+    "${Repo}ai/gemini/skills/fact-based/SKILL.md"
+  )
+
+  verify_generator_idempotency generate_ai_skills "${generated_files[@]}"
+}
+
 function require_ai_setup_command() {
   local command_name="$1"
 
