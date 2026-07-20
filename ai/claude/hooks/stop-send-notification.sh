@@ -1,6 +1,10 @@
 #!/bin/bash
 export LANG="${LANG:-en_US.UTF-8}"
 
+if [[ "${HERDR_ENV:-}" == "1" ]]; then
+    exit 0
+fi
+
 # 通知音設定 (変更する場合はここだけ編集)
 NOTIFICATION_SOUND='Hero'
 

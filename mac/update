@@ -42,6 +42,10 @@ source "$(dirname "$0")/updates/gemini.sh"
 source "$(dirname "$0")/updates/codex.sh"
 echo "end AI tools update."
 
+echo "start Herdr integration update."
+source "$(dirname "$0")/updates/herdr.sh"
+echo "end Herdr integration update."
+
 # Lazy + tree-sitterのアップデート
 nvim --headless "+Lazy! sync | TSUpdate" +qa
 

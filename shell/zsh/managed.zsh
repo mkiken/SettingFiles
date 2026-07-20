@@ -44,20 +44,20 @@ export IS_WARP
 # Zshのフック機能を有効化
 autoload -U add-zsh-hook
 
-if [[ -n "${TMUX:-}" && "${TERM_PROGRAM:-}" == "tmux" ]]; then
+if [[ -n "${TMUX:-}" ]]; then
   IS_TMUX=true
 else
   IS_TMUX=false
 fi
 
-if ! $IS_TMUX && ! $IS_IDE && ! $IS_WARP; then
-  # tmuxウィンドウがGhosttyのウィンドウサイズより小さくなってしまう問題の対応
-  # 対応はいれたが、未解決
-  # set -g window-size は既存セッションに反映されないため、アタッチ時にセッションレベルで強制設定
-  # largest: 複数クライアント接続時、最大サイズのクライアントに合わせてウィンドウをリサイズ
-  TMUX= TMUX_PANE= tmux new-session -A -s tmux \; set-option window-size largest
+source "$(dirname "$(realpath "${(%):-%x}")")/auto_multiplexer.zsh"
+auto_start_terminal_multiplexer "$IS_TMUX" "$IS_IDE" "$IS_WARP"
+auto_multiplexer_rc=$?
+if (( auto_multiplexer_rc == 10 )); then
+  unset auto_multiplexer_rc
   return
 fi
+unset auto_multiplexer_rc
 
 function zcompile_if_needed() {
     local file="$1"

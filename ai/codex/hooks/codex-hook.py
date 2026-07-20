@@ -73,6 +73,9 @@ def load_hook_input() -> tuple[dict | None, str | None]:
 
 
 def main() -> int:
+    if os.environ.get("HERDR_ENV") == "1":
+        return 0
+
     input_data, input_error = load_hook_input()
     if input_data is None:
         print_visible_hook_error(input_error or "failed to read hook input")

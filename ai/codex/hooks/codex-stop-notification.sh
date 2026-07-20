@@ -1,6 +1,10 @@
 #!/bin/bash
 export LANG="${LANG:-en_US.UTF-8}"
 
+if [[ "${HERDR_ENV:-}" == "1" ]]; then
+    exit 0
+fi
+
 HOOK_ERROR_LOG="${TMPDIR:-/tmp}/codex-stop-notification-error.log"
 exec >/dev/null
 exec 2>>"${HOOK_ERROR_LOG}"

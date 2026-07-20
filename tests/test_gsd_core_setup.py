@@ -329,6 +329,7 @@ _restore_managed_codex_gsd_hooks "$1" "$2"
                     for group in groups
                     for hook in group["hooks"]
                     if "gsd-" not in hook["command"]
+                    and "herdr-agent-state.sh" not in hook["command"]
             ]
             if commands:
                 actual_commands[event] = commands

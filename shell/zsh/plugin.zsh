@@ -8,8 +8,12 @@
 zstyle ':completion:*' menu no
 # preview directory's content with eza when completing cd
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
-# we provide a script ftb-tmux-popup to make full use of it's "popup" feature.
-zstyle ':fzf-tab:*' fzf-command ftb-tmux-popup
+# tmux uses its popup; Herdr and regular shells run fzf in the current pane.
+if [[ "${HERDR_ENV:-}" != "1" && -n "${TMUX:-}" ]]; then
+  zstyle ':fzf-tab:*' fzf-command ftb-tmux-popup
+else
+  zstyle ':fzf-tab:*' fzf-command fzf
+fi
 
 # apply to all command
 zstyle ':fzf-tab:*' popup-min-size 80 12

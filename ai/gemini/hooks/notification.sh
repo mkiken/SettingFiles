@@ -1,6 +1,11 @@
 #!/bin/bash
 export LANG="${LANG:-en_US.UTF-8}"
 
+IN_HERDR=false
+if [[ "${HERDR_ENV:-}" == "1" ]]; then
+    IN_HERDR=true
+fi
+
 # 通知音設定 (変更する場合はここだけ編集)
 NOTIFICATION_SOUND='Purr'
 
@@ -86,13 +91,13 @@ ACTION_DETAIL="${ACTION_DETAIL:-}"
 # notify は後続のトランスクリプト解析（要約生成）の後になり、統合するとアイコン表示が遅れるため。
 # バックグラウンド起動でpython3起動(数十ms)をクリティカルパスから外す。
 # 後続の解析+notifyが必ず長く走るため、フック終了前にアイコン設定は完了する。
-if [[ "${EVENT_TYPE}" == "notification" ]]; then
+if [[ "${IN_HERDR}" != "true" && "${EVENT_TYPE}" == "notification" ]]; then
     if [[ "${NOTIFICATION_TYPE}" != "ToolPermission" ]]; then
         debug_log "Ignoring notification type: ${NOTIFICATION_TYPE}"
         exit 0
     fi
     update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}" &
-elif [[ "${EVENT_TYPE}" == "after_agent" ]]; then
+elif [[ "${IN_HERDR}" != "true" && "${EVENT_TYPE}" == "after_agent" ]]; then
     update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}" &
 fi
 
@@ -109,6 +114,8 @@ if [[ -z "${session_id}" && -n "${transcript_path}" && "${transcript_path}" != "
     session_id="${_parent##*/}"
 fi
 [[ -z "${session_id}" || "${session_id}" == "." ]] && session_id="default"
+
+if [[ "${IN_HERDR}" != "true" ]]; then
 notification_group=$(build_notification_group "${session_id}")
 debug_log "Session ID: ${session_id}, Notification group: ${notification_group}"
 
@@ -177,6 +184,7 @@ notification_title=$(build_ai_title "✅" "終了")
 debug_log "Sending notification: title='${notification_title}', message='${summary}'"
 
 notify "${notification_title}" "${summary:-💭 メッセージなし}" "Purr" "${notification_group}" "${completion_time}"
+fi
 
 # --- context逼迫アラート ---
 # 最新chat JSONLの探索（旧find|stat|sort|head|cut連鎖）とトークン抽出（旧インライン
@@ -185,7 +193,10 @@ debug_log "Evaluating Gemini context alert..."
 _gemini_chat_dir="${HOME}/.gemini/tmp"
 # session_idの先頭8文字（または全体）でchat JSONLを引き当て
 _session_prefix="${session_id:0:8}"
-if [[ -n "${_session_prefix}" && "${_session_prefix}" != "defa" && -d "${_gemini_chat_dir}" ]]; then
+if [[ "${EVENT_TYPE}" == "after_agent" \
+    && -n "${_session_prefix}" \
+    && "${_session_prefix}" != "defa" \
+    && -d "${_gemini_chat_dir}" ]]; then
     GEMINI_CTX_USAGE="${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/gemini_context_usage.py"
     _ctx_out=$(python3 "${GEMINI_CTX_USAGE}" "${_gemini_chat_dir}" "${_session_prefix}" 2>/dev/null)
     [[ -n "${_ctx_out}" ]] && eval "${_ctx_out}"

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import sys
 from functools import partial
 from pathlib import Path
@@ -13,6 +14,9 @@ update_tmux_window_name = partial(_twn.update_tmux_window_name, identifier=IDENT
 
 
 def main():
+    if os.environ.get("HERDR_ENV") == "1":
+        return
+
     # 引数からイベント名を取得
     if len(sys.argv) < 2:
         return

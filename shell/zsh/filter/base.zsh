@@ -1,15 +1,19 @@
 #!/bin/zsh
 
-FILTER_TOOL="${FILTER_TOOL:-fzf-tmux}"
+if [[ "${HERDR_ENV:-}" != "1" && -n "${TMUX:-}" ]]; then
+  FILTER_TOOL="${FILTER_TOOL:-fzf-tmux}"
+else
+  FILTER_TOOL="${FILTER_TOOL:-fzf}"
+fi
 
-if ! command -v ${FILTER_TOOL} > /dev/null 2>&1; then
+if ! command -v "${FILTER_TOOL}" > /dev/null 2>&1; then
   exit
 fi
 
 FILTER_COMMAND="${FILTER_COMMAND:-${FILTER_TOOL} --cycle --exit-0 --ansi}"
 
-# フィルターツール (fzf-tmux) のラッパー関数
-# 引数: fzf-tmuxに渡すオプション (例: --preview, --query など)
+# フィルターツール (fzf / fzf-tmux) のラッパー関数
+# 引数: 選択したフィルターツールに渡すオプション (例: --preview, --query など)
 # 戻り値: 選択された項目
 function filter(){
   no_notify ${=FILTER_COMMAND} "$@"

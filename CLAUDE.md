@@ -47,7 +47,7 @@ Run before committing code changes (the suite takes seconds). Fix failures, or r
 
 Shell functions (e.g. those in `shell/tmux/ai_notification_*.sh`) are unit-tested from Python: a `tests/test_*.py` `source`s the `.sh` and invokes the function via `bash -c`, asserting on stdout and the return code (see `tests/test_ai_notification_summary.py` for the `run_fn` helper pattern). Write new shell-function tests in this style so `unittest discover` collects them — a standalone `.sh` test file is not picked up by the suite.
 
-When changing the notification hooks (`ai/*/hooks/*notification*.sh`, `shell/tmux/ai_notification_*.sh`), additionally run the manual smoke test `bash tests/manual/notification_hook_smoke.sh` — it feeds representative hook events to all three hooks; it sends real Mac notifications and updates tmux window icons, so it is kept out of unittest discovery.
+When changing the notification hooks (`ai/*/hooks/*notification*.sh`, `shell/tmux/ai_notification_*.sh`), additionally run the manual smoke test `bash tests/manual/notification_hook_smoke.sh` — it feeds representative hook events to all three hooks; by default it sends real Mac notifications and updates tmux window icons, so it is kept out of unittest discovery. Pass `--silent` (sets `NOTIFY_SILENT=1`, which overrides even `NOTIFY_FORCE`) to run the same exit-code checks without any notification or tmux icon side effects. AI agents running this smoke test should default to `--silent`; use the no-flag form only when a real-notification/tmux-icon check is explicitly needed.
 
 The Gemini hook's context-alert e2e test lives outside the main discovery path — when changing the Gemini notification hook or `shell/tmux/gemini_context_usage.py`, also run `python3 -m unittest discover -s ai/gemini/hooks/tests`.
 
@@ -148,6 +148,7 @@ Standalone skills (no shared core, hand-maintained): `web-summary` — Claude `a
 - When one hook emits both a macOS notification and tmux state for the same event, complete the tmux update synchronously before calling `notify`. Use strict error reporting so tmux failures reach the hook error log without blocking the Mac notification, and cover the ordering with isolated tests.
 - Shared shell header for the three platform notification hooks (sources + `NOTIFY_FORCE` + `debug_log`): `shell/tmux/ai_notification_hook_common.sh`
 - Hooks that intentionally send macOS notifications must set `NOTIFY_FORCE=1` (prefer the shared header) and test delivery with `DISABLE_NOTIFY=1`; ordinary AI-spawned commands must remain suppressed.
+- Suppression precedence: `NOTIFY_SILENT` > `NOTIFY_FORCE` > `DISABLE_NOTIFY`. `NOTIFY_SILENT=1` silences both the `notify` gate (`shell/zsh/alias/notification.zsh`) and tmux icon updates (`shell/tmux/tmux_window_name.sh`), overriding even `NOTIFY_FORCE` — used by the smoke test's `--silent` flag so hook-logic verification never produces a real notification or icon change.
 - Stateful hooks must define their state scope and test multiple transcripts or agents sharing one session ID so one cannot reset another's state.
 - Before referencing a new hook input field, confirm it actually exists: check the official hooks schema, or capture a real event (enable the hook's `DEBUG_ENABLED` log) and inspect the payload. A guard keyed to a nonexistent field degrades silently — the `background_tasks` Stop guard shipped dead and went unnoticed for weeks.
 - Hook critical paths: python3 startup costs ~45ms vs ~7ms for jq/date on this machine — add a python3 process only when it replaces many subprocess launches; otherwise fold work into an existing jq query or pure bash, and benchmark baseline vs candidate before restructuring.
@@ -160,6 +161,8 @@ Standalone skills (no shared core, hand-maintained): `web-summary` — Claude `a
 **Neovim (lazy.nvim)**: Plugins in `vimfiles/nvim/lua/plugins/`. VSCode Neovim uses separate `plugins_vscode/`. Updated via `nvim --headless "+Lazy! sync | TSUpdate" +qa` in `mac/update`.
 
 **GSD Core**: `setup_gsd_core_for_runtime` installs `@opengsd/gsd-core@latest` for Claude Code and Codex with the `standard` profile and portable hooks. Generated assets stay under the home directory and are not vendored here. The Codex installer replaces the managed `~/.codex/hooks.json` symlink and emits machine-specific commands, so the setup helper validates its normalized GSD hook set against `ai/codex/hooks.json` before restoring the symlink; an unknown upstream hook change stops the update and preserves the generated file for review. Do not use Codex local or custom staging installs: they write generated skills containing absolute paths into `~/.agents/skills`.
+
+**Herdr integrations**: `mac/scripts/herdr.sh` runs the official Claude and Codex installers in isolated staging, validates their registrations against the managed configuration, then transactionally deploys the hook scripts. Never run `herdr integration install` against live Claude or Codex configuration, especially the managed `~/.codex/hooks.json`; always use the repository helper. Gemini has no installer integration and relies only on Herdr's screen-manifest detection.
 
 ## AI Prompt File Editing
 

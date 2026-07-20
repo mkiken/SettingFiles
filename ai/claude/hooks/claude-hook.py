@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # [Claude Code Hooksでtmuxのウィンドウ名を変更して通知の代わりにする #ClaudeCode - Qiita](https://qiita.com/miya10kei/items/d9dd12e8fde42fb222e2)
 import json
+import os
 import sys
 from functools import partial
 from pathlib import Path
@@ -15,6 +16,9 @@ update_tmux_window_name = partial(_twn.update_tmux_window_name, identifier=IDENT
 
 
 def main():
+    if os.environ.get("HERDR_ENV") == "1":
+        return
+
     input_data = json.load(sys.stdin)
 
     # サブエージェント由来のイベントは無視（メインエージェントの動向のみ追跡）。
@@ -53,4 +57,3 @@ def handle_session_end_hook(_: dict):
 
 if __name__ == "__main__":
     main()
-
