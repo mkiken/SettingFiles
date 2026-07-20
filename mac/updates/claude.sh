@@ -27,6 +27,10 @@ for file in "${Repo}ai/claude/agents"/*; do
   fi
 done
 
+# herdr 公式スキルの upstream 更新を取り込む（差分があれば repo 内ファイルを上書きするが
+# git add はしない — コミット判断は `git diff` で人間がレビューしてから行う）
+sync_herdr_skill
+
 setup_ai_skills ~/.claude/skills "${Repo}ai/common/skills" "${Repo}ai/claude/skills"
 
 claude update

@@ -230,6 +230,52 @@ NODE
   /bin/rm -f "$candidate" "$installed_file" "$disabled_file"
 }
 
+# herdr の公式 SKILL.md (AI がherdrのCLIを操作するためのスキル)を upstream から取り込む。
+# 差分があれば repo 内ファイルを上書きするが git add はしない — コミット判断は
+# 人間が `git diff` でレビューしてから行う。取得失敗時は既存ファイルを保護し、
+# update 全体を止めないよう常に rc=0 で返す(best-effort)。
+function sync_herdr_skill() {
+  local repo_root="${1:-$Repo}"
+  local skill_path="${repo_root%/}/ai/common/skills/herdr/SKILL.md"
+  local upstream_url="https://raw.githubusercontent.com/ogulcancelik/herdr/master/SKILL.md"
+  local tmp_file
+
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "Warning: herdr skill sync skipped — curl not found" >&2
+    return 0
+  fi
+
+  if [[ ! -f "$skill_path" ]]; then
+    echo "Warning: herdr skill sync skipped — managed skill file is missing: $skill_path" >&2
+    return 0
+  fi
+
+  tmp_file="$(mktemp "${TMPDIR:-/tmp}/herdr-skill-sync.XXXXXX")" || {
+    echo "Warning: herdr skill sync skipped — failed to create temp file" >&2
+    return 0
+  }
+
+  # コマンド置換 $(...) は末尾改行を剥がしてしまうため、curl の出力は直接
+  # ファイルへリダイレクトして末尾改行を含めた完全な内容を保持する。
+  # 改行のみの応答も実質空とみなし、-s (サイズ0判定) ではなく中身の有無で判定する。
+  if ! curl -fsSL "$upstream_url" >"$tmp_file" 2>/dev/null || [[ -z "$(<"$tmp_file")" ]]; then
+    echo "Warning: herdr skill sync skipped — failed to fetch $upstream_url" >&2
+    /bin/rm -f "$tmp_file"
+    return 0
+  fi
+
+  if cmp -s "$tmp_file" "$skill_path"; then
+    echo "herdr skill: up to date"
+    /bin/rm -f "$tmp_file"
+    return 0
+  fi
+
+  /bin/cp "$tmp_file" "$skill_path"
+  /bin/rm -f "$tmp_file"
+  echo "herdr skill UPDATED from upstream — review with 'git diff' before committing: $skill_path"
+  return 0
+}
+
 function setup_ai_skills() {
   local dest_dir="$1"
   shift
