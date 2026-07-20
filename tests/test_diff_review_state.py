@@ -278,7 +278,135 @@ class DiffReviewStateTest(unittest.TestCase):
             self.assertFalse(dst.is_symlink())
             self.assertEqual(dst.read_text(encoding="utf-8"), "existing\n")
 
-    def test_make_symlink_repeated_view_shows_change_summary_and_confirm(self):
+    def test_make_symlink_initial_conflict_shows_detailed_differences(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            session = ZshSession(root)
+
+            cases = (
+                ("file", "source\n", "existing\n", "=== Differences found ==="),
+                ("binary", b"\x00source\n", b"\x00existing\n", "=== Differences found ==="),
+                ("type_mismatch", None, "existing\n", "Comparison unavailable:"),
+            )
+            for name, source_content, existing_content, expected_marker in cases:
+                with self.subTest(name=name):
+                    case_root = root / name
+                    case_root.mkdir()
+                    src = case_root / "src"
+                    dst = case_root / "dst"
+                    if name == "type_mismatch":
+                        src.mkdir()
+                    elif name == "binary":
+                        src.write_bytes(source_content)
+                    else:
+                        src.write_text(source_content, encoding="utf-8")
+
+                    if name == "binary":
+                        dst.write_bytes(existing_content)
+                    else:
+                        dst.write_text(existing_content, encoding="utf-8")
+
+                    result = session.run(
+                        f"source shell/zsh/alias/utils.zsh; make_symlink {quote(src)} {quote(dst)}",
+                        "n\n",
+                    )
+                    output = combined_output(result)
+
+                    self.assertEqual(result.returncode, 0, output)
+                    self.assertIn(f"Existing path: {dst}", output)
+                    self.assertIn(f"Source path: {src}", output)
+                    self.assertIn(expected_marker, output)
+                    self.assertIn("シンボリックリンクではない既存パスがあります:", output)
+                    self.assertFalse(dst.is_symlink())
+                    if name == "binary":
+                        self.assertEqual(dst.read_bytes(), existing_content)
+                    else:
+                        self.assertEqual(dst.read_text(encoding="utf-8"), existing_content)
+
+            src_dir = root / "directory-src"
+            destination_root = root / "directory-destination"
+            dst_dir = destination_root / src_dir.name
+            src_dir.mkdir()
+            destination_root.mkdir()
+            dst_dir.mkdir()
+            (src_dir / "changed.txt").write_text("source\n", encoding="utf-8")
+            (src_dir / "added.txt").write_text("added\n", encoding="utf-8")
+            (dst_dir / "changed.txt").write_text("existing\n", encoding="utf-8")
+            (dst_dir / "removed.txt").write_text("removed\n", encoding="utf-8")
+
+            result = session.run(
+                f"source shell/zsh/alias/utils.zsh; make_symlink {quote(src_dir)} {quote(destination_root)}",
+                "n\n",
+            )
+            output = combined_output(result)
+
+            self.assertEqual(result.returncode, 0, output)
+            self.assertIn("=== Directory differences found ===", output)
+            self.assertIn("added.txt", output)
+            self.assertIn("removed.txt", output)
+            self.assertFalse(dst_dir.is_symlink())
+            self.assertEqual(
+                (dst_dir / "changed.txt").read_text(encoding="utf-8"),
+                "existing\n",
+            )
+            self.assertEqual(
+                (dst_dir / "removed.txt").read_text(encoding="utf-8"),
+                "removed\n",
+            )
+            self.assertFalse((dst_dir / "added.txt").exists())
+
+            reverse_src = root / "reverse-source"
+            reverse_destination_root = root / "reverse-destination"
+            reverse_existing_dir = reverse_destination_root / reverse_src.name
+            reverse_src.write_text("source\n", encoding="utf-8")
+            reverse_destination_root.mkdir()
+            reverse_existing_dir.mkdir()
+            (reverse_existing_dir / "retained.txt").write_text(
+                "retained\n", encoding="utf-8"
+            )
+
+            result = session.run(
+                "source shell/zsh/alias/utils.zsh; "
+                f"make_symlink {quote(reverse_src)} {quote(reverse_destination_root)}",
+                "n\n",
+            )
+            output = combined_output(result)
+
+            self.assertEqual(result.returncode, 0, output)
+            self.assertIn(f"Existing path: {reverse_existing_dir}", output)
+            self.assertIn("Existing type: directory", output)
+            self.assertIn(f"Source path: {reverse_src}", output)
+            self.assertIn("Source type: file", output)
+            self.assertIn("Comparison unavailable: source is file; existing path is directory.", output)
+            self.assertTrue(reverse_existing_dir.is_dir())
+            self.assertFalse(reverse_existing_dir.is_symlink())
+            self.assertEqual(
+                (reverse_existing_dir / "retained.txt").read_text(encoding="utf-8"),
+                "retained\n",
+            )
+
+    def test_make_symlink_source_change_invalidates_review_signature(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            session = ZshSession(Path(tmpdir))
+            src = Path(tmpdir) / "src"
+            dst = Path(tmpdir) / "dst"
+            src.write_text("source one\n", encoding="utf-8")
+            dst.write_text("existing\n", encoding="utf-8")
+            script = f"source shell/zsh/alias/utils.zsh; make_symlink {quote(src)} {quote(dst)}"
+
+            seed = session.run(script, "n\n")
+            self.assertEqual(seed.returncode, 0, combined_output(seed))
+
+            src.write_text("source two\n", encoding="utf-8")
+            result = session.run(script, "n\n")
+            output = combined_output(result)
+
+            self.assertEqual(result.returncode, 0, output)
+            self.assertNotIn("前回確認時と同じ差分です:", output)
+            self.assertIn("=== Differences found ===", output)
+            self.assertEqual(dst.read_text(encoding="utf-8"), "existing\n")
+
+    def test_make_symlink_repeated_view_shows_detailed_change_and_confirm(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             session = ZshSession(Path(tmpdir))
             src = Path(tmpdir) / "src"
@@ -297,10 +425,139 @@ class DiffReviewStateTest(unittest.TestCase):
             self.assertIn("前回確認時と同じ差分です:", output)
             self.assertIn(f"Existing path: {dst}", output)
             self.assertIn("Existing type: file", output)
+            self.assertIn(f"Source path: {src}", output)
+            self.assertIn("Source type: file", output)
             self.assertIn(f"Intended symlink: {dst} -> {src}", output)
+            self.assertIn("=== Differences found ===", output)
             self.assertIn("シンボリックリンクではない既存パスがあります:", output)
             self.assertFalse(dst.is_symlink())
             self.assertEqual(dst.read_text(encoding="utf-8"), "existing\n")
+
+    def test_make_symlink_directory_falls_back_to_diff_when_difft_is_hidden(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            session = ZshSession(root)
+            src_dir = root / "source"
+            destination_root = root / "destination"
+            dst_dir = destination_root / src_dir.name
+            safe_bin = root / "safe-bin"
+            src_dir.mkdir()
+            destination_root.mkdir()
+            dst_dir.mkdir()
+            safe_bin.mkdir()
+
+            for command_name in (
+                "basename",
+                "awk",
+                "date",
+                "diff",
+                "dirname",
+                "find",
+                "mkdir",
+                "mktemp",
+                "shasum",
+                "sort",
+                "stat",
+                "zsh",
+            ):
+                executable = shutil.which(command_name, path=SYSTEM_PATH)
+                self.assertIsNotNone(executable, command_name)
+                (safe_bin / command_name).symlink_to(executable)
+
+            (src_dir / "changed.txt").write_text("source\n", encoding="utf-8")
+            (src_dir / "added.txt").write_text("added\n", encoding="utf-8")
+            (dst_dir / "changed.txt").write_text("existing\n", encoding="utf-8")
+            (dst_dir / "removed.txt").write_text("removed\n", encoding="utf-8")
+
+            result = session.run(
+                f"source shell/zsh/alias/utils.zsh; make_symlink {quote(src_dir)} {quote(destination_root)}",
+                "n\n",
+                {"PATH": str(safe_bin)},
+            )
+            output = combined_output(result)
+
+            self.assertEqual(result.returncode, 0, output)
+            self.assertIsNone(shutil.which("difft", path=str(safe_bin)))
+            self.assertIn(
+                f"diff -ru {dst_dir / 'changed.txt'} {src_dir / 'changed.txt'}", output
+            )
+            self.assertIn(f"Only in {src_dir}: added.txt", output)
+            self.assertIn(f"Only in {dst_dir}: removed.txt", output)
+            self.assertFalse(dst_dir.is_symlink())
+            self.assertEqual(
+                (dst_dir / "changed.txt").read_text(encoding="utf-8"), "existing\n"
+            )
+            self.assertEqual(
+                (dst_dir / "removed.txt").read_text(encoding="utf-8"), "removed\n"
+            )
+
+    def test_make_symlink_same_content_directory_conflict_does_not_claim_changes(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            session = ZshSession(root)
+            src_dir = root / "source"
+            destination_root = root / "destination"
+            dst_dir = destination_root / src_dir.name
+            src_dir.mkdir()
+            destination_root.mkdir()
+            dst_dir.mkdir()
+
+            for directory in (src_dir, dst_dir):
+                (directory / "nested").mkdir()
+                (directory / "top-level.txt").write_text("identical\n", encoding="utf-8")
+                (directory / "nested" / "child.txt").write_text(
+                    "also identical\n", encoding="utf-8"
+                )
+
+            destination_before = {
+                path.relative_to(dst_dir): path.read_bytes()
+                for path in dst_dir.rglob("*")
+                if path.is_file()
+            }
+            result = session.run(
+                f"source shell/zsh/alias/utils.zsh; make_symlink {quote(src_dir)} {quote(destination_root)}",
+                "n\n",
+            )
+            output = combined_output(result)
+            destination_after = {
+                path.relative_to(dst_dir): path.read_bytes()
+                for path in dst_dir.rglob("*")
+                if path.is_file()
+            }
+
+            self.assertEqual(result.returncode, 0, output)
+            self.assertIn("=== No content differences found ===", output)
+            self.assertNotIn("=== Directory differences found ===", output)
+            self.assertNotIn("diff -ru", output)
+            self.assertNotIn("Only in ", output)
+            self.assertIn("シンボリックリンクではない既存パスがあります:", output)
+            self.assertFalse(dst_dir.is_symlink())
+            self.assertEqual(destination_after, destination_before)
+
+    def test_make_symlink_same_content_file_conflict_does_not_claim_changes(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            session = ZshSession(root)
+            src = root / "src"
+            dst = root / "dst"
+            content = "identical\n"
+            src.write_text(content, encoding="utf-8")
+            dst.write_text(content, encoding="utf-8")
+
+            result = session.run(
+                f"source shell/zsh/alias/utils.zsh; make_symlink {quote(src)} {quote(dst)}",
+                "n\n",
+            )
+            output = combined_output(result)
+
+            self.assertEqual(result.returncode, 0, output)
+            self.assertIn(f"Existing path: {dst}", output)
+            self.assertIn(f"Source path: {src}", output)
+            self.assertIn("=== No content differences found ===", output)
+            self.assertNotIn("=== Differences found ===", output)
+            self.assertIn("シンボリックリンクではない既存パスがあります:", output)
+            self.assertFalse(dst.is_symlink())
+            self.assertEqual(dst.read_text(encoding="utf-8"), content)
 
 
 if __name__ == "__main__":

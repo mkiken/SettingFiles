@@ -87,6 +87,8 @@ When adding a managed symlink, apply it to the live environment and verify it wi
 
 When editing shell helpers, do not use global variables for temporary return values or cross-call state. Prefer stdout, explicit arguments, or safe assignment into caller-owned `local` variables so parallel shells and nested calls cannot observe stale state.
 
+In zsh, `path` is a special array tied to `PATH`; never use it as a local or temporary variable name in shell helpers.
+
 Key symlinks:
 - `ai/claude/_CLAUDE.md` → `~/.claude/CLAUDE.md`
 - `ai/gemini/_GEMINI.md` → `~/.gemini/GEMINI.md`

@@ -66,6 +66,10 @@ function make_symlink () {
       fi
     fi
 
+    if [[ -z "$last_reviewed_at" ]]; then
+      _diff_review_show_symlink_change "$src" "$link_path"
+    fi
+
     if [[ "$repeated_action" == "overwrite" ]] || {
       [[ -n "$review_signature" && -z "$last_reviewed_at" ]] && _diff_review_record "$review_signature"
       confirm "シンボリックリンクではない既存パスがあります: $link_path。$src へのsymlinkで上書きしますか？" --default-no --no-cancel-msg
@@ -295,10 +299,14 @@ function _diff_review_state_dir() {
 }
 
 function _diff_review_sha256() {
+    local hash_output
+
     if command -v shasum >/dev/null 2>&1; then
-        shasum -a 256 | awk '{print $1}'
+        hash_output=$(shasum -a 256) || return 1
+        print -r -- "${hash_output%% *}"
     elif command -v sha256sum >/dev/null 2>&1; then
-        sha256sum | awk '{print $1}'
+        hash_output=$(sha256sum) || return 1
+        print -r -- "${hash_output%% *}"
     else
         python3 -c 'import hashlib, sys; print(hashlib.sha256(sys.stdin.buffer.read()).hexdigest())'
     fi
@@ -405,15 +413,15 @@ function _diff_review_json_signature() {
 }
 
 function _diff_review_path_type() {
-    local path="$1"
+    local target_path="$1"
 
-    if [[ -L "$path" ]]; then
-        print -r -- "symlink -> $(readlink "$path")"
-    elif [[ -d "$path" ]]; then
+    if [[ -L "$target_path" ]]; then
+        print -r -- "symlink -> $(readlink "$target_path")"
+    elif [[ -d "$target_path" ]]; then
         print -r -- "directory"
-    elif [[ -f "$path" ]]; then
+    elif [[ -f "$target_path" ]]; then
         print -r -- "file"
-    elif [[ -e "$path" ]]; then
+    elif [[ -e "$target_path" ]]; then
         print -r -- "other"
     else
         print -r -- "missing"
@@ -421,16 +429,16 @@ function _diff_review_path_type() {
 }
 
 function _diff_review_path_fingerprint() {
-    local path="$1"
+    local target_path="$1"
 
-    if [[ -L "$path" ]]; then
-        print -r -- "symlink	$(readlink "$path")"
-    elif [[ -f "$path" ]]; then
-        print -r -- "file	$(_diff_review_file_hash "$path")"
-    elif [[ -d "$path" ]]; then
+    if [[ -L "$target_path" ]]; then
+        print -r -- "symlink	$(readlink "$target_path")"
+    elif [[ -f "$target_path" ]]; then
+        print -r -- "file	$(_diff_review_file_hash "$target_path")"
+    elif [[ -d "$target_path" ]]; then
         print -r -- "directory"
         (
-            cd "$path" || exit 1
+            cd "$target_path" || exit 1
             find . -print | LC_ALL=C sort | while IFS= read -r item; do
                 if [[ "$item" == "." ]]; then
                     continue
@@ -445,7 +453,7 @@ function _diff_review_path_fingerprint() {
                 fi
             done
         )
-    elif [[ -e "$path" ]]; then
+    elif [[ -e "$target_path" ]]; then
         print -r -- "other"
     else
         print -r -- "missing"
@@ -460,6 +468,9 @@ function _diff_review_symlink_signature() {
         print -r -- "operation=make_symlink"
         print -r -- "link_path=$link_path"
         print -r -- "intended_target=$src"
+        print -r -- "source_fingerprint"
+        _diff_review_path_fingerprint "$src"
+        print -r -- "existing_path_fingerprint"
         _diff_review_path_fingerprint "$link_path"
     } | _diff_review_sha256
 }
@@ -467,10 +478,45 @@ function _diff_review_symlink_signature() {
 function _diff_review_show_symlink_change() {
     local src="$1"
     local link_path="$2"
+    local src_type="$(_diff_review_path_type "$src")"
+    local existing_type="$(_diff_review_path_type "$link_path")"
 
     echo "Existing path: $link_path"
-    echo "Existing type: $(_diff_review_path_type "$link_path")"
+    echo "Existing type: $existing_type"
+    echo "Source path: $src"
+    echo "Source type: $src_type"
     echo "Intended symlink: $link_path -> $src"
+
+    if [[ -f "$src" && -f "$link_path" ]]; then
+        echo ""
+        if diff -q "$link_path" "$src" >/dev/null 2>&1; then
+            echo "=== No content differences found ==="
+        else
+            echo "=== Differences found ==="
+            show_file_diff "$src" "$link_path"
+        fi
+        echo "========================="
+    elif [[ -d "$src" && -d "$link_path" ]]; then
+        echo ""
+        if diff -qr "$link_path" "$src" >/dev/null 2>&1; then
+            echo "=== No content differences found ==="
+        else
+            echo "=== Directory differences found ==="
+            echo "Source: $src"
+            echo "Destination: $link_path"
+            echo "Diff direction: $link_path -> $src"
+            echo ""
+            if command -v difft &> /dev/null; then
+                difft --skip-unchanged --sort-paths "$link_path" "$src" || true
+            else
+                diff -ru "$link_path" "$src" || true
+            fi
+        fi
+        echo "===================================="
+    else
+        echo "Comparison unavailable: source is $src_type; existing path is $existing_type."
+        echo "Only two regular files or two directories can be compared."
+    fi
 }
 
 function _ensure_prompt_notify_available() {
