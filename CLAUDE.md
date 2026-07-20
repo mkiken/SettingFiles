@@ -12,7 +12,7 @@ Implementation work may start directly on `main`/`master`; when a workflow or sk
 
 ## CLAUDE.md Maintenance
 
-At implementation completion, before the commit confirmation in the post-implementation flow, check whether the work surfaced repository knowledge this file should carry: new or changed commands, architecture or workflow changes, conventions, pitfalls — or existing statements the work proved stale or contradicted. If so, draft the addition or correction, present it to the user for approval, and edit this file only when approved — never silently. Proposing before the commit confirmation lets an approved change land in the same commit. If nothing qualifies, propose nothing.
+At implementation completion, before the commit confirmation in the post-implementation flow, check whether the work surfaced repository knowledge that materially changes how future work should be performed: architecture or workflow changes, durable conventions or pitfalls, operational commands, or existing statements the work proved stale or contradicted. Do not add isolated interactive aliases or implementation details that are readily discoverable from source. If so, draft the addition or correction, present it to the user for approval, and edit this file only when approved — never silently. Proposing before the commit confirmation lets an approved change land in the same commit. If nothing qualifies, propose nothing.
 
 ## Key Commands
 
