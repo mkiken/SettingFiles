@@ -936,6 +936,39 @@ function fwt() {
 alias fwtw='fwt -w'
 alias fwts='fwt -s'
 
+# 現在のリポジトリのworktreeをfilterで選択し、カレントpaneでcdする
+# zoxideは挟まず現在リポジトリのworktreeのみが対象（fwmoのgit版）
+function fgwt() {
+  local worktree_path
+  worktree_path=$(_filter_git_worktree_path)
+
+  if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  save_history cd "$worktree_path"
+}
+
+# 現在のリポジトリのworktreeをfilterで選択し、herdrの新しいタブで開く（cd済みシェル）
+# herdr専用（HERDR_ENV=1のときのみ）。新タブではcdするだけでAIエージェントは起動しない。
+function fgwtc() {
+  if [[ "$(_ai_multiplexer_kind)" != "herdr" ]]; then
+    echo "fgwtc はherdr環境専用です（HERDR_ENV=1のときのみ動作します）" >&2
+    return 1
+  fi
+
+  local worktree_path
+  worktree_path=$(_filter_git_worktree_path)
+
+  if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  # cwdで新ペインの開始ディレクトリを指定するためcdは不要。
+  # commandは必須引数のためno-opの ':' を渡す。
+  _herdr_run_in_new_tab "" "$worktree_path" "${worktree_path:t}" ":" || return 1
+}
+
 # workmux listからworktree名とフルパスをfilterで選択する内部関数
 # 戻り値: "<name>\t<path>"、キャンセル時は $EXIT_CODE_SIGINT で終了
 function _filter_workmux_worktree_with_path() {
