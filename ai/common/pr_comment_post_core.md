@@ -125,6 +125,32 @@ jq -n \
 
 Treat a null `line`, a legacy-only `position`, a count mismatch, or any anchor/body/commit mismatch as verification failure. Do not retry or repost, because that can create duplicate review comments. Report the review URL or ID and the exact mismatch for manual correction. Report success only after both the review-body and inline-comment verifications pass.
 
+If the `pulls/{pr_number}/comments` fetch itself keeps failing with transient server errors (e.g. HTTP 503) while other endpoints respond, do not abandon verification: run the equivalent check via the GraphQL API, which is served separately and can survive REST partial outages. Field mapping: `side`/`start_side` live on `PullRequestReviewThread` as `diffSide`/`startDiffSide` (not on `PullRequestReviewComment`), `start_line` is `startLine`, the commit is `commit.oid`; match `path`, `line`, `startLine`, and the full `body` verbatim against the payload:
+
+```bash
+gh api graphql -f query='
+query {
+  repository(owner: "{owner}", name: "{repo}") {
+    pullRequest(number: {pr_number}) {
+      reviews(last: 5) {
+        nodes {
+          databaseId
+          comments(first: 50) { totalCount nodes { path line startLine commit { oid } body } }
+        }
+      }
+      reviewThreads(first: 50) {
+        nodes {
+          path line startLine diffSide startDiffSide
+          comments(first: 1) { nodes { pullRequestReview { databaseId } } }
+        }
+      }
+    }
+  }
+}'
+```
+
+Select the review by `databaseId == $review_id`, verify its comments, and take the side fields from the matching threads (single-line threads report `startLine` equal to `line` and a null `startDiffSide`; treat that as matching a comment posted without a range). Declare verification failure only after both the REST and GraphQL paths are unavailable or mismatch.
+
 ## Fallbacks
 
 For non-PENDING Review API failures, first post the review summary once with `gh pr comment {pr_number} --body "$review_body"`, then post comments individually:
