@@ -540,14 +540,41 @@ function setup_herdr_service() {
   brew services restart herdr
 }
 
+function setup_herdr_plugins() {
+  # notify-rich プラグイン(terminal/herdr/plugins/notify-rich)を herdr に登録する。
+  # Herdr自身のtoastの代わりにこのリポジトリのリッチMac通知を出すためのevent hookプラグイン。
+  # 冪等: plugin list に既に notify-rich が登録済みならlinkし直さない。
+  local repo_root="${1:-$Repo}"
+  local plugin_dir="${repo_root%/}/terminal/herdr/plugins/notify-rich"
+
+  _herdr_require_command herdr || return 1
+  _herdr_require_command jq || return 1
+
+  if [[ ! -f "$plugin_dir/herdr-plugin.toml" ]]; then
+    echo "Error: managed Herdr plugin manifest is unavailable: $plugin_dir/herdr-plugin.toml" >&2
+    return 1
+  fi
+
+  local already_linked=""
+  already_linked="$(herdr plugin list --json 2>/dev/null \
+    | jq -e '.result.plugins[]? | select(.plugin_id=="notify-rich")' >/dev/null 2>&1 && echo 1)"
+  if [[ -n "$already_linked" ]]; then
+    echo "✓ Herdr plugin already linked: notify-rich"
+    return 0
+  fi
+
+  herdr plugin link "$plugin_dir"
+}
+
 function setup_herdr() {
   local repo_root="${1:-$Repo}"
   local target_home="${2:-$HOME}"
 
   setup_herdr_config "$repo_root" "$target_home" || return 1
   setup_herdr_integrations "$repo_root" "$target_home" || return 1
-  # service常駐化は best-effort。失敗しても config/hook 登録という本体処理は成立済みなので
-  # initialize/update 全体を止めない。
+  # プラグイン登録とservice常駐化は best-effort。失敗しても config/hook 登録という
+  # 本体処理は成立済みなので initialize/update 全体を止めない。
+  setup_herdr_plugins "$repo_root" || echo "Warning: failed to link herdr notify-rich plugin; rich notifications not applied" >&2
   setup_herdr_service || echo "Warning: failed to (re)start herdr brew service; server persistence not applied" >&2
   return 0
 }

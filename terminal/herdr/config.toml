@@ -39,7 +39,9 @@ pane_borders = true
 
 show_agent_labels_on_pane_borders = true
 [ui.toast]
-delivery = "system"
+# Rich Mac notifications now come from the notify-rich plugin (terminal/herdr/plugins/notify-rich),
+# which reacts to pane.agent_status_changed; Herdr's own toast is disabled to avoid double notifications.
+delivery = "off"
 delay_seconds = 1
 
 [ui.sound]

@@ -50,7 +50,7 @@ class HerdrConfigurationTest(unittest.TestCase):
                 "new_cwd": "follow",
             },
         )
-        self.assertEqual(config["ui"]["toast"], {"delivery": "system", "delay_seconds": 1})
+        self.assertEqual(config["ui"]["toast"], {"delivery": "off", "delay_seconds": 1})
         self.assertFalse(config["ui"]["sound"]["enabled"])
         self.assertTrue(config["session"]["resume_agents_on_restore"])
         self.assertFalse(config["experimental"]["pane_history"])
@@ -286,13 +286,14 @@ class HerdrServiceSetupTest(unittest.TestCase):
         self.assertEqual(result.stdout.splitlines(), ["brew services restart herdr", "rc=1"])
 
     def test_setup_herdr_treats_service_failure_as_best_effort(self):
-        # source が本物の setup_herdr_config/integrations/service を定義するため、
+        # source が本物の setup_herdr_config/integrations/plugins/service を定義するため、
         # モックは source の後で上書きする。
         script = "; ".join(
             (
                 "source mac/scripts/herdr.sh",
                 "function setup_herdr_config() { return 0; }",
                 "function setup_herdr_integrations() { return 0; }",
+                "function setup_herdr_plugins() { return 0; }",
                 "function setup_herdr_service() { return 1; }",
                 'setup_herdr "/tmp/repo" "/tmp/home"',
                 "print -r -- rc=$?",
@@ -302,6 +303,108 @@ class HerdrServiceSetupTest(unittest.TestCase):
 
         self.assertEqual(result.stdout.splitlines()[-1], "rc=0")
         self.assertIn("Warning: failed to (re)start herdr brew service", result.stderr)
+
+    def test_setup_herdr_treats_plugin_failure_as_best_effort(self):
+        script = "; ".join(
+            (
+                "source mac/scripts/herdr.sh",
+                "function setup_herdr_config() { return 0; }",
+                "function setup_herdr_integrations() { return 0; }",
+                "function setup_herdr_plugins() { return 1; }",
+                "function setup_herdr_service() { return 0; }",
+                'setup_herdr "/tmp/repo" "/tmp/home"',
+                "print -r -- rc=$?",
+            )
+        )
+        result = run_zsh(script)
+
+        self.assertEqual(result.stdout.splitlines()[-1], "rc=0")
+        self.assertIn("Warning: failed to link herdr notify-rich plugin", result.stderr)
+
+
+class HerdrPluginSetupTest(unittest.TestCase):
+    def run_setup_herdr_plugins(
+        self,
+        *,
+        herdr_present: bool = True,
+        jq_present: bool = True,
+        already_linked: bool = False,
+        link_rc: int = 0,
+        manifest_present: bool = True,
+    ) -> subprocess.CompletedProcess[str]:
+        definitions = []
+        plugins_json = (
+            '{"result":{"plugins":[{"plugin_id":"notify-rich"}]}}'
+            if already_linked
+            else '{"result":{"plugins":[]}}'
+        )
+        if herdr_present:
+            definitions.append(
+                "function herdr() {\n"
+                '  if [[ "$1" == "plugin" && "$2" == "list" ]]; then\n'
+                f"    print -r -- '{plugins_json}'\n"
+                "    return 0\n"
+                '  elif [[ "$1" == "plugin" && "$2" == "link" ]]; then\n'
+                '    print -r -- "plugin link $3"\n'
+                f"    return {link_rc}\n"
+                "  fi\n"
+                "}"
+            )
+        repo_root = REPO_ROOT if manifest_present else "/tmp/settingfiles-plugin-manifest-missing"
+
+        script = "; ".join(
+            (
+                *definitions,
+                "source mac/scripts/herdr.sh",
+                f'setup_herdr_plugins "{repo_root}"',
+                "print -r -- rc=$?",
+            )
+        )
+        if jq_present:
+            return run_zsh(script)
+        # jq自体はシステムPATH上の実体(/usr/bin/jq)なので関数モックでは隠せない。
+        # 「jqが無い」環境を再現するため、jqを含まない空ディレクトリだけのPATHを渡す。
+        return run_zsh(script, {"PATH": "/nonexistent-empty-bin"})
+
+    def test_links_plugin_when_not_yet_registered(self):
+        result = self.run_setup_herdr_plugins(already_linked=False)
+
+        self.assertIn(
+            f"plugin link {REPO_ROOT}/terminal/herdr/plugins/notify-rich",
+            result.stdout,
+        )
+        self.assertEqual(result.stdout.splitlines()[-1], "rc=0")
+
+    def test_skips_link_when_already_registered(self):
+        result = self.run_setup_herdr_plugins(already_linked=True)
+
+        self.assertEqual(
+            result.stdout.splitlines(),
+            ["✓ Herdr plugin already linked: notify-rich", "rc=0"],
+        )
+
+    def test_link_failure_propagates_as_nonzero(self):
+        result = self.run_setup_herdr_plugins(already_linked=False, link_rc=1)
+
+        self.assertEqual(result.stdout.splitlines()[-1], "rc=1")
+
+    def test_missing_manifest_fails_before_calling_herdr(self):
+        result = self.run_setup_herdr_plugins(manifest_present=False)
+
+        self.assertEqual(result.stdout.splitlines(), ["rc=1"])
+        self.assertIn("managed Herdr plugin manifest is unavailable", result.stderr)
+
+    def test_missing_herdr_command_fails(self):
+        result = self.run_setup_herdr_plugins(herdr_present=False)
+
+        self.assertEqual(result.stdout.splitlines(), ["rc=1"])
+        self.assertIn("required command not found: herdr", result.stderr)
+
+    def test_missing_jq_command_fails(self):
+        result = self.run_setup_herdr_plugins(jq_present=False)
+
+        self.assertEqual(result.stdout.splitlines(), ["rc=1"])
+        self.assertIn("required command not found: jq", result.stderr)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,9 @@
+id = "notify-rich"
+name = "Rich Mac Notifications"
+version = "0.1.0"
+min_herdr_version = "0.7.4"
+platforms = ["macos"]
+
+[[events]]
+on = "pane.agent_status_changed"
+command = ["zsh", "notify-on-agent-status.sh"]
