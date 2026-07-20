@@ -13,7 +13,7 @@ TMUX_ALIASES = REPO_ROOT / "shell/zsh/alias/tmux.zsh"
 ZSH = shutil.which("zsh")
 
 
-class FwtTest(unittest.TestCase):
+class RepositoryWorktreeTest(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.root = Path(self.temp_dir.name)
@@ -81,7 +81,7 @@ class FwtTest(unittest.TestCase):
             "exit 0\n",
         )
 
-    def run_fwt(self, command="fwt", *args, tmux=False, extra_env=None):
+    def run_repository_worktree(self, command="repository-worktree", *args, tmux=False, extra_env=None):
         for path in (self.root / "filter-count", self.tmux_log):
             if path.exists():
                 path.unlink()
@@ -133,7 +133,7 @@ class FwtTest(unittest.TestCase):
         return self.tmux_log.read_text().splitlines() if self.tmux_log.exists() else []
 
     def test_moves_current_shell_without_tmux_or_rename(self):
-        result, values = self.run_fwt()
+        result, values = self.run_repository_worktree()
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(values["__STATUS"], "0", result.stderr)
@@ -141,9 +141,9 @@ class FwtTest(unittest.TestCase):
         self.assertEqual(self.tmux_calls(), [])
 
     def test_creates_window_for_flag_and_alias(self):
-        for command in ("fwt -w", "fwtw"):
+        for command in ("repository-worktree -w", "frww"):
             with self.subTest(command=command):
-                result, values = self.run_fwt(command, tmux=True)
+                result, values = self.run_repository_worktree(command, tmux=True)
 
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(values["__STATUS"], "0", result.stderr)
@@ -152,9 +152,9 @@ class FwtTest(unittest.TestCase):
                 )
 
     def test_creates_and_switches_session_for_flag_and_alias(self):
-        for command in ("fwt -s", "fwts"):
+        for command in ("repository-worktree -s", "frws"):
             with self.subTest(command=command):
-                result, values = self.run_fwt(
+                result, values = self.run_repository_worktree(
                     command,
                     tmux=True,
                     extra_env={"FWT_SESSION_NAME": "generated-session"},
@@ -179,18 +179,23 @@ class FwtTest(unittest.TestCase):
                 )
 
     def test_rejects_invalid_arguments(self):
-        cases = ("fwt -w -s", "fwt -x", "fwt path", "fwt -- path")
+        cases = (
+            "repository-worktree -w -s",
+            "repository-worktree -x",
+            "repository-worktree path",
+            "repository-worktree -- path",
+        )
         for command in cases:
             with self.subTest(command=command):
-                result, values = self.run_fwt(command)
+                result, values = self.run_repository_worktree(command)
 
                 self.assertEqual(values["__STATUS"], "2")
-                self.assertIn("Usage: fwt [-w|-s]", result.stderr)
+                self.assertIn("Usage: repository-worktree [-w|-s]", result.stderr)
 
     def test_requires_a_tmux_client_for_window_and_session_modes(self):
-        for command in ("fwt -w", "fwt -s"):
+        for command in ("repository-worktree -w", "repository-worktree -s"):
             with self.subTest(command=command):
-                result, values = self.run_fwt(command)
+                result, values = self.run_repository_worktree(command)
 
                 self.assertEqual(values["__STATUS"], "1")
                 self.assertIn("tmux内で実行してください", result.stderr)
@@ -204,13 +209,13 @@ class FwtTest(unittest.TestCase):
         )
         for description, extra_env in cases:
             with self.subTest(description=description):
-                result, values = self.run_fwt(extra_env=extra_env)
+                result, values = self.run_repository_worktree(extra_env=extra_env)
 
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(values["__STATUS"], "130", result.stderr)
 
     def test_can_move_to_the_main_repository_itself(self):
-        result, values = self.run_fwt(extra_env={"FWT_FILTER_TARGET": "repo"})
+        result, values = self.run_repository_worktree(extra_env={"FWT_FILTER_TARGET": "repo"})
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(values["__STATUS"], "0", result.stderr)

@@ -870,22 +870,22 @@ function _filter_zoxide_git_worktree_path() {
 }
 
 # zoxideからリポジトリとworktreeを選択して移動する
-# Usage: fwt [-w|-s]
-function fwt() {
+# Usage: repository-worktree [-w|-s]
+function repository-worktree() {
   local mode=""
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
       -w)
         if [[ -n "$mode" ]]; then
-          echo "Usage: fwt [-w|-s]" >&2
+          echo "Usage: repository-worktree [-w|-s]" >&2
           return 2
         fi
         mode="window"
         ;;
       -s)
         if [[ -n "$mode" ]]; then
-          echo "Usage: fwt [-w|-s]" >&2
+          echo "Usage: repository-worktree [-w|-s]" >&2
           return 2
         fi
         mode="session"
@@ -895,7 +895,7 @@ function fwt() {
         break
         ;;
       *)
-        echo "Usage: fwt [-w|-s]" >&2
+        echo "Usage: repository-worktree [-w|-s]" >&2
         return 2
         ;;
     esac
@@ -903,7 +903,7 @@ function fwt() {
   done
 
   if [[ $# -gt 0 ]]; then
-    echo "Usage: fwt [-w|-s]" >&2
+    echo "Usage: repository-worktree [-w|-s]" >&2
     return 2
   fi
 
@@ -933,8 +933,9 @@ function fwt() {
   esac
 }
 
-alias fwtw='fwt -w'
-alias fwts='fwt -s'
+alias frw='repository-worktree'
+alias frww='repository-worktree -w'
+alias frws='repository-worktree -s'
 
 # 現在のリポジトリのworktreeをfilterで選択し、カレントpaneでcdする
 # zoxideは挟まず現在リポジトリのworktreeのみが対象（fwmoのgit版）
