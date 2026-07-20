@@ -14,7 +14,6 @@ manifest_check = true
 
 [keys]
 prefix = "ctrl+t"
-reload_config = "prefix+shift+r"
 
 [ui]
 mouse_capture = true
