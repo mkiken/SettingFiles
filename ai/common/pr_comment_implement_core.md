@@ -67,6 +67,33 @@ designing the change:
 The URL target is primary; same-thread replies are required context. Reflect
 their corrections, constraints, or implementation intent in the design.
 
+For `REPLY_PATH=thread`, determine the target comment's role before
+designing — this is reused in Phase 2's handoff and in Phase 5, and must not
+be guessed:
+
+```bash
+META=$(gh api "repos/${OWNER}/${REPO}/pulls/comments/${COMMENT_ID}" \
+       --jq '{login: .user.login, type: .user.type}')
+COMMENT_AUTHOR=$(echo "$META" | jq -r '.login')
+COMMENT_AUTHOR_TYPE=$(echo "$META" | jq -r '.type')
+SELF_LOGIN=$(gh api user --jq '.login' 2>/dev/null || echo "")
+
+# Bot: type == "Bot" OR login ends with "[bot]"
+IS_BOT=false
+[ "$COMMENT_AUTHOR_TYPE" = "Bot" ] && IS_BOT=true
+case "$COMMENT_AUTHOR" in *"[bot]") IS_BOT=true ;; esac
+
+# Self: matches the logged-in gh account — a local AI's own posts go through
+# this same account, so they count as self too.
+IS_SELF=false
+[ -n "$SELF_LOGIN" ] && [ "$COMMENT_AUTHOR" = "$SELF_LOGIN" ] && IS_SELF=true
+```
+
+If `gh api user` fails, proceed with `IS_SELF=false`. Derive `ROLE` as `bot`
+when `IS_BOT`, else `self` when `IS_SELF`, else `other` (bot takes priority
+when both would match). For `REPLY_PATH=standalone` (no `COMMENT_ID`), skip
+this and treat `ROLE` as not applicable.
+
 Read affected files and surrounding code. If the comment targets stale code,
 inspect the current equivalent symbol or concept.
 
@@ -100,6 +127,7 @@ Before editing, present this Japanese design and wait for explicit approval:
 ### PR返信引き継ぎ
 - Reply方式: thread reply / standalone / なし
 - Reply target: <comment_id or pull number, or なし>
+  （author: <login>、type: <Bot|User>、role: <self|bot|other>）
 - Resolve候補: <thread id and unresolved status, or why resolve is unavailable>
 - 実装後の手順: Phase 5 と Phase 6 を必ず継続する
 - Reply本文作成: 実装差分、または変更不要の根拠と検証結果を反映して作成する
@@ -117,6 +145,11 @@ the GitHub response workflow. If a target cannot be fully determined before
 implementation, state the exact item to re-fetch instead of omitting it. In
 plan mode, write this design (including that section) into the platform's
 plan artifact.
+
+`role` is the `ROLE` value already derived in Phase 1 (`gh api user` vs. the
+comment author) — never write a guessed `other` here. A comment authored by
+the logged-in account (including one posted by a local AI through that same
+account) is `self`, not `other`.
 
 If the analysis shows that the requested behavior already matches repository
 conventions or that no code change is warranted, set `NO_CODE_CHANGE=true` in
@@ -159,26 +192,9 @@ comment, summarizes the change, and follows the repository convention. Do
 **not** commit yet. For the no-change workflow, omit commit preparation and
 all commit placeholders.
 
-For `thread`, determine whether the original author is bot/self:
-
-```bash
-META=$(gh api "repos/${OWNER}/${REPO}/pulls/comments/${COMMENT_ID}" \
-       --jq '{login: .user.login, type: .user.type}')
-COMMENT_AUTHOR=$(echo "$META" | jq -r '.login')
-COMMENT_AUTHOR_TYPE=$(echo "$META" | jq -r '.type')
-SELF_LOGIN=$(gh api user --jq '.login' 2>/dev/null || echo "")
-
-# Bot: type == "Bot" OR login ends with "[bot]"
-IS_BOT=false
-[ "$COMMENT_AUTHOR_TYPE" = "Bot" ] && IS_BOT=true
-case "$COMMENT_AUTHOR" in *"[bot]") IS_BOT=true ;; esac
-
-# Self
-IS_SELF=false
-[ -n "$SELF_LOGIN" ] && [ "$COMMENT_AUTHOR" = "$SELF_LOGIN" ] && IS_SELF=true
-```
-
-If `gh api user` fails, proceed with `IS_SELF=false`.
+For `thread`, reuse `COMMENT_AUTHOR` / `COMMENT_AUTHOR_TYPE` / `IS_BOT` /
+`IS_SELF` / `ROLE` already determined in Phase 1 — do not re-fetch or
+re-derive them here.
 
 Only when `REPLY_PATH=thread` and the author is bot/self, fetch the review
 thread:
