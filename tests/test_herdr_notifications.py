@@ -64,7 +64,7 @@ class HerdrNotificationTest(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("invalid hook input JSON", result.stderr)
 
-    def test_gemini_keeps_context_alert_but_skips_native_duplicate(self) -> None:
+    def test_gemini_notifies_and_keeps_context_alert_under_herdr(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             fake_repo = root / "repo"
@@ -165,7 +165,14 @@ class HerdrNotificationTest(unittest.TestCase):
             )
 
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertEqual(events.read_text(encoding="utf-8").splitlines(), ["context"])
+            # Gemini has no Herdr installer integration and opts out of notify-rich, so
+            # this hook must notify even under HERDR_ENV=1 (icon is still skipped: no
+            # tmux window exists under Herdr). Order: transcript summary -> title ->
+            # notify -> context alert.
+            self.assertEqual(
+                events.read_text(encoding="utf-8").splitlines(),
+                ["summary", "title", "notify", "context"],
+            )
 
 
 if __name__ == "__main__":

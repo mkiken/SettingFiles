@@ -1,7 +1,9 @@
 #!/bin/zsh
 # Herdr event hook for `pane.agent_status_changed`: replaces Herdr's plain OS toast
 # with this repository's rich Mac notification (terminal-notifier, session title,
-# workspace/tab label, sound), matching the look of the Claude/Codex/Gemini hooks.
+# workspace/tab label, sound), matching the look of the Claude/Codex hooks.
+# Gemini is excluded entirely (see the agent=="gemini" guard below) and handled by
+# its own hooks instead.
 #
 # Deliberately no `set -e`: a failed lookup should fall back to "no notification",
 # never abort mid-way and leave the agent silently un-notified (same policy as
@@ -15,6 +17,15 @@ event_json="${HERDR_PLUGIN_EVENT_JSON:-}"
 agent="$(print -r -- "$event_json" | jq -r '.data.agent // empty' 2>/dev/null)"
 # `status` is a read-only zsh special parameter (last exit code) — use agent_status instead.
 agent_status="$(print -r -- "$event_json" | jq -r '.data.agent_status // empty' 2>/dev/null)"
+
+# Gemini has no official Herdr installer integration, so its agent_status is derived
+# solely from Herdr's screen-manifest detection and oscillates done<->working<->idle,
+# firing this plugin many times per response (tab renames included). Gemini therefore
+# opts OUT of the notify-rich single-source model entirely (notification AND tab
+# rename) and notifies via its own AfterAgent/Notification tmux hooks
+# (ai/gemini/hooks/notification.sh, HERDR guard relaxed there). Claude/Codex report
+# status accurately via their installers and stay managed by this plugin.
+[[ "$agent" == "gemini" ]] && exit 0
 
 herdr_bin="${HERDR_BIN_PATH:-herdr}"
 pane_id="${HERDR_PANE_ID:-}"

@@ -91,14 +91,17 @@ ACTION_DETAIL="${ACTION_DETAIL:-}"
 # notify は後続のトランスクリプト解析（要約生成）の後になり、統合するとアイコン表示が遅れるため。
 # バックグラウンド起動でpython3起動(数十ms)をクリティカルパスから外す。
 # 後続の解析+notifyが必ず長く走るため、フック終了前にアイコン設定は完了する。
-if [[ "${IN_HERDR}" != "true" && "${EVENT_TYPE}" == "notification" ]]; then
+if [[ "${EVENT_TYPE}" == "notification" ]]; then
     if [[ "${NOTIFICATION_TYPE}" != "ToolPermission" ]]; then
         debug_log "Ignoring notification type: ${NOTIFICATION_TYPE}"
         exit 0
     fi
-    update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}" &
-elif [[ "${IN_HERDR}" != "true" && "${EVENT_TYPE}" == "after_agent" ]]; then
-    update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}" &
+    # tmux icon is meaningless under Herdr (no tmux window); skip it there but keep
+    # the ToolPermission filter above active so notifications are gated identically
+    # (Gemini opts out of notify-rich and relies on this hook even under Herdr).
+    [[ "${IN_HERDR}" != "true" ]] && update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}" &
+elif [[ "${EVENT_TYPE}" == "after_agent" ]]; then
+    [[ "${IN_HERDR}" != "true" ]] && update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}" &
 fi
 
 # ------------------------------------------------------------------
@@ -115,7 +118,9 @@ if [[ -z "${session_id}" && -n "${transcript_path}" && "${transcript_path}" != "
 fi
 [[ -z "${session_id}" || "${session_id}" == "." ]] && session_id="default"
 
-if [[ "${IN_HERDR}" != "true" ]]; then
+# Gemini has no official Herdr installer integration and opts out of notify-rich
+# (see terminal/herdr/plugins/notify-rich/notify-on-agent-status.sh), so this
+# notification body must fire under Herdr too — no IN_HERDR guard here.
 notification_group=$(build_notification_group "${session_id}")
 debug_log "Session ID: ${session_id}, Notification group: ${notification_group}"
 
@@ -184,7 +189,6 @@ notification_title=$(build_ai_title "✅" "終了")
 debug_log "Sending notification: title='${notification_title}', message='${summary}'"
 
 notify "${notification_title}" "${summary:-💭 メッセージなし}" "Purr" "${notification_group}" "${completion_time}"
-fi
 
 # --- context逼迫アラート ---
 # 最新chat JSONLの探索（旧find|stat|sort|head|cut連鎖）とトークン抽出（旧インライン

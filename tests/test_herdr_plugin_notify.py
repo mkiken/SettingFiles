@@ -174,14 +174,11 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(events, [])
 
-    def test_codex_and_gemini_use_their_own_id_emoji(self):
-        cases = (("codex", "CODEX_ID"), ("gemini", "GEMINI_ID"))
-        for agent, expected_id in cases:
-            with self.subTest(agent=agent):
-                result, events = self.run_plugin(agent=agent, agent_status="done")
+    def test_codex_uses_its_own_id_emoji(self):
+        result, events = self.run_plugin(agent="codex", agent_status="done")
 
-                self.assertEqual(result.returncode, 0, result.stderr)
-                self.assertTrue(any(line.startswith(f"title={expected_id}DONE") for line in events))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(any(line.startswith("title=CODEX_IDDONE") for line in events))
 
     def test_unrecognized_agent_falls_back_to_robot_emoji(self):
         result, events = self.run_plugin(agent="unknown-agent", agent_status="done")
@@ -223,6 +220,22 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("message=(no title)", events)
         self.assertIn("group=", events)
+
+    def test_gemini_done_does_not_notify(self):
+        # Gemini has no Herdr installer integration; its agent_status is derived solely
+        # from screen-manifest detection and oscillates, firing this gate many times per
+        # response. Gemini opts out of notify-rich entirely (see the agent=="gemini"
+        # guard) and notifies via its own hooks instead (ai/gemini/hooks/notification.sh).
+        result, events = self.run_plugin(agent="gemini", agent_status="done")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(events, [])
+
+    def test_gemini_blocked_does_not_notify(self):
+        result, events = self.run_plugin(agent="gemini", agent_status="blocked")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(events, [])
 
 
 class HerdrPluginTabIconTest(unittest.TestCase):
@@ -424,20 +437,31 @@ class HerdrPluginTabIconTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, ["w1:t1 ✴️🤖1"])
 
-    def test_gemini_and_codex_use_their_own_id_emoji(self):
-        cases = (("gemini", "💎"), ("codex", "🪷"))
-        for agent, expected_id in cases:
-            with self.subTest(agent=agent):
-                result, calls = self.run_plugin(
-                    agent=agent,
-                    agent_status="working",
-                    tab_status="working",
-                    current_label="1",
-                    title_text="",
-                )
+    def test_codex_uses_its_own_id_emoji(self):
+        result, calls = self.run_plugin(
+            agent="codex",
+            agent_status="working",
+            tab_status="working",
+            current_label="1",
+            title_text="",
+        )
 
-                self.assertEqual(result.returncode, 0, result.stderr)
-                self.assertEqual(calls, [f"w1:t1 {expected_id}🤖1"])
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 🪷🤖1"])
+
+    def test_gemini_working_does_not_rename_tab(self):
+        # Gemini opts out of notify-rich entirely (tab renaming included), not just
+        # notifications — see the agent=="gemini" guard near the top of the script.
+        result, calls = self.run_plugin(
+            agent="gemini",
+            agent_status="working",
+            tab_status="working",
+            current_label="1",
+            title_text="",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, [])
 
     def test_unrecognized_agent_falls_back_to_robot_emoji(self):
         result, calls = self.run_plugin(
