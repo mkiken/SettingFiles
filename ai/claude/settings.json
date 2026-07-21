@@ -177,7 +177,7 @@
       "NotebookEdit"
     ]
   },
-  "preferredNotifChannel": "ghostty",
+  "preferredNotifChannel": "notifications_disabled",
   "skipAutoPermissionPrompt": true,
   "skipDangerousModePermissionPrompt": true,
   "statusLine": {
