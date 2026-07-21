@@ -56,6 +56,7 @@ class RepositoryWorktreeTest(unittest.TestCase):
             "  printf 'worktree %s\\n' \"$FWT_REPO\"\n"
             "  printf 'HEAD %s\\n' \"${FWT_REPO_SHA:-1111111repo}\"\n"
             "  printf 'branch refs/heads/%s\\n' \"${FWT_REPO_BRANCH:-main}\"\n"
+            "  [ \"${FWT_ONLY_MAIN_WORKTREE:-}\" = 1 ] && exit 0\n"
             "  printf '\\n'\n"
             "  printf 'worktree %s\\n' \"$FWT_WORKTREE\"\n"
             "  printf 'HEAD %s\\n' \"${FWT_WORKTREE_SHA:-2222222worktree}\"\n"
@@ -284,6 +285,23 @@ class RepositoryWorktreeTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(values["__STATUS"], "0", result.stderr)
         self.assertEqual(values["__PWD"], str(self.repo))
+
+    def test_skips_selection_and_moves_to_main_repo_when_no_additional_worktree(self):
+        # 追加worktreeが無く本体のみの場合はfilterでの選択UIを出さず、直接本体に移動する
+        result, values = self.run_repository_worktree(
+            extra_env={"FWT_ONLY_MAIN_WORKTREE": "1"}
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        self.assertEqual(values["__PWD"], str(self.repo))
+
+        filter_count_path = self.root / "filter-count"
+        filter_call_count = (
+            int(filter_count_path.read_text()) if filter_count_path.exists() else 0
+        )
+        # リポジトリ選択の1回のみでworktree選択は呼ばれない
+        self.assertEqual(filter_call_count, 1)
 
     def test_moves_to_detached_worktree_shown_with_short_sha(self):
         # detached HEADのworktreeでも、ブランチ欄が短縮SHAになるだけで選択・移動自体は成功する

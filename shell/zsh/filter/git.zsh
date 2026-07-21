@@ -831,6 +831,7 @@ function _filter_zoxide_git_repo() {
 # `git worktree list --porcelain` からworktree（メインリポジトリ含む）をfilterで選択する内部関数
 # workmux（wm）に依存せず、gitのみで完結する
 # 表示は「ディレクトリ名 + ブランチ名」の2列（detachedの場合は短縮SHA）、フルパスはタブ区切りで保持する
+# 追加worktreeが無く本体のみの場合は選択UIを出さず、本体のパスをそのまま返す
 # 戻り値: 選択されたworktreeのフルパス、キャンセル/候補ゼロ時は $EXIT_CODE_SIGINT
 function _filter_git_worktree_path() {
   local raw_list
@@ -839,6 +840,14 @@ function _filter_git_worktree_path() {
   if [[ -z "$raw_list" ]]; then
     echo "選択可能なworktreeがありません" >&2
     return $EXIT_CODE_SIGINT
+  fi
+
+  # 追加worktreeが無く本体のみ（worktree行が1件）なら選択UIを出さず、そのパスを直接返す
+  local worktree_line_count
+  worktree_line_count=$(print -r -- "$raw_list" | grep -c '^worktree ')
+  if [[ "$worktree_line_count" -eq 1 ]]; then
+    print -r -- "$raw_list" | awk '/^worktree /{print substr($0, 10)}'
+    return 0
   fi
 
   local worktrees
