@@ -26,10 +26,10 @@ new_workspace = "prefix+shift+c"
 switch_workspace = "prefix+shift+1..9"
 open_worktree = "prefix+shift+o"
 
-# agent operations (alt modifier)
-focus_agent = "prefix+alt+1..9"
-next_agent = "prefix+alt+n"
-previous_agent = "prefix+alt+p"
+# agent operations (ctrl modifier)
+focus_agent = "prefix+ctrl+1..9"
+next_agent = "prefix+ctrl+n"
+previous_agent = "prefix+ctrl+p"
 
 [[keys.command]]
 key = "prefix+ctrl+g"
