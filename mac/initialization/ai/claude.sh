@@ -71,6 +71,6 @@ claude -p "/plugin install dev-browser@sawyerhood/dev-browser"
 setup_claude_superpowers
 setup_claude_context_mode
 setup_claude_mem
-setup_gsd_core_for_runtime claude || exit 1
+setup_gsd_core_for_runtime claude install || exit 1
 
 echo 'Claude setup and tools installation completed.'

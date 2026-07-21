@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import tempfile
 import unittest
@@ -14,7 +15,9 @@ def read_text(path: str) -> str:
 
 
 class GsdCoreSetupTest(unittest.TestCase):
-    def run_helper(self, *arguments: str) -> tuple[subprocess.CompletedProcess[str], list[str]]:
+    def run_helper(
+        self, *arguments: str, home: str | None = None
+    ) -> tuple[subprocess.CompletedProcess[str], list[str]]:
         script = f'''
 source "{GSD_HELPER}"
 
@@ -36,12 +39,17 @@ function _fix_claude_gsd_write_permissions() {{
 
 setup_gsd_core_for_runtime "$@"
 '''
+        env = None
+        if home is not None:
+            env = {**os.environ, "HOME": home}
+
         result = subprocess.run(
             ["zsh", "-c", script, "gsd-core-test", *arguments],
             cwd=REPO_ROOT,
             capture_output=True,
             text=True,
             check=False,
+            env=env,
         )
         captured_arguments = result.stdout.splitlines()
 
@@ -111,6 +119,33 @@ _normalize_codex_gsd_hooks "$2" "$3" "$1"
                         )
                 return absolute_group
 
+            def reordered_absolute_gsd_group(
+                group: dict[str, object], hook_home: Path
+            ) -> dict[str, object]:
+                # 実際に gsd-core 1.7.0 が live に書き込む絶対パスグループの形を再現する:
+                # command を書き換えるだけでなくキー挿入順を逆転させる（type を command より先に）。
+                # jq の tojson はキー順を保持するため、これがないと dedup キー生成のバグ
+                # （hook_key の tojson がキー順に依存していた）を再現できない。
+                absolute_group = json.loads(json.dumps(group))
+                reordered_hooks = []
+                for hook in absolute_group["hooks"]:
+                    command = hook["command"]
+                    if command.startswith("node ~/.codex/hooks/gsd-"):
+                        script_name = command.rsplit("/", 1)[1]
+                        new_command = (
+                            f'"/opt/homebrew/bin/node" '
+                            f'"{hook_home}/.codex/hooks/{script_name}"'
+                        )
+                        reordered_hook = {"type": hook["type"], "command": new_command}
+                        for key, value in hook.items():
+                            if key not in ("command", "type"):
+                                reordered_hook[key] = value
+                        reordered_hooks.append(reordered_hook)
+                    else:
+                        reordered_hooks.append(hook)
+                absolute_group["hooks"] = reordered_hooks
+                return absolute_group
+
             def add_gsd_duplicates(copies: int) -> None:
                 for groups in live_hooks["hooks"].values():
                     gsd_groups = [
@@ -131,6 +166,35 @@ _normalize_codex_gsd_hooks "$2" "$3" "$1"
                 add_gsd_duplicates(1)
             elif variant == "multiple-gsd-duplicates":
                 add_gsd_duplicates(3)
+            elif variant == "portable-absolute-duplicate-reordered-keys":
+                # live 障害の再現: SessionStart の gsd-check-update グループ（timeout 無し、
+                # キー順 command→type）に対し、キー順を逆転させた絶対パス複製を別グループとして追加。
+                # canon 修正前はこの重複が dedup で消えず、live で観測された不一致を再現する。
+                for groups in live_hooks["hooks"].values():
+                    gsd_groups = [
+                        group
+                        for group in groups
+                        if any(
+                            hook["command"].startswith("node ~/.codex/hooks/gsd-")
+                            for hook in group["hooks"]
+                        )
+                    ]
+                    for group in gsd_groups:
+                        groups.append(reordered_absolute_gsd_group(group, home))
+            elif variant == "non-gsd-duplicate-reordered-keys":
+                # canon が非GSDフックまで巻き込んで誤って縮約しないことの境界確認:
+                # 非GSDグループのキー順を逆転させた複製でも「重複」とみなされず、
+                # 依然として preserving で拒否されるべき（is_portable_gsd_hook ガードは不変）。
+                notification_group = live_hooks["hooks"]["PermissionRequest"][0]
+                reordered_group = json.loads(json.dumps(notification_group))
+                reordered_group["hooks"] = [
+                    {
+                        key: hook[key]
+                        for key in sorted(hook.keys(), reverse=True)
+                    }
+                    for hook in reordered_group["hooks"]
+                ]
+                live_hooks["hooks"]["PermissionRequest"].append(reordered_group)
             elif variant == "non-gsd-duplicate":
                 notification_group = live_hooks["hooks"]["PermissionRequest"][0]
                 live_hooks["hooks"]["PermissionRequest"].append(
@@ -297,6 +361,83 @@ _restore_managed_codex_gsd_hooks "$1" "$2"
                 self.assertEqual(captured_arguments, [])
                 self.assertIn("expected GSD Core runtime", result.stderr)
 
+    def test_unknown_mode_fails_before_invoking_npx(self):
+        result, captured_arguments = self.run_helper("codex", "bogus-mode")
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(captured_arguments, [])
+        self.assertIn("expected GSD Core mode", result.stderr)
+
+    def test_install_mode_skips_when_already_set_up(self):
+        for runtime in ("claude", "codex"):
+            with self.subTest(runtime=runtime):
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    home = Path(temp_dir)
+                    version_dir = home / f".{runtime}" / "gsd-core"
+                    version_dir.mkdir(parents=True)
+                    (version_dir / "VERSION").write_text("1.7.0", encoding="utf-8")
+
+                    result, captured_arguments = self.run_helper(
+                        runtime, "install", home=str(home)
+                    )
+
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertNotIn("--portable-hooks", captured_arguments)
+                    self.assertIn("already set up", result.stdout)
+
+    def test_install_mode_runs_npx_when_not_yet_set_up(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            home = Path(temp_dir)
+
+            result, captured_arguments = self.run_helper(
+                "codex", "install", home=str(home)
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("--portable-hooks", captured_arguments)
+
+    def test_update_mode_always_runs_npx_even_if_already_set_up(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            home = Path(temp_dir)
+            version_dir = home / ".codex" / "gsd-core"
+            version_dir.mkdir(parents=True)
+            (version_dir / "VERSION").write_text("1.7.0", encoding="utf-8")
+
+            result, captured_arguments = self.run_helper(
+                "codex", "update", home=str(home)
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("--portable-hooks", captured_arguments)
+
+    def test_default_mode_is_update_and_runs_npx_even_if_already_set_up(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            home = Path(temp_dir)
+            version_dir = home / ".codex" / "gsd-core"
+            version_dir.mkdir(parents=True)
+            (version_dir / "VERSION").write_text("1.7.0", encoding="utf-8")
+
+            result, captured_arguments = self.run_helper("codex", home=str(home))
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("--portable-hooks", captured_arguments)
+
+    def test_install_mode_checks_runtime_specific_version_path(self):
+        # claude 側に VERSION があっても codex install はスキップされない
+        # （ランタイムごとに別パス ~/.<runtime>/gsd-core/VERSION を見る）。
+        with tempfile.TemporaryDirectory() as temp_dir:
+            home = Path(temp_dir)
+            claude_version_dir = home / ".claude" / "gsd-core"
+            claude_version_dir.mkdir(parents=True)
+            (claude_version_dir / "VERSION").write_text("1.7.0", encoding="utf-8")
+
+            result, captured_arguments = self.run_helper(
+                "codex", "install", home=str(home)
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("--portable-hooks", captured_arguments)
+
     def test_installer_is_noninteractive_and_checks_required_commands(self):
         helper = GSD_HELPER.read_text(encoding="utf-8")
 
@@ -348,7 +489,11 @@ _restore_managed_codex_gsd_hooks "$1" "$2"
                 self.assertEqual(self.normalize_hook_command(command, home), expected)
 
     def test_hook_reconciliation_deduplicates_only_generated_gsd_hooks(self):
-        for variant in ("portable-absolute-duplicate", "multiple-gsd-duplicates"):
+        for variant in (
+            "portable-absolute-duplicate",
+            "multiple-gsd-duplicates",
+            "portable-absolute-duplicate-reordered-keys",
+        ):
             with self.subTest(variant=variant):
                 result, state = self.run_reconcile(variant)
 
@@ -366,6 +511,7 @@ _restore_managed_codex_gsd_hooks "$1" "$2"
     def test_hook_reconciliation_rejects_non_exact_managed_sets(self):
         cases = {
             "non-gsd-duplicate": "preserving",
+            "non-gsd-duplicate-reordered-keys": "preserving",
             "foreign-home": "preserving",
             "unknown-hook": "preserving",
             "missing-gsd": "preserving",
@@ -515,19 +661,19 @@ _restore_managed_codex_gsd_hooks "$1" "$2"
     def test_initialization_and_updates_install_gsd_once_after_existing_setup(self):
         expected_scripts = {
             "mac/initialization/ai/claude.sh": (
-                "setup_gsd_core_for_runtime claude || exit 1",
+                "setup_gsd_core_for_runtime claude install || exit 1",
                 "setup_claude_mem",
             ),
             "mac/updates/claude.sh": (
-                "setup_gsd_core_for_runtime claude || exit 1",
+                "setup_gsd_core_for_runtime claude update || exit 1",
                 "setup_claude_mem",
             ),
             "mac/initialization/ai/codex.sh": (
-                "setup_gsd_core_for_runtime codex || exit 1",
+                "setup_gsd_core_for_runtime codex install || exit 1",
                 'smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml',
             ),
             "mac/updates/codex.sh": (
-                "setup_gsd_core_for_runtime codex || exit 1",
+                "setup_gsd_core_for_runtime codex update || exit 1",
                 'smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml',
             ),
         }

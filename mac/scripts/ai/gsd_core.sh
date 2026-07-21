@@ -11,8 +11,14 @@ function _normalize_codex_gsd_hooks() {
       and ((.command? // null) | type) == "string"
       and (.command | test("^node ~/.codex/hooks/gsd-[^/[:space:]]+\\.js$"));
 
+    # jq の tojson はキー挿入順を保持しソートしない（--sort-keys は最終出力にのみ効く）。
+    # gsd-core が書くポータブル/絶対パス両形式のフックはキー順が異なるため、
+    # dedup キー生成前に canon でキー順を正規化し、値が同一なら同一キーにする。
+    def canon:
+      walk(if type == "object" then to_entries | sort_by(.key) | from_entries else . end);
+
     def hook_key($group):
-      {group: ($group | del(.hooks)), hook: .} | tojson;
+      {group: ($group | del(.hooks)), hook: .} | canon | tojson;
 
     def dedupe_gsd_groups:
       reduce .[] as $group (
@@ -247,6 +253,7 @@ function _fix_claude_gsd_write_permissions() {
 
 function setup_gsd_core_for_runtime() {
   local runtime="$1"
+  local mode="${2:-update}"
 
   case "$runtime" in
     claude|codex) ;;
@@ -255,6 +262,22 @@ function setup_gsd_core_for_runtime() {
       return 1
       ;;
   esac
+
+  case "$mode" in
+    install|update) ;;
+    *)
+      echo "Error: expected GSD Core mode to be install or update." >&2
+      return 1
+      ;;
+  esac
+
+  # init（install モード）は、既にセットアップ済みなら再インストールしない。
+  # gsd-core は再実行のたびに hooks.json へポータブル+絶対パスの重複グループを書き込むため、
+  # 初回セットアップ済み環境での再実行を避けて予防する。update は最新化が目的なので毎回実行する。
+  if [[ "$mode" == "install" && -f "$HOME/.${runtime}/gsd-core/VERSION" ]]; then
+    echo "✓ GSD Core already set up for ${runtime}; skipping."
+    return 0
+  fi
 
   require_ai_setup_command npx || return 1
   require_ai_setup_command "$runtime" || return 1

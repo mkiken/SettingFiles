@@ -47,7 +47,16 @@ function setup_codex_claude_mem() {
   echo "Ensuring Codex claude-mem plugin..."
 
   require_ai_setup_command codex || return 1
+  require_ai_setup_command jq || return 1
 
-  setup_claude_mem_for_ide codex-cli || return 1
+  # 既にインストール済みなら npx install を再実行しない。
+  # claude-mem のインストーラーは再実行のたびに ~/.codex/config.toml に
+  # [plugins.'claude-mem@...'] テーブルを追記するため、二重登録すると不正 TOML になる。
+  if codex plugin list --json | jq -e '.installed[]? | select(.name == "claude-mem" or (.pluginId // "" | test("claude-mem")))' >/dev/null; then
+    echo "✓ Codex claude-mem plugin already installed."
+  else
+    setup_claude_mem_for_ide codex-cli || return 1
+  fi
+
   setup_claude_mem_runtime || return 1
 }
