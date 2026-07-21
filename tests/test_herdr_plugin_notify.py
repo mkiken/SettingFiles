@@ -225,5 +225,338 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         self.assertIn("group=", events)
 
 
+class HerdrPluginTabIconTest(unittest.TestCase):
+    """notify-on-agent-status.sh のタブ名アイコン付与ロジック単体テスト。
+
+    fake herdr に `tab get` / `tab rename` の応答を追加し、agent_status→絵文字
+    マッピング・スタック防止・idle/unknown時の除去・カスタムラベル保持を検証する。
+    """
+
+    def run_plugin(
+        self,
+        *,
+        agent: str = "claude",
+        agent_status: str = "done",
+        tab_status: str = "done",
+        current_label: str = "1",
+        pane_id: str = "w1:p7",
+        tab_id: str = "w1:t1",
+        workspace_id: str = "w1",
+        include_tab_id: bool = True,
+        title_text: str = "title",
+    ) -> tuple[subprocess.CompletedProcess[str], list[str]]:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            fake_repo = root / "repo"
+            fake_bin = root / "bin"
+            fake_bin.mkdir()
+            rename_calls = root / "rename_calls"
+
+            dependencies = {
+                "shell/zsh/alias/notification.zsh": (
+                    'function notify() { :; }\n'
+                ),
+            }
+            for relative_path, content in dependencies.items():
+                file_path = fake_repo / relative_path
+                file_path.parent.mkdir(parents=True, exist_ok=True)
+                file_path.write_text(content, encoding="utf-8")
+            # tmux_emoji.conf / tmux_emoji.py はリポジトリの実物をそのまま使う。
+            # strip_emoji_prefixはUnicode絵文字専用のパターンなので、ASCIIスタブ
+            # 絵文字では剥がれず、スタック防止・idle除去のテストが検証できない。
+            fake_tmux_dir = fake_repo / "shell/tmux"
+            fake_tmux_dir.mkdir(parents=True, exist_ok=True)
+            for name in ("tmux_emoji.conf", "tmux_emoji.py"):
+                real_file = REPO_ROOT / "shell/tmux" / name
+                (fake_tmux_dir / name).write_text(
+                    real_file.read_text(encoding="utf-8"), encoding="utf-8"
+                )
+
+            pane_result = {
+                "result": {
+                    "pane": {
+                        "terminal_title_stripped": title_text,
+                        "agent_session": {"value": "session-abc"},
+                        **({"tab_id": tab_id} if include_tab_id else {}),
+                    }
+                }
+            }
+            tab_result = {
+                "result": {
+                    "tab": {
+                        "agent_status": tab_status,
+                        "label": current_label,
+                    }
+                }
+            }
+            workspace_result = {
+                "result": {"workspaces": [{"workspace_id": workspace_id, "number": 1}]}
+            }
+            fake_herdr = fake_bin / "herdr"
+            fake_herdr.write_text(
+                "#!/bin/bash\n"
+                'if [[ "$1" == "pane" && "$2" == "get" ]]; then\n'
+                f"  echo '{json.dumps(pane_result)}'\n"
+                'elif [[ "$1" == "tab" && "$2" == "get" ]]; then\n'
+                f"  echo '{json.dumps(tab_result)}'\n"
+                'elif [[ "$1" == "tab" && "$2" == "rename" ]]; then\n'
+                '  echo "$3 $4" >> "$HERDR_TEST_RENAME_CALLS"\n'
+                'elif [[ "$1" == "workspace" && "$2" == "list" ]]; then\n'
+                f"  echo '{json.dumps(workspace_result)}'\n"
+                "fi\n",
+                encoding="utf-8",
+            )
+            fake_herdr.chmod(0o755)
+
+            env = os.environ.copy()
+            real_jq = shutil.which("jq")
+            self.assertIsNotNone(real_jq)
+            path_entries = [str(fake_bin), os.path.dirname(real_jq), "/usr/bin:/bin"]
+            env.update(
+                {
+                    "HERDR_TEST_EVENTS": str(root / "events"),
+                    "HERDR_TEST_RENAME_CALLS": str(rename_calls),
+                    "SET": str(fake_repo) + "/",
+                    "HERDR_PLUGIN_EVENT_JSON": json.dumps(
+                        {
+                            "event": "pane_agent_status_changed",
+                            "data": {
+                                "pane_id": pane_id,
+                                "workspace_id": workspace_id,
+                                "agent_status": agent_status,
+                                "agent": agent,
+                            },
+                        }
+                    ),
+                    "HERDR_PLUGIN_CONTEXT_JSON": json.dumps(
+                        {"workspace_id": workspace_id, "tab_label": "2"}
+                    ),
+                    "HERDR_PANE_ID": pane_id,
+                    "HERDR_WORKSPACE_ID": workspace_id,
+                    "PATH": ":".join(path_entries),
+                }
+            )
+
+            result = subprocess.run(
+                ["zsh", str(PLUGIN_SCRIPT)],
+                cwd=REPO_ROOT,
+                env=env,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            calls = (
+                rename_calls.read_text(encoding="utf-8").splitlines()
+                if rename_calls.exists()
+                else []
+            )
+            return result, calls
+
+    def test_working_status_renames_tab_with_ongoing_icon(self):
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="1",
+            title_text="",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️🤖1"])
+
+    def test_blocked_status_renames_tab_with_waiting_icon(self):
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="blocked",
+            tab_status="blocked",
+            current_label="1",
+            title_text="",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️✋1"])
+
+    def test_done_status_renames_tab_with_completed_icon(self):
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="done",
+            tab_status="done",
+            current_label="1",
+            title_text="",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️✅1"])
+
+    def test_idle_status_strips_icon_back_to_base_label(self):
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="idle",
+            tab_status="idle",
+            current_label="✴️🤖1",
+            title_text="",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 1"])
+
+    def test_unknown_status_strips_icon_back_to_base_label(self):
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="unknown",
+            tab_status="unknown",
+            current_label="✴️✅1",
+            title_text="",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 1"])
+
+    def test_existing_icon_is_replaced_not_stacked(self):
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="✴️✅1",
+            title_text="",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️🤖1"])
+
+    def test_gemini_and_codex_use_their_own_id_emoji(self):
+        cases = (("gemini", "💎"), ("codex", "🪷"))
+        for agent, expected_id in cases:
+            with self.subTest(agent=agent):
+                result, calls = self.run_plugin(
+                    agent=agent,
+                    agent_status="working",
+                    tab_status="working",
+                    current_label="1",
+                    title_text="",
+                )
+
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(calls, [f"w1:t1 {expected_id}🤖1"])
+
+    def test_unrecognized_agent_falls_back_to_robot_emoji(self):
+        result, calls = self.run_plugin(
+            agent="unknown-agent",
+            agent_status="working",
+            tab_status="working",
+            current_label="1",
+            title_text="",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 🤖🤖1"])
+
+    def test_custom_label_is_preserved_across_status_changes(self):
+        result, calls = self.run_plugin(
+            agent="claude", agent_status="working", tab_status="working", current_label="gm"
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️🤖gm"])
+
+    def test_no_rename_when_label_already_matches(self):
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="✴️🤖1",
+            title_text="",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, [])
+
+    def test_missing_tab_id_skips_rename(self):
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="1",
+            include_tab_id=False,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, [])
+
+    def test_default_numeric_label_is_replaced_by_conversation_title(self):
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="1",
+            title_text="ここに会話概要が入る",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️🤖ここに会話概要が入る"])
+
+    def test_long_conversation_title_is_truncated_to_20_chars(self):
+        title_text = "あ" * 25
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="1",
+            title_text=title_text,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️🤖" + "あ" * 20])
+
+    def test_conversation_title_exactly_20_chars_is_not_truncated(self):
+        title_text = "あ" * 20
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="1",
+            title_text=title_text,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️🤖" + "あ" * 20])
+
+    def test_custom_label_is_not_replaced_by_conversation_title(self):
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="gm",
+            title_text="ここに会話概要が入る",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️🤖gm"])
+
+    def test_multi_digit_numeric_label_is_replaced_by_conversation_title(self):
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="42",
+            title_text="概要テキスト",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️🤖概要テキスト"])
+
+    def test_empty_conversation_title_falls_back_to_numeric_label(self):
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="1",
+            title_text="",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️🤖1"])
+
+
 if __name__ == "__main__":
     unittest.main()

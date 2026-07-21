@@ -16,24 +16,69 @@ agent="$(print -r -- "$event_json" | jq -r '.data.agent // empty' 2>/dev/null)"
 # `status` is a read-only zsh special parameter (last exit code) — use agent_status instead.
 agent_status="$(print -r -- "$event_json" | jq -r '.data.agent_status // empty' 2>/dev/null)"
 
+herdr_bin="${HERDR_BIN_PATH:-herdr}"
+pane_id="${HERDR_PANE_ID:-}"
+[[ -z "$pane_id" ]] && exit 0
+
+# Conversation title comes from `pane get` (not present in the event/context JSON).
+# タブアイコン処理（デフォルト数字ラベルの概要差し替え）と通知本文の両方で使うため
+# ここで一度だけ取得する。
+pane_json="$("$herdr_bin" pane get "$pane_id" 2>/dev/null)"
+[[ -z "$pane_json" ]] && exit 0
+
+source "${REPO_ROOT}/shell/tmux/tmux_emoji.conf"
+
+case "$agent" in
+  claude) id_emoji="$EMOJI_ID_CLAUDE" ;;
+  codex)  id_emoji="$EMOJI_ID_CODEX" ;;
+  gemini) id_emoji="$EMOJI_ID_GEMINI" ;;
+  *)      id_emoji="🤖" ;;
+esac
+
+title_text="$(print -r -- "$pane_json" | jq -r '.result.pane.terminal_title_stripped // empty' 2>/dev/null)"
+session_id="$(print -r -- "$pane_json" | jq -r '.result.pane.agent_session.value // empty' 2>/dev/null)"
+[[ -z "$title_text" ]] && title_text="(no title)"
+
+# タブ名先頭にAI識別子+状態アイコンを付与する（tmuxのwindow名アイコンと同じ思想）。
+# working=進行中🤖 blocked=入力待ち✋ done=完了✅、idle(既読)/unknown(AI未検出)は
+# アイコンを外して元のラベルに戻す。集約状態は `tab get` の agent_status（タブ内
+# 複数paneがあってもHerdrが1つに集約済み）を使い、識別子だけ発火paneのagentを使う。
+tab_id="$(print -r -- "$pane_json" | jq -r '.result.pane.tab_id // empty' 2>/dev/null)"
+if [[ -n "$tab_id" ]]; then
+  tab_json="$("$herdr_bin" tab get "$tab_id" 2>/dev/null)"
+  if [[ -n "$tab_json" ]]; then
+    tab_status="$(print -r -- "$tab_json" | jq -r '.result.tab.agent_status // empty' 2>/dev/null)"
+    current_label="$(print -r -- "$tab_json" | jq -r '.result.tab.label // empty' 2>/dev/null)"
+
+    status_emoji=""
+    case "$tab_status" in
+      working) status_emoji="$EMOJI_STATUS_ONGOING" ;;
+      blocked) status_emoji="$EMOJI_STATUS_NOTIFICATION" ;;
+      done)    status_emoji="$EMOJI_STATUS_COMPLETED" ;;
+    esac
+
+    base_label="$(python3 "${REPO_ROOT}/shell/tmux/tmux_emoji.py" "$current_label")"
+    # herdrが自動で連番数字を振っただけの未命名タブは、その番号よりMac通知と
+    # 同じ会話概要を出す方が「どのタブか」を判別しやすい（20文字で切り詰め）。
+    if [[ "$base_label" =~ '^[0-9]+$' && "$title_text" != "(no title)" ]]; then
+      base_label="${title_text[1,20]}"
+    fi
+    if [[ -n "$status_emoji" ]]; then
+      new_label="${id_emoji}${status_emoji}${base_label}"
+    else
+      new_label="${base_label}"
+    fi
+
+    [[ "$new_label" != "$current_label" ]] && "$herdr_bin" tab rename "$tab_id" "$new_label" >/dev/null 2>&1
+  fi
+fi
+
 # Only completed (done) or awaiting input (blocked) are worth a notification.
 # idle = already-seen completion, working/unknown = nothing to report yet.
 case "$agent_status" in
   done|blocked) ;;
   *) exit 0 ;;
 esac
-
-herdr_bin="${HERDR_BIN_PATH:-herdr}"
-pane_id="${HERDR_PANE_ID:-}"
-[[ -z "$pane_id" ]] && exit 0
-
-# Conversation title comes from `pane get` (not present in the event/context JSON).
-pane_json="$("$herdr_bin" pane get "$pane_id" 2>/dev/null)"
-[[ -z "$pane_json" ]] && exit 0
-
-title_text="$(print -r -- "$pane_json" | jq -r '.result.pane.terminal_title_stripped // empty' 2>/dev/null)"
-session_id="$(print -r -- "$pane_json" | jq -r '.result.pane.agent_session.value // empty' 2>/dev/null)"
-[[ -z "$title_text" ]] && title_text="(no title)"
 
 # Tab display number is already in HERDR_PLUGIN_CONTEXT_JSON as `.tab_label` — no extra call needed.
 context_json="${HERDR_PLUGIN_CONTEXT_JSON:-}"
@@ -52,15 +97,8 @@ if [[ -n "$ws_number" && -n "$tab_label" ]]; then
   screen_label=" 🖥️${ws_number}-${tab_label}"
 fi
 
-source "${REPO_ROOT}/shell/tmux/tmux_emoji.conf"
-
-case "$agent" in
-  claude) id_emoji="$EMOJI_ID_CLAUDE" ;;
-  codex)  id_emoji="$EMOJI_ID_CODEX" ;;
-  gemini) id_emoji="$EMOJI_ID_GEMINI" ;;
-  *)      id_emoji="🤖" ;;
-esac
-
+# id_emoji は冒頭のタブアイコン処理で既に決定済み。ここでは通知本文用の
+# status_emoji/label_text（done/blocked専用の日本語ラベル）だけ再定義する。
 case "$agent_status" in
   done)
     status_emoji="$EMOJI_STATUS_COMPLETED"
