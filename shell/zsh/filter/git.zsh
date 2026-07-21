@@ -830,25 +830,53 @@ function _filter_zoxide_git_repo() {
 
 # `git worktree list --porcelain` からworktree（メインリポジトリ含む）をfilterで選択する内部関数
 # workmux（wm）に依存せず、gitのみで完結する
+# 表示は「ディレクトリ名 + ブランチ名」の2列（detachedの場合は短縮SHA）、フルパスはタブ区切りで保持する
 # 戻り値: 選択されたworktreeのフルパス、キャンセル/候補ゼロ時は $EXIT_CODE_SIGINT
 function _filter_git_worktree_path() {
-  local worktrees
-  worktrees=$(git worktree list --porcelain 2>/dev/null | awk '
-      /^worktree / { print substr($0, 10) }')
+  local raw_list
+  raw_list=$(git worktree list --porcelain 2>/dev/null)
 
-  if [[ -z "$worktrees" ]]; then
+  if [[ -z "$raw_list" ]]; then
     echo "選択可能なworktreeがありません" >&2
     return $EXIT_CODE_SIGINT
   fi
 
+  local worktrees
+  worktrees=$(print -r -- "$raw_list" | awk '
+      function flush() {
+        if (path == "") return
+        n = split(path, a, "/")
+        i++
+        dirs[i] = a[n]; branches[i] = branch; paths[i] = path
+        if (length(a[n]) > max) max = length(a[n])
+      }
+      /^worktree / { flush(); path = substr($0, 10); branch = ""; next }
+      /^HEAD /     { head = substr($0, 6); next }
+      /^branch refs\/heads\// { branch = substr($0, 19); next }
+      /^detached$/ { branch = substr(head, 1, 7); next }
+      END {
+        flush()
+        if (max < 8) max = 8
+        fmt = "%-" max "s  %s\t%s\n"
+        printf fmt, "worktree", "ブランチ", ""
+        for (j = 1; j <= i; j++) printf fmt, dirs[j], branches[j], paths[j]
+      }')
+
   local selected
   selected=$(print -r -- "$worktrees" | filter \
     --header "worktreeを選択" \
+    --header-lines 1 \
     --prompt "worktree> " \
-    --preview 'git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"')
+    --delimiter $'\t' \
+    --with-nth 1 \
+    --preview 'echo {2} | xargs -I{} git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"')
 
-  [[ -z "$selected" ]] && return $EXIT_CODE_SIGINT
-  print -r -- "$selected"
+  if [[ -z "$selected" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  # タブ区切りの2番目のフィールド（フルパス）を抽出
+  print -r -- "$selected" | cut -f2
 }
 
 # zoxideからリポジトリ、続けてそのリポジトリのworktreeを選択する

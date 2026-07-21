@@ -51,7 +51,16 @@ class RepositoryWorktreeTest(unittest.TestCase):
             "if [ \"$1\" = worktree ] && [ \"$2\" = list ]; then\n"
             "  [ \"${FWT_NO_WORKTREE_OUTPUT:-}\" = 1 ] && exit 0\n"
             "  printf 'worktree %s\\n' \"$FWT_REPO\"\n"
+            "  printf 'HEAD %s\\n' \"${FWT_REPO_SHA:-1111111repo}\"\n"
+            "  printf 'branch refs/heads/%s\\n' \"${FWT_REPO_BRANCH:-main}\"\n"
+            "  printf '\\n'\n"
             "  printf 'worktree %s\\n' \"$FWT_WORKTREE\"\n"
+            "  printf 'HEAD %s\\n' \"${FWT_WORKTREE_SHA:-2222222worktree}\"\n"
+            "  if [ \"${FWT_WORKTREE_DETACHED:-}\" = 1 ]; then\n"
+            "    printf 'detached\\n'\n"
+            "  else\n"
+            "    printf 'branch refs/heads/%s\\n' \"${FWT_WORKTREE_BRANCH:-feature}\"\n"
+            "  fi\n"
             "  exit 0\n"
             "fi\n"
             "exec /usr/bin/git \"$@\"\n",
@@ -67,9 +76,9 @@ class RepositoryWorktreeTest(unittest.TestCase):
             "if [ \"$count\" -eq 0 ]; then\n"
             "  printf '%s\\n' \"$FWT_REPO\"\n"
             "elif [ \"${FWT_FILTER_TARGET:-worktree}\" = repo ]; then\n"
-            "  printf '%s\\n' \"$FWT_REPO\"\n"
+            "  printf 'repo\\t%s\\n' \"$FWT_REPO\"\n"
             "else\n"
-            "  printf '%s\\n' \"$FWT_WORKTREE\"\n"
+            "  printf 'worktree\\t%s\\n' \"$FWT_WORKTREE\"\n"
             "fi\n",
         )
         self._write_executable(
@@ -220,6 +229,16 @@ class RepositoryWorktreeTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(values["__STATUS"], "0", result.stderr)
         self.assertEqual(values["__PWD"], str(self.repo))
+
+    def test_moves_to_detached_worktree_shown_with_short_sha(self):
+        # detached HEADのworktreeでも、ブランチ欄が短縮SHAになるだけで選択・移動自体は成功する
+        result, values = self.run_repository_worktree(
+            extra_env={"FWT_WORKTREE_DETACHED": "1", "FWT_WORKTREE_SHA": "abcdef0123456"}
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        self.assertEqual(values["__PWD"], str(self.worktree))
 
 
 if __name__ == "__main__":
