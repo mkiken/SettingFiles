@@ -16,8 +16,15 @@ def read_text(path: str) -> str:
 
 class GsdCoreSetupTest(unittest.TestCase):
     def run_helper(
-        self, *arguments: str, home: str | None = None
+        self,
+        *arguments: str,
+        home: str | None = None,
+        reconcile_marker: bool = False,
     ) -> tuple[subprocess.CompletedProcess[str], list[str]]:
+        # reconcile_marker: True の場合、restore/fixスタブが標準出力にマーカー行を
+        # 出す。これでVERSIONガードの有無に関わらずrestore/fixが呼ばれたことを
+        # npx引数出力（同じcaptured_argumentsに混在）と区別して検証できる。
+        reconcile_marker_line = "REPO_ROOT_RECONCILE_CALLED" if reconcile_marker else ""
         script = f'''
 source "{GSD_HELPER}"
 
@@ -30,10 +37,12 @@ function npx() {{
 }}
 
 function _restore_managed_codex_gsd_hooks() {{
+  {f'printf "%s\\n" "{reconcile_marker_line}"' if reconcile_marker else ""}
   return 0
 }}
 
 function _fix_claude_gsd_write_permissions() {{
+  {f'printf "%s\\n" "{reconcile_marker_line}"' if reconcile_marker else ""}
   return 0
 }}
 
@@ -421,6 +430,43 @@ _restore_managed_codex_gsd_hooks "$1" "$2"
 
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("--portable-hooks", captured_arguments)
+
+    def test_reconcile_runs_regardless_of_version_guard(self):
+        # VERSIONガードはnpx再実行（重複フック書き込み防止）のみをスキップする
+        # べきで、symlink復元（codex: _restore_managed_codex_gsd_hooks /
+        # claude: _fix_claude_gsd_write_permissions）は常に実行されるべき。
+        # (mode, version_exists) の4象限をテーブル駆動で検証する。
+        cases = (
+            # (mode, version_exists, expect_npx, expect_reconcile)
+            ("install", True, False, True),
+            ("install", False, True, True),
+            ("update", True, True, True),
+            ("update", False, True, True),
+        )
+        for runtime in ("claude", "codex"):
+            for mode, version_exists, expect_npx, expect_reconcile in cases:
+                with self.subTest(runtime=runtime, mode=mode, version_exists=version_exists):
+                    with tempfile.TemporaryDirectory() as temp_dir:
+                        home = Path(temp_dir)
+                        if version_exists:
+                            version_dir = home / f".{runtime}" / "gsd-core"
+                            version_dir.mkdir(parents=True)
+                            (version_dir / "VERSION").write_text(
+                                "1.7.0", encoding="utf-8"
+                            )
+
+                        result, captured_arguments = self.run_helper(
+                            runtime, mode, home=str(home), reconcile_marker=True
+                        )
+
+                        self.assertEqual(result.returncode, 0, result.stderr)
+                        self.assertEqual(
+                            "--portable-hooks" in captured_arguments, expect_npx
+                        )
+                        self.assertEqual(
+                            "REPO_ROOT_RECONCILE_CALLED" in captured_arguments,
+                            expect_reconcile,
+                        )
 
     def test_install_mode_checks_runtime_specific_version_path(self):
         # claude 側に VERSION があっても codex install はスキップされない

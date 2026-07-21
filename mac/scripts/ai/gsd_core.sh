@@ -271,19 +271,27 @@ function setup_gsd_core_for_runtime() {
       ;;
   esac
 
-  # init（install モード）は、既にセットアップ済みなら再インストールしない。
-  # gsd-core は再実行のたびに hooks.json へポータブル+絶対パスの重複グループを書き込むため、
-  # 初回セットアップ済み環境での再実行を避けて予防する。update は最新化が目的なので毎回実行する。
-  if [[ "$mode" == "install" && -f "$HOME/.${runtime}/gsd-core/VERSION" ]]; then
-    echo "✓ GSD Core already set up for ${runtime}; skipping."
-    return 0
-  fi
-
-  require_ai_setup_command npx || return 1
   require_ai_setup_command "$runtime" || return 1
 
-  npx --yes @opengsd/gsd-core@latest "--${runtime}" --global --profile=standard --portable-hooks < /dev/null || return 1
+  # init（install モード）は、既にセットアップ済みなら npx インストーラを再実行しない。
+  # gsd-core は再実行のたびに hooks.json へポータブル+絶対パスの重複グループを書き込むため、
+  # 初回セットアップ済み環境での再実行を避けて予防する。update は最新化が目的なので毎回実行する。
+  # 注意: このガードは npx 再実行のみをスキップする。symlink復元・permission修正は
+  # npx の有無に関わらず常に実行する（後述）。GSD npxインストーラがhooks.json/settings.jsonを
+  # 実ファイル化した状態がVERSIONガードで復元されず取り残される事故を防ぐため。
+  local run_installer=1
+  if [[ "$mode" == "install" && -f "$HOME/.${runtime}/gsd-core/VERSION" ]]; then
+    echo "✓ GSD Core already set up for ${runtime}; skipping installer."
+    run_installer=0
+  fi
 
+  if (( run_installer )); then
+    require_ai_setup_command npx || return 1
+    npx --yes @opengsd/gsd-core@latest "--${runtime}" --global --profile=standard --portable-hooks < /dev/null || return 1
+  fi
+
+  # symlink復元・permission修正は上記ガードの影響を受けず常に実行する。
+  # 既に管理symlink/正しいpermissionなら各関数が即return 0するため冪等。
   if [[ "$runtime" == "codex" ]]; then
     _restore_managed_codex_gsd_hooks || return 1
   elif [[ "$runtime" == "claude" ]]; then
