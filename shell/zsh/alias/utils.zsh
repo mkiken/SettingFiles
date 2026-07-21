@@ -647,13 +647,18 @@ function _diff_review_prompt_repeated_copy() {
     local signature="$1"
     local timestamp="$2"
     local notification_message="$3"
+    local dst_label="$4"
     local choice
 
     if [[ -n "$notification_message" ]]; then
         _start_prompt_wait_notification "$notification_message" "smart-merge-json-prompt"
     fi
 
-    echo "前回確認時と同じ差分です: $timestamp" >&2
+    if [[ -n "$dst_label" ]]; then
+        echo "前回確認時と同じ差分です: $timestamp ($dst_label)" >&2
+    else
+        echo "前回確認時と同じ差分です: $timestamp" >&2
+    fi
     echo -n "[s]kip / [v]iew diff / [o]verwrite (default: s): " >&2
     _diff_review_record "$signature"
     read -r choice
@@ -679,10 +684,15 @@ function _diff_review_prompt_repeated_merge() {
     local signature="$1"
     local timestamp="$2"
     local notification_message="${3:-smart_merge_json action required}"
+    local dst_label="$4"
     local choice
 
     _start_prompt_wait_notification "$notification_message" "smart-merge-json-prompt"
-    echo "前回確認時と同じ差分です: $timestamp" >&2
+    if [[ -n "$dst_label" ]]; then
+        echo "前回確認時と同じ差分です: $timestamp ($dst_label)" >&2
+    else
+        echo "前回確認時と同じ差分です: $timestamp" >&2
+    fi
     echo -n "[k]eep / [v]iew diff / [o]verwrite / [m]erge source priority / [d]merge destination priority (default: k): " >&2
     _diff_review_record "$signature"
     read -r choice
@@ -715,7 +725,7 @@ function _diff_review_prompt_repeated_symlink() {
     local choice
 
     _start_prompt_wait_notification "make_symlink overwrite required: $link_path -> $src" "confirm-prompt"
-    echo "前回確認時と同じ差分です: $timestamp" >&2
+    echo "前回確認時と同じ差分です: $timestamp ($link_path)" >&2
     echo -n "[s]kip / [v]iew change / [o]verwrite (default: s): " >&2
     _diff_review_record "$signature"
     read -r choice
@@ -884,7 +894,7 @@ function smart_copy() {
     if [[ -n "$review_signature" ]] && ! _diff_review_smart_merge_auto_enabled; then
         last_reviewed_at=$(_diff_review_last_reviewed_at "$review_signature" 2>/dev/null || true)
         if [[ -n "$last_reviewed_at" ]]; then
-            repeated_action=$(_diff_review_prompt_repeated_copy "$review_signature" "$last_reviewed_at")
+            repeated_action=$(_diff_review_prompt_repeated_copy "$review_signature" "$last_reviewed_at" "" "$dst")
             case "$repeated_action" in
                 overwrite)
                     echo "cp \"$src\" \"$dst\""
@@ -1021,7 +1031,7 @@ function smart_merge_json() {
         if [[ -n "$review_signature" ]] && ! _diff_review_smart_merge_auto_enabled; then
             last_reviewed_at=$(_diff_review_last_reviewed_at "$review_signature" 2>/dev/null || true)
             if [[ -n "$last_reviewed_at" ]]; then
-                repeated_action=$(_diff_review_prompt_repeated_copy "$review_signature" "$last_reviewed_at" "smart_merge_json overwrite/skip required: $src_label -> $dst_label")
+                repeated_action=$(_diff_review_prompt_repeated_copy "$review_signature" "$last_reviewed_at" "smart_merge_json overwrite/skip required: $src_label -> $dst_label" "$dst_label")
                 case "$repeated_action" in
                     overwrite)
                         echo "Applying source to destination: $src_label -> $dst_label"
@@ -1073,7 +1083,7 @@ function smart_merge_json() {
     if [[ -n "$review_signature" ]] && ! _diff_review_smart_merge_auto_enabled; then
         last_reviewed_at=$(_diff_review_last_reviewed_at "$review_signature" 2>/dev/null || true)
         if [[ -n "$last_reviewed_at" ]]; then
-            action=$(_diff_review_prompt_repeated_merge "$review_signature" "$last_reviewed_at" "smart_merge_json merge action required: $src_label -> $dst_label")
+            action=$(_diff_review_prompt_repeated_merge "$review_signature" "$last_reviewed_at" "smart_merge_json merge action required: $src_label -> $dst_label" "$dst_label")
         fi
     fi
 
