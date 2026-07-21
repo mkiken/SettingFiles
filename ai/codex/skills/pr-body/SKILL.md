@@ -79,7 +79,7 @@ After generating the PR body content:
 
 6. If user declines: end process (user can manually copy the displayed content)
 
-7. Delete the temporary files (`pr_body_old.md`, `pr_body_new.md`) before finishing
+7. Delete the temporary files (`pr_body_old.md`, `pr_body_new.md`) with `trash` (never `rm`) before finishing
 
 ### PR Body Format
 

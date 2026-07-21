@@ -111,7 +111,7 @@ On failure:
 
 ## Cleanup
 
-Delete any temporary files created while preparing the title, body, or diff before finishing.
+Delete any temporary files created while preparing the title, body, or diff with `trash` (never `rm`) before finishing.
 
 ### PR Body Format
 
