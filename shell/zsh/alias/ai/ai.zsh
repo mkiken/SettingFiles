@@ -113,6 +113,25 @@ _ai_multiplexer_kind() {
     fi
 }
 
+# 新規Herdrペインの対話シェルが入力を受け付ける状態になるまで待つ。
+# herdr tab create / pane split にコマンド起動引数は無く、投入は herdr pane run
+# （テキスト+Enter送信のみ・待機機構なし）一択のため、tab create直後にpane runすると
+# 新規シェルの起動レースで送信を取りこぼす（gm-pr-review/cx-pr-reviewが起動しない原因）。
+# 新規ペインはAIエージェント未検出のためagent_status=unknownのまま推移せず、
+# wait agent-status --status idle は使えない。マーカーをechoさせ、それが画面に
+# 現れたことを wait output --match で確認することでシェルのready状態を検出する。
+_herdr_wait_shell_ready() {
+    local pane_id="$1"
+    local timeout_ms="${2:-15000}"
+    local marker="__herdr_ready_${$}_${RANDOM}__"
+
+    herdr pane run "${pane_id}" "print -r -- ${marker}" || return 1
+    herdr wait output "${pane_id}" --match "${marker}" --source recent --timeout "${timeout_ms}" >/dev/null 2>&1 || {
+        echo "新規ペインのシェル起動待ちがタイムアウトしました (pane_id=${pane_id})" >&2
+        return 1
+    }
+}
+
 # Herdrで新しいtabを作りコマンドを実行する（tmux new-window相当）
 # 引数: workspace_id(空ならカレントworkspace), cwd, label, command
 # herdr pane run は既存の対話シェルにコマンドを投入する方式のため、
@@ -138,6 +157,8 @@ _herdr_run_in_new_tab() {
         echo "herdr tab createの結果からpane_idを取得できませんでした" >&2
         return 1
     fi
+
+    _herdr_wait_shell_ready "${pane_id}" || return 1
 
     herdr pane run "${pane_id}" "${command}" || {
         echo "herdr pane runに失敗しました (pane_id=${pane_id})" >&2
