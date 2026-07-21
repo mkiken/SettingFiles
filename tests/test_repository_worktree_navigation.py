@@ -10,6 +10,8 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 GIT_FILTER = REPO_ROOT / "shell/zsh/filter/git.zsh"
 TMUX_ALIASES = REPO_ROOT / "shell/zsh/alias/tmux.zsh"
+AI_ALIASES = REPO_ROOT / "shell/zsh/alias/ai/ai.zsh"
+AI_FILTER = REPO_ROOT / "shell/zsh/filter/ai.zsh"
 ZSH = shutil.which("zsh")
 
 
@@ -25,6 +27,7 @@ class RepositoryWorktreeTest(unittest.TestCase):
         self.worktree = self.root / "feature worktree"
         self.worktree.mkdir()
         self.tmux_log = self.root / "tmux.log"
+        self.herdr_log = self.root / "herdr.log"
         self._write_fake_commands()
 
     def tearDown(self):
@@ -89,9 +92,23 @@ class RepositoryWorktreeTest(unittest.TestCase):
             "fi\n"
             "exit 0\n",
         )
+        self._write_executable(
+            "herdr",
+            "#!/bin/sh\n"
+            "printf '%s\\n' \"$@\" | tr '\\n' ' ' >> \"$FWT_HERDR_LOG\"\n"
+            "printf '\\n' >> \"$FWT_HERDR_LOG\"\n"
+            "if [ \"$1\" = workspace ] && [ \"$2\" = create ]; then\n"
+            "  printf '{\"result\":{\"workspace\":{\"workspace_id\":\"ws-1\"},\"root_pane\":{\"pane_id\":\"p-1\"}}}\\n'\n"
+            "elif [ \"$1\" = tab ] && [ \"$2\" = create ]; then\n"
+            "  printf '{\"result\":{\"root_pane\":{\"pane_id\":\"p-1\"}}}\\n'\n"
+            "fi\n"
+            "exit 0\n",
+        )
 
-    def run_repository_worktree(self, command="repository-worktree", *args, tmux=False, extra_env=None):
-        for path in (self.root / "filter-count", self.tmux_log):
+    def run_repository_worktree(
+        self, command="repository-worktree", *args, tmux=False, herdr=False, extra_env=None
+    ):
+        for path in (self.root / "filter-count", self.tmux_log, self.herdr_log):
             if path.exists():
                 path.unlink()
         env = {
@@ -103,13 +120,18 @@ class RepositoryWorktreeTest(unittest.TestCase):
             "FWT_WORKTREE": str(self.worktree),
             "FWT_FILTER_COUNT": str(self.root / "filter-count"),
             "FWT_TMUX_LOG": str(self.tmux_log),
+            "FWT_HERDR_LOG": str(self.herdr_log),
             "TMUX": "",
+            "HERDR_ENV": "",
             **({"TMUX": "test-client"} if tmux else {}),
+            **({"HERDR_ENV": "1"} if herdr else {}),
             **(extra_env or {}),
         }
         command_line = " ".join([command, *args])
         script = f'''
             source "{TMUX_ALIASES}"
+            source "{AI_ALIASES}"
+            source "{AI_FILTER}"
             source "{GIT_FILTER}"
             _chpwd_noise() {{ print -r -- "NOISE $PWD"; }}
             cdq() {{
@@ -140,6 +162,9 @@ class RepositoryWorktreeTest(unittest.TestCase):
 
     def tmux_calls(self):
         return self.tmux_log.read_text().splitlines() if self.tmux_log.exists() else []
+
+    def herdr_calls(self):
+        return self.herdr_log.read_text().splitlines() if self.herdr_log.exists() else []
 
     def test_moves_current_shell_without_tmux_or_rename(self):
         result, values = self.run_repository_worktree()
@@ -201,13 +226,43 @@ class RepositoryWorktreeTest(unittest.TestCase):
                 self.assertEqual(values["__STATUS"], "2")
                 self.assertIn("Usage: repository-worktree [-w|-s]", result.stderr)
 
-    def test_requires_a_tmux_client_for_window_and_session_modes(self):
+    def test_requires_a_multiplexer_for_window_and_session_modes(self):
         for command in ("repository-worktree -w", "repository-worktree -s"):
             with self.subTest(command=command):
                 result, values = self.run_repository_worktree(command)
 
                 self.assertEqual(values["__STATUS"], "1")
-                self.assertIn("tmux内で実行してください", result.stderr)
+                self.assertIn("tmuxまたはHerdr内で実行してください", result.stderr)
+
+    def test_creates_herdr_tab_for_window_mode(self):
+        for command in ("repository-worktree -w", "frww"):
+            with self.subTest(command=command):
+                result, values = self.run_repository_worktree(command, herdr=True)
+
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(values["__STATUS"], "0", result.stderr)
+                self.assertEqual(self.tmux_calls(), [])
+                calls = self.herdr_calls()
+                self.assertEqual(len(calls), 1, calls)
+                self.assertIn("tab create", calls[0])
+                self.assertIn(f"--cwd {self.worktree}", calls[0])
+                self.assertIn("--focus", calls[0])
+                self.assertNotIn("--no-focus", calls[0])
+
+    def test_creates_herdr_workspace_for_session_mode(self):
+        for command in ("repository-worktree -s", "frws"):
+            with self.subTest(command=command):
+                result, values = self.run_repository_worktree(command, herdr=True)
+
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(values["__STATUS"], "0", result.stderr)
+                self.assertEqual(self.tmux_calls(), [])
+                calls = self.herdr_calls()
+                self.assertEqual(len(calls), 1, calls)
+                self.assertIn("workspace create", calls[0])
+                self.assertIn(f"--cwd {self.worktree}", calls[0])
+                self.assertIn("--focus", calls[0])
+                self.assertNotIn("--no-focus", calls[0])
 
     def test_returns_sigint_when_selection_cannot_complete(self):
         cases = (

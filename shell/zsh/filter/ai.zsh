@@ -146,6 +146,48 @@ _fwmon_review_herdr() {
     }
 }
 
+# 指定worktreeで新規Herdr workspaceを作り、そこへフォーカス移動する（frw -s のHerdr版）
+# tmuxのswitch-clientで新セッションへ連れて行く挙動を尊重し--focusを明示する
+# コマンド実行は不要（--cwdで新paneが目的ディレクトリで開くため、pane runは省略）
+# 引数: cwd（作成するworkspaceの初期ディレクトリ）
+_herdr_open_worktree_workspace() {
+    local cwd="$1"
+
+    local ws_json
+    ws_json=$(herdr workspace create --label "${cwd:t}" --cwd "$cwd" --focus) || {
+        echo "herdr workspace createに失敗しました" >&2
+        return 1
+    }
+
+    local ws_id
+    ws_id=$(print -r -- "$ws_json" | jq -r '.result.workspace.workspace_id')
+    if [[ -z "$ws_id" || "$ws_id" == "null" ]]; then
+        echo "herdr workspace createの結果からworkspace_idを取得できませんでした" >&2
+        return 1
+    fi
+}
+
+# 指定worktreeで新規Herdr tabを作り、そこへフォーカス移動する（frw -w のHerdr版）
+# tmuxのnew-window（-cのみ、フォーカスは新windowへ移る）挙動を尊重し--focusを明示する
+# コマンド実行は不要（--cwdで新paneが目的ディレクトリで開くため、pane runは省略）
+# 引数: cwd（作成するtabの初期ディレクトリ）
+_herdr_open_worktree_tab() {
+    local cwd="$1"
+
+    local tab_json
+    tab_json=$(herdr tab create --cwd "$cwd" --label "${cwd:t}" --focus) || {
+        echo "herdr tab createに失敗しました" >&2
+        return 1
+    }
+
+    local pane_id
+    pane_id=$(print -r -- "$tab_json" | jq -r '.result.root_pane.pane_id')
+    if [[ -z "$pane_id" || "$pane_id" == "null" ]]; then
+        echo "herdr tab createの結果からpane_idを取得できませんでした" >&2
+        return 1
+    fi
+}
+
 # リポジトリ→worktreeの2段階選択後、reviewセッション相当の場所に新windowを作りAIレビューを実行する
 # 引数: 元関数名, [元関数に渡す追加引数...]
 _fwmon-review() {

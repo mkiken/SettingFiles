@@ -898,9 +898,11 @@ function _filter_zoxide_git_worktree_path() {
 }
 
 # zoxideからリポジトリとworktreeを選択して移動する
+# -w/-s指定時はtmux/Herdrいずれかの環境が必要（_ai_multiplexer_kindで判定）
 # Usage: repository-worktree [-w|-s]
 function repository-worktree() {
   local mode=""
+  local mux=""
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -935,8 +937,12 @@ function repository-worktree() {
     return 2
   fi
 
-  if [[ -n "$mode" ]] && ! _tmux_require_client; then
-    return 1
+  if [[ -n "$mode" ]]; then
+    mux=$(_ai_multiplexer_kind)
+    if [[ "$mux" != "herdr" ]] && [[ "$mux" != "tmux" ]]; then
+      echo "tmuxまたはHerdr内で実行してください" >&2
+      return 1
+    fi
   fi
 
   local worktree_path
@@ -947,13 +953,21 @@ function repository-worktree() {
 
   case "$mode" in
     window)
-      tmux new-window -c "$worktree_path"
+      case "$mux" in
+        herdr) _herdr_open_worktree_tab "$worktree_path" ;;
+        tmux) tmux new-window -c "$worktree_path" ;;
+      esac
       ;;
     session)
-      local session_name
-      session_name=$(tmux new-session -d -P -F '#S' -c "$worktree_path") || return $?
-      [[ -n "$session_name" ]] || return 1
-      tmux switch-client -t "$session_name"
+      case "$mux" in
+        herdr) _herdr_open_worktree_workspace "$worktree_path" ;;
+        tmux)
+          local session_name
+          session_name=$(tmux new-session -d -P -F '#S' -c "$worktree_path") || return $?
+          [[ -n "$session_name" ]] || return 1
+          tmux switch-client -t "$session_name"
+          ;;
+      esac
       ;;
     *)
       save_history cd "$worktree_path"
