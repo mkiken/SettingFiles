@@ -11,6 +11,15 @@
 
 REPO_ROOT="${SET:-$HOME/Desktop/repository/SettingFiles}"
 
+# Herdrは[[events]]フックを[[keys.command]]と同じstripped PATH（Homebrewなし）で
+# 起動するため、Homebrew専用のterminal-notifierが解決できず通知だけが失敗する
+# （herdrはHERDR_BIN_PATH注入、jq/python3はシステム版で偶然動く）。先頭でなく
+# 末尾に追加し、テストのfake_binや通常シェルのPATH優先順位は変えない。
+case ":$PATH:" in
+  *:/opt/homebrew/bin:*) ;;
+  *) export PATH="$PATH:/opt/homebrew/bin:/usr/local/bin" ;;
+esac
+
 # Herdr injects HERDR_PLUGIN_EVENT_JSON with the shape:
 #   {"event":"pane_agent_status_changed","data":{"pane_id":...,"workspace_id":...,"agent_status":...,"agent":...}}
 event_json="${HERDR_PLUGIN_EVENT_JSON:-}"
