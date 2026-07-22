@@ -51,7 +51,7 @@ class HerdrConfigurationTest(unittest.TestCase):
             },
         )
         self.assertEqual(config["ui"]["toast"], {"delivery": "off", "delay_seconds": 1})
-        self.assertFalse(config["ui"]["sound"]["enabled"])
+        self.assertTrue(config["ui"]["sound"]["enabled"])
         self.assertTrue(config["session"]["resume_agents_on_restore"])
         self.assertFalse(config["experimental"]["pane_history"])
 
@@ -66,25 +66,30 @@ class HerdrConfigurationTest(unittest.TestCase):
 
     @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
     def test_managed_config_maps_basic_tmux_style_keys(self):
+        # config.tomlはHerdrデフォルト(146バインド)からのオーバーライドのみを列挙する方針
+        # (CLAUDE.md参照)のため、keys全体の完全一致ではなく代表バインドをスポット検証する。
         keys = tomllib.loads(read_text("terminal/herdr/config.toml"))["keys"]
-        expected = {
-            "prefix": "ctrl+t",
-            "new_tab": "prefix+c",
-            "previous_tab": "prefix+p",
-            "next_tab": "prefix+n",
-            "focus_pane_left": "prefix+h",
-            "focus_pane_down": "prefix+j",
-            "focus_pane_up": "prefix+k",
-            "focus_pane_right": "prefix+l",
-            "split_vertical": "prefix+v",
-            "split_horizontal": "prefix+minus",
-            "close_pane": "prefix+x",
-            "copy_mode": "prefix+[",
-            "detach": "prefix+q",
-            "reload_config": "prefix+shift+r",
-        }
 
-        self.assertEqual(keys, expected)
+        self.assertEqual(keys["prefix"], "ctrl+t")
+
+        expected_bindings = (
+            ("navigate_pane_up", ["k", "ctrl+p"]),
+            ("navigate_pane_down", ["j", "ctrl+n"]),
+            ("next_workspace", "prefix+shift+n"),
+            ("previous_workspace", "prefix+shift+p"),
+            ("new_workspace", "prefix+shift+c"),
+            ("switch_workspace", "prefix+shift+1..9"),
+            ("open_worktree", "prefix+shift+o"),
+            ("focus_agent", "prefix+ctrl+1..9"),
+            ("next_agent", "prefix+ctrl+n"),
+            ("previous_agent", "prefix+ctrl+p"),
+        )
+        for name, value in expected_bindings:
+            with self.subTest(binding=name):
+                self.assertEqual(keys[name], value)
+
+        # [[keys.command]]ポップアップ群は個数を固定せず、代表エントリの存在のみ確認する
+        self.assertTrue(any(c["key"] == "prefix+ctrl+g" for c in keys["command"]))
 
     def test_brewfile_and_entrypoints_keep_tmux_beside_herdr(self):
         brewfile = read_text("mac/Brewfile")

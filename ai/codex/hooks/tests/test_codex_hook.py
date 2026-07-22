@@ -15,6 +15,10 @@ class CodexHookTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             error_log = Path(tmp_dir) / "codex-hook-error.log"
             env = os.environ.copy()
+            # HERDR_ENV/TMUX系はフック先頭の早期returnガードを誘発し、
+            # returncode/エラーログ検証の前提が崩れる実行環境汚染を防ぐ
+            for name in ("HERDR_ENV", "TMUX", "TMUX_PANE"):
+                env.pop(name, None)
             env["CODEX_HOOK_ERROR_LOG"] = str(error_log)
             result = subprocess.run(
                 [sys.executable, str(HOOK)],

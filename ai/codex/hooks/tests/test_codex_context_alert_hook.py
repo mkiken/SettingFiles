@@ -82,6 +82,10 @@ function remove_tmux_context_alert_badge() {
 
 def hook_environment(tmp_path: Path) -> dict[str, str]:
     env = os.environ.copy()
+    # HERDR_ENV/TMUX系は他フックの早期returnガードを誘発する実行環境汚染源。
+    # このフックは現状ガードを持たないが、将来追加された際の回帰を予防する。
+    for name in ("HERDR_ENV", "TMUX_PANE"):
+        env.pop(name, None)
     env.update(
         {
             "SET": str(install_test_alert_dependencies(tmp_path)) + "/",

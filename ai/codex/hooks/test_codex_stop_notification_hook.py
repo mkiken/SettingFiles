@@ -82,6 +82,10 @@ class CodexStopNotificationHookTest(unittest.TestCase):
         input_with_transcript["transcript_path"] = str(transcript)
         input_with_transcript.setdefault("session_id", "notification-test")
         env = os.environ.copy()
+        # HERDR_ENV/TMUX系はフック先頭の早期returnガードを誘発し、
+        # スタブが呼ばれずevents.logが生成されない実行環境汚染を防ぐ
+        for name in ("HERDR_ENV", "TMUX", "TMUX_PANE"):
+            env.pop(name, None)
         env.update(
             {
                 "SET": f"{root}/",
