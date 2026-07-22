@@ -69,6 +69,7 @@ if [[ -n "$tab_id" ]]; then
   if [[ -n "$tab_json" ]]; then
     tab_status="$(print -r -- "$tab_json" | jq -r '.result.tab.agent_status // empty' 2>/dev/null)"
     current_label="$(print -r -- "$tab_json" | jq -r '.result.tab.label // empty' 2>/dev/null)"
+    tab_number="$(print -r -- "$tab_json" | jq -r '.result.tab.number // empty' 2>/dev/null)"
 
     status_emoji=""
     case "$tab_status" in
@@ -103,10 +104,6 @@ case "$agent_status" in
   *) exit 0 ;;
 esac
 
-# Tab display number is already in HERDR_PLUGIN_CONTEXT_JSON as `.tab_label` — no extra call needed.
-context_json="${HERDR_PLUGIN_CONTEXT_JSON:-}"
-tab_label="$(print -r -- "$context_json" | jq -r '.tab_label // empty' 2>/dev/null)"
-
 # Workspace display number isn't in the context JSON; resolve it with one `workspace list` call.
 ws_id="${HERDR_WORKSPACE_ID:-}"
 ws_number=""
@@ -115,9 +112,10 @@ if [[ -n "$ws_id" ]]; then
     | jq -r --arg w "$ws_id" '.result.workspaces[]? | select(.workspace_id==$w) | .number // empty' 2>/dev/null)"
 fi
 
+# screen_label shows workspace:tab display indices; omit entirely if either is missing.
 screen_label=""
-if [[ -n "$ws_number" && -n "$tab_label" ]]; then
-  screen_label=" 🖥️${ws_number}-${tab_label}"
+if [[ -n "$ws_number" && -n "$tab_number" ]]; then
+  screen_label=" 🖥️${ws_number}:${tab_number}"
 fi
 
 # id_emoji は冒頭のタブアイコン処理で既に決定済み。ここでは通知本文用の

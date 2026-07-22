@@ -15,8 +15,8 @@ class HerdrPluginNotifyTest(unittest.TestCase):
     """notify-on-agent-status.sh のロジック単体テスト。
 
     実herdr CLI/terminal-notifierには依存せず、fake_bin/herdrとnotify()スタブで
-    引数を記録し、done/blocked判定・絵文字出し分け・workspace/tabラベル整形・
-    フォールバックを検証する。
+    引数を記録し、done/blocked判定・絵文字出し分け・workspace番号/tab index整形・
+    screen_label省略(indexが取れない時)を検証する。
     """
 
     def run_plugin(
@@ -25,13 +25,15 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         agent: str = "claude",
         agent_status: str = "done",
         pane_id: str = "w1:p7",
+        tab_id: str = "w1:t4",
         workspace_id: str = "w1",
-        tab_label: str = "2",
+        tab_number: str = "4",
         ws_number: str = "1",
         title_text: str = "Herdr通知をカスタマイズしてworkspace情報を表示",
         session_id: str = "session-abc",
         herdr_present: bool = True,
         pane_get_empty: bool = False,
+        include_tab_id: bool = True,
         jq_present: bool = True,
     ) -> tuple[subprocess.CompletedProcess[str], Path]:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -66,18 +68,21 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                 file_path.write_text(content, encoding="utf-8")
 
             if herdr_present:
+                pane_fields = {
+                    "terminal_title_stripped": title_text,
+                    "agent_session": {"value": session_id},
+                }
+                if include_tab_id:
+                    pane_fields["tab_id"] = tab_id
                 pane_result = (
                     {"result": {"pane": {}}}
                     if pane_get_empty
-                    else {
-                        "result": {
-                            "pane": {
-                                "terminal_title_stripped": title_text,
-                                "agent_session": {"value": session_id},
-                            }
-                        }
-                    }
+                    else {"result": {"pane": pane_fields}}
                 )
+                tab_fields = {"agent_status": agent_status, "label": "1"}
+                if tab_number:
+                    tab_fields["number"] = int(tab_number)
+                tab_result = {"result": {"tab": tab_fields}}
                 workspace_result = {
                     "result": {
                         "workspaces": [
@@ -92,6 +97,10 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                     "#!/bin/bash\n"
                     'if [[ "$1" == "pane" && "$2" == "get" ]]; then\n'
                     f"  echo '{json.dumps(pane_result)}'\n"
+                    'elif [[ "$1" == "tab" && "$2" == "get" ]]; then\n'
+                    f"  echo '{json.dumps(tab_result)}'\n"
+                    'elif [[ "$1" == "tab" && "$2" == "rename" ]]; then\n'
+                    '  :\n'
                     'elif [[ "$1" == "workspace" && "$2" == "list" ]]; then\n'
                     f"  echo '{json.dumps(workspace_result)}'\n"
                     "fi\n",
@@ -121,11 +130,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                             },
                         }
                     ),
-                    "HERDR_PLUGIN_CONTEXT_JSON": json.dumps(
-                        {"workspace_id": workspace_id, "tab_label": tab_label}
-                        if tab_label
-                        else {"workspace_id": workspace_id}
-                    ),
+                    "HERDR_PLUGIN_CONTEXT_JSON": json.dumps({"workspace_id": workspace_id}),
                     "HERDR_PANE_ID": pane_id,
                     "HERDR_WORKSPACE_ID": workspace_id,
                     "PATH": ":".join(path_entries),
@@ -149,7 +154,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         title_line = next(line for line in events if line.startswith("title="))
         # 時刻(🕰️HH:MM:SS)は非決定的なため、プレフィックス一致のみ検証する。
-        self.assertTrue(title_line.startswith("title=CLAUDE_IDDONE Claude完了 🖥️1-2 🕰️"), title_line)
+        self.assertTrue(title_line.startswith("title=CLAUDE_IDDONE Claude完了 🖥️1:4 🕰️"), title_line)
         self.assertEqual(
             events[1:],
             [
@@ -164,7 +169,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("message=Herdr通知をカスタマイズしてworkspace情報を表示", events)
-        self.assertTrue(any(line.startswith("title=CLAUDE_IDWAIT Claude入力待ち 🖥️1-2 🕰️") for line in events))
+        self.assertTrue(any(line.startswith("title=CLAUDE_IDWAIT Claude入力待ち 🖥️1:4 🕰️") for line in events))
 
     def test_idle_working_unknown_do_not_notify(self):
         for agent_status in ("idle", "working", "unknown", ""):
@@ -186,8 +191,17 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue(any(line.startswith("title=🤖DONE") for line in events))
 
-    def test_missing_tab_label_omits_screen_label(self):
-        result, events = self.run_plugin(agent_status="done", tab_label="")
+    def test_missing_tab_id_omits_screen_label(self):
+        # tab_id が取れない -> tab get 自体が呼ばれず tab_number が未設定 -> screen_label 省略。
+        result, events = self.run_plugin(agent_status="done", include_tab_id=False)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        title_line = next(line for line in events if line.startswith("title="))
+        self.assertNotIn("🖥️", title_line)
+
+    def test_missing_tab_number_omits_screen_label(self):
+        # tab get は成功するが応答に number が無い -> screen_label 省略（会話概要へはフォールバックしない）。
+        result, events = self.run_plugin(agent_status="done", tab_number="")
 
         self.assertEqual(result.returncode, 0, result.stderr)
         title_line = next(line for line in events if line.startswith("title="))
@@ -199,6 +213,13 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         title_line = next(line for line in events if line.startswith("title="))
         self.assertNotIn("🖥️", title_line)
+
+    def test_screen_label_format_is_colon_separated(self):
+        result, events = self.run_plugin(agent_status="done", ws_number="2", tab_number="7")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        title_line = next(line for line in events if line.startswith("title="))
+        self.assertIn("🖥️2:7", title_line)
 
     def test_empty_conversation_title_uses_placeholder(self):
         result, events = self.run_plugin(agent_status="done", title_text="")
