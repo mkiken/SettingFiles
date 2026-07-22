@@ -14,6 +14,7 @@ from tmux_emoji import (
     EMOJI_STATUS_COMPLETED,
     EMOJI_STATUS_NOTIFICATION,
     EMOJI_STATUS_ONGOING,
+    split_identifier_prefix,
     strip_emoji_prefix,
 )
 
@@ -89,6 +90,30 @@ def build_cleaned_name(current: str) -> str:
     return strip_emoji_prefix(current)
 
 
+def compute_updated_label(current: str, status_emoji: str, identifier: str | None = None) -> str:
+    """tmux/Herdrどちらのラベルにも使える、状態アイコン差し替え後の文字列を計算する
+    純粋関数（tmux/herdrへの問い合わせや書き込みは行わない）。
+
+    identifierがNoneなら現ラベル先頭のAI識別子を継承する
+    （update_tmux_window_nameのidentifier省略時と同じ挙動）。
+    空文字を明示的に渡せば継承せず識別子を消せる。
+    """
+    resolved_identifier = identifier
+    if resolved_identifier is None:
+        resolved_identifier, _ = split_identifier_prefix(current)
+    return build_updated_name(current, status_emoji, resolved_identifier)
+
+
+def compute_cleaned_label(current: str) -> str:
+    """状態アイコンだけを除去し、AI識別子とcontextバッジは残したラベルを計算する
+    純粋関数（tmux/herdrへの問い合わせや書き込みは行わない）。
+    """
+    identifier, rest = split_identifier_prefix(current)
+    prefix, stripped = _split_emoji_prefix(rest)
+    badge = EMOJI_CONTEXT_ALERT if EMOJI_CONTEXT_ALERT in prefix else ""
+    return f"{identifier}{badge}{stripped}"
+
+
 def _read_current_name(pane_id: str, run) -> str:
     result = run(
         ["tmux", "display-message", "-p", "-t", pane_id, "#W"],
@@ -116,7 +141,7 @@ def _rename_window(window_id: str, new_name: str, run):
 
 def update_tmux_window_name(
     status: HookStatus | str,
-    identifier: str = "",
+    identifier: str | None = None,
     *,
     report_error: bool = False,
     run=subprocess.run,
@@ -125,6 +150,12 @@ def update_tmux_window_name(
     """指定された状態アイコンをtmuxウィンドウ名のプレフィックスに設定する。
     statusはHookStatusまたは絵文字文字列。tmux環境外は成功扱いにする。
     戻り値はUPDATE_*。report_error時は失敗理由をstderrに出力する。
+
+    identifierを省略（None）した場合、現ラベル先頭のAI識別子（✴️/💎/🪷）を
+    自動継承する。AIフックは常にidentifierを明示的に渡すため影響しない。
+    シェル状態フック（AI以外）はAI識別子を知らずに呼ぶため、既存のAI識別子を
+    消してしまわないようこの継承が必要。identifier=""を明示的に渡せば
+    従来通り継承せず消せる。
     """
 
     def fail(code: int) -> int:
@@ -148,7 +179,10 @@ def update_tmux_window_name(
     except Exception:
         return fail(UPDATE_WINDOW_ID_FAILED)
     try:
-        new_name = build_updated_name(current_name, emoji, identifier)
+        resolved_identifier = identifier
+        if resolved_identifier is None:
+            resolved_identifier, _ = split_identifier_prefix(current_name)
+        new_name = build_updated_name(current_name, emoji, resolved_identifier)
     except Exception:
         return fail(UPDATE_NAME_BUILD_FAILED)
     try:
@@ -232,7 +266,9 @@ def remove_context_alert_badge(*, run=subprocess.run, env=None) -> int:
 _USAGE = (
     "usage: tmux_window_name.py"
     " {update <emoji-prefix> [identifier] [--report-error]"
-    " | remove [--report-error] | add-badge | remove-badge}"
+    " | remove [--report-error] | add-badge | remove-badge"
+    " | compute-updated-label <current> <status-emoji> [identifier]"
+    " | compute-cleaned-label <current>}"
 )
 _EX_USAGE = 64
 
@@ -242,13 +278,34 @@ def main(argv: list[str]) -> int:
         print(_USAGE, file=sys.stderr)
         return _EX_USAGE
     command, args = argv[0], argv[1:]
+    if command == "compute-updated-label":
+        # tmux/herdrどちらにも問い合わせず、ラベル文字列だけを計算してstdoutへ出す
+        # （Herdr側シェルスクリプトがtmuxに依存せず同じロジックを再利用するため）。
+        # identifier省略時はNone（現ラベルから継承）、明示指定時（空文字含む）はその値を使う。
+        if len(args) == 2:
+            print(compute_updated_label(args[0], args[1]))
+            return 0
+        if len(args) == 3:
+            print(compute_updated_label(args[0], args[1], args[2]))
+            return 0
+        print(_USAGE, file=sys.stderr)
+        return _EX_USAGE
+    if command == "compute-cleaned-label":
+        if len(args) == 1:
+            print(compute_cleaned_label(args[0]))
+            return 0
+        print(_USAGE, file=sys.stderr)
+        return _EX_USAGE
     if command == "update":
         report_error = bool(args) and args[-1] == "--report-error"
         update_args = args[:-1] if report_error else args
         if len(update_args) in (1, 2) and "--report-error" not in update_args:
+            # identifier省略/空文字はNoneとして渡し、現ラベルからの継承に委ねる
+            # （シェル状態フックはAI識別子を知らずに呼ぶため）。
+            identifier = update_args[1] if len(update_args) == 2 else ""
             code = update_tmux_window_name(
                 update_args[0],
-                update_args[1] if len(update_args) == 2 else "",
+                identifier or None,
                 report_error=report_error,
             )
             return code if report_error else UPDATE_OK

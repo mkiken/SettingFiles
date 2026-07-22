@@ -13,7 +13,7 @@ TMUX_TARGET="\$$SESSION_ID"
 WINDOWS=$(tmux list-windows -t "$TMUX_TARGET" -F "#W" 2>/dev/null) || exit 0
 
 STATUS_ICON=""
-for emoji in "$EMOJI_STATUS_NOTIFICATION" "$EMOJI_STATUS_ONGOING" "$EMOJI_STATUS_COMPLETED"; do
+for emoji in "$EMOJI_STATUS_NOTIFICATION" "$EMOJI_STATUS_ERROR" "$EMOJI_STATUS_ONGOING" "$EMOJI_STATUS_COMPLETED"; do
     if printf '%s' "$WINDOWS" | grep -qF "$emoji"; then
         STATUS_ICON="$emoji"
         break

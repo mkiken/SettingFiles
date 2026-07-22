@@ -34,6 +34,17 @@ function notify() {
     if command -v update_tmux_window_name >/dev/null 2>&1; then
       update_tmux_window_name "$tmux_icon" || true
     fi
+    # Herdr環境ではtab/workspaceにも同じアイコンを反映する（tmuxとHerdrは排他的に
+    # 動作するため、双方を無条件に呼んでも問題ない）
+    if [[ -z "${TMUX:-}" && ( -n "${HERDR_ENV:-}" || -n "${HERDR_PANE_ID:-}" ) ]]; then
+      if ! command -v update_herdr_status_icon >/dev/null 2>&1; then
+        local _hsi="${HOME}/Desktop/repository/SettingFiles/shell/tmux/herdr_status_icon.sh"
+        [[ -f "$_hsi" ]] && source "$_hsi"
+      fi
+      if command -v update_herdr_status_icon >/dev/null 2>&1; then
+        update_herdr_status_icon "$tmux_icon" || true
+      fi
+    fi
   fi
 
   if _notify_should_suppress_for_ai; then

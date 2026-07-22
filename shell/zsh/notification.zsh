@@ -25,9 +25,25 @@ export NOTIFY_COMMAND_EXCLUDE=(
 # コマンド実行開始時間を記録
 _cmd_start_time=0
 _cmd_name=""
+# 完了✅/失敗❌アイコンがtmux/Herdrに付いている間だけ立てるフラグ（次コマンドの
+# preexecで外す際の目印。未設定時は何もしない）
+_shell_status_icon_active=""
 
 # コマンド実行前のフック関数
 function _notification_preexec() {
+  # 直前コマンドの完了✅/失敗❌アイコンが残っていれば、新しいコマンドの開始時に外す
+  # （✋入力待ちと違い、完了/失敗には「読んだ」相手がいないため次コマンド開始を
+  # 区切りとする。tmux/Herdr両方から外す）
+  if [[ -n "${_shell_status_icon_active:-}" ]]; then
+    if (( ${+functions[remove_tmux_window_icon]} )); then
+      remove_tmux_window_icon || true
+    fi
+    if (( ${+functions[remove_herdr_status_icon]} )); then
+      remove_herdr_status_icon || true
+    fi
+    unset _shell_status_icon_active
+  fi
+
   _cmd_start_time=$SECONDS
   _cmd_name="$1"
 
@@ -105,8 +121,9 @@ function _notification_precmd() {
     message="${_cmd_name} (${elapsed}s) - Exit code: ${exit_code}"
   fi
 
-  # 通知を送信
-  notify "${status_icon} ${status_title}" "${message}"
+  # 通知を送信（tmux/HerdrのアイコンにもAI以外のシェル状態として反映する）
+  notify --tmux-icon "${status_icon}" "${status_icon} ${status_title}" "${message}"
+  _shell_status_icon_active=1
 
   # 最後に初期化
   _notification_reset

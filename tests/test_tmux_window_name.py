@@ -18,7 +18,10 @@ import tmux_emoji
 import tmux_window_name as twn
 
 ID = tmux_emoji.EMOJI_ID_CLAUDE  # ✴️
+ID_GEMINI = tmux_emoji.EMOJI_ID_GEMINI  # 💎
+ID_CODEX = tmux_emoji.EMOJI_ID_CODEX  # 🪷
 DONE = tmux_emoji.EMOJI_STATUS_COMPLETED  # ✅
+ERROR = tmux_emoji.EMOJI_STATUS_ERROR  # ❌
 WAIT = tmux_emoji.EMOJI_STATUS_NOTIFICATION  # ✋
 BUSY = tmux_emoji.EMOJI_STATUS_ONGOING  # 🤖
 ALERT = tmux_emoji.EMOJI_CONTEXT_ALERT  # ⚠️
@@ -88,6 +91,26 @@ class TestBuildCleanedName(unittest.TestCase):
         for desc, current, expected in cases:
             with self.subTest(desc):
                 self.assertEqual(twn.build_cleaned_name(current), expected)
+
+
+class TestSplitIdentifierPrefix(unittest.TestCase):
+    def test_table(self):
+        cases = [
+            # (説明, name, expected_identifier, expected_rest)
+            ("Claude識別子を検出", f"{ID}main", ID, "main"),
+            ("Gemini識別子を検出", f"{ID_GEMINI}main", ID_GEMINI, "main"),
+            ("Codex識別子を検出", f"{ID_CODEX}main", ID_CODEX, "main"),
+            ("識別子+状態アイコン", f"{ID}{BUSY}main", ID, f"{BUSY}main"),
+            ("識別子なし", "main", "", "main"),
+            ("状態アイコンのみ(識別子ではない)", f"{BUSY}main", "", f"{BUSY}main"),
+            ("空文字境界", "", "", ""),
+        ]
+        for desc, name, expected_identifier, expected_rest in cases:
+            with self.subTest(desc):
+                self.assertEqual(
+                    tmux_emoji.split_identifier_prefix(name),
+                    (expected_identifier, expected_rest),
+                )
 
 
 class TestGetTmuxPaneId(unittest.TestCase):
@@ -163,6 +186,68 @@ class TestUpdateTmuxWindowName(unittest.TestCase):
         twn.update_tmux_window_name(BUSY, ID, run=by_emoji, env=TMUX_ENV)
         self.assertEqual(by_status.renamed_to, f"{ID}{BUSY}main")
         self.assertEqual(by_status.renamed_to, by_emoji.renamed_to)
+
+    def test_identifier_omitted_inherits_from_current_label(self):
+        # シェル状態フック（AI以外）はAI識別子を知らずに呼ぶ。identifier省略時は
+        # 現ラベル先頭のAI識別子(✴️/💎/🪷)を継承し、状態アイコンだけ後勝ちで
+        # 差し替える（AIアイコンをシェル状態の更新で消してしまわないため）。
+        cases = [
+            # (説明, current, status_emoji, expected)
+            ("Claude識別子を継承", f"{ID}{BUSY}main", DONE, f"{ID}{DONE}main"),
+            ("Codex識別子を継承", f"{ID_CODEX}{BUSY}main", DONE, f"{ID_CODEX}{DONE}main"),
+            ("識別子なしはそのまま", "main", DONE, f"{DONE}main"),
+            ("バッジも保持したまま継承", f"{ID}{BUSY}{ALERT}main", DONE, f"{ID}{DONE}{ALERT}main"),
+        ]
+        for desc, current, status_emoji, expected in cases:
+            with self.subTest(desc):
+                fake = FakeTmux(window_name=current)
+                twn.update_tmux_window_name(status_emoji, run=fake, env=TMUX_ENV)
+                self.assertEqual(fake.renamed_to, expected)
+
+    def test_explicit_identifier_still_overrides_current_label(self):
+        # AIフックは常にidentifierを明示的に渡す（partial(..., identifier=IDENTIFIER)）。
+        # 明示指定時は継承ロジックを迂回し、これまで通り指定値がそのまま使われる。
+        fake = FakeTmux(window_name=f"{ID}{BUSY}main")
+        twn.update_tmux_window_name(DONE, ID_CODEX, run=fake, env=TMUX_ENV)
+        self.assertEqual(fake.renamed_to, f"{ID_CODEX}{DONE}main")
+
+
+class TestComputeUpdatedLabel(unittest.TestCase):
+    """tmuxに触らずラベル文字列だけを計算する純粋関数（Herdr側シェルスクリプトが
+    tmuxに依存せず同じロジックを再利用するために使う）。"""
+
+    def test_table(self):
+        cases = [
+            # (説明, current, status_emoji, identifier, expected)
+            ("識別子を継承(update_tmux_window_nameと同じ挙動)", f"{ID}{BUSY}main", DONE, None, f"{ID}{DONE}main"),
+            ("識別子なしはそのまま", "main", DONE, None, f"{DONE}main"),
+            ("明示identifierは現ラベルの識別子を上書き", f"{ID}{BUSY}main", DONE, ID_CODEX, f"{ID_CODEX}{DONE}main"),
+            ("明示空文字identifierは識別子を消す", f"{ID}{BUSY}main", DONE, "", f"{DONE}main"),
+            ("バッジ保持", f"{ID}{BUSY}{ALERT}main", DONE, None, f"{ID}{DONE}{ALERT}main"),
+        ]
+        for desc, current, status_emoji, identifier, expected in cases:
+            with self.subTest(desc):
+                self.assertEqual(
+                    twn.compute_updated_label(current, status_emoji, identifier),
+                    expected,
+                )
+
+
+class TestComputeCleanedLabel(unittest.TestCase):
+    """状態アイコンだけを除去し、AI識別子は残すラベル計算（tmuxのcontextバッジ除去と
+    同様、Herdr側で「状態だけ外す」ために使う）。"""
+
+    def test_table(self):
+        cases = [
+            # (説明, current, expected)
+            ("識別子は残し状態のみ除去", f"{ID}{DONE}main", f"{ID}main"),
+            ("識別子なしは状態除去のみ", f"{WAIT}main", "main"),
+            ("バッジは保持", f"{ID}{DONE}{ALERT}main", f"{ID}{ALERT}main"),
+            ("状態アイコンなしは不変", f"{ID}main", f"{ID}main"),
+        ]
+        for desc, current, expected in cases:
+            with self.subTest(desc):
+                self.assertEqual(twn.compute_cleaned_label(current), expected)
 
 
 class TestRemoveTmuxWindowIcon(unittest.TestCase):
@@ -281,9 +366,11 @@ class TestCli(unittest.TestCase):
     def test_update_passes_identifier_through(self):
         cases = [
             # (説明, argv, update_tmux_window_nameへ渡る引数, report_error)
-            ("identifier省略は空文字", ["update", WAIT], (WAIT, ""), False),
+            # identifier省略/空文字は None を渡し、現ラベルからの継承に委ねる
+            # （シェル状態フックはAI識別子を知らずに呼ぶため）。
+            ("identifier省略はNone(継承)", ["update", WAIT], (WAIT, None), False),
             ("identifier指定はそのまま", ["update", WAIT, ID], (WAIT, ID), False),
-            ("identifier空文字は省略と同じ", ["update", WAIT, ""], (WAIT, ""), False),
+            ("identifier空文字はNoneと同じ(継承)", ["update", WAIT, ""], (WAIT, None), False),
             (
                 "strictフラグを渡す",
                 ["update", WAIT, ID, "--report-error"],
@@ -306,6 +393,62 @@ class TestCli(unittest.TestCase):
             code = twn.main(["update", WAIT, ID, "--report-error"])
         self.assertEqual(code, twn.UPDATE_RENAME_FAILED)
         fake_update.assert_called_once_with(WAIT, ID, report_error=True)
+
+
+class TestComputeLabelCli(unittest.TestCase):
+    """Herdr側シェルスクリプトが tmux に触らずラベル計算だけをCLI経由で使うための
+    サブコマンド。tmux外環境でも常に動作する（pane_id判定を経由しないため）。
+    """
+
+    def test_compute_updated_label_table(self):
+        cases = [
+            # (説明, argv, expected_stdout)
+            ("識別子継承", ["compute-updated-label", f"{ID}{BUSY}main", DONE], f"{ID}{DONE}main"),
+            ("識別子なし", ["compute-updated-label", "main", DONE], f"{DONE}main"),
+            (
+                "明示identifierで上書き",
+                ["compute-updated-label", f"{ID}{BUSY}main", DONE, ID_CODEX],
+                f"{ID_CODEX}{DONE}main",
+            ),
+            (
+                "明示空文字identifierで消す",
+                ["compute-updated-label", f"{ID}{BUSY}main", DONE, ""],
+                f"{DONE}main",
+            ),
+        ]
+        for desc, argv, expected_stdout in cases:
+            with self.subTest(desc):
+                stdout = io.StringIO()
+                with contextlib.redirect_stdout(stdout):
+                    code = twn.main(argv)
+                self.assertEqual(code, 0)
+                self.assertEqual(stdout.getvalue(), expected_stdout + "\n")
+
+    def test_compute_cleaned_label_table(self):
+        cases = [
+            # (説明, argv, expected_stdout)
+            ("識別子は残し状態のみ除去", ["compute-cleaned-label", f"{ID}{DONE}main"], f"{ID}main"),
+            ("識別子なしは状態除去のみ", ["compute-cleaned-label", f"{WAIT}main"], "main"),
+        ]
+        for desc, argv, expected_stdout in cases:
+            with self.subTest(desc):
+                stdout = io.StringIO()
+                with contextlib.redirect_stdout(stdout):
+                    code = twn.main(argv)
+                self.assertEqual(code, 0)
+                self.assertEqual(stdout.getvalue(), expected_stdout + "\n")
+
+    def test_compute_updated_label_missing_args_is_usage_error(self):
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = twn.main(["compute-updated-label", "main"])
+        self.assertEqual(code, twn._EX_USAGE)
+
+    def test_compute_cleaned_label_missing_args_is_usage_error(self):
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = twn.main(["compute-cleaned-label"])
+        self.assertEqual(code, twn._EX_USAGE)
 
 
 class TestShellWrapper(unittest.TestCase):

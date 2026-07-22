@@ -44,6 +44,7 @@ EMOJI_ID_CLAUDE = _conf["EMOJI_ID_CLAUDE"]
 EMOJI_ID_GEMINI = _conf["EMOJI_ID_GEMINI"]
 EMOJI_ID_CODEX = _conf["EMOJI_ID_CODEX"]
 EMOJI_STATUS_COMPLETED = _conf["EMOJI_STATUS_COMPLETED"]
+EMOJI_STATUS_ERROR = _conf["EMOJI_STATUS_ERROR"]
 EMOJI_STATUS_NOTIFICATION = _conf["EMOJI_STATUS_NOTIFICATION"]
 EMOJI_STATUS_ONGOING = _conf["EMOJI_STATUS_ONGOING"]
 EMOJI_CONTEXT_ALERT = _conf["EMOJI_CONTEXT_ALERT"]
@@ -52,6 +53,7 @@ EMOJI_CONTEXT_ALERT = _conf["EMOJI_CONTEXT_ALERT"]
 # context alerts are preserved by keeping them out of this pattern.
 EMOJI_PATTERN = "".join([
     EMOJI_STATUS_COMPLETED,
+    EMOJI_STATUS_ERROR,
     EMOJI_STATUS_NOTIFICATION,
     EMOJI_STATUS_ONGOING,
     EMOJI_ID_CLAUDE,
@@ -59,10 +61,25 @@ EMOJI_PATTERN = "".join([
     EMOJI_ID_CODEX,
 ])
 
+# AI識別子のみの集合（状態アイコンと区別して先頭プレフィックスから継承判定するため）
+_IDENTIFIER_EMOJIS = (EMOJI_ID_CLAUDE, EMOJI_ID_GEMINI, EMOJI_ID_CODEX)
+
 
 def strip_emoji_prefix(name: str) -> str:
     """ウィンドウ名から先頭の絵文字アイコンを除去（全Unicode絵文字対応）"""
     return _EMOJI_PREFIX_RE.sub("", name)
+
+
+def split_identifier_prefix(name: str) -> tuple[str, str]:
+    """名前の先頭がAI識別子(✴️/💎/🪷)なら (識別子, 残り) を、なければ ("", name) を返す。
+
+    シェル状態フック（AI以外）がAI識別子を知らないまま状態アイコンだけを
+    後勝ちで差し替える際、既存の識別子を現ラベルから継承するために使う。
+    """
+    for identifier in _IDENTIFIER_EMOJIS:
+        if name.startswith(identifier):
+            return identifier, name[len(identifier):]
+    return "", name
 
 
 if __name__ == "__main__":

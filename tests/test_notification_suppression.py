@@ -19,6 +19,7 @@ SYSTEM_PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 DEFAULT_NOTIFY_COMMAND = "source shell/zsh/alias/notification.zsh; notify title message default group"
 
 ICON_STUB = 'update_tmux_window_name() { echo "icon:$1" >> "$ICON_TEST_LOG"; }'
+HERDR_ICON_STUB = 'update_herdr_status_icon() { echo "herdr-icon:$1" >> "$HERDR_ICON_TEST_LOG"; }'
 
 
 class NotificationSuppressionTest(unittest.TestCase):
@@ -27,6 +28,16 @@ class NotificationSuppressionTest(unittest.TestCase):
         extra_env: dict[str, str],
         zsh_command: str = DEFAULT_NOTIFY_COMMAND,
     ) -> tuple[subprocess.CompletedProcess[str], Path, Path]:
+        result, log_path, icon_log_path, _herdr_icon_log_path = self.run_notify_full(
+            extra_env, zsh_command
+        )
+        return result, log_path, icon_log_path
+
+    def run_notify_full(
+        self,
+        extra_env: dict[str, str],
+        zsh_command: str = DEFAULT_NOTIFY_COMMAND,
+    ) -> tuple[subprocess.CompletedProcess[str], Path, Path, Path]:
         temp_dir = tempfile.TemporaryDirectory()
         self.addCleanup(temp_dir.cleanup)
 
@@ -35,6 +46,7 @@ class NotificationSuppressionTest(unittest.TestCase):
         fake_bin.mkdir()
         log_path = root / "terminal-notifier.log"
         icon_log_path = root / "tmux-icon.log"
+        herdr_icon_log_path = root / "herdr-icon.log"
         notifier = fake_bin / "terminal-notifier"
         notifier.write_text(
             "#!/bin/sh\n"
@@ -49,6 +61,7 @@ class NotificationSuppressionTest(unittest.TestCase):
             "PATH": f"{fake_bin}:{SYSTEM_PATH}",
             "NOTIFY_TEST_LOG": str(log_path),
             "ICON_TEST_LOG": str(icon_log_path),
+            "HERDR_ICON_TEST_LOG": str(herdr_icon_log_path),
         }
         env.update(extra_env)
 
@@ -61,7 +74,7 @@ class NotificationSuppressionTest(unittest.TestCase):
             check=False,
         )
 
-        return result, log_path, icon_log_path
+        return result, log_path, icon_log_path, herdr_icon_log_path
 
     def assert_notify_suppressed(self, extra_env: dict[str, str]) -> None:
         result, log_path, _ = self.run_notify(extra_env)
@@ -129,6 +142,53 @@ class NotificationSuppressionTest(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertFalse(icon_log_path.exists())
+        self.assertEqual(log_path.read_text(encoding="utf-8"), "called\n")
+
+    def test_notify_tmux_icon_also_sets_herdr_icon_under_herdr(self):
+        # HERDR_ENV=1でTMUX未設定ならHerdr反映も行う（tmuxとHerdrは排他だが、
+        # notify()呼び出し側は環境を意識せず同じ--tmux-iconを渡すだけでよい）。
+        result, log_path, icon_log_path, herdr_icon_log_path = self.run_notify_full(
+            {"HERDR_ENV": "1"},
+            "source shell/zsh/alias/notification.zsh; "
+            f"{ICON_STUB}; {HERDR_ICON_STUB}; "
+            "notify --tmux-icon ✋ title message default group",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(herdr_icon_log_path.read_text(encoding="utf-8"), "herdr-icon:✋\n")
+        self.assertEqual(log_path.read_text(encoding="utf-8"), "called\n")
+
+    def test_notify_tmux_icon_herdr_also_fires_when_suppressed(self):
+        result, _log_path, _icon_log_path, herdr_icon_log_path = self.run_notify_full(
+            {"HERDR_ENV": "1", "DISABLE_NOTIFY": "1"},
+            "source shell/zsh/alias/notification.zsh; "
+            f"{ICON_STUB}; {HERDR_ICON_STUB}; "
+            "notify --tmux-icon ✋ title message default group",
+        )
+
+        self.assertEqual(herdr_icon_log_path.read_text(encoding="utf-8"), "herdr-icon:✋\n")
+
+    def test_notify_tmux_icon_skips_herdr_without_herdr_env(self):
+        # HERDR_ENV/HERDR_PANE_IDともに未設定なら（=tmux環境やその他）Herdr側は呼ばない
+        result, _log_path, _icon_log_path, herdr_icon_log_path = self.run_notify_full(
+            {},
+            "source shell/zsh/alias/notification.zsh; "
+            f"{ICON_STUB}; {HERDR_ICON_STUB}; "
+            "notify --tmux-icon ✋ title message default group",
+        )
+
+        self.assertFalse(herdr_icon_log_path.exists())
+
+    def test_notify_tmux_icon_herdr_without_helper_still_notifies(self):
+        # herdr_status_icon.sh フォールバックパスが存在しない（HOMEがtemp root）
+        result, log_path, _icon_log_path, herdr_icon_log_path = self.run_notify_full(
+            {"HERDR_ENV": "1"},
+            "source shell/zsh/alias/notification.zsh; "
+            "notify --tmux-icon ✋ title message default group",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse(herdr_icon_log_path.exists())
         self.assertEqual(log_path.read_text(encoding="utf-8"), "called\n")
 
     def test_notify_tmux_icon_without_helper_still_notifies(self):
