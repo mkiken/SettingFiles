@@ -6,8 +6,9 @@ else
   FILTER_TOOL="${FILTER_TOOL:-fzf}"
 fi
 
+# zshrc初期化中にsourceされるためexitは厳禁（シェルごと即死しpopup等が一瞬で閉じる）
 if ! command -v "${FILTER_TOOL}" > /dev/null 2>&1; then
-  exit
+  return 0
 fi
 
 FILTER_COMMAND="${FILTER_COMMAND:-${FILTER_TOOL} --cycle --exit-0 --ansi}"
