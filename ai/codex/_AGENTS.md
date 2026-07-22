@@ -81,6 +81,8 @@ When a bug lives in an execution context you cannot run directly (another proces
 
 After any side-effecting operation (git commit/push, API writes, deletes, deploys), confirm it took effect via an independent check issued as a real tool call (e.g. `git log -1`, re-fetch the record) before reporting done — never narrate a command in prose and assume it ran. If verification fails or output is garbled, re-issue and re-verify; don't claim completion.
 
+Before `git push`, do not hard-code the target branch — run `git branch --show-current` and push the current branch. A parallel session may have switched, renamed, or re-based the working branch mid-task; a hard-coded push target can silently no-op (`Everything up-to-date` against an already-merged branch) while the current branch's commits stay unpushed. Confirming the branch immediately before push, and verifying the branch's remote ref advanced afterward, catches this.
+
 # Destructive-Command Verification Safety
 
 When verifying newly written code or shell functions that invoke destructive commands (`git restore`, `git clean`, `rm`, force-overwrite, etc.), never run that verification against a real project repository — set up a disposable throwaway repo/directory (e.g. `mktemp -d` + `git init`) and exercise the code there instead. When mocking a confirmation gate (e.g. a `confirm` function) to test the flow, also mock or stub out the destructive commands gated behind it — mocking only the gate while leaving real destructive commands live is not a safe test.
