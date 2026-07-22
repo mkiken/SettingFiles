@@ -21,7 +21,6 @@ _EMOJI_PREFIX_RE = re.compile(
     r"\U0001FA00-\U0001FA6F"  # Extended Pictographic A
     r"\U0001FA70-\U0001FAFF"  # Extended Pictographic B
     r"\U00002B50"             # Star
-    r"\U0000203C-\U00003299"  # CJK Symbols etc.
     r"\s]+"
 )
 

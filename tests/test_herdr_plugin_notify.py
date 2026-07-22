@@ -274,12 +274,14 @@ class HerdrPluginTabIconTest(unittest.TestCase):
                 file_path = fake_repo / relative_path
                 file_path.parent.mkdir(parents=True, exist_ok=True)
                 file_path.write_text(content, encoding="utf-8")
-            # tmux_emoji.conf / tmux_emoji.py はリポジトリの実物をそのまま使う。
-            # strip_emoji_prefixはUnicode絵文字専用のパターンなので、ASCIIスタブ
-            # 絵文字では剥がれず、スタック防止・idle除去のテストが検証できない。
+            # tmux_emoji.conf / tmux_emoji.py / tmux_window_name.py はリポジトリの実物を
+            # そのまま使う。strip_emoji_prefixはUnicode絵文字専用のパターンなので、ASCII
+            # スタブ絵文字では剥がれず、スタック防止・idle除去のテストが検証できない。
+            # tmux_window_name.py はプラグインが is-herdr-default-label CLI サブコマンドで
+            # 呼び出す（既知agentラベル→会話概要への差し替え判定）。
             fake_tmux_dir = fake_repo / "shell/tmux"
             fake_tmux_dir.mkdir(parents=True, exist_ok=True)
-            for name in ("tmux_emoji.conf", "tmux_emoji.py"):
+            for name in ("tmux_emoji.conf", "tmux_emoji.py", "tmux_window_name.py"):
                 real_file = REPO_ROOT / "shell/tmux" / name
                 (fake_tmux_dir / name).write_text(
                     real_file.read_text(encoding="utf-8"), encoding="utf-8"
@@ -580,6 +582,72 @@ class HerdrPluginTabIconTest(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, ["w1:t1 ✴️🤖1"])
+
+    def test_known_agent_default_label_is_replaced_by_conversation_title(self):
+        # HerdrがAI検出タブに自動命名する既知ラベル（'Claude Code'等）も、
+        # 連番数字と同様に会話概要へ差し替える対象。
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="done",
+            tab_status="done",
+            current_label="Claude Code",
+            title_text="タブ名の修正作業",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️✅タブ名の修正作業"])
+
+    def test_known_agent_default_label_working_icon(self):
+        result, calls = self.run_plugin(
+            agent="codex",
+            agent_status="working",
+            tab_status="working",
+            current_label="Codex",
+            title_text="バグ調査",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 🪷🤖バグ調査"])
+
+    def test_known_agent_default_label_without_title_keeps_label(self):
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="done",
+            tab_status="done",
+            current_label="Claude Code",
+            title_text="",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️✅Claude Code"])
+
+    def test_manual_label_is_not_replaced_by_conversation_title(self):
+        # 数字でも既知agent自動命名名でもないラベルは、ユーザーが手動で付けた
+        # 名前とみなし温存する（差し替え対象外）。
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="done",
+            tab_status="done",
+            current_label="My Task",
+            title_text="概要文",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️✅My Task"])
+
+    def test_replaced_label_is_stable_on_next_fire(self):
+        # 一度会話概要に差し替わったラベルは、数字でも既知agent自動命名名でもない
+        # ため次回発火時は再判定されても温存され、rename が呼ばれない（不動点）。
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="done",
+            tab_status="done",
+            current_label="✴️✅タブ名の修正作業",
+            title_text="タブ名の修正作業",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, [])
 
 
 if __name__ == "__main__":

@@ -250,6 +250,30 @@ class TestComputeCleanedLabel(unittest.TestCase):
                 self.assertEqual(twn.compute_cleaned_label(current), expected)
 
 
+class TestIsHerdrDefaultLabel(unittest.TestCase):
+    """Herdrが自動採番/自動命名しただけのラベル（連番数字 or 既知agent自動命名名）かを
+    判定する純粋関数。Trueなら会話概要への差し替え対象、Falseならユーザー手動命名として温存する。"""
+
+    def test_table(self):
+        cases = [
+            # (説明, base_label, expected)
+            ("連番数字1桁", "1", True),
+            ("連番数字複数桁", "42", True),
+            ("Claude自動命名", "Claude Code", True),
+            ("Codex自動命名", "Codex", True),
+            ("Gemini自動命名", "Gemini", True),
+            ("ユーザー手動命名は温存", "My Task", False),
+            ("差し替え後の会話概要は再判定でも温存(冪等性の要)", "Claude Code タブ名の動作確認", False),
+            ("数字を含むが純数字でない", "tab1", False),
+            ("空文字境界", "", False),
+            ("大文字小文字違いは非一致(厳密一致)", "claude code", False),
+            ("部分一致は非該当", "Claude Code Extra", False),
+        ]
+        for desc, base_label, expected in cases:
+            with self.subTest(desc):
+                self.assertEqual(twn.is_herdr_default_label(base_label), expected)
+
+
 class TestRemoveTmuxWindowIcon(unittest.TestCase):
     def test_table(self):
         cases = [
@@ -448,6 +472,25 @@ class TestComputeLabelCli(unittest.TestCase):
         stderr = io.StringIO()
         with contextlib.redirect_stderr(stderr):
             code = twn.main(["compute-cleaned-label"])
+        self.assertEqual(code, twn._EX_USAGE)
+
+    def test_is_herdr_default_label_table(self):
+        # 呼び出し側（zsh）が終了コードだけを見て分岐できるよう、
+        # 該当=0（真）/非該当=1（偽）をそのまま終了コードとして返す。
+        cases = [
+            # (説明, argv, expected_code)
+            ("連番数字は該当(0)", ["is-herdr-default-label", "1"], 0),
+            ("既知agent名は該当(0)", ["is-herdr-default-label", "Claude Code"], 0),
+            ("手動命名は非該当(1)", ["is-herdr-default-label", "My Task"], 1),
+        ]
+        for desc, argv, expected_code in cases:
+            with self.subTest(desc):
+                self.assertEqual(twn.main(argv), expected_code)
+
+    def test_is_herdr_default_label_missing_args_is_usage_error(self):
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = twn.main(["is-herdr-default-label"])
         self.assertEqual(code, twn._EX_USAGE)
 
 

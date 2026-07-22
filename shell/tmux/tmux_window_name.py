@@ -8,6 +8,7 @@ import os
 import subprocess
 import sys
 from enum import Enum
+from typing import Optional, Union
 
 from tmux_emoji import (
     EMOJI_CONTEXT_ALERT,
@@ -57,7 +58,7 @@ UPDATE_MESSAGES = {
 }
 
 
-def get_tmux_pane_id(env=None) -> str | None:
+def get_tmux_pane_id(env=None) -> Optional[str]:
     """tmuxセッション内の場合のみpane_idを返す。それ以外はNone。
     VSCode等からtmuxを起動した際にTMUX_PANEが継承されるケースを除外するため、
     TERM_PROGRAM=="tmux"も確認する。
@@ -90,7 +91,7 @@ def build_cleaned_name(current: str) -> str:
     return strip_emoji_prefix(current)
 
 
-def compute_updated_label(current: str, status_emoji: str, identifier: str | None = None) -> str:
+def compute_updated_label(current: str, status_emoji: str, identifier: Optional[str] = None) -> str:
     """tmux/Herdrどちらのラベルにも使える、状態アイコン差し替え後の文字列を計算する
     純粋関数（tmux/herdrへの問い合わせや書き込みは行わない）。
 
@@ -112,6 +113,21 @@ def compute_cleaned_label(current: str) -> str:
     prefix, stripped = _split_emoji_prefix(rest)
     badge = EMOJI_CONTEXT_ALERT if EMOJI_CONTEXT_ALERT in prefix else ""
     return f"{identifier}{badge}{stripped}"
+
+
+# Herdr本体がAIエージェント検出タブに自動命名するラベル文言（agent名そのもの）。
+# Herdrがこの文言を変更した場合はここを更新する。
+_HERDR_AUTO_LABELS = ("Claude Code", "Codex", "Gemini")
+
+
+def is_herdr_default_label(base_label: str) -> bool:
+    """Herdrが自動採番/自動命名しただけのラベルか（連番数字 or 既知agent自動命名名）を判定する
+    純粋関数。Trueなら会話概要（terminal_title_stripped）への差し替え対象、
+    Falseならユーザーが手動で付けた名前とみなし温存する。
+    """
+    if base_label != "" and base_label.isdigit():
+        return True
+    return base_label in _HERDR_AUTO_LABELS
 
 
 def _read_current_name(pane_id: str, run) -> str:
@@ -140,8 +156,8 @@ def _rename_window(window_id: str, new_name: str, run):
 
 
 def update_tmux_window_name(
-    status: HookStatus | str,
-    identifier: str | None = None,
+    status: Union[HookStatus, str],
+    identifier: Optional[str] = None,
     *,
     report_error: bool = False,
     run=subprocess.run,
@@ -268,7 +284,8 @@ _USAGE = (
     " {update <emoji-prefix> [identifier] [--report-error]"
     " | remove [--report-error] | add-badge | remove-badge"
     " | compute-updated-label <current> <status-emoji> [identifier]"
-    " | compute-cleaned-label <current>}"
+    " | compute-cleaned-label <current>"
+    " | is-herdr-default-label <base-label>}"
 )
 _EX_USAGE = 64
 
@@ -294,6 +311,13 @@ def main(argv: list[str]) -> int:
         if len(args) == 1:
             print(compute_cleaned_label(args[0]))
             return 0
+        print(_USAGE, file=sys.stderr)
+        return _EX_USAGE
+    if command == "is-herdr-default-label":
+        # 呼び出し側（zsh）が終了コードだけを見て分岐できるよう、
+        # 該当=0（真）/非該当=1（偽）をそのまま終了コードとして返す。
+        if len(args) == 1:
+            return 0 if is_herdr_default_label(args[0]) else 1
         print(_USAGE, file=sys.stderr)
         return _EX_USAGE
     if command == "update":

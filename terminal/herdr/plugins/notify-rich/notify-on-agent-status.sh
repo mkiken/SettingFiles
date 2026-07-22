@@ -69,9 +69,12 @@ if [[ -n "$tab_id" ]]; then
     esac
 
     base_label="$(python3 "${REPO_ROOT}/shell/tmux/tmux_emoji.py" "$current_label")"
-    # herdrが自動で連番数字を振っただけの未命名タブは、その番号よりMac通知と
-    # 同じ会話概要を出す方が「どのタブか」を判別しやすい（20文字で切り詰め）。
-    if [[ "$base_label" =~ '^[0-9]+$' && "$title_text" != "(no title)" ]]; then
+    # herdrが自動採番/自動命名しただけのタブ（連番数字、または「Claude Code」等の
+    # 既知agent自動命名ラベル）は、そのラベルよりMac通知と同じ会話概要を出す方が
+    # 「どのタブか」を判別しやすい（20文字で切り詰め）。ユーザーが手動で付けた
+    # 名前は温存する。判定は tmux_window_name.py の is-herdr-default-label に一元化。
+    if python3 "${REPO_ROOT}/shell/tmux/tmux_window_name.py" is-herdr-default-label "$base_label" \
+       && [[ "$title_text" != "(no title)" ]]; then
       base_label="${title_text[1,20]}"
     fi
     if [[ -n "$status_emoji" ]]; then
