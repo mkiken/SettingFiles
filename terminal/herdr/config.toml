@@ -64,7 +64,7 @@ width = "99%"
 height = "99%"
 
 [[keys.command]]
-key = "prefix+shift+w"
+key = "prefix+shift+f"
 type = "popup"
 command = "zsh -ilc \"frws\""
 description = "worktree picker -> new workspace"
