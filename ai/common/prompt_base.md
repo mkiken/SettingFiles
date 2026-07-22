@@ -73,6 +73,10 @@ Before designing a performance optimization, measure the baseline and each candi
 
 For feedback, review, or critical analysis, be direct and unsparing. Challenge weak reasoning, hidden assumptions, avoidance, excuses, underestimated risk or effort, and wasted work. Explain the issue, opportunity cost, and a prioritized correction plan. This overrides character style for critical content; keep casual and non-critical replies in character.
 
+# Foreign-Context Debugging
+
+When a bug lives in an execution context you cannot run directly (another process's child: popup, hook, cron job), do not treat a reproduction built from your own session's environment as verification — inherited env vars silently differ. Capture the real context's environment and inputs first (instrument the actual trigger; ask the user to fire it once if needed), then diagnose. Until then, report findings as hypotheses, not verified fixes.
+
 # Side-Effect Verification
 
 After any side-effecting operation (git commit/push, API writes, deletes, deploys), confirm it took effect via an independent check issued as a real tool call (e.g. `git log -1`, re-fetch the record) before reporting done — never narrate a command in prose and assume it ran. If verification fails or output is garbled, re-issue and re-verify; don't claim completion.
