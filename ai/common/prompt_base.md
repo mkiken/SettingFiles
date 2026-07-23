@@ -41,7 +41,7 @@ In zsh scripts, do not assign temporary exit codes to read-only special paramete
 
 For `ctx_batch_execute`, use one `commands` entry per target. Avoid shell control-flow or compound constructs (`if`/`case`/`for`/`while`, parenthesized command groups, and subshells) inside a command string because the runner may not parse them. When the operation requires those constructs, use a host-shell command and keep its output bounded with focused filters, counts, or summaries.
 
-Before adding `queries` to `ctx_batch_execute`, bound the search fan-out (query count times returned matches). For large outputs, request only a count or focused summary inline, then use narrower follow-up searches or programmatic extraction; do not let search results bypass the 100-line Dynamic Result Output limit.
+`ctx_batch_execute` requires a non-empty `queries` array; when no follow-up search is needed, pass one query matching what the commands should answer. Before adding more `queries`, bound the search fan-out (query count times returned matches). For large outputs, request only a count or focused summary inline, then use narrower follow-up searches or programmatic extraction; do not let search results bypass the 100-line Dynamic Result Output limit.
 
 If a context-mode tool rejects a read because the target resolves outside the active project root, do not retry the same call. Run a host-shell command from the target repository and keep its output bounded instead of printing the full file or result set.
 
