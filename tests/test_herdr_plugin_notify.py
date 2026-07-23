@@ -787,6 +787,48 @@ class HerdrPluginTabIconTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, ["w1:t1 🪷🤖バグ調査"])
 
+    def test_cwd_path_title_is_not_adopted_as_label(self):
+        # AI起動直後などterminal_titleがcwdフルパスになっている瞬間にプラグインが
+        # 発火しても、フルパスは会話概要とみなさずタブ名に採用しない
+        # （ai-all/review実行時にタブ名がフルパス化する回帰のガード）。
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="Claude Code",
+            title_text="/Users/a13596/Desktop/repository/SettingFiles",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️🤖Claude Code"])
+
+    def test_cwd_path_title_codex(self):
+        # 先頭20文字で切れたフルパス断片（実バグ再現形）でも同様に採用しない。
+        result, calls = self.run_plugin(
+            agent="codex",
+            agent_status="working",
+            tab_status="working",
+            current_label="Codex",
+            title_text="/Users/a13596/Deskt",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 🪷🤖Codex"])
+
+    def test_legit_slash_title_still_adopted(self):
+        # スラッシュを含む正当な会話概要（スペースを伴う）まで誤って弾かないことの
+        # 回帰防止（is_herdr_default_labelのパス判定はスペース無しに限定している）。
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="Claude Code",
+            title_text="feat/x を実装",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️🤖feat/x を実装"])
+
     def test_known_agent_default_label_without_title_keeps_label(self):
         result, calls = self.run_plugin(
             agent="claude",

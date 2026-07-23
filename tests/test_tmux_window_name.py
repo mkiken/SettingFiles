@@ -268,6 +268,17 @@ class TestIsHerdrDefaultLabel(unittest.TestCase):
             ("空文字境界", "", False),
             ("大文字小文字違いは非一致(厳密一致)", "claude code", False),
             ("部分一致は非該当", "Claude Code Extra", False),
+            ("絶対パス完全形は弾く", "/Users/a13596/Desktop/repository/SettingFiles", True),
+            ("絶対パス先頭20文字切れ形を弾く(実バグ再現)", "/Users/a13596/Deskt", True),
+            ("ルート単体", "/", True),
+            ("ホーム~始まりを弾く", "~/Desktop/repo", True),
+            ("~単体", "~", True),
+            ("$HOME前方一致", os.path.expanduser("~"), True),
+            ("スラッシュ含む正当な概要(スペース有)は温存", "feat/xxx を実装", False),
+            ("相対パス風概要(スペース有)は温存", "src/foo.ts を修正", False),
+            ("単なるファイル名は温存", "foo.ts", False),
+            ("スラッシュ+スペースの概要は温存", "a/b の修正", False),
+            ("スペース含む絶対パス風は概要優先で温存(弱点の明文化)", "/tmp foo", False),
         ]
         for desc, base_label, expected in cases:
             with self.subTest(desc):
@@ -482,6 +493,9 @@ class TestComputeLabelCli(unittest.TestCase):
             ("連番数字は該当(0)", ["is-herdr-default-label", "1"], 0),
             ("既知agent名は該当(0)", ["is-herdr-default-label", "Claude Code"], 0),
             ("手動命名は非該当(1)", ["is-herdr-default-label", "My Task"], 1),
+            ("フルパス切れ形は該当(0)", ["is-herdr-default-label", "/Users/a13596/Deskt"], 0),
+            ("ホーム~始まりは該当(0)", ["is-herdr-default-label", "~/repo"], 0),
+            ("正当な会話概要は非該当(1)", ["is-herdr-default-label", "feat/x を実装"], 1),
         ]
         for desc, argv, expected_code in cases:
             with self.subTest(desc):

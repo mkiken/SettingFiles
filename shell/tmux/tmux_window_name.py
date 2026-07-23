@@ -120,14 +120,30 @@ def compute_cleaned_label(current: str) -> str:
 _HERDR_AUTO_LABELS = ("Claude Code", "Codex", "Gemini")
 
 
+def _looks_like_cwd_path(base_label: str) -> bool:
+    """cwd/パスらしい文字列か（会話概要ではないと見なす）。
+    会話概要はほぼ必ずスペースを含む（"feat/x を実装" "src/foo.ts を修正" 等）ため、
+    スペースを含む文字列は概要優先で温存し、パス判定はスペース無しに限定する。
+    """
+    if " " in base_label:
+        return False
+    if base_label.startswith(("/", "~")):
+        return True
+    home = os.path.expanduser("~")
+    return bool(home) and base_label.startswith(home)
+
+
 def is_herdr_default_label(base_label: str) -> bool:
-    """Herdrが自動採番/自動命名しただけのラベルか（連番数字 or 既知agent自動命名名）を判定する
-    純粋関数。Trueなら会話概要（terminal_title_stripped）への差し替え対象、
-    Falseならユーザーが手動で付けた名前とみなし温存する。
+    """Herdrが自動採番/自動命名しただけのラベルか（連番数字・既知agent自動命名名・
+    cwdパスらしい文字列）を判定する純粋関数。Trueなら会話概要
+    （terminal_title_stripped）への差し替え対象、Falseならユーザーが手動で付けた
+    名前とみなし温存する。
     """
     if base_label != "" and base_label.isdigit():
         return True
-    return base_label in _HERDR_AUTO_LABELS
+    if base_label in _HERDR_AUTO_LABELS:
+        return True
+    return _looks_like_cwd_path(base_label)
 
 
 def _read_current_name(pane_id: str, run) -> str:
