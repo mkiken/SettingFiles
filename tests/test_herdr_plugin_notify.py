@@ -326,6 +326,7 @@ class HerdrPluginTabIconTest(unittest.TestCase):
         initial_managed_label: str | None = None,
         state_observer: list[str | None] | None = None,
         socket_path: str = "/tmp/herdr.sock",
+        include_pane_agent_key: bool | None = None,
     ) -> tuple[subprocess.CompletedProcess[str], list[str]]:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -373,13 +374,22 @@ class HerdrPluginTabIconTest(unittest.TestCase):
                     real_file.read_text(encoding="utf-8"), encoding="utf-8"
                 )
 
+            # 実環境ではagent未検出paneのpane getにagent/agent_sessionキー自体が
+            # 存在しない。include_pane_agent_key=None（既定）はその実挙動に合わせ、
+            # agentが空ならキーを省略する。Trueで空文字キー明示の境界も再現できる。
+            if include_pane_agent_key is None:
+                include_pane_agent_key = bool(agent)
             pane_result = {
                 "result": {
                     "pane": {
-                        "agent": agent,
+                        **({"agent": agent} if include_pane_agent_key else {}),
                         "agent_status": agent_status,
                         "terminal_title_stripped": title_text,
-                        "agent_session": {"value": "session-abc"},
+                        **(
+                            {"agent_session": {"value": "session-abc"}}
+                            if agent
+                            else {}
+                        ),
                         **({"tab_id": tab_id} if include_tab_id else {}),
                     }
                 }
@@ -801,6 +811,46 @@ class HerdrPluginTabIconTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, [])
         self.assertEqual(state, ["古い概要"])
+
+    def test_non_agent_pane_title_is_not_adopted(self):
+        # 非AI pane（Nvim等）のターミナルタイトルは会話概要ではないため、
+        # デフォルト連番ラベルでもタブ名に採用しない
+        # （git commit時のCOMMIT_EDITMSG乗っ取りの回帰ガード）。
+        # agentキー欠落（実環境の非agent pane）と空文字キーの両境界を検証する。
+        for include_pane_agent_key in (False, True):
+            with self.subTest(include_pane_agent_key=include_pane_agent_key):
+                state = []
+                result, calls = self.run_plugin(
+                    agent="",
+                    tab_status="unknown",
+                    current_label="3",
+                    title_text="COMMIT_EDITMSG + (~/repos/x/.git) - Nvim",
+                    event_name="pane.focused",
+                    include_pane_agent_key=include_pane_agent_key,
+                    state_observer=state,
+                )
+
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(calls, [])
+                self.assertEqual(state, [None])
+
+    def test_non_agent_pane_does_not_readopt_via_state_file(self):
+        # 過去に自動管理されたタブ（ラベル==状態ファイル値）でも、非AI paneの
+        # タイトルでは再差し替えせずラベルと状態ファイルを温存する。
+        state = []
+        result, calls = self.run_plugin(
+            agent="",
+            tab_status="unknown",
+            current_label="eternal-generate",
+            title_text="COMMIT_EDITMSG + (~/repos/x/.git) - Nvim",
+            event_name="pane.focused",
+            initial_managed_label="eternal-generate",
+            state_observer=state,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, [])
+        self.assertEqual(state, ["eternal-generate"])
 
     def test_replaced_label_is_stable_on_next_fire(self):
         state = []

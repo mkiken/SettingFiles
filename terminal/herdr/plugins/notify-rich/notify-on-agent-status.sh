@@ -115,8 +115,11 @@ if [[ -n "$tab_id" ]]; then
       auto_managed=true
     fi
 
+    # タイトルを会話概要とみなせるのはagent検出paneのみ（Claude/Codexが会話概要を
+    # ターミナルタイトルへセットする）。非AI paneのタイトルはNvim等が任意の値
+    # （COMMIT_EDITMSG等）をセットするため、タブ名には採用しない。
     title_usable=false
-    if [[ "$title_text" != "(no title)" ]] \
+    if [[ -n "$agent" && "$title_text" != "(no title)" ]] \
        && ! python3 "${REPO_ROOT}/shell/tmux/tmux_window_name.py" \
           is-herdr-default-label "$title_text"; then
       title_usable=true
