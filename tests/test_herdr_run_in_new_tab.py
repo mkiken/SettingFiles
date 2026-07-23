@@ -7,6 +7,11 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 AI_ALIASES = REPO_ROOT / "shell/zsh/alias/ai/ai.zsh"
 
+# _herdr_wait_shell_ready の1attemptあたりのwaitタイムアウト（ai.zshのattempt_timeout_msと一致させる）
+ATTEMPT_TIMEOUT_MS = 800
+# デフォルト総予算24000msでの最大attempt数
+DEFAULT_MAX_ATTEMPTS = 30
+
 
 def run_herdr_run_in_new_tab(
     args: str,
@@ -14,12 +19,19 @@ def run_herdr_run_in_new_tab(
     tab_create_exit: int = 0,
     tab_create_json: str = '{"result":{"root_pane":{"pane_id":"w1:p2"}}}',
     wait_output_exit: int = 0,
+    wait_output_failures: int = 0,
 ) -> tuple[subprocess.CompletedProcess, list[str]]:
-    """_herdr_run_in_new_tab を stub herdr/jq 付きで実行し、(結果, herdr呼び出しログ) を返す。"""
+    """stub herdr/jq 付きでai.zshの関数を実行し、(結果, herdr呼び出しログ) を返す。
+
+    wait output stubは最初の wait_output_failures 回は exit 1（タイムアウト）を返し、
+    それ以降は wait_output_exit を返す（リトライループの検証用）。
+    """
     with tempfile.TemporaryDirectory() as temp_dir:
         log_path = Path(temp_dir) / "herdr_calls.log"
+        wait_count_path = Path(temp_dir) / "wait_count"
         script = f'''
 LOG="{log_path}"
+WAIT_COUNT_FILE="{wait_count_path}"
 herdr() {{
     printf '%s\\n' "$*" >> "$LOG"
     case "$1" in
@@ -35,7 +47,14 @@ herdr() {{
             [[ "$2" == "run" ]] && return 0
             ;;
         wait)
-            [[ "$2" == "output" ]] && return {wait_output_exit}
+            if [[ "$2" == "output" ]]; then
+                local wait_count=$(( $(cat "$WAIT_COUNT_FILE" 2>/dev/null || echo 0) + 1 ))
+                printf '%s' "$wait_count" > "$WAIT_COUNT_FILE"
+                if (( wait_count <= {wait_output_failures} )); then
+                    return 1
+                fi
+                return {wait_output_exit}
+            fi
             ;;
     esac
 }}
@@ -57,6 +76,11 @@ source "{AI_ALIASES}"
         return result, calls
 
 
+def marker_from_run_call(call: str) -> str:
+    """pane run呼び出しログから送信マーカー（分割形、`""`入り）を取り出す。"""
+    return call.split("print -r -- ", 1)[1]
+
+
 class HerdrRunInNewTabTest(unittest.TestCase):
     def test_calls_happen_in_order_tab_create_marker_wait_then_command(self):
         result, calls = run_herdr_run_in_new_tab(
@@ -70,10 +94,37 @@ class HerdrRunInNewTabTest(unittest.TestCase):
         self.assertTrue(calls[2].startswith("wait output w1:p2 --match __herdr_ready_"))
         self.assertEqual(calls[3], "pane run w1:p2 gm-pr-review 123")
 
-        # marker文字列がpane runとwait outputで一致していること
-        marker_in_run = calls[1].split("print -r -- ", 1)[1]
+    def test_marker_sent_split_but_waited_concatenated(self):
+        # 入力エコーには分割形しか現れないよう、送信は `head""tail`、
+        # wait --match は実行出力にしか現れない連結形でなければならない
+        _, calls = run_herdr_run_in_new_tab(
+            '_herdr_run_in_new_tab "" "/tmp/work" "label" "gm-pr-review 123"'
+        )
+        marker_in_run = marker_from_run_call(calls[1])
         marker_in_wait = calls[2].split("--match ", 1)[1].split(" --source", 1)[0]
-        self.assertEqual(marker_in_run, marker_in_wait)
+
+        self.assertIn('""', marker_in_run)
+        self.assertNotIn('""', marker_in_wait)
+        self.assertEqual(marker_in_run.replace('""', ""), marker_in_wait)
+
+    def test_retry_resends_marker_until_wait_succeeds(self):
+        # 1回目のwaitがタイムアウト→マーカー再送→2回目で成功。本命コマンドは成功後に1回だけ。
+        result, calls = run_herdr_run_in_new_tab(
+            '_herdr_run_in_new_tab "" "/tmp/work" "label" "gm-pr-review 123"',
+            wait_output_failures=1,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(len(calls), 6, calls)
+
+        marker_runs = [c for c in calls if c.startswith("pane run w1:p2 print -r -- __herdr_ready_")]
+        wait_calls = [c for c in calls if c.startswith("wait output ")]
+        real_runs = [c for c in calls if c == "pane run w1:p2 gm-pr-review 123"]
+        self.assertEqual(len(marker_runs), 2)
+        self.assertEqual(len(wait_calls), 2)
+        self.assertEqual(len(real_runs), 1)
+        self.assertEqual(calls[-1], "pane run w1:p2 gm-pr-review 123")
+        # 同一呼び出し内のリトライは同じマーカーを再送する
+        self.assertEqual(marker_from_run_call(marker_runs[0]), marker_from_run_call(marker_runs[1]))
 
     def test_wait_output_timeout_prevents_final_command(self):
         result, calls = run_herdr_run_in_new_tab(
@@ -82,10 +133,34 @@ class HerdrRunInNewTabTest(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 1)
         self.assertIn("タイムアウトしました", result.stderr)
-        # marker echoまでは呼ばれるが、本命コマンドのpane runは呼ばれない
-        self.assertEqual(len(calls), 3, calls)
-        self.assertEqual(calls[2], "wait output w1:p2 --match " + calls[1].split("print -r -- ", 1)[1] + " --source recent --timeout 15000")
+
+        marker_runs = [c for c in calls if c.startswith("pane run w1:p2 print -r -- __herdr_ready_")]
+        wait_calls = [c for c in calls if c.startswith("wait output ")]
+        self.assertEqual(len(marker_runs), DEFAULT_MAX_ATTEMPTS)
+        self.assertEqual(len(wait_calls), DEFAULT_MAX_ATTEMPTS)
+        self.assertTrue(
+            wait_calls[0].endswith(f"--source recent --timeout {ATTEMPT_TIMEOUT_MS}"),
+            wait_calls[0],
+        )
         self.assertFalse(any(c == "pane run w1:p2 gm-pr-review 123" for c in calls))
+
+    def test_timeout_budget_bounds_attempts(self):
+        # attempt数 = ceil(timeout_ms / 800) の境界値検証
+        cases = [
+            (800, 1),
+            (801, 2),
+            (1600, 2),
+            (1601, 3),
+        ]
+        for timeout_ms, expected_attempts in cases:
+            with self.subTest(timeout_ms=timeout_ms):
+                result, calls = run_herdr_run_in_new_tab(
+                    f'_herdr_wait_shell_ready w1:p2 {timeout_ms}',
+                    wait_output_exit=1,
+                )
+                self.assertEqual(result.returncode, 1)
+                marker_runs = [c for c in calls if c.startswith("pane run w1:p2 print -r -- __herdr_ready_")]
+                self.assertEqual(len(marker_runs), expected_attempts, calls)
 
     def test_tab_create_failure_skips_pane_run(self):
         result, calls = run_herdr_run_in_new_tab(
@@ -111,7 +186,7 @@ class HerdrRunInNewTabTest(unittest.TestCase):
             '_herdr_run_in_new_tab "" "/tmp/work" "label" "gm-pr-review 1"; '
             '_herdr_run_in_new_tab "" "/tmp/work" "label" "gm-pr-review 2"'
         )
-        markers = [c.split("print -r -- ", 1)[1] for c in calls if "print -r --" in c]
+        markers = [marker_from_run_call(c) for c in calls if "print -r --" in c]
         self.assertEqual(len(markers), 2)
         self.assertNotEqual(markers[0], markers[1])
 
