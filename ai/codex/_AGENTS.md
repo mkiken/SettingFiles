@@ -311,12 +311,10 @@ When the `openai-docs` skill runs `fetch-codex-manual.mjs`, invoke it through th
 
 # User Confirmation
 
-Do not use the `request_user_input` tool in Codex.
+When `request_user_input` is available, use it for confirmation, clarification, cleanup, commit, and PR workflow questions that can be expressed as two or three meaningful choices. Put the recommended choice first.
 
-Ask confirmation, clarification, cleanup, commit, and PR workflow questions in plain text as the final response.
+When a skill defines authored options, pass each label to the tool exactly once and preserve the authored option count. Do not count the client's auto-provided free-form `Other` as an authored option.
 
-When presenting plain-text choices, format them as a Markdown ordered list starting from `1.`. Treat a number-only reply as selecting the corresponding visible option. If shared instructions or skill examples show unordered choice bullets, convert them to ordered lists when presenting them. `Use exactly these options` in a skill means keeping the option labels and count, while still displaying them as an ordered list.
+Ask in plain text only when `request_user_input` is unavailable for the current question or a meaningful answer requires free-form text that would be unnatural as choices.
 
-Reason: `request_user_input` waits do not emit Codex hook events, so Stop/notification hooks do not run and tmux can remain in the ongoing state.
-
-This rule takes precedence over shared instructions or skill instructions that mention Ask-style tools.
+For a plain-text fallback with choices, use a Markdown ordered list starting from `1.` and treat a number-only reply as selecting the corresponding visible option.
