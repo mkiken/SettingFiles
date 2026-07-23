@@ -181,17 +181,7 @@ _herdr_run_in_new_tab() {
     }
 }
 
-ai-all() {
-    if [[ $# -eq 0 ]]; then
-        echo "Usage: ai-all <prompt>" >&2
-        return 1
-    fi
-
-    if [[ -z "${TMUX:-}" ]]; then
-        echo "tmux内で実行してください" >&2
-        return 1
-    fi
-
+_ai_all_tmux() {
     local set_dir="${SET:-$HOME/Desktop/repository/SettingFiles}"
     source "${set_dir}/shell/tmux/tmux_emoji.conf"
 
@@ -214,6 +204,85 @@ ai-all() {
     _ai_ensure_window_name_helper
     update_tmux_window_name "" "${EMOJI_ID_CLAUDE}"
     clhm --permission-mode plan "${prompt}"
+}
+
+# tmux非依存・副作用なしでai-all系のベース名(git名、絵文字なし)を計算する
+# filter/ai.zsh の _review_window_git_name（純git実装）を流用する
+_ai_all_herdr_base_name() {
+    if ! command -v _review_window_git_name >/dev/null 2>&1; then
+        echo "_review_window_git_name が見つかりません（filter/ai.zsh が未ロード）" >&2
+        return 1
+    fi
+    _review_window_git_name "${PWD}"
+}
+
+_ai_herdr_command() {
+    local ai="$1"
+    local prompt="$2"
+    local prompt_quoted="${(q)prompt}"
+
+    # herdr pane run は既存の対話シェルにコマンドを投入する方式のため、
+    # tmux版と違い "; zsh" のようなシェル残存サフィックスは不要
+    case "${ai}" in
+        gemini)
+            print -r -- "gmh --approval-mode plan -i ${prompt_quoted}"
+            ;;
+        codex)
+            print -r -- "cxh ${prompt_quoted}"
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+# カレントHerdr paneが属するtab_idを解決する（HERDR_TAB_ID優先、無ければ pane get で解決）
+_ai_herdr_current_tab_id() {
+    if [[ -n "${HERDR_TAB_ID:-}" ]]; then
+        print -r -- "${HERDR_TAB_ID}"
+        return 0
+    fi
+    [[ -z "${HERDR_PANE_ID:-}" ]] && return 1
+    herdr pane get "${HERDR_PANE_ID}" 2>/dev/null | jq -r '.result.pane.tab_id // empty' 2>/dev/null
+}
+
+_ai_all_herdr() {
+    local set_dir="${SET:-$HOME/Desktop/repository/SettingFiles}"
+    source "${set_dir}/shell/tmux/tmux_emoji.conf"
+
+    local prompt base_name
+    prompt="$*"
+    base_name=$(_ai_all_herdr_base_name) || return 1
+
+    local gemini_command codex_command
+    gemini_command=$(_ai_herdr_command gemini "${prompt}") || return 1
+    codex_command=$(_ai_herdr_command codex "${prompt}") || return 1
+
+    _herdr_run_in_new_tab "" "${PWD}" "${EMOJI_ID_GEMINI}${base_name}" "${gemini_command}" || return 1
+    _herdr_run_in_new_tab "" "${PWD}" "${EMOJI_ID_CODEX}${base_name}" "${codex_command}" || return 1
+
+    # カレントtab(Claude)を明示ラベル付けしてから起動。notify-richプラグインは
+    # 識別絵文字を発火paneのagentから毎回再導出するため、手動付与と競合しない。
+    local tab_id
+    tab_id=$(_ai_herdr_current_tab_id)
+    [[ -n "${tab_id}" ]] && herdr tab rename "${tab_id}" "${EMOJI_ID_CLAUDE}${base_name}" >/dev/null 2>&1
+    clhm --permission-mode plan "${prompt}"
+}
+
+ai-all() {
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: ai-all <prompt>" >&2
+        return 1
+    fi
+
+    case "$(_ai_multiplexer_kind)" in
+        herdr) _ai_all_herdr "$@" ;;
+        tmux) _ai_all_tmux "$@" ;;
+        *)
+            echo "tmuxまたはHerdr内で実行してください" >&2
+            return 1
+            ;;
+    esac
 }
 
 # worktree非依存・tmux非依存でreview系のラベル(🔍+git名)を計算する
