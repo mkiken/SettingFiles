@@ -58,7 +58,7 @@ height = "90%"
 [[keys.command]]
 key = "prefix+t"
 type = "popup"
-command = "zsh"
+command = "zsh -il"
 description = "open shell popup"
 width = "99%"
 height = "99%"
