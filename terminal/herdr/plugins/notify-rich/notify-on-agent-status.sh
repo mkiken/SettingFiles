@@ -55,6 +55,9 @@ pane_json="$("$herdr_bin" pane get "$pane_id" 2>/dev/null)"
 [[ "$agent" == "gemini" ]] && exit 0
 
 source "${REPO_ROOT}/shell/tmux/tmux_emoji.conf"
+# シェル所有✋マーカーのreadヘルパー（_herdr_shell_status_marker_read）を読み込む。
+# fail-safe: 読み込めなくてもピン留めが無効になるだけで他の処理は続行する。
+source "${REPO_ROOT}/shell/tmux/herdr_status_icon.sh" 2>/dev/null || true
 
 managed_label_state_file() {
   local tab_id="$1"
@@ -136,6 +139,19 @@ if [[ -n "$tab_id" ]]; then
       new_label="${id_emoji}${status_emoji}${base_label}"
     else
       new_label="${base_label}"
+    fi
+
+    # シェルが入力待ち✋を所有している間（マーカー存在中）は状態グリフを✋に
+    # ピン留めする（優先度はworkspace集約と同じ ✋>❌>🤖>✅）。ベース名の会話概要
+    # 追従はそのまま活きる（compute-updated-labelは識別子と本文を保持する）。
+    # 空代入ガード必須: python3失敗時に空ラベルへrenameしないため。
+    if (( ${+functions[_herdr_shell_status_marker_read]} )); then
+      marker_glyph="$(_herdr_shell_status_marker_read "$tab_id" 2>/dev/null)"
+      if [[ -n "$marker_glyph" ]]; then
+        pinned_label="$(python3 "${REPO_ROOT}/shell/tmux/tmux_window_name.py" \
+          compute-updated-label "$new_label" "$marker_glyph" 2>/dev/null)"
+        [[ -n "$pinned_label" ]] && new_label="$pinned_label"
+      fi
     fi
 
     rename_ok=true

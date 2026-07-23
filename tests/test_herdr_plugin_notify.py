@@ -327,6 +327,9 @@ class HerdrPluginTabIconTest(unittest.TestCase):
         state_observer: list[str | None] | None = None,
         socket_path: str = "/tmp/herdr.sock",
         include_pane_agent_key: bool | None = None,
+        input_wait_marker: str | None = None,
+        marker_age_seconds: int = 0,
+        marker_observer: list[str | None] | None = None,
     ) -> tuple[subprocess.CompletedProcess[str], list[str]]:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -335,6 +338,7 @@ class HerdrPluginTabIconTest(unittest.TestCase):
             fake_bin.mkdir()
             rename_calls = root / "rename_calls"
             state_root = root / "state"
+            cache_dir = root / "cache"
 
             def state_key(value: str) -> str:
                 return "".join(
@@ -352,6 +356,21 @@ class HerdrPluginTabIconTest(unittest.TestCase):
                 state_file.parent.mkdir(parents=True)
                 state_file.write_text(initial_managed_label + "\n", encoding="utf-8")
 
+            # シェル所有✋マーカー（herdr_status_icon.shと同じキー式）。存在中は
+            # プラグインが状態グリフを✋にピン留めすることを検証する
+            marker_file = (
+                cache_dir
+                / "herdr-shell-status"
+                / state_key(socket_path)
+                / state_key(tab_id)
+            )
+            if input_wait_marker is not None:
+                marker_file.parent.mkdir(parents=True)
+                marker_file.write_text(input_wait_marker + "\n", encoding="utf-8")
+                if marker_age_seconds:
+                    past = marker_file.stat().st_mtime - marker_age_seconds
+                    os.utime(marker_file, (past, past))
+
             dependencies = {
                 "shell/zsh/alias/notification.zsh": (
                     'function notify() { :; }\n'
@@ -368,7 +387,15 @@ class HerdrPluginTabIconTest(unittest.TestCase):
             # 呼び出す（既知agentラベル→会話概要への差し替え判定）。
             fake_tmux_dir = fake_repo / "shell/tmux"
             fake_tmux_dir.mkdir(parents=True, exist_ok=True)
-            for name in ("tmux_emoji.conf", "tmux_emoji.py", "tmux_window_name.py"):
+            # herdr_status_icon.sh はプラグインが✋マーカーreadヘルパーとしてsourceする。
+            # コピーし忘れるとsource失敗がfail-safeで握り潰されピンが動かないまま
+            # テストが緑になるため、ピン発火を直接アサートするテストと対で守る。
+            for name in (
+                "tmux_emoji.conf",
+                "tmux_emoji.py",
+                "tmux_window_name.py",
+                "herdr_status_icon.sh",
+            ):
                 real_file = REPO_ROOT / "shell/tmux" / name
                 (fake_tmux_dir / name).write_text(
                     real_file.read_text(encoding="utf-8"), encoding="utf-8"
@@ -463,6 +490,8 @@ class HerdrPluginTabIconTest(unittest.TestCase):
                     "HERDR_PANE_ID": pane_id,
                     "HERDR_WORKSPACE_ID": workspace_id,
                     "PATH": ":".join(path_entries),
+                    # 実環境 ~/.cache のマーカーがテストへ漏れ込まないよう必ず隔離する
+                    "XDG_CACHE_HOME": str(cache_dir),
                 }
             )
 
@@ -483,6 +512,12 @@ class HerdrPluginTabIconTest(unittest.TestCase):
                 state_observer.append(
                     state_file.read_text(encoding="utf-8").rstrip("\n")
                     if state_file.exists()
+                    else None
+                )
+            if marker_observer is not None:
+                marker_observer.append(
+                    marker_file.read_text(encoding="utf-8").rstrip("\n")
+                    if marker_file.exists()
                     else None
                 )
             return result, calls
@@ -868,6 +903,131 @@ class HerdrPluginTabIconTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, [])
         self.assertEqual(state, ["タブ名の修正作業"])
+
+    # --- シェル所有✋マーカー存在中のグリフピン留め検証 ---
+    # プラグインのラベル再構築（agent_status由来アイコン＋会話概要追従）が、シェルが
+    # 設置した入力待ち✋を潰さないこと（優先度 ✋>❌>🤖>✅ の維持）を検証する。
+
+    def test_marker_pins_wait_over_working_icon(self):
+        # ピンが実際に発火したことをrename引数で直接アサートする（fake repoへの
+        # herdr_status_icon.shコピー漏れはこのテストが検出する）
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="✴️✋1",
+            title_text="",
+            input_wait_marker="✋",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, [])
+
+    def test_marker_pins_wait_over_completed_icon(self):
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="done",
+            tab_status="done",
+            current_label="✴️✋1",
+            title_text="",
+            input_wait_marker="✋",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, [])
+
+    def test_marker_pin_updates_icon_when_label_lacks_it(self):
+        # 現ラベルに✋が無い（プラグインが一度潰した後など）場合はピンで復元する
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="✴️🤖1",
+            title_text="",
+            input_wait_marker="✋",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️✋1"])
+
+    def test_marker_preserves_wait_on_agentless_pane_focus(self):
+        # AI未検出タブ（tab_status空）のpane.focusedは従来アイコンを全部剥がして
+        # いた。マーカー存在中は✋を維持し、renameも発生しない
+        result, calls = self.run_plugin(
+            agent="",
+            agent_status="",
+            tab_status="",
+            current_label="✋main",
+            title_text="",
+            event_name="pane.focused",
+            input_wait_marker="✋",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, [])
+
+    def test_marker_pin_keeps_conversation_title_follow(self):
+        # ピンはグリフだけ差し替え、会話概要へのベース名追従とstate file記録は
+        # そのまま活きる（state fileには素のタイトルが入る）
+        state = []
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="1",
+            title_text="タブ名の修正作業",
+            input_wait_marker="✋",
+            state_observer=state,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️✋タブ名の修正作業"])
+        self.assertEqual(state, ["タブ名の修正作業"])
+
+    def test_stale_marker_is_ignored_and_deleted(self):
+        markers = []
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="✴️✋1",
+            title_text="",
+            input_wait_marker="✋",
+            marker_age_seconds=86400 + 60,
+            marker_observer=markers,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️🤖1"])
+        self.assertEqual(markers, [None])
+
+    def test_garbage_marker_is_ignored_and_deleted(self):
+        markers = []
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="✴️✋1",
+            title_text="",
+            input_wait_marker="not-an-emoji",
+            marker_observer=markers,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️🤖1"])
+        self.assertEqual(markers, [None])
+
+    def test_no_marker_keeps_existing_rebuild_behavior(self):
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="✴️✋1",
+            title_text="",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️🤖1"])
 
 
 if __name__ == "__main__":

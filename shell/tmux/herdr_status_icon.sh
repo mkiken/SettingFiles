@@ -17,6 +17,10 @@ if [[ -z "${EMOJI_STATUS_NOTIFICATION:-}" ]]; then
     source "${_HERDR_STATUS_ICON_DIR}/tmux_emoji.conf"
 fi
 
+# シェル所有の入力待ち✋マーカーのTTL（秒）。プロンプト放置は正当なので長め(24h)に
+# とり、シェルがマーカーを消せずに死んだ場合のスタック防止バックストップとする。
+_HERDR_SHELL_STATUS_TTL=86400
+
 # Herdr環境かつtmux外かどうかを判定する（tmux/Herdrは排他）
 _herdr_status_available() {
     [[ -n "${NOTIFY_SILENT:-}" ]] && return 1
@@ -42,6 +46,42 @@ _herdr_resolve_workspace_id() {
     fi
     [[ -z "${HERDR_PANE_ID:-}" ]] && return 1
     herdr pane get "${HERDR_PANE_ID}" 2>/dev/null | jq -r '.result.pane.workspace_id // empty' 2>/dev/null
+}
+
+# シェル所有✋マーカーのパスを返す。notify-richプラグインのラベル再構築が
+# シェル設置の✋を潰さないよう、マーカー存在中はプラグイン側がグリフをピン留めする
+# （ラベル文字列だけではシェル✋とプラグイン✋(agent blocked)を区別できないため、
+# 帯域外の所有権シグナルとしてファイルを使う）。キー式はプラグインの
+# managed_label_state_file と同じサニタイズ（socket + tab_id）。
+_herdr_shell_status_marker_path() {
+    local tab_id="$1"
+    [[ -z "${tab_id}" ]] && return 1
+    local session_key="${HERDR_SOCKET_PATH:-default}"
+    session_key="${session_key//[^A-Za-z0-9._-]/_}"
+    local tab_key="${tab_id//[^A-Za-z0-9._-]/_}"
+    echo "${XDG_CACHE_HOME:-$HOME/.cache}/herdr-shell-status/${session_key}/${tab_key}"
+}
+
+# 有効なマーカー（TTL内・内容が✋）ならグリフをechoする。stale/不正内容は
+# 削除して空を返す。全てfail-safe（呼び出し元を止めない）。
+_herdr_shell_status_marker_read() {
+    local marker_path
+    marker_path="$(_herdr_shell_status_marker_path "$1")" || return 0
+    [[ -f "${marker_path}" ]] || return 0
+    local mtime now
+    mtime="$(stat -f %m "${marker_path}" 2>/dev/null)"
+    now="$(date +%s)"
+    if [[ -z "${mtime}" ]] || (( now - mtime > _HERDR_SHELL_STATUS_TTL )); then
+        rm -f "${marker_path}" 2>/dev/null
+        return 0
+    fi
+    local glyph=""
+    IFS= read -r glyph < "${marker_path}" 2>/dev/null
+    if [[ "${glyph}" != "${EMOJI_STATUS_NOTIFICATION}" ]]; then
+        rm -f "${marker_path}" 2>/dev/null
+        return 0
+    fi
+    echo "${glyph}"
 }
 
 # workspace内の全tabラベルを ✋>❌>🤖>✅ の優先度でOR集約し、集約結果の絵文字を返す
@@ -84,6 +124,19 @@ update_herdr_status_icon() {
     tab_id="$(_herdr_resolve_tab_id)"
     [[ -z "${tab_id}" ]] && return 0
 
+    # ✋はrename前にマーカーを書く（rename直後にプラグインが発火しても見えるように）。
+    # ✋以外のグリフは待ち状態の終了を意味するのでマーカーを消す。
+    local marker_path
+    marker_path="$(_herdr_shell_status_marker_path "${tab_id}")"
+    if [[ -n "${marker_path}" ]]; then
+        if [[ "${status_emoji}" == "${EMOJI_STATUS_NOTIFICATION}" ]]; then
+            mkdir -p "${marker_path%/*}" 2>/dev/null
+            printf '%s\n' "${status_emoji}" > "${marker_path}" 2>/dev/null
+        else
+            rm -f "${marker_path}" 2>/dev/null
+        fi
+    fi
+
     local current_label
     current_label="$(herdr tab get "${tab_id}" 2>/dev/null | jq -r '.result.tab.label // empty' 2>/dev/null)"
 
@@ -109,6 +162,13 @@ remove_herdr_status_icon() {
     local tab_id
     tab_id="$(_herdr_resolve_tab_id)"
     [[ -z "${tab_id}" ]] && return 0
+
+    # クリーンアップrenameの前にマーカーを消す（レース中のプラグインが消えかけの
+    # マーカーで再ピンしないように）。プラグインが削除直前に読んでいた場合の残余
+    # レースは、次のプラグインイベントで自己修復する。
+    local marker_path
+    marker_path="$(_herdr_shell_status_marker_path "${tab_id}")"
+    [[ -n "${marker_path}" ]] && rm -f "${marker_path}" 2>/dev/null
 
     local current_label
     current_label="$(herdr tab get "${tab_id}" 2>/dev/null | jq -r '.result.tab.label // empty' 2>/dev/null)"
