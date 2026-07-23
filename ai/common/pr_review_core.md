@@ -1,3 +1,7 @@
+### PR-Scoped Auxiliary Checks
+
+Derive PR-scoped auxiliary checks from `gh pr diff <PR_NUMBER>` or exact PR base/head OIDs fetched from GitHub. Never infer PR scope from a local `<baseRefName>...HEAD` range; local branch refs may be stale or contain unrelated history. Local-mode reads may still inspect uncommitted working-tree context, but findings and PR-scoped checks must remain limited to the PR diff.
+
 ### Review Scope: Changed Code vs Pre-existing Code
 
 **Primary focus**: findings MUST target lines added or modified in this PR's diff. Do not surface issues whose root cause lives entirely in unchanged code this PR did not touch.
