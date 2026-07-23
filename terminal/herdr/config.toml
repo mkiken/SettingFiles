@@ -106,6 +106,25 @@ show_agent_labels_on_pane_borders = true
 # @session_ai_status user optionと等価）。
 rows = [["state_icon", "$shell_status", "workspace"], ["git_status", "branch"]]
 
+[ui.sidebar.agents]
+row_gap = 0
+rows = [
+  ["state_icon", "agent", "state_text"],
+  ["workspace", "tab"],
+]
+
+[ui.sidebar.agents.rows_by_agent]
+claude = [
+  ["state_icon", "agent", "state_text"],
+  ["terminal_title_stripped"],
+  ["workspace", "tab"],
+]
+codex = [
+  ["state_icon", "agent", "state_text"],
+  ["terminal_title_stripped"],
+  ["workspace", "tab"],
+]
+
 [ui.toast]
 # Rich Mac notifications now come from the notify-rich plugin (terminal/herdr/plugins/notify-rich),
 # which reacts to pane.agent_status_changed; Herdr's own toast is disabled to avoid double notifications.
