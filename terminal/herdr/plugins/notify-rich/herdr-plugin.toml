@@ -7,3 +7,11 @@ platforms = ["macos"]
 [[events]]
 on = "pane.agent_status_changed"
 command = ["zsh", "notify-on-agent-status.sh"]
+
+[[events]]
+on = "pane.agent_detected"
+command = ["zsh", "notify-on-agent-status.sh"]
+
+[[events]]
+on = "pane.focused"
+command = ["zsh", "notify-on-agent-status.sh"]

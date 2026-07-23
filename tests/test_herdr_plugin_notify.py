@@ -9,6 +9,22 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PLUGIN_SCRIPT = REPO_ROOT / "terminal/herdr/plugins/notify-rich/notify-on-agent-status.sh"
+PLUGIN_MANIFEST = REPO_ROOT / "terminal/herdr/plugins/notify-rich/herdr-plugin.toml"
+
+
+class HerdrPluginManifestTest(unittest.TestCase):
+    def test_subscribes_to_supported_tab_refresh_events(self):
+        manifest = PLUGIN_MANIFEST.read_text(encoding="utf-8")
+
+        for event_name in (
+            "pane.agent_status_changed",
+            "pane.agent_detected",
+            "pane.focused",
+        ):
+            with self.subTest(event_name=event_name):
+                self.assertIn(f'on = "{event_name}"', manifest)
+
+        self.assertNotIn('on = "pane.updated"', manifest)
 
 
 class HerdrPluginNotifyTest(unittest.TestCase):
@@ -35,6 +51,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         pane_get_empty: bool = False,
         include_tab_id: bool = True,
         jq_present: bool = True,
+        event_name: str = "pane.agent_status_changed",
     ) -> tuple[subprocess.CompletedProcess[str], Path]:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -69,6 +86,8 @@ class HerdrPluginNotifyTest(unittest.TestCase):
 
             if herdr_present:
                 pane_fields = {
+                    "agent": agent,
+                    "agent_status": agent_status,
                     "terminal_title_stripped": title_text,
                     "agent_session": {"value": session_id},
                 }
@@ -115,21 +134,35 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                 self.assertIsNotNone(real_jq)
                 path_entries.append(os.path.dirname(real_jq))
             path_entries.append("/usr/bin:/bin")
+            if event_name == "pane.agent_status_changed":
+                event_data = {
+                    "pane_id": pane_id,
+                    "workspace_id": workspace_id,
+                    "agent_status": agent_status,
+                    "agent": agent,
+                }
+            elif event_name == "pane.agent_detected":
+                event_data = {
+                    "pane_id": pane_id,
+                    "workspace_id": workspace_id,
+                    "agent": agent,
+                }
+            else:
+                event_data = {
+                    "pane_id": pane_id,
+                    "workspace_id": workspace_id,
+                }
             env.update(
                 {
                     "HERDR_TEST_EVENTS": str(events),
                     "SET": str(fake_repo) + "/",
                     "HERDR_PLUGIN_EVENT_JSON": json.dumps(
                         {
-                            "event": "pane_agent_status_changed",
-                            "data": {
-                                "pane_id": pane_id,
-                                "workspace_id": workspace_id,
-                                "agent_status": agent_status,
-                                "agent": agent,
-                            },
+                            "event": event_name.replace(".", "_"),
+                            "data": event_data,
                         }
                     ),
+                    "HERDR_PLUGIN_EVENT": event_name,
                     "HERDR_PLUGIN_CONTEXT_JSON": json.dumps({"workspace_id": workspace_id}),
                     "HERDR_PANE_ID": pane_id,
                     "HERDR_WORKSPACE_ID": workspace_id,
@@ -175,6 +208,17 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         for agent_status in ("idle", "working", "unknown", ""):
             with self.subTest(agent_status=agent_status):
                 result, events = self.run_plugin(agent_status=agent_status)
+
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(events, [])
+
+    def test_non_status_events_do_not_notify(self):
+        for event_name in ("pane.agent_detected", "pane.focused"):
+            with self.subTest(event_name=event_name):
+                result, events = self.run_plugin(
+                    agent_status="done",
+                    event_name=event_name,
+                )
 
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(events, [])
@@ -278,6 +322,10 @@ class HerdrPluginTabIconTest(unittest.TestCase):
         workspace_id: str = "w1",
         include_tab_id: bool = True,
         title_text: str = "title",
+        event_name: str = "pane.agent_status_changed",
+        initial_managed_label: str | None = None,
+        state_observer: list[str | None] | None = None,
+        socket_path: str = "/tmp/herdr.sock",
     ) -> tuple[subprocess.CompletedProcess[str], list[str]]:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -285,6 +333,23 @@ class HerdrPluginTabIconTest(unittest.TestCase):
             fake_bin = root / "bin"
             fake_bin.mkdir()
             rename_calls = root / "rename_calls"
+            state_root = root / "state"
+
+            def state_key(value: str) -> str:
+                return "".join(
+                    char if char.isascii() and (char.isalnum() or char in "._-") else "_"
+                    for char in value
+                )
+
+            state_file = (
+                state_root
+                / "tab-labels"
+                / state_key(socket_path)
+                / state_key(tab_id)
+            )
+            if initial_managed_label is not None:
+                state_file.parent.mkdir(parents=True)
+                state_file.write_text(initial_managed_label + "\n", encoding="utf-8")
 
             dependencies = {
                 "shell/zsh/alias/notification.zsh": (
@@ -311,6 +376,8 @@ class HerdrPluginTabIconTest(unittest.TestCase):
             pane_result = {
                 "result": {
                     "pane": {
+                        "agent": agent,
+                        "agent_status": agent_status,
                         "terminal_title_stripped": title_text,
                         "agent_session": {"value": "session-abc"},
                         **({"tab_id": tab_id} if include_tab_id else {}),
@@ -348,6 +415,24 @@ class HerdrPluginTabIconTest(unittest.TestCase):
             real_jq = shutil.which("jq")
             self.assertIsNotNone(real_jq)
             path_entries = [str(fake_bin), os.path.dirname(real_jq), "/usr/bin:/bin"]
+            if event_name == "pane.agent_status_changed":
+                event_data = {
+                    "pane_id": pane_id,
+                    "workspace_id": workspace_id,
+                    "agent_status": agent_status,
+                    "agent": agent,
+                }
+            elif event_name == "pane.agent_detected":
+                event_data = {
+                    "pane_id": pane_id,
+                    "workspace_id": workspace_id,
+                    "agent": agent,
+                }
+            else:
+                event_data = {
+                    "pane_id": pane_id,
+                    "workspace_id": workspace_id,
+                }
             env.update(
                 {
                     "HERDR_TEST_EVENTS": str(root / "events"),
@@ -355,18 +440,16 @@ class HerdrPluginTabIconTest(unittest.TestCase):
                     "SET": str(fake_repo) + "/",
                     "HERDR_PLUGIN_EVENT_JSON": json.dumps(
                         {
-                            "event": "pane_agent_status_changed",
-                            "data": {
-                                "pane_id": pane_id,
-                                "workspace_id": workspace_id,
-                                "agent_status": agent_status,
-                                "agent": agent,
-                            },
+                            "event": event_name.replace(".", "_"),
+                            "data": event_data,
                         }
                     ),
+                    "HERDR_PLUGIN_EVENT": event_name,
                     "HERDR_PLUGIN_CONTEXT_JSON": json.dumps(
                         {"workspace_id": workspace_id, "tab_label": "2"}
                     ),
+                    "HERDR_PLUGIN_STATE_DIR": str(state_root),
+                    "HERDR_SOCKET_PATH": socket_path,
                     "HERDR_PANE_ID": pane_id,
                     "HERDR_WORKSPACE_ID": workspace_id,
                     "PATH": ":".join(path_entries),
@@ -386,6 +469,12 @@ class HerdrPluginTabIconTest(unittest.TestCase):
                 if rename_calls.exists()
                 else []
             )
+            if state_observer is not None:
+                state_observer.append(
+                    state_file.read_text(encoding="utf-8").rstrip("\n")
+                    if state_file.exists()
+                    else None
+                )
             return result, calls
 
     def test_working_status_renames_tab_with_ongoing_icon(self):
@@ -531,42 +620,39 @@ class HerdrPluginTabIconTest(unittest.TestCase):
         self.assertEqual(calls, [])
 
     def test_default_numeric_label_is_replaced_by_conversation_title(self):
+        state = []
         result, calls = self.run_plugin(
             agent="claude",
             agent_status="working",
             tab_status="working",
             current_label="1",
             title_text="ここに会話概要が入る",
+            state_observer=state,
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, ["w1:t1 ✴️🤖ここに会話概要が入る"])
+        self.assertEqual(state, ["ここに会話概要が入る"])
 
-    def test_long_conversation_title_is_truncated_to_20_chars(self):
-        title_text = "あ" * 25
-        result, calls = self.run_plugin(
-            agent="claude",
-            agent_status="working",
-            tab_status="working",
-            current_label="1",
-            title_text=title_text,
+    def test_conversation_title_length_boundary(self):
+        cases = (
+            (19, 19),
+            (20, 20),
+            (21, 20),
         )
+        for input_length, expected_length in cases:
+            with self.subTest(input_length=input_length):
+                title_text = "あ" * input_length
+                result, calls = self.run_plugin(
+                    agent="claude",
+                    agent_status="working",
+                    tab_status="working",
+                    current_label="1",
+                    title_text=title_text,
+                )
 
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(calls, ["w1:t1 ✴️🤖" + "あ" * 20])
-
-    def test_conversation_title_exactly_20_chars_is_not_truncated(self):
-        title_text = "あ" * 20
-        result, calls = self.run_plugin(
-            agent="claude",
-            agent_status="working",
-            tab_status="working",
-            current_label="1",
-            title_text=title_text,
-        )
-
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(calls, ["w1:t1 ✴️🤖" + "あ" * 20])
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(calls, ["w1:t1 ✴️🤖" + "あ" * expected_length])
 
     def test_custom_label_is_not_replaced_by_conversation_title(self):
         result, calls = self.run_plugin(
@@ -592,17 +678,42 @@ class HerdrPluginTabIconTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, ["w1:t1 ✴️🤖概要テキスト"])
 
-    def test_empty_conversation_title_falls_back_to_numeric_label(self):
-        result, calls = self.run_plugin(
-            agent="claude",
-            agent_status="working",
-            tab_status="working",
-            current_label="1",
-            title_text="",
-        )
+    def test_placeholder_conversation_title_falls_back_to_current_label(self):
+        for title_text in ("", "Claude Code", "Codex", "Gemini"):
+            with self.subTest(title_text=title_text):
+                state = []
+                result, calls = self.run_plugin(
+                    agent="claude",
+                    agent_status="working",
+                    tab_status="working",
+                    current_label="1",
+                    title_text=title_text,
+                    event_name="pane.focused",
+                    state_observer=state,
+                )
 
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(calls, ["w1:t1 ✴️🤖1"])
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(calls, ["w1:t1 ✴️🤖1"])
+                self.assertEqual(state, [None])
+
+    def test_placeholder_title_restores_last_managed_label(self):
+        for title_text in ("", "Claude Code", "Codex", "Gemini"):
+            with self.subTest(title_text=title_text):
+                state = []
+                result, calls = self.run_plugin(
+                    agent="claude",
+                    agent_status="working",
+                    tab_status="working",
+                    current_label="Claude Code",
+                    title_text=title_text,
+                    event_name="pane.focused",
+                    initial_managed_label="直前の概要",
+                    state_observer=state,
+                )
+
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(calls, ["w1:t1 ✴️🤖直前の概要"])
+                self.assertEqual(state, ["直前の概要"])
 
     def test_known_agent_default_label_is_replaced_by_conversation_title(self):
         # HerdrがAI検出タブに自動命名する既知ラベル（'Claude Code'等）も、
@@ -613,6 +724,7 @@ class HerdrPluginTabIconTest(unittest.TestCase):
             tab_status="done",
             current_label="Claude Code",
             title_text="タブ名の修正作業",
+            event_name="pane.agent_detected",
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -656,19 +768,56 @@ class HerdrPluginTabIconTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, ["w1:t1 ✴️✅My Task"])
 
+    def test_pane_focus_refreshes_managed_conversation_title(self):
+        state = []
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="✴️🤖古い概要",
+            title_text="新しい概要",
+            event_name="pane.focused",
+            initial_managed_label="古い概要",
+            state_observer=state,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️🤖新しい概要"])
+        self.assertEqual(state, ["新しい概要"])
+
+    def test_pane_focus_preserves_manual_label_after_managed_label(self):
+        state = []
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="✴️🤖手動名",
+            title_text="新しい概要",
+            event_name="pane.focused",
+            initial_managed_label="古い概要",
+            state_observer=state,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, [])
+        self.assertEqual(state, ["古い概要"])
+
     def test_replaced_label_is_stable_on_next_fire(self):
-        # 一度会話概要に差し替わったラベルは、数字でも既知agent自動命名名でもない
-        # ため次回発火時は再判定されても温存され、rename が呼ばれない（不動点）。
+        state = []
         result, calls = self.run_plugin(
             agent="claude",
             agent_status="done",
             tab_status="done",
             current_label="✴️✅タブ名の修正作業",
             title_text="タブ名の修正作業",
+            event_name="pane.focused",
+            initial_managed_label="タブ名の修正作業",
+            state_observer=state,
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, [])
+        self.assertEqual(state, ["タブ名の修正作業"])
 
 
 if __name__ == "__main__":

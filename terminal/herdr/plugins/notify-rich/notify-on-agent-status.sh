@@ -1,7 +1,7 @@
 #!/bin/zsh
-# Herdr event hook for `pane.agent_status_changed`: replaces Herdr's plain OS toast
-# with this repository's rich Mac notification (terminal-notifier, session title,
-# workspace/tab label, sound), matching the look of the Claude/Codex hooks.
+# Herdr hook for agent-status, agent-detection, and pane-focus events. Status events
+# replace Herdr's plain OS toast with this repository's rich Mac notification;
+# every supported event refreshes auto-managed tab labels from the conversation title.
 # Gemini is excluded entirely (see the agent=="gemini" guard below) and handled by
 # its own hooks instead.
 #
@@ -20,12 +20,16 @@ case ":$PATH:" in
   *) export PATH="$PATH:/opt/homebrew/bin:/usr/local/bin" ;;
 esac
 
-# Herdr injects HERDR_PLUGIN_EVENT_JSON with the shape:
-#   {"event":"pane_agent_status_changed","data":{"pane_id":...,"workspace_id":...,"agent_status":...,"agent":...}}
+# Herdr injects IDs into each event; status and detection events also include agent data.
 event_json="${HERDR_PLUGIN_EVENT_JSON:-}"
-agent="$(print -r -- "$event_json" | jq -r '.data.agent // empty' 2>/dev/null)"
+event_kind="${HERDR_PLUGIN_EVENT:-}"
+[[ -z "$event_kind" ]] \
+  && event_kind="$(print -r -- "$event_json" | jq -r '.event // empty' 2>/dev/null)"
+agent="$(print -r -- "$event_json" \
+  | jq -r '.data.agent // .data.pane.agent // empty' 2>/dev/null)"
 # `status` is a read-only zsh special parameter (last exit code) — use agent_status instead.
-agent_status="$(print -r -- "$event_json" | jq -r '.data.agent_status // empty' 2>/dev/null)"
+agent_status="$(print -r -- "$event_json" \
+  | jq -r '.data.agent_status // .data.pane.agent_status // empty' 2>/dev/null)"
 
 # Gemini has no official Herdr installer integration, so its agent_status is derived
 # solely from Herdr's screen-manifest detection and oscillates done<->working<->idle,
@@ -34,19 +38,35 @@ agent_status="$(print -r -- "$event_json" | jq -r '.data.agent_status // empty' 
 # rename) and notifies via its own AfterAgent/Notification tmux hooks
 # (ai/gemini/hooks/notification.sh, HERDR guard relaxed there). Claude/Codex report
 # status accurately via their installers and stay managed by this plugin.
-[[ "$agent" == "gemini" ]] && exit 0
 
 herdr_bin="${HERDR_BIN_PATH:-herdr}"
 pane_id="${HERDR_PANE_ID:-}"
+[[ -z "$pane_id" ]] \
+  && pane_id="$(print -r -- "$event_json" \
+    | jq -r '.data.pane_id // .data.pane.pane_id // empty' 2>/dev/null)"
 [[ -z "$pane_id" ]] && exit 0
 
-# Conversation title comes from `pane get` (not present in the event/context JSON).
-# タブアイコン処理（デフォルト数字ラベルの概要差し替え）と通知本文の両方で使うため
-# ここで一度だけ取得する。
+# 両イベントで同じ最新pane情報を使い、タブ名更新と通知本文の取得経路を一本化する。
 pane_json="$("$herdr_bin" pane get "$pane_id" 2>/dev/null)"
 [[ -z "$pane_json" ]] && exit 0
 
+[[ -z "$agent" ]] \
+  && agent="$(print -r -- "$pane_json" | jq -r '.result.pane.agent // empty' 2>/dev/null)"
+[[ "$agent" == "gemini" ]] && exit 0
+
 source "${REPO_ROOT}/shell/tmux/tmux_emoji.conf"
+
+managed_label_state_file() {
+  local tab_id="$1"
+  local state_root="${HERDR_PLUGIN_STATE_DIR:-}"
+  local session_key="${HERDR_SOCKET_PATH:-default}"
+  local tab_key="$tab_id"
+
+  [[ -z "$state_root" || -z "$tab_key" ]] && return 1
+  session_key="${session_key//[^A-Za-z0-9._-]/_}"
+  tab_key="${tab_key//[^A-Za-z0-9._-]/_}"
+  print -r -- "${state_root}/tab-labels/${session_key}/${tab_key}"
+}
 
 case "$agent" in
   claude) id_emoji="$EMOJI_ID_CLAUDE" ;;
@@ -79,13 +99,35 @@ if [[ -n "$tab_id" ]]; then
     esac
 
     base_label="$(python3 "${REPO_ROOT}/shell/tmux/tmux_emoji.py" "$current_label")"
-    # herdrが自動採番/自動命名しただけのタブ（連番数字、または「Claude Code」等の
-    # 既知agent自動命名ラベル）は、そのラベルよりMac通知と同じ会話概要を出す方が
-    # 「どのタブか」を判別しやすい（20文字で切り詰め）。ユーザーが手動で付けた
-    # 名前は温存する。判定は tmux_window_name.py の is-herdr-default-label に一元化。
-    if python3 "${REPO_ROOT}/shell/tmux/tmux_window_name.py" is-herdr-default-label "$base_label" \
-       && [[ "$title_text" != "(no title)" ]]; then
+    state_file="$(managed_label_state_file "$tab_id")"
+    last_auto_label=""
+    if [[ -n "$state_file" && -f "$state_file" ]]; then
+      IFS= read -r last_auto_label < "$state_file"
+    fi
+
+    herdr_default_label=false
+    auto_managed=false
+    if python3 "${REPO_ROOT}/shell/tmux/tmux_window_name.py" \
+        is-herdr-default-label "$base_label"; then
+      herdr_default_label=true
+      auto_managed=true
+    elif [[ -n "$last_auto_label" && "$base_label" == "$last_auto_label" ]]; then
+      auto_managed=true
+    fi
+
+    title_usable=false
+    if [[ "$title_text" != "(no title)" ]] \
+       && ! python3 "${REPO_ROOT}/shell/tmux/tmux_window_name.py" \
+          is-herdr-default-label "$title_text"; then
+      title_usable=true
+    fi
+
+    record_auto_label=false
+    if [[ "$auto_managed" == true && "$title_usable" == true ]]; then
       base_label="${title_text[1,20]}"
+      record_auto_label=true
+    elif [[ "$herdr_default_label" == true && -n "$last_auto_label" ]]; then
+      base_label="$last_auto_label"
     fi
     if [[ -n "$status_emoji" ]]; then
       new_label="${id_emoji}${status_emoji}${base_label}"
@@ -93,12 +135,28 @@ if [[ -n "$tab_id" ]]; then
       new_label="${base_label}"
     fi
 
-    [[ "$new_label" != "$current_label" ]] && "$herdr_bin" tab rename "$tab_id" "$new_label" >/dev/null 2>&1
+    rename_ok=true
+    if [[ "$new_label" != "$current_label" ]] \
+       && ! "$herdr_bin" tab rename "$tab_id" "$new_label" >/dev/null 2>&1; then
+      rename_ok=false
+    fi
+
+    if [[ "$record_auto_label" == true && "$rename_ok" == true && -n "$state_file" \
+          && "$base_label" != "$last_auto_label" ]]; then
+      state_dir="${state_file:h}"
+      if mkdir -p "$state_dir" 2>/dev/null; then
+        print -r -- "$base_label" >| "$state_file" 2>/dev/null
+      fi
+    fi
   fi
 fi
 
 # Only completed (done) or awaiting input (blocked) are worth a notification.
 # idle = already-seen completion, working/unknown = nothing to report yet.
+case "$event_kind" in
+  pane.agent_status_changed|pane_agent_status_changed) ;;
+  *) exit 0 ;;
+esac
 case "$agent_status" in
   done|blocked) ;;
   *) exit 0 ;;
