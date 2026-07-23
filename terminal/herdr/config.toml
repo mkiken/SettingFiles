@@ -115,6 +115,12 @@ delay_seconds = 1
 [ui.sound]
 enabled = true
 
+[ui.sound.agents]
+# Geminiはherdr公式インストーラー連携が無くagent_statusがdone<->working<->idleで
+# 頻繁に振動するため、他agentに比べ音の発火回数が多くうるさい。Geminiだけ音を止める
+# （tab rename/状態アイコン等サイドバー表示はagent別のOFF項目がherdrに存在しない）。
+gemini = "off"
+
 [session]
 resume_agents_on_restore = true
 
