@@ -1,7 +1,10 @@
 #!/bin/zsh
 # Herdr hook for agent-status, agent-detection, and pane-focus events. Status events
 # replace Herdr's plain OS toast with this repository's rich Mac notification;
-# every supported event refreshes auto-managed tab labels from the conversation title.
+# every supported event refreshes auto-managed tab labels with an AI identifier and
+# status icon, plus the conversation title for claude only (see the agent=="claude"
+# check in title_usable below — codex keeps its identifier/status icon but not the
+# conversation-title label).
 # Gemini is excluded entirely (see the agent=="gemini" guard below) and handled by
 # its own hooks instead.
 #
@@ -38,6 +41,11 @@ agent_status="$(print -r -- "$event_json" \
 # rename) and notifies via its own AfterAgent/Notification tmux hooks
 # (ai/gemini/hooks/notification.sh, HERDR guard relaxed there). Claude/Codex report
 # status accurately via their installers and stay managed by this plugin.
+#
+# Conversation-title tab labeling (see title_usable below) is claude-only: codex also
+# sets terminal_title_stripped to a conversation summary, but that summary is far less
+# meaningful for codex tabs, so codex keeps only its identifier emoji + status icon
+# (e.g. 🪷🤖1) instead of having the label replaced by the conversation title.
 
 herdr_bin="${HERDR_BIN_PATH:-herdr}"
 pane_id="${HERDR_PANE_ID:-}"
@@ -118,11 +126,12 @@ if [[ -n "$tab_id" ]]; then
       auto_managed=true
     fi
 
-    # タイトルを会話概要とみなせるのはagent検出paneのみ（Claude/Codexが会話概要を
-    # ターミナルタイトルへセットする）。非AI paneのタイトルはNvim等が任意の値
-    # （COMMIT_EDITMSG等）をセットするため、タブ名には採用しない。
+    # タイトルを会話概要とみなせるのはclaudeのみ。CodexもターミナルタイトルにAI
+    # 会話概要をセットするが、タブ名への反映は claude 限定にする（codexは識別絵文字
+    # ＋状態アイコンのみ維持）。非AI paneのタイトルはNvim等が任意の値
+    # （COMMIT_EDITMSG等）をセットするため、いずれにせよタブ名には採用しない。
     title_usable=false
-    if [[ -n "$agent" && "$title_text" != "(no title)" ]] \
+    if [[ "$agent" == "claude" && "$title_text" != "(no title)" ]] \
        && ! python3 "${REPO_ROOT}/shell/tmux/tmux_window_name.py" \
           is-herdr-default-label "$title_text"; then
       title_usable=true

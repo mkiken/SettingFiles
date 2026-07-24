@@ -606,6 +606,36 @@ class HerdrPluginTabIconTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, ["w1:t1 🪷🤖1"])
 
+    def test_codex_numeric_label_is_not_replaced_by_conversation_title(self):
+        # Conversation-title labeling is claude-only; codex keeps its identifier
+        # emoji + status icon but the numeric label is left untouched even though
+        # codex also sets terminal_title_stripped to a conversation summary.
+        state = []
+        result, calls = self.run_plugin(
+            agent="codex",
+            agent_status="working",
+            tab_status="working",
+            current_label="1",
+            title_text="ここに会話概要が入る",
+            state_observer=state,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 🪷🤖1"])
+        self.assertEqual(state, [None])
+
+    def test_codex_custom_label_survives_conversation_title(self):
+        result, calls = self.run_plugin(
+            agent="codex",
+            agent_status="done",
+            tab_status="done",
+            current_label="gm",
+            title_text="ここに会話概要が入る",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 🪷✅gm"])
+
     def test_gemini_working_does_not_rename_tab(self):
         # Gemini opts out of notify-rich entirely (tab renaming included), not just
         # notifications — see the agent=="gemini" guard near the top of the script.
@@ -776,6 +806,8 @@ class HerdrPluginTabIconTest(unittest.TestCase):
         self.assertEqual(calls, ["w1:t1 ✴️✅タブ名の修正作業"])
 
     def test_known_agent_default_label_working_icon(self):
+        # 会話概要でのラベル差し替えはclaude限定。codexのHerdrデフォルトラベル
+        # （"Codex"）は概要へは差し替わらず、識別絵文字＋状態アイコンのみ付く。
         result, calls = self.run_plugin(
             agent="codex",
             agent_status="working",
@@ -785,7 +817,7 @@ class HerdrPluginTabIconTest(unittest.TestCase):
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(calls, ["w1:t1 🪷🤖バグ調査"])
+        self.assertEqual(calls, ["w1:t1 🪷🤖Codex"])
 
     def test_cwd_path_title_is_not_adopted_as_label(self):
         # AI起動直後などterminal_titleがcwdフルパスになっている瞬間にプラグインが
