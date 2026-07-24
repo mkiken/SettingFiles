@@ -109,20 +109,20 @@ rows = [["state_icon", "$shell_status", "workspace"], ["git_status", "branch"]]
 [ui.sidebar.agents]
 row_gap = 0
 rows = [
-  ["state_icon", "agent", "state_text"],
   ["workspace", "tab"],
+  ["state_icon", "agent", "state_text"],
 ]
 
 [ui.sidebar.agents.rows_by_agent]
 claude = [
+  ["workspace", "tab"],
   ["state_icon", "agent", "state_text"],
   ["terminal_title_stripped"],
-  ["workspace", "tab"],
 ]
 codex = [
+  ["workspace", "tab"],
   ["state_icon", "agent", "state_text"],
   ["terminal_title_stripped"],
-  ["workspace", "tab"],
 ]
 
 [ui.toast]
