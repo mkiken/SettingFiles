@@ -53,7 +53,8 @@ class HerdrConfigurationTest(unittest.TestCase):
         self.assertEqual(config["ui"]["toast"], {"delivery": "off", "delay_seconds": 1})
         self.assertTrue(config["ui"]["sound"]["enabled"])
         self.assertTrue(config["session"]["resume_agents_on_restore"])
-        self.assertFalse(config["experimental"]["pane_history"])
+        self.assertEqual(config["advanced"]["scrollback_limit_bytes"], 104857600)
+        self.assertTrue(config["experimental"]["pane_history"])
 
     @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
     def test_sidebar_spaces_includes_shell_status_token(self):
