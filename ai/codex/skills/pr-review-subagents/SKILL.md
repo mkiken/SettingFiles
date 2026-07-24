@@ -77,6 +77,8 @@ Inspect the passed context or indexed sources, or run read-only commands directl
 
 Fetch each gather target at most once. Preserve the full raw payload for final aggregation, but return only bounded derived results to the parent. Count dynamically selected rows before emitting them; above 100 lines, or whenever the result may overwhelm context, return only the count and a focused summary, then narrow or paginate. Never repeat a fetch to recover data that the configured large-output path already captured. If the large-output path writes any temp files (e.g. a redirected diff or comment dump), delete them with `trash` (never `rm`) before finishing the review.
 
+When an indexed capture contains both a bounded derived section and its raw payload, query only the derived section's marker, not field names shared with the raw payload. Do not add queries merely to satisfy generic query-count guidance; keeping the raw payload out of the parent context takes precedence.
+
 ### Context Handoff
 
 Embed the compact existing-comment manifest records in every specialist's task payload. References to parent tool output, indexed sources, source labels, or inherited/forked context do not count as direct handoff.
