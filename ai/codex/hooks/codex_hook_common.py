@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# herdrのnotify-richプラグイン（stripped PATH）からはシステムpython 3.9で実行される。
+# PEP 604注釈（str | None）をdef時評価させないため future import が必須。
+from __future__ import annotations
+
 import json
 import os
 import re

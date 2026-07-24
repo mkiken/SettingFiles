@@ -52,6 +52,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         include_tab_id: bool = True,
         jq_present: bool = True,
         event_name: str = "pane.agent_status_changed",
+        codex_transcript: str | None = None,
     ) -> tuple[subprocess.CompletedProcess[str], Path]:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -102,6 +103,39 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                     real_file.read_text(encoding="utf-8"), encoding="utf-8"
                 )
 
+            # codex通知本文のtranscript概要パスはプラグインが実体を呼ぶため実物を
+            # コピーする。codex_hook_common.pyはPath(__file__).parents[3]/shell/tmux
+            # で解析器を解決するので、リポジトリと同じレイアウトを維持する。
+            for relative_path in (
+                "shell/tmux/ai_notification_summary.sh",
+                "shell/tmux/claude_transcript_analyze.py",
+                "ai/codex/hooks/codex_hook_common.py",
+            ):
+                real_file = REPO_ROOT / relative_path
+                target = fake_repo / relative_path
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(
+                    real_file.read_text(encoding="utf-8"), encoding="utf-8"
+                )
+
+            # herdrプラグイン実環境（stripped PATH）のpython3はシステム3.9。Homebrew
+            # jqのマシンではjqのPATH経由で新しいpython3に解決され、3.9回帰（PEP 604
+            # 注釈のdef時評価等）が素通りするため、テストでは3.9実行に固定する。
+            os.symlink("/usr/bin/python3", fake_bin / "python3")
+
+            # CODEX_HOMEは常にテスト専用dirへ隔離する（未設定だとtranscript解決が
+            # 実~/.codexへフォールバックし、開発機の実データがテストに漏れ込む）。
+            codex_home = root / "codex_home"
+            codex_home.mkdir()
+            if codex_transcript is not None:
+                transcript_file = (
+                    codex_home
+                    / "sessions/2026/07/24"
+                    / f"rollout-2026-07-24T10-00-00-{session_id}.jsonl"
+                )
+                transcript_file.parent.mkdir(parents=True)
+                transcript_file.write_text(codex_transcript, encoding="utf-8")
+
             if herdr_present:
                 pane_fields = {
                     "agent": agent,
@@ -144,6 +178,11 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                 fake_herdr.chmod(0o755)
 
             env = os.environ.copy()
+            # 実herdrの[[events]]フック環境にはLANGが無い。プラグイン冒頭の
+            # export LANGフォールバックが無いとzshの${#x}/スライスがバイト単位に
+            # なり日本語が壊れるため、テストでも剥がして実環境相当で検証する。
+            for key in ("LANG", "LC_ALL", "LC_CTYPE"):
+                env.pop(key, None)
             path_entries = [str(fake_bin)]
             if jq_present:
                 real_jq = shutil.which("jq")
@@ -171,6 +210,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
             env.update(
                 {
                     "HERDR_TEST_EVENTS": str(events),
+                    "CODEX_HOME": str(codex_home),
                     "SET": str(fake_repo) + "/",
                     "HERDR_PLUGIN_EVENT_JSON": json.dumps(
                         {
@@ -253,6 +293,150 @@ class HerdrPluginNotifyTest(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue(any(line.startswith("title=CODEX_IDDONE") for line in events))
+
+    # --- codex通知本文のtranscript概要差し替え検証 ---
+    # codexのterminal_title_strippedは会話概要として無意味なため、通知本文は
+    # agent_session.value（codexのsession_id）で解決したtranscriptから
+    # build_session_summary形式（tmuxフックと同形式）で生成する。claudeは従来どおり
+    # title_textを本文に使う。選択肢プロンプトはcodex hookを発火させないため、
+    # 通知経路自体はnotify-richのまま（blockedはherdr検知でのみ通知される）。
+
+    @staticmethod
+    def codex_transcript_fixture(
+        assistant_text: str = "修正しました。テストも追加しています。",
+        user_text: str = "通知のバグを修正して",
+        include_messages: bool = True,
+    ) -> str:
+        lines = [json.dumps({"type": "session_meta", "payload": {"id": "session-abc"}})]
+        if include_messages:
+            lines.append(
+                json.dumps(
+                    {
+                        "timestamp": "2026-07-24T10:00:00.000Z",
+                        "type": "response_item",
+                        "payload": {
+                            "type": "message",
+                            "role": "user",
+                            "content": [{"type": "input_text", "text": user_text}],
+                        },
+                    }
+                )
+            )
+            lines.append(
+                json.dumps(
+                    {
+                        "timestamp": "2026-07-24T10:05:02.000Z",
+                        "type": "response_item",
+                        "payload": {
+                            "type": "message",
+                            "role": "assistant",
+                            "content": [{"type": "output_text", "text": assistant_text}],
+                        },
+                    }
+                )
+            )
+        return "\n".join(lines) + "\n"
+
+    def test_codex_done_notifies_with_transcript_summary(self):
+        # 完了はtmuxの✅終了と同形式: タスク種別絵文字＋最終ユーザーメッセージ＋統計行。
+        # 「修正」を含むユーザーメッセージ→💻、10:00:00〜10:05:02→⏳5m2s。
+        result, events = self.run_plugin(
+            agent="codex",
+            agent_status="done",
+            codex_transcript=self.codex_transcript_fixture(),
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(
+            events[1:],
+            [
+                "message=💻 通知のバグを修正して",
+                "🔄1 ⏳5m2s",
+                "sound=Hero",
+                "group=codex-session-abc",
+            ],
+        )
+
+    def test_codex_blocked_notifies_with_assistant_message(self):
+        # 入力待ちはtmuxの✋応答待ちと同形式: ✋＋最終アシスタントメッセージ＋統計行。
+        result, events = self.run_plugin(
+            agent="codex",
+            agent_status="blocked",
+            codex_transcript=self.codex_transcript_fixture(),
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(
+            events[1:],
+            [
+                "message=✋ 修正しました。テストも追加しています。",
+                "🔄1 ⏳5m2s",
+                "sound=Hero",
+                "group=codex-session-abc",
+            ],
+        )
+
+    def test_codex_done_with_pending_question_uses_wait_summary(self):
+        # doneでもアシスタントが質問で終えた場合（WAITING_FOR_USER_RESPONSE=true）は
+        # tmuxと同じく✋＋アシスタントメッセージを本文にする。
+        result, events = self.run_plugin(
+            agent="codex",
+            agent_status="done",
+            codex_transcript=self.codex_transcript_fixture(
+                assistant_text="どちらの方式にしますか？"
+            ),
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("message=✋ どちらの方式にしますか？", events)
+
+    def test_codex_long_message_truncates_at_character_boundary(self):
+        # LANG無しの実herdr環境でも80文字truncateがバイト単位にならず文字境界で
+        # 切れること（プラグイン冒頭の export LANG フォールバックの回帰ガード）。
+        result, events = self.run_plugin(
+            agent="codex",
+            agent_status="done",
+            codex_transcript=self.codex_transcript_fixture(user_text="あ" * 100),
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        message_line = next(line for line in events if line.startswith("message="))
+        self.assertEqual(message_line, "message=💬 " + "あ" * 75 + "...")
+        self.assertNotIn("�", message_line)
+
+    def test_codex_missing_transcript_falls_back_to_title(self):
+        # session_idからtranscriptを解決できない場合は従来のtitle_text本文に
+        # フォールバックする（通知自体は必ず出す — fail-safe方針）。
+        result, events = self.run_plugin(agent="codex", agent_status="done")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(
+            "message=Herdr通知をカスタマイズしてworkspace情報を表示", events
+        )
+
+    def test_codex_empty_transcript_falls_back_to_title(self):
+        # メッセージ0件のtranscriptはbuild_session_summaryが空出力（user_count==0）
+        # となり、同じフォールバックに合流する。
+        result, events = self.run_plugin(
+            agent="codex",
+            agent_status="done",
+            codex_transcript=self.codex_transcript_fixture(include_messages=False),
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(
+            "message=Herdr通知をカスタマイズしてworkspace情報を表示", events
+        )
+
+    def test_claude_body_is_not_replaced_by_transcript_summary(self):
+        # 本文のtranscript概要差し替えはcodex限定。claudeはtitle_text（会話概要として
+        # 有意味）をそのまま本文に使う。
+        result, events = self.run_plugin(agent="claude", agent_status="done")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(
+            "message=Herdr通知をカスタマイズしてworkspace情報を表示", events
+        )
 
     def test_unrecognized_agent_falls_back_to_robot_emoji(self):
         result, events = self.run_plugin(agent="unknown-agent", agent_status="done")
@@ -501,6 +685,10 @@ class HerdrPluginTabIconTest(unittest.TestCase):
             fake_herdr.chmod(0o755)
 
             env = os.environ.copy()
+            # NotifyTest側と同じく、LANG無しの実herdrフック環境を再現する
+            # （日本語ラベルのtruncate ${title_text[1,20]} が文字単位で切れることの保証）。
+            for key in ("LANG", "LC_ALL", "LC_CTYPE"):
+                env.pop(key, None)
             real_jq = shutil.which("jq")
             self.assertIsNotNone(real_jq)
             path_entries = [str(fake_bin), os.path.dirname(real_jq), "/usr/bin:/bin"]

@@ -14,6 +14,10 @@
 
 REPO_ROOT="${SET:-$HOME/Desktop/repository/SettingFiles}"
 
+# herdrのstripped envではLANGが未設定になり得て、zshの${#x}やスライスがバイト単位に
+# なりUTF-8ラベル/通知本文が壊れる（codex-stop-notification.shと同じ対策）。
+export LANG="${LANG:-en_US.UTF-8}"
+
 # Herdrは[[events]]フックを[[keys.command]]と同じstripped PATH（Homebrewなし）で
 # 起動するため、Homebrew専用のterminal-notifierが解決できず通知だけが失敗する
 # （herdrはHERDR_BIN_PATH注入、jq/python3はシステム版で偶然動く）。先頭でなく
@@ -46,6 +50,12 @@ agent_status="$(print -r -- "$event_json" \
 # sets terminal_title_stripped to a conversation summary, but that summary is far less
 # meaningful for codex tabs, so codex keeps only its identifier emoji + status icon
 # (e.g. 🪷🤖1) instead of having the label replaced by the conversation title.
+#
+# The notification BODY is likewise agent-split: claude uses terminal_title_stripped
+# as-is, codex replaces it with a transcript-derived summary (same build_session_summary
+# format as the tmux hooks) resolved via agent_session.value == codex session_id —
+# see the notify_body block below. Codex's choice prompts fire no codex hook, so this
+# plugin must stay codex's single notifier under Herdr; only the body text is enriched.
 
 herdr_bin="${HERDR_BIN_PATH:-herdr}"
 pane_id="${HERDR_PANE_ID:-}"
@@ -230,6 +240,37 @@ case "$agent_status" in
     ;;
 esac
 
+# 通知本文: claudeはterminal_title_stripped（会話概要として有意味）をそのまま使う。
+# codexはそのタイトルが無意味なため、agent_session.value（codexのsession_id、
+# herdr-agent-state.shがSessionStartのhook入力から報告）でtranscriptを解決し、
+# tmuxフックと同じbuild_session_summary形式の概要に差し替える。
+# サブシェルに閉じ込める理由: setopt bsd_echo（zsh builtin echoの\n展開抑止）と、
+# evalされる解析変数・sourceされる要約関数群を本体の名前空間に漏らさないため。
+# あらゆる失敗（jq/python3不在・transcript未解決・メッセージ0件）は空出力に落ち、
+# 従来のtitle_text本文へフォールバックする（no set -e方針と同じfail-safe）。
+notify_body="$title_text"
+if [[ "$agent" == "codex" && -n "$session_id" ]]; then
+  codex_summary="$(
+    setopt bsd_echo 2>/dev/null
+    analysis="$(jq -n --arg sid "$session_id" '{session_id: $sid}' 2>/dev/null \
+      | python3 "${REPO_ROOT}/ai/codex/hooks/codex_hook_common.py" analyze 2>/dev/null)"
+    [[ $? -ne 0 || -z "$analysis" ]] && exit 0
+    eval "$analysis"
+    source "${REPO_ROOT}/shell/tmux/ai_notification_summary.sh" 2>/dev/null || exit 0
+    # blocked（herdr検知の入力待ち）と、doneでもアシスタントが質問で終えた場合は
+    # tmuxの✋応答待ちと同じく最終アシスタントメッセージを出す。それ以外の完了は
+    # タスク種別絵文字＋最終ユーザーメッセージ（tmuxの✅終了と同形式）。
+    if [[ "$agent_status" == "blocked" || "${WAITING_FOR_USER_RESPONSE:-}" == "true" ]]; then
+      build_session_summary "✋" "${LAST_ASSISTANT_MESSAGE:-}" \
+        "${USER_MESSAGE_COUNT:-0}" "${SESSION_DURATION_FORMATTED:-}"
+    else
+      build_session_summary "$(guess_task_type_emoji "${LAST_USER_MESSAGE:-}")" \
+        "${LAST_USER_MESSAGE:-}" "${USER_MESSAGE_COUNT:-0}" "${SESSION_DURATION_FORMATTED:-}"
+    fi
+  )"
+  [[ -n "$codex_summary" ]] && notify_body="$codex_summary"
+fi
+
 agent_label="${agent:0:1:u}${agent:1}"
 now="$(date '+%H:%M:%S')"
 title="${id_emoji}${status_emoji} ${agent_label}${label_text}${screen_label} 🕰️${now}"
@@ -245,4 +286,4 @@ source "${REPO_ROOT}/shell/zsh/alias/notification.zsh"
 # decoration would be a no-op anyway, but it also strips our own time suffix —
 # suppress it since we build the full title (including time) ourselves.
 # NOTIFY_FORCE: bypass AI-session suppression; this hook intentionally notifies.
-NOTIFY_NO_DECORATE=1 NOTIFY_FORCE=1 notify "$title" "$title_text" "Hero" "$group"
+NOTIFY_NO_DECORATE=1 NOTIFY_FORCE=1 notify "$title" "$notify_body" "Hero" "$group"
