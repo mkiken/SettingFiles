@@ -79,6 +79,18 @@ managed_label_state_file() {
   print -r -- "${state_root}/tab-labels/${session_key}/${tab_key}"
 }
 
+# 表示名を最大10文字に丸める。超過時のみ先頭10文字に「..」を付す。
+# zshの ${str[1,10]} はマルチバイト1文字=1カウントなので日本語もそのまま切れる
+# （142行目の会話概要truncate ${title_text[1,20]} と同じ挙動）。
+truncate_display_name() {
+  local str="$1"
+  if (( ${#str} > 10 )); then
+    print -r -- "${str[1,10]}.."
+  else
+    print -r -- "$str"
+  fi
+}
+
 case "$agent" in
   claude) id_emoji="$EMOJI_ID_CLAUDE" ;;
   codex)  id_emoji="$EMOJI_ID_CODEX" ;;
@@ -100,7 +112,6 @@ if [[ -n "$tab_id" ]]; then
   if [[ -n "$tab_json" ]]; then
     tab_status="$(print -r -- "$tab_json" | jq -r '.result.tab.agent_status // empty' 2>/dev/null)"
     current_label="$(print -r -- "$tab_json" | jq -r '.result.tab.label // empty' 2>/dev/null)"
-    tab_number="$(print -r -- "$tab_json" | jq -r '.result.tab.number // empty' 2>/dev/null)"
 
     status_emoji=""
     case "$tab_status" in
@@ -190,18 +201,20 @@ case "$agent_status" in
   *) exit 0 ;;
 esac
 
-# Workspace display number isn't in the context JSON; resolve it with one `workspace list` call.
+# Workspace display name isn't in the context JSON; resolve it with one `workspace list` call.
 ws_id="${HERDR_WORKSPACE_ID:-}"
-ws_number=""
+ws_label=""
 if [[ -n "$ws_id" ]]; then
-  ws_number="$("$herdr_bin" workspace list 2>/dev/null \
-    | jq -r --arg w "$ws_id" '.result.workspaces[]? | select(.workspace_id==$w) | .number // empty' 2>/dev/null)"
+  ws_label="$("$herdr_bin" workspace list 2>/dev/null \
+    | jq -r --arg w "$ws_id" '.result.workspaces[]? | select(.workspace_id==$w) | .label // empty' 2>/dev/null)"
 fi
 
-# screen_label shows workspace:tab display indices; omit entirely if either is missing.
+# screen_label shows workspace名:tab名. tab名はタブ処理ブロックで確定した装飾除去後の
+# base_label（claudeは会話概要、それ以外は素のタブ名）。どちらか取れなければ丸ごと省略。
+tab_base="${base_label:-}"
 screen_label=""
-if [[ -n "$ws_number" && -n "$tab_number" ]]; then
-  screen_label=" 🖥️${ws_number}:${tab_number}"
+if [[ -n "$ws_label" && -n "$tab_base" ]]; then
+  screen_label=" 🖥️$(truncate_display_name "$ws_label"):$(truncate_display_name "$tab_base")"
 fi
 
 # id_emoji は冒頭のタブアイコン処理で既に決定済み。ここでは通知本文用の

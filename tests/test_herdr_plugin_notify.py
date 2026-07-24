@@ -43,8 +43,8 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         pane_id: str = "w1:p7",
         tab_id: str = "w1:t4",
         workspace_id: str = "w1",
-        tab_number: str = "4",
-        ws_number: str = "1",
+        tab_label: str = "4",
+        ws_label: str = "ai-work",
         title_text: str = "Herdr通知をカスタマイズしてworkspace情報を表示",
         session_id: str = "session-abc",
         herdr_present: bool = True,
@@ -77,12 +77,30 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                     "EMOJI_ID_CODEX=CODEX_ID\n"
                     "EMOJI_STATUS_COMPLETED=DONE\n"
                     "EMOJI_STATUS_NOTIFICATION=WAIT\n"
+                    # screen_labelがbase_label経由でtmux_emoji.py/tmux_window_name.pyを
+                    # 呼ぶため、未使用でも_load_conf()がKeyErrorしないよう全キーを埋める。
+                    "EMOJI_STATUS_ONGOING=ONGOING\n"
+                    "EMOJI_STATUS_ERROR=ERROR\n"
+                    "EMOJI_CONTEXT_ALERT=ALERT\n"
                 ),
             }
             for relative_path, content in dependencies.items():
                 file_path = fake_repo / relative_path
                 file_path.parent.mkdir(parents=True, exist_ok=True)
                 file_path.write_text(content, encoding="utf-8")
+
+            # screen_labelはタブ処理ブロックが確定させるbase_labelに依存するため、
+            # is-herdr-default-label判定(tmux_window_name.py)とstrip_emoji_prefix
+            # (tmux_emoji.py)の実体が必要。ASCIIスタブのtmux_emoji.conf(上記)には
+            # 絵文字が無く、strip_emoji_prefixは絵文字を含まない文字列に対しては
+            # 恒等関数なのでtitleのASCII識別子アサーションと衝突しない。
+            fake_tmux_dir = fake_repo / "shell/tmux"
+            fake_tmux_dir.mkdir(parents=True, exist_ok=True)
+            for name in ("tmux_emoji.py", "tmux_window_name.py", "herdr_status_icon.sh"):
+                real_file = REPO_ROOT / "shell/tmux" / name
+                (fake_tmux_dir / name).write_text(
+                    real_file.read_text(encoding="utf-8"), encoding="utf-8"
+                )
 
             if herdr_present:
                 pane_fields = {
@@ -98,15 +116,13 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                     if pane_get_empty
                     else {"result": {"pane": pane_fields}}
                 )
-                tab_fields = {"agent_status": agent_status, "label": "1"}
-                if tab_number:
-                    tab_fields["number"] = int(tab_number)
+                tab_fields = {"agent_status": agent_status, "label": tab_label}
                 tab_result = {"result": {"tab": tab_fields}}
                 workspace_result = {
                     "result": {
                         "workspaces": [
-                            {"workspace_id": workspace_id, "number": int(ws_number)}
-                            if ws_number
+                            {"workspace_id": workspace_id, "label": ws_label}
+                            if ws_label
                             else {"workspace_id": workspace_id}
                         ]
                     }
@@ -187,7 +203,11 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         title_line = next(line for line in events if line.startswith("title="))
         # 時刻(🕰️HH:MM:SS)は非決定的なため、プレフィックス一致のみ検証する。
-        self.assertTrue(title_line.startswith("title=CLAUDE_IDDONE Claude完了 🖥️1:4 🕰️"), title_line)
+        # tab名はclaudeの会話概要（title_text）先頭10文字にtruncateされたもの。
+        self.assertTrue(
+            title_line.startswith("title=CLAUDE_IDDONE Claude完了 🖥️ai-work:Herdr通知をカス.. 🕰️"),
+            title_line,
+        )
         self.assertEqual(
             events[1:],
             [
@@ -202,7 +222,12 @@ class HerdrPluginNotifyTest(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("message=Herdr通知をカスタマイズしてworkspace情報を表示", events)
-        self.assertTrue(any(line.startswith("title=CLAUDE_IDWAIT Claude入力待ち 🖥️1:4 🕰️") for line in events))
+        self.assertTrue(
+            any(
+                line.startswith("title=CLAUDE_IDWAIT Claude入力待ち 🖥️ai-work:Herdr通知をカス.. 🕰️")
+                for line in events
+            )
+        )
 
     def test_idle_working_unknown_do_not_notify(self):
         for agent_status in ("idle", "working", "unknown", ""):
@@ -236,34 +261,61 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         self.assertTrue(any(line.startswith("title=🤖DONE") for line in events))
 
     def test_missing_tab_id_omits_screen_label(self):
-        # tab_id が取れない -> tab get 自体が呼ばれず tab_number が未設定 -> screen_label 省略。
+        # tab_id が取れない -> tab get 自体が呼ばれず base_label が未設定 -> screen_label 省略。
         result, events = self.run_plugin(agent_status="done", include_tab_id=False)
 
         self.assertEqual(result.returncode, 0, result.stderr)
         title_line = next(line for line in events if line.startswith("title="))
         self.assertNotIn("🖥️", title_line)
 
-    def test_missing_tab_number_omits_screen_label(self):
-        # tab get は成功するが応答に number が無い -> screen_label 省略（会話概要へはフォールバックしない）。
-        result, events = self.run_plugin(agent_status="done", tab_number="")
+    def test_missing_tab_label_omits_screen_label(self):
+        # tab get は成功するが応答の label が空 -> base_label も空 -> screen_label 省略
+        # （会話概要へはフォールバックしない。title_text は概要置換を避けるため無効化）。
+        result, events = self.run_plugin(agent_status="done", tab_label="", title_text="")
 
         self.assertEqual(result.returncode, 0, result.stderr)
         title_line = next(line for line in events if line.startswith("title="))
         self.assertNotIn("🖥️", title_line)
 
-    def test_missing_workspace_number_omits_screen_label(self):
-        result, events = self.run_plugin(agent_status="done", ws_number="")
+    def test_missing_workspace_label_omits_screen_label(self):
+        result, events = self.run_plugin(agent_status="done", ws_label="")
 
         self.assertEqual(result.returncode, 0, result.stderr)
         title_line = next(line for line in events if line.startswith("title="))
         self.assertNotIn("🖥️", title_line)
 
     def test_screen_label_format_is_colon_separated(self):
-        result, events = self.run_plugin(agent_status="done", ws_number="2", tab_number="7")
+        # 会話概要への置換を避けるため title_text を無効化し、素のタブ名(tab_label)を使う。
+        result, events = self.run_plugin(
+            agent_status="done", ws_label="ws2", tab_label="tab7", title_text=""
+        )
 
         self.assertEqual(result.returncode, 0, result.stderr)
         title_line = next(line for line in events if line.startswith("title="))
-        self.assertIn("🖥️2:7", title_line)
+        self.assertIn("🖥️ws2:tab7", title_line)
+
+    def test_screen_label_truncates_long_names(self):
+        # space名・tab名は10文字を超えると先頭10文字+".."に丸められる（超えなければそのまま）。
+        # 日本語もzshの ${str[1,10]} が1文字=1カウントで切るため境界は文字数ベース。
+        cases = (
+            ("ascii_ws_9_chars_kept", "a" * 9, "tab", "🖥️" + "a" * 9 + ":tab"),
+            ("ascii_ws_10_chars_kept", "a" * 10, "tab", "🖥️" + "a" * 10 + ":tab"),
+            ("ascii_ws_11_chars_truncated", "a" * 11, "tab", "🖥️" + "a" * 10 + "..:tab"),
+            ("japanese_tab_10_chars_kept", "ws", "あ" * 10, "🖥️ws:" + "あ" * 10),
+            ("japanese_tab_11_chars_truncated", "ws", "あ" * 11, "🖥️ws:" + "あ" * 10 + ".."),
+        )
+        for name, ws_label, tab_label, expected in cases:
+            with self.subTest(name=name):
+                result, events = self.run_plugin(
+                    agent_status="done",
+                    ws_label=ws_label,
+                    tab_label=tab_label,
+                    title_text="",
+                )
+
+                self.assertEqual(result.returncode, 0, result.stderr)
+                title_line = next(line for line in events if line.startswith("title="))
+                self.assertIn(expected, title_line)
 
     def test_empty_conversation_title_uses_placeholder(self):
         result, events = self.run_plugin(agent_status="done", title_text="")
