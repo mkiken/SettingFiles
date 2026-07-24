@@ -20,11 +20,13 @@ def run_herdr_run_in_new_tab(
     tab_create_json: str = '{"result":{"root_pane":{"pane_id":"w1:p2"}}}',
     wait_output_exit: int = 0,
     wait_output_failures: int = 0,
+    wait_output_stderr: str = "",
 ) -> tuple[subprocess.CompletedProcess, list[str]]:
     """stub herdr/jq 付きでai.zshの関数を実行し、(結果, herdr呼び出しログ) を返す。
 
-    wait output stubは最初の wait_output_failures 回は exit 1（タイムアウト）を返し、
+    pane wait-output stubは最初の wait_output_failures 回は exit 1（タイムアウト）を返し、
     それ以降は wait_output_exit を返す（リトライループの検証用）。
+    wait_output_stderr を指定すると失敗時にstderrへ出力する（エラー表面化の検証用）。
     """
     with tempfile.TemporaryDirectory() as temp_dir:
         log_path = Path(temp_dir) / "herdr_calls.log"
@@ -45,13 +47,15 @@ herdr() {{
             ;;
         pane)
             [[ "$2" == "run" ]] && return 0
-            ;;
-        wait)
-            if [[ "$2" == "output" ]]; then
+            if [[ "$2" == "wait-output" ]]; then
                 local wait_count=$(( $(cat "$WAIT_COUNT_FILE" 2>/dev/null || echo 0) + 1 ))
                 printf '%s' "$wait_count" > "$WAIT_COUNT_FILE"
                 if (( wait_count <= {wait_output_failures} )); then
+                    [[ -n "{wait_output_stderr}" ]] && printf '%s\\n' "{wait_output_stderr}" >&2
                     return 1
+                fi
+                if [[ {wait_output_exit} -ne 0 ]]; then
+                    [[ -n "{wait_output_stderr}" ]] && printf '%s\\n' "{wait_output_stderr}" >&2
                 fi
                 return {wait_output_exit}
             fi
@@ -91,7 +95,7 @@ class HerdrRunInNewTabTest(unittest.TestCase):
 
         self.assertTrue(calls[0].startswith("tab create"))
         self.assertTrue(calls[1].startswith("pane run w1:p2 print -r -- __herdr_ready_"))
-        self.assertTrue(calls[2].startswith("wait output w1:p2 --match __herdr_ready_"))
+        self.assertTrue(calls[2].startswith("pane wait-output w1:p2 --match __herdr_ready_"))
         self.assertEqual(calls[3], "pane run w1:p2 gm-pr-review 123")
 
     def test_marker_sent_split_but_waited_concatenated(self):
@@ -117,7 +121,7 @@ class HerdrRunInNewTabTest(unittest.TestCase):
         self.assertEqual(len(calls), 6, calls)
 
         marker_runs = [c for c in calls if c.startswith("pane run w1:p2 print -r -- __herdr_ready_")]
-        wait_calls = [c for c in calls if c.startswith("wait output ")]
+        wait_calls = [c for c in calls if c.startswith("pane wait-output ")]
         real_runs = [c for c in calls if c == "pane run w1:p2 gm-pr-review 123"]
         self.assertEqual(len(marker_runs), 2)
         self.assertEqual(len(wait_calls), 2)
@@ -135,7 +139,7 @@ class HerdrRunInNewTabTest(unittest.TestCase):
         self.assertIn("タイムアウトしました", result.stderr)
 
         marker_runs = [c for c in calls if c.startswith("pane run w1:p2 print -r -- __herdr_ready_")]
-        wait_calls = [c for c in calls if c.startswith("wait output ")]
+        wait_calls = [c for c in calls if c.startswith("pane wait-output ")]
         self.assertEqual(len(marker_runs), DEFAULT_MAX_ATTEMPTS)
         self.assertEqual(len(wait_calls), DEFAULT_MAX_ATTEMPTS)
         self.assertTrue(
@@ -143,6 +147,18 @@ class HerdrRunInNewTabTest(unittest.TestCase):
             wait_calls[0],
         )
         self.assertFalse(any(c == "pane run w1:p2 gm-pr-review 123" for c in calls))
+
+    def test_wait_output_stderr_is_surfaced_on_timeout(self):
+        # herdr CLIのエラー（例: 0.7.5でのサブコマンド改名による unknown command）が
+        # 全attempt破棄されて「タイムアウト」だけが報告される再発を防ぐ
+        result, _ = run_herdr_run_in_new_tab(
+            '_herdr_run_in_new_tab "" "/tmp/work" "label" "gm-pr-review 123"',
+            wait_output_exit=1,
+            wait_output_stderr="unknown command: wait",
+        )
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("タイムアウトしました", result.stderr)
+        self.assertIn("unknown command: wait", result.stderr)
 
     def test_timeout_budget_bounds_attempts(self):
         # attempt数 = ceil(timeout_ms / 800) の境界値検証

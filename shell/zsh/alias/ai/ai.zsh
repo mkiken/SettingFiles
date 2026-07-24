@@ -122,7 +122,7 @@ _ai_multiplexer_kind() {
 # 罠が2つある（ライブ検証済み）:
 # - zshrc初期化中に pane run で送った入力はバッファされず消えるため、
 #   マーカーを1回送って長時間waitしても検出できない。
-# - wait output --source recent は入力エコー行を含むため、送信文字列そのままの
+# - pane wait-output --source recent は入力エコー行を含むため、送信文字列そのままの
 #   マーカーはエコーに誤マッチしてシェルready前に成功を返す。
 # 対策: マーカーを分割文字列（head""tail）で送り（連結形は実行出力にしか
 # 現れない）、短いタイムアウトで送信→waitを繰り返し、シェルready後に
@@ -137,13 +137,18 @@ _herdr_wait_shell_ready() {
     local marker_tail="_ok__"
     local marker="${marker_head}${marker_tail}"
 
-    local attempt
+    # stderrは捕捉して失敗報告に含める（herdr 0.7.5の `wait output`→`pane wait-output`
+    # 改名時、全エラー破棄だとCLI非互換が「タイムアウト」として誤報告された）
+    local attempt wait_error=""
     for (( attempt = 1; attempt <= max_attempts; attempt++ )); do
         herdr pane run "${pane_id}" "print -r -- ${marker_head}\"\"${marker_tail}" || return 1
-        herdr wait output "${pane_id}" --match "${marker}" --source recent --timeout "${attempt_timeout_ms}" >/dev/null 2>&1 && return 0
+        if wait_error=$(herdr pane wait-output "${pane_id}" --match "${marker}" --source recent --timeout "${attempt_timeout_ms}" 2>&1 >/dev/null); then
+            return 0
+        fi
     done
 
     echo "新規ペインのシェル起動待ちがタイムアウトしました (pane_id=${pane_id})" >&2
+    [[ -n "${wait_error}" ]] && echo "herdr pane wait-output: ${wait_error}" >&2
     return 1
 }
 
