@@ -48,10 +48,12 @@ fwmo-review-all()       { _fwmo-review review-all "$@" }
 
 # worktreeパスから "リポジトリ名/ブランチ末尾"（デフォルトブランチならリポジトリ名のみ）を計算して出力
 # rename-window-git.sh の命名ロジックを流用（tmuxへの副作用なし）
+# コマンド置換で呼ばれるため、cdはchpwdフック（_chpwd_ls_abbrevのpwd+ls出力）が
+# 混入しないよう-qで抑制し、-qを解さないzoxideのcd関数上書きをbuiltinで回避する
 _review_window_git_name() {
     local target="$1"
     (
-        cd "$target" 2>/dev/null || exit 1
+        builtin cd -q "$target" 2>/dev/null || exit 1
         local repo_root repo_name branch default_branch abbrev
         repo_root=$(git rev-parse --show-toplevel 2>/dev/null)
         if [[ -z "$repo_root" ]]; then

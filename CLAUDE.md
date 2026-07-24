@@ -91,6 +91,8 @@ When editing shell helpers, do not use global variables for temporary return val
 
 In zsh, `path` is a special array tied to `PATH`; never use it as a local or temporary variable name in shell helpers.
 
+In interactive shells, `cd` fires chpwd hooks (their stdout pollutes command substitutions) and is overridden by zoxide's `cd` function which rejects `-q`; shell helpers that cd inside `$(...)` must use `builtin cd -q`.
+
 Files sourced during zshrc init (e.g. `shell/zsh/filter/base.zsh`) must bail out with `return`, never `exit` — `exit` kills the whole shell mid-init with no visible error (a Herdr popup running `zsh -ic` then closes instantly before the `-c` command ever runs).
 
 Key symlinks:
