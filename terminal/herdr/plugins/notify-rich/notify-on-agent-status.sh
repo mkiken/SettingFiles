@@ -117,6 +117,10 @@ session_id="$(print -r -- "$pane_json" | jq -r '.result.pane.agent_session.value
 # アイコンを外して元のラベルに戻す。集約状態は `tab get` の agent_status（タブ内
 # 複数paneがあってもHerdrが1つに集約済み）を使い、識別子だけ発火paneのagentを使う。
 tab_id="$(print -r -- "$pane_json" | jq -r '.result.pane.tab_id // empty' 2>/dev/null)"
+# screen_label生成（後段）でも参照するため、タブ処理ブロック未到達（tab_id/tab_json
+# が空）でも未定義参照にならないよう既定値を先出しする。真になるのはブロック内で
+# base_labelを会話概要20字truncateに置き換えた時だけ。
+record_auto_label=false
 if [[ -n "$tab_id" ]]; then
   tab_json="$("$herdr_bin" tab get "$tab_id" 2>/dev/null)"
   if [[ -n "$tab_json" ]]; then
@@ -221,10 +225,17 @@ fi
 
 # screen_label shows workspace名:tab名. tab名はタブ処理ブロックで確定した装飾除去後の
 # base_label（claudeは会話概要、それ以外は素のタブ名）。どちらか取れなければ丸ごと省略。
+# ただしtab名が会話概要由来（record_auto_label==true: claude+概要採用）の場合は、
+# 通知本文(title_text)と内容が被るため ":tab名" を省き 🖥️ws名 だけにする。手動ラベルや
+# codex等（record_auto_label==false）は被らないため従来どおり ":tab名" を残す。
 tab_base="${base_label:-}"
 screen_label=""
 if [[ -n "$ws_label" && -n "$tab_base" ]]; then
-  screen_label=" 🖥️$(truncate_display_name "$ws_label"):$(truncate_display_name "$tab_base")"
+  if [[ "${record_auto_label:-false}" == true ]]; then
+    screen_label=" 🖥️$(truncate_display_name "$ws_label")"
+  else
+    screen_label=" 🖥️$(truncate_display_name "$ws_label"):$(truncate_display_name "$tab_base")"
+  fi
 fi
 
 # id_emoji は冒頭のタブアイコン処理で既に決定済み。ここでは通知本文用の

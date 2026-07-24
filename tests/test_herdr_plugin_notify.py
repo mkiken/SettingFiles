@@ -243,9 +243,10 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         title_line = next(line for line in events if line.startswith("title="))
         # 時刻(🕰️HH:MM:SS)は非決定的なため、プレフィックス一致のみ検証する。
-        # tab名はclaudeの会話概要（title_text）先頭10文字にtruncateされたもの。
+        # tab名はclaudeの会話概要（title_text）採用時のbase_label由来で本文と被るため、
+        # ":tab名" 側は省略され 🖥️ws名 だけになる（record_auto_label==true）。
         self.assertTrue(
-            title_line.startswith("title=CLAUDE_IDDONE Claude完了 🖥️ai-work:Herdr通知をカス.. 🕰️"),
+            title_line.startswith("title=CLAUDE_IDDONE Claude完了 🖥️ai-work 🕰️"),
             title_line,
         )
         self.assertEqual(
@@ -264,7 +265,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         self.assertIn("message=Herdr通知をカスタマイズしてworkspace情報を表示", events)
         self.assertTrue(
             any(
-                line.startswith("title=CLAUDE_IDWAIT Claude入力待ち 🖥️ai-work:Herdr通知をカス.. 🕰️")
+                line.startswith("title=CLAUDE_IDWAIT Claude入力待ち 🖥️ai-work 🕰️")
                 for line in events
             )
         )
@@ -477,6 +478,36 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         title_line = next(line for line in events if line.startswith("title="))
         self.assertIn("🖥️ws2:tab7", title_line)
+
+    def test_claude_manual_label_keeps_tab_name(self):
+        # 手動タブ名（連番/Herdrデフォルトでない）は会話概要に置き換わらない
+        # （record_auto_label==false）ので、本文と被らず ":tab名" を維持する。
+        # title_usable単独で判定すると誤って省略されてしまう差を検出するテスト。
+        result, events = self.run_plugin(
+            agent="claude",
+            agent_status="done",
+            tab_label="My Task",
+            title_text="概要文",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        title_line = next(line for line in events if line.startswith("title="))
+        self.assertIn("🖥️ai-work:My Task", title_line)
+
+    def test_codex_keeps_tab_name_despite_conversation_summary(self):
+        # codexは会話概要をタブ名に採用しない（record_auto_label==false）ため、
+        # terminal_title_strippedが概要でも screen_label の ":tab名" は維持される。
+        result, events = self.run_plugin(
+            agent="codex",
+            agent_status="done",
+            tab_label="4",
+            title_text="ここに会話概要が入る",
+            codex_transcript=self.codex_transcript_fixture(),
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        title_line = next(line for line in events if line.startswith("title="))
+        self.assertIn("🖥️ai-work:4", title_line)
 
     def test_screen_label_truncates_long_names(self):
         # space名・tab名は10文字を超えると先頭10文字+".."に丸められる（超えなければそのまま）。
