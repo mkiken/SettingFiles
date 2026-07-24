@@ -34,7 +34,7 @@ git rev-parse HEAD
 bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <PR_NUMBER>
 ```
 
-Local mode = current branch matches `headRefName`, `git rev-parse HEAD` matches `headRefOid`, **and** `git cat-file -e <baseRefOid>^{commit}` succeeds. If any check fails, use remote mode: subagents must inspect the PR head with `gh api`, not local files. This prevents unpushed or unrelated local commits, or a missing PR base commit, from contaminating the review.
+Local mode = current branch matches `headRefName`, `git rev-parse HEAD` matches `headRefOid`, **and** `git cat-file -e '<baseRefOid>^{commit}'` succeeds. If any check fails, use remote mode: subagents must inspect the PR head with `gh api`, not local files. This prevents unpushed or unrelated local commits, or a missing PR base commit, from contaminating the review.
 
 Capture the full and line-numbered diffs through the configured large-output path, using source labels unique to the PR and `headRefOid`. Count the line-numbered diff before expanding it in the parent context.
 
