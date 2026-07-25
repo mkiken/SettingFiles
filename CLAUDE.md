@@ -65,6 +65,10 @@ Canonical source-to-command mapping for regenerating committed outputs. The full
 | pr-reviewer agent sources (`ai/common/pr_review_subagents/intro_*.md`, `ai/common/pr_review_subagents/format_*.md`, `ai/*/agents_src/`) | `zsh -c 'source mac/scripts/common.sh && generate_pr_reviewer_agents <platform>'` |
 | config-audit auditor sources (`ai/common/config_audit_subagents/`, `ai/*/agents_src/config_audit/`) | `generate_config_auditor_agents <platform>` from `mac/scripts/common.sh` |
 
+### External Identifiers
+
+Before adding an externally-sourced identifier (a plugin ID, marketplace name, package name, repo slug) to a declarative config from a blog post, README, or other secondary source, verify it against the primary source (e.g. the target repo's `marketplace.json`/`package.json`) rather than copying the secondary source's command verbatim — a marketplace's registered `name` frequently differs from its repo slug, and a wrong ID installs silently disabled rather than failing loudly.
+
 ## Architecture
 
 ### Directory Structure
@@ -114,7 +118,7 @@ Claude-specific files (agents, hooks, scripts) are individually symlinked into `
 
 Skills (`ai/common/skills/`, `ai/{claude,gemini,codex}/skills/`) are symlinked per directory into `~/.<platform>/skills/` via `setup_ai_skills`, so skill edits take effect immediately — except generated `SKILL.md` files (all Codex shared-core skills and Gemini fact-based), which must be regenerated from their sources (see "Regenerate AI Prompts" under Key Commands). The whole `ai/common` directory is also symlinked to `~/.gemini/common` and `~/.claude/common` for runtime file references — Claude and Gemini only; Codex has no `~/.codex/common`. Python modules shared by the platform hooks therefore live in `shell/tmux/` (e.g. `tmux_emoji.py`, `tmux_window_name.py`); hooks reach them because `Path(__file__).resolve()` dereferences the hook symlink back into the repo.
 
-Repository-local domain-knowledge skills live in `.claude/skills/<name>/SKILL.md` (currently `herdr-dev`, `ai-notification-hooks`, `gsd-core-setup`); each `.agents/skills/<name>` is a committed relative symlink to the same directory so Codex discovers them too. No build step — edit the `.claude/skills/` source directly (frontmatter must stay in the cross-platform subset: `name` + `description` only, no runtime includes).
+Repository-local domain-knowledge skills live in `.claude/skills/<name>/SKILL.md` (currently `herdr-dev`, `ai-notification-hooks`, `gsd-core-setup`, `claude-plugin-management`); each `.agents/skills/<name>` is a committed relative symlink to the same directory so Codex discovers them too. No build step — edit the `.claude/skills/` source directly (frontmatter must stay in the cross-platform subset: `name` + `description` only, no runtime includes).
 
 `ai/claude/settings.json` and `ai/gemini/settings.json` are the exception: not symlinked but deep-merged into `~/.claude/settings.json` / `~/.gemini/settings.json` via `smart_merge_json`, and the files diverge (the live files accumulate machine-local keys). Editing the repository source alone does not update the live file — apply with `mac/initialization/ai/{claude,gemini}.sh` / `mac/update`, or merge manually for immediate effect. Merging only adds or updates keys: removing an entry (e.g. deleting a hook registration) never propagates, so also delete it from the live file by hand.
 
@@ -168,6 +172,8 @@ Notification-hook roles and implementation rules for all three platforms live in
 **GSD Core**: before changing GSD Core setup (`setup_gsd_core_for_runtime`, the managed `~/.codex/hooks.json`, the Claude permission fix), read `.claude/skills/gsd-core-setup/SKILL.md`.
 
 **Herdr integrations**: before changing Herdr integration (`mac/scripts/herdr.sh`, Herdr plugins such as notify-rich, Gemini's Herdr notification split, shell status icon mirroring), read `.claude/skills/herdr-dev/SKILL.md`. Never run `herdr integration install` against live Claude or Codex configuration; always use the repository helper.
+
+**Claude Code plugins**: before adding, updating, or removing a Claude Code plugin (`mac/scripts/ai/claude.sh` setup functions, `ai/claude/settings.json` `enabledPlugins`/`extraKnownMarketplaces`, or their call sites in `mac/initialization/ai/claude.sh` and `mac/updates/claude.sh`), read `.claude/skills/claude-plugin-management/SKILL.md`.
 
 ## AI Prompt File Editing
 
