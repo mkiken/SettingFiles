@@ -69,6 +69,15 @@ Canonical source-to-command mapping for regenerating committed outputs. The full
 
 Before adding an externally-sourced identifier (a plugin ID, marketplace name, package name, repo slug) to a declarative config from a blog post, README, or other secondary source, verify it against the primary source (e.g. the target repo's `marketplace.json`/`package.json`) rather than copying the secondary source's command verbatim — a marketplace's registered `name` frequently differs from its repo slug, and a wrong ID installs silently disabled rather than failing loudly.
 
+### Evaluating External Tools
+
+When comparing or selecting an external tool to adopt here (CLI, plugin, package, editor extension), check each candidate's maintenance activity and recent third-party assessment before recommending one, and report the dates you found:
+
+- Last commit and last release date, open issue count, archived status — from the primary source (the repo's API or release page), not a summary article. A project can be effectively abandoned while still ranking first by popularity.
+- Never treat cumulative popularity (stars, download counts) as evidence of current health; it measures accumulated history, not whether the project still works. State star counts as popularity only.
+- Note when a candidate is very new (repository age, `0.x` version, low commit count) — that is a maintenance risk to surface, not a disqualifier.
+- Prefer secondary sources published recently, and give their date; when a source's author is also the author of a compared candidate, say so and discount accordingly.
+
 ## Architecture
 
 ### Directory Structure
