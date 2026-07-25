@@ -64,12 +64,9 @@ ccundo language ja
 claude plugin marketplace add https://github.com/classmethod/tsumiki.git
 claude plugin install tsumiki@tsumiki
 
-claude plugin marketplace add sawyerhood/dev-browser
-# claude pluginコマンドだとエラーになるため、直接clコマンドでインストール
-claude -p "/plugin install dev-browser@sawyerhood/dev-browser"
-
 setup_claude_superpowers
 setup_claude_context_mode
+setup_claude_dig
 setup_claude_mem
 setup_gsd_core_for_runtime claude install || exit 1
 

@@ -8,7 +8,7 @@
   "enabledPlugins": {
     "claude-mem@thedotmack": true,
     "context-mode@context-mode": true,
-    "dev-browser@dev-browser-marketplace": true,
+    "dig@kuu-marketplace": true,
     "superpowers@claude-plugins-official": true,
     "tsumiki@tsumiki": true
   },
@@ -30,9 +30,9 @@
         "source": "github"
       }
     },
-    "dev-browser-marketplace": {
+    "kuu-marketplace": {
       "source": {
-        "repo": "sawyerhood/dev-browser",
+        "repo": "fumiya-kume/claude-code",
         "source": "github"
       }
     },

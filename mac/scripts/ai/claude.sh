@@ -27,6 +27,31 @@ function setup_claude_context_mode() {
   fi
 }
 
+function setup_claude_dig() {
+  echo "Ensuring Claude dig plugin..."
+
+  require_ai_setup_command claude || return 1
+  require_ai_setup_command jq || return 1
+
+  # marketplace名(kuu-marketplace)とrepo名(fumiya-kume/claude-code)が不一致。
+  # addはrepo指定、以後のupdate/参照はmarketplace名で行う。
+  if ! claude plugin marketplace list | /usr/bin/grep -Fq "kuu-marketplace"; then
+    claude plugin marketplace add fumiya-kume/claude-code || return 1
+  fi
+
+  claude plugin marketplace update kuu-marketplace || return 1
+
+  if claude plugin list --json | jq -e '.[] | select(.id == "dig@kuu-marketplace")' >/dev/null; then
+    claude plugin update dig@kuu-marketplace || return 1
+  else
+    claude plugin install dig@kuu-marketplace || return 1
+  fi
+
+  if ! claude plugin list --json | jq -e '.[] | select(.id == "dig@kuu-marketplace" and .enabled == true)' >/dev/null; then
+    claude plugin enable dig@kuu-marketplace || return 1
+  fi
+}
+
 function setup_claude_superpowers() {
   echo "Ensuring Claude Superpowers plugin..."
 

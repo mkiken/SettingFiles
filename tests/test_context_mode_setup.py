@@ -61,6 +61,7 @@ class ContextModeSetupTest(unittest.TestCase):
                 "setup_claude_context_mode",
                 "setup_claude_superpowers",
                 "setup_claude_mem",
+                "setup_claude_dig",
             ),
             "mac/scripts/ai/gemini.sh": (
                 "setup_gemini_context_mode",
@@ -84,11 +85,21 @@ class ContextModeSetupTest(unittest.TestCase):
         expected_sources = {
             "mac/initialization/ai/claude.sh": (
                 'source "${Repo}mac/scripts/ai/claude.sh"',
-                ("setup_claude_superpowers", "setup_claude_context_mode", "setup_claude_mem"),
+                (
+                    "setup_claude_superpowers",
+                    "setup_claude_context_mode",
+                    "setup_claude_dig",
+                    "setup_claude_mem",
+                ),
             ),
             "mac/updates/claude.sh": (
                 'source "${Repo}mac/scripts/ai/claude.sh"',
-                ("setup_claude_superpowers", "setup_claude_context_mode", "setup_claude_mem"),
+                (
+                    "setup_claude_superpowers",
+                    "setup_claude_context_mode",
+                    "setup_claude_dig",
+                    "setup_claude_mem",
+                ),
             ),
             "mac/initialization/ai/gemini.sh": (
                 'source "${Repo}mac/scripts/ai/gemini.sh"',
@@ -221,6 +232,31 @@ class ContextModeSetupTest(unittest.TestCase):
                 }
             },
         )
+
+    def test_claude_settings_register_dig_plugin(self):
+        settings = json.loads(read_text("ai/claude/settings.json"))
+
+        self.assertTrue(settings["enabledPlugins"]["dig@kuu-marketplace"])
+        self.assertEqual(
+            settings["extraKnownMarketplaces"]["kuu-marketplace"],
+            {
+                "source": {
+                    "repo": "fumiya-kume/claude-code",
+                    "source": "github",
+                }
+            },
+        )
+
+    def test_claude_dig_setup_uses_marketplace_name_not_repo_name(self):
+        script = read_text("mac/scripts/ai/claude.sh")
+
+        self.assertIn("function setup_claude_dig()", script)
+        self.assertIn("claude plugin marketplace add fumiya-kume/claude-code", script)
+        self.assertIn("claude plugin marketplace update kuu-marketplace", script)
+        self.assertIn("dig@kuu-marketplace", script)
+        # repo名をmarketplace IDとして使う誤り(参考記事の誤記)を防ぐ
+        self.assertNotIn("dig@fumiya-kume/claude-code", script)
+        self.assertNotIn("claude plugin marketplace update fumiya-kume/claude-code", script)
 
     def test_claude_mem_setup_uses_noninteractive_worker_install_and_repair(self):
         script = read_text("mac/scripts/ai/claude_mem.sh")
