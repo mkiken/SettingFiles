@@ -136,9 +136,15 @@ if [[ -n "$tab_id" ]]; then
 
     base_label="$(python3 "${REPO_ROOT}/shell/tmux/tmux_emoji.py" "$current_label")"
     state_file="$(managed_label_state_file "$tab_id")"
+    # stateは2行: 1行目=採用済み概要、2行目=採用時のclaude session_id
+    # (agent_session.value)。HerdrのタブIDはサーバー再起動でカウンターが
+    # リセットされ再利用されるため、session照合なしで復元すると無関係な
+    # 新規タブに過去セッションの概要ラベルが付いてしまう。
     last_auto_label=""
+    state_session_id=""
     if [[ -n "$state_file" && -f "$state_file" ]]; then
-      IFS= read -r last_auto_label < "$state_file"
+      { IFS= read -r last_auto_label; IFS= read -r state_session_id; } \
+        < "$state_file" 2>/dev/null
     fi
 
     herdr_default_label=false
@@ -167,7 +173,19 @@ if [[ -n "$tab_id" ]]; then
       base_label="${title_text[1,20]}"
       record_auto_label=true
     elif [[ "$herdr_default_label" == true && -n "$last_auto_label" ]]; then
-      base_label="$last_auto_label"
+      if [[ -n "$session_id" && "$state_session_id" == "$session_id" ]]; then
+        # 同一claudeセッション中の一時的なデフォルトラベル復帰のみ復元する。
+        base_label="$last_auto_label"
+      else
+        # session不一致（再利用タブID・旧1行形式含む）は過去セッションの概要
+        # なので復元しない。タブ内にagentが居ない時（unknown/空）だけstateを
+        # stale として自己削除する。idle/working等は別paneのclaudeが所有して
+        # いる可能性があるため温存する（✋マーカーのstale自己削除と同じ思想）。
+        case "$tab_status" in
+          working|blocked|done|idle) ;;
+          *) rm -f -- "$state_file" 2>/dev/null ;;
+        esac
+      fi
     fi
     if [[ -n "$status_emoji" ]]; then
       new_label="${id_emoji}${status_emoji}${base_label}"
@@ -194,11 +212,14 @@ if [[ -n "$tab_id" ]]; then
       rename_ok=false
     fi
 
-    if [[ "$record_auto_label" == true && "$rename_ok" == true && -n "$state_file" \
-          && "$base_label" != "$last_auto_label" ]]; then
+    # 概要が変わった時に加え、session_idの差分だけでも書き直す（旧1行stateの
+    # 2行化と、同ラベルのまま別セッションへ移った場合の所有者更新のため）。
+    if [[ "$record_auto_label" == true && "$rename_ok" == true && -n "$state_file" ]] \
+       && [[ "$base_label" != "$last_auto_label" \
+             || "$session_id" != "$state_session_id" ]]; then
       state_dir="${state_file:h}"
       if mkdir -p "$state_dir" 2>/dev/null; then
-        print -r -- "$base_label" >| "$state_file" 2>/dev/null
+        { print -r -- "$base_label"; print -r -- "$session_id"; } >| "$state_file" 2>/dev/null
       fi
     fi
   fi

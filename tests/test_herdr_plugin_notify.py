@@ -591,6 +591,7 @@ class HerdrPluginTabIconTest(unittest.TestCase):
         title_text: str = "title",
         event_name: str = "pane.agent_status_changed",
         initial_managed_label: str | None = None,
+        initial_state_session_id: str | None = None,
         state_observer: list[str | None] | None = None,
         socket_path: str = "/tmp/herdr.sock",
         include_pane_agent_key: bool | None = None,
@@ -621,7 +622,11 @@ class HerdrPluginTabIconTest(unittest.TestCase):
             )
             if initial_managed_label is not None:
                 state_file.parent.mkdir(parents=True)
-                state_file.write_text(initial_managed_label + "\n", encoding="utf-8")
+                # 2行目（採用時session_id）は省略可: 省略時は旧1行形式を再現する
+                state_content = initial_managed_label + "\n"
+                if initial_state_session_id is not None:
+                    state_content += initial_state_session_id + "\n"
+                state_file.write_text(state_content, encoding="utf-8")
 
             # シェル所有✋マーカー（herdr_status_icon.shと同じキー式）。存在中は
             # プラグインが状態グリフを✋にピン留めすることを検証する
@@ -978,7 +983,7 @@ class HerdrPluginTabIconTest(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, ["w1:t1 ✴️🤖ここに会話概要が入る"])
-        self.assertEqual(state, ["ここに会話概要が入る"])
+        self.assertEqual(state, ["ここに会話概要が入る\nsession-abc"])
 
     def test_conversation_title_length_boundary(self):
         cases = (
@@ -1043,6 +1048,8 @@ class HerdrPluginTabIconTest(unittest.TestCase):
                 self.assertEqual(state, [None])
 
     def test_placeholder_title_restores_last_managed_label(self):
+        # 復元はstateのsession_idが発火paneのsessionと一致する時のみ
+        # （同一セッション中の一時的なデフォルトラベル復帰への追従）。
         for title_text in ("", "Claude Code", "Codex", "Gemini"):
             with self.subTest(title_text=title_text):
                 state = []
@@ -1054,12 +1061,13 @@ class HerdrPluginTabIconTest(unittest.TestCase):
                     title_text=title_text,
                     event_name="pane.focused",
                     initial_managed_label="直前の概要",
+                    initial_state_session_id="session-abc",
                     state_observer=state,
                 )
 
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(calls, ["w1:t1 ✴️🤖直前の概要"])
-                self.assertEqual(state, ["直前の概要"])
+                self.assertEqual(state, ["直前の概要\nsession-abc"])
 
     def test_known_agent_default_label_is_replaced_by_conversation_title(self):
         # HerdrがAI検出タブに自動命名する既知ラベル（'Claude Code'等）も、
@@ -1173,7 +1181,7 @@ class HerdrPluginTabIconTest(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, ["w1:t1 ✴️🤖新しい概要"])
-        self.assertEqual(state, ["新しい概要"])
+        self.assertEqual(state, ["新しい概要\nsession-abc"])
 
     def test_pane_focus_preserves_manual_label_after_managed_label(self):
         state = []
@@ -1247,7 +1255,73 @@ class HerdrPluginTabIconTest(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, [])
-        self.assertEqual(state, ["タブ名の修正作業"])
+        # ラベルは同一でも旧1行stateはsession_id付きの2行形式へ書き直される
+        self.assertEqual(state, ["タブ名の修正作業\nsession-abc"])
+
+    # --- タブID再利用×stale stateの復元ガード検証 ---
+    # HerdrのタブIDはサーバー再起動で再利用されるため、過去セッションのstateが
+    # 同一キーの無関係な新規タブに概要ラベルを「復元」してしまうバグの回帰ガード。
+
+    def test_stale_state_is_not_restored_onto_unrelated_new_tab(self):
+        # 本命バグ: agent不在の新規タブ（デフォルト連番ラベル）に、再利用タブIDの
+        # stale stateから過去概要が付いてはならない。agentが居ないタブでは
+        # stateをstaleとして自己削除する。旧1行形式・session不一致の両方を検証。
+        for state_session_id in (None, "session-old"):
+            with self.subTest(state_session_id=state_session_id):
+                state = []
+                result, calls = self.run_plugin(
+                    agent="",
+                    tab_status="unknown",
+                    current_label="2",
+                    title_text="",
+                    event_name="pane.focused",
+                    initial_managed_label="過去の概要",
+                    initial_state_session_id=state_session_id,
+                    state_observer=state,
+                )
+
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(calls, [])
+                self.assertEqual(state, [None])
+
+    def test_stale_state_not_restored_for_different_claude_session(self):
+        # 再利用タブIDで新しいclaudeセッションが動き出した場合も過去概要は
+        # 復元しない。ただしタブ内にagentが居る間はstateを削除しない
+        # （タイトル確定後の採用パスが新session_idで上書きする）。
+        state = []
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="2",
+            title_text="",
+            event_name="pane.focused",
+            initial_managed_label="過去の概要",
+            initial_state_session_id="session-old",
+            state_observer=state,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️🤖2"])
+        self.assertEqual(state, ["過去の概要\nsession-old"])
+
+    def test_stale_state_survives_on_idle_tab(self):
+        # idleはタブ内の別paneがclaudeを保持している可能性があるため、
+        # session不一致でもstateを削除しない（マルチpaneタブ保護）。
+        state = []
+        result, calls = self.run_plugin(
+            agent="",
+            tab_status="idle",
+            current_label="2",
+            title_text="",
+            event_name="pane.focused",
+            initial_managed_label="過去の概要",
+            state_observer=state,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, [])
+        self.assertEqual(state, ["過去の概要"])
 
     # --- シェル所有✋マーカー存在中のグリフピン留め検証 ---
     # プラグインのラベル再構築（agent_status由来アイコン＋会話概要追従）が、シェルが
@@ -1327,7 +1401,7 @@ class HerdrPluginTabIconTest(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, ["w1:t1 ✴️✋タブ名の修正作業"])
-        self.assertEqual(state, ["タブ名の修正作業"])
+        self.assertEqual(state, ["タブ名の修正作業\nsession-abc"])
 
     def test_stale_marker_is_ignored_and_deleted(self):
         markers = []
