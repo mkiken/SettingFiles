@@ -75,6 +75,23 @@ cl-pr-review-subagents() {
     clf --effort high --dangerously-skip-permissions "/pr-review-subagents $pr_number${review_prompt:+ $review_prompt} ultrathink"
 }
 
+cl-review-merge() {
+    local run_dir="$1"
+    if [[ -z "$run_dir" ]]; then
+        echo "Usage: cl-review-merge <run_dir>" >&2
+        return 1
+    fi
+    clf --effort high --dangerously-skip-permissions "/review-merge $run_dir"
+}
+
+cl-review-post() {
+    clo --dangerously-skip-permissions "/review-post $*"
+}
+
+cl-review-fix() {
+    clf --effort high "/review-fix $*"
+}
+
 _cl-pr-comment-review() {
     clo --effort high --dangerously-skip-permissions "/pr-comment-review $* ultrathink"
 }

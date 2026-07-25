@@ -83,6 +83,23 @@ cx-pr-review-subagent() {
     cxh --dangerously-bypass-approvals-and-sandbox "\$pr-review-subagents PR #$pr_number をレビューして${review_prompt:+ $review_prompt}"
 }
 
+cx-review-merge() {
+    local run_dir="$1"
+    if [[ -z "$run_dir" ]]; then
+        echo "Usage: cx-review-merge <run_dir>" >&2
+        return 1
+    fi
+    cxh --dangerously-bypass-approvals-and-sandbox "\$review-merge $run_dir"
+}
+
+cx-review-post() {
+    cxh --dangerously-bypass-approvals-and-sandbox "\$review-post $*"
+}
+
+cx-review-fix() {
+    cxh "\$review-fix $*"
+}
+
 alias cx-pr-comment-review='noglob _cx-pr-comment-review'
 alias cx-pcr='noglob _cx-pr-comment-review'
 _cx-pr-comment-review() {

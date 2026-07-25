@@ -101,6 +101,18 @@ _ai_review_tmux_command() {
     print -r -- "$(_ai_review_command "$@"); zsh"
 }
 
+# レビュー結果の書き出し先(AI_REVIEW_OUTPUT_FILE)を前置した起動コマンドを返す
+_ai_review_env_command() {
+    local output_file="$1"
+    shift
+    print -r -- "AI_REVIEW_OUTPUT_FILE=${(q)output_file} $(_ai_review_command "$@")"
+}
+
+# tmux new-window用: コマンド実行後もwindowにシェルを残すため "; zsh" を付与
+_ai_review_env_tmux_command() {
+    print -r -- "$(_ai_review_env_command "$@"); zsh"
+}
+
 # 現在の実行環境のマルチプレクサ種別を返す: "herdr" | "tmux" | ""
 # auto_multiplexer.zsh / plugin.zsh と同じ優先順位（HERDR_ENV最優先、次にTMUX）
 _ai_multiplexer_kind() {
@@ -302,24 +314,11 @@ _herdr_resolve_review_workspace() {
     print -r -- "${ws_id}"
 }
 
-_review_tmux() {
-    local -a review_args=("$@")
-
-    local review_name gemini_command codex_command
-    review_name=$(_review_window_name)
-    gemini_command=$(_ai_review_tmux_command gm-pr-review "${review_args[@]}") || return 1
-    codex_command=$(_ai_review_tmux_command cx-pr-review "${review_args[@]}") || return 1
-
-    tmux new-window -n "${review_name}" "zsh -ic ${(q)gemini_command}"
-    tmux new-window -n "${review_name}" "zsh -ic ${(q)codex_command}"
-
-    # カレントウィンドウは共有実装で🔍を付与（_review_window_name が git 名へ改名済み）
-    _ai_ensure_window_name_helper
-    update_tmux_window_name "${EMOJI_STATUS_REVIEW}"
-    cl-pr-review "${review_args[@]}"
-}
-
-_review_herdr() {
+# 3AIをそれぞれreview workspaceの新規タブで起動する（herdr）
+# 引数: run_dir claude_fn gemini_fn codex_fn review_args...
+_review_launch_herdr() {
+    local run_dir="$1" claude_fn="$2" gemini_fn="$3" codex_fn="$4"
+    shift 4
     local -a review_args=("$@")
 
     local set_dir="${SET:-$HOME/Desktop/repository/SettingFiles}"
@@ -332,12 +331,11 @@ _review_herdr() {
     gemini_label=$(_ai_review_herdr_label "${EMOJI_ID_GEMINI}") || return 1
     codex_label=$(_ai_review_herdr_label "${EMOJI_ID_CODEX}") || return 1
     ws_id=$(_herdr_resolve_review_workspace "${PWD}") || return 1
-    claude_command=$(_ai_review_command cl-pr-review "${review_args[@]}") || return 1
-    gemini_command=$(_ai_review_command gm-pr-review "${review_args[@]}") || return 1
-    codex_command=$(_ai_review_command cx-pr-review "${review_args[@]}") || return 1
+    claude_command=$(_ai_review_env_command "${run_dir}/claude.md" "${claude_fn}" "${review_args[@]}") || return 1
+    gemini_command=$(_ai_review_env_command "${run_dir}/gemini.md" "${gemini_fn}" "${review_args[@]}") || return 1
+    codex_command=$(_ai_review_env_command "${run_dir}/codex.md" "${codex_fn}" "${review_args[@]}") || return 1
 
-    # claudeもgemini/codexと同じくreview workspace内の新規タブで起動する
-    # （旧実装はカレントpaneで直接実行しタブ名が「1」のまま残っていた）
+    # Claudeも新規タブで起動する（元タブはウォッチャー→review-mergeに使う）
     _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${claude_label}" "${claude_command}" || return 1
     _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${gemini_label}" "${gemini_command}" || return 1
     _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${codex_label}" "${codex_command}" || return 1
@@ -345,141 +343,90 @@ _review_herdr() {
     herdr workspace focus "${ws_id}" >/dev/null 2>&1
 }
 
-review() {
-    local pr_number review_prompt
-    _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
-
-    local review_args=("${pr_number}")
-    [[ -n "${review_prompt}" ]] && review_args+=("${review_prompt}")
-
-    case "$(_ai_multiplexer_kind)" in
-        herdr) _review_herdr "${review_args[@]}" ;;
-        tmux) _review_tmux "${review_args[@]}" ;;
-        *)
-            echo "tmuxまたはHerdr内で実行してください" >&2
-            return 1
-            ;;
-    esac
-}
-
-_review_subagents_tmux() {
-    local -a review_args=("$@")
-
-    local review_name gemini_command codex_command
-    review_name=$(_review_window_name)
-    gemini_command=$(_ai_review_tmux_command gm-pr-review-subagents "${review_args[@]}") || return 1
-    codex_command=$(_ai_review_tmux_command cx-pr-review-subagent "${review_args[@]}") || return 1
-
-    tmux new-window -n "${review_name}" "zsh -ic ${(q)gemini_command}"
-    tmux new-window -n "${review_name}" "zsh -ic ${(q)codex_command}"
-
-    # カレントウィンドウは共有実装で🔍を付与（_review_window_name が git 名へ改名済み）
-    _ai_ensure_window_name_helper
-    update_tmux_window_name "${EMOJI_STATUS_REVIEW}"
-    cl-pr-review-subagents "${review_args[@]}"
-}
-
-_review_subagents_herdr() {
-    local -a review_args=("$@")
-
-    local set_dir="${SET:-$HOME/Desktop/repository/SettingFiles}"
-    source "${set_dir}/shell/tmux/tmux_emoji.conf"
-
-    local ws_id claude_label gemini_label codex_label
-    local claude_command gemini_command codex_command
-    # ラベル計算（git名依存）を先に行い、失敗時は無駄なworkspace作成/流用探索を避ける
-    claude_label=$(_ai_review_herdr_label "${EMOJI_ID_CLAUDE}") || return 1
-    gemini_label=$(_ai_review_herdr_label "${EMOJI_ID_GEMINI}") || return 1
-    codex_label=$(_ai_review_herdr_label "${EMOJI_ID_CODEX}") || return 1
-    ws_id=$(_herdr_resolve_review_workspace "${PWD}") || return 1
-    claude_command=$(_ai_review_command cl-pr-review-subagents "${review_args[@]}") || return 1
-    gemini_command=$(_ai_review_command gm-pr-review-subagents "${review_args[@]}") || return 1
-    codex_command=$(_ai_review_command cx-pr-review-subagent "${review_args[@]}") || return 1
-
-    # claudeもgemini/codexと同じくreview workspace内の新規タブで起動する
-    # （旧実装はカレントpaneで直接実行しタブ名が「1」のまま残っていた）
-    _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${claude_label}" "${claude_command}" || return 1
-    _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${gemini_label}" "${gemini_command}" || return 1
-    _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${codex_label}" "${codex_command}" || return 1
-
-    herdr workspace focus "${ws_id}" >/dev/null 2>&1
-}
-
-review-subagents() {
-    local pr_number review_prompt
-    _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
-
-    local review_args=("${pr_number}")
-    [[ -n "${review_prompt}" ]] && review_args+=("${review_prompt}")
-
-    case "$(_ai_multiplexer_kind)" in
-        herdr) _review_subagents_herdr "${review_args[@]}" ;;
-        tmux) _review_subagents_tmux "${review_args[@]}" ;;
-        *)
-            echo "tmuxまたはHerdr内で実行してください" >&2
-            return 1
-            ;;
-    esac
-}
-
-_review_all_tmux() {
+# 3AIをそれぞれ新規ウィンドウで起動する（tmux）
+# 引数: run_dir claude_fn gemini_fn codex_fn review_args...
+_review_launch_tmux() {
+    local run_dir="$1" claude_fn="$2" gemini_fn="$3" codex_fn="$4"
+    shift 4
     local -a review_args=("$@")
 
     local review_name claude_command gemini_command codex_command
     review_name=$(_review_window_name)
-    claude_command=$(_ai_review_tmux_command cl-pr-review-subagents "${review_args[@]}") || return 1
-    gemini_command=$(_ai_review_tmux_command gm-pr-review-subagents "${review_args[@]}") || return 1
-    codex_command=$(_ai_review_tmux_command cx-pr-review-subagent "${review_args[@]}") || return 1
+    claude_command=$(_ai_review_env_tmux_command "${run_dir}/claude.md" "${claude_fn}" "${review_args[@]}") || return 1
+    gemini_command=$(_ai_review_env_tmux_command "${run_dir}/gemini.md" "${gemini_fn}" "${review_args[@]}") || return 1
+    codex_command=$(_ai_review_env_tmux_command "${run_dir}/codex.md" "${codex_fn}" "${review_args[@]}") || return 1
 
-    tmux new-window -n "${review_name}" "zsh -ic ${(q)claude_command}"
-    tmux new-window -n "${review_name}" "zsh -ic ${(q)gemini_command}"
-    tmux new-window -n "${review_name}" "zsh -ic ${(q)codex_command}"
+    # ウォッチャーをカレントウィンドウで動かすため、3AIとも -d（非フォーカス）で起動する
+    tmux new-window -d -n "${review_name}" "zsh -ic ${(q)claude_command}" || return 1
+    tmux new-window -d -n "${review_name}" "zsh -ic ${(q)gemini_command}" || return 1
+    tmux new-window -d -n "${review_name}" "zsh -ic ${(q)codex_command}" || return 1
 
     # カレントウィンドウは共有実装で🔍を付与（_review_window_name が git 名へ改名済み）
     _ai_ensure_window_name_helper
     update_tmux_window_name "${EMOJI_STATUS_REVIEW}"
-    cl-pr-review "${review_args[@]}"
 }
 
-_review_all_herdr() {
-    local -a review_args=("$@")
+# レビューの共通フロー: ランディレクトリ作成 → 3AI起動 → 完了待ち → review-merge
+# 引数: claude_fn gemini_fn codex_fn [--no-merge] [pr] [prompt...]
+_review_run() {
+    local claude_fn="$1" gemini_fn="$2" codex_fn="$3"
+    shift 3
 
-    local set_dir="${SET:-$HOME/Desktop/repository/SettingFiles}"
-    source "${set_dir}/shell/tmux/tmux_emoji.conf"
+    local no_merge=0
+    if [[ "${1:-}" == "--no-merge" ]]; then
+        no_merge=1
+        shift
+    fi
 
-    local ws_id claude_label gemini_label codex_label
-    local claude_command gemini_command codex_command
-    # ラベル計算（git名依存）を先に行い、失敗時は無駄なworkspace作成/流用探索を避ける
-    claude_label=$(_ai_review_herdr_label "${EMOJI_ID_CLAUDE}") || return 1
-    gemini_label=$(_ai_review_herdr_label "${EMOJI_ID_GEMINI}") || return 1
-    codex_label=$(_ai_review_herdr_label "${EMOJI_ID_CODEX}") || return 1
-    ws_id=$(_herdr_resolve_review_workspace "${PWD}") || return 1
-    claude_command=$(_ai_review_command cl-pr-review-subagents "${review_args[@]}") || return 1
-    gemini_command=$(_ai_review_command gm-pr-review-subagents "${review_args[@]}") || return 1
-    codex_command=$(_ai_review_command cx-pr-review-subagent "${review_args[@]}") || return 1
-
-    # claudeもgemini/codexと同じくreview workspace内の新規タブで起動する
-    # （旧実装はカレントpaneで直接実行しタブ名が「1」のまま残っていた）
-    _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${claude_label}" "${claude_command}" || return 1
-    _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${gemini_label}" "${gemini_command}" || return 1
-    _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${codex_label}" "${codex_command}" || return 1
-
-    herdr workspace focus "${ws_id}" >/dev/null 2>&1
-}
-
-review-all() {
     local pr_number review_prompt
     _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
 
-    local review_args=("${pr_number}")
+    local -a review_args=("${pr_number}")
     [[ -n "${review_prompt}" ]] && review_args+=("${review_prompt}")
 
+    local run_dir
+    run_dir=$(bash "$HOME/.config/ai-pr/bin/ai_review_run_dir.sh" "${pr_number}") || return 1
+
     case "$(_ai_multiplexer_kind)" in
-        herdr) _review_all_herdr "${review_args[@]}" ;;
-        tmux) _review_all_tmux "${review_args[@]}" ;;
+        herdr) _review_launch_herdr "${run_dir}" "${claude_fn}" "${gemini_fn}" "${codex_fn}" "${review_args[@]}" || return 1 ;;
+        tmux) _review_launch_tmux "${run_dir}" "${claude_fn}" "${gemini_fn}" "${codex_fn}" "${review_args[@]}" || return 1 ;;
         *)
             echo "tmuxまたはHerdr内で実行してください" >&2
             return 1
             ;;
     esac
+
+    if (( no_merge )); then
+        echo "レビューを起動しました（自動マージなし）: ${run_dir}"
+        return 0
+    fi
+
+    bash "$HOME/.config/ai-pr/bin/ai_review_wait.sh" "${run_dir}" claude.md gemini.md codex.md || return $?
+    cl-review-merge "${run_dir}"
+}
+
+review() {
+    _review_run cl-pr-review gm-pr-review cx-pr-review "$@"
+}
+
+review-subagents() {
+    _review_run cl-pr-review-subagents gm-pr-review-subagent cx-pr-review-subagent "$@"
+}
+
+# 手動マージ（救済用）: 最新ランディレクトリを解決して review-merge スキルを起動する
+review-merge() {
+    local pr_number
+    if [[ $# -gt 0 ]] && _ai_pr_review_arg_is_pr_ref "$1"; then
+        pr_number="${1#\#}"
+        shift
+    else
+        pr_number=$(gh pr view --json number --jq .number) || {
+            echo "現在のブランチに対応するPRが見つかりません。" >&2
+            return 1
+        }
+    fi
+
+    local run_dir
+    run_dir=$(bash "$HOME/.config/ai-pr/bin/ai_review_run_dir.sh" --latest "${pr_number}") || return 1
+    cl-review-merge "${run_dir}"
 }

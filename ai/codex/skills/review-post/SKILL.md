@@ -1,33 +1,32 @@
 ---
-name: pr-comment-post
+name: review-post
 description: >
-  Post specific findings from pr-review results as GitHub PR inline comments.
-  Use this skill when the user wants to post review findings to a GitHub PR,
-  comment on a PR with specific numbered review items, or push review results to GitHub
-  as inline code comments. Trigger whenever the user says things like "PRにコメントして",
-  "レビュー結果を投稿して", "番号を指定してコメント", "GitHubにコメント" after running
-  a PR review with pr-review skill. Accepts space- or comma-separated item numbers
-  (e.g., "1 3 5" or "1,3,5").
+  Post adopted review items from a merge run directory to the PR as review
+  comments. Use this skill when the user wants to post, submit, or upload
+  merged review findings to a GitHub PR, or says things like "レビューを投稿して",
+  "採用した指摘をコメントして", "post the review". Accepts an optional run
+  directory and item numbers; if none is given, detects the latest run for
+  the current branch's PR automatically and uses state.json's adopted items.
 ---
 
-## Instructions
+Parse the arguments after the skill name: a token containing `/` is <RUN_DIR>; numeric tokens (space/comma separated) are <ITEM_NUMBERS>. If <RUN_DIR> is absent, resolve the current branch's PR via `gh pr view --json number --jq .number` and run `bash ~/.config/ai-pr/bin/ai_review_run_dir.sh --latest <PR_NUMBER>`.
 
-- `ITEM_NUMBERS` = the item numbers in the user's message.
-- `{ai_header}` = `🤖 **Codex Review**`.
+For the final posting confirmation, ask the user directly and wait for the reply.
 
-## Goal
+Post selected review items from a merge run directory to the PR as review comments. Respond in Japanese.
 
-Post selected numbered findings from a previous `pr-review` result as one GitHub Pull Request Review, confirmed once, submitted together when possible.
+## Inputs
 
-## Workflow
+- <RUN_DIR>: run directory containing `merged.json` (see adapter for resolution).
+- <ITEM_NUMBERS>: optional space- or comma-separated item ids, overriding state.json.
 
-1. Build an internal numbered index from the previous `pr-review` output. Its serial numbers are the source of truth: preserve them exactly and never reorder or renumber, across regular priority sections, `## テストに関する指摘`, and `## 既存コードに関する指摘` (single continuous numbering; never restart at 1).
-   - Format: `N. [path/to/file.ext:line] Priority | Category: 概要`, where `N` is the original serial number. The review header is `N. **[path:line]** 領域 (影響度: XX / 信頼度: XX): 概要` — use the 領域 label as `Category` and the surrounding priority section heading as `Priority`; never copy the `(影響度: XX / 信頼度: XX)` parenthetical into posted comment bodies.
-   - If `ITEM_NUMBERS` is empty, show the available numbered items and ask which to post; otherwise do not display the index.
-2. Parse `ITEM_NUMBERS` as space- or comma-separated original serial numbers.
-3. For each requested number, copy that index entry's `file_path`, `line_spec`, `priority`, `category`, and full description verbatim — never reconstruct or infer an item's content from its number. If a number has no matching entry, stop and report the mismatch instead of substituting another item.
-   - Priority emoji: High `🔴`, Medium `🟡`, Low `🟢`.
-   - Items anchored `[path:~line]` (pre-existing code outside the diff) cannot be inline comments: exclude them from the Review API `comments` array and post each via the no-file/line `gh pr comment` fallback, prefixing the body with `**[path:~line]**`.
+## Item Selection
+
+1. Read `<RUN_DIR>/merged.json`. `items[].id` are the serial numbers — never renumber.
+2. If <ITEM_NUMBERS> is non-empty, select those ids. Otherwise read `<RUN_DIR>/state.json` (`items` is an object keyed by id string with `{"reviewed": bool, "adopt": bool}`) and select ids with `adopt: true`. If state.json is missing and no numbers were given, list the available items (`id. [file:line_spec] priority | area: summary`) and ask the user which ids to post.
+3. If a selected id has no matching item, or state.json ids do not exist in merged.json (stale state), stop and report the mismatch instead of guessing.
+4. Build the posting index from the selected items: `N. [file:line_spec] Priority | 領域: 概要` where `N` = item id, Priority from `priority` (high→High, medium→Medium, low→Low), 領域 from `area`, 概要 from `summary`. The posted description body is: the merged `summary`, a blank line, then the detail `text` of the most confident source; if the item has multiple sources, append a final line `（同指摘: <other AI names>）`.
+5. `head_ref_oid` in merged.json is the review-time head commit for the re-anchoring check in the posting mechanics below. Items whose `line_spec` starts with `~` are pre-existing-code anchors and cannot be inline comments (see the fallback rule in the mechanics).
 
 Then follow the posting mechanics below.
 

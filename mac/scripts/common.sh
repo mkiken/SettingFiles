@@ -301,7 +301,7 @@ function setup_ai_pr_tools() {
   local file
 
   if [[ -d "$dest_bin" && ! -L "$dest_bin" ]]; then
-    for file in "${source_dir}"/*.sh; do
+    for file in "${source_dir}"/*.sh(N) "${source_dir}"/*.py(N); do
       if [[ -f "$file" ]]; then
         make_symlink "$file" "${dest_bin}/$(basename "$file")"
       fi
@@ -451,10 +451,13 @@ function generate_codex_skills() {
     "pr-comment-review:pr_comment_review_core.md" \
     "pr-comment-implement:pr_comment_implement_core.md" \
     "pr-body:pr_body_core.md pr_body_format.md" \
-    "pr-comment-post:pr_comment_post_core.md" \
+    "pr-comment-post:pr_comment_post_core.md pr_post_mechanics_core.md" \
     "pr-create-by-branch:pr_create_by_branch_core.md pr_body_format.md" \
     "pr-review-subagents:pr_review_subagents/orchestrator_core.md pr_review_finding_format.md" \
     "config-audit:config_audit_subagents/orchestrator_core.md" \
+    "review-merge:review_merge_core.md" \
+    "review-post:review_post_core.md pr_post_mechanics_core.md" \
+    "review-fix:review_fix_core.md" \
     "fact-based:fact_based_core.md"
 }
 
@@ -558,6 +561,9 @@ function verify_ai_skill_generation_idempotency() {
     "${Repo}ai/codex/skills/pr-create-by-branch/SKILL.md"
     "${Repo}ai/codex/skills/pr-review-subagents/SKILL.md"
     "${Repo}ai/codex/skills/config-audit/SKILL.md"
+    "${Repo}ai/codex/skills/review-merge/SKILL.md"
+    "${Repo}ai/codex/skills/review-post/SKILL.md"
+    "${Repo}ai/codex/skills/review-fix/SKILL.md"
     "${Repo}ai/codex/skills/fact-based/SKILL.md"
     "${Repo}ai/gemini/skills/fact-based/SKILL.md"
   )

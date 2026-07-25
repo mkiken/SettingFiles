@@ -19,3 +19,4 @@ disable-model-invocation: true
 ## Core Workflow
 
 !`/bin/cat ~/.claude/common/pr_comment_post_core.md`
+!`/bin/cat ~/.claude/common/pr_post_mechanics_core.md`

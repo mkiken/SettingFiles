@@ -32,7 +32,6 @@ fcl-pr-review-subagents()    { _fai-pr-review cl-pr-review-subagents "$@" }
 fgm-pr-review()              { _fai-pr-review gm-pr-review "$@" }
 freview()           { _fai-pr-review review "$@" }
 freview-subagents() { _fai-pr-review review-subagents "$@" }
-freview-all()       { _fai-pr-review review-all "$@" }
 
 # worktreeをfilterで選択し、cdしてからAIレビュー関数を実行する共通ヘルパー
 # 引数: 元関数名, [元関数に渡す追加引数...]
@@ -44,7 +43,6 @@ _fwmo-review() {
 
 fwmo-review()           { _fwmo-review review "$@" }
 fwmo-review-subagents() { _fwmo-review review-subagents "$@" }
-fwmo-review-all()       { _fwmo-review review-all "$@" }
 
 # worktreeパスから "リポジトリ名/ブランチ末尾"（デフォルトブランチならリポジトリ名のみ）を計算して出力
 # rename-window-git.sh の命名ロジックを流用（tmuxへの副作用なし）
@@ -205,4 +203,3 @@ _fwmon-review() {
 
 fwmon-review()           { _fwmon-review review "$@" }
 fwmon-review-subagents() { _fwmon-review review-subagents "$@" }
-fwmon-review-all()       { _fwmon-review review-all "$@" }

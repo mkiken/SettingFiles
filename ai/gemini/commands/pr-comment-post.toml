@@ -9,4 +9,5 @@ prompt = """Post selected numbered findings from the previous `pr-review` result
 
 ## Core Workflow
 
-!{cat ~/.gemini/common/pr_comment_post_core.md}"""
+!{cat ~/.gemini/common/pr_comment_post_core.md}
+!{cat ~/.gemini/common/pr_post_mechanics_core.md}"""
