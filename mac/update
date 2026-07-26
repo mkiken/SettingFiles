@@ -46,6 +46,10 @@ echo "start Herdr integration update."
 source "$(dirname "$0")/updates/herdr.sh"
 echo "end Herdr integration update."
 
+echo "start mdts configuration update."
+source "$(dirname "$0")/updates/mdts.sh"
+echo "end mdts configuration update."
+
 # Lazy + tree-sitterのアップデート
 nvim --headless "+Lazy! sync | TSUpdate" +qa
 

@@ -31,5 +31,7 @@ npm install -g @commitlint/config-conventional
 # mdts: ローカルMarkdownビューア（SDDのspec/planをブラウザでツリー表示する）
 # nvm等のNodeバージョンマネージャに解決されるとPATHが通らないためHomebrewのnpmを明示
 homebrew_npm install -g mdts
+source "${Repo}mac/scripts/mdts.sh"
+setup_mdts || exit 1
 
 echo 'Development tools configured.'

@@ -1,0 +1,93 @@
+/* ==UserStyle==
+@name         mdts plan hierarchy
+@namespace    settingfiles
+@version      1.0.0
+@description  Per-level heading colors for mdts, which ships none (h1-h6 inherit body
+              text color; h6 has no rule at all). Cool-toned hue ladder
+              (h1 navy -> h2 blue -> h3 teal -> h4 purple -> h5/h6 grey), magenta
+              inline code, a readable blockquote (upstream's blockquote text fails
+              WCAG AA outright), and a tinted table header. Light and dark variants.
+              Managed in SettingFiles: terminal/mdts/mdts-plans.user.css
+@author       mkiken
+@license      MIT
+@preprocessor default
+==/UserStyle== */
+
+@-moz-document domain("localhost"), domain("127.0.0.1") {
+
+  /* h6 has NO rule in upstream markdown.css (only h1-h5 are defined), so it renders
+     at body font-size/weight. Give it its own size/weight or the grey color alone
+     still reads as an ordinary paragraph. */
+  .markdown-body h6 {
+    margin: 48px 0 24px !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    letter-spacing: .02em !important;
+  }
+
+  /* Upstream nests headings (.markdown-body { h1 { ... } }), which compiles to
+     specificity (0,1,1) -- the same as a flat `.markdown-body h1`. A tie would be
+     decided by injection order against a lazily-loaded webpack CSS chunk, so use
+     !important instead of relying on source order. */
+
+  /* ---------- LIGHT (unqualified: also covers the pre-hydration frame before
+     React sets body[data-theme], avoiding a flash of unstyled headings) ---------- */
+
+  .markdown-body h1 { color: #0b2e59 !important; }
+  .markdown-body h2 { color: #12507f !important; }
+  .markdown-body h3 { color: #0f6f6a !important; }
+  .markdown-body h4 { color: #5b3a9e !important; }
+  .markdown-body h5 { color: #44515e !important; }
+  .markdown-body h6 { color: #5e6b78 !important; }
+
+  /* Inline code color/background come from a JS inline style in MarkdownCode.tsx
+     (style={{ color, backgroundColor }}), so only !important can win here.
+     :not(pre) > code is the load-bearing part of this selector: `pre code` is the
+     syntax-highlighted path where per-token colors must survive untouched -- a bare
+     `code { color: ... !important }` would flatten every highlighted block to one
+     color. */
+  .markdown-body :not(pre) > code {
+    color: #a3117f !important;
+    background-color: #fbf0f7 !important;
+  }
+
+  /* Upstream sets blockquote text to rgba(0,0,0,.24), which composites to #c2c2c2
+     on white = 1.78:1 -- far below the WCAG AA 4.5:1 floor for normal text. This is
+     a readability fix, not decoration. */
+  .markdown-body blockquote {
+    color: #7a4e00 !important;
+    border-left-color: #d9a54a !important;
+    background-color: #fdf8ee !important;
+  }
+
+  .markdown-body table th {
+    color: #0b2e59 !important;
+    background-color: #eef3fa !important;
+  }
+
+  /* ---------- DARK ---------- */
+  /* mdts does document.body.setAttribute('data-theme', mode) on theme switch. */
+
+  body[data-theme="dark"] .markdown-body h1 { color: #9dc4f0 !important; }
+  body[data-theme="dark"] .markdown-body h2 { color: #7fb2e8 !important; }
+  body[data-theme="dark"] .markdown-body h3 { color: #4fc3bb !important; }
+  body[data-theme="dark"] .markdown-body h4 { color: #c4a7f5 !important; }
+  body[data-theme="dark"] .markdown-body h5 { color: #aab8c4 !important; }
+  body[data-theme="dark"] .markdown-body h6 { color: #8d9aa6 !important; }
+
+  body[data-theme="dark"] .markdown-body :not(pre) > code {
+    color: #f48fd0 !important;
+    background-color: #2a1b24 !important;
+  }
+
+  body[data-theme="dark"] .markdown-body blockquote {
+    color: #e8b661 !important;
+    border-left-color: #8a6320 !important;
+    background-color: #1e1a12 !important;
+  }
+
+  body[data-theme="dark"] .markdown-body table th {
+    color: #9dc4f0 !important;
+    background-color: #16202b !important;
+  }
+}
