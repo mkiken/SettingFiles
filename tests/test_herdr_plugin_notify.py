@@ -24,6 +24,10 @@ class HerdrPluginManifestTest(unittest.TestCase):
             with self.subTest(event_name=event_name):
                 self.assertIn(f'on = "{event_name}"', manifest)
 
+        # pane.updatedはプラグインフックregistryが受けない（herdr 0.7.5実測:
+        # link時に`unknown event`警告、かつタイトル変化はフック可能イベントを
+        # 一切発火させない）。詳細は .claude/skills/herdr-dev/SKILL.md の
+        # プラグインイベント制約の段落を参照。
         self.assertNotIn('on = "pane.updated"', manifest)
 
 

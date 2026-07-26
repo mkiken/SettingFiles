@@ -51,6 +51,8 @@ Run before committing code changes (the suite takes seconds). Fix failures, or r
 
 Shell functions (e.g. those in `shell/tmux/ai_notification_*.sh`) are unit-tested from Python: a `tests/test_*.py` `source`s the `.sh` and invokes the function via `bash -c`, asserting on stdout and the return code (see `tests/test_ai_notification_summary.py` for the `run_fn` helper pattern). Write new shell-function tests in this style so `unittest discover` collects them — a standalone `.sh` test file is not picked up by the suite.
 
+When a test pins an exclusion (e.g. `assertNotIn`, a must-not-subscribe list), state the reason in an adjacent comment — an unexplained negative pin forces a later session to rediscover the rejection through history archaeology, or to re-attempt the rejected approach.
+
 Before changing notification hooks or their tests (`ai/*/hooks/`, `shell/tmux/ai_notification_*`), read `.claude/skills/ai-notification-hooks/SKILL.md` — it defines required domain tests beyond the main suite.
 
 ### Regenerate AI Prompts
