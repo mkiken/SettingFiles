@@ -32,6 +32,7 @@ Use an absolute path when standard behavior matters; verify non-obvious paths wi
 - Deletion is the exception to that `/bin/` escape hatch: never use `rm` or `/bin/rm` for any reason, even non-interactively — both are permission-denied. Always delete via `trash` (permission also denies `rm`/`/bin/rm` and allows `trash`).
 - `trash` does not accept rm-style flags (`-r`, `-f`, `-rf` fail); pass files and directories without flags.
 - The `rg` alias reads `RIPGREP_CONFIG_PATH` from `$SET`, which is undefined in non-interactive runs, so every call emits a non-fatal config-read error on stderr — run `rg --no-config`.
+- `ls` -> `eza` does not carry over GNU/BSD `ls` flags: `eza` rejects flags like `-t` (`--time <FIELD>` expects a named value, not a bare sort flag) with a hard error instead of behaving like `ls`. When a flag's meaning must match traditional `ls`, use `/bin/ls` explicitly.
 
 To check what a zsh symbol resolves to, prefer `type <name>`; it covers functions, aliases, builtins, and external commands in one shot. `typeset -f` only lists functions and silently misses aliases.
 
