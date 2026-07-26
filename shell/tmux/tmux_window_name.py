@@ -146,6 +146,39 @@ def is_herdr_default_label(base_label: str) -> bool:
     return _looks_like_cwd_path(base_label)
 
 
+# 外部エディタ由来と断定できる閉じた集合のみ。拡張子ヒューリスティック等の汎用判定は
+# 採らない（実測で会話概要の約4割がスペース無しスラッグであり、update-readme.md の
+# ような正当な概要をサイレントに捨てるため）。
+_EDITOR_VCS_MESSAGE_NAMES = (
+    "COMMIT_EDITMSG",
+    "MERGE_MSG",
+    "TAG_EDITMSG",
+    "SQUASH_MSG",
+    "git-rebase-todo",
+)
+
+
+def is_editor_set_title(title: str) -> bool:
+    """外部エディタ($EDITOR)がOSC 2で設定したファイル名由来のタイトルか。
+    Trueなら会話概要とみなさずタブ名・通知本文に採用しない。
+    is_herdr_default_label（このラベルは上書きしてよいか）とは別の問い
+    （このタイトルは概要として信用できるか）なので統合しない — 統合すると
+    手動命名の notes.md タブが auto_managed 化し手動命名を破壊する。
+
+    実測したnvimデフォルトのタイトルは "filename (path) - Nvim"
+    （変更バッファは "filename + (path) - Nvim"）形式のため、空白区切りの
+    第1トークンのbasenameだけを判定する。タイトル全体のbasenameは
+    suffix内パスのスラッシュで先頭ファイル名を失い判定が壊れる。
+    """
+    tokens = title.split()
+    if not tokens:
+        return False
+    name = os.path.basename(tokens[0])
+    if name.startswith("claude-prompt-"):
+        return True
+    return name in _EDITOR_VCS_MESSAGE_NAMES
+
+
 def _read_current_name(pane_id: str, run) -> str:
     result = run(
         ["tmux", "display-message", "-p", "-t", pane_id, "#W"],
@@ -301,7 +334,8 @@ _USAGE = (
     " | remove [--report-error] | add-badge | remove-badge"
     " | compute-updated-label <current> <status-emoji> [identifier]"
     " | compute-cleaned-label <current>"
-    " | is-herdr-default-label <base-label>}"
+    " | is-herdr-default-label <base-label>"
+    " | is-editor-set-title <title>}"
 )
 _EX_USAGE = 64
 
@@ -334,6 +368,14 @@ def main(argv: list[str]) -> int:
         # 該当=0（真）/非該当=1（偽）をそのまま終了コードとして返す。
         if len(args) == 1:
             return 0 if is_herdr_default_label(args[0]) else 1
+        print(_USAGE, file=sys.stderr)
+        return _EX_USAGE
+    if command == "is-editor-set-title":
+        # is-herdr-default-labelと同じ規約: 該当=0（真）/非該当=1（偽）。
+        # 呼び出し側は0/1以外（クラッシュ/usage error）を「判定不能」として
+        # fail-closed（タイトル不採用側）に倒す前提。
+        if len(args) == 1:
+            return 0 if is_editor_set_title(args[0]) else 1
         print(_USAGE, file=sys.stderr)
         return _EX_USAGE
     if command == "update":

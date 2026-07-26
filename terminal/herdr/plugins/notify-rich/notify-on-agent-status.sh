@@ -94,7 +94,7 @@ managed_label_state_file() {
 
 # 表示名を最大10文字に丸める。超過時のみ先頭10文字に「..」を付す。
 # zshの ${str[1,10]} はマルチバイト1文字=1カウントなので日本語もそのまま切れる
-# （142行目の会話概要truncate ${title_text[1,20]} と同じ挙動）。
+# （タブ処理ブロックの会話概要truncate ${title_text[1,20]} と同じ挙動）。
 truncate_display_name() {
   local str="$1"
   if (( ${#str} > 10 )); then
@@ -114,6 +114,20 @@ esac
 title_text="$(print -r -- "$pane_json" | jq -r '.result.pane.terminal_title_stripped // empty' 2>/dev/null)"
 session_id="$(print -r -- "$pane_json" | jq -r '.result.pane.agent_session.value // empty' 2>/dev/null)"
 [[ -z "$title_text" ]] && title_text="(no title)"
+
+# terminal_title_strippedは「そのペインのOSC 2を今所有しているプログラム」を反映する。
+# agent=="claude"はペインの属性であってタイトルの著者ではない: Claudeが$EDITORを
+# 起動して待つ間はnvimがタイトルを所有し、"claude-prompt-<uuid>.md (path) - Nvim"や
+# "COMMIT_EDITMSG (path) - Nvim"が入る。エディタ由来判定は1イベント1回だけ実行し、
+# タブ名ゲート(title_usable)と通知本文フォールバックの両方がこの結果を参照する。
+# exit 0=エディタ由来 / 1=非該当 / その他=判定不能。未計算時の既定は1（非該当扱い、
+# claudeイベントでは常に計算されるので実質全経路をカバーする）。
+editor_title_rc=1
+if [[ "$agent" == "claude" && "$title_text" != "(no title)" ]]; then
+  python3 "${REPO_ROOT}/shell/tmux/tmux_window_name.py" \
+    is-editor-set-title "$title_text" 2>/dev/null
+  editor_title_rc=$?
+fi
 
 # タブ名先頭にAI識別子+状態アイコンを付与する（tmuxのwindow名アイコンと同じ思想）。
 # working=進行中🤖 blocked=入力待ち✋ done=完了✅、idle(既読)/unknown(AI未検出)は
@@ -164,10 +178,17 @@ if [[ -n "$tab_id" ]]; then
     # 会話概要をセットするが、タブ名への反映は claude 限定にする（codexは識別絵文字
     # ＋状態アイコンのみ維持）。非AI paneのタイトルはNvim等が任意の値
     # （COMMIT_EDITMSG等）をセットするため、いずれにせよタブ名には採用しない。
+    # claude paneでも$EDITOR実行中はタイトルの著者がnvimになるため、発信元判定
+    # （is-editor-set-title、上で計算済みのeditor_title_rc）でも絞る。
+    # is-herdr-default-labelの`!`否定と違いrc==1の明示比較なのは意図的な非対称:
+    # あちらはfalse側に倒れても「デフォルトラベル扱いされない」だけで無害だが、
+    # こちらはfalse側に倒れると汚染タイトルが素通りするため、python3クラッシュ等の
+    # 判定不能も不採用側に倒す（fail-closed）。
     title_usable=false
     if [[ "$agent" == "claude" && "$title_text" != "(no title)" ]] \
        && ! python3 "${REPO_ROOT}/shell/tmux/tmux_window_name.py" \
-          is-herdr-default-label "$title_text"; then
+          is-herdr-default-label "$title_text" \
+       && (( editor_title_rc == 1 )); then
       title_usable=true
     fi
 
@@ -308,6 +329,12 @@ esac
 # あらゆる失敗（jq/python3不在・transcript未解決・メッセージ0件）は空出力に落ち、
 # 従来のtitle_text本文へフォールバックする（no set -e方針と同じfail-safe）。
 notify_body="$title_text"
+# claude: 外部エディタがタイトルを所有中（editor_title_rc==0、判定不能もfail-closedで
+# 同扱い）はtitle_textがファイル名なので、採用済み概要（state fileのlast_auto_label、
+# タブ処理ブロックで読込済み）へフォールバックする。無ければ"(no title)"。
+if [[ "$agent" == "claude" ]] && (( editor_title_rc != 1 )); then
+  notify_body="${last_auto_label:-(no title)}"
+fi
 if [[ "$agent" == "codex" && -n "$session_id" ]]; then
   codex_summary="$(
     setopt bsd_echo 2>/dev/null

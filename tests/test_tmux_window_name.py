@@ -285,6 +285,74 @@ class TestIsHerdrDefaultLabel(unittest.TestCase):
                 self.assertEqual(twn.is_herdr_default_label(base_label), expected)
 
 
+class TestIsEditorSetTitle(unittest.TestCase):
+    """外部エディタ($EDITOR)がOSC 2で設定したファイル名由来のタイトルかを判定する
+    純粋関数。Trueなら会話概要とみなさずタブ名・通知本文に採用しない。
+    is_herdr_default_label（上書きしてよいラベルか）とは別の問いなので統合しない。"""
+
+    def test_table(self):
+        cases = [
+            # (説明, title, expected)
+            # --- True: エディタ由来（実測形式が最優先） ---
+            (
+                "実測値そのもの: nvimのsuffix付き実タイトル(バグの直接エンコード)",
+                "claude-prompt-93285509-1acc-4720-81fa-d5abaa99870a.md"
+                " (/private/tmp/claude-501) - Nvim",
+                True,
+            ),
+            (
+                "変更済みバッファ形式(nvim titlestring仕様の + 付き)",
+                "claude-prompt-x.md + (/private/tmp/claude-501) - Nvim",
+                True,
+            ),
+            (
+                "filename単体(suffixなし境界)",
+                "claude-prompt-a0a9e2b3-d3ad-43c4-9760-963e3f11c1c8.md",
+                True,
+            ),
+            ("パス付きfilename(第1トークンのbasenameで捕捉)", "/private/tmp/claude-501/claude-prompt-x.md", True),
+            # 実フローではゲートはtruncate前の完全なtitle_textに対して走るため
+            # これがゲート入力になることはない。前方一致規則が拡張子に依存しない
+            # ことの性質テストとして保持する。
+            ("拡張子が落ちた形(前方一致は拡張子非依存)", "claude-prompt-a0a9e2", True),
+            (
+                "実測値そのもの: COMMIT_EDITMSGのsuffix付き実タイトル"
+                "(第1トークン抽出なしではVCSルールがデッドコードになる)",
+                "COMMIT_EDITMSG (~/Desktop/repository/SettingFiles/.git) - Nvim",
+                True,
+            ),
+            ("COMMIT_EDITMSG単体", "COMMIT_EDITMSG", True),
+            ("MERGE_MSG単体", "MERGE_MSG", True),
+            ("git-rebase-todo単体", "git-rebase-todo", True),
+            # --- False: 正当な会話概要の温存（スラッグ概要を守ることが最重要） ---
+            ("実在のスペース無しスラッグ概要", "mdts-plan-single-file-review", False),
+            ("実在のスペース無しスラッグ概要(20字切れ形)", "herdr-pane-copy-shel", False),
+            (
+                "実測の正当概要: claude-promptを文中に含むが第1トークンはFix",
+                "Fix neovim tab naming in claude-prompt editing",
+                False,
+            ),
+            # 拡張子リスト方式なら誤爆したケース。同方式を採らなかった判断の固定。
+            ("スラッグ概要+md拡張子", "update-readme.md", False),
+            ("スラッグ概要+py拡張子", "fix-tmux-window-name.py", False),
+            ("スラッグ概要+lua拡張子", "refactor-options.lua", False),
+            ("ファイル名で始まる日本語概要", "api.ts の型を修正", False),
+            ("スラッシュ含む概要", "feat/x を実装", False),
+            ("ファイル名+日本語の概要", "README.md を更新", False),
+            ("日本語概要", "AI レビューフローの改善方法を相談", False),
+            ("空文字境界(クラッシュしないこと)", "", False),
+            ("空白のみ境界", "   ", False),
+            # Herdrデフォルトラベルの除外はis_herdr_default_labelの責務。
+            # 2述語で責務を重複させないことの保証。
+            ("既知agent自動命名名はここではFalse", "Claude Code", False),
+            ("ハイフン無しの前方一致境界(弾かない)", "claude-prompt", False),
+            ("採用済みの良いラベル再投入(冪等性の要)", "PR review サブエージェント機能", False),
+        ]
+        for desc, title, expected in cases:
+            with self.subTest(desc):
+                self.assertEqual(twn.is_editor_set_title(title), expected)
+
+
 class TestRemoveTmuxWindowIcon(unittest.TestCase):
     def test_table(self):
         cases = [
@@ -505,6 +573,45 @@ class TestComputeLabelCli(unittest.TestCase):
         stderr = io.StringIO()
         with contextlib.redirect_stderr(stderr):
             code = twn.main(["is-herdr-default-label"])
+        self.assertEqual(code, twn._EX_USAGE)
+
+    def test_is_editor_set_title_table(self):
+        # is-herdr-default-labelと同じ規約: 該当=0（真）/非該当=1（偽）。
+        # 呼び出し側(zsh)は0/1以外を「判定不能」としてfail-closedに倒す。
+        cases = [
+            # (説明, argv, expected_code)
+            (
+                "nvim実測タイトルは該当(0)",
+                [
+                    "is-editor-set-title",
+                    "claude-prompt-x.md (/private/tmp/claude-501) - Nvim",
+                ],
+                0,
+            ),
+            (
+                "VCS実測タイトルは該当(0)",
+                ["is-editor-set-title", "COMMIT_EDITMSG (~/repo/.git) - Nvim"],
+                0,
+            ),
+            (
+                "スラッグ概要は非該当(1)",
+                ["is-editor-set-title", "mdts-plan-single-file-review"],
+                1,
+            ),
+            (
+                "拡張子付きスラッグ概要は非該当(1)",
+                ["is-editor-set-title", "update-readme.md"],
+                1,
+            ),
+        ]
+        for desc, argv, expected_code in cases:
+            with self.subTest(desc):
+                self.assertEqual(twn.main(argv), expected_code)
+
+    def test_is_editor_set_title_missing_args_is_usage_error(self):
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = twn.main(["is-editor-set-title"])
         self.assertEqual(code, twn._EX_USAGE)
 
 

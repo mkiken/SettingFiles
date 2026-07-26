@@ -54,6 +54,9 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         event_name: str = "pane.agent_status_changed",
         codex_transcript: str | None = None,
         claude_transcript: str | None = None,
+        initial_managed_label: str | None = None,
+        initial_state_session_id: str | None = None,
+        socket_path: str = "/tmp/herdr.sock",
     ) -> tuple[subprocess.CompletedProcess[str], Path]:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -61,6 +64,25 @@ class HerdrPluginNotifyTest(unittest.TestCase):
             fake_bin = root / "bin"
             fake_bin.mkdir()
             events = root / "events"
+            state_root = root / "state"
+
+            # タブラベル状態ファイル（TabIconTest側と同じキー式）。通知本文の
+            # last_auto_labelフォールバック検証に使う。
+            def state_key(value: str) -> str:
+                return "".join(
+                    char if char.isascii() and (char.isalnum() or char in "._-") else "_"
+                    for char in value
+                )
+
+            if initial_managed_label is not None:
+                state_file = (
+                    state_root / "tab-labels" / state_key(socket_path) / state_key(tab_id)
+                )
+                state_file.parent.mkdir(parents=True)
+                state_content = initial_managed_label + "\n"
+                if initial_state_session_id is not None:
+                    state_content += initial_state_session_id + "\n"
+                state_file.write_text(state_content, encoding="utf-8")
 
             dependencies = {
                 "shell/zsh/alias/notification.zsh": (
@@ -232,6 +254,8 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                     "HERDR_TEST_EVENTS": str(events),
                     "CLAUDE_CONFIG_DIR": str(claude_home),
                     "CODEX_HOME": str(codex_home),
+                    "HERDR_PLUGIN_STATE_DIR": str(state_root),
+                    "HERDR_SOCKET_PATH": socket_path,
                     "SET": str(fake_repo) + "/",
                     "HERDR_PLUGIN_EVENT_JSON": json.dumps(
                         {
@@ -293,6 +317,38 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                 for line in events
             )
         )
+
+    # 本セッションでライブ計測したnvim実タイトル（プロンプト外部エディタ編集中）
+    EDITOR_TITLE = (
+        "claude-prompt-93285509-1acc-4720-81fa-d5abaa99870a.md"
+        " (/private/tmp/claude-501) - Nvim"
+    )
+
+    def test_editor_title_not_used_as_notify_body(self):
+        # nvimがタイトルを所有中にdone/blockedイベントが走っても、Mac通知本文が
+        # claude-prompt-….mdにならず、採用済み概要(state fileのlast_auto_label)へ
+        # フォールバックする（タブ名ゲートと同じis-editor-set-title判定を共有）。
+        result, events = self.run_plugin(
+            agent="claude",
+            agent_status="done",
+            title_text=self.EDITOR_TITLE,
+            initial_managed_label="採用済みの概要",
+            initial_state_session_id="session-abc",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("message=採用済みの概要", events)
+
+    def test_editor_title_without_state_falls_back_to_no_title(self):
+        # 採用済み概要が無い（state file不在の）場合のフォールバック境界。
+        result, events = self.run_plugin(
+            agent="claude",
+            agent_status="done",
+            title_text=self.EDITOR_TITLE,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("message=(no title)", events)
 
     def test_idle_working_unknown_do_not_notify(self):
         for agent_status in ("idle", "working", "unknown", ""):
@@ -709,6 +765,7 @@ class HerdrPluginTabIconTest(unittest.TestCase):
         input_wait_marker: str | None = None,
         marker_age_seconds: int = 0,
         marker_observer: list[str | None] | None = None,
+        break_editor_predicate: bool = False,
     ) -> tuple[subprocess.CompletedProcess[str], list[str]]:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -782,6 +839,27 @@ class HerdrPluginTabIconTest(unittest.TestCase):
                 real_file = REPO_ROOT / "shell/tmux" / name
                 (fake_tmux_dir / name).write_text(
                     real_file.read_text(encoding="utf-8"), encoding="utf-8"
+                )
+
+            # is-editor-set-titleがクラッシュ相当（exit 0/1以外）で終わる状況を再現
+            # するスタブ。他のサブコマンドはゲート到達に必要な最小限だけ模倣する。
+            # プラグインが判定不能を採用側に倒さない（fail-closed）ことの検証用。
+            if break_editor_predicate:
+                (fake_tmux_dir / "tmux_window_name.py").write_text(
+                    "import sys\n"
+                    'cmd = sys.argv[1] if len(sys.argv) > 1 else ""\n'
+                    'if cmd == "is-editor-set-title":\n'
+                    "    sys.exit(2)\n"
+                    'if cmd == "is-herdr-default-label":\n'
+                    "    label = sys.argv[2]\n"
+                    "    sys.exit(\n"
+                    "        0\n"
+                    "        if label.isdigit()\n"
+                    '        or label in ("Claude Code", "Codex", "Gemini")\n'
+                    "        else 1\n"
+                    "    )\n"
+                    "sys.exit(64)\n",
+                    encoding="utf-8",
                 )
 
             # 実環境ではagent未検出paneのpane getにagent/agent_sessionキー自体が
@@ -1250,6 +1328,132 @@ class HerdrPluginTabIconTest(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, ["w1:t1 ✴️🤖feat/x を実装"])
+
+    # ライブ計測したnvim実タイトル（Claudeプロンプトの外部エディタ編集中）
+    EDITOR_TITLE = (
+        "claude-prompt-93285509-1acc-4720-81fa-d5abaa99870a.md"
+        " (/private/tmp/claude-501) - Nvim"
+    )
+
+    def test_editor_prompt_title_is_not_adopted_as_label(self):
+        # Claudeが$EDITOR(nvim)を起動して待っている間、ペインのOSC 2タイトルは
+        # nvimが所有しclaude-prompt-<uuid>.mdになる。agent=="claude"のままでも
+        # このタイトルは会話概要ではないため採用しない（タブ名化けバグの直接ガード）。
+        state = []
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="Claude Code",
+            title_text=self.EDITOR_TITLE,
+            state_observer=state,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️🤖Claude Code"])
+        # 不採用なのでstate fileへの永続化（名前の固着）も起きない
+        self.assertEqual(state, [None])
+
+    def test_editor_prompt_title_preserves_existing_summary(self):
+        # 採用済み概要ラベルが付いたタブでnvimを開いてもラベルと状態が保持される
+        # （ユーザー可視のバグを直接エンコードするテスト）。
+        state = []
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="採用済みの概要",
+            title_text=self.EDITOR_TITLE,
+            initial_managed_label="採用済みの概要",
+            initial_state_session_id="session-abc",
+            state_observer=state,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️🤖採用済みの概要"])
+        self.assertEqual(state, ["採用済みの概要\nsession-abc"])
+
+    def test_summary_restored_after_editor_exits(self):
+        # nvimイベント→本物の概要イベントの2連続で、2回目に概要が採用される
+        # （自動回復の証明。汚染state fileのクリーンアップ処理を入れない判断の根拠:
+        # auto_managedの錨が残る限り次の本物概要で自然に上書きされる）。
+        state_after_editor = []
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="採用済みの概要",
+            title_text=self.EDITOR_TITLE,
+            initial_managed_label="採用済みの概要",
+            initial_state_session_id="session-abc",
+            state_observer=state_after_editor,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(state_after_editor, ["採用済みの概要\nsession-abc"])
+
+        # run_pluginは呼び出しごとに隔離環境を作るため、1回目の終了状態
+        # （ラベル・state file）を2回目の初期状態として明示的に引き継ぐ。
+        state_after_summary = []
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="採用済みの概要",
+            title_text="新しい概要",
+            initial_managed_label="採用済みの概要",
+            initial_state_session_id="session-abc",
+            state_observer=state_after_summary,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️🤖新しい概要"])
+        self.assertEqual(state_after_summary, ["新しい概要\nsession-abc"])
+
+    def test_commit_editmsg_title_is_not_adopted_as_label(self):
+        # claude pane内でgit commitのエディタが開いた場合も同様に採用しない
+        # （VCS編集メッセージ名はsuffix付き実形式で届く）。
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="Claude Code",
+            title_text="COMMIT_EDITMSG (~/Desktop/repository/SettingFiles/.git) - Nvim",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️🤖Claude Code"])
+
+    def test_slug_summary_still_adopted(self):
+        # スペース無しハイフンスラッグの正当概要は採用される（実測で概要の約4割が
+        # この形式。拡張子リスト等の汎用ヒューリスティックへの回帰を防ぐカナリア）。
+        state = []
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="Claude Code",
+            title_text="mdts-plan-single-file-review",
+            state_observer=state,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️🤖mdts-plan-single-fil"])
+        self.assertEqual(state, ["mdts-plan-single-fil\nsession-abc"])
+
+    def test_predicate_failure_falls_closed(self):
+        # is-editor-set-titleが0/1以外（クラッシュ/usage error相当）で終わった場合、
+        # 判定不能タイトルを採用しない（fail-closed）。`! cmd`の素朴な否定だと
+        # exit 2が「非該当」側に倒れて採用されてしまうことへの回帰ガード。
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="Claude Code",
+            title_text="正当な概要だが判定不能",
+            break_editor_predicate=True,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️🤖Claude Code"])
 
     def test_known_agent_default_label_without_title_keeps_label(self):
         result, calls = self.run_plugin(
