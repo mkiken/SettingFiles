@@ -15,6 +15,12 @@ When a question depends on explanatory context (proposals, trade-offs, anything 
 
 **Note:** `AskUserQuestion` is a deferred tool in Claude Code — its schema is not loaded by default. If you have not yet loaded its schema this session, call `ToolSearch` with the query `select:AskUserQuestion` first, then invoke `AskUserQuestion`. "I do not have access to the tool" is NOT a valid reason to skip — load the schema and use it.
 
+# Plan Review Deep-Dive (dig)
+
+When presenting a plan artifact for review, also offer the `dig` skill when the plan involves design decisions (new feature, architecture change), still carries assumptions or open items (TBD, 要検討), or spans multiple phases / many tasks. Skip it for mechanically obvious plans (renames, bulk replacements, small fixes).
+
+Merge this with the Plan Review Presentation offer into a single `AskUserQuestion` dialog: include a browser option when the mdts criteria hold and a dig option when the uncertainty criteria hold, plus a decline option; use multiSelect when both qualify. If dig is selected, open the browser first (when also selected), then invoke the dig skill; dig rewrites the plan file, so re-present the updated plan afterward, re-applying these rules. In plan mode this dialog precedes `ExitPlanMode`.
+
 # Settings Changes
 
 Before editing `settings.json` / `settings.local.json` — or its `hooks`, `permissions`, or `env` — in the repository source or the live `~/.claude/` files, invoke the `update-config` skill; its description covers settings edits, permission changes, env vars, and hook troubleshooting. Skip it only for trivial mechanical edits (e.g. a verbatim revert) where no configuration-domain judgment is needed.

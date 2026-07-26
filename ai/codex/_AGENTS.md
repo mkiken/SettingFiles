@@ -93,6 +93,17 @@ Before running an external installer in a disposable target, identify and baseli
 
 When showing the user something to visually confirm (e.g. a tmux popup), state what to check before opening it, keep it open until the user dismisses it (never close on a timer), and use a dedicated unambiguous fixture as the test subject — not whatever file happens to be newest.
 
+# Plan Review Presentation
+
+When presenting a markdown plan artifact (plan-mode plan file, SDD spec/design/tasks document) for user review or approval, offer to render it in the browser when any of the following holds; otherwise skip the offer:
+
+- It is an SDD spec/design/tasks document (always offer).
+- It is roughly 100 lines or longer.
+- It contains mermaid diagrams, tables, or images.
+- The plan spans multiple files.
+
+Ask via the platform-specific `# User Confirmation` mechanism. If accepted, run `mdts -p auto <directory containing the artifact>` in the background (it serves the directory tree and opens the browser), tell the user which file to review, and keep the server running until the user finishes — never stop it on a timer. Stop any mdts server you started once the review/approval flow completes.
+
 # Temp File Cleanup
 
 At task completion — before the Post-Implementation Workflow, and even when that workflow is skipped — clean up temp files newly created by the AI this session: scratch scripts, debug output, sample data, logs, dumps, notes, and other non-deliverables. Deliverables (requested source, test, doc, fixture, or config changes) and existing files edited in place are out of scope.
