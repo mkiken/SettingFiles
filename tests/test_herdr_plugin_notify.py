@@ -53,6 +53,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         jq_present: bool = True,
         event_name: str = "pane.agent_status_changed",
         codex_transcript: str | None = None,
+        claude_transcript: str | None = None,
     ) -> tuple[subprocess.CompletedProcess[str], Path]:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -132,6 +133,18 @@ class HerdrPluginNotifyTest(unittest.TestCase):
 
             # CODEX_HOMEは常にテスト専用dirへ隔離する（未設定だとtranscript解決が
             # 実~/.codexへフォールバックし、開発機の実データがテストに漏れ込む）。
+            # CLAUDE_CONFIG_DIRも常にテスト専用dirへ隔離する（未設定だとclaudeの
+            # doneガードのtranscript解決が実~/.claudeへフォールバックし、開発機の
+            # 実データがテストに漏れ込む。CODEX_HOME隔離と同じ思想）。
+            claude_home = root / "claude_home"
+            claude_home.mkdir()
+            if claude_transcript is not None:
+                claude_transcript_file = (
+                    claude_home / "projects/test-project" / f"{session_id}.jsonl"
+                )
+                claude_transcript_file.parent.mkdir(parents=True)
+                claude_transcript_file.write_text(claude_transcript, encoding="utf-8")
+
             codex_home = root / "codex_home"
             codex_home.mkdir()
             if codex_transcript is not None:
@@ -217,6 +230,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
             env.update(
                 {
                     "HERDR_TEST_EVENTS": str(events),
+                    "CLAUDE_CONFIG_DIR": str(claude_home),
                     "CODEX_HOME": str(codex_home),
                     "SET": str(fake_repo) + "/",
                     "HERDR_PLUGIN_EVENT_JSON": json.dumps(
@@ -450,6 +464,91 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         self.assertIn(
             "message=Herdr通知をカスタマイズしてworkspace情報を表示", events
         )
+
+    # claudeのdone完了通知はtranscript解析のPENDING_BACKGROUND_WORKでゲートされる
+    # （async Agent完了待ち中のターン終了で誤報しない）。fixtureは
+    # tests/test_claude_transcript_analyze.py の launch_result_line 系と同形状。
+    @staticmethod
+    def claude_transcript_fixture(*, task_id: str = "abc123def", completed: bool) -> str:
+        launch_text = (
+            "Async agent launched successfully. (This tool result is internal metadata)\n"
+            f"agentId: {task_id} (internal ID - do not mention to user)"
+        )
+        lines = [
+            json.dumps(
+                {"message": {"role": "user", "content": "テストスイートを実行して"}},
+                ensure_ascii=False,
+            ),
+            json.dumps(
+                {
+                    "message": {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "tool_result",
+                                "tool_use_id": "toolu_x",
+                                "content": [{"type": "text", "text": launch_text}],
+                            }
+                        ],
+                    }
+                }
+            ),
+        ]
+        if completed:
+            lines.append(
+                json.dumps(
+                    {
+                        "message": {
+                            "role": "user",
+                            "content": (
+                                f"<task-notification>\n<task-id>{task_id}</task-id>\n"
+                                "<status>completed</status>\n</task-notification>"
+                            ),
+                        }
+                    }
+                )
+            )
+        return "\n".join(lines) + "\n"
+
+    def test_claude_done_with_pending_background_work_skips_notification(self):
+        result, events = self.run_plugin(
+            agent="claude",
+            agent_status="done",
+            claude_transcript=self.claude_transcript_fixture(completed=False),
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(events, [])
+
+    def test_claude_done_after_background_completion_notifies(self):
+        result, events = self.run_plugin(
+            agent="claude",
+            agent_status="done",
+            claude_transcript=self.claude_transcript_fixture(completed=True),
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(any(line.startswith("title=CLAUDE_IDDONE Claude完了") for line in events))
+
+    def test_claude_done_missing_transcript_notifies(self):
+        # transcript未解決（session_idに対応するjsonlが無い）はfail-safeで従来どおり通知。
+        result, events = self.run_plugin(
+            agent="claude", agent_status="done", claude_transcript=None
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(any(line.startswith("title=CLAUDE_IDDONE Claude完了") for line in events))
+
+    def test_claude_blocked_ignores_pending_background_work(self):
+        # 入力待ち(blocked)は承認待ち等の実要求なので、pending中でも通知を止めない。
+        result, events = self.run_plugin(
+            agent="claude",
+            agent_status="blocked",
+            claude_transcript=self.claude_transcript_fixture(completed=False),
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(any(line.startswith("title=CLAUDE_IDWAIT Claude入力待ち") for line in events))
 
     def test_unrecognized_agent_falls_back_to_robot_emoji(self):
         result, events = self.run_plugin(agent="unknown-agent", agent_status="done")

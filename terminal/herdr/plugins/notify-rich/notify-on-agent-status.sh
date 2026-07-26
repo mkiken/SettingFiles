@@ -239,6 +239,26 @@ case "$agent_status" in
   *) exit 0 ;;
 esac
 
+# claudeのdoneはターン終了ごとに発火するが、async Agentの完了待ちやScheduleWakeup
+# 武装中は会話がまだ継続する（ハーネスが再起動する）ため、tmux経路の
+# stop-send-notification.shと同じPENDING_BACKGROUND_WORK判定（claude_transcript_
+# analyze.py）で完了通知を抑止する。tmux経路はHERDR_ENVガードで即exitするため、
+# Herdr下ではこのプラグインが同じガードを持つ必要がある。
+# transcriptはagent_session.value（claudeのsession_id）から解決する。
+# サブシェル格納の理由はcodex_summaryブロックと同じfail-safe: transcript未解決・
+# 解析失敗は空出力に落ち、従来どおり通知する（通知が完全に死ぬ事故を避ける）。
+if [[ "$agent" == "claude" && "$agent_status" == "done" ]]; then
+  claude_pending="$(
+    source "${REPO_ROOT}/shell/tmux/ai_notification_summary.sh" 2>/dev/null || exit 0
+    transcript="$(resolve_host_transcript "$session_id")" || exit 0
+    analysis="$(python3 "${REPO_ROOT}/shell/tmux/claude_transcript_analyze.py" "$transcript" 2>/dev/null)"
+    [[ $? -ne 0 || -z "$analysis" ]] && exit 0
+    eval "$analysis"
+    print -r -- "${PENDING_BACKGROUND_WORK:-0}"
+  )"
+  [[ "$claude_pending" == "1" ]] && exit 0
+fi
+
 # Workspace display name isn't in the context JSON; resolve it with one `workspace list` call.
 ws_id="${HERDR_WORKSPACE_ID:-}"
 ws_label=""
