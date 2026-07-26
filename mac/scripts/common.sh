@@ -421,6 +421,31 @@ function generate_config_auditor_agents() {
   done
 }
 
+# review-fix の設計/実装サブエージェント定義を共有フラグメントから生成する（Codex のみ; Claude はサブエージェント自身が実行時にロールコアを読む）
+# 生成物: ai/codex/agents/review_fix_{designer,implementer}.toml
+# 編集は ai/common/review_fix_subagents/ と ai/codex/agents_src/review_fix/ へ（生成物は編集しない）
+function generate_review_fix_agents() {
+  local common="${Repo}ai/common/review_fix_subagents"
+  local src="${Repo}ai/codex/agents_src/review_fix"
+  local notice="GENERATED FILE - do not edit. Sources: ai/common/review_fix_subagents/, ai/codex/agents_src/review_fix/. Regen: mac/updates/codex.sh."
+  local role out
+
+  for role in designer implementer; do
+    out="${Repo}ai/codex/agents/review_fix_${role}.toml"
+    # 本文は TOML の ''' リテラル文字列に埋め込むため、フラグメントに ''' が混入したら生成を失敗させる
+    if /usr/bin/grep -q "'''" "${common}/${role}_core.md"; then
+      echo "Error: ''' found in review_fix_${role} fragment; it would break the TOML literal string." >&2
+      return 1
+    fi
+    {
+      printf '# %s\n' "$notice"
+      /bin/cat "${src}/head_${role}.toml"
+      /bin/cat "${common}/${role}_core.md"
+      printf "'''\n"
+    } > "$out"
+  done
+}
+
 # 共有コアスキルの SKILL.md を skill_head.md + ai/common のコア群 (+ skill_tail.md があれば) の連結で生成する
 # 引数: <skillsディレクトリ> <entries...>  entry形式: <skill名>:<ai/common からのコア相対パス（スペース区切りで複数可、記載順に連結）>
 # 生成物: <skillsディレクトリ>/<skill名>/SKILL.md（編集はソースへ、生成物は編集しない）
@@ -569,6 +594,12 @@ function verify_ai_skill_generation_idempotency() {
   )
 
   verify_generator_idempotency generate_ai_skills "${generated_files[@]}"
+}
+
+function verify_review_fix_agent_generation_idempotency() {
+  verify_generator_idempotency generate_review_fix_agents \
+    "${Repo}ai/codex/agents/review_fix_designer.toml" \
+    "${Repo}ai/codex/agents/review_fix_implementer.toml"
 }
 
 function require_ai_setup_command() {

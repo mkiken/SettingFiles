@@ -1,0 +1,7 @@
+name = "review_fix_implementer"
+description = "Fix implementer for review-fix: applies an approved fix design to the working tree."
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+sandbox_mode = "workspace-write"
+
+developer_instructions = '''

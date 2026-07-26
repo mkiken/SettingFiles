@@ -64,6 +64,7 @@ Canonical source-to-command mapping for regenerating committed outputs. The full
 | Shared-core skill sources (`ai/common/*_core.md`, `ai/{codex,gemini}/skills/*/skill_head.md`/`skill_tail.md`; includes pr-review-subagents skill adapters) | `zsh -c 'source mac/scripts/common.sh && verify_ai_skill_generation_idempotency'` |
 | pr-reviewer agent sources (`ai/common/pr_review_subagents/intro_*.md`, `ai/common/pr_review_subagents/format_*.md`, `ai/*/agents_src/`) | `zsh -c 'source mac/scripts/common.sh && generate_pr_reviewer_agents <platform>'` |
 | config-audit auditor sources (`ai/common/config_audit_subagents/`, `ai/*/agents_src/config_audit/`) | `generate_config_auditor_agents <platform>` from `mac/scripts/common.sh` |
+| review-fix subagent sources (`ai/common/review_fix_subagents/`, `ai/codex/agents_src/review_fix/`) | `zsh -c 'source mac/scripts/common.sh && verify_review_fix_agent_generation_idempotency'` (regenerates and verifies) |
 
 ### External Identifiers
 
@@ -160,15 +161,16 @@ Shared-core skills follow one pattern: the skill body lives in core file(s) unde
 | config-audit | `config_audit_subagents/orchestrator_core.md` | auditor agents are separately generated — see below; adapter-head bits: `PLATFORM_NAME`, `SCOPE`, `ENTRY_SCOPE`, `CONFIG_PATHS`, `GENERATED_ENTRY_FILE`, `SOURCE_FILES`, confirmation primitive |
 | review-merge | `review_merge_core.md` | Claude and Codex only; adapter-head bits: `RUN_DIR` resolution, confirmation primitive |
 | review-post | `review_post_core.md` + `pr_post_mechanics_core.md` | Claude and Codex only; adapter-head bits: `RUN_DIR`/`ITEM_NUMBERS`, confirmation primitive |
-| review-fix | `review_fix_core.md` | Claude and Codex only; adapter-head bits: `RUN_DIR`/`ITEM_NUMBERS`, confirmation primitive |
+| review-fix | `review_fix_core.md` | Claude and Codex only; designer/implementer role prompts in `ai/common/review_fix_subagents/` (Claude subagents read them at runtime; Codex agents are build-time generated — see below); adapter-head bits: `RUN_DIR`/`ITEM_NUMBERS`, confirmation primitive, subagent launch primitive |
 | fact-based | `fact_based_core.md` | Gemini adapter is a generated skill (not a command); Claude adapter keeps `$ARGUMENTS` handling in head/tail around the runtime include |
 
 When changing a skill's core composition or adapter-head bits, update this table in the same commit.
 
-Beyond their shared cores (table above), two skill families have GENERATED, committed subagent definitions, assembled by functions in `mac/scripts/common.sh` (called by the init/update scripts). Subagent definition files support no runtime file inclusion on any platform, hence build-time generation.
+Beyond their shared cores (table above), three skill families have GENERATED, committed subagent definitions, assembled by functions in `mac/scripts/common.sh` (called by the init/update scripts). Subagent definition files support no runtime file inclusion on any platform, hence build-time generation.
 
 - **pr-review-subagents** — 21 reviewer agents (7 dimensions × 3 platforms: `ai/claude/agents/pr-reviewer-*.md`, `ai/gemini/agents/pr-reviewer-*.md`, `ai/codex/agents/pr_reviewer_*.toml`): `generate_pr_reviewer_agents` assembles each from shared dimension fragments (`intro_<dim>.md`, `format_<dim>.md`) plus per-platform `ai/<platform>/agents_src/` files (`head_<dim>`, `rules_<dim>`, `rules_common`).
 - **config-audit** — 18 auditor agents (6 dimensions × 3 platforms: `config-auditor-*.md` / `config_auditor_*.toml` in the same `agents` dirs): `generate_config_auditor_agents` assembles each from `ai/common/config_audit_subagents/` fragments (`intro_<dim>.md`, shared `rules_common.md`, `format_<dim>.md`) plus per-platform `ai/<platform>/agents_src/config_audit/head_<dim>` files.
+- **review-fix** — 2 Codex agents (`ai/codex/agents/review_fix_{designer,implementer}.toml`): `generate_review_fix_agents` (arg-less, Codex-only) assembles each from `ai/common/review_fix_subagents/<role>_core.md` plus `ai/codex/agents_src/review_fix/head_<role>.toml`. Claude has no generated counterpart — its ad-hoc Task subagents read the same role cores from `~/.claude/common/review_fix_subagents/` at runtime.
 
 Standalone skills (no shared core, hand-maintained): `web-summary` — Claude `ai/claude/skills/web-summary/SKILL.md` and Gemini `ai/gemini/commands/web-summary.toml` are a manually synchronized pair with no generator (editing one does not update the other); `prompt-self-improvement` — single shared source in `ai/common/skills/`, symlink-deployed to all three platforms; `herdr` — single shared source in `ai/common/skills/`, symlink-deployed to all three platforms, vendored from the official herdr `SKILL.md` (teaches an agent to operate the `herdr` CLI from inside a Herdr-managed pane; guarded by a `HERDR_ENV=1` check so it is a no-op outside Herdr); `skill-creator` and `write-tests` — Claude-only, in `ai/claude/skills/`.
 
