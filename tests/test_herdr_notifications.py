@@ -113,6 +113,8 @@ class HerdrNotificationTest(unittest.TestCase):
             for relative_path in (
                 "shell/tmux/ai_notification_hook_common.sh",
                 "shell/tmux/ai_notification_summary.sh",
+                # 共通ヘッダが source する音マップ（イベント種別→音名）。
+                "shell/tmux/ai_notification_sound.sh",
                 "shell/tmux/gemini_context_usage.py",
                 "shell/tmux/gemini_transcript_summary.jq",
             ):

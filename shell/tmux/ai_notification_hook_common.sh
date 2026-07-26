@@ -23,6 +23,8 @@ source "${_AI_HOOK_SET_DIR}shell/tmux/tmux_notification_title.sh"
 source "${_AI_HOOK_SET_DIR}shell/tmux/tmux_window_name.sh"
 # 通知要約ヘルパー（セッション時間計算など）
 source "${_AI_HOOK_SET_DIR}shell/tmux/ai_notification_summary.sh"
+# 通知音マップ（ai_notification_sound <event>：イベント種別→音名。全AI共通）
+source "${_AI_HOOK_SET_DIR}shell/tmux/ai_notification_sound.sh"
 
 # デバッグ関数
 debug_log() {
@@ -58,8 +60,9 @@ build_notification_group() {
     echo "${AI_HOOK_LABEL_LOWER}-$1"
 }
 
-# エラー時フォールバック通知（🤖 <AI>終了 タイトル + 呼び出し側の NOTIFICATION_SOUND）
+# エラー時フォールバック通知（🤖 <AI>終了 タイトル + エラー音）
+# 解析失敗など異常系のフォールバックなので error 音（Basso）で鳴らす。
 # Usage: hook_fallback_notify <message>
 hook_fallback_notify() {
-    notify "$(build_ai_title "🤖" "終了")" "$1" "${NOTIFICATION_SOUND}"
+    notify "$(build_ai_title "🤖" "終了")" "$1" "$(ai_notification_sound error)"
 }

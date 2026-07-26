@@ -64,6 +64,9 @@ class CodexStopNotificationHookTest(unittest.TestCase):
             "normalize_oneline() { printf '%s' \"$1\"; }\n"
             "guess_task_type_emoji() { printf '🔧'; }\n"
             "build_session_summary() { printf '%s' \"$2\"; }\n"
+            # 実共通ヘッダは ai_notification_sound.sh を source して定義する。
+            # フックが $(ai_notification_sound <event>) を呼ぶためモックにも用意する。
+            "ai_notification_sound() { printf '%s' \"$1\"; }\n"
             "hook_fallback_notify() { notify fallback \"$1\"; }\n"
             "update_tmux_window_name() {\n"
             "  printf 'icon-start:%s:%s:%s\\n' \"$1\" \"$2\" \"$3\" >> \"$HOOK_TEST_LOG\"\n"

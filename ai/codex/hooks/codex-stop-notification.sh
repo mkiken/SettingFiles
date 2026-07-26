@@ -9,8 +9,7 @@ HOOK_ERROR_LOG="${TMPDIR:-/tmp}/codex-stop-notification-error.log"
 exec >/dev/null
 exec 2>>"${HOOK_ERROR_LOG}"
 
-NOTIFICATION_SOUND='Glass'
-
+# 通知音はイベント種別で決まる（ai_notification_sound、共通ヘッダ経由で定義）。
 DEBUG_ENABLED=false
 DEBUG_LOG="/tmp/codex-hook-debug.log"
 
@@ -99,7 +98,7 @@ if [[ "${hook_event_name}" == "PermissionRequest" ]]; then
     notification_body=$(truncate_line "$(normalize_oneline "${notification_body}")" 140)
 
     debug_log "Sending permission request notification: ${notification_body}"
-    notify "$(build_ai_title "⚠️" "承認待ち")" "${notification_body}" "Hero" "${notification_group}" || true
+    notify "$(build_ai_title "⚠️" "承認待ち")" "${notification_body}" "$(ai_notification_sound waiting)" "${notification_group}" || true
     exit 0
 fi
 
@@ -162,12 +161,12 @@ fi
 debug_log "Final summary_message: ${summary_message:0:100}"
 summary=$(build_session_summary "${summary_task_type}" "${summary_message}" "${USER_MESSAGE_COUNT}" "${SESSION_DURATION_FORMATTED}")
 
-notification_sound="${NOTIFICATION_SOUND}"
 if [[ "${WAITING_FOR_USER_RESPONSE}" == "true" ]]; then
     notification_title=$(build_ai_title "✋" "応答待ち")
-    notification_sound="Hero"
+    notification_sound="$(ai_notification_sound waiting)"
 else
     notification_title=$(build_ai_title "✅" "終了")
+    notification_sound="$(ai_notification_sound completed)"
 fi
 
 debug_log "Sending notification: title='${notification_title}', message='${summary}'"

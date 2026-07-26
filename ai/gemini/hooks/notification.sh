@@ -6,9 +6,7 @@ if [[ "${HERDR_ENV:-}" == "1" ]]; then
     IN_HERDR=true
 fi
 
-# 通知音設定 (変更する場合はここだけ編集)
-NOTIFICATION_SOUND='Purr'
-
+# 通知音はイベント種別で決まる（ai_notification_sound、共通ヘッダ経由で定義）。
 # デバッグフラグ (true/false)
 DEBUG_ENABLED=false
 DEBUG_LOG="/tmp/gemini-hook-debug.log"
@@ -179,7 +177,7 @@ if [[ "${EVENT_TYPE}" == "notification" ]]; then
 
     debug_log "Sending ToolPermission notification: ${MSG_BODY}"
 
-    notify "$(build_ai_title "⚠️" "承認待ち")" "${MSG_BODY}" "Purr" "${notification_group}"
+    notify "$(build_ai_title "⚠️" "承認待ち")" "${MSG_BODY}" "$(ai_notification_sound waiting)" "${notification_group}"
     exit 0
 fi
 
@@ -188,7 +186,7 @@ notification_title=$(build_ai_title "✅" "終了")
 
 debug_log "Sending notification: title='${notification_title}', message='${summary}'"
 
-notify "${notification_title}" "${summary:-💭 メッセージなし}" "Purr" "${notification_group}" "${completion_time}"
+notify "${notification_title}" "${summary:-💭 メッセージなし}" "$(ai_notification_sound completed)" "${notification_group}" "${completion_time}"
 
 # --- context逼迫アラート ---
 # 最新chat JSONLの探索（旧find|stat|sort|head|cut連鎖）とトークン抽出（旧インライン

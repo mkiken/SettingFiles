@@ -97,7 +97,14 @@ class HerdrPluginNotifyTest(unittest.TestCase):
             # 恒等関数なのでtitleのASCII識別子アサーションと衝突しない。
             fake_tmux_dir = fake_repo / "shell/tmux"
             fake_tmux_dir.mkdir(parents=True, exist_ok=True)
-            for name in ("tmux_emoji.py", "tmux_window_name.py", "herdr_status_icon.sh"):
+            # ai_notification_sound.sh はプラグインが冒頭でsourceするため必須
+            # （イベント種別→音名マップ）。
+            for name in (
+                "tmux_emoji.py",
+                "tmux_window_name.py",
+                "herdr_status_icon.sh",
+                "ai_notification_sound.sh",
+            ):
                 real_file = REPO_ROOT / "shell/tmux" / name
                 (fake_tmux_dir / name).write_text(
                     real_file.read_text(encoding="utf-8"), encoding="utf-8"
@@ -249,6 +256,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
             title_line.startswith("title=CLAUDE_IDDONE Claude完了 🖥️ai-work 🕰️"),
             title_line,
         )
+        # 音はイベント種別（done=完了→completed）で決まるためHero（全AI共通）。
         self.assertEqual(
             events[1:],
             [
@@ -263,6 +271,8 @@ class HerdrPluginNotifyTest(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("message=Herdr通知をカスタマイズしてworkspace情報を表示", events)
+        # 音はイベント種別（blocked=入力待ち→waiting）で決まるためGlass（全AI共通）。
+        self.assertIn("sound=Glass", events)
         self.assertTrue(
             any(
                 line.startswith("title=CLAUDE_IDWAIT Claude入力待ち 🖥️ai-work 🕰️")
@@ -341,6 +351,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
     def test_codex_done_notifies_with_transcript_summary(self):
         # 完了はtmuxの✅終了と同形式: タスク種別絵文字＋最終ユーザーメッセージ＋統計行。
         # 「修正」を含むユーザーメッセージ→💻、10:00:00〜10:05:02→⏳5m2s。
+        # 音はイベント種別（done=完了→completed）で決まるためHero（全AI共通）。
         result, events = self.run_plugin(
             agent="codex",
             agent_status="done",
@@ -360,6 +371,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
 
     def test_codex_blocked_notifies_with_assistant_message(self):
         # 入力待ちはtmuxの✋応答待ちと同形式: ✋＋最終アシスタントメッセージ＋統計行。
+        # 音はイベント種別（blocked=入力待ち→waiting）で決まるためGlass（全AI共通）。
         result, events = self.run_plugin(
             agent="codex",
             agent_status="blocked",
@@ -372,7 +384,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
             [
                 "message=✋ 修正しました。テストも追加しています。",
                 "🔄1 ⏳5m2s",
-                "sound=Hero",
+                "sound=Glass",
                 "group=codex-session-abc",
             ],
         )

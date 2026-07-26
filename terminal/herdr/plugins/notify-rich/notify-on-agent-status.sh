@@ -73,6 +73,9 @@ pane_json="$("$herdr_bin" pane get "$pane_id" 2>/dev/null)"
 [[ "$agent" == "gemini" ]] && exit 0
 
 source "${REPO_ROOT}/shell/tmux/tmux_emoji.conf"
+# 通知音マップ（ai_notification_sound <event>）。tmux経路の共通ヘッダと同じ定義を共有し、
+# イベント種別（done→completed / blocked→waiting）で音を決める（全AI共通）。
+source "${REPO_ROOT}/shell/tmux/ai_notification_sound.sh"
 # シェル所有✋マーカーのreadヘルパー（_herdr_shell_status_marker_read）を読み込む。
 # fail-safe: 読み込めなくてもピン留めが無効になるだけで他の処理は続行する。
 source "${REPO_ROOT}/shell/tmux/herdr_status_icon.sh" 2>/dev/null || true
@@ -260,15 +263,19 @@ if [[ -n "$ws_label" && -n "$tab_base" ]]; then
 fi
 
 # id_emoji は冒頭のタブアイコン処理で既に決定済み。ここでは通知本文用の
-# status_emoji/label_text（done/blocked専用の日本語ラベル）だけ再定義する。
+# status_emoji/label_text（done/blocked専用の日本語ラベル）と通知音イベントを再定義する。
+# ここに到達する時点で agent_status は done/blocked のいずれか（237-240行でそれ以外はexit済み）。
+# 音はイベント種別で決まる（done=完了→completed / blocked=入力待ち→waiting、tmux経路と共通）。
 case "$agent_status" in
   done)
     status_emoji="$EMOJI_STATUS_COMPLETED"
     label_text="完了"
+    sound_event="completed"
     ;;
   blocked)
     status_emoji="$EMOJI_STATUS_NOTIFICATION"
     label_text="入力待ち"
+    sound_event="waiting"
     ;;
 esac
 
@@ -318,4 +325,4 @@ source "${REPO_ROOT}/shell/zsh/alias/notification.zsh"
 # decoration would be a no-op anyway, but it also strips our own time suffix —
 # suppress it since we build the full title (including time) ourselves.
 # NOTIFY_FORCE: bypass AI-session suppression; this hook intentionally notifies.
-NOTIFY_NO_DECORATE=1 NOTIFY_FORCE=1 notify "$title" "$notify_body" "Hero" "$group"
+NOTIFY_NO_DECORATE=1 NOTIFY_FORCE=1 notify "$title" "$notify_body" "$(ai_notification_sound "${sound_event:-completed}")" "$group"

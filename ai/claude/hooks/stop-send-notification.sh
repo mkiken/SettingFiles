@@ -5,9 +5,7 @@ if [[ "${HERDR_ENV:-}" == "1" ]]; then
     exit 0
 fi
 
-# 通知音設定 (変更する場合はここだけ編集)
-NOTIFICATION_SOUND='Hero'
-
+# 通知音はイベント種別で決まる（ai_notification_sound、共通ヘッダ経由で定義）。
 # デバッグフラグ (true/false)
 DEBUG_ENABLED=false
 
@@ -181,7 +179,7 @@ if [[ "${hook_event_name}" == "Notification" ]]; then
         notification_title=$(build_ai_title "⚠️" "承認待ち")
     fi
     debug_log "Sending awaiting-input notification (${notification_type}): ${notification_body}"
-    notify "${notification_title}" "${notification_body}" "Hero" "${notification_group}"
+    notify "${notification_title}" "${notification_body}" "$(ai_notification_sound waiting)" "${notification_group}"
     exit 0
 fi
 
@@ -194,7 +192,7 @@ if [[ "${hook_event_name}" == "StopFailure" ]]; then
     fi
 
     debug_log "Sending stop-failure notification: ${notification_body}"
-    notify "$(build_ai_title "❌" "エラー停止")" "${notification_body}" "Basso" "${notification_group}" "${COMPLETION_TIME_JST}"
+    notify "$(build_ai_title "❌" "エラー停止")" "${notification_body}" "$(ai_notification_sound error)" "${notification_group}" "${COMPLETION_TIME_JST}"
     exit 0
 fi
 
@@ -215,6 +213,6 @@ update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}"
 notification_title=$(build_ai_title "✅" "終了")
 
 debug_log "Sending stop notification: title='${notification_title}', message='${summary}'"
-notify "${notification_title}" "${summary:-💭 セッションが開始されましたが、メッセージはありませんでした}" "Hero" "${notification_group}" "${COMPLETION_TIME_JST}"
+notify "${notification_title}" "${summary:-💭 セッションが開始されましたが、メッセージはありませんでした}" "$(ai_notification_sound completed)" "${notification_group}" "${COMPLETION_TIME_JST}"
 
 debug_log "=== Claude Notification Hook Completed ==="
