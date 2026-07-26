@@ -102,7 +102,7 @@ When presenting a markdown plan artifact (plan-mode plan file, SDD spec/design/t
 - It contains mermaid diagrams, tables, or images.
 - The plan spans multiple files.
 
-Ask via the platform-specific `# User Confirmation` mechanism. If accepted, run `mdts -p auto <directory containing the artifact>` in the background (it serves the directory tree and opens the browser), tell the user which file to review, and keep the server running until the user finishes — never stop it on a timer. Stop any mdts server you started once the review/approval flow completes.
+Ask via the platform-specific `# User Confirmation` mechanism. If accepted, launch mdts in the background: for an artifact that is itself a small directory (e.g. an SDD feature directory), run `mdts -p auto <that directory>`. For a single file living among many others (e.g. a plan-mode plan file in `~/.claude/plans/`), mount the parent directory but narrow the tree to just that file with `-g '<filename>'`, placing the directory argument *before* `-g` — `-g` takes a variadic list and will otherwise swallow the directory into the glob, silently mounting the wrong path and watching zero files. In the single-file case, add `--no-open`, parse the port from the server log with `grep -a` (the log mixes ANSI escapes and OSC8 hyperlinks, so a plain grep can garble or miss the match), and open `http://localhost:<port>/<filename>` directly so the browser lands on the target file instead of a file-tree root. Tell the user which file to review, and keep the server running until the user finishes — never stop it on a timer. Stop any mdts server you started once the review/approval flow completes.
 
 # Temp File Cleanup
 
