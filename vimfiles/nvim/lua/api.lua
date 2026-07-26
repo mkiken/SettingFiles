@@ -41,3 +41,12 @@ vim.api.nvim_create_autocmd('QuitPre', {
   end,
   desc = 'Close all special buffers and quit Neovim',
 })
+
+-- markdownバッファのみ conceallevel を有効にする
+-- （render-markdown.nvim がリンクURLやbold/code記号の隠蔽に前提とする値）
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'markdown',
+  callback = function()
+    vim.opt_local.conceallevel = 2
+  end,
+})

@@ -7,7 +7,7 @@ return {
   },
   opts = {
     enabled = true,
-    render_modes = { "n", "i", "c" },
+    render_modes = { "n", "c" },
     file_types = { "markdown" },
     sign = {
       enabled = false,
