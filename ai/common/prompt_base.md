@@ -66,9 +66,15 @@ Before writing tests, inspect how the target module or repository is already tes
 
 When a plan includes test work, list the planned test cases (target, condition, expected outcome) before implementing, so scope and coverage can be reviewed first.
 
+When a code comment declares a defensive invariant ("X is never adopted", "Y cannot happen"), add a test pinning that invariant in the same commit — an unenforced comment reads as already-handled and hides the missing guard.
+
 # Performance Work
 
 Before designing a performance optimization, measure the baseline and each candidate's dominant cost (process startup, I/O, etc.) and include the numbers in the plan. Claim a speedup only after re-measuring, never from theory alone.
+
+# Heuristic Design
+
+Before designing a heuristic that classifies or filters inputs (string patterns, allowlists, thresholds), measure the distribution its assumptions rest on against real data — the full population, or a sample with the sampling policy stated — and include the numbers in the plan. Never generalize from a few convenient examples.
 
 # Radical Honesty Protocol
 
