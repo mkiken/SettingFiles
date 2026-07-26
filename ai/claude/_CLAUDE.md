@@ -19,7 +19,7 @@ When a question depends on explanatory context (proposals, trade-offs, anything 
 
 When presenting a plan artifact for review, also offer the `dig` skill when the plan involves design decisions (new feature, architecture change), still carries assumptions or open items (TBD, 要検討), or spans multiple phases / many tasks. Skip it for mechanically obvious plans (renames, bulk replacements, small fixes).
 
-Merge this with the Plan Review Presentation offer into a single `AskUserQuestion` dialog: include a browser option when the mdts criteria hold and a dig option when the uncertainty criteria hold, plus a decline option; use multiSelect when both qualify. If dig is selected, open the browser first (when also selected), then invoke the dig skill; dig rewrites the plan file, so re-present the updated plan afterward, re-applying these rules. In plan mode this dialog precedes `ExitPlanMode`.
+Merge this with the Plan Review Presentation offer into a single `AskUserQuestion` dialog: include a browser option when the mdts criteria hold and a dig option when the uncertainty criteria hold, plus a decline option; use multiSelect when both qualify. If dig is selected, open the browser first (when also selected), then invoke the dig skill; dig rewrites the plan file, so re-present the updated plan afterward, re-applying these rules. If dig runs as a forked/background subagent (it then has no `AskUserQuestion`), treat its returned output as analysis and conduct the confirmation rounds yourself in the main session via `AskUserQuestion`. In plan mode this dialog precedes `ExitPlanMode`.
 
 # Settings Changes
 
