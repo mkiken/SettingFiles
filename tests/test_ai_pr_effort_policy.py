@@ -175,7 +175,17 @@ class ReviewEntrypointEffortPolicyTest(unittest.TestCase):
 
 
 class ReviewerAgentEffortPolicyTest(unittest.TestCase):
-    DIMENSIONS = ("bugs", "security", "architecture", "errors", "history", "tests", "performance")
+    DIMENSIONS = (
+        "bugs",
+        "security",
+        "architecture",
+        "errors",
+        "history",
+        "tests",
+        "performance",
+        "consistency",
+        "simplification",
+    )
 
     def test_claude_reviewer_sources_and_generated_agents_match(self):
         for dimension in self.DIMENSIONS:

@@ -1,5 +1,5 @@
 ---
-description: "Comprehensive PR review using 7 parallel specialist sub-agents for bugs, security, architecture, error handling, history, tests, and performance"
+description: "Comprehensive PR review using 9 parallel specialist sub-agents for bugs, security, architecture, error handling, history, tests, performance, consistency, and simplification"
 model: fable
 allowed-tools: Bash(gh:*), Bash(git:*), Bash(python:*), Bash(/bin/cat:*)
 argument-hint: "[prNumber] [additionalInstructions...]"
@@ -9,7 +9,7 @@ effort: max
 
 ## Instructions
 
-Review the target PR with 7 read-only specialist sub-agents in parallel.
+Review the target PR with 9 read-only specialist sub-agents in parallel.
 
 Inputs: parse `$ARGUMENTS` as `[prNumber] [additionalInstructions...]`. If the first token is a PR number (`123` or `#123`) or PR URL, use it as `<PR_NUMBER>` and treat the rest as `<ADDITIONAL_INSTRUCTIONS>`. Otherwise, resolve the current branch's PR with `gh pr view --json number --jq .number` and treat all arguments as `<ADDITIONAL_INSTRUCTIONS>`.
 
@@ -46,6 +46,8 @@ Start all simultaneously:
 5. **pr-reviewer-history** — Git履歴・リグレッションリスク
 6. **pr-reviewer-tests** — テスト品質・カバレッジ
 7. **pr-reviewer-performance** — パフォーマンス
+8. **pr-reviewer-consistency** — 一貫性（既存コードとの整合）
+9. **pr-reviewer-simplification** — 簡素化・可読性改善提案
 
 !`/bin/cat ~/.claude/common/pr_review_subagents/orchestrator_core.md`
 

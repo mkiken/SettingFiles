@@ -19,7 +19,7 @@ If `<ADDITIONAL_INSTRUCTIONS>` is non-empty, ensure every specialist received it
 3. Recheck existing comments NDJSON. Skip a duplicate — same path within ±5 lines and same root cause, or same target symbol/concept fixable by the same change — with duplicate confidence >= 70, regardless of `is_resolved` / `is_outdated`. Below 70, or when the finding needs a different fix, keep it. Collect skipped findings for `[既コメント済]`; when the matched comment is resolved or outdated, say so in the reason (e.g. `resolved済みの既存コメント #<id> と同一根本原因`).
 4. Route `[既存コード]` findings (critical pre-existing issues) to `## 既存コードに関する指摘`, keeping the critical category in the detail line.
 5. Route all other test-related findings to `## テストに関する指摘` regardless of source agent. Pre-existing-vs-changed is decided first: a `[既存コード]` finding about tests goes to `## 既存コードに関する指摘`.
-6. Same-root-cause cross-agent overlaps: bug + missing test → keep the bug, mention the test gap as supporting detail unless a distinct test change is required; bug + error-handling gap → keep the bug, fold the handling aspect into its detail unless the handling fix is a separate change; bug + security vulnerability → keep the security finding (attack framing drives the fix), fold the bug behavior into its detail. A merged finding takes the highest confidence and 影響度 of the pair.
+6. Same-root-cause cross-agent overlaps: bug + missing test → keep the bug, mention the test gap as supporting detail unless a distinct test change is required; bug + error-handling gap → keep the bug, fold the handling aspect into its detail unless the handling fix is a separate change; bug + security vulnerability → keep the security finding (attack framing drives the fix), fold the bug behavior into its detail; architecture + consistency → keep the architecture finding (structural framing drives the fix), fold the precedent into its detail; history + consistency → keep the consistency finding (the cited counterpart path points at the fix), fold the commit evidence into its detail; consistency (reuse an existing utility) + simplification (duplicated logic) → keep the consistency finding (it names the concrete reuse target); architecture + simplification on the same structure → keep architecture when the fix crosses module boundaries, otherwise keep simplification. A merged finding takes the highest confidence and 影響度 of the pair.
 7. Keep only actionable findings requiring a concrete response — no praise, compliance confirmations, or non-actionable observations.
 8. Assign priority from 影響度 × 信頼度 per the Output Format section below. If an agent omitted 影響度, infer it from category and description.
 9. Every finding needs `[path:line]` backed by 行番号根拠 (`[path:~line]` only for pre-existing code outside the diff). Drop findings whose 行番号根拠 is missing, uses `OLD`/deleted/approximate lines, or does not match the line-numbered diff. Spot-check suspicious anchors against the head-revision file. Never show 行番号根拠 in final output.
@@ -37,7 +37,7 @@ Re-verify every High-priority finding as a skeptic before final output. Findings
 
 ### Final Format
 
-Finding-header 領域 labels: バグ検出, セキュリティ, アーキテクチャ, エラーハンドリング, Git履歴, テスト品質, パフォーマンス.
+Finding-header 領域 labels: バグ検出, セキュリティ, アーキテクチャ, エラーハンドリング, Git履歴, テスト品質, パフォーマンス, 一貫性, 簡素化.
 
 Prepend this summary table before the first priority section of the Output Format skeleton below:
 
@@ -53,6 +53,8 @@ Prepend this summary table before the first priority section of the Output Forma
 | Git履歴 | N | XX |
 | テスト品質 | N | XX |
 | パフォーマンス | N | XX |
+| 一貫性 | N | XX |
+| 簡素化 | N | XX |
 ```
 
 ## Result File Output

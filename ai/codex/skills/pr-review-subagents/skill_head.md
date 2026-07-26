@@ -1,8 +1,8 @@
 ---
 name: pr-review-subagents
 description: >
-  Comprehensive PR review using seven Codex custom subagents, parallelized up to the
-  runtime limit, for bugs, security, architecture, error handling, git history, tests, and performance. Use when the
+  Comprehensive PR review using nine Codex custom subagents, parallelized up to the
+  runtime limit, for bugs, security, architecture, error handling, git history, tests, performance, consistency, and simplification. Use when the
   user wants PR review with subagents, review-subagents, or parallel specialist
   reviewers. Accepts an optional PR number plus extra review instructions; if omitted,
   detect the current branch PR.
@@ -10,7 +10,7 @@ description: >
 
 ## Instructions
 
-Review a PR with seven read-only specialist Codex subagents.
+Review a PR with nine read-only specialist Codex subagents.
 
 Inputs: parse the user's message as `[prNumber] [additionalInstructions...]`. If the first PR-like token is a PR number (`123` or `#123`) or PR URL, use it as `<PR_NUMBER>` and treat the rest as `<ADDITIONAL_INSTRUCTIONS>`. Otherwise, resolve the current branch's PR and treat any remaining request text as `<ADDITIONAL_INSTRUCTIONS>`:
 
@@ -57,7 +57,7 @@ Pass every subagent directly: PR number, metadata, repo owner/name, the compact 
 
 ### Spawn
 
-Run all seven exactly once, parallelized up to the child-agent slots available at runtime:
+Run all nine exactly once, parallelized up to the child-agent slots available at runtime:
 
 - `pr_reviewer_bugs`
 - `pr_reviewer_security`
@@ -66,8 +66,10 @@ Run all seven exactly once, parallelized up to the child-agent slots available a
 - `pr_reviewer_history`
 - `pr_reviewer_tests`
 - `pr_reviewer_performance`
+- `pr_reviewer_consistency`
+- `pr_reviewer_simplification`
 
-If fewer than seven child-agent slots are available, use waves. Launch the maximum safe number, start the next specialist whenever a slot becomes free, and continue until all seven have completed. Never combine review dimensions merely to fit the slot limit.
+If fewer than nine child-agent slots are available, use waves. Launch the maximum safe number, start the next specialist whenever a slot becomes free, and continue until all nine have completed. Never combine review dimensions merely to fit the slot limit.
 
 Each subagent stays read-only and returns Japanese findings in its configured format.
 Read-only includes not creating scratch files: never redirect diffs, comments, or command output to files in the repository or elsewhere.

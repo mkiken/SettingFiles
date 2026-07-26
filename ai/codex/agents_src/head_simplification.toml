@@ -1,0 +1,7 @@
+name = "pr_reviewer_simplification"
+description = "Read-only PR reviewer proposing behavior-preserving code simplifications."
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+sandbox_mode = "read-only"
+
+developer_instructions = '''
