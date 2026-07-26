@@ -103,7 +103,12 @@ When presenting a markdown plan artifact (plan-mode plan file, SDD spec/design/t
 - It contains mermaid diagrams, tables, or images.
 - The plan spans multiple files.
 
-Ask via the platform-specific `# User Confirmation` mechanism. If accepted, launch mdts in the background: for an artifact that is itself a small directory (e.g. an SDD feature directory), run `mdts -p auto <that directory>`. For a single file living among many others (e.g. a plan-mode plan file in `~/.claude/plans/`), mount the parent directory but narrow the tree to just that file with `-g '<filename>'`, placing the directory argument *before* `-g` — `-g` takes a variadic list and will otherwise swallow the directory into the glob, silently mounting the wrong path and watching zero files. In the single-file case, add `--no-open`, parse the port from the server log with `grep -a` (the log mixes ANSI escapes and OSC8 hyperlinks, so a plain grep can garble or miss the match), and open `http://localhost:<port>/<filename>` directly so the browser lands on the target file instead of a file-tree root. Tell the user which file to review, and keep the server running until the user finishes — never stop it on a timer. Stop any mdts server you started once the review/approval flow completes.
+Ask via the platform-specific `# User Confirmation` mechanism. If accepted, launch mdts in the background — the launch shape depends on the artifact:
+
+- **Plan-mode plan file** (a single file among many in `~/.claude/plans/`): reuse a persistent server on the fixed port 8600, mounting `~/.claude/plans`. Probe first (e.g. `curl -s -o /dev/null http://localhost:8600/api/filetree`); only start it if the probe fails. **Never stop this server** — a fixed port keeps the browser origin (and therefore its `localStorage`-backed layout/sidebar preferences) stable across reviews, and killing it drops any tab the user still has open on it. Open the target directly via `http://localhost:8600/<filename>` — no glob needed since the file tree stays collapsed by user preference. If port 8600 is already taken by something else, fall back to `mdts -p auto --no-open ~/.claude/plans -g '<filename>'` for that one review (directory argument before `-g` — it is variadic and will otherwise swallow the directory, silently mounting the wrong path and watching zero files), parse the port from the log with `grep -a` (the log mixes ANSI escapes and OSC8 hyperlinks), and treat that instance as ephemeral like the SDD case below.
+- **Small self-contained directory** (e.g. an SDD feature directory): run `mdts -p auto <that directory>` per review; stop it once the user finishes — never on a timer.
+
+Tell the user which file to review in either case.
 
 # Temp File Cleanup
 
