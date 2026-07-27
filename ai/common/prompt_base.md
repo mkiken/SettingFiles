@@ -173,6 +173,11 @@ When implementation is complete and a commit is needed, inspect the working tree
 2. **コミットのみ** — コミットを作成するがプッシュはしない
 3. **コミットしない** — 変更をコミットせずそのまま残す
 
-When staging, add only the paths this session changed or created (explicit `git add <paths>`; never `git add -A` or `git add .`). If `git status` shows unrelated changes (e.g. from a parallel session), leave them unstaged and mention them to the user. If some of those unrelated paths show as already staged, first run `git log -1` to check whether a parallel session already committed while this session was running, before assuming they are merely staged-but-uncommitted — the same "M" marker covers both, and confirming this either way is one command. Immediately before committing, re-check `git diff --cached --name-only`; if it lists paths you did not stage (e.g. staged by a parallel session), commit with an explicit pathspec (`git commit -m "<message>" -- <paths>`) so only your paths are committed. A path-level check is not enough when a parallel session commits the same file: its commit captures whatever is in the working tree at that moment, including this session's unsaved edits to that file. So also skim `git diff --cached` hunk by hunk for any file also touched elsewhere this session, and confirm every hunk is one this session actually authored before committing.
+Stage only the paths this session changed or created — explicit `git add <paths>`, never `git add -A`/`git add .`. Before committing:
+
+- Unrelated changes in `git status` (e.g. a parallel session's): leave unstaged, mention them to the user.
+- An unrelated path shown as staged: run `git log -1` first — the same "M" marker covers both staged-but-uncommitted and a parallel session's mid-session commit, and one command settles which.
+- Re-check `git diff --cached --name-only`: if it lists paths you did not stage, unstage them (`git restore --staged <paths>` — note this touches a parallel session's staging) and commit with no pathspec; pathspec-scoped commit captures working-tree content and can silently include another session's unstaged edits.
+- Skim `git diff --cached` hunk by hunk for any file touched elsewhere this session and confirm this session authored every hunk. A path check alone misses this: a parallel session's commit captures the whole working tree, including this session's unsaved edits to that file.
 
 Perform the selected git action, then run the Opportunistic Improvement Proposals Completion-Time Check.

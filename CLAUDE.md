@@ -16,7 +16,12 @@ When a file mixes this session's changes with another session's unrelated in-pro
 
 ## CLAUDE.md Maintenance
 
-At implementation completion, before the commit confirmation in the post-implementation flow, check whether the work surfaced repository knowledge that materially changes how future work should be performed: architecture or workflow changes, durable conventions or pitfalls, operational commands, or existing statements the work proved stale or contradicted. Do not add isolated interactive aliases or implementation details that are readily discoverable from source. If so, draft the addition or correction, present it to the user for approval, and edit this file only when approved — never silently. Niche, domain-specific knowledge not needed for broad work belongs in a project skill, not this file: for domains already extracted (Herdr integration, notification hooks, GSD Core — see the project-skills paragraph under Symlink Strategy) propose the addition to the matching skill; for a new such domain, propose a new `.claude/skills/<name>/SKILL.md`. Keep this file to broadly-relevant guidance, and when working in a skill-covered domain start by reading its `SKILL.md`. Proposing before the commit confirmation lets an approved change land in the same commit. If nothing qualifies, propose nothing.
+At implementation completion, before the commit confirmation in the post-implementation flow — so an approved change lands in the same commit — check whether the work surfaced repository knowledge that materially changes how future work should be performed.
+
+- Qualifies: architecture or workflow changes, durable conventions or pitfalls, operational commands, statements the work proved stale or contradicted. Excluded: isolated interactive aliases, implementation details discoverable from source.
+- If something qualifies, draft the addition or correction, present it to the user for approval, and edit this file only once approved — never silently.
+- Niche domain-specific knowledge goes to a project skill, not this file: to the matching already-extracted skill (Herdr integration, notification hooks, GSD Core — see the project-skills paragraph under Symlink Strategy), or a new `.claude/skills/<name>/SKILL.md` for a new domain. Keep this file to broadly-relevant guidance, and when working in a skill-covered domain start by reading its `SKILL.md`.
+- If nothing qualifies, propose nothing.
 
 ## Key Commands
 
@@ -79,7 +84,7 @@ When comparing or selecting an external tool to adopt here (CLI, plugin, package
 - Last commit and last release date, open issue count, archived status — from the primary source (the repo's API or release page), not a summary article. A project can be effectively abandoned while still ranking first by popularity.
 - Never treat cumulative popularity (stars, download counts) as evidence of current health; it measures accumulated history, not whether the project still works. State star counts as popularity only.
 - Note when a candidate is very new (repository age, `0.x` version, low commit count) — that is a maintenance risk to surface, not a disqualifier.
-- Prefer secondary sources published recently, and give their date; when a source's author is also the author of a compared candidate, say so and discount accordingly.
+- Prefer secondary sources published within the last 12 months and give their date; for older ones, state the age and discount accordingly. When a source's author also authored a compared candidate, say so and discount accordingly.
 
 ## Architecture
 
