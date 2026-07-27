@@ -1,0 +1,7 @@
+# Herdr plugin/popup runtime environment
+
+Herdr runs `[[events]]` plugin hooks with the same stripped `PATH` (`/usr/bin:/bin:/usr/sbin:/sbin`) as `[[keys.command]]` popups (`popups.md`) — no Homebrew dirs, `python3` is the system 3.9, `jq` is macOS's `/usr/bin/jq`, and `herdr` itself resolves only via the injected `HERDR_BIN_PATH` — so Homebrew-only tools like `terminal-notifier` silently vanish (tab renames kept working while every Mac notification failed for a day); the plugin therefore appends the Homebrew bin dirs to `PATH` (append, not prepend, so test `fake_bin` stubs keep precedence). The same stripped env may also lack `LANG`, which makes zsh's `${#x}` and slicing byte-based and corrupts multibyte text (a truncated notification body rendered as `証明で�...`); export a UTF-8 fallback (`export LANG="${LANG:-en_US.UTF-8}"`) before any multibyte handling in plugins or popups.
+
+When debugging a plugin, check `herdr plugin log list --plugin <id>` first — it records each invocation's stderr and exit code; reproducing in your own full-`PATH` shell proves nothing about the hook environment. After editing a linked plugin's `herdr-plugin.toml`, neither `herdr server reload-config` nor `herdr plugin disable`/`enable` reloads its manifest; run `herdr plugin unlink <id>` followed by `herdr plugin link <path>`, then verify events and warnings with `herdr plugin list --plugin <id> --json`.
+
+This environment applies to BOTH `[[keys.command]]` popups (`popups.md`) and `[[events]]` plugin hooks (`notify-rich.md`).
