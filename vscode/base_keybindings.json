@@ -165,5 +165,10 @@
   {
     "key": "alt+cmd+o",
     "command": "workbench.action.switchWindow"
+  },
+  {
+    "key": "cmd+m",
+    "command": "-markdown.extension.editing.toggleMath",
+    "when": "editorTextFocus && !editorReadonly && editorLangId =~ /^markdown$|^rmd$|^quarto$/"
   }
 ]
