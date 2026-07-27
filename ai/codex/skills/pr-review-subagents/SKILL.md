@@ -77,7 +77,7 @@ Inspect the passed context or indexed sources, or run read-only commands directl
 
 ### Large-Output Invariants
 
-Fetch each gather target at most once. Preserve the full raw payload for final aggregation, but return only bounded derived results to the parent. Count dynamically selected rows before emitting them; above 100 lines, or whenever the result may overwhelm context, return only the count and a focused summary, then narrow or paginate. Never repeat a fetch to recover data that the configured large-output path already captured. If the large-output path writes any temp files (e.g. a redirected diff or comment dump), delete them with `trash` (never `rm`) before finishing the review.
+Fetch each gather target at most once. Preserve the full raw payload for final aggregation, but return only bounded derived results to the parent. Count dynamically selected rows before emitting them; above 100 lines, or when few lines carry a large payload (minified JSON, base64, long single lines), return only the count and a focused summary, then narrow or paginate. Never repeat a fetch to recover data that the configured large-output path already captured. If the large-output path writes any temp files (e.g. a redirected diff or comment dump), delete them with `trash` (never `rm`) before finishing the review.
 
 When an indexed capture contains both a bounded derived section and its raw payload, query only the derived section's marker, not field names shared with the raw payload. Do not add queries merely to satisfy generic query-count guidance; keeping the raw payload out of the parent context takes precedence.
 
