@@ -29,10 +29,10 @@ Bash commands may be aliased:
 Use an absolute path when standard behavior matters; verify non-obvious paths with `type <name>` or `command -v <name>` before hard-coding them.
 
 - The `-i` aliases (`cp`, `mv`) prompt before overwriting; in non-interactive runs the prompt auto-declines and the copy/move silently fails — use `/bin/cp` / `/bin/mv` to overwrite.
-- Deletion is the exception to that `/bin/` escape hatch: never use `rm` or `/bin/rm` for any reason, even non-interactively — both are permission-denied. Always delete via `trash` (permission also denies `rm`/`/bin/rm` and allows `trash`).
+- Deletion is the exception to that `/bin/` escape hatch: `rm` and `/bin/rm` are permission-denied in all cases, even non-interactively — always delete via `trash`.
 - `trash` does not accept rm-style flags (`-r`, `-f`, `-rf` fail); pass files and directories without flags.
 - The `rg` alias reads `RIPGREP_CONFIG_PATH` from `$SET`, which is undefined in non-interactive runs, so every call emits a non-fatal config-read error on stderr — run `rg --no-config`.
-- `ls` -> `eza` does not carry over GNU/BSD `ls` flags: `eza` rejects flags like `-t` (`--time <FIELD>` expects a named value, not a bare sort flag) with a hard error instead of behaving like `ls`. When a flag's meaning must match traditional `ls`, use `/bin/ls` explicitly.
+- `eza` does not accept GNU/BSD `ls` flags: it hard-errors on flags like `-t` (its `--time <FIELD>` expects a named value) instead of behaving like `ls`. When a flag's meaning must match traditional `ls`, use `/bin/ls`.
 
 To check what a zsh symbol resolves to, prefer `type <name>`; it covers functions, aliases, builtins, and external commands in one shot. `typeset -f` only lists functions and silently misses aliases.
 
@@ -82,7 +82,7 @@ When a bug lives in an execution context you cannot run directly (another proces
 
 After any side-effecting operation (git commit/push, API writes, deletes, deploys), confirm it took effect via an independent check issued as a real tool call (e.g. `git log -1`, re-fetch the record) before reporting done — never narrate a command in prose and assume it ran. If verification fails or output is garbled, re-issue and re-verify; don't claim completion.
 
-Before `git push`, do not hard-code the target branch — run `git branch --show-current` and push the current branch. A parallel session may have switched, renamed, or re-based the working branch mid-task; a hard-coded push target can silently no-op (`Everything up-to-date` against an already-merged branch) while the current branch's commits stay unpushed. Confirming the branch immediately before push, and verifying the branch's remote ref advanced afterward, catches this.
+Before `git push`, never hard-code the target branch — run `git branch --show-current` immediately before push, push that branch, and verify its remote ref advanced afterward. A parallel session may re-point the branch mid-task, and a hard-coded target can silently no-op (`Everything up-to-date`) while the current branch's commits stay unpushed.
 
 # Destructive-Command Verification Safety
 
@@ -117,7 +117,7 @@ At task completion — before the Post-Implementation Workflow, and even when th
 - Establish provenance before deleting a temp-looking file: use a pre-task baseline or direct evidence that this session created it. Never infer ownership from its name, contents, or timestamps alone; if provenance is uncertain, leave it in place and report it.
 - Before calling `trash`, resolve and validate each target as a non-empty, existing, explicit path; never pass unset or empty variables or rely on the current working directory. If validation fails, leave the target untouched and report it.
 - If no temp files were created, continue to the Post-Implementation Workflow.
-- Otherwise delete them all without asking — invoke `trash` directly, never `rm` or `/bin/rm` (non-interactive shells skip the alias and both `rm` and `/bin/rm` are permission-denied; `trash` keeps deletion reversible) — briefly report what was deleted in the completion response, then continue to the Post-Implementation Workflow.
+- Otherwise delete them all without asking — invoke `trash` directly, never `rm`/`/bin/rm` (non-interactive shells skip the `rm` -> `trash` alias) — briefly report what was deleted in the completion response, then continue to the Post-Implementation Workflow.
 
 # Opportunistic Improvement Proposals
 
