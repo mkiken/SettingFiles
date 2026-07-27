@@ -483,12 +483,14 @@ function generate_codex_skills() {
     "review-merge:review_merge_core.md" \
     "review-post:review_post_core.md pr_post_mechanics_core.md" \
     "review-fix:review_fix_core.md" \
-    "fact-based:fact_based_core.md"
+    "fact-based:fact_based_core.md" \
+    "write-tests:write_tests_core.md"
 }
 
 function generate_gemini_skills() {
   generate_core_skills "${Repo}ai/gemini/skills" \
-    "fact-based:fact_based_core.md"
+    "fact-based:fact_based_core.md" \
+    "write-tests:write_tests_core.md"
 }
 
 function generate_ai_skills() {
@@ -591,6 +593,8 @@ function verify_ai_skill_generation_idempotency() {
     "${Repo}ai/codex/skills/review-fix/SKILL.md"
     "${Repo}ai/codex/skills/fact-based/SKILL.md"
     "${Repo}ai/gemini/skills/fact-based/SKILL.md"
+    "${Repo}ai/codex/skills/write-tests/SKILL.md"
+    "${Repo}ai/gemini/skills/write-tests/SKILL.md"
   )
 
   verify_generator_idempotency generate_ai_skills "${generated_files[@]}"

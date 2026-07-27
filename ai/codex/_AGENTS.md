@@ -60,10 +60,6 @@ When introducing a flag or parameter that gates a destructive or billable operat
 
 # Test Design
 
-When writing tests, cover boundary values and use table-driven tests.
-
-Before writing tests, inspect how the target module or repository is already tested — framework, file location, and invocation pattern — and match it; introduce a new test mechanism only when none exists.
-
 When a plan includes test work, list the planned test cases (target, condition, expected outcome) before implementing, so scope and coverage can be reviewed first.
 
 When a code comment declares a defensive invariant ("X is never adopted", "Y cannot happen"), add a test pinning that invariant in the same commit — an unenforced comment reads as already-handled and hides the missing guard.

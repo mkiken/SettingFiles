@@ -13,7 +13,7 @@ Plain text questions end the turn and trigger the Stop hook, sending a "finished
 
 When a question depends on explanatory context (proposals, trade-offs, anything not self-evident), make it self-contained: put the essential context in the `question` field itself, with options' `description`/`preview` as supplements. Response text that precedes a tool call in the same turn may not be displayed to the user, or may not appear adjacent to the dialog — never leave the explanation only in earlier text.
 
-**Note:** `AskUserQuestion` is a deferred tool in Claude Code — its schema is not loaded by default. If you have not yet loaded its schema this session, call `ToolSearch` with the query `select:AskUserQuestion` first, then invoke `AskUserQuestion`. "I do not have access to the tool" is NOT a valid reason to skip — load the schema and use it.
+**Note:** "I do not have access to the tool" is NOT a valid reason to skip — `AskUserQuestion` is deferred; load its schema via ToolSearch and use it.
 
 # Plan Review Deep-Dive (dig)
 
