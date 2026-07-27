@@ -24,14 +24,13 @@ Bash commands may be aliased:
 - `rm` -> `trash`
 - `cp` -> `cp -i`
 - `mv` -> `mv -i`
-- `rg` -> `RIPGREP_CONFIG_PATH=${SET}/configs/.ripgreprc rg`
+- `rg` -> `RIPGREP_CONFIG_PATH=${SET:-$HOME/Desktop/repository/SettingFiles/}configs/.ripgreprc rg`
 
 Use an absolute path when standard behavior matters; verify non-obvious paths with `type <name>` or `command -v <name>` before hard-coding them.
 
 - The `-i` aliases (`cp`, `mv`) prompt before overwriting; in non-interactive runs the prompt auto-declines and the copy/move silently fails — use `/bin/cp` / `/bin/mv` to overwrite.
 - Deletion is the exception to that `/bin/` escape hatch: `rm` and `/bin/rm` are permission-denied in all cases, even non-interactively — always delete via `trash`.
 - `trash` does not accept rm-style flags (`-r`, `-f`, `-rf` fail); pass files and directories without flags.
-- The `rg` alias reads `RIPGREP_CONFIG_PATH` from `$SET`, which is undefined in non-interactive runs, so every call emits a non-fatal config-read error on stderr — run `rg --no-config`.
 - `eza` does not accept GNU/BSD `ls` flags: it hard-errors on flags like `-t` (its `--time <FIELD>` expects a named value) instead of behaving like `ls`. When a flag's meaning must match traditional `ls`, use `/bin/ls`.
 
 To check what a zsh symbol resolves to, prefer `type <name>`; it covers functions, aliases, builtins, and external commands in one shot. `typeset -f` only lists functions and silently misses aliases.

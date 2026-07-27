@@ -35,7 +35,7 @@ alias c='no_notify git --no-pager diff --cached --name-status && echo && czg'
 alias cc='c checkbox'
 
 # ripgrep
-alias -g rg='RIPGREP_CONFIG_PATH=${SET}/configs/.ripgreprc rg'
+alias -g rg='RIPGREP_CONFIG_PATH=${SET:-$HOME/Desktop/repository/SettingFiles/}configs/.ripgreprc rg'
 
 # Vim runtime
 VIMRUNTIME=$(nvim --clean --headless --cmd 'echo $VIMRUNTIME|q' 2>&1)
