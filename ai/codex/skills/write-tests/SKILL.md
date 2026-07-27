@@ -81,7 +81,7 @@ For each test case, include:
 Default verdict rules:
 - `EXISTS` → default SKIP (already done; let user override if they want to replace or strengthen it)
 - `PARTIAL` → default NEEDED
-- `NEW` → NEEDED or OPTIONAL based on importance
+- `NEW` → default NEEDED, except OPTIONAL when the case needs substantial new scaffolding (fixtures, fakes, concurrency control) disproportionate to its risk
 
 Group by category (normal, boundary, error, etc.).
 
