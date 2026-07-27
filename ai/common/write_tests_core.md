@@ -87,11 +87,7 @@ Write the confirmed test cases following these principles:
 When writing tests, cover boundary values; when multiple input variations exercise the same code path, structure them as table-driven tests (follow the existing suite's idiom when it differs). Introduce a new test mechanism only when none exists.
 
 - **One assertion per logical concept** — a test can have multiple `expect()` calls if they verify the same behavior, but don't test unrelated things together
-- **Arrange-Act-Assert** structure: setup, execute, verify
-- **Descriptive test names** that explain the scenario and expected outcome (e.g., `should return error when age is negative` not `test1`)
-- **No test interdependence** — each test must work in isolation
 - **Minimal mocking** — only mock external dependencies (network, filesystem, databases), not internal modules
-- **Use the project's existing test patterns** — match style, naming, structure
 
 #### Boundary Value Implementation Pattern
 

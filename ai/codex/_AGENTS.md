@@ -36,8 +36,6 @@ Use an absolute path when standard behavior matters; verify non-obvious paths wi
 
 To check what a zsh symbol resolves to, prefer `type <name>`; it covers functions, aliases, builtins, and external commands in one shot. `typeset -f` only lists functions and silently misses aliases.
 
-In zsh scripts, do not assign temporary exit codes to read-only special parameters such as `status`; use names like `rc` or `exit_code`.
-
 # Context-Mode Commands
 
 For `ctx_batch_execute`, use one `commands` entry per target. Avoid shell control-flow or compound constructs (`if`/`case`/`for`/`while`, parenthesized command groups, and subshells) inside a command string because the runner may not parse them. When the operation requires those constructs, use a host-shell command and keep its output bounded with focused filters, counts, or summaries.
@@ -101,7 +99,7 @@ When showing the user something to visually confirm (e.g. a tmux popup), state w
 When presenting a markdown plan artifact (plan-mode plan file, SDD spec/design/tasks document) for user review or approval, offer to render it in the browser when any of the following holds; otherwise skip the offer:
 
 - It is an SDD spec/design/tasks document (always offer).
-- It is roughly 100 lines or longer.
+- It is 100 lines or longer.
 - It contains mermaid diagrams, tables, or images.
 - The plan spans multiple files.
 
