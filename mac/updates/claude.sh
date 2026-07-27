@@ -37,6 +37,7 @@ claude update
 setup_claude_superpowers
 setup_claude_context_mode
 setup_claude_dig
+setup_claude_example_skills
 setup_claude_mem
 setup_gsd_core_for_runtime claude update || exit 1
 

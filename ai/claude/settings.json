@@ -9,6 +9,7 @@
     "claude-mem@thedotmack": true,
     "context-mode@context-mode": true,
     "dig@kuu-marketplace": true,
+    "example-skills@anthropic-agent-skills": true,
     "superpowers@claude-plugins-official": true,
     "tsumiki@tsumiki": true
   },
@@ -179,6 +180,19 @@
     ]
   },
   "preferredNotifChannel": "notifications_disabled",
+  "skillOverrides": {
+    "algorithmic-art": "off",
+    "brand-guidelines": "off",
+    "canvas-design": "off",
+    "doc-coauthoring": "off",
+    "frontend-design": "off",
+    "internal-comms": "off",
+    "mcp-builder": "off",
+    "slack-gif-creator": "off",
+    "theme-factory": "off",
+    "web-artifacts-builder": "off",
+    "webapp-testing": "off"
+  },
   "skipAutoPermissionPrompt": true,
   "skipDangerousModePermissionPrompt": true,
   "statusLine": {

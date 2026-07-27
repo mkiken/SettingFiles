@@ -75,6 +75,29 @@ function setup_claude_superpowers() {
   fi
 }
 
+function setup_claude_example_skills() {
+  echo "Ensuring Claude example-skills plugin (skill-creator)..."
+
+  require_ai_setup_command claude || return 1
+  require_ai_setup_command jq || return 1
+
+  if ! claude plugin marketplace list | /usr/bin/grep -Fq "anthropic-agent-skills"; then
+    claude plugin marketplace add anthropics/skills || return 1
+  fi
+
+  claude plugin marketplace update anthropic-agent-skills || return 1
+
+  if claude plugin list --json | jq -e '.[] | select(.id == "example-skills@anthropic-agent-skills")' >/dev/null; then
+    claude plugin update example-skills@anthropic-agent-skills || return 1
+  else
+    claude plugin install example-skills@anthropic-agent-skills || return 1
+  fi
+
+  if ! claude plugin list --json | jq -e '.[] | select(.id == "example-skills@anthropic-agent-skills" and .enabled == true)' >/dev/null; then
+    claude plugin enable example-skills@anthropic-agent-skills || return 1
+  fi
+}
+
 function setup_claude_mem() {
   echo "Ensuring Claude claude-mem plugin..."
 

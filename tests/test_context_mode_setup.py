@@ -62,6 +62,7 @@ class ContextModeSetupTest(unittest.TestCase):
                 "setup_claude_superpowers",
                 "setup_claude_mem",
                 "setup_claude_dig",
+                "setup_claude_example_skills",
             ),
             "mac/scripts/ai/gemini.sh": (
                 "setup_gemini_context_mode",
@@ -89,6 +90,7 @@ class ContextModeSetupTest(unittest.TestCase):
                     "setup_claude_superpowers",
                     "setup_claude_context_mode",
                     "setup_claude_dig",
+                    "setup_claude_example_skills",
                     "setup_claude_mem",
                 ),
             ),
@@ -98,6 +100,7 @@ class ContextModeSetupTest(unittest.TestCase):
                     "setup_claude_superpowers",
                     "setup_claude_context_mode",
                     "setup_claude_dig",
+                    "setup_claude_example_skills",
                     "setup_claude_mem",
                 ),
             ),
@@ -246,6 +249,54 @@ class ContextModeSetupTest(unittest.TestCase):
                 }
             },
         )
+
+    def test_claude_settings_register_example_skills_plugin(self):
+        settings = json.loads(read_text("ai/claude/settings.json"))
+
+        self.assertTrue(settings["enabledPlugins"]["example-skills@anthropic-agent-skills"])
+        self.assertEqual(
+            settings["extraKnownMarketplaces"]["anthropic-agent-skills"],
+            {
+                "source": {
+                    "repo": "anthropics/skills",
+                    "source": "github",
+                }
+            },
+        )
+
+        # skill-creator は example-skills プラグイン経由で提供される。
+        # 同梱される他11スキルはトークン消費を避けるため skillOverrides で無効化する
+        # (skill-creator 自体は off にしない)。
+        override_off_skills = (
+            "algorithmic-art",
+            "brand-guidelines",
+            "canvas-design",
+            "doc-coauthoring",
+            "frontend-design",
+            "internal-comms",
+            "mcp-builder",
+            "slack-gif-creator",
+            "theme-factory",
+            "web-artifacts-builder",
+            "webapp-testing",
+        )
+        for skill_name in override_off_skills:
+            with self.subTest(skill=skill_name):
+                self.assertEqual(settings["skillOverrides"][skill_name], "off")
+
+        self.assertNotIn("skill-creator", settings["skillOverrides"])
+
+    def test_claude_example_skills_setup_uses_marketplace_name_not_repo_name(self):
+        script = read_text("mac/scripts/ai/claude.sh")
+
+        self.assertIn("function setup_claude_example_skills()", script)
+        self.assertIn("claude plugin marketplace add anthropics/skills", script)
+        self.assertIn("claude plugin marketplace update anthropic-agent-skills", script)
+        self.assertIn("example-skills@anthropic-agent-skills", script)
+        # marketplace名(anthropic-agent-skills)とrepo名(anthropics/skills)が不一致であるため、
+        # repo名をplugin ID/marketplace参照に誤用していないことを確認する
+        self.assertNotIn("example-skills@anthropics/skills", script)
+        self.assertNotIn("claude plugin marketplace update anthropics/skills", script)
 
     def test_claude_dig_setup_uses_marketplace_name_not_repo_name(self):
         script = read_text("mac/scripts/ai/claude.sh")
