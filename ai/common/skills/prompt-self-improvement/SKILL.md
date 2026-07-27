@@ -41,7 +41,7 @@ All paths below are relative to the SettingFiles repository root. When the curre
 - No instructions letting an assistant silently rewrite its own persistent prompts.
 - Do not treat a one-off preference as reusable unless the user explicitly wants it encoded.
 - No merging Claude/Gemini/Codex rules when their tool behavior differs.
-- No long procedures in always-on prompt files.
+- No multi-step procedures in the always-on files listed in the Source map (shared base, per-platform entrypoints, Codex source fragments) — route them to a skill per step 4.
 - No weakening confirmation, cleanup, commit, or safety workflows to reduce friction.
 - No editing character files for workflow behavior unless the change is specifically about character voice.
 - No volatile line numbers in prompt comments or documentation.
