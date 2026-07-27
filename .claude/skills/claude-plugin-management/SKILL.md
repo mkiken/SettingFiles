@@ -5,7 +5,7 @@ description: Use when adding, updating, or removing a Claude Code plugin in this
 
 # Claude Plugin Management
 
-Adding a Claude Code plugin to this repository touches four files plus tests, in a fixed pattern. Skipping any one of them is exactly how `tsumiki` and `dev-browser` ended up half-wired (installed only on first `mac/initialize`, never reconciled by `mac/update`).
+Adding a Claude Code plugin to this repository touches four files plus tests, in a fixed pattern. Skipping any one of them is exactly how `tsumiki` ended up half-wired: its `marketplace add`/`install` pair sits inline in `mac/initialization/ai/claude.sh` with no setup function at all, so `mac/update` never reconciles it.
 
 ## Marketplace name vs. repo slug
 
@@ -26,10 +26,10 @@ Reference implementation: `setup_claude_superpowers` in `mac/scripts/ai/claude.s
 1. **`mac/scripts/ai/claude.sh`** — add `setup_claude_<name>()` following the reference implementation.
 2. **`ai/claude/settings.json`** — add to `enabledPlugins` (`"<plugin>@<marketplace>": true`) and `extraKnownMarketplaces` (name-keyed, `{"source": {"repo": "...", "source": "github"}}` for a GitHub repo add, or `{"source": {"source": "git", "url": "..."}}` for a bare git URL like `tsumiki`). Keep both objects alphabetically sorted by key — this is a hand-maintained convention with no enforcing test, so check it manually (`python3 -c "import json; ..."` sorted-keys check).
 3. **`mac/initialization/ai/claude.sh`** — call the new setup function. Must stay above the `setup_gsd_core_for_runtime` line (see `tests/test_gsd_core_setup.py`'s ordering assertion).
-4. **`mac/updates/claude.sh`** — call the new setup function in the **same relative position**. This is the step tsumiki/dev-browser skipped; omitting it means the plugin never gets installed/repaired on existing machines, only on fresh `mac/initialize` runs.
+4. **`mac/updates/claude.sh`** — call the new setup function in the **same relative position**. This is the step tsumiki never reached; omitting it means the plugin never gets installed/repaired on existing machines, only on fresh `mac/initialize` runs.
 5. **`tests/test_context_mode_setup.py`** — despite its name, this file is the de-facto test suite for all Claude/Gemini/Codex plugin wiring (it already covers claude-mem, context-mode, superpowers). Extend it rather than creating a new file:
    - Add the new function name to the `mac/scripts/ai/claude.sh` tuple in `test_assistant_specific_setup_functions_are_defined_in_own_files`.
-   - Add the new function name to **both** the init and update tuples in `test_ai_setup_and_update_scripts_source_assistant_setup_before_calls` — this single addition is what structurally prevents the tsumiki/dev-browser drift, because the test's `assert_source_before_call` raises if the call string is absent from either script.
+   - Add the new function name to **both** the init and update tuples in `test_ai_setup_and_update_scripts_source_assistant_setup_before_calls` — this single addition is what structurally prevents the tsumiki-style drift, because the test's `assert_source_before_call` raises if the call string is absent from either script.
    - Add a settings-registration test mirroring `test_claude_settings_register_claude_mem_plugin`.
    - If the marketplace name differs from the repo slug, add an explicit test with `assertIn`/`assertNotIn` pairs asserting the correct identifier is used in each of the three roles above — this catches a future contributor copy-pasting a wrong ID from an external article.
 
