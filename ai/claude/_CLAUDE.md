@@ -17,7 +17,11 @@ When a question depends on explanatory context (proposals, trade-offs, anything 
 
 # Plan Review Deep-Dive (dig)
 
-When presenting a plan artifact for review, also offer the `dig` skill when the plan involves design decisions (new feature, architecture change), still carries assumptions or open items (TBD, 要検討), or spans multiple phases / many tasks. Skip it for mechanically obvious plans (renames, bulk replacements, small fixes).
+When presenting a plan artifact for review, also offer the `dig` skill — but first skip it for trivially mechanical plans: renames, bulk replacements, reverts, single-file fixes with no design decision, or plans whose every task is a stated verbatim edit. Otherwise offer it when at least one holds:
+
+- An unresolved design choice exists: an approach was picked over a stated alternative, or a new module / interface / data shape is introduced.
+- Unresolved items remain: TBD, 要検討, 要確認, or an assumption stated without verification.
+- The plan spans 3+ phases, 8+ tasks, or 5+ files.
 
 Merge this with the Plan Review Presentation offer into a single `AskUserQuestion` dialog (single-select, no multiSelect): a browser option when the mdts criteria hold, a dig option when the uncertainty criteria hold, a decline option, and — only when both criteria hold — a fourth option to open the browser and decide on dig after reading, since dig is most useful once the user knows where the plan's gaps are. If dig is selected outright, open the browser first (when also selected), then invoke the dig skill.
 
