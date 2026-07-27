@@ -40,6 +40,7 @@ Each agent's criterion and output format live in its definition — do not resta
 4. Number items continuously across all report sections; never reset per section.
 5. Detect same-location collisions: when two items (in any section, including across 1. and 2.) target the same file and section and one item's edit would remove text the other depends on (e.g. a deletion candidate that also serves as a conflict's resolution, or two conflicting edits to the same rule), record each affected item's dependency inline as `依存: 項目N と同時適用` — selective application by item number is the report's primary use, so an undocumented dependency lets a single-item apply silently reintroduce or worsen the other item's problem.
 6. Build section 3's per-file diffs from the surviving deletions, ambiguity rewrites, and shortenings — targeting `SOURCE_FILES` when source-file mode is on, the audited files otherwise.
+7. When the report includes a classification/summary section that regroups items already numbered in sections 1–2 (e.g. a user-specified category mapping), check each item's own verdict (却下 / 現状維持 / 統合 / 保留) before placing it in that section. Never restate an item's proposal at face value if it was rejected or kept-as-is elsewhere in the same report — cite the verdict instead (e.g. 「却下（項目N参照）」), so the summary section cannot re-surface a proposal the report itself already closed.
 
 ## Phase 4: Report
 

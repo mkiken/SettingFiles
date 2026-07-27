@@ -9,5 +9,6 @@ Rules:
 - Locally accumulated permission entries (e.g. `settings.local.json`) are mostly one-off approvals — cleanup candidates, but be cautious about deletion.
 - Source-to-generated expansion is normal build behavior, never a finding.
 - When estimating word/token reduction for a shortening or consolidation proposal, count it once against the source file only — never multiply by the number of generated files (e.g. concatenation-built entry files) or runtime-include destinations (e.g. `@common/...`) that merely reproduce the same source text.
+- When estimating reduction for a target that is not always-on (a skill, agent, or command body loaded only on invocation), state its load trigger (常時 / スキル起動時 / サブエージェント起動時) alongside the estimate, and never describe that reduction as shrinking the always-on layer — the always-on layer is unaffected until the target itself is loaded every session.
 - Before filing a proposal, grep auto-memory (`~/.claude/projects/*/memory/`) for prior rejections of the same or a near-identical change (phrasing like 却下, 再提案しない, rejected, do not re-propose). If a match exists, do not file the proposal — report it as 現状維持 with the rejection cited instead.
 - Report only findings needing concrete action; when unsure, do not flag.
