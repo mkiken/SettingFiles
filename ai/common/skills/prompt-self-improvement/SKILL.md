@@ -34,7 +34,7 @@ All paths below are relative to the SettingFiles repository root. When the curre
 5. Prefer the smallest change that fixes the demonstrated failure; write new or edited prompt text as concisely as meaning and intent allow — loaded prompts consume context.
 6. When prompt size or conflicts are the real problem, remove or move noisy instructions instead of adding rules. For "shorten without changing meaning" tasks, follow `ai/common/prompt_shortening_guide.md`.
 7. Validate with realistic prompts or scripts; for prompt behavior include at least one ordinary case and one failure case that motivated the change.
-8. If triggered by the Opportunistic Improvement Proposals rule rather than an explicit user request, stop at the analysis-only Response format and follow the proposal ordering and timing rules defined there.
+8. If triggered by the Opportunistic Improvement Proposals rule rather than an explicit user request, stop at the analysis-only Response format and follow the "Opportunistic Improvement Proposals" section below.
 
 ## Guardrails
 
@@ -67,6 +67,22 @@ For analysis-only work, return:
 - Affected assistants (Claude / Gemini / Codex); for changes to generated-output sources, name the required regeneration command (see the "Regenerate AI Prompts" table in the repository `CLAUDE.md`)
 
 For implementation work: make the edits, regenerate derived files if needed, run validation, and report the changed sources plus test results.
+
+## Opportunistic Improvement Proposals
+
+Loaded by the always-on `# Opportunistic Improvement Proposals` rule once at least one candidate qualifies. That rule owns the trigger criteria and timing; this section owns the mechanics.
+
+### Presentation
+
+- Surface every qualifying proposal (no per-session cap), ordered by relevance and importance.
+- Use the analysis-only Response format above. Under Proposed source changes, include a `Planned files` list of every repository-root-relative file that approval would edit or regenerate, plus affected assistants and regeneration notes.
+- Present each proposal per "Presenting proposals for approval" below, then ask approval per proposal via the platform-specific `# User Confirmation` mechanism — options per proposal: apply now / do not apply. Apply edits only to approved proposals.
+- Outside the Completion-Time Check, say nothing when no proposal qualifies.
+
+### Plan Handoff
+
+- When writing an implementation plan for approval and at least one candidate exists, add a `### 自己改善引き継ぎ` section to the plan artifact (plan file, `<proposed_plan>` block, or the plan text shown for approval) listing each candidate condensed: Target behavior / Evidence / Diagnosis / Proposed source changes. It is a record surviving the post-approval context reset, not a proposal — do not ask for approval at plan time. Omit the section when no candidate exists.
+- At the Completion-Time Check after executing a plan, include the plan's `### 自己改善引き継ぎ` candidates alongside any noticed during implementation.
 
 ## Presenting proposals for approval
 

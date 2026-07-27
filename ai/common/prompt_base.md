@@ -143,24 +143,15 @@ For one-off preferences (user taste, not a defect), keep an internal note instea
 - Not for broader automatic activation surfaces unless the user explicitly asks.
 - Not after the same topic was declined or deferred in this session.
 
-## How to propose
-
-- Surface every qualifying proposal (no per-session cap), ordered by relevance and importance.
-- Load the `prompt-self-improvement` skill and follow its analysis-only response format. Under Proposed source changes, include a `Planned files` list of every repository-root-relative file that approval would edit or regenerate, plus affected assistants and regeneration notes.
-- Outside the Completion-Time Check, say nothing when no proposal qualifies.
-
-## Plan Handoff
-
-- When writing an implementation plan for approval and at least one OIP candidate exists, add a `### 自己改善引き継ぎ` section to the plan artifact (plan file, `<proposed_plan>` block, or the plan text shown for approval) listing each candidate condensed: Target behavior / Evidence / Diagnosis / Proposed source changes. It is a record surviving the post-approval context reset, not a proposal — do not ask for approval at plan time. Omit the section when no candidate exists.
-- At the Completion-Time Check after executing a plan, include the plan's `### 自己改善引き継ぎ` candidates alongside any noticed during implementation.
-
 ## Completion-Time Check
 
-At the end of implementation, fix, configuration, review, or investigation-delivery tasks, sweep the whole session against each "When to propose" criterion and collect every qualifying candidate — do not stop at the first match. Run this before the final completion response, after Temp File Cleanup and the Post-Implementation Workflow's git action, so proposals never block the commit/push flow. The task's deliverable output (review results, findings, answers, summaries) always comes first in the final response; the OIP section — proposal analyses or the 該当なし line — is always the last content, never before or interleaved with the deliverable.
+At the end of implementation, fix, configuration, review, or investigation-delivery tasks, sweep the whole session against every "When to propose" criterion and collect all qualifying candidates — do not stop at the first match. Run it after Temp File Cleanup and the Post-Implementation Workflow's git action, and place it last in the final completion response, after the task's deliverable output.
 
-- If proposals qualify, present each per the skill's "Presenting proposals for approval" rules, then ask approval per proposal via the platform-specific `# User Confirmation` mechanism — options per proposal: apply now / do not apply. Apply edits only to approved proposals.
-- If none qualify, include exactly `自己改善チェック: 該当なし` once in the final completion response; do not raise a confirmation question.
-- Do not include this in ordinary conversation, clarification-only turns, plan-only responses (the Plan Handoff record is allowed), active progress updates, or pre-completion confirmation questions.
+- Any candidate qualifies (including a `### 自己改善引き継ぎ` record carried in an executed plan): load the `prompt-self-improvement` skill and follow its "Opportunistic Improvement Proposals" section for presentation, ordering, and per-proposal approval.
+- None qualify: include exactly `自己改善チェック: 該当なし` once, do not load the skill, and do not raise a confirmation question.
+- Skip the check entirely in ordinary conversation, clarification-only turns, active progress updates, and pre-completion confirmation questions.
+
+When writing a plan for approval, do not propose — load the `prompt-self-improvement` skill and follow its Plan Handoff rules instead.
 
 # Post-Implementation Workflow
 
