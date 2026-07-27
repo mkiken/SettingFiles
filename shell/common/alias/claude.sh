@@ -17,6 +17,10 @@ clhm() {
     clfm "$@"
 }
 
+cls() {
+    cl --model 'sonnet' "$@"
+}
+
 clf() {
     cl --model 'fable' "$@"
 }
