@@ -470,27 +470,37 @@ function generate_core_skills() {
   done
 }
 
+# 単一の真実源: shared-core スキルの <skill名>:<コアパス> エントリ一覧。
+# generate_codex_skills / generate_gemini_skills / verify_ai_skill_generation_idempotency が
+# 全てここから読む。新規スキルを shared-core 化するときはこの2配列に追記するだけでよく、
+# 生成物パスの列挙（旧 verify_ai_skill_generation_idempotency のハードコード配列）は不要。
+CODEX_CORE_SKILL_ENTRIES=(
+  "pr-review:pr_review_core.md pr_review_finding_format.md"
+  "pr-comment-review:pr_comment_review_core.md"
+  "pr-comment-implement:pr_comment_implement_core.md"
+  "pr-body:pr_body_core.md pr_body_format.md"
+  "pr-comment-post:pr_comment_post_core.md pr_post_mechanics_core.md"
+  "pr-create-by-branch:pr_create_by_branch_core.md pr_body_format.md"
+  "pr-review-subagents:pr_review_subagents/orchestrator_core.md pr_review_finding_format.md"
+  "config-audit:config_audit_subagents/orchestrator_core.md"
+  "review-merge:review_merge_core.md"
+  "review-post:review_post_core.md pr_post_mechanics_core.md"
+  "review-fix:review_fix_core.md"
+  "fact-based:fact_based_core.md"
+  "write-tests:write_tests_core.md"
+)
+
+GEMINI_CORE_SKILL_ENTRIES=(
+  "fact-based:fact_based_core.md"
+  "write-tests:write_tests_core.md"
+)
+
 function generate_codex_skills() {
-  generate_core_skills "${Repo}ai/codex/skills" \
-    "pr-review:pr_review_core.md pr_review_finding_format.md" \
-    "pr-comment-review:pr_comment_review_core.md" \
-    "pr-comment-implement:pr_comment_implement_core.md" \
-    "pr-body:pr_body_core.md pr_body_format.md" \
-    "pr-comment-post:pr_comment_post_core.md pr_post_mechanics_core.md" \
-    "pr-create-by-branch:pr_create_by_branch_core.md pr_body_format.md" \
-    "pr-review-subagents:pr_review_subagents/orchestrator_core.md pr_review_finding_format.md" \
-    "config-audit:config_audit_subagents/orchestrator_core.md" \
-    "review-merge:review_merge_core.md" \
-    "review-post:review_post_core.md pr_post_mechanics_core.md" \
-    "review-fix:review_fix_core.md" \
-    "fact-based:fact_based_core.md" \
-    "write-tests:write_tests_core.md"
+  generate_core_skills "${Repo}ai/codex/skills" "${CODEX_CORE_SKILL_ENTRIES[@]}"
 }
 
 function generate_gemini_skills() {
-  generate_core_skills "${Repo}ai/gemini/skills" \
-    "fact-based:fact_based_core.md" \
-    "write-tests:write_tests_core.md"
+  generate_core_skills "${Repo}ai/gemini/skills" "${GEMINI_CORE_SKILL_ENTRIES[@]}"
 }
 
 function generate_ai_skills() {
@@ -579,23 +589,15 @@ function verify_generator_idempotency() {
 }
 
 function verify_ai_skill_generation_idempotency() {
-  local generated_files=(
-    "${Repo}ai/codex/skills/pr-review/SKILL.md"
-    "${Repo}ai/codex/skills/pr-comment-review/SKILL.md"
-    "${Repo}ai/codex/skills/pr-comment-implement/SKILL.md"
-    "${Repo}ai/codex/skills/pr-body/SKILL.md"
-    "${Repo}ai/codex/skills/pr-comment-post/SKILL.md"
-    "${Repo}ai/codex/skills/pr-create-by-branch/SKILL.md"
-    "${Repo}ai/codex/skills/pr-review-subagents/SKILL.md"
-    "${Repo}ai/codex/skills/config-audit/SKILL.md"
-    "${Repo}ai/codex/skills/review-merge/SKILL.md"
-    "${Repo}ai/codex/skills/review-post/SKILL.md"
-    "${Repo}ai/codex/skills/review-fix/SKILL.md"
-    "${Repo}ai/codex/skills/fact-based/SKILL.md"
-    "${Repo}ai/gemini/skills/fact-based/SKILL.md"
-    "${Repo}ai/codex/skills/write-tests/SKILL.md"
-    "${Repo}ai/gemini/skills/write-tests/SKILL.md"
-  )
+  local generated_files=()
+  local entry
+
+  for entry in "${CODEX_CORE_SKILL_ENTRIES[@]}"; do
+    generated_files+=("${Repo}ai/codex/skills/${entry%%:*}/SKILL.md")
+  done
+  for entry in "${GEMINI_CORE_SKILL_ENTRIES[@]}"; do
+    generated_files+=("${Repo}ai/gemini/skills/${entry%%:*}/SKILL.md")
+  done
 
   verify_generator_idempotency generate_ai_skills "${generated_files[@]}"
 }

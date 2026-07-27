@@ -38,7 +38,8 @@ Each agent's criterion and output format live in its definition — do not resta
 2. Spot-check that each finding's quoted rule text exists in the cited file; drop mismatches.
 3. Deduplicate findings on the same rule across dimensions, keeping the highest-precedence one: `conflict > patch > default > overlap > ambiguity > concise`. A surviving deletion proposal (patch/default/overlap) absorbs concise and ambiguity findings on the same rule — fold them into its detail.
 4. Number items continuously across all report sections; never reset per section.
-5. Build section 3's per-file diffs from the surviving deletions, ambiguity rewrites, and shortenings — targeting `SOURCE_FILES` when source-file mode is on, the audited files otherwise.
+5. Detect same-location collisions: when two items (in any section, including across 1. and 2.) target the same file and section and one item's edit would remove text the other depends on (e.g. a deletion candidate that also serves as a conflict's resolution, or two conflicting edits to the same rule), record each affected item's dependency inline as `依存: 項目N と同時適用` — selective application by item number is the report's primary use, so an undocumented dependency lets a single-item apply silently reintroduce or worsen the other item's problem.
+6. Build section 3's per-file diffs from the surviving deletions, ambiguity rewrites, and shortenings — targeting `SOURCE_FILES` when source-file mode is on, the audited files otherwise.
 
 ## Phase 4: Report
 
@@ -59,26 +60,31 @@ Output the structured report below in Japanese, in the conversation only — do 
 ### 🔵 デフォルト動作と重複（指示なしでも実行される）
 N. **[ファイル名 > セクション]** ルール要約
    - 理由: ...
+   - 依存: 項目M と同時適用（該当する場合のみ）
 
 ### 🟡 ルール間の重複
 N. **[ファイルA > セクション]** ← **[ファイルB > セクション]**
    - 重複内容: ...
    - 推奨: どちらを残すか
+   - 依存: 項目M と同時適用（該当する場合のみ）
 
 ### 🟠 一時的な修正（汎用的でない）
 N. **[ファイル名 > セクション]** ルール要約
    - 理由: ...
+   - 依存: 項目M と同時適用（該当する場合のみ）
 
 ### ⚪ 曖昧・解釈が不安定
 N. **[ファイル名 > セクション]** ルール要約
    - 問題点: ...
    - 改善案: より具体的な表現の提案
+   - 依存: 項目M と同時適用（該当する場合のみ）
 
 ### 🟢 冗長な表現（意味を変えない短縮）
 N. **[ファイル名 > セクション]** 対象要約
    - 現状: ...
    - 短縮案: ...
    - 削減見込み: 約N語
+   - 依存: 項目M と同時適用（該当する場合のみ）
 
 ---
 
@@ -87,6 +93,7 @@ N. **[ファイルA > セクション]** ↔ **[ファイルB > セクション]
    - 内容A: ...
    - 内容B: ...
    - 推奨: どちらを優先すべきか / どう統合するか
+   - 依存: 項目M と同時適用（該当する場合のみ）
 
 ---
 
@@ -112,7 +119,7 @@ N. **[ファイルA > セクション]** ↔ **[ファイルB > セクション]
 After the report, confirm the next action with the user:
 
 1. **推奨変更の全適用** — apply every proposed change
-2. **番号指定で部分適用** — apply only the items named by their continuous serial numbers (e.g. 「1, 3, 5 を適用」)
+2. **番号指定で部分適用** — apply only the items named by their continuous serial numbers (e.g. 「1, 3, 5 を適用」); if a named item carries a `依存` note, surface it and confirm whether to include the dependency before applying
 3. **特定セクションの深掘り** — analyze one area in more depth
 4. **レポートのファイル保存** — save the report to a file
 
