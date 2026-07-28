@@ -287,7 +287,7 @@ function setup_gsd_core_for_runtime() {
 
   if (( run_installer )); then
     require_ai_setup_command npx || return 1
-    npx --yes @opengsd/gsd-core@latest "--${runtime}" --global --profile=standard --portable-hooks < /dev/null || return 1
+    npx --yes @opengsd/gsd-core@latest "--${runtime}" --global --profile=full --portable-hooks < /dev/null || return 1
   fi
 
   # symlink復元・permission修正は上記ガードの影響を受けず常に実行する。

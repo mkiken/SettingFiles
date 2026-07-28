@@ -338,14 +338,14 @@ _restore_managed_codex_gsd_hooks "$1" "$2"
 
         return result, state
 
-    def test_supported_runtimes_use_global_standard_portable_install(self):
+    def test_supported_runtimes_use_global_full_portable_install(self):
         expected_common_arguments = [
             "--yes",
             "@opengsd/gsd-core@latest",
         ]
         expected_install_arguments = [
             "--global",
-            "--profile=standard",
+            "--profile=full",
             "--portable-hooks",
         ]
 
