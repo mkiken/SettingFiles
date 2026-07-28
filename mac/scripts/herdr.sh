@@ -509,16 +509,59 @@ function _setup_herdr_integrations_in_staging() {
   _herdr_live_config_ready claude "$target_home" "$repo_root" || return 1
 }
 
+function _herdr_integrations_already_deployed() {
+  # install モードのスキップ判定。_herdr_deploy_live_files (:503-507) が書き出す
+  # 成果物3点（Claude/Codex の hook スクリプトと、Claude settings.json への
+  # SessionStart登録）が揃っているかだけを見る軽量チェック。まっさらな新規マシンや
+  # 部分配備状態ではどれかが欠けるので、install モードでも正しくインストーラへ進む。
+  #
+  # _herdr_live_config_ready (:211) は使わない。理由:
+  #   - 未配備時に Error: を stderr に出す(:245) — ここでは新規マシンで
+  #     インストーラを回すのが正しい結果なので、誤解を招くエラー表示になる
+  #   - codex 分岐が ~/.codex/hooks.json symlink で hard-fail する(:229-237)。
+  #     これはインストールの前提条件であって「配備済みの証拠」ではない
+  #   - hook スクリプトファイル自体の存在は見ていない
+  local target_home="$1"
+  local live_settings="$target_home/.claude/settings.json"
+
+  [[ -f "$target_home/.claude/hooks/herdr-agent-state.sh" ]] || return 1
+  [[ -f "$target_home/.codex/herdr-agent-state.sh" ]] || return 1
+  [[ -f "$live_settings" ]] || return 1
+  jq -e --arg command "$HERDR_CLAUDE_COMMAND" \
+    '[.hooks.SessionStart[]?.hooks[]?.command] | index($command) != null' \
+    "$live_settings" >/dev/null 2>&1
+}
+
 function setup_herdr_integrations() {
   local repo_root="${1:-$Repo}"
   local target_home="${2:-$HOME}"
+  local mode="${3:-update}"
   local staging_root=""
   local setup_rc=0
+
+  case "$mode" in
+    install|update) ;;
+    *)
+      echo "Error: expected Herdr integrations mode to be install or update." >&2
+      return 1
+      ;;
+  esac
 
   _herdr_require_command herdr || return 1
   _herdr_require_command jq || return 1
   _herdr_require_command shasum || return 1
   _herdr_require_command trash || return 1
+
+  # init（install モード）は、hook が既にデプロイ済みなら重い staging インストーラを
+  # 再実行しない。再実行は毎回 mktemp staging を作って `herdr integration install` を
+  # 2回走らせ、共有ライブ状態のスナップショット差分検証を経て ~/.claude/settings.json を
+  # アトミック置換する処理で、数秒かかるうえ settings.json は機械ローカルの手編集が
+  # 蓄積するファイルなので、結果が変わらないなら書き換えの窓を開かない方が安全。
+  # update は herdr 本体 upgrade 後の hook スクリプト更新を反映するのが目的なので毎回実行する。
+  if [[ "$mode" == "install" ]] && _herdr_integrations_already_deployed "$target_home"; then
+    echo "✓ Herdr integrations already deployed; skipping installer."
+    return 0
+  fi
 
   staging_root="$(mktemp -d "${TMPDIR:-/tmp}/settingfiles-herdr-integration.XXXXXX")" || return 1
   _setup_herdr_integrations_in_staging "$repo_root" "$target_home" "$staging_root"
@@ -530,14 +573,34 @@ function setup_herdr_integrations() {
   return "$setup_rc"
 }
 
+function _herdr_brew_service_status() {
+  # brew services list --json の status を取り出す。--json 非対応の古い brew や
+  # jq 失敗時は空文字を返す契約。呼び出し側はこれを "started" と一致しないものとして
+  # 扱い start にフォールバックする — 判定不能なら実行する方が安全側。
+  brew services list --json 2>/dev/null \
+    | jq -r --arg name herdr \
+      '[.[] | select(.name == $name) | .status] | first // ""' 2>/dev/null
+}
+
 function setup_herdr_service() {
-  # herdr本体のupgrade後もサーバーを常駐させるため brew services で launchd 登録する。
-  # restart は未登録・未起動でも start 相当に動くので冪等。upgrade後の新binaryも同時に反映。
+  # herdr本体を常駐させるため brew services で launchd 登録する。
+  # 以前は restart を無条件実行していたが、restart は稼働中のサーバーを一度落とすため、
+  # 開いている全ての Herdr ペインがサーバ再接続待ちになり、Herdr ペイン内から
+  # mac/initialize や mac/update を流していると自分自身を巻き込んで落ちることがあった。
+  # そのため status が started 以外のときだけ start する方式に変更。トレードオフとして、
+  # herdr 本体を brew upgrade した後の新 binary への差し替えは自動反映されなくなるため、
+  # upgrade 後は手動で `brew services restart herdr` を実行する運用にする。
   _herdr_require_command herdr || return 1
   _herdr_require_command brew || return 1
   # brew services は macOS の launchd 専用。Linux 等ではスキップ。
   [[ "$(uname -s)" == "Darwin" ]] || return 0
-  brew services restart herdr
+
+  if [[ "$(_herdr_brew_service_status)" == "started" ]]; then
+    echo "✓ Herdr brew service already started; skipping start."
+    return 0
+  fi
+
+  brew services start herdr
 }
 
 function setup_herdr_plugins() {
@@ -569,12 +632,24 @@ function setup_herdr_plugins() {
 function setup_herdr() {
   local repo_root="${1:-$Repo}"
   local target_home="${2:-$HOME}"
+  local mode="${3:-update}"
 
+  case "$mode" in
+    install|update) ;;
+    *)
+      echo "Error: expected Herdr setup mode to be install or update." >&2
+      return 1
+      ;;
+  esac
+
+  # config と plugins は自前でスキップガードを持つ（それぞれ symlink 一致判定 /
+  # plugin list 照会）ので mode を渡さない。service も稼働中なら常に起動しないため
+  # mode に関わらず同じ動作でよく、mode 不要。
   setup_herdr_config "$repo_root" "$target_home" || return 1
-  setup_herdr_integrations "$repo_root" "$target_home" || return 1
+  setup_herdr_integrations "$repo_root" "$target_home" "$mode" || return 1
   # プラグイン登録とservice常駐化は best-effort。失敗しても config/hook 登録という
   # 本体処理は成立済みなので initialize/update 全体を止めない。
   setup_herdr_plugins "$repo_root" || echo "Warning: failed to link herdr notify-rich plugin; rich notifications not applied" >&2
-  setup_herdr_service || echo "Warning: failed to (re)start herdr brew service; server persistence not applied" >&2
+  setup_herdr_service || echo "Warning: failed to start herdr brew service; server persistence not applied" >&2
   return 0
 }

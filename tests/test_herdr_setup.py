@@ -1,5 +1,7 @@
+import json
 import os
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -253,13 +255,29 @@ class HerdrServiceSetupTest(unittest.TestCase):
         brew_present: bool = True,
         brew_rc: int = 0,
         uname_output: str = "Darwin",
+        service_status: str = "none",
+        service_list_ok: bool = True,
     ) -> subprocess.CompletedProcess[str]:
         definitions = []
         if herdr_present:
             definitions.append("function herdr() { return 0; }")
         if brew_present:
+            # services list --json は _herdr_brew_service_status 用の分岐、それ以外は
+            # 従来通り呼び出しをエコーして brew_rc を返す。
+            if service_list_ok:
+                list_body = (
+                    'print -r -- \'[{"name":"herdr","status":"' + service_status + '"}]\'; return 0'
+                )
+            else:
+                list_body = "return 1"
             definitions.append(
-                f"function brew() {{ print -r -- \"brew $*\"; return {brew_rc}; }}"
+                "function brew() {\n"
+                '  if [[ "$1" == "services" && "$2" == "list" && "$3" == "--json" ]]; then\n'
+                f"    {list_body}\n"
+                "  fi\n"
+                '  print -r -- "brew $*"\n'
+                f"  return {brew_rc}\n"
+                "}"
             )
         definitions.append(f"function uname() {{ print -r -- {uname_output}; }}")
 
@@ -273,10 +291,39 @@ class HerdrServiceSetupTest(unittest.TestCase):
         )
         return run_zsh(script)
 
-    def test_darwin_restarts_brew_service(self):
-        result = self.run_setup_herdr_service()
+    def test_darwin_starts_brew_service_when_not_started(self):
+        result = self.run_setup_herdr_service(service_status="none")
 
-        self.assertEqual(result.stdout.splitlines(), ["brew services restart herdr", "rc=0"])
+        self.assertEqual(result.stdout.splitlines(), ["brew services start herdr", "rc=0"])
+
+    def test_darwin_skips_start_when_already_started(self):
+        result = self.run_setup_herdr_service(service_status="started")
+
+        self.assertEqual(
+            result.stdout.splitlines(),
+            ["✓ Herdr brew service already started; skipping start.", "rc=0"],
+        )
+        # restart/start で稼働中サーバーを落とさないことがこのガードの目的なので、
+        # brew services コマンドが(listを除き)一切呼ばれないことを明示的に確認する。
+        self.assertNotIn("brew services start herdr", result.stdout)
+        self.assertNotIn("brew services restart herdr", result.stdout)
+
+    def test_darwin_starts_brew_service_when_stopped(self):
+        result = self.run_setup_herdr_service(service_status="stopped")
+
+        self.assertEqual(result.stdout.splitlines(), ["brew services start herdr", "rc=0"])
+
+    def test_darwin_starts_brew_service_when_absent_from_list(self):
+        result = self.run_setup_herdr_service(service_status="", service_list_ok=True)
+
+        self.assertEqual(result.stdout.splitlines(), ["brew services start herdr", "rc=0"])
+
+    def test_darwin_starts_brew_service_when_status_lookup_fails(self):
+        # --json 非対応の古い brew や jq 失敗を模したケース。フェイルオープン契約
+        # （判定不能なら start する）を検証する。
+        result = self.run_setup_herdr_service(service_list_ok=False)
+
+        self.assertEqual(result.stdout.splitlines(), ["brew services start herdr", "rc=0"])
 
     def test_non_darwin_skips_brew_entirely(self):
         result = self.run_setup_herdr_service(uname_output="Linux")
@@ -298,7 +345,7 @@ class HerdrServiceSetupTest(unittest.TestCase):
     def test_brew_failure_propagates_as_nonzero(self):
         result = self.run_setup_herdr_service(brew_rc=1)
 
-        self.assertEqual(result.stdout.splitlines(), ["brew services restart herdr", "rc=1"])
+        self.assertEqual(result.stdout.splitlines(), ["brew services start herdr", "rc=1"])
 
     def test_setup_herdr_treats_service_failure_as_best_effort(self):
         # source が本物の setup_herdr_config/integrations/plugins/service を定義するため、
@@ -317,7 +364,7 @@ class HerdrServiceSetupTest(unittest.TestCase):
         result = run_zsh(script)
 
         self.assertEqual(result.stdout.splitlines()[-1], "rc=0")
-        self.assertIn("Warning: failed to (re)start herdr brew service", result.stderr)
+        self.assertIn("Warning: failed to start herdr brew service", result.stderr)
 
     def test_setup_herdr_treats_plugin_failure_as_best_effort(self):
         script = "; ".join(
@@ -335,6 +382,199 @@ class HerdrServiceSetupTest(unittest.TestCase):
 
         self.assertEqual(result.stdout.splitlines()[-1], "rc=0")
         self.assertIn("Warning: failed to link herdr notify-rich plugin", result.stderr)
+
+
+class HerdrIntegrationsModeTest(unittest.TestCase):
+    """install/update モード分離のスキップ判定。実際の staging インストーラ
+    (_setup_herdr_integrations_in_staging) は重いので、source 後にセンチネル関数へ
+    上書きし、呼ばれたかどうかだけを見る。"""
+
+    def run_setup_herdr_integrations(
+        self,
+        tmp_path: Path,
+        *,
+        mode_arg: str = "",
+        claude_hook: bool = True,
+        codex_hook: bool = True,
+        claude_settings: str | None = "registered",
+    ) -> subprocess.CompletedProcess[str]:
+        home = tmp_path / "home"
+        (home / ".claude" / "hooks").mkdir(parents=True, exist_ok=True)
+        (home / ".codex").mkdir(parents=True, exist_ok=True)
+
+        if claude_hook:
+            (home / ".claude" / "hooks" / "herdr-agent-state.sh").write_text("#!/bin/sh\n", encoding="utf-8")
+        if codex_hook:
+            (home / ".codex" / "herdr-agent-state.sh").write_text("#!/bin/sh\n", encoding="utf-8")
+
+        if claude_settings == "registered":
+            settings = {
+                "hooks": {
+                    "SessionStart": [
+                        {
+                            "matcher": "*",
+                            "hooks": [
+                                {
+                                    "type": "command",
+                                    "command": "bash ~/.claude/hooks/herdr-agent-state.sh session",
+                                }
+                            ],
+                        }
+                    ]
+                }
+            }
+            (home / ".claude" / "settings.json").write_text(json.dumps(settings), encoding="utf-8")
+        elif claude_settings == "unregistered":
+            (home / ".claude" / "settings.json").write_text(json.dumps({"hooks": {}}), encoding="utf-8")
+        elif claude_settings == "malformed":
+            (home / ".claude" / "settings.json").write_text("{not json", encoding="utf-8")
+        # claude_settings is None のときはファイル自体を作らない(未配備)
+
+        mode_literal = f' "{mode_arg}"' if mode_arg else ""
+        script = "; ".join(
+            (
+                "function herdr() { return 0; }",
+                "function trash() { return 0; }",
+                "source mac/scripts/herdr.sh",
+                "function _setup_herdr_integrations_in_staging() { print -r -- 'staging ran'; return 0; }",
+                f'setup_herdr_integrations "" "{home}"{mode_literal}',
+                "print -r -- rc=$?",
+            )
+        )
+        return run_zsh(script)
+
+    def test_install_skips_when_fully_deployed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self.run_setup_herdr_integrations(Path(tmp), mode_arg="install")
+
+        self.assertEqual(
+            result.stdout.splitlines(),
+            ["✓ Herdr integrations already deployed; skipping installer.", "rc=0"],
+        )
+        self.assertNotIn("staging ran", result.stdout)
+
+    def test_install_runs_on_fresh_machine(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self.run_setup_herdr_integrations(
+                Path(tmp), mode_arg="install", claude_hook=False, codex_hook=False, claude_settings=None
+            )
+
+        self.assertIn("staging ran", result.stdout)
+        self.assertEqual(result.stdout.splitlines()[-1], "rc=0")
+
+    def test_install_runs_when_codex_hook_missing(self):
+        # 部分配備(claudeのみ)を配備済み扱いしない
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self.run_setup_herdr_integrations(Path(tmp), mode_arg="install", codex_hook=False)
+
+        self.assertIn("staging ran", result.stdout)
+
+    def test_install_runs_when_claude_registration_missing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self.run_setup_herdr_integrations(
+                Path(tmp), mode_arg="install", claude_settings="unregistered"
+            )
+
+        self.assertIn("staging ran", result.stdout)
+
+    def test_install_runs_when_settings_json_malformed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self.run_setup_herdr_integrations(
+                Path(tmp), mode_arg="install", claude_settings="malformed"
+            )
+
+        self.assertIn("staging ran", result.stdout)
+
+    def test_update_always_runs_even_when_fully_deployed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self.run_setup_herdr_integrations(Path(tmp), mode_arg="update")
+
+        self.assertIn("staging ran", result.stdout)
+
+    def test_default_mode_is_update_for_backward_compatibility(self):
+        # 既存の6箇所の呼び出し(setup_herdr_integrations repo home)は mode 引数無しで
+        # update 相当のまま動く必要がある。
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self.run_setup_herdr_integrations(Path(tmp), mode_arg="")
+
+        self.assertIn("staging ran", result.stdout)
+
+    def test_invalid_mode_fails_before_staging(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self.run_setup_herdr_integrations(Path(tmp), mode_arg="bogus")
+
+        self.assertEqual(result.stdout.splitlines(), ["rc=1"])
+        self.assertIn("expected Herdr integrations mode to be install or update", result.stderr)
+        self.assertNotIn("staging ran", result.stdout)
+
+    def test_install_fails_before_skip_check_when_herdr_missing(self):
+        # 必須コマンドチェックはスキップ判定より前に残っている。
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp) / "home"
+            script = "; ".join(
+                (
+                    "function trash() { return 0; }",
+                    "source mac/scripts/herdr.sh",
+                    "function _setup_herdr_integrations_in_staging() { print -r -- 'staging ran'; return 0; }",
+                    f'setup_herdr_integrations "" "{home}" install',
+                    "print -r -- rc=$?",
+                )
+            )
+            result = run_zsh(script)
+
+        self.assertEqual(result.stdout.splitlines(), ["rc=1"])
+        self.assertIn("required command not found: herdr", result.stderr)
+
+
+class SetupHerdrOrchestrationTest(unittest.TestCase):
+    def run_setup_herdr(self, mode_arg: str = "") -> subprocess.CompletedProcess[str]:
+        mode_literal = f' "{mode_arg}"' if mode_arg else ""
+        script = "; ".join(
+            (
+                "source mac/scripts/herdr.sh",
+                "function setup_herdr_config() { print -r -- \"config $*\"; return 0; }",
+                "function setup_herdr_integrations() { print -r -- \"integrations $*\"; return 0; }",
+                "function setup_herdr_plugins() { print -r -- \"plugins $*\"; return 0; }",
+                "function setup_herdr_service() { print -r -- \"service $*\"; return 0; }",
+                f'setup_herdr "repo" "home"{mode_literal}',
+                "print -r -- rc=$?",
+            )
+        )
+        return run_zsh(script)
+
+    def test_install_mode_forwarded_only_to_integrations(self):
+        result = self.run_setup_herdr(mode_arg="install")
+
+        lines = result.stdout.splitlines()
+        self.assertIn("integrations repo home install", lines)
+        self.assertIn("config repo home", lines)
+        self.assertIn("plugins repo", lines)
+        self.assertIn("service ", lines)
+        self.assertEqual(lines[-1], "rc=0")
+
+    def test_default_mode_is_update(self):
+        result = self.run_setup_herdr()
+
+        self.assertIn("integrations repo home update", result.stdout.splitlines())
+
+    def test_invalid_mode_fails_before_any_child_runs(self):
+        result = self.run_setup_herdr(mode_arg="bogus")
+
+        self.assertEqual(result.stdout.splitlines(), ["rc=1"])
+        self.assertIn("expected Herdr setup mode to be install or update", result.stderr)
+
+
+class HerdrSetupCallSiteModeTest(unittest.TestCase):
+    """mac/initialize と mac/update の呼び出しが install/update を明示していることを
+    静的に固定する。これが無いと引数無し呼び出しに戻ってもガードが黙って発火しなくなる。"""
+
+    def test_initialization_entrypoint_uses_install_mode(self):
+        script = read_text("mac/initialization/herdr.sh")
+        self.assertIn('setup_herdr "" "" install', script)
+
+    def test_update_entrypoint_uses_update_mode(self):
+        script = read_text("mac/updates/herdr.sh")
+        self.assertIn('setup_herdr "" "" update', script)
 
 
 class HerdrPluginSetupTest(unittest.TestCase):
