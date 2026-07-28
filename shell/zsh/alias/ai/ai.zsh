@@ -295,75 +295,97 @@ _ai_review_herdr_label() {
     echo "${ai_emoji}${EMOJI_STATUS_REVIEW}${git_name}"
 }
 
-# label=="review" のHerdr workspaceを探して流用し、無ければ新規作成してworkspace_idを返す
-# tmuxのnamed session "review" 相当をHerdrで実現する（filter/ai.zshの都度新規作成方式とは異なり、既存workspaceを優先流用する）
-# 引数: cwd（新規作成時の初期tab cwd。既存流用時は無視される）
-_herdr_resolve_review_workspace() {
+# レビュー実行ごとに専用のHerdr workspace（label: review-<ディレクトリ名>）を新規作成し、
+# 作成応答のJSONをそのまま出力する（workspace_id/初期タブ/root paneを呼び出し元が使う）
+# 引数: cwd（初期tabのcwd。ラベルのディレクトリ名にも使う）
+_herdr_create_review_workspace() {
     local cwd="$1"
 
-    local ws_id
-    ws_id=$(herdr workspace list 2>/dev/null \
-        | jq -r '.result.workspaces[] | select(.label=="review") | .workspace_id' \
-        | head -1)
-    if [[ -n "${ws_id}" && "${ws_id}" != "null" ]]; then
-        print -r -- "${ws_id}"
-        return 0
-    fi
-
     local ws_json
-    ws_json=$(herdr workspace create --label review --cwd "${cwd}" --no-focus) || {
+    ws_json=$(herdr workspace create --label "review-${cwd:t}" --cwd "${cwd}" --no-focus) || {
         echo "herdr workspace createに失敗しました" >&2
         return 1
     }
-
-    ws_id=$(print -r -- "${ws_json}" | jq -r '.result.workspace.workspace_id')
-    if [[ -z "${ws_id}" || "${ws_id}" == "null" ]]; then
-        echo "review workspaceのworkspace_id取得に失敗しました" >&2
-        return 1
-    fi
-    print -r -- "${ws_id}"
+    print -r -- "${ws_json}"
 }
 
-# 3AIをそれぞれreview workspaceの新規タブで起動する（herdr）
-# 引数: claude_tab_var gemini_tab_var codex_tab_var run_dir claude_fn gemini_fn codex_fn review_args...
-#   先頭3つは呼び出し元localの変数名で、作成した各サブタブのtab_idを受け取る（生存監視用）
+# 3AIをレビュー実行ごとの専用workspace（review-<ディレクトリ名>）の新規タブで起動する（herdr）
+# 引数: create_watcher(1なら完了待ち〜マージをworkspaceの初期タブ=orchestratorタブで実行) run_dir claude_fn gemini_fn codex_fn review_args...
+# 呼び出し元タブは拘束しない: 完了待ち〜マージはworkspace作成時にできる初期タブを
+# orchestratorタブ（_review_watch実行）として使い、そちらへ委譲する
 _review_launch_herdr() {
-    local claude_tab_var="$1" gemini_tab_var="$2" codex_tab_var="$3"
-    local run_dir="$4" claude_fn="$5" gemini_fn="$6" codex_fn="$7"
-    shift 7
+    local create_watcher="$1" run_dir="$2" claude_fn="$3" gemini_fn="$4" codex_fn="$5"
+    shift 5
     local -a review_args=("$@")
 
     local set_dir="${SET:-$HOME/Desktop/repository/SettingFiles}"
     source "${set_dir}/shell/tmux/tmux_emoji.conf"
 
-    local ws_id claude_label gemini_label codex_label
+    local claude_label gemini_label codex_label
     local claude_command gemini_command codex_command
-    # ラベル計算（git名依存）を先に行い、失敗時は無駄なworkspace作成/流用探索を避ける
+    # ラベル計算（git名依存）を先に行い、失敗時は無駄なworkspace作成を避ける
     claude_label=$(_ai_review_herdr_label "${EMOJI_ID_CLAUDE}") || return 1
     gemini_label=$(_ai_review_herdr_label "${EMOJI_ID_GEMINI}") || return 1
     codex_label=$(_ai_review_herdr_label "${EMOJI_ID_CODEX}") || return 1
-    ws_id=$(_herdr_resolve_review_workspace "${PWD}") || return 1
     claude_command=$(_ai_review_env_command "${run_dir}/claude.md" "${claude_fn}" "${review_args[@]}") || return 1
     gemini_command=$(_ai_review_env_command "${run_dir}/gemini.md" "${gemini_fn}" "${review_args[@]}") || return 1
     codex_command=$(_ai_review_env_command "${run_dir}/codex.md" "${codex_fn}" "${review_args[@]}") || return 1
 
-    # Claudeも新規タブで起動する（元タブはウォッチャー→review-mergeに使う）
-    _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${claude_label}" "${claude_command}" "${claude_tab_var}" || return 1
-    _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${gemini_label}" "${gemini_command}" "${gemini_tab_var}" || return 1
-    _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${codex_label}" "${codex_command}" "${codex_tab_var}" || return 1
+    local ws_json ws_id orch_tab_id orch_pane_id
+    ws_json=$(_herdr_create_review_workspace "${PWD}") || return 1
+    ws_id=$(print -r -- "${ws_json}" | jq -r '.result.workspace.workspace_id // empty')
+    if [[ -z "${ws_id}" ]]; then
+        echo "review workspaceのworkspace_id取得に失敗しました" >&2
+        return 1
+    fi
+    orch_tab_id=$(print -r -- "${ws_json}" | jq -r '.result.tab.tab_id // empty')
+    orch_pane_id=$(print -r -- "${ws_json}" | jq -r '.result.root_pane.pane_id // empty')
 
-    # メインタブ（ウォッチャー→review-merge実行場所）を明示ラベル付けする（ベストエフォート）
-    # 注: notify-richはagent無しpaneのfocus時にstatus絵文字を剥がすため🔍は初回focusで消え得る。
-    # また手動renameしたラベルはauto_managed=falseになり、以後claudeが動いても本文は自動置換
-    # されない＝ "orchestrator:<git名>" はレビュー後も恒久的に残る（許容済みの既知の制限）
-    local orchestrator_tab_id orchestrator_git_name
-    orchestrator_tab_id=$(_ai_herdr_current_tab_id)
-    if [[ -n "${orchestrator_tab_id}" ]]; then
+    # Claudeも新規タブで起動し、tab_idを閉鎖検知(--liveness)用に控える
+    local claude_tab="" gemini_tab="" codex_tab=""
+    _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${claude_label}" "${claude_command}" claude_tab || return 1
+    _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${gemini_label}" "${gemini_command}" gemini_tab || return 1
+    _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${codex_label}" "${codex_command}" codex_tab || return 1
+
+    if [[ "${create_watcher}" == "1" ]]; then
+        if [[ -z "${orch_pane_id}" ]]; then
+            echo "review workspaceのroot pane取得に失敗しました" >&2
+            return 1
+        fi
+        # 初期タブをorchestratorタブとして使う: ラベル付けして完了待ち〜マージを投入する
+        # 注: renameした手動ラベルはauto_managed=falseのため、マージでclaudeが動いても
+        # 本文は自動置換されず "orchestrator:<git名>" が残り続ける（専用タブなので意図どおり）
+        local orchestrator_git_name watch_command
         orchestrator_git_name=$(_review_window_git_name "${PWD}")
-        herdr tab rename "${orchestrator_tab_id}" "${EMOJI_STATUS_REVIEW}orchestrator:${orchestrator_git_name}" >/dev/null 2>&1
+        [[ -n "${orch_tab_id}" ]] && herdr tab rename "${orch_tab_id}" \
+            "${EMOJI_STATUS_REVIEW}orchestrator:${orchestrator_git_name}" >/dev/null 2>&1
+        watch_command="_review_watch ${(q)run_dir}"
+        watch_command+=" ${(q):-claude.md${claude_tab:+=${claude_tab}}}"
+        watch_command+=" ${(q):-gemini.md${gemini_tab:+=${gemini_tab}}}"
+        watch_command+=" ${(q):-codex.md${codex_tab:+=${codex_tab}}}"
+        _herdr_wait_shell_ready "${orch_pane_id}" || return 1
+        herdr pane run "${orch_pane_id}" "${watch_command}" || {
+            echo "herdr pane runに失敗しました (pane_id=${orch_pane_id})" >&2
+            return 1
+        }
     fi
 
     herdr workspace focus "${ws_id}" >/dev/null 2>&1
+    # 完了待ちダッシュボードがすぐ見えるようorchestratorタブへフォーカスする（ベストエフォート）
+    [[ "${create_watcher}" == "1" && -n "${orch_tab_id}" ]] && herdr tab focus "${orch_tab_id}" >/dev/null 2>&1
+    return 0
+}
+
+# orchestratorタブ内で実行される: 完了待ち→マージ可否判断→cl-review-merge
+# 引数: run_dir <file>[=<tab_id>]...
+_review_watch() {
+    local run_dir="$1"
+    shift
+
+    local wait_status=0
+    bash "$HOME/.config/ai-pr/bin/ai_review_wait.sh" --liveness herdr "${run_dir}" "$@" || wait_status=$?
+    _review_handle_wait_status "${wait_status}" "${run_dir}" || return $?
+    cl-review-merge "${run_dir}"
 }
 
 # 3AIをそれぞれ新規ウィンドウで起動する（tmux）
@@ -390,6 +412,9 @@ _review_launch_tmux() {
 }
 
 # レビューの共通フロー: ランディレクトリ作成 → 3AI起動 → 完了待ち → review-merge
+# herdrではレビューごとに専用workspace(review-<ディレクトリ名>)を作り、完了待ち以降を
+# その初期タブ=orchestratorタブ(_review_watch)へ委譲して即return、
+# tmuxでは従来どおりカレントウィンドウで完了待ちする
 # 引数: claude_fn gemini_fn codex_fn [--no-merge] [pr] [prompt...]
 _review_run() {
     local claude_fn="$1" gemini_fn="$2" codex_fn="$3"
@@ -410,21 +435,22 @@ _review_run() {
     local run_dir
     run_dir=$(bash "$HOME/.config/ai-pr/bin/ai_review_run_dir.sh" "${pr_number}") || return 1
 
-    local -a wait_cmd_args
     case "$(_ai_multiplexer_kind)" in
         herdr)
-            # サブタブのtab_idを受け取り、閉鎖検知(--liveness)付きで待機する
-            local claude_tab="" gemini_tab="" codex_tab=""
-            _review_launch_herdr claude_tab gemini_tab codex_tab \
+            # 完了待ち〜マージはreview workspaceのorchestratorタブへ委譲し、呼び出し元タブは即解放する
+            local create_watcher=1
+            (( no_merge )) && create_watcher=0
+            _review_launch_herdr "${create_watcher}" \
                 "${run_dir}" "${claude_fn}" "${gemini_fn}" "${codex_fn}" "${review_args[@]}" || return 1
-            wait_cmd_args=(--liveness herdr "${run_dir}"
-                "claude.md${claude_tab:+=${claude_tab}}"
-                "gemini.md${gemini_tab:+=${gemini_tab}}"
-                "codex.md${codex_tab:+=${codex_tab}}")
+            if (( no_merge )); then
+                echo "レビューを起動しました（自動マージなし）: ${run_dir}"
+            else
+                echo "レビューを起動しました。完了待ち〜マージは review-${PWD:t} スペースの🔍orchestratorタブで実行します: ${run_dir}"
+            fi
+            return 0
             ;;
         tmux)
             _review_launch_tmux "${run_dir}" "${claude_fn}" "${gemini_fn}" "${codex_fn}" "${review_args[@]}" || return 1
-            wait_cmd_args=("${run_dir}" claude.md gemini.md codex.md)
             ;;
         *)
             echo "tmuxまたはHerdr内で実行してください" >&2
@@ -438,7 +464,7 @@ _review_run() {
     fi
 
     local wait_status=0
-    bash "$HOME/.config/ai-pr/bin/ai_review_wait.sh" "${wait_cmd_args[@]}" || wait_status=$?
+    bash "$HOME/.config/ai-pr/bin/ai_review_wait.sh" "${run_dir}" claude.md gemini.md codex.md || wait_status=$?
     _review_handle_wait_status "${wait_status}" "${run_dir}" || return $?
     cl-review-merge "${run_dir}"
 }

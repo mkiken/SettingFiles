@@ -45,45 +45,98 @@ class AiReviewLauncherTest(unittest.TestCase):
 
 
 class ReviewLaunchHerdrTest(unittest.TestCase):
-    """_review_launch_herdr のtab_id受け渡しとメインタブ改名（herdr/下位関数はstub）。"""
+    """_review_launch_herdr の専用workspace作成とorchestratorタブ委譲（herdr/下位関数はstub）。"""
 
-    def run_launch(self, pre=""):
+    WS_JSON = (
+        '{"result":{"workspace":{"workspace_id":"ws1"},'
+        '"tab":{"tab_id":"t0"},"root_pane":{"pane_id":"p0"}}}'
+    )
+
+    def run_launch(self, create_watcher):
         with tempfile.TemporaryDirectory() as temp_dir:
             log = Path(temp_dir) / "calls.log"
             snippet = f'''
 LOG="{log}"
-herdr() {{ printf '%s\\n' "$*" >> "$LOG"; }}
+herdr() {{
+    printf '%s\\n' "$*" >> "$LOG"
+    [[ "$1 $2" == "workspace create" ]] && printf '%s' '{self.WS_JSON}'
+    return 0
+}}
 _review_window_git_name() {{ echo "my-branch"; }}
-_herdr_resolve_review_workspace() {{ echo "ws1"; }}
+_herdr_wait_shell_ready() {{ printf 'shell_ready %s\\n' "$1" >> "$LOG"; }}
 # 実体は test_herdr_run_in_new_tab.py で検証済みなので、ここでは連番tab_idを代入するstubにする
 _herdr_run_in_new_tab() {{
     printf 'newtab %s\\n' "$*" >> "$LOG"
     local n=$(grep -c "^newtab " "$LOG")
     [[ -n "${{5:-}}" ]] && _ai_pr_review_assign "$5" "t${{n}}"
 }}
-{pre}
-a="" ; b="" ; c=""
-_review_launch_herdr a b c /tmp/run cl-fn gm-fn cx-fn 123
-print -r -- "rc=$? a=${{a}} b=${{b}} c=${{c}}"
+_review_launch_herdr {create_watcher} /tmp/run cl-fn gm-fn cx-fn 123
+print -r -- "rc=$?"
 '''
             result = run_zsh(snippet)
             calls = log.read_text().splitlines() if log.exists() else []
         return result, calls
 
-    def test_assigns_three_distinct_tab_ids_and_renames_main_tab(self):
-        result, calls = self.run_launch(pre='HERDR_TAB_ID="w1:t0"')
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("rc=0 a=t1 b=t2 c=t3", result.stdout)
-        renames = [c for c in calls if c.startswith("tab rename ")]
-        self.assertEqual(renames, ["tab rename w1:t0 🔍orchestrator:my-branch"])
-
-    def test_skips_main_tab_rename_when_tab_id_unresolvable(self):
-        result, calls = self.run_launch(
-            pre='unset HERDR_TAB_ID HERDR_PANE_ID'
-        )
+    def test_creates_per_run_workspace_and_orchestrator_in_root_tab(self):
+        result, calls = self.run_launch(create_watcher=1)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("rc=0", result.stdout)
+        # レビューごとの専用workspace（review-<ディレクトリ名>）を新規作成する
+        creates = [c for c in calls if c.startswith("workspace create ")]
+        self.assertEqual(len(creates), 1, calls)
+        self.assertIn("--label review-", creates[0])
+        # サブタブは3つだけ（orchestratorはworkspaceの初期タブを使うので4つ目は作らない）
+        newtabs = [c for c in calls if c.startswith("newtab ")]
+        self.assertEqual(len(newtabs), 3, calls)
+        # 初期タブ(t0)をorchestratorにラベル付けし、shell-ready後にroot pane(p0)へ_review_watchを投入
+        self.assertIn("tab rename t0 🔍orchestrator:my-branch", calls)
+        self.assertIn("shell_ready p0", calls)
+        watch_runs = [c for c in calls if c.startswith("pane run p0 _review_watch ")]
+        self.assertEqual(len(watch_runs), 1, calls)
+        self.assertIn("_review_watch /tmp/run", watch_runs[0])
+        self.assertIn("claude.md=t1", watch_runs[0])
+        self.assertIn("gemini.md=t2", watch_runs[0])
+        self.assertIn("codex.md=t3", watch_runs[0])
+        # workspace focus後にorchestratorタブ(t0)へフォーカスする
+        self.assertIn("workspace focus ws1", calls)
+        self.assertIn("tab focus t0", calls)
+
+    def test_no_watcher_when_disabled(self):
+        # --no-merge相当: サブタブ3つのみで、初期タブへの投入・ラベル付け・フォーカスはしない
+        result, calls = self.run_launch(create_watcher=0)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("rc=0", result.stdout)
+        newtabs = [c for c in calls if c.startswith("newtab ")]
+        self.assertEqual(len(newtabs), 3, calls)
+        self.assertFalse(any("_review_watch" in c for c in calls), calls)
         self.assertFalse(any(c.startswith("tab rename ") for c in calls), calls)
+        self.assertFalse(any(c.startswith("tab focus ") for c in calls), calls)
+
+
+class ReviewWatchTest(unittest.TestCase):
+    """_review_watch の完了待ち→マージ委譲（waitスクリプト呼び出しとcl-review-mergeはstub）。"""
+
+    def run_watch(self, wait_rc, handle_pre=""):
+        snippet = f'''
+bash() {{ print -r -- "WAIT:$*"; return {wait_rc}; }}
+cl-review-merge() {{ print -r -- "MERGE:$1"; }}
+{handle_pre}
+_review_watch /tmp/run claude.md=t1 gemini.md=t2 codex.md
+echo "rc=$?"
+'''
+        return run_zsh(snippet)
+
+    def test_wait_success_runs_merge_with_liveness_specs(self):
+        result = self.run_watch(wait_rc=0)
+        self.assertIn("rc=0", result.stdout)
+        self.assertIn("--liveness herdr /tmp/run claude.md=t1 gemini.md=t2 codex.md", result.stdout)
+        self.assertIn("MERGE:/tmp/run", result.stdout)
+
+    def test_wait_failure_skips_merge(self):
+        # rc 2(タイムアウト)は _review_handle_wait_status がそのまま伝播しマージしない
+        result = self.run_watch(wait_rc=2)
+        self.assertIn("rc=2", result.stdout)
+        self.assertNotIn("MERGE:", result.stdout)
 
 
 class ReviewHandleWaitStatusTest(unittest.TestCase):
