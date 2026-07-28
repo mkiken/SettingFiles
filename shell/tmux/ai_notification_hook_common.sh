@@ -25,6 +25,8 @@ source "${_AI_HOOK_SET_DIR}shell/tmux/tmux_window_name.sh"
 source "${_AI_HOOK_SET_DIR}shell/tmux/ai_notification_summary.sh"
 # 通知音マップ（ai_notification_sound <event>：イベント種別→音名。全AI共通）
 source "${_AI_HOOK_SET_DIR}shell/tmux/ai_notification_sound.sh"
+# APIエラー通知のburst抑止（api_error_burst_should_suppress：同一セッション+種別の短時間再通知を抑止）
+source "${_AI_HOOK_SET_DIR}shell/tmux/ai_notification_burst_guard.sh"
 
 # デバッグ関数
 debug_log() {

@@ -364,6 +364,192 @@ def task_stop_line(task_id, **extra):
     )
 
 
+def api_error_line(text, error="server_error", **extra):
+    """APIエラー行（実transcriptの形状を再現）。isApiErrorMessage/errorはトップレベル。"""
+    return json.dumps(
+        {
+            "type": "assistant",
+            "isApiErrorMessage": True,
+            "error": error,
+            "message": {
+                "role": "assistant",
+                "stop_reason": "stop_sequence",
+                "content": [{"type": "text", "text": text}],
+            },
+            **extra,
+        },
+        ensure_ascii=False,
+    )
+
+
+class TestLastTurnApiError(unittest.TestCase):
+    def test_cases(self):
+        cases = [
+            # (説明, 行リスト, 期待LAST_TURN_API_ERROR)
+            (
+                "エラーが実質末尾（turn_durationのみ後続）",
+                [
+                    api_error_line("API Error: Connection closed mid-response.", timestamp=TS1),
+                    json.dumps({"type": "system", "subtype": "turn_duration", "timestamp": TS2}),
+                ],
+                "server_error",
+            ),
+            (
+                "物理的な末尾がエラー行",
+                [api_error_line("API Error: Connection closed mid-response.", timestamp=TS1)],
+                "server_error",
+            ),
+            (
+                "会話継続で復帰（userの会話行でリセット）",
+                [
+                    api_error_line("API Error: Connection closed mid-response.", timestamp=TS1),
+                    user_line("続きをお願い", timestamp=TS2),
+                ],
+                "",
+            ),
+            (
+                "非会話行のみ後続（リセットしない）",
+                [
+                    api_error_line("API Error: Connection closed mid-response.", timestamp=TS1),
+                    json.dumps({"type": "last-prompt", "leafUuid": "x", "sessionId": "s"}),
+                    json.dumps({"type": "ai-title"}),
+                    json.dumps(
+                        {"type": "queue-operation", "operation": "enqueue", "timestamp": TS2}
+                    ),
+                ],
+                "server_error",
+            ),
+            (
+                "エラーなしの通常セッション",
+                [
+                    user_line("普通の依頼メッセージ", timestamp=TS1),
+                    assistant_line([{"type": "text", "text": "完了しました"}], timestamp=TS2),
+                ],
+                "",
+            ),
+            (
+                "複数エラー・最後は復帰",
+                [
+                    api_error_line("1回目のエラー", timestamp=TS1),
+                    user_line("続きをお願い", timestamp=TS2),
+                    api_error_line("2回目のエラー", timestamp=TS3),
+                    user_line("また続きをお願い", timestamp=TS3),
+                ],
+                "",
+            ),
+            (
+                "複数エラー・最後は停止",
+                [
+                    api_error_line("1回目のエラー", timestamp=TS1),
+                    user_line("続きをお願い", timestamp=TS2),
+                    api_error_line("2回目のエラー", timestamp=TS3),
+                ],
+                "server_error",
+            ),
+            (
+                "errorフィールド欠落はunknown扱い",
+                [
+                    json.dumps(
+                        {
+                            "type": "assistant",
+                            "isApiErrorMessage": True,
+                            "message": {
+                                "role": "assistant",
+                                "stop_reason": "stop_sequence",
+                                "content": [{"type": "text", "text": "何かのエラー"}],
+                            },
+                            "timestamp": TS1,
+                        }
+                    )
+                ],
+                "unknown",
+            ),
+            (
+                "task-notificationでリセットしない（システム扱いuser行）",
+                [
+                    api_error_line("API Error: Connection closed mid-response.", timestamp=TS1),
+                    task_notification_line("abc123", timestamp=TS2),
+                ],
+                "server_error",
+            ),
+            (
+                "rate_limit種別も検知する",
+                [
+                    api_error_line(
+                        "You've hit your session limit · resets 2:30pm (Asia/Tokyo)",
+                        error="rate_limit",
+                        timestamp=TS1,
+                    )
+                ],
+                "rate_limit",
+            ),
+            (
+                "invalid_request種別も検知する",
+                [
+                    api_error_line("Prompt is too long", error="invalid_request", timestamp=TS1)
+                ],
+                "invalid_request",
+            ),
+            (
+                "サイドチェーン内のエラーも検知する（サブエージェント含む方針）",
+                [
+                    api_error_line(
+                        "API Error: Connection closed mid-response.",
+                        timestamp=TS1,
+                        isSidechain=True,
+                    )
+                ],
+                "server_error",
+            ),
+            (
+                "isMeta内のエラーも検知する",
+                [
+                    api_error_line(
+                        "API Error: Connection closed mid-response.", timestamp=TS1, isMeta=True
+                    )
+                ],
+                "server_error",
+            ),
+        ]
+        for desc, lines, expected in cases:
+            with self.subTest(desc=desc):
+                result = cta.analyze_lines(lines)
+                self.assertEqual(result["last_turn_api_error"], expected)
+
+    def test_pending_background_work_coexists_with_api_error(self):
+        result = cta.analyze_lines(
+            [
+                launch_result_line("a0f4c886c975458d3", timestamp=TS1),
+                api_error_line("API Error: Connection closed mid-response.", timestamp=TS2),
+            ]
+        )
+        self.assertEqual(result["pending_background_work"], 1)
+        self.assertEqual(result["last_turn_api_error"], "server_error")
+
+    def test_error_text_extracted(self):
+        text = "You've hit your session limit · resets 2:30pm (Asia/Tokyo)"
+        result = cta.analyze_lines(
+            [api_error_line(text, error="rate_limit", timestamp=TS1)]
+        )
+        self.assertEqual(result["last_turn_api_error_text"], text)
+
+    def test_error_line_excluded_from_assistant_count(self):
+        # APIエラー行は既存の会話行集計（assistant_count）に含めない。
+        # エラー行自身がassistant_countを通過してしまうと、後続の会話行検出と
+        # 同じ分岐でリセット判定が誤発火する（エラー行が自分自身をリセットする）ため、
+        # エラー行はメッセージ集計そのものから除外する設計とする。
+        result = cta.analyze_lines(
+            [
+                user_line("普通の依頼メッセージ", timestamp=TS1),
+                assistant_line([{"type": "text", "text": "完了しました"}], timestamp=TS2),
+                api_error_line("API Error: Connection closed mid-response.", timestamp=TS3),
+            ]
+        )
+        self.assertEqual(result["assistant_count"], 1)
+        self.assertEqual(result["user_count"], 1)
+        self.assertEqual(result["last_turn_api_error"], "server_error")
+
+
 class TestPendingBackgroundWork(unittest.TestCase):
     def test_cases(self):
         armed = {"delaySeconds": 1200, "prompt": "<<autonomous-loop-dynamic>>", "reason": "待機"}
@@ -502,6 +688,8 @@ class TestMain(unittest.TestCase):
         self.assertIn("SESSION_DURATION_FORMATTED=''", output)
         self.assertIn("COMPLETION_TIME_JST=''", output)
         self.assertIn("PENDING_BACKGROUND_WORK=0", output)
+        self.assertIn("LAST_TURN_API_ERROR=''", output)
+        self.assertIn("LAST_TURN_API_ERROR_TEXT=''", output)
 
     def test_output_roundtrips_through_bash_eval(self):
         message = "it's a \"quoted\"  message\nwith 'newline' and  spaces"

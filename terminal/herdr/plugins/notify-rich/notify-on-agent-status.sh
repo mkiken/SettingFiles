@@ -79,6 +79,8 @@ source "${REPO_ROOT}/shell/tmux/ai_notification_sound.sh"
 # シェル所有✋マーカーのreadヘルパー（_herdr_shell_status_marker_read）を読み込む。
 # fail-safe: 読み込めなくてもピン留めが無効になるだけで他の処理は続行する。
 source "${REPO_ROOT}/shell/tmux/herdr_status_icon.sh" 2>/dev/null || true
+# APIエラー通知のburst抑止（tmux経路 stop-send-notification.sh と共有）。
+source "${REPO_ROOT}/shell/tmux/ai_notification_burst_guard.sh" 2>/dev/null || true
 
 managed_label_state_file() {
   local tab_id="$1"
@@ -268,6 +270,11 @@ esac
 # transcriptはagent_session.value（claudeのsession_id）から解決する。
 # サブシェル格納の理由はcodex_summaryブロックと同じfail-safe: transcript未解決・
 # 解析失敗は空出力に落ち、従来どおり通知する（通知が完全に死ぬ事故を避ける）。
+# 出力は3行: PENDING_BACKGROUND_WORK / LAST_TURN_API_ERROR / LAST_TURN_API_ERROR_TEXT。
+# エラー本文（3行目）は改行やコロン等の任意文字を含みうるため、区切り文字方式ではなく
+# 「残り全部を最後の行として読む」行ベースで受け取る（呼び出し側のIFS= read -r ×2 +
+# cat参照）。fail-safe: 途中で失敗すれば空出力に落ち、呼び出し側は全変数が空のまま
+# 従来どおり通常の完了通知にフォールバックする。
 if [[ "$agent" == "claude" && "$agent_status" == "done" ]]; then
   claude_pending="$(
     source "${REPO_ROOT}/shell/tmux/ai_notification_summary.sh" 2>/dev/null || exit 0
@@ -276,8 +283,19 @@ if [[ "$agent" == "claude" && "$agent_status" == "done" ]]; then
     [[ $? -ne 0 || -z "$analysis" ]] && exit 0
     eval "$analysis"
     print -r -- "${PENDING_BACKGROUND_WORK:-0}"
+    print -r -- "${LAST_TURN_API_ERROR:-}"
+    print -r -- "${LAST_TURN_API_ERROR_TEXT:-}"
   )"
-  [[ "$claude_pending" == "1" ]] && exit 0
+  # $(...)は末尾改行を除去するため、空行が続くケース（エラーなし等）だと
+  # パターンマッチ(%%$'\n'*)が「改行なし=1行しかない」と誤認識し、後続フィールドの
+  # 値が前のフィールドに漏れる（例: "0"だけ残るとPENDING_BACKGROUND_WORKの値が
+  # error種別として誤読される）。read -r ×3行での行単位パースなら空行も正しく
+  # 独立したフィールドとして読める。
+  { IFS= read -r claude_pending_flag
+    IFS= read -r claude_api_error
+    IFS= read -r claude_api_error_text
+  } <<< "$claude_pending"
+  [[ "$claude_pending_flag" == "1" && -z "$claude_api_error" ]] && exit 0
 fi
 
 # Workspace display name isn't in the context JSON; resolve it with one `workspace list` call.
@@ -320,6 +338,21 @@ case "$agent_status" in
     ;;
 esac
 
+# claude+doneでtranscript末尾がAPIエラーの場合、通常の完了見た目をエラー停止用に
+# 上書きする（tmux経路 stop-send-notification.sh の❌エラー停止分岐と体裁を揃える）。
+# burst抑止も同じ関数を使い、同一セッション・同一エラー種別の短時間再通知を防ぐ。
+api_error_notify_body=""
+if [[ "$agent" == "claude" && -n "${claude_api_error:-}" ]]; then
+  if ! api_error_burst_should_suppress "$session_id" "$claude_api_error" "$(date +%s)" 60; then
+    status_emoji="$EMOJI_STATUS_ERROR"
+    label_text="エラー停止"
+    sound_event="error"
+    api_error_notify_body="${claude_api_error_text:-エラー種別: ${claude_api_error}}"
+  else
+    exit 0
+  fi
+fi
+
 # 通知本文: claudeはterminal_title_stripped（会話概要として有意味）をそのまま使う。
 # codexはそのタイトルが無意味なため、agent_session.value（codexのsession_id、
 # herdr-agent-state.shがSessionStartのhook入力から報告）でtranscriptを解決し、
@@ -356,6 +389,8 @@ if [[ "$agent" == "codex" && -n "$session_id" ]]; then
   )"
   [[ -n "$codex_summary" ]] && notify_body="$codex_summary"
 fi
+# APIエラー本文は上記どちらの分岐よりも優先する（エラー種別・内容を確実に伝えるため）
+[[ -n "$api_error_notify_body" ]] && notify_body="$api_error_notify_body"
 
 agent_label="${agent:0:1:u}${agent:1}"
 now="$(date '+%H:%M:%S')"

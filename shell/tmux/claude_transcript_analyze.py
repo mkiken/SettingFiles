@@ -228,6 +228,8 @@ def analyze_lines(lines):
         "assistant_count": 0,
         "first_timestamp": "",
         "last_timestamp": "",
+        "last_turn_api_error": "",
+        "last_turn_api_error_text": "",
     }
     background_state = {"launched": set(), "completed": set(), "wakeup_deadline": None}
     for line in lines:
@@ -249,6 +251,22 @@ def analyze_lines(lines):
                 if not result["first_timestamp"]:
                     result["first_timestamp"] = timestamp
                 result["last_timestamp"] = timestamp
+
+        # APIエラー行の検知はisSidechain/isMetaスキップより前に置く
+        # （サブエージェント内のエラーも拾う方針。stop-send-notification.shの
+        # agent_idガードでサブエージェント自身のイベントは通知されないが、
+        # メインエージェントのStop時にtranscript解析経由でまとめて報じるため）。
+        # エラー行自身はcontinueして後段の会話行集計・リセット判定を通過させない
+        # （通過させるとエラー行自身がassistant_countに乗り、後続の会話行検出と
+        # 同じ分岐でリセットが誤発火する）。
+        if obj.get("isApiErrorMessage") and obj.get("type") == "assistant":
+            result["last_turn_api_error"] = str(obj.get("error") or "unknown")
+            error_message = obj.get("message")
+            if isinstance(error_message, dict):
+                result["last_turn_api_error_text"] = extract_array_content(
+                    error_message.get("content") or []
+                )
+            continue
 
         # サイドチェーン（Warmupなど）とisMeta（スラッシュコマンド展開テキスト）はスキップ
         if obj.get("isSidechain") in (True, "true"):
@@ -297,8 +315,18 @@ def analyze_lines(lines):
             if not is_system_message(content):
                 result["last_user_message"] = stripped
                 result["user_count"] += 1
+                # 真の会話行（システム扱いでないuser行）でAPIエラー状態をリセットする。
+                # <task-notification>はrole=user・非空テキストで到来しis_system_message
+                # が真になるため、このガードの内側でリセットしないと復帰済みセッション
+                # （エラー後にサブエージェント完了通知だけが続く場合）を誤って
+                # 「継続中」のまま扱ってしまう。assistant側はAPIエラー行を上のcontinueで
+                # 除外済みなので、ここに到達するassistant行は常に真の会話行でありガード不要。
+                result["last_turn_api_error"] = ""
+                result["last_turn_api_error_text"] = ""
         elif role == "assistant":
             result["assistant_count"] += 1
+            result["last_turn_api_error"] = ""
+            result["last_turn_api_error_text"] = ""
     result["pending_background_work"] = _resolve_pending_background_work(
         background_state, result["last_timestamp"]
     )
@@ -326,6 +354,8 @@ def main(argv):
     print(f"SESSION_DURATION_FORMATTED={shlex.quote(duration)}")
     print(f"COMPLETION_TIME_JST={shlex.quote(completion)}")
     print(f"PENDING_BACKGROUND_WORK={result['pending_background_work']}")
+    print(f"LAST_TURN_API_ERROR={shlex.quote(result['last_turn_api_error'])}")
+    print(f"LAST_TURN_API_ERROR_TEXT={shlex.quote(result['last_turn_api_error_text'])}")
     return 0
 
 

@@ -59,6 +59,15 @@ main() {
 {"timestamp":"2026-07-11T12:05:30.000Z","message":{"role":"assistant","content":[{"type":"text","text":"完了しました"}]}}
 EOF
 
+    # PC スリープ復帰時の接続断などでターンがAPIエラーのまま終わったケース
+    # （turn_durationが記録されターン自体は正常終了扱い＝Stopが発火する典型パターン）
+    local claude_api_error_transcript="${WORK_DIR}/smoke-claude-api-error.jsonl"
+    cat > "${claude_api_error_transcript}" <<'EOF'
+{"timestamp":"2026-07-11T12:00:00.000Z","message":{"role":"user","content":"長時間の調査を依頼"}}
+{"type":"assistant","isApiErrorMessage":true,"error":"server_error","timestamp":"2026-07-11T12:10:00.000Z","message":{"role":"assistant","stop_reason":"stop_sequence","content":[{"type":"text","text":"API Error: Connection closed mid-response."}]}}
+{"type":"system","subtype":"turn_duration","timestamp":"2026-07-11T12:10:01.000Z"}
+EOF
+
     # Codexのrolloutは response_item イベント（payload.content の input_text / output_text）形式
     local codex_transcript="${WORK_DIR}/smoke-codex.jsonl"
     cat > "${codex_transcript}" <<'EOF'
@@ -89,6 +98,9 @@ EOF
         || failures=$((failures + 1))
     run_case "claude StopFailure" "${claude_hook}" \
         "{\"hook_event_name\":\"StopFailure\",\"error\":\"invalid_request\",\"transcript_path\":\"${claude_transcript}\",\"session_id\":\"smoke-claude\"}" \
+        || failures=$((failures + 1))
+    run_case "claude Stop (API error stop)" "${claude_hook}" \
+        "{\"hook_event_name\":\"Stop\",\"transcript_path\":\"${claude_api_error_transcript}\",\"session_id\":\"smoke-claude-api-error\"}" \
         || failures=$((failures + 1))
 
     run_case "codex PermissionRequest" "${codex_hook}" \

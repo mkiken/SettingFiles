@@ -1,0 +1,211 @@
+"""terminal/herdr/plugins/notify-rich/notify-on-agent-status.sh のフル実行テスト。
+
+claude+doneイベントで、transcript末尾がAPIエラーの場合に通常の「✅完了」ではなく
+エラー用の見た目（絵文字/ラベル/音/本文）で通知されることを固定する。
+herdr CLI（pane get/tab get/workspace list/tab rename）はフェイクスクリプトで
+スタブし、terminal-notifierもフェイクで捕捉する。
+"""
+
+import json
+import os
+import stat
+import subprocess
+import tempfile
+import unittest
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+HOOK = REPO_ROOT / "terminal/herdr/plugins/notify-rich/notify-on-agent-status.sh"
+SYSTEM_PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+
+
+class NotifyOnAgentStatusFullTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+
+        fake_bin = self.root / "bin"
+        fake_bin.mkdir()
+
+        self.notifier_log = self.root / "terminal-notifier.log"
+        notifier = fake_bin / "terminal-notifier"
+        notifier.write_text(
+            '#!/bin/sh\nprintf "%s\\n" "$@" >> "$NOTIFY_TEST_LOG"\nexit 0\n', encoding="utf-8"
+        )
+        notifier.chmod(notifier.stat().st_mode | stat.S_IXUSR)
+
+        # herdr CLIスタブ: pane get / tab get / workspace list のみ応答する。
+        # tab renameは実行はするが結果を無視してよい（no-op）。
+        self.herdr_stub = fake_bin / "herdr"
+        self.herdr_stub.write_text(
+            "#!/bin/sh\n"
+            'case "$1 $2" in\n'
+            '  "pane get") cat "$HERDR_STUB_PANE_JSON" ;;\n'
+            '  "tab get") cat "$HERDR_STUB_TAB_JSON" ;;\n'
+            '  "workspace list") echo \'{"result":{"workspaces":[]}}\' ;;\n'
+            '  "tab rename") exit 0 ;;\n'
+            "  *) exit 0 ;;\n"
+            "esac\n",
+            encoding="utf-8",
+        )
+        self.herdr_stub.chmod(self.herdr_stub.stat().st_mode | stat.S_IXUSR)
+
+    def run_hook(
+        self, transcript_lines: list[str], session_id: str = "s1", agent_status: str = "done"
+    ) -> subprocess.CompletedProcess:
+        projects_dir = self.root / "projects" / "proj"
+        projects_dir.mkdir(parents=True, exist_ok=True)
+        (projects_dir / f"{session_id}.jsonl").write_text(
+            "\n".join(transcript_lines) + "\n", encoding="utf-8"
+        )
+
+        pane_json = self.root / "pane.json"
+        pane_json.write_text(
+            json.dumps(
+                {
+                    "result": {
+                        "pane": {
+                            "agent": "claude",
+                            "pane_id": "pane-1",
+                            "tab_id": "tab-1",
+                            "terminal_title_stripped": "会話の概要タイトル",
+                            "agent_session": {"value": session_id},
+                        }
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+        tab_json = self.root / "tab.json"
+        tab_json.write_text(
+            json.dumps(
+                {"result": {"tab": {"agent_status": agent_status, "label": "tab-label"}}}
+            ),
+            encoding="utf-8",
+        )
+
+        event_json = json.dumps(
+            {
+                "event": "pane.agent_status_changed",
+                "data": {
+                    "agent": "claude",
+                    "agent_status": agent_status,
+                    "pane_id": "pane-1",
+                },
+            }
+        )
+
+        env = {
+            "HOME": str(self.root),
+            "PATH": f"{self.root / 'bin'}:{SYSTEM_PATH}",
+            "NOTIFY_TEST_LOG": str(self.notifier_log),
+            "AI_NOTIFICATION_BURST_STATE_DIR": str(self.root / "burst-state"),
+            "SET": f"{REPO_ROOT}/",
+            "TZ": "UTC",
+            "HERDR_PLUGIN_EVENT_JSON": event_json,
+            "HERDR_PANE_ID": "pane-1",
+            "HERDR_BIN_PATH": str(self.herdr_stub),
+            "HERDR_STUB_PANE_JSON": str(pane_json),
+            "HERDR_STUB_TAB_JSON": str(tab_json),
+            "CLAUDE_CONFIG_DIR": str(self.root),
+        }
+        return subprocess.run(
+            ["zsh", str(HOOK)], env=env, text=True, capture_output=True, check=False
+        )
+
+    def test_api_error_done_sends_error_notification(self):
+        result = self.run_hook(
+            [
+                json.dumps(
+                    {
+                        "type": "assistant",
+                        "isApiErrorMessage": True,
+                        "error": "server_error",
+                        "timestamp": "2026-07-11T12:00:00.000Z",
+                        "message": {
+                            "role": "assistant",
+                            "stop_reason": "stop_sequence",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "API Error: Connection closed mid-response.",
+                                }
+                            ],
+                        },
+                    }
+                )
+            ]
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        log = self.notifier_log.read_text(encoding="utf-8")
+        self.assertIn("API Error: Connection closed mid-response.", log)
+        self.assertIn("Basso", log)
+        self.assertIn("❌", log)
+
+    def test_unresolvable_transcript_falls_back_to_normal_completion(self):
+        # projects配下にtranscriptファイルが存在しない（解決不能）場合、
+        # fail-safeで従来どおりの完了通知にフォールバックする
+        # （通知が完全に死ぬ事故を避ける既存方針）
+        result = self.run_hook([], session_id="session-with-no-transcript-file")
+        # run_hookは常にtranscriptファイルを作るため、ここでは直接該当ファイルを消す
+        transcript_file = self.root / "projects" / "proj" / "session-with-no-transcript-file.jsonl"
+        transcript_file.unlink()
+        # 再実行（transcript不在の状態で）
+        pane_json = self.root / "pane.json"
+        env = {
+            "HOME": str(self.root),
+            "PATH": f"{self.root / 'bin'}:{SYSTEM_PATH}",
+            "NOTIFY_TEST_LOG": str(self.notifier_log),
+            "AI_NOTIFICATION_BURST_STATE_DIR": str(self.root / "burst-state"),
+            "SET": f"{REPO_ROOT}/",
+            "TZ": "UTC",
+            "HERDR_PLUGIN_EVENT_JSON": json.dumps(
+                {
+                    "event": "pane.agent_status_changed",
+                    "data": {"agent": "claude", "agent_status": "done", "pane_id": "pane-1"},
+                }
+            ),
+            "HERDR_PANE_ID": "pane-1",
+            "HERDR_BIN_PATH": str(self.herdr_stub),
+            "HERDR_STUB_PANE_JSON": str(pane_json),
+            "HERDR_STUB_TAB_JSON": str(self.root / "tab.json"),
+            "CLAUDE_CONFIG_DIR": str(self.root),
+        }
+        result = subprocess.run(
+            ["zsh", str(HOOK)], env=env, text=True, capture_output=True, check=False
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        log = self.notifier_log.read_text(encoding="utf-8")
+        self.assertIn("Hero", log)
+        self.assertIn("✅", log)
+
+    def test_normal_done_sends_completion_notification(self):
+        result = self.run_hook(
+            [
+                json.dumps(
+                    {
+                        "timestamp": "2026-07-11T12:00:00.000Z",
+                        "message": {"role": "user", "content": "テストして"},
+                    }
+                ),
+                json.dumps(
+                    {
+                        "timestamp": "2026-07-11T12:01:00.000Z",
+                        "message": {
+                            "role": "assistant",
+                            "content": [{"type": "text", "text": "完了しました"}],
+                        },
+                    }
+                ),
+            ]
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        log = self.notifier_log.read_text(encoding="utf-8")
+        self.assertIn("Hero", log)
+        self.assertIn("✅", log)
+        self.assertNotIn("❌", log)
+
+
+if __name__ == "__main__":
+    unittest.main()

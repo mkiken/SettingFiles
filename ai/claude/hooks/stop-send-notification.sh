@@ -149,6 +149,9 @@ SESSION_DURATION_FORMATTED="${SESSION_DURATION_FORMATTED:-}"
 COMPLETION_TIME_JST="${COMPLETION_TIME_JST:-}"
 # 解析失敗時は0（作業なし）に劣化させ、通知が完全に止まる事故を避ける
 PENDING_BACKGROUND_WORK="${PENDING_BACKGROUND_WORK:-0}"
+# 解析失敗時は空（エラーなし）に劣化させ、従来どおりの✅終了通知にフォールバックする
+LAST_TURN_API_ERROR="${LAST_TURN_API_ERROR:-}"
+LAST_TURN_API_ERROR_TEXT="${LAST_TURN_API_ERROR_TEXT:-}"
 debug_log "Analysis: user_count=${USER_MESSAGE_COUNT}, assistant_count=${ASSISTANT_MESSAGE_COUNT}, last_msg_len=${#LAST_USER_MESSAGE}, first_ts=${FIRST_TIMESTAMP}, last_ts=${LAST_TIMESTAMP}"
 debug_log "Session duration: ${SESSION_DURATION_FORMATTED}, completion time (JST): ${COMPLETION_TIME_JST}"
 
@@ -193,6 +196,26 @@ if [[ "${hook_event_name}" == "StopFailure" ]]; then
 
     debug_log "Sending stop-failure notification: ${notification_body}"
     notify "$(build_ai_title "❌" "エラー停止")" "${notification_body}" "$(ai_notification_sound error)" "${notification_group}" "${COMPLETION_TIME_JST}"
+    exit 0
+fi
+
+# Stopイベント: APIエラー停止通知（PC スリープでの接続断・レート制限・コンテキスト超過等）
+# transcript末尾がAPIエラーで終わっている場合、ターン自体は正常終了（turn_duration記録）
+# 扱いになりStopが発火するため、下のPENDING_BACKGROUND_WORKチェックより前に判定する必要が
+# ある（エラーで止まっている以上、バックグラウンド作業の完了を待っても会話は再開しないため
+# APIエラーを優先する）。
+if [[ -n "${LAST_TURN_API_ERROR}" ]]; then
+    if ! api_error_burst_should_suppress "${session_id}" "${LAST_TURN_API_ERROR}" "$(date +%s)" 60; then
+        update_tmux_window_name "${EMOJI_STATUS_ERROR}" "${AI_HOOK_EMOJI_ID}"
+        notification_body="${LAST_TURN_API_ERROR_TEXT:-エラー種別: ${LAST_TURN_API_ERROR}}"
+        if [[ -n "${summary}" ]]; then
+            notification_body="${notification_body}"$'\n'"${summary}"
+        fi
+        debug_log "Sending API error stop notification (${LAST_TURN_API_ERROR}): ${notification_body}"
+        notify "$(build_ai_title "❌" "エラー停止")" "${notification_body}" "$(ai_notification_sound error)" "${notification_group}" "${COMPLETION_TIME_JST}"
+    else
+        debug_log "API error notification suppressed (burst guard): ${LAST_TURN_API_ERROR}"
+    fi
     exit 0
 fi
 
