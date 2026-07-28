@@ -15,7 +15,7 @@ Merge the per-AI PR review result files in <RUN_DIR> into `merged.json` and gene
    - previous state `adopt: false` (or unset) → `"carryover": "skipped_before"`
    - previous state `adopt: true` → `"carryover": "should_be_fixed"`
    No previous run, no state, or no match → `"carryover": null`.
-6. Record the current PR head: `gh pr view <PR_NUMBER> --json headRefOid --jq .headRefOid` (PR number from the run directory path `pr-<N>`), stored as `head_ref_oid`.
+6. Fetch report metadata before writing JSON: `gh pr view <PR_NUMBER> --json url,title,author,headRefName,headRefOid` and `gh repo view --json nameWithOwner,url`. Store the PR URL/title/author login/head branch/head SHA and repository name/URL in the schema below. The report uses these values for its header, GitHub links, and code-context fallback.
 7. Write `<RUN_DIR>/merged.json` (schema below), then render and open the report:
 
 ```bash
@@ -23,15 +23,23 @@ python3 ~/.config/ai-pr/bin/generate_review_report.py <RUN_DIR>/merged.json <RUN
 open -a "Google Chrome" <RUN_DIR>/report.html
 ```
 
-8. Print a Japanese summary: per-AI finding counts, merged item count, how many duplicates were merged, carryover counts, and the follow-up usage — check items in the browser (状態ファイルを接続 → save state.json into <RUN_DIR>), then run `review-post` (PRコメント投稿) or `review-fix` (修正) with <RUN_DIR>.
+8. Print a Japanese summary: per-AI finding counts, merged item count, how many duplicates were merged, carryover counts, and the follow-up usage — check items in the browser (進捗を保存… → save state.json into <RUN_DIR>), then run `review-post` (PRコメント投稿) or `review-fix` (修正) with <RUN_DIR>.
 
 ## merged.json schema
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "pr_number": 123,
   "head_ref_oid": "<sha>",
+  "head_ref_name": "feature/example",
+  "repository": {
+    "name": "owner/repository",
+    "url": "https://github.com/owner/repository"
+  },
+  "pr_url": "https://github.com/owner/repository/pull/123",
+  "pr_title": "PR title",
+  "pr_author": "author-login",
   "run_dir": "/abs/path/to/run",
   "sources": ["claude", "codex"],
   "items": [
@@ -52,4 +60,4 @@ open -a "Google Chrome" <RUN_DIR>/report.html
 }
 ```
 
-`line_spec` keeps the original notation (`42`, `42-50`, `~42`). `carryover` is `null` / `"skipped_before"` / `"should_be_fixed"`.
+`line_spec` keeps the original notation (`42`, `42-50`, `~42`). `carryover` is `null` / `"skipped_before"` / `"should_be_fixed"`. `schema_version: 1` remains readable by the renderer but cannot show the new PR metadata or GitHub links.
