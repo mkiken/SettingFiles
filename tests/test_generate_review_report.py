@@ -98,10 +98,23 @@ class RenderTest(unittest.TestCase):
         self.assertIn("ai-review-report-theme", html)
         self.assertIn("markdown-code", html)
         self.assertIn("aria-expanded", html)
-        self.assertIn('input.type="radio"', html)
-        self.assertIn("確認済み（対応不要）", html)
-        self.assertIn("対応リストへ追加", html)
+        self.assertIn('input.type="checkbox"', html)
+        self.assertNotIn('input.type="radio"', html)
+        self.assertIn("🔧 対応する", html)
+        self.assertIn("🚫 対応しない", html)
+        self.assertIn("decision-adopt", html)
+        self.assertIn("decision-skip", html)
+        self.assertIn("#expand-all", html)
+        self.assertIn("#save-state", html)
+        self.assertIn(".card-toggle{color:var(--link)}", html)
         self.assertIn("処理済みを表示", html)
+
+    def test_decision_controls_are_mutually_exclusive_and_clearable(self):
+        html = mod.render(merged([item(1)]))
+        self.assertIn('s.reviewed=input.checked&&value==="reviewed"', html)
+        self.assertIn('s.adopt=input.checked&&value==="adopt"', html)
+        self.assertIn('input.value==="adopt"?s.adopt:s.reviewed', html)
+        self.assertIn("未処理 ${DATA.items.length-done}", html)
 
     def test_state_save_is_in_footer_and_requires_all_items_completed(self):
         html = mod.render(merged([item(1)]))
