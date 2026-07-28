@@ -17,7 +17,7 @@ def run_herdr_run_in_new_tab(
     args: str,
     *,
     tab_create_exit: int = 0,
-    tab_create_json: str = '{"result":{"root_pane":{"pane_id":"w1:p2"}}}',
+    tab_create_json: str = '{"result":{"tab":{"tab_id":"w1:t3"},"root_pane":{"pane_id":"w1:p2"}}}',
     wait_output_exit: int = 0,
     wait_output_failures: int = 0,
     wait_output_stderr: str = "",
@@ -63,7 +63,12 @@ herdr() {{
     esac
 }}
 jq() {{
-    python3 -c 'import json,sys; d=json.load(sys.stdin); v=d.get("result",{{}}).get("root_pane",{{}}).get("pane_id"); print(v if v is not None else "null")'
+    # ai.zshが使う2種類のフィルタを引数でディスパッチする（$2がフィルタ文字列）
+    if [[ "$2" == *tab.tab_id* ]]; then
+        python3 -c 'import json,sys; d=json.load(sys.stdin); v=d.get("result",{{}}).get("tab",{{}}).get("tab_id"); print(v if v is not None else "")'
+    else
+        python3 -c 'import json,sys; d=json.load(sys.stdin); v=d.get("result",{{}}).get("root_pane",{{}}).get("pane_id"); print(v if v is not None else "null")'
+    fi
 }}
 source "{AI_ALIASES}"
 {args}
@@ -205,6 +210,37 @@ class HerdrRunInNewTabTest(unittest.TestCase):
         markers = [marker_from_run_call(c) for c in calls if "print -r --" in c]
         self.assertEqual(len(markers), 2)
         self.assertNotEqual(markers[0], markers[1])
+
+    def test_tab_id_out_var_receives_created_tab_id(self):
+        result, calls = run_herdr_run_in_new_tab(
+            'local out=""; '
+            '_herdr_run_in_new_tab "" "/tmp/work" "label" "gm-pr-review 123" out '
+            '&& print -r -- "got:${out}"'
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), "got:w1:t3")
+        # 出力変数の追加で呼び出し列(tab create→marker→wait→本命)が変わらないこと
+        self.assertEqual(len(calls), 4, calls)
+
+    def test_missing_tab_id_warns_and_continues_with_empty_var(self):
+        result, calls = run_herdr_run_in_new_tab(
+            'local out="stale"; '
+            '_herdr_run_in_new_tab "" "/tmp/work" "label" "gm-pr-review 123" out '
+            '&& print -r -- "got:${out}"',
+            tab_create_json='{"result":{"root_pane":{"pane_id":"w1:p2"}}}',
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), "got:")
+        self.assertIn("tab_idを取得できませんでした", result.stderr)
+        self.assertEqual(len(calls), 4, calls)
+
+    def test_invalid_out_var_name_fails_before_pane_run(self):
+        result, calls = run_herdr_run_in_new_tab(
+            '_herdr_run_in_new_tab "" "/tmp/work" "label" "gm-pr-review 123" bad-name'
+        )
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(len(calls), 1, calls)
+        self.assertTrue(calls[0].startswith("tab create"))
 
     def test_noop_command_from_fgwtc_is_still_sent_after_ready(self):
         # fgwtc(git.zsh) は command に no-op ':' を渡す。ready待ち後もスキップされず投入されること。

@@ -130,7 +130,8 @@ _ai_multiplexer_kind() {
 source "${SET:-$HOME/Desktop/repository/SettingFiles}/shell/tmux/herdr_wait_shell_ready.sh"
 
 # Herdrで新しいtabを作りコマンドを実行する（tmux new-window相当）
-# 引数: workspace_id(空ならカレントworkspace), cwd, label, command
+# 引数: workspace_id(空ならカレントworkspace), cwd, label, command,
+#       [tab_id_var(省略可: 作成tabのtab_idを呼び出し元localへ代入する)]
 # herdr pane run は既存の対話シェルにコマンドを投入する方式のため、
 # tmux版と違い ";  zsh" のようなシェル残存サフィックスは不要
 _herdr_run_in_new_tab() {
@@ -138,6 +139,7 @@ _herdr_run_in_new_tab() {
     local cwd="$2"
     local label="$3"
     local command="$4"
+    local tab_id_var="${5:-}"
 
     local -a create_args=(tab create --cwd "${cwd}" --label "${label}" --no-focus)
     [[ -n "${workspace_id}" ]] && create_args+=(--workspace "${workspace_id}")
@@ -153,6 +155,14 @@ _herdr_run_in_new_tab() {
     if [[ -z "${pane_id}" || "${pane_id}" == "null" ]]; then
         echo "herdr tab createの結果からpane_idを取得できませんでした" >&2
         return 1
+    fi
+
+    if [[ -n "${tab_id_var}" ]]; then
+        local created_tab_id
+        created_tab_id=$(print -r -- "${json}" | jq -r '.result.tab.tab_id // empty')
+        # tab_id欠落は致命ではない: 空を代入して続行し、呼び出し元は生存監視なしに退化する
+        [[ -z "${created_tab_id}" ]] && echo "herdr tab createの結果からtab_idを取得できませんでした（生存監視なしで続行）" >&2
+        _ai_pr_review_assign "${tab_id_var}" "${created_tab_id}" || return 1
     fi
 
     _herdr_wait_shell_ready "${pane_id}" || return 1
@@ -315,10 +325,12 @@ _herdr_resolve_review_workspace() {
 }
 
 # 3AIをそれぞれreview workspaceの新規タブで起動する（herdr）
-# 引数: run_dir claude_fn gemini_fn codex_fn review_args...
+# 引数: claude_tab_var gemini_tab_var codex_tab_var run_dir claude_fn gemini_fn codex_fn review_args...
+#   先頭3つは呼び出し元localの変数名で、作成した各サブタブのtab_idを受け取る（生存監視用）
 _review_launch_herdr() {
-    local run_dir="$1" claude_fn="$2" gemini_fn="$3" codex_fn="$4"
-    shift 4
+    local claude_tab_var="$1" gemini_tab_var="$2" codex_tab_var="$3"
+    local run_dir="$4" claude_fn="$5" gemini_fn="$6" codex_fn="$7"
+    shift 7
     local -a review_args=("$@")
 
     local set_dir="${SET:-$HOME/Desktop/repository/SettingFiles}"
@@ -336,9 +348,20 @@ _review_launch_herdr() {
     codex_command=$(_ai_review_env_command "${run_dir}/codex.md" "${codex_fn}" "${review_args[@]}") || return 1
 
     # Claudeも新規タブで起動する（元タブはウォッチャー→review-mergeに使う）
-    _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${claude_label}" "${claude_command}" || return 1
-    _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${gemini_label}" "${gemini_command}" || return 1
-    _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${codex_label}" "${codex_command}" || return 1
+    _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${claude_label}" "${claude_command}" "${claude_tab_var}" || return 1
+    _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${gemini_label}" "${gemini_command}" "${gemini_tab_var}" || return 1
+    _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${codex_label}" "${codex_command}" "${codex_tab_var}" || return 1
+
+    # メインタブ（ウォッチャー→review-merge実行場所）を明示ラベル付けする（ベストエフォート）
+    # 注: notify-richはagent無しpaneのfocus時にstatus絵文字を剥がすため🔍は初回focusで消え得る。
+    # また手動renameしたラベルはauto_managed=falseになり、以後claudeが動いても本文は自動置換
+    # されない＝ "orchestrator:<git名>" はレビュー後も恒久的に残る（許容済みの既知の制限）
+    local orchestrator_tab_id orchestrator_git_name
+    orchestrator_tab_id=$(_ai_herdr_current_tab_id)
+    if [[ -n "${orchestrator_tab_id}" ]]; then
+        orchestrator_git_name=$(_review_window_git_name "${PWD}")
+        herdr tab rename "${orchestrator_tab_id}" "${EMOJI_STATUS_REVIEW}orchestrator:${orchestrator_git_name}" >/dev/null 2>&1
+    fi
 
     herdr workspace focus "${ws_id}" >/dev/null 2>&1
 }
@@ -387,9 +410,22 @@ _review_run() {
     local run_dir
     run_dir=$(bash "$HOME/.config/ai-pr/bin/ai_review_run_dir.sh" "${pr_number}") || return 1
 
+    local -a wait_cmd_args
     case "$(_ai_multiplexer_kind)" in
-        herdr) _review_launch_herdr "${run_dir}" "${claude_fn}" "${gemini_fn}" "${codex_fn}" "${review_args[@]}" || return 1 ;;
-        tmux) _review_launch_tmux "${run_dir}" "${claude_fn}" "${gemini_fn}" "${codex_fn}" "${review_args[@]}" || return 1 ;;
+        herdr)
+            # サブタブのtab_idを受け取り、閉鎖検知(--liveness)付きで待機する
+            local claude_tab="" gemini_tab="" codex_tab=""
+            _review_launch_herdr claude_tab gemini_tab codex_tab \
+                "${run_dir}" "${claude_fn}" "${gemini_fn}" "${codex_fn}" "${review_args[@]}" || return 1
+            wait_cmd_args=(--liveness herdr "${run_dir}"
+                "claude.md${claude_tab:+=${claude_tab}}"
+                "gemini.md${gemini_tab:+=${gemini_tab}}"
+                "codex.md${codex_tab:+=${codex_tab}}")
+            ;;
+        tmux)
+            _review_launch_tmux "${run_dir}" "${claude_fn}" "${gemini_fn}" "${codex_fn}" "${review_args[@]}" || return 1
+            wait_cmd_args=("${run_dir}" claude.md gemini.md codex.md)
+            ;;
         *)
             echo "tmuxまたはHerdr内で実行してください" >&2
             return 1
@@ -401,8 +437,37 @@ _review_run() {
         return 0
     fi
 
-    bash "$HOME/.config/ai-pr/bin/ai_review_wait.sh" "${run_dir}" claude.md gemini.md codex.md || return $?
+    local wait_status=0
+    bash "$HOME/.config/ai-pr/bin/ai_review_wait.sh" "${wait_cmd_args[@]}" || wait_status=$?
+    _review_handle_wait_status "${wait_status}" "${run_dir}" || return $?
     cl-review-merge "${run_dir}"
+}
+
+# 完了待ちの結果からマージ可否を決める。return 0=マージ続行
+# exit 3(閉鎖ありで解決)は自動マージせず、揃った分でのマージ可否をユーザーに確認する
+_review_handle_wait_status() {
+    local wait_status="$1" run_dir="$2"
+    case "${wait_status}" in
+        0) return 0 ;;
+        3)
+            local -a arrived=()
+            local f
+            for f in claude.md gemini.md codex.md; do
+                [[ -s "${run_dir}/${f}" ]] && arrived+=("${f}")
+            done
+            if (( ${#arrived[@]} == 0 )); then
+                echo "レビュー結果ファイルが1件もありません（全AIタブが出力前に閉じられました）: ${run_dir}" >&2
+                return 1
+            fi
+            local arrived_names="${(j:, :)${(@)arrived%.md}}"
+            if confirm "揃った ${#arrived[@]}/3 件（${arrived_names}）のみでマージしますか？" --default-no --no-cancel-msg; then
+                return 0
+            fi
+            echo "マージを保留しました。揃った分でマージするには review-merge を実行してください: ${run_dir}"
+            return 1
+            ;;
+        *) return "${wait_status}" ;;
+    esac
 }
 
 review() {
