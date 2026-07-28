@@ -93,7 +93,7 @@ class RenderTest(unittest.TestCase):
 
     def test_render_contains_report_ui_features(self):
         html = mod.render(merged([item(1)]))
-        self.assertIn("進捗を保存…", html)
+        self.assertIn("状態ファイルを保存…", html)
         self.assertIn("最大信頼度", html)
         self.assertIn("ai-review-report-theme", html)
         self.assertIn("markdown-code", html)
@@ -102,6 +102,25 @@ class RenderTest(unittest.TestCase):
         self.assertIn("確認済み（対応不要）", html)
         self.assertIn("対応リストへ追加", html)
         self.assertIn("処理済みを表示", html)
+
+    def test_state_save_is_in_footer_and_requires_all_items_completed(self):
+        html = mod.render(merged([item(1)]))
+        markup = html.split("<script>", 1)[0]
+        self.assertLess(markup.index('<div id="report"'), markup.index("<footer>"))
+        self.assertLess(markup.index("<footer>"), markup.index('id="save-state"'))
+        self.assertIn('<button id="save-state" disabled>', markup)
+        self.assertIn(
+            'document.getElementById("save-state").disabled='
+            "!CAN_SAVE_STATE||done!==DATA.items.length",
+            html,
+        )
+        self.assertIn("function allItemsCompleted()", html)
+
+    def test_copy_params_control_is_removed(self):
+        html = mod.render(merged([item(1)]))
+        self.assertNotIn("番号をコピー", html)
+        self.assertNotIn("copy-params", html)
+        self.assertNotIn("clipboard.writeText", html)
 
     def test_schema_v1_remains_renderable(self):
         legacy = merged([item(1)])
