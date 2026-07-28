@@ -2,7 +2,7 @@
   "fontFamily": "Roboto",
   "fontFamilyMonospace": "Roboto Mono",
   "fontSize": 16,
-  "theme": "default",
+  "theme": "ocean",
   "syntaxHighlighterTheme": "tomorrow",
   "enableBreaks": false
 }
