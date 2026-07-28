@@ -73,6 +73,10 @@ def toml_header_value(path: Path, field: str) -> str:
     return match.group(1)
 
 
+def toml_header_has_field(path: Path, field: str) -> bool:
+    return re.search(rf"^{re.escape(field)} = ", path.read_text(encoding="utf-8"), re.MULTILINE) is not None
+
+
 class PrCommentImplementAliasTest(unittest.TestCase):
     URL = "https://github.com/acme/widget/pull/42#discussion_r123"
     EXTRA = "fix only the failing path"
@@ -201,9 +205,20 @@ class ReviewerAgentEffortPolicyTest(unittest.TestCase):
             with self.subTest(dimension=dimension):
                 source = REPO_ROOT / f"ai/codex/agents_src/head_{dimension}.toml"
                 generated = REPO_ROOT / f"ai/codex/agents/pr_reviewer_{dimension}.toml"
-                self.assertEqual(toml_header_value(source, "model_reasoning_effort"), "high")
-                self.assertEqual(toml_header_value(generated, "model_reasoning_effort"), "high")
-                self.assertEqual(toml_header_value(generated, "model"), toml_header_value(source, "model"))
+                # Review agents inherit the caller's model and effort configuration.
+                for field in ("model", "model_reasoning_effort"):
+                    self.assertFalse(toml_header_has_field(source, field))
+                    self.assertFalse(toml_header_has_field(generated, field))
+
+    def test_codex_review_fix_agents_inherit_caller_model_and_effort(self):
+        for role in ("designer", "implementer"):
+            with self.subTest(role=role):
+                source = REPO_ROOT / f"ai/codex/agents_src/review_fix/head_{role}.toml"
+                generated = REPO_ROOT / f"ai/codex/agents/review_fix_{role}.toml"
+                # Review-fix agents must not override the caller's execution settings.
+                for field in ("model", "model_reasoning_effort"):
+                    self.assertFalse(toml_header_has_field(source, field))
+                    self.assertFalse(toml_header_has_field(generated, field))
 
 
 if __name__ == "__main__":

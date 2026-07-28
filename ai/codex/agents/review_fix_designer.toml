@@ -1,8 +1,6 @@
 # GENERATED FILE - do not edit. Sources: ai/common/review_fix_subagents/, ai/codex/agents_src/review_fix/. Regen: mac/updates/codex.sh.
 name = "review_fix_designer"
 description = "Fix designer for review-fix: reads findings and code, writes a design file into the run directory."
-model = "gpt-5.4"
-model_reasoning_effort = "high"
 sandbox_mode = "danger-full-access"
 
 developer_instructions = '''

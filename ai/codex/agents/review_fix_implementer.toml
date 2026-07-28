@@ -1,8 +1,6 @@
 # GENERATED FILE - do not edit. Sources: ai/common/review_fix_subagents/, ai/codex/agents_src/review_fix/. Regen: mac/updates/codex.sh.
 name = "review_fix_implementer"
 description = "Fix implementer for review-fix: applies an approved fix design to the working tree."
-model = "gpt-5.4"
-model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 
 developer_instructions = '''
