@@ -94,7 +94,7 @@ class AiAllDispatchTest(unittest.TestCase):
     def test_herdr_env_dispatches_to_herdr(self):
         result, calls = run_ai_all(
             '''
-            clhm() { :; }
+            clh() { :; }
             ai-all "hello"
             ''',
             env_extra="HERDR_ENV=1",
@@ -106,7 +106,7 @@ class AiAllDispatchTest(unittest.TestCase):
         result, calls = run_ai_all(
             '''
             _ai_window_base_name() { printf "%s" "repo"; }
-            clhm() { :; }
+            clh() { :; }
             ai-all "hello"
             ''',
             env_extra="TMUX=/tmp/tmux-1000/default,1,0",
@@ -125,7 +125,7 @@ class AiAllHerdrTest(unittest.TestCase):
     def test_happy_path_creates_gemini_and_codex_tabs_with_ai_specific_emoji(self):
         result, calls = run_ai_all(
             '''
-            clhm() { :; }
+            clh() { :; }
             _ai_all_herdr "hello world"
             ''',
             env_extra="HERDR_ENV=1",
@@ -137,10 +137,10 @@ class AiAllHerdrTest(unittest.TestCase):
         self.assertIn("💎repo", tab_creates[0])
         self.assertIn("🪷repo", tab_creates[1])
 
-    def test_current_tab_renamed_with_claude_emoji_before_clhm(self):
+    def test_current_tab_renamed_with_claude_emoji_before_clh(self):
         result, calls = run_ai_all(
             '''
-            clhm() { echo "clhm-called: $*" >> "$LOG"; }
+            clh() { echo "clh-called: $*" >> "$LOG"; }
             _ai_all_herdr "hello"
             ''',
             env_extra="HERDR_ENV=1 HERDR_TAB_ID=t1",
@@ -149,14 +149,14 @@ class AiAllHerdrTest(unittest.TestCase):
         rename_idx = next(
             i for i, c in enumerate(calls) if c.startswith("herdr tab rename")
         )
-        clhm_idx = next(i for i, c in enumerate(calls) if c.startswith("clhm-called"))
+        clh_idx = next(i for i, c in enumerate(calls) if c.startswith("clh-called"))
         self.assertEqual(calls[rename_idx], "herdr tab rename t1 ✴️repo")
-        self.assertLess(rename_idx, clhm_idx)
+        self.assertLess(rename_idx, clh_idx)
 
     def test_current_tab_id_resolved_via_pane_get_when_herdr_tab_id_unset(self):
         result, calls = run_ai_all(
             '''
-            clhm() { :; }
+            clh() { :; }
             _ai_all_herdr "hello"
             ''',
             env_extra="HERDR_ENV=1 HERDR_PANE_ID=p9",
@@ -166,22 +166,22 @@ class AiAllHerdrTest(unittest.TestCase):
         self.assertTrue(any(c.startswith("herdr pane get p9") for c in calls), calls)
         self.assertIn("herdr tab rename t9 ✴️repo", calls)
 
-    def test_tab_rename_failure_is_swallowed_clhm_still_runs(self):
+    def test_tab_rename_failure_is_swallowed_clh_still_runs(self):
         result, calls = run_ai_all(
             '''
-            clhm() { echo "clhm-called: $*" >> "$LOG"; }
+            clh() { echo "clh-called: $*" >> "$LOG"; }
             _ai_all_herdr "hello"
             ''',
             env_extra="HERDR_ENV=1 HERDR_TAB_ID=t1",
             tab_rename_exit=1,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertTrue(any(c.startswith("clhm-called") for c in calls), calls)
+        self.assertTrue(any(c.startswith("clh-called") for c in calls), calls)
 
-    def test_gemini_tab_creation_failure_skips_codex_and_clhm(self):
+    def test_gemini_tab_creation_failure_skips_codex_and_clh(self):
         result, calls = run_ai_all(
             '''
-            clhm() { echo "clhm-called: $*" >> "$LOG"; }
+            clh() { echo "clh-called: $*" >> "$LOG"; }
             _ai_all_herdr "hello"
             ''',
             env_extra="HERDR_ENV=1",
@@ -190,7 +190,7 @@ class AiAllHerdrTest(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         tab_creates = [c for c in calls if c.startswith("herdr tab create")]
         self.assertEqual(len(tab_creates), 1, calls)
-        self.assertFalse(any(c.startswith("clhm-called") for c in calls), calls)
+        self.assertFalse(any(c.startswith("clh-called") for c in calls), calls)
 
     def test_base_name_lookup_failure_returns_error(self):
         result, calls = run_ai_all(

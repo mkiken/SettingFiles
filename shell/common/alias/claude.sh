@@ -6,11 +6,7 @@ cl() {
 }
 
 clo() {
-    cl --model 'opus[1m]' "$@"
-}
-
-clhm() {
-    clfm --effort high "$@"
+    cl --model 'opus' "$@"
 }
 
 cls() {
@@ -21,16 +17,12 @@ clf() {
     cl --model 'fable' "$@"
 }
 
-clfm() {
-    clf --effort max "$@"
+clh() {
+    clf --effort high "$@"
 }
 
 clp() {
     cl --permission-mode plan "$@"
-}
-
-clpm() {
-    cl --permission-mode plan --effort max "$@"
 }
 
 clr() { cl --resume "$@"; }
@@ -56,7 +48,7 @@ cl-pr-review() {
     fi
 
     review_prompt="$*"
-    clf --effort xhigh --dangerously-skip-permissions "/pr-review $pr_number${review_prompt:+ $review_prompt} ultrathink"
+    clh --dangerously-skip-permissions "/pr-review $pr_number${review_prompt:+ $review_prompt} ultrathink"
 }
 
 cl-pr-review-subagents() {
@@ -72,7 +64,7 @@ cl-pr-review-subagents() {
     fi
 
     review_prompt="$*"
-    clf --effort xhigh --dangerously-skip-permissions "/pr-review-subagents $pr_number${review_prompt:+ $review_prompt} ultrathink"
+    clh --dangerously-skip-permissions "/pr-review-subagents $pr_number${review_prompt:+ $review_prompt} ultrathink"
 }
 
 cl-review-merge() {
@@ -81,7 +73,7 @@ cl-review-merge() {
         echo "Usage: cl-review-merge <run_dir>" >&2
         return 1
     fi
-    clf --effort high --dangerously-skip-permissions "/review-merge $run_dir"
+    clh --dangerously-skip-permissions "/review-merge $run_dir"
 }
 
 cl-review-post() {
@@ -89,7 +81,7 @@ cl-review-post() {
 }
 
 cl-review-fix() {
-    clf --effort high "/review-fix $*"
+    clh "/review-fix $*"
 }
 
 _cl-pr-comment-review() {

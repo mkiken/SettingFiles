@@ -124,7 +124,7 @@ class PrCommentImplementAliasTest(unittest.TestCase):
                         self.assertNotIn("-c", captured)
                     else:
                         self.assertEqual(captured[:2], ["--model", "gpt-5.6-sol"])
-                        self.assertEqual(captured[2:4], ["-c", 'model_reasoning_effort="xhigh"'])
+                        self.assertEqual(captured[2:4], ["-c", 'model_reasoning_effort="high"'])
 
 
 class CodexModelSelectionTest(unittest.TestCase):
@@ -136,7 +136,7 @@ class CodexModelSelectionTest(unittest.TestCase):
             ("cx -m custom-model task", ["-m", "custom-model", "task"]),
             (
                 "cxh task",
-                ["--model", "gpt-5.6-sol", "-c", 'model_reasoning_effort="xhigh"', "task"],
+                ["--model", "gpt-5.6-sol", "-c", 'model_reasoning_effort="high"', "task"],
             ),
         )
 
@@ -150,7 +150,7 @@ class CodexModelSelectionTest(unittest.TestCase):
 class ReviewEntrypointEffortPolicyTest(unittest.TestCase):
     def test_claude_review_roles_use_the_expected_effort(self):
         cases = (
-            ("cl-pr-review 123 focus on errors", "xhigh", "/pr-review 123 focus on errors ultrathink"),
+            ("cl-pr-review 123 focus on errors", "high", "/pr-review 123 focus on errors ultrathink"),
             ("cl-pr-review-subagents 123 focus on errors", "high", "/pr-review-subagents 123 focus on errors ultrathink"),
             ("cl-pcr https://github.com/acme/widget/pull/42#discussion_r123 focus", "high", "/pr-comment-review https://github.com/acme/widget/pull/42#discussion_r123 focus ultrathink"),
         )
@@ -164,9 +164,9 @@ class ReviewEntrypointEffortPolicyTest(unittest.TestCase):
 
     def test_codex_review_roles_use_the_expected_effort(self):
         cases = (
-            ("cx-pr-review 123 focus on errors", "xhigh", "$pr-review PR #123 をレビューして focus on errors"),
-            ("cx-pr-review-subagent 123 focus on errors", "xhigh", "$pr-review-subagents PR #123 をレビューして focus on errors"),
-            ("cx-pcr https://github.com/acme/widget/pull/42#discussion_r123 focus", "xhigh", "$pr-comment-review https://github.com/acme/widget/pull/42#discussion_r123 focus"),
+            ("cx-pr-review 123 focus on errors", "high", "$pr-review PR #123 をレビューして focus on errors"),
+            ("cx-pr-review-subagent 123 focus on errors", "high", "$pr-review-subagents PR #123 をレビューして focus on errors"),
+            ("cx-pcr https://github.com/acme/widget/pull/42#discussion_r123 focus", "high", "$pr-comment-review https://github.com/acme/widget/pull/42#discussion_r123 focus"),
         )
 
         for command, effort, prompt in cases:
