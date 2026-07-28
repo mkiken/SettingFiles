@@ -93,7 +93,7 @@ class RenderTest(unittest.TestCase):
 
     def test_render_contains_report_ui_features(self):
         html = mod.render(merged([item(1)]))
-        self.assertIn("状態ファイルを保存…", html)
+        self.assertIn("状態ファイルを保存", html)
         self.assertIn("最大信頼度", html)
         self.assertIn("ai-review-report-theme", html)
         self.assertIn("markdown-code", html)
@@ -107,14 +107,17 @@ class RenderTest(unittest.TestCase):
         self.assertIn("#expand-all", html)
         self.assertIn("#save-state", html)
         self.assertIn(".card-toggle{color:var(--link)}", html)
-        self.assertIn("処理済みを表示", html)
+        self.assertIn('data-filter="pending"', html)
+        self.assertIn("対応するリスト", html)
+        self.assertIn("対応しないリスト", html)
+        self.assertNotIn("toggle-completed", html)
 
     def test_decision_controls_are_mutually_exclusive_and_clearable(self):
         html = mod.render(merged([item(1)]))
         self.assertIn('s.reviewed=input.checked&&value==="reviewed"', html)
         self.assertIn('s.adopt=input.checked&&value==="adopt"', html)
         self.assertIn('input.value==="adopt"?s.adopt:s.reviewed', html)
-        self.assertIn("未処理 ${DATA.items.length-done}", html)
+        self.assertIn("const counts={pending:DATA.items.length-done", html)
 
     def test_state_save_is_in_footer_and_requires_all_items_completed(self):
         html = mod.render(merged([item(1)]))
@@ -128,6 +131,18 @@ class RenderTest(unittest.TestCase):
             html,
         )
         self.assertIn("function allItemsCompleted()", html)
+        self.assertIn('fetch("/api/state"', html)
+        self.assertIn("window.confirm", html)
+        self.assertIn("すべての指摘を判断しました。state.json に保存しますか？", html)
+        self.assertIn("showSaveFilePicker", html)
+
+    def test_filters_replace_completed_toggle(self):
+        html = mod.render(merged([item(1)]))
+        self.assertIn('let fileHandle = null, filterMode = "pending"', html)
+        self.assertIn("function matchesFilter(s)", html)
+        self.assertIn('c.hidden=!matchesFilter(s)', html)
+        self.assertIn("group.hidden=![...group.querySelectorAll", html)
+        self.assertNotIn("showCompleted", html)
 
     def test_copy_params_control_is_removed(self):
         html = mod.render(merged([item(1)]))

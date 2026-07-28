@@ -33,10 +33,10 @@ Merge the per-AI PR review result files in <RUN_DIR> into `merged.json` and gene
 
 ```bash
 python3 ~/.config/ai-pr/bin/generate_review_report.py <RUN_DIR>/merged.json <RUN_DIR>/report.html
-open -a "Google Chrome" <RUN_DIR>/report.html
+nohup python3 ~/.config/ai-pr/bin/serve_review_report.py --open <RUN_DIR> >/dev/null 2>&1 &
 ```
 
-8. Print a Japanese summary: per-AI finding counts, merged item count, how many duplicates were merged, carryover counts, and the follow-up usage — check items in the browser (進捗を保存… → save state.json into <RUN_DIR>), then run `review-post` (PRコメント投稿) or `review-fix` (修正) with <RUN_DIR>.
+8. Print a Japanese summary: per-AI finding counts, merged item count, how many duplicates were merged, carryover counts, and the follow-up usage — review decisions save directly to `state.json` in <RUN_DIR>; use the manual save button or accept the confirmation after all items are decided, then run `review-post` (PRコメント投稿) or `review-fix` (修正) with <RUN_DIR>.
 
 ## merged.json schema
 
