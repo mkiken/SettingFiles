@@ -41,6 +41,7 @@ Capture the full and line-numbered diffs through the configured large-output pat
 When that path is context-mode:
 
 - Use one batch command per gather target. Emit `DIFF_LINE_COUNT` before `NUMBERED_DIFF`; derive and emit `COMPACT_MANIFEST` before `FULL_NDJSON` from one `fetch_existing_comments.sh` result.
+- Put each bounded derived block and its raw payload under distinct level-2 Markdown headings (for example, `## COMPACT_MANIFEST` and `## FULL_NDJSON`); a plain marker line can leave both in one indexed chunk. Query only the derived heading.
 - Capture `FULL_DIFF` without querying raw hunks, and query only the bounded sections during capture. Design each capture query to return at most 100 lines, querying only a count and focused summary first when the result may be larger.
 - Never append the manifest after the raw NDJSON or refetch a captured payload.
 
