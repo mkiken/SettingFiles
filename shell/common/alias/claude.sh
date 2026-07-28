@@ -9,12 +9,8 @@ clo() {
     cl --model 'opus[1m]' "$@"
 }
 
-clom() {
-    clo --effort max "$@"
-}
-
 clhm() {
-    clfm "$@"
+    clfm --effort high "$@"
 }
 
 cls() {
@@ -76,7 +72,7 @@ cl-pr-review-subagents() {
     fi
 
     review_prompt="$*"
-    clf --effort high --dangerously-skip-permissions "/pr-review-subagents $pr_number${review_prompt:+ $review_prompt} ultrathink"
+    clf --effort xhigh --dangerously-skip-permissions "/pr-review-subagents $pr_number${review_prompt:+ $review_prompt} ultrathink"
 }
 
 cl-review-merge() {

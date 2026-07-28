@@ -35,7 +35,7 @@ cx() {
 }
 
 cxh() {
-    cx --model gpt-5.6-sol -c 'model_reasoning_effort="xhigh"' "$@"
+    cx --model gpt-5.6-sol -c 'model_reasoning_effort="high"' "$@"
 }
 
 cxr() { cx resume "$@" }
@@ -74,13 +74,13 @@ cx-pr-create() {
 cx-pr-review() {
     local pr_number review_prompt
     _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
-    cxh --dangerously-bypass-approvals-and-sandbox "\$pr-review PR #$pr_number をレビューして${review_prompt:+ $review_prompt}"
+    cxh --model_reasoning_effort="xhigh" --dangerously-bypass-approvals-and-sandbox "\$pr-review PR #$pr_number をレビューして${review_prompt:+ $review_prompt}"
 }
 
 cx-pr-review-subagent() {
     local pr_number review_prompt
     _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
-    cxh --dangerously-bypass-approvals-and-sandbox "\$pr-review-subagents PR #$pr_number をレビューして${review_prompt:+ $review_prompt}"
+    cxh --model_reasoning_effort="xhigh" --dangerously-bypass-approvals-and-sandbox "\$pr-review-subagents PR #$pr_number をレビューして${review_prompt:+ $review_prompt}"
 }
 
 cx-review-merge() {
