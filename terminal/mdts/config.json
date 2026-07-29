@@ -4,5 +4,5 @@
   "fontSize": 16,
   "theme": "ocean",
   "syntaxHighlighterTheme": "tomorrow",
-  "enableBreaks": false
+  "enableBreaks": true
 }
