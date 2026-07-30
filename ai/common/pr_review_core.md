@@ -64,4 +64,4 @@ Never calculate final review line numbers from `@@` hunk headers by memory. If a
 
 ## Result File Output
 
-Run `printenv AI_REVIEW_OUTPUT_FILE`. If it prints a path: after presenting the final review output, create the parent directory (`mkdir -p`) and write the exact same markdown — from the first line of the review output to the last, with no extra commentary — to that path. Write the file even when the result is `対応が必要な指摘はありません。`. If the variable is unset or empty, skip this section entirely.
+Run `printenv AI_REVIEW_OUTPUT_FILE` through the host shell, never through context-mode, an MCP tool, or another sandboxed executor that may not inherit the session environment. If it prints a path: after presenting the final review output, create the parent directory (`mkdir -p`) and write the exact same markdown — from the first line of the review output to the last, with no extra commentary — to that path. Write the file even when the result is `対応が必要な指摘はありません。`. If the variable is unset or empty, skip this section entirely.
