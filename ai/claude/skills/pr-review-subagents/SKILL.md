@@ -4,7 +4,7 @@ model: opus
 allowed-tools: Bash(gh:*), Bash(git:*), Bash(python:*), Bash(/bin/cat:*)
 argument-hint: "[prNumber] [additionalInstructions...]"
 disable-model-invocation: true
-effort: max
+effort: high
 ---
 
 ## Instructions

@@ -3,7 +3,7 @@ allowed-tools: Bash(gh:*), Bash(git:*), Bash(jq:*), Bash(/bin/cat:*), Read, Edit
 description: "Implement code changes based on PR review comments, with design review phase before implementation."
 argument-hint: [prCommentUrl] [instructions...]
 disable-model-invocation: true
-effort: max
+effort: high
 ---
 
 ## Instructions

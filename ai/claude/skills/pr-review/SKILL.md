@@ -4,7 +4,7 @@ description: "Comprehensive PR review using gh command; detects the current bran
 model: fable
 argument-hint: "[prNumber] [additionalInstructions...]"
 disable-model-invocation: true
-effort: max
+effort: high
 ---
 
 ## Instructions
@@ -12,9 +12,11 @@ effort: max
 Use the gh command to fetch and analyze the target PR for comprehensive code review, then report findings in the structured format defined in the core rules below.
 
 Inputs: parse `$ARGUMENTS` as `[prNumber] [additionalInstructions...]`. If the first token is a PR number (`123` or `#123`) or PR URL, use it as `<PR_NUMBER>` and treat the rest as `<ADDITIONAL_INSTRUCTIONS>`. Otherwise, resolve the current branch's PR and treat all arguments as `<ADDITIONAL_INSTRUCTIONS>`:
+
 ```bash
 gh pr view --json number --jq .number
 ```
+
 Use only `<PR_NUMBER>` in gh commands. If `<ADDITIONAL_INSTRUCTIONS>` is non-empty, apply it as review emphasis without overriding mandatory duplicate detection, line-number, safety, or output-format rules.
 
 ### Local vs Remote File Access
@@ -30,6 +32,7 @@ Commit bodies, authors, and dates are intentionally omitted. If a headline needs
 **If they match (local mode)** — investigate with the `Read` tool (faster, includes uncommitted local changes) and the `Glob` tool (e.g. `Glob("src/**/*.ts")`).
 
 **If they don't match (remote mode)** — use gh api:
+
 - `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefName} --jq '.content' | base64 -d` — read any file
 - `gh api repos/{owner}/{repo}/git/trees/{headRefName}?recursive=1` — explore file structure
 
