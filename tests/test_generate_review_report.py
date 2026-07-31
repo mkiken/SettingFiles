@@ -136,6 +136,31 @@ class RenderTest(unittest.TestCase):
         self.assertIn("すべての指摘を判断しました。state.json に保存しますか？", html)
         self.assertIn("showSaveFilePicker", html)
 
+    def test_file_save_requires_explicit_confirmation_when_not_server_backed(self):
+        html = mod.render(merged([item(1)]))
+        # showSaveFilePicker はCAN_SERVER_SAVEがfalseのときの明示確認の後段でのみ呼ばれる
+        # （保存ボタン押下で即Finderへ落ちない）
+        save_state_body = html.split("async function saveState()", 1)[1].split(
+            "function maybeOfferAutoSave", 1
+        )[0]
+        self.assertIn("window.confirm", save_state_body)
+        self.assertIn("saveToFilePicker()", save_state_body)
+        confirm_index = save_state_body.index("window.confirm")
+        file_picker_index = save_state_body.index("saveToFilePicker()")
+        self.assertLess(confirm_index, file_picker_index)
+        self.assertIn("review-report", save_state_body)
+
+    def test_persistent_warning_shown_when_not_server_backed_even_if_file_save_available(self):
+        html = mod.render(merged([item(1)]))
+        # CAN_SAVE_STATE(=サーバーorファイル保存いずれか可)がtrueでも、
+        # サーバー経由でなければ常時警告を出す（CAN_SAVE_STATE単独の判定では出ない）
+        self.assertIn(
+            'else if(!CAN_SERVER_SAVE){document.getElementById("save-status").textContent=',
+            html,
+        )
+        self.assertIn("サーバー経由ではありません", html)
+        self.assertIn("review-report", html)
+
     def test_filters_replace_completed_toggle(self):
         html = mod.render(merged([item(1)]))
         self.assertIn('let fileHandle = null, filterMode = "pending"', html)

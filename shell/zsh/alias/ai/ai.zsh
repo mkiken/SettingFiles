@@ -376,16 +376,62 @@ _review_launch_herdr() {
     return 0
 }
 
-# orchestratorタブ内で実行される: 完了待ち→マージ可否判断→cl-review-merge
+# orchestratorタブ内で実行される: 完了待ち→マージ可否判断→cl-review-merge→(成功時)3AIタブを閉じる確認
 # 引数: run_dir <file>[=<tab_id>]...
 _review_watch() {
     local run_dir="$1"
     shift
 
+    local -a specs=("$@")
     local wait_status=0
-    bash "$HOME/.config/ai-pr/bin/ai_review_wait.sh" --liveness herdr "${run_dir}" "$@" || wait_status=$?
+    bash "$HOME/.config/ai-pr/bin/ai_review_wait.sh" --liveness herdr "${run_dir}" "${specs[@]}" || wait_status=$?
     _review_handle_wait_status "${wait_status}" "${run_dir}" || return $?
     cl-review-merge "${run_dir}"
+
+    # マージ成功（report.html生成済み）を確認できた場合のみタブを閉じる候補にする。
+    # cl-review-merge のexit codeはスキル失敗時も0を返しうるため、生成物の存在を追加のgateにする
+    if [[ -f "${run_dir}/report.html" && -f "${run_dir}/merged.json" ]]; then
+        local -a tab_ids=()
+        local spec tab_id
+        for spec in "${specs[@]}"; do
+            tab_id="${spec#*=}"
+            [[ "${tab_id}" != "${spec}" && -n "${tab_id}" ]] && tab_ids+=("${tab_id}")
+        done
+        _review_close_ai_tabs "${tab_ids[@]}"
+    fi
+}
+
+# レビュー用に開いた3AIタブ（herdr）をユーザー確認の上で閉じる。tmux未対応（no-op）
+# 引数: tab_id...（liveness検知用に控えていたもの。空要素は無視する）
+_review_close_ai_tabs() {
+    if [[ "$(_ai_multiplexer_kind)" != "herdr" ]]; then
+        return 0
+    fi
+
+    local self_tab_id
+    self_tab_id=$(_ai_herdr_current_tab_id)
+
+    local -a candidates=()
+    local tab_id
+    for tab_id in "$@"; do
+        [[ -z "${tab_id}" ]] && continue
+        # orchestratorタブ（自タブ）は誤爆防止のため候補から除外する
+        [[ -n "${self_tab_id}" && "${tab_id}" == "${self_tab_id}" ]] && continue
+        herdr tab get "${tab_id}" >/dev/null 2>&1 && candidates+=("${tab_id}")
+    done
+
+    if (( ${#candidates[@]} == 0 )); then
+        echo "レビュー用のAIタブは既にすべて閉じられています。"
+        return 0
+    fi
+
+    echo
+    confirm "レビュー用の3AIタブ（${#candidates[@]}件）を閉じますか？（会話ログは失われますが、claude.md/gemini.md/codex.md と merged.json は保存済みのため結果は失われません）" \
+        --default-no --no-cancel-msg || return 0
+
+    for tab_id in "${candidates[@]}"; do
+        herdr tab close "${tab_id}" >/dev/null 2>&1 || echo "herdr tab closeに失敗しました (tab_id=${tab_id})" >&2
+    done
 }
 
 # 3AIをそれぞれ新規ウィンドウで起動する（tmux）
@@ -504,8 +550,12 @@ review-subagents() {
     _review_run cl-pr-review-subagents gm-pr-review-subagent cx-pr-review-subagent "$@"
 }
 
-# 手動マージ（救済用）: 最新ランディレクトリを解決して review-merge スキルを起動する
-review-merge() {
+# 引数(PR参照 or 現ブランチ)から最新ランディレクトリを解決する（review-merge/review-report共用）
+# 呼び出し元localへ run_dir_var 経由で代入する
+_ai_pr_review_resolve_latest_run_dir() {
+    local run_dir_var="$1"
+    shift
+
     local pr_number
     if [[ $# -gt 0 ]] && _ai_pr_review_arg_is_pr_ref "$1"; then
         pr_number="${1#\#}"
@@ -519,5 +569,28 @@ review-merge() {
 
     local run_dir
     run_dir=$(bash "$HOME/.config/ai-pr/bin/ai_review_run_dir.sh" --latest "${pr_number}") || return 1
+    _ai_pr_review_assign "${run_dir_var}" "${run_dir}"
+}
+
+# 手動マージ（救済用）: 最新ランディレクトリを解決して review-merge スキルを起動する
+review-merge() {
+    local run_dir
+    _ai_pr_review_resolve_latest_run_dir run_dir "$@" || return 1
     cl-review-merge "${run_dir}"
+}
+
+# 後日レビュー結果を見返す/判断を再開する: 最新ランディレクトリのreport.htmlを
+# サーバー経由で開く（同じrun_dirへの既存サーバーがあれば再利用し、Finderダイアログに落ちる
+# file://直開きを避ける）
+review-report() {
+    local run_dir
+    _ai_pr_review_resolve_latest_run_dir run_dir "$@" || return 1
+
+    if [[ ! -f "${run_dir}/report.html" ]]; then
+        echo "report.htmlが見つかりません（review-merge未実行）: ${run_dir}" >&2
+        return 1
+    fi
+
+    nohup python3 "$HOME/.config/ai-pr/bin/serve_review_report.py" --open "${run_dir}" >/dev/null 2>&1 &
+    echo "レビュー結果を開いています: ${run_dir}"
 }

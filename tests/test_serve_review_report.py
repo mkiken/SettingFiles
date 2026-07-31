@@ -1,11 +1,13 @@
 import importlib.util
 import json
+import shutil
 import tempfile
 import threading
 import unittest
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
+from unittest import mock
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -91,3 +93,97 @@ class ReviewServerTest(unittest.TestCase):
     def test_heartbeat_is_accepted(self):
         with self.request("/api/heartbeat", "POST", b"") as response:
             self.assertEqual(response.status, 204)
+
+    def test_api_info_returns_run_dir(self):
+        with self.request("/api/info") as response:
+            self.assertEqual(response.status, 200)
+            body = json.loads(response.read())
+        self.assertEqual(body["run_dir"], str(self.run_dir.resolve()))
+
+
+class ServerInfoFileTest(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.run_dir = Path(self.temp.name)
+        (self.run_dir / "merged.json").write_text(
+            json.dumps({"items": [{"id": 1}]}), encoding="utf-8"
+        )
+        (self.run_dir / "report.html").write_text("<h1>report</h1>", encoding="utf-8")
+
+    def start_server(self):
+        server = mod.ReviewServer(self.run_dir, idle_timeout=60)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+
+        def stop():
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+
+        self.addCleanup(stop)
+        return server
+
+    def test_write_server_info_creates_file_with_url_port_pid(self):
+        server = self.start_server()
+        server.write_server_info()
+        info = json.loads((self.run_dir / ".server.json").read_text(encoding="utf-8"))
+        self.assertEqual(info["url"], server.url)
+        self.assertEqual(info["port"], server.server_port)
+        self.assertEqual(info["pid"], mod.os.getpid())
+
+    def test_remove_server_info_deletes_own_pid_file(self):
+        server = self.start_server()
+        server.write_server_info()
+        server.remove_server_info()
+        self.assertFalse((self.run_dir / ".server.json").exists())
+
+    def test_remove_server_info_preserves_other_pid_file(self):
+        server = self.start_server()
+        server_info_path = self.run_dir / ".server.json"
+        mod.write_json_atomically(
+            server_info_path, {"schema_version": 1, "url": "http://x", "port": 1, "pid": 999999}
+        )
+        server.remove_server_info()
+        self.assertTrue(server_info_path.exists())
+        info = json.loads(server_info_path.read_text(encoding="utf-8"))
+        self.assertEqual(info["pid"], 999999)
+
+    def test_probe_reusable_server_returns_url_when_run_dir_matches(self):
+        server = self.start_server()
+        server.write_server_info()
+        url = mod.probe_reusable_server(self.run_dir / ".server.json", self.run_dir.resolve())
+        self.assertEqual(url, server.url)
+
+    def test_probe_reusable_server_none_when_run_dir_mismatches(self):
+        server = self.start_server()
+        server.write_server_info()
+        other_dir = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, other_dir, ignore_errors=True)
+        url = mod.probe_reusable_server(self.run_dir / ".server.json", other_dir)
+        self.assertIsNone(url)
+
+    def test_probe_reusable_server_none_when_stale(self):
+        server_info_path = self.run_dir / ".server.json"
+        # 生存確認できない閉じたポートを指すstaleな.server.json
+        mod.write_json_atomically(
+            server_info_path, {"schema_version": 1, "url": "http://127.0.0.1:1/report.html", "port": 1, "pid": 999999}
+        )
+        url = mod.probe_reusable_server(server_info_path, self.run_dir.resolve())
+        self.assertIsNone(url)
+
+    def test_probe_reusable_server_none_when_missing(self):
+        url = mod.probe_reusable_server(self.run_dir / ".server.json", self.run_dir.resolve())
+        self.assertIsNone(url)
+
+    def test_serve_reuses_existing_server_without_starting_new_one(self):
+        server = self.start_server()
+        server.write_server_info()
+        with mock.patch.object(mod, "ReviewServer") as review_server_cls:
+            mod.serve(self.run_dir, idle_timeout=60, open_browser=False)
+        review_server_cls.assert_not_called()
+
+    def test_main_default_idle_timeout_is_43200(self):
+        with mock.patch.object(mod, "serve") as serve_mock:
+            mod.main([str(self.run_dir)])
+        self.assertEqual(serve_mock.call_args.args[1], 43200)
