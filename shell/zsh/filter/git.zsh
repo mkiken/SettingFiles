@@ -1015,7 +1015,7 @@ function fgwtc() {
   _herdr_run_in_new_tab "" "$worktree_path" "${worktree_path:t}" ":" || return 1
 }
 
-# worktrunkのJSONから統合先worktreeを選択し、そのローカルbranchへfast-forward mergeする
+# worktrunkのJSONから統合先worktreeを選択し、そのローカルbranchへmergeする
 # schema 1（配列）とschema 2（items配列）はworktreeフィールド構造が異なる
 function fwtm() {
   local source_path

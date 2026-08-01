@@ -14,7 +14,7 @@ ZSH = shutil.which("zsh")
 
 
 class FwtmTest(unittest.TestCase):
-    """fwtm: 選択target worktreeのローカルbranchへfast-forward mergeする。"""
+    """fwtm: 選択target worktreeのローカルbranchへmergeする。"""
 
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
@@ -160,7 +160,7 @@ class FwtmTest(unittest.TestCase):
     def test_merges_schema_2_selection_into_local_target_and_removes_source(self):
         self.assert_successful_merge(schema=2)
 
-    def test_rejects_diverged_histories_without_removing_source(self):
+    def test_merges_diverged_histories_and_removes_source(self):
         (self.target / "main.txt").write_text("main\n")
         self.git("add", "main.txt")
         self.git("commit", "-m", "test: main")
@@ -168,10 +168,13 @@ class FwtmTest(unittest.TestCase):
         result, values = self.run_fwtm()
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertNotEqual(values["__STATUS"], "0", result.stderr)
-        self.assertFalse((self.target / "feature.txt").exists())
-        self.assertTrue(self.source.exists())
-        self.assertIn("feature/login", self.git("branch", "--list", "feature/login").stdout)
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        self.assertTrue((self.target / "main.txt").exists())
+        self.assertTrue((self.target / "feature.txt").exists())
+        merge_parents = self.git("rev-list", "--parents", "-n", "1", "HEAD").stdout.split()
+        self.assertEqual(len(merge_parents), 3)
+        self.assertFalse(self.source.exists())
+        self.assertEqual(self.git("branch", "--list", "feature/login").stdout, "")
 
     def test_rejects_dirty_source_before_merging(self):
         (self.source / "dirty.txt").write_text("dirty\n")

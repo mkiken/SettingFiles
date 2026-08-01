@@ -2,6 +2,7 @@
 import contextlib
 import io
 import os
+import shlex
 import stat
 import subprocess
 import sys
@@ -622,6 +623,66 @@ class TestComputeLabelCli(unittest.TestCase):
         with contextlib.redirect_stderr(stderr):
             code = twn.main(["is-editor-set-title"])
         self.assertEqual(code, twn._EX_USAGE)
+
+    def test_analyze_herdr_label_table(self):
+        cases = [
+            (
+                "既定ラベルと通常概要",
+                f"{ID}{DONE}Claude Code",
+                "日本語の概要",
+                {
+                    "BASE_LABEL": "Claude Code",
+                    "BASE_IS_DEFAULT": "1",
+                    "TITLE_IS_DEFAULT": "0",
+                    "EDITOR_TITLE_RC": "1",
+                },
+            ),
+            (
+                "引用符・改行を含む手動ラベルとエディタtitle",
+                f"{ID}{WAIT}日本語 '引用\n改行",
+                "claude-prompt-x.md (/private/tmp) - Nvim",
+                {
+                    "BASE_LABEL": "日本語 '引用\n改行",
+                    "BASE_IS_DEFAULT": "0",
+                    "TITLE_IS_DEFAULT": "0",
+                    "EDITOR_TITLE_RC": "0",
+                },
+            ),
+            (
+                "Herdr既定title",
+                "manual",
+                "Claude Code",
+                {
+                    "BASE_LABEL": "manual",
+                    "BASE_IS_DEFAULT": "0",
+                    "TITLE_IS_DEFAULT": "1",
+                    "EDITOR_TITLE_RC": "1",
+                },
+            ),
+        ]
+        for description, label, title, expected in cases:
+            with self.subTest(description=description):
+                stdout = io.StringIO()
+                with contextlib.redirect_stdout(stdout):
+                    code = twn.main(["analyze-herdr-label", label, title])
+                assignments = dict(
+                    token.split("=", 1) for token in shlex.split(stdout.getvalue())
+                )
+                self.assertEqual(code, 0)
+                self.assertEqual(assignments, expected)
+
+    def test_analyze_herdr_label_requires_exactly_two_arguments(self):
+        cases = (
+            ["analyze-herdr-label"],
+            ["analyze-herdr-label", "label"],
+            ["analyze-herdr-label", "label", "title", "extra"],
+        )
+        for argv in cases:
+            with self.subTest(argv=argv):
+                stderr = io.StringIO()
+                with contextlib.redirect_stderr(stderr):
+                    code = twn.main(argv)
+                self.assertEqual(code, twn._EX_USAGE)
 
 
 class TestShellWrapper(unittest.TestCase):

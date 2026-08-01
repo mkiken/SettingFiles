@@ -5,6 +5,7 @@ AIフック（claude/gemini/codex）からはimportで、
 シェル（tmux_window_name.sh）からはCLIサブコマンドで利用する。
 """
 import os
+import shlex
 import subprocess
 import sys
 from enum import Enum
@@ -188,6 +189,22 @@ def is_editor_set_title(title: str) -> bool:
     return name in _EDITOR_VCS_MESSAGE_NAMES
 
 
+def analyze_herdr_label(label: str, title: str) -> dict[str, Union[str, int]]:
+    """Herdr通知フックのラベル・タイトル判定を1プロセスで返す。"""
+    base_label = strip_emoji_prefix(label)
+    return {
+        "BASE_LABEL": base_label,
+        "BASE_IS_DEFAULT": int(is_herdr_default_label(base_label)),
+        "TITLE_IS_DEFAULT": int(is_herdr_default_label(title)),
+        "EDITOR_TITLE_RC": 0 if is_editor_set_title(title) else 1,
+    }
+
+
+def print_shell_assignments(values: dict[str, Union[str, int]]) -> None:
+    for name, value in values.items():
+        print(f"{name}={shlex.quote(str(value))}")
+
+
 def _read_current_name(pane_id: str, run) -> str:
     result = run(
         ["tmux", "display-message", "-p", "-t", pane_id, "#W"],
@@ -344,7 +361,8 @@ _USAGE = (
     " | compute-updated-label <current> <status-emoji> [identifier]"
     " | compute-cleaned-label <current>"
     " | is-herdr-default-label <base-label>"
-    " | is-editor-set-title <title>}"
+    " | is-editor-set-title <title>"
+    " | analyze-herdr-label <label> <title>}"
 )
 _EX_USAGE = 64
 
@@ -385,6 +403,12 @@ def main(argv: list[str]) -> int:
         # fail-closed（タイトル不採用側）に倒す前提。
         if len(args) == 1:
             return 0 if is_editor_set_title(args[0]) else 1
+        print(_USAGE, file=sys.stderr)
+        return _EX_USAGE
+    if command == "analyze-herdr-label":
+        if len(args) == 2:
+            print_shell_assignments(analyze_herdr_label(args[0], args[1]))
+            return 0
         print(_USAGE, file=sys.stderr)
         return _EX_USAGE
     if command == "update":

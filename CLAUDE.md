@@ -50,9 +50,11 @@ cd mac && brew bundle
 
 ### Run Tests
 ```bash
-python3 -m unittest discover -s tests
+python3 tests/run_tests.py
 ```
 Run before committing code changes (the full suite can take several minutes). Fix failures, or report them explicitly at the commit confirmation — never leave the suite red.
+
+The runner executes deterministic test-ID shards in parallel. Tests must be order-independent, must not write shared tracked state, and must use temporary directories for filesystem mutations. Use `python3 tests/run_tests.py --jobs 1` or `python3 -m unittest discover -s tests` for sequential diagnosis.
 
 Shell functions (e.g. those in `shell/tmux/ai_notification_*.sh`) are unit-tested from Python: a `tests/test_*.py` `source`s the `.sh` and invokes the function via `bash -c`, asserting on stdout and the return code (see `tests/test_ai_notification_summary.py` for the `run_fn` helper pattern). Write new shell-function tests in this style so `unittest discover` collects them — a standalone `.sh` test file is not picked up by the suite.
 

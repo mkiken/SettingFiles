@@ -63,6 +63,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         socket_path: str = "/tmp/herdr.sock",
         notification_rc: int = 0,
         rename_observer: list[str] | None = None,
+        break_label_analyzer: bool = False,
     ) -> tuple[subprocess.CompletedProcess[str], Path]:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -138,6 +139,14 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                 real_file = REPO_ROOT / "shell/tmux" / name
                 (fake_tmux_dir / name).write_text(
                     real_file.read_text(encoding="utf-8"), encoding="utf-8"
+                )
+            if break_label_analyzer:
+                (fake_tmux_dir / "tmux_window_name.py").write_text(
+                    "import sys\n"
+                    'if len(sys.argv) > 1 and sys.argv[1] == "analyze-herdr-label":\n'
+                    "    sys.exit(2)\n"
+                    "sys.exit(64)\n",
+                    encoding="utf-8",
                 )
 
             # codex通知本文のtranscript概要パスはプラグインが実体を呼ぶため実物を
@@ -369,6 +378,22 @@ class HerdrPluginNotifyTest(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("message=(no title)", events)
+
+    def test_analyzer_failure_skips_rename_and_uses_notification_fallback(self):
+        rename_calls = []
+        result, events = self.run_plugin(
+            agent="claude",
+            agent_status="done",
+            title_text="判定不能な概要",
+            initial_managed_label="採用済みの概要",
+            initial_state_session_id="session-abc",
+            rename_observer=rename_calls,
+            break_label_analyzer=True,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(rename_calls, [])
+        self.assertIn("message=採用済みの概要", events)
 
     def test_idle_working_unknown_do_not_notify(self):
         for agent_status in ("idle", "working", "unknown", ""):
@@ -902,23 +927,14 @@ class HerdrPluginTabIconTest(unittest.TestCase):
                     real_file.read_text(encoding="utf-8"), encoding="utf-8"
                 )
 
-            # is-editor-set-titleがクラッシュ相当（exit 0/1以外）で終わる状況を再現
-            # するスタブ。他のサブコマンドはゲート到達に必要な最小限だけ模倣する。
-            # プラグインが判定不能を採用側に倒さない（fail-closed）ことの検証用。
+            # 統合analyzerがクラッシュ相当で終わる状況を再現するスタブ。
+            # プラグインが判定不能時にrenameしない（fail-closed）ことの検証用。
             if break_editor_predicate:
                 (fake_tmux_dir / "tmux_window_name.py").write_text(
                     "import sys\n"
                     'cmd = sys.argv[1] if len(sys.argv) > 1 else ""\n'
-                    'if cmd == "is-editor-set-title":\n'
+                    'if cmd == "analyze-herdr-label":\n'
                     "    sys.exit(2)\n"
-                    'if cmd == "is-herdr-default-label":\n'
-                    "    label = sys.argv[2]\n"
-                    "    sys.exit(\n"
-                    "        0\n"
-                    "        if label.isdigit()\n"
-                    '        or label in ("Claude Code", "Codex", "Gemini")\n'
-                    "        else 1\n"
-                    "    )\n"
                     "sys.exit(64)\n",
                     encoding="utf-8",
                 )
@@ -1547,9 +1563,8 @@ class HerdrPluginTabIconTest(unittest.TestCase):
         self.assertEqual(state, ["mdts-plan-single-fil\nsession-abc"])
 
     def test_predicate_failure_falls_closed(self):
-        # is-editor-set-titleが0/1以外（クラッシュ/usage error相当）で終わった場合、
-        # 判定不能タイトルを採用しない（fail-closed）。`! cmd`の素朴な否定だと
-        # exit 2が「非該当」側に倒れて採用されてしまうことへの回帰ガード。
+        # 統合analyzerが失敗した場合、判定不能値によるrenameを止める。
+        # 通知処理は後段fallbackへ継続する契約のrename側回帰ガード。
         result, calls = self.run_plugin(
             agent="claude",
             agent_status="working",
@@ -1560,7 +1575,7 @@ class HerdrPluginTabIconTest(unittest.TestCase):
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(calls, ["w1:t1 ✴️🤖Claude Code"])
+        self.assertEqual(calls, [])
 
     def test_known_agent_default_label_without_title_keeps_label(self):
         result, calls = self.run_plugin(

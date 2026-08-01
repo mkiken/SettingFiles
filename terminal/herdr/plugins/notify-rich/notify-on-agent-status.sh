@@ -117,19 +117,10 @@ title_text="$(print -r -- "$pane_json" | jq -r '.result.pane.terminal_title_stri
 session_id="$(print -r -- "$pane_json" | jq -r '.result.pane.agent_session.value // empty' 2>/dev/null)"
 [[ -z "$title_text" ]] && title_text="(no title)"
 
-# terminal_title_strippedは「そのペインのOSC 2を今所有しているプログラム」を反映する。
-# agent=="claude"はペインの属性であってタイトルの著者ではない: Claudeが$EDITORを
-# 起動して待つ間はnvimがタイトルを所有し、"claude-prompt-<uuid>.md (path) - Nvim"や
-# "COMMIT_EDITMSG (path) - Nvim"が入る。エディタ由来判定は1イベント1回だけ実行し、
-# タブ名ゲート(title_usable)と通知本文フォールバックの両方がこの結果を参照する。
-# exit 0=エディタ由来 / 1=非該当 / その他=判定不能。未計算時の既定は1（非該当扱い、
-# claudeイベントでは常に計算されるので実質全経路をカバーする）。
-editor_title_rc=1
-if [[ "$agent" == "claude" && "$title_text" != "(no title)" ]]; then
-  python3 "${REPO_ROOT}/shell/tmux/tmux_window_name.py" \
-    is-editor-set-title "$title_text" 2>/dev/null
-  editor_title_rc=$?
-fi
+# ラベル解析成功時だけ1（非エディタ由来）へ更新する。未計算・解析失敗は2として
+# タブrenameと会話title採用を止め、通知本文も採用済みstateへfail-closedする。
+editor_title_rc=2
+last_auto_label=""
 
 # タブ名先頭にAI識別子+状態アイコンを付与する（tmuxのwindow名アイコンと同じ思想）。
 # working=進行中🤖 blocked=入力待ち✋ done=完了✅、idle(既読)/unknown(AI未検出)は
@@ -162,13 +153,29 @@ if [[ -n "$tab_id" ]]; then
       done)    status_emoji="$EMOJI_STATUS_COMPLETED" ;;
     esac
 
-    base_label="$(python3 "${REPO_ROOT}/shell/tmux/tmux_emoji.py" "$label_body")"
+    # 絵文字除去、ラベル/タイトルのHerdr既定判定、エディタ由来判定を1 Python
+    # processへ統合する。stdoutはshell-safeな固定名代入だけ。終了状態・値契約の
+    # どちらかが壊れたらrenameせず、通知処理自体は後段fallbackで継続する。
+    base_label="$label_body"
+    label_analysis_ok=false
+    unset BASE_LABEL BASE_IS_DEFAULT TITLE_IS_DEFAULT EDITOR_TITLE_RC
+    analysis_output="$(python3 "${REPO_ROOT}/shell/tmux/tmux_window_name.py" \
+      analyze-herdr-label "$label_body" "$title_text" 2>/dev/null)"
+    analysis_status=$?
+    if (( analysis_status == 0 )) && eval "$analysis_output" 2>/dev/null \
+       && [[ -n "${BASE_LABEL+x}" ]] \
+       && [[ "$BASE_IS_DEFAULT" == 0 || "$BASE_IS_DEFAULT" == 1 ]] \
+       && [[ "$TITLE_IS_DEFAULT" == 0 || "$TITLE_IS_DEFAULT" == 1 ]] \
+       && [[ "$EDITOR_TITLE_RC" == 0 || "$EDITOR_TITLE_RC" == 1 ]]; then
+      base_label="$BASE_LABEL"
+      editor_title_rc="$EDITOR_TITLE_RC"
+      label_analysis_ok=true
+    fi
     state_file="$(managed_label_state_file "$tab_id")"
     # stateは2行: 1行目=採用済み概要、2行目=採用時のclaude session_id
     # (agent_session.value)。HerdrのタブIDはサーバー再起動でカウンターが
     # リセットされ再利用されるため、session照合なしで復元すると無関係な
     # 新規タブに過去セッションの概要ラベルが付いてしまう。
-    last_auto_label=""
     state_session_id=""
     if [[ -n "$state_file" && -f "$state_file" ]]; then
       { IFS= read -r last_auto_label; IFS= read -r state_session_id; } \
@@ -177,11 +184,11 @@ if [[ -n "$tab_id" ]]; then
 
     herdr_default_label=false
     auto_managed=false
-    if python3 "${REPO_ROOT}/shell/tmux/tmux_window_name.py" \
-        is-herdr-default-label "$base_label"; then
+    if [[ "$label_analysis_ok" == true && "$BASE_IS_DEFAULT" == 1 ]]; then
       herdr_default_label=true
       auto_managed=true
-    elif [[ -n "$last_auto_label" && "$base_label" == "$last_auto_label" ]]; then
+    elif [[ "$label_analysis_ok" == true && -n "$last_auto_label" \
+            && "$base_label" == "$last_auto_label" ]]; then
       auto_managed=true
     fi
 
@@ -196,9 +203,9 @@ if [[ -n "$tab_id" ]]; then
     # こちらはfalse側に倒れると汚染タイトルが素通りするため、python3クラッシュ等の
     # 判定不能も不採用側に倒す（fail-closed）。
     title_usable=false
-    if [[ "$agent" == "claude" && "$title_text" != "(no title)" ]] \
-       && ! python3 "${REPO_ROOT}/shell/tmux/tmux_window_name.py" \
-          is-herdr-default-label "$title_text" \
+    if [[ "$label_analysis_ok" == true \
+          && "$agent" == "claude" && "$title_text" != "(no title)" ]] \
+       && (( TITLE_IS_DEFAULT == 0 )) \
        && (( editor_title_rc == 1 )); then
       title_usable=true
     fi
@@ -222,9 +229,9 @@ if [[ -n "$tab_id" ]]; then
         esac
       fi
     fi
-    if [[ -n "$status_emoji" ]]; then
+    if [[ "$label_analysis_ok" == true && -n "$status_emoji" ]]; then
       new_label="${id_emoji}${status_emoji}${base_label}"
-    else
+    elif [[ "$label_analysis_ok" == true ]]; then
       new_label="${base_label}"
     fi
 
@@ -232,7 +239,8 @@ if [[ -n "$tab_id" ]]; then
     # ピン留めする（優先度はworkspace集約と同じ ✋>❌>🤖>✅）。ベース名の会話概要
     # 追従はそのまま活きる（compute-updated-labelは識別子と本文を保持する）。
     # 空代入ガード必須: python3失敗時に空ラベルへrenameしないため。
-    if (( ${+functions[_herdr_shell_status_marker_read]} )); then
+    if [[ "$label_analysis_ok" == true ]] \
+       && (( ${+functions[_herdr_shell_status_marker_read]} )); then
       marker_glyph="$(_herdr_shell_status_marker_read "$tab_id" 2>/dev/null)"
       if [[ -n "$marker_glyph" ]]; then
         pinned_label="$(python3 "${REPO_ROOT}/shell/tmux/tmux_window_name.py" \
@@ -241,17 +249,20 @@ if [[ -n "$tab_id" ]]; then
       fi
     fi
 
-    new_label="${index_prefix}${new_label}"
-
     rename_ok=true
-    if [[ "$new_label" != "$current_label" ]] \
+    if [[ "$label_analysis_ok" == true ]]; then
+      new_label="${index_prefix}${new_label}"
+    fi
+    if [[ "$label_analysis_ok" == true && "$new_label" != "$current_label" ]] \
        && ! "$herdr_bin" tab rename "$tab_id" "$new_label" >/dev/null 2>&1; then
       rename_ok=false
     fi
 
     # 概要が変わった時に加え、session_idの差分だけでも書き直す（旧1行stateの
     # 2行化と、同ラベルのまま別セッションへ移った場合の所有者更新のため）。
-    if [[ "$record_auto_label" == true && "$rename_ok" == true && -n "$state_file" ]] \
+    if [[ "$label_analysis_ok" == true \
+          && "$record_auto_label" == true && "$rename_ok" == true \
+          && -n "$state_file" ]] \
        && [[ "$base_label" != "$last_auto_label" \
              || "$session_id" != "$state_session_id" ]]; then
       state_dir="${state_file:h}"

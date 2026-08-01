@@ -13,8 +13,8 @@ AI_ALIASES = REPO_ROOT / "shell/zsh/alias/ai/ai.zsh"
 ZSH = shutil.which("zsh")
 
 
-class FgwtTest(unittest.TestCase):
-    """fgwt: 現在リポジトリのworktreeを選択してカレントpaneでcdする（zoxide非依存）"""
+class FgwtFixture:
+    """fgwtとfwmonで共有する隔離済みworktree fixture。"""
 
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
@@ -91,6 +91,10 @@ class FgwtTest(unittest.TestCase):
         }
         return result, values
 
+
+class FgwtTest(FgwtFixture, unittest.TestCase):
+    """fgwt: 現在リポジトリのworktreeを選択してカレントpaneでcdする（zoxide非依存）"""
+
     def test_moves_current_shell_to_selected_worktree(self):
         result, values = self.run_fgwt()
 
@@ -118,7 +122,7 @@ class FgwtTest(unittest.TestCase):
                 self.assertEqual(values["__STATUS"], "130", result.stderr)
 
 
-class FwmonTest(FgwtTest):
+class FwmonTest(FgwtFixture, unittest.TestCase):
     """fwmon: 現在リポジトリのworktreeを選択して新しいtmux windowで開く"""
 
     def setUp(self):
