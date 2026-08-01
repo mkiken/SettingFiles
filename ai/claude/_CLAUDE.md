@@ -17,13 +17,15 @@ When a question depends on explanatory context (proposals, trade-offs, anything 
 
 # Plan Review Deep-Dive (dig)
 
-When presenting a plan artifact for review, also offer the `dig` skill — but first skip it for trivially mechanical plans: renames, bulk replacements, reverts, single-file fixes with no design decision, or plans whose every task is a stated verbatim edit. Otherwise offer it when at least one holds:
+When presenting a plan artifact for review, also offer the `dig` skill — but first skip it for trivially mechanical plans: renames, bulk replacements, reverts, single-file fixes with no design decision, or plans whose every task is a stated verbatim edit. For those, fall back to the Plan Review Presentation browser offer alone (its own line-count/format criteria still apply, so even that may be skipped).
 
-- An unresolved design choice exists: an approach was picked over a stated alternative, or a new module / interface / data shape is introduced.
-- Unresolved items remain: TBD, 要検討, 要確認, or an assumption stated without verification.
-- The plan spans 3+ phases, 8+ tasks, or 5+ files.
+Otherwise, merge this with the Plan Review Presentation offer into a single `AskUserQuestion` dialog (single-select, no multiSelect) with exactly three fixed options:
 
-Merge this with the Plan Review Presentation offer into a single `AskUserQuestion` dialog (single-select, no multiSelect): a browser option when the mdts criteria hold, a dig option when the uncertainty criteria hold, a decline option, and — only when both criteria hold — a fourth option to open the browser and decide on dig after reading, since dig is most useful once the user knows where the plan's gaps are. If dig is selected outright, open the browser first (when also selected), then invoke the dig skill.
+- Both: open the browser and also run dig.
+- Open the browser now, decide on dig after reading.
+- Neither.
+
+If "both" is selected, open the browser first, then invoke the dig skill.
 
 If the deferred option is selected: open the browser per Plan Review Presentation, then wait for the user to report they've finished reading — do not call `ExitPlanMode` yet; ending the turn on plain text would misfire the Stop hook's completion notification. Once they confirm, ask a second `AskUserQuestion` (dig now vs. proceed to approval). dig reads the plan file fresh from disk regardless of when it runs (it's a forked subagent), so deferring costs nothing functionally.
 
