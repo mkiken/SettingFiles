@@ -67,7 +67,7 @@ print -r -- "__STATUS=$exit_code"
     def read_calls(self) -> list[str]:
         return self.call_log.read_text().splitlines() if self.call_log.exists() else []
 
-    def test_creates_worktree_then_opens_unfocused_tab_in_source_workspace(self):
+    def test_creates_worktree_then_opens_focused_tab_in_source_workspace(self):
         result = self.run_script(input_text="feature/demo\n")
 
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -76,7 +76,7 @@ print -r -- "__STATUS=$exit_code"
             self.read_calls(),
             [
                 "wtc:feature/demo",
-                f"newtab:w7 {self.worktree} feature/demo :",
+                f"newtab:w7 {self.worktree} feature/demo :  1",
             ],
         )
 
@@ -111,6 +111,6 @@ print -r -- "__STATUS=$exit_code"
             self.read_calls(),
             [
                 "wtc:feature/demo",
-                f"newtab:w7 {self.worktree} feature/demo :",
+                f"newtab:w7 {self.worktree} feature/demo :  1",
             ],
         )

@@ -131,7 +131,8 @@ source "${SET:-$HOME/Desktop/repository/SettingFiles}/shell/tmux/herdr_wait_shel
 
 # Herdrで新しいtabを作りコマンドを実行する（tmux new-window相当）
 # 引数: workspace_id(空ならカレントworkspace), cwd, label, command,
-#       [tab_id_var(省略可: 作成tabのtab_idを呼び出し元localへ代入する)]
+#       [tab_id_var(省略可: 作成tabのtab_idを呼び出し元localへ代入する)],
+#       [focus_on_create(省略可: 1なら作成直後にフォーカス)]
 # herdr pane run は既存の対話シェルにコマンドを投入する方式のため、
 # tmux版と違い ";  zsh" のようなシェル残存サフィックスは不要
 _herdr_run_in_new_tab() {
@@ -140,8 +141,14 @@ _herdr_run_in_new_tab() {
     local label="$3"
     local command="$4"
     local tab_id_var="${5:-}"
+    local focus_on_create="${6:-0}"
 
-    local -a create_args=(tab create --cwd "${cwd}" --label "${label}" --no-focus)
+    local -a create_args=(tab create --cwd "${cwd}" --label "${label}")
+    if [[ "${focus_on_create}" == "1" ]]; then
+        create_args+=(--focus)
+    else
+        create_args+=(--no-focus)
+    fi
     [[ -n "${workspace_id}" ]] && create_args+=(--workspace "${workspace_id}")
 
     local json

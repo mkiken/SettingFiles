@@ -99,9 +99,22 @@ class HerdrRunInNewTabTest(unittest.TestCase):
         self.assertEqual(len(calls), 4, calls)
 
         self.assertTrue(calls[0].startswith("tab create"))
+        self.assertIn("--no-focus", calls[0])
         self.assertTrue(calls[1].startswith("pane run w1:p2 print -r -- __herdr_ready_"))
         self.assertTrue(calls[2].startswith("pane wait-output w1:p2 --match __herdr_ready_"))
         self.assertEqual(calls[3], "pane run w1:p2 gm-pr-review 123")
+
+    def test_focus_on_create_uses_focus_instead_of_no_focus(self):
+        result, calls = run_herdr_run_in_new_tab(
+            '_herdr_run_in_new_tab "" "/tmp/work" "label" ":" "" 1'
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("--focus", calls[0])
+        self.assertNotIn("--no-focus", calls[0])
+        self.assertTrue(calls[1].startswith("pane run w1:p2 print -r -- __herdr_ready_"))
+        self.assertTrue(calls[2].startswith("pane wait-output w1:p2"))
+        self.assertEqual(calls[3], "pane run w1:p2 :")
 
     def test_marker_sent_split_but_waited_concatenated(self):
         # 入力エコーには分割形しか現れないよう、送信は `head""tail`、

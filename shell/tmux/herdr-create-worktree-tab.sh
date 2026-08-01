@@ -49,7 +49,7 @@ if (( wtc_status != 0 )); then
   return "$wtc_status"
 fi
 
-_herdr_run_in_new_tab "$workspace_id" "$PWD" "$branch" ":"
+_herdr_run_in_new_tab "$workspace_id" "$PWD" "$branch" ":" "" 1
 tab_status=$?
 if (( tab_status != 0 )); then
   _herdr_wtc_pause
