@@ -19,6 +19,10 @@ Three different identifiers are used across one setup function, and mixing them 
 | `claude plugin marketplace update` / the `grep` guard before `add` | marketplace **name** | Registered marketplaces are looked up by name, not repo |
 | `claude plugin {list,install,update,enable}` | `<plugin>@<marketplace-name>` | Plugin IDs are always `plugin@marketplace-name` |
 
+## Official catalog preflight and fallback
+
+An upstream README may describe an official-catalog install that the local Claude CLI cannot resolve. Before designing the repository wiring, try its exact `claude plugin install <plugin>` command once in the target environment. If it succeeds, use the official catalog path. If it fails with a marketplace-discovery error, do not keep retrying the same command: fetch the upstream `.claude-plugin/marketplace.json`, verify the registered marketplace and plugin names, then use the repository's GitHub Marketplace pattern instead. Record the fallback in the setup function, settings, and tests; this keeps future updates reconciled rather than relying on a one-off manual install.
+
 ## The four files (plus tests)
 
 Reference implementation: `setup_claude_superpowers` in `mac/scripts/ai/claude.sh`. Copy its structure exactly (marketplace-exists guard → `marketplace update` → install-or-update branch on `plugin list --json` → enable-if-not-enabled check, each step `|| return 1`).
