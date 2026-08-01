@@ -22,6 +22,8 @@ max_depth = 1
 [mcp_servers]
 
 [tui]
+# Herdr owns Codex completion and input-request notifications.
+notifications = false
 status_line = ['project-name', 'pull-request-number', 'git-branch', 'task-progress', 'context-used', 'used-tokens', 'context-window-size', 'five-hour-limit', 'weekly-limit', 'model-with-reasoning', 'run-state', 'permissions', 'approval-mode', 'workspace-headline']
 status_line_use_colors = true
 

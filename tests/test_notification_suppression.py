@@ -228,6 +228,12 @@ class NotificationSuppressionTest(unittest.TestCase):
             "1",
         )
 
+    @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
+    def test_codex_tui_notifications_are_disabled_for_herdr(self):
+        config = tomllib.loads((REPO_ROOT / "ai/codex/config.toml").read_text(encoding="utf-8"))
+
+        self.assertFalse(config["tui"]["notifications"])
+
     def test_claude_settings_disable_notifications_for_ai_processes(self):
         settings = json.loads((REPO_ROOT / "ai/claude/settings.json").read_text(encoding="utf-8"))
 
