@@ -147,9 +147,8 @@ codex = [
 ]
 
 [ui.toast]
-# notify-rich continues to handle agent-status notifications. usagebar requires system delivery
-# for rate-limit warnings; the user accepted possible notification duplication.
-delivery = "system"
+# Disable all Herdr-delivered pop-up notifications, including notify-rich's API path.
+delivery = "off"
 delay_seconds = 1
 
 [ui.sound]

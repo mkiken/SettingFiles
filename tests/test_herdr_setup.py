@@ -52,7 +52,7 @@ class HerdrConfigurationTest(unittest.TestCase):
                 "new_cwd": "follow",
             },
         )
-        self.assertEqual(config["ui"]["toast"], {"delivery": "system", "delay_seconds": 1})
+        self.assertEqual(config["ui"]["toast"], {"delivery": "off", "delay_seconds": 1})
         self.assertTrue(config["ui"]["sound"]["enabled"])
         self.assertTrue(config["session"]["resume_agents_on_restore"])
         self.assertEqual(config["advanced"]["scrollback_limit_bytes"], 104857600)
