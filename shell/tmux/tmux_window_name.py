@@ -91,6 +91,13 @@ def build_cleaned_name(current: str) -> str:
     return strip_emoji_prefix(current)
 
 
+def _split_herdr_index_prefix(current: str) -> tuple[str, str]:
+    """Split the exact jump-key prefix emitted by herdr-automatic-rename."""
+    if len(current) >= 4 and current[0] == "[" and current[1] in "123456789" and current[2:4] == "] ":
+        return current[:4], current[4:]
+    return "", current
+
+
 def compute_updated_label(current: str, status_emoji: str, identifier: Optional[str] = None) -> str:
     """tmux/Herdrどちらのラベルにも使える、状態アイコン差し替え後の文字列を計算する
     純粋関数（tmux/herdrへの問い合わせや書き込みは行わない）。
@@ -99,20 +106,22 @@ def compute_updated_label(current: str, status_emoji: str, identifier: Optional[
     （update_tmux_window_nameのidentifier省略時と同じ挙動）。
     空文字を明示的に渡せば継承せず識別子を消せる。
     """
+    index_prefix, label_body = _split_herdr_index_prefix(current)
     resolved_identifier = identifier
     if resolved_identifier is None:
-        resolved_identifier, _ = split_identifier_prefix(current)
-    return build_updated_name(current, status_emoji, resolved_identifier)
+        resolved_identifier, _ = split_identifier_prefix(label_body)
+    return f"{index_prefix}{build_updated_name(label_body, status_emoji, resolved_identifier)}"
 
 
 def compute_cleaned_label(current: str) -> str:
     """状態アイコンだけを除去し、AI識別子とcontextバッジは残したラベルを計算する
     純粋関数（tmux/herdrへの問い合わせや書き込みは行わない）。
     """
-    identifier, rest = split_identifier_prefix(current)
+    index_prefix, label_body = _split_herdr_index_prefix(current)
+    identifier, rest = split_identifier_prefix(label_body)
     prefix, stripped = _split_emoji_prefix(rest)
     badge = EMOJI_CONTEXT_ALERT if EMOJI_CONTEXT_ALERT in prefix else ""
-    return f"{identifier}{badge}{stripped}"
+    return f"{index_prefix}{identifier}{badge}{stripped}"
 
 
 # Herdr本体がAIエージェント検出タブに自動命名するラベル文言（agent名そのもの）。

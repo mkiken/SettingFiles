@@ -146,6 +146,15 @@ if [[ -n "$tab_id" ]]; then
     tab_status="$(print -r -- "$tab_json" | jq -r '.result.tab.agent_status // empty' 2>/dev/null)"
     current_label="$(print -r -- "$tab_json" | jq -r '.result.tab.label // empty' 2>/dev/null)"
 
+    # herdr-automatic-rename owns the exact `[1-9] ` jump-key prefix. Keep it
+    # outside notify-rich's identifier/status/base-label state machine.
+    index_prefix=""
+    label_body="$current_label"
+    if [[ "$label_body" == \[[1-9]\]\ * ]]; then
+      index_prefix="${label_body[1,4]}"
+      label_body="${label_body[5,-1]}"
+    fi
+
     status_emoji=""
     case "$tab_status" in
       working) status_emoji="$EMOJI_STATUS_ONGOING" ;;
@@ -153,7 +162,7 @@ if [[ -n "$tab_id" ]]; then
       done)    status_emoji="$EMOJI_STATUS_COMPLETED" ;;
     esac
 
-    base_label="$(python3 "${REPO_ROOT}/shell/tmux/tmux_emoji.py" "$current_label")"
+    base_label="$(python3 "${REPO_ROOT}/shell/tmux/tmux_emoji.py" "$label_body")"
     state_file="$(managed_label_state_file "$tab_id")"
     # stateは2行: 1行目=採用済み概要、2行目=採用時のclaude session_id
     # (agent_session.value)。HerdrのタブIDはサーバー再起動でカウンターが
@@ -232,6 +241,8 @@ if [[ -n "$tab_id" ]]; then
       fi
     fi
 
+    new_label="${index_prefix}${new_label}"
+
     rename_ok=true
     if [[ "$new_label" != "$current_label" ]] \
        && ! "$herdr_bin" tab rename "$tab_id" "$new_label" >/dev/null 2>&1; then
@@ -304,6 +315,12 @@ ws_label=""
 if [[ -n "$ws_id" ]]; then
   ws_label="$("$herdr_bin" workspace list 2>/dev/null \
     | jq -r --arg w "$ws_id" '.result.workspaces[]? | select(.workspace_id==$w) | .label // empty' 2>/dev/null)"
+fi
+
+# herdr-automatic-rename also decorates workspace labels. Notification context
+# shows the stable workspace name, not the jump key that changes with ordering.
+if [[ "$ws_label" == \[[1-9]\]\ * ]]; then
+  ws_label="${ws_label[5,-1]}"
 fi
 
 # screen_label shows workspace名:tab名. tab名はタブ処理ブロックで確定した装飾除去後の

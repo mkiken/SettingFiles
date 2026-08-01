@@ -3,6 +3,7 @@
 HERDR_CLAUDE_COMMAND="bash ~/.claude/hooks/herdr-agent-state.sh session"
 HERDR_CODEX_COMMAND="bash ~/.codex/herdr-agent-state.sh session"
 typeset -a HERDR_REMOTE_PLUGINS=(
+  "herdr-automatic-rename:qu8n/herdr-automatic-rename"
   "termscope:iurysza/termscope"
   "usagebar:senna-lang/herdr-agent-usage"
 )
@@ -621,6 +622,36 @@ function _setup_herdr_remote_plugin() {
   herdr plugin install "$plugin_source" --yes
 }
 
+function _setup_herdr_automatic_rename_config() {
+  local repo_root="$1"
+  local target_home="$2"
+  local source_config="${repo_root%/}/terminal/herdr/herdr-automatic-rename-config.sh"
+  local target_config="$target_home/.config/herdr-automatic-rename/config.sh"
+  local existing_target=""
+
+  if [[ ! -f "$source_config" ]]; then
+    echo "Error: managed herdr-automatic-rename config is unavailable: $source_config" >&2
+    return 1
+  fi
+
+  if [[ -L "$target_config" ]]; then
+    existing_target="$(readlink "$target_config")"
+    if [[ "$existing_target" == "$source_config" ]]; then
+      echo "✓ Already linked: $target_config -> $source_config"
+      return 0
+    fi
+    echo "Error: herdr-automatic-rename config uses an unexpected symlink target: $existing_target" >&2
+    return 1
+  elif [[ -e "$target_config" ]]; then
+    echo "Error: refusing to replace existing herdr-automatic-rename config: $target_config" >&2
+    return 1
+  fi
+
+  mkdir -p "${target_config:h}" || return 1
+  ln -s "$source_config" "$target_config" || return 1
+  echo "✓ Linked herdr-automatic-rename config: $target_config -> $source_config"
+}
+
 function _setup_herdr_usagebar() {
   local target_home="$1"
   local plugin_root=""
@@ -672,6 +703,10 @@ function setup_herdr_plugins() {
     echo "Error: managed Herdr plugin manifest is unavailable: $plugin_dir/herdr-plugin.toml" >&2
     return 1
   fi
+
+  # The plugin defaults to NAME_TABS=1. Install only after the managed config is
+  # visible so no event can replace notify-rich's conversation-summary labels.
+  _setup_herdr_automatic_rename_config "$repo_root" "$target_home" || return 1
 
   if herdr plugin list --json 2>/dev/null \
     | jq -e '.result.plugins[]? | select(.plugin_id == "notify-rich")' >/dev/null 2>&1; then

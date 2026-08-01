@@ -173,6 +173,14 @@ class UpdateHerdrStatusIconTest(HerdrStatusIconTestBase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(rename, [f"w1:t1|{ID_CLAUDE}{DONE}Claude Code"])
 
+    def test_jump_index_is_preserved_across_status_change(self):
+        result, rename, _, _ = self.run_shell(
+            f'update_herdr_status_icon "{DONE}"',
+            tab_label=f"[2] {ID_CLAUDE}{BUSY}Claude Code",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(rename, [f"w1:t1|[2] {ID_CLAUDE}{DONE}Claude Code"])
+
     def test_idempotent_when_label_already_matches(self):
         result, rename, _, _ = self.run_shell(
             f'update_herdr_status_icon "{WAIT}"', tab_label=f"{WAIT}main"
@@ -304,6 +312,14 @@ class RemoveHerdrStatusIconTest(HerdrStatusIconTestBase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(rename, [f"w1:t1|{ID_CLAUDE}Claude Code"])
+
+    def test_remove_keeps_jump_index_and_identifier(self):
+        result, rename, _, _ = self.run_shell(
+            "remove_herdr_status_icon",
+            tab_label=f"[2] {ID_CLAUDE}{DONE}Claude Code",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(rename, [f"w1:t1|[2] {ID_CLAUDE}Claude Code"])
 
     def test_idempotent_when_no_icon_present(self):
         result, rename, _, _ = self.run_shell("remove_herdr_status_icon", tab_label="main")

@@ -634,10 +634,14 @@ class HerdrPluginSetupTest(unittest.TestCase):
         already_linked: bool = False,
         link_rc: int = 0,
         remote_already_installed: bool = False,
+        automatic_rename_already_installed: bool = False,
         usagebar_already_installed: bool = False,
         install_rc: int = 0,
         setup_rc: int = 0,
         manifest_present: bool = True,
+        automatic_config_already_linked: bool = False,
+        automatic_config_conflict: bool = False,
+        automatic_config_symlink_conflict: bool = False,
         statusline_conflict: bool = False,
         statusline_symlink_conflict: bool = False,
     ) -> subprocess.CompletedProcess[str]:
@@ -649,6 +653,21 @@ class HerdrPluginSetupTest(unittest.TestCase):
             source_script.parent.mkdir(parents=True)
             source_script.write_text("#!/bin/bash\nexit 0\n", encoding="utf-8")
             source_script.chmod(0o755)
+            automatic_config = home / ".config" / "herdr-automatic-rename" / "config.sh"
+            managed_automatic_config = (
+                REPO_ROOT / "terminal" / "herdr" / "herdr-automatic-rename-config.sh"
+            )
+            if automatic_config_already_linked:
+                automatic_config.parent.mkdir(parents=True)
+                automatic_config.symlink_to(managed_automatic_config)
+            if automatic_config_conflict:
+                automatic_config.parent.mkdir(parents=True, exist_ok=True)
+                automatic_config.write_text("conflict\n", encoding="utf-8")
+            if automatic_config_symlink_conflict:
+                automatic_config.parent.mkdir(parents=True, exist_ok=True)
+                unexpected = root / "unexpected-automatic-rename-config.sh"
+                unexpected.write_text("NAME_TABS=1\n", encoding="utf-8")
+                automatic_config.symlink_to(unexpected)
             if statusline_conflict:
                 conflict = home / ".claude" / "herdr-agent-usage-statusline.sh"
                 conflict.parent.mkdir(parents=True)
@@ -663,6 +682,9 @@ class HerdrPluginSetupTest(unittest.TestCase):
             definitions = []
             if herdr_present:
                 notify_linked = "true" if already_linked else "false"
+                automatic_rename_installed = (
+                    "true" if automatic_rename_already_installed else "false"
+                )
                 termscope_installed = "true" if remote_already_installed else "false"
                 usagebar_installed = "true" if usagebar_already_installed else "false"
                 usagebar_json = json.dumps(
@@ -670,6 +692,7 @@ class HerdrPluginSetupTest(unittest.TestCase):
                 )
                 definitions.append(
                     "typeset -g test_notify_linked=" + notify_linked + "\n"
+                    "typeset -g test_automatic_rename_installed=" + automatic_rename_installed + "\n"
                     "typeset -g test_termscope_installed=" + termscope_installed + "\n"
                     "typeset -g test_usagebar_installed=" + usagebar_installed + "\n"
                     "function _test_plugins_json() {\n"
@@ -677,6 +700,11 @@ class HerdrPluginSetupTest(unittest.TestCase):
                     "  print -n -- '{\"result\":{\"plugins\":['\n"
                     "  if [[ $test_notify_linked == true ]]; then\n"
                     "    print -n -- '{\"plugin_id\":\"notify-rich\"}'\n"
+                    "    first=false\n"
+                    "  fi\n"
+                    "  if [[ $test_automatic_rename_installed == true ]]; then\n"
+                    "    [[ $first == true ]] || print -n -- ','\n"
+                    "    print -n -- '{\"plugin_id\":\"herdr-automatic-rename\"}'\n"
                     "    first=false\n"
                     "  fi\n"
                     "  if [[ $test_termscope_installed == true ]]; then\n"
@@ -700,6 +728,7 @@ class HerdrPluginSetupTest(unittest.TestCase):
                     '  elif [[ "$1" == "plugin" && "$2" == "install" ]]; then\n'
                     '    print -r -- "plugin install $3 $4"\n'
                     f"    if (( {install_rc} == 0 )); then\n"
+                    '      [[ "$3" == "qu8n/herdr-automatic-rename" ]] && test_automatic_rename_installed=true\n'
                     '      [[ "$3" == "iurysza/termscope" ]] && test_termscope_installed=true\n'
                     '      [[ "$3" == "senna-lang/herdr-agent-usage" ]] && test_usagebar_installed=true\n'
                     "    fi\n"
@@ -718,6 +747,7 @@ class HerdrPluginSetupTest(unittest.TestCase):
                     "source mac/scripts/herdr.sh",
                     f'setup_herdr_plugins "{repo_root}" "{home}"',
                     "result_rc=$?",
+                    f'print -r -- "automatic_config=$(readlink \"{automatic_config}\" 2>/dev/null)"',
                     f'print -r -- "statusline=$(readlink \"{statusline_link}\" 2>/dev/null)"',
                     "print -r -- rc=$result_rc",
                 )
@@ -735,6 +765,7 @@ class HerdrPluginSetupTest(unittest.TestCase):
             f"plugin link {REPO_ROOT}/terminal/herdr/plugins/notify-rich",
             result.stdout,
         )
+        self.assertIn("plugin install qu8n/herdr-automatic-rename --yes", result.stdout)
         self.assertIn("plugin install senna-lang/herdr-agent-usage --yes", result.stdout)
         self.assertIn("plugin action invoke usagebar.setup", result.stdout)
         self.assertEqual(result.stdout.splitlines()[-1], "rc=0")
@@ -745,17 +776,71 @@ class HerdrPluginSetupTest(unittest.TestCase):
         )
 
         self.assertIn("plugin install iurysza/termscope --yes", result.stdout)
+        self.assertIn("plugin install qu8n/herdr-automatic-rename --yes", result.stdout)
         self.assertEqual(result.stdout.splitlines()[-1], "rc=0")
+
+    def test_links_automatic_rename_config_before_install(self):
+        result = self.run_setup_herdr_plugins(already_linked=True)
+
+        source_config = REPO_ROOT / "terminal" / "herdr" / "herdr-automatic-rename-config.sh"
+        self.assertIn(f"automatic_config={source_config}", result.stdout)
+        self.assertLess(
+            result.stdout.index("✓ Linked herdr-automatic-rename config:"),
+            result.stdout.index("plugin install qu8n/herdr-automatic-rename --yes"),
+        )
+        config = source_config.read_text(encoding="utf-8")
+        self.assertIn("NAME_TABS=0", config)
+        self.assertIn("AUTO_INDEX=1", config)
+
+    def test_correct_automatic_rename_config_symlink_is_reused(self):
+        result = self.run_setup_herdr_plugins(
+            already_linked=True,
+            automatic_rename_already_installed=True,
+            automatic_config_already_linked=True,
+        )
+
+        self.assertEqual(result.stdout.splitlines()[-1], "rc=0")
+        self.assertIn("✓ Already linked:", result.stdout)
+
+    def test_existing_automatic_rename_config_is_not_overwritten(self):
+        result = self.run_setup_herdr_plugins(
+            already_linked=True,
+            automatic_config_conflict=True,
+        )
+
+        self.assertEqual(result.stdout.splitlines()[-1], "rc=1")
+        self.assertNotIn("plugin install", result.stdout)
+        self.assertIn(
+            "refusing to replace existing herdr-automatic-rename config",
+            result.stderr,
+        )
+
+    def test_unexpected_automatic_rename_config_symlink_is_not_replaced(self):
+        result = self.run_setup_herdr_plugins(
+            already_linked=True,
+            automatic_config_symlink_conflict=True,
+        )
+
+        self.assertEqual(result.stdout.splitlines()[-1], "rc=1")
+        self.assertNotIn("plugin install", result.stdout)
+        self.assertIn(
+            "herdr-automatic-rename config uses an unexpected symlink target",
+            result.stderr,
+        )
 
     def test_skips_remote_plugin_install_when_already_registered(self):
         result = self.run_setup_herdr_plugins(
             already_linked=True,
             remote_already_installed=True,
+            automatic_rename_already_installed=True,
             usagebar_already_installed=True,
         )
 
         self.assertNotIn("plugin install", result.stdout)
         self.assertIn("✓ Herdr plugin already installed: termscope", result.stdout)
+        self.assertIn(
+            "✓ Herdr plugin already installed: herdr-automatic-rename", result.stdout
+        )
         self.assertIn("✓ Herdr plugin already installed: usagebar", result.stdout)
         self.assertIn("plugin action invoke usagebar.setup", result.stdout)
 

@@ -61,6 +61,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         initial_managed_label: str | None = None,
         initial_state_session_id: str | None = None,
         socket_path: str = "/tmp/herdr.sock",
+        rename_observer: list[str] | None = None,
     ) -> tuple[subprocess.CompletedProcess[str], Path]:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -68,6 +69,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
             fake_bin = root / "bin"
             fake_bin.mkdir()
             events = root / "events"
+            rename_calls = root / "rename_calls"
             state_root = root / "state"
 
             # タブラベル状態ファイル（TabIconTest側と同じキー式）。通知本文の
@@ -215,7 +217,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                     'elif [[ "$1" == "tab" && "$2" == "get" ]]; then\n'
                     f"  echo '{json.dumps(tab_result)}'\n"
                     'elif [[ "$1" == "tab" && "$2" == "rename" ]]; then\n'
-                    '  :\n'
+                    '  echo "$3|$4" >> "$HERDR_TEST_RENAME_CALLS"\n'
                     'elif [[ "$1" == "workspace" && "$2" == "list" ]]; then\n'
                     f"  echo '{json.dumps(workspace_result)}'\n"
                     "fi\n",
@@ -256,6 +258,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
             env.update(
                 {
                     "HERDR_TEST_EVENTS": str(events),
+                    "HERDR_TEST_RENAME_CALLS": str(rename_calls),
                     "CLAUDE_CONFIG_DIR": str(claude_home),
                     "CODEX_HOME": str(codex_home),
                     "HERDR_PLUGIN_STATE_DIR": str(state_root),
@@ -284,6 +287,12 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                 check=False,
             )
             event_lines = events.read_text(encoding="utf-8").splitlines() if events.exists() else []
+            if rename_observer is not None:
+                rename_observer.extend(
+                    rename_calls.read_text(encoding="utf-8").splitlines()
+                    if rename_calls.exists()
+                    else []
+                )
             return result, event_lines
 
     def test_done_status_notifies_with_completion_title(self):
@@ -649,6 +658,44 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         title_line = next(line for line in events if line.startswith("title="))
         self.assertIn("🖥️ws2:tab7", title_line)
+
+    def test_indexed_workspace_and_manual_tab_hide_indexes_only_from_notification(self):
+        rename_calls = []
+        result, events = self.run_plugin(
+            agent="claude",
+            agent_status="done",
+            ws_label="[2] ai-work",
+            tab_label="[3] My Task",
+            title_text="概要文",
+            rename_observer=rename_calls,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        title_line = next(line for line in events if line.startswith("title="))
+        self.assertIn("🖥️ai-work:My Task", title_line)
+        self.assertNotIn("🖥️[2]", title_line)
+        self.assertNotIn(":[3]", title_line)
+        self.assertEqual(rename_calls, ["w1:t4|[3] CLAUDE_IDDONEMy Task"])
+
+    def test_workspace_index_stripping_is_exact(self):
+        cases = (
+            ("one_digit_jump_index", "[9] team", "🖥️team:My Task"),
+            ("two_digit_text", "[10] team", "🖥️[10] team:My Task"),
+            ("non_numeric_text", "[x] team", "🖥️[x] team:My Task"),
+        )
+        for name, ws_label, expected in cases:
+            with self.subTest(case=name):
+                result, events = self.run_plugin(
+                    agent="claude",
+                    agent_status="done",
+                    ws_label=ws_label,
+                    tab_label="My Task",
+                    title_text="概要文",
+                )
+
+                self.assertEqual(result.returncode, 0, result.stderr)
+                title_line = next(line for line in events if line.startswith("title="))
+                self.assertIn(expected, title_line)
 
     def test_claude_manual_label_keeps_tab_name(self):
         # 手動タブ名（連番/Herdrデフォルトでない）は会話概要に置き換わらない
@@ -1063,6 +1110,37 @@ class HerdrPluginTabIconTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, ["w1:t1 ✴️🤖1"])
 
+    def test_jump_index_stays_outside_identifier_during_status_change(self):
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="[2] ✴️✅1",
+            title_text="",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 [2] ✴️🤖1"])
+
+    def test_indexed_label_is_stable_on_repeated_event(self):
+        for event_name in (
+            "pane.focused",
+            "pane.agent_detected",
+            "pane.agent_status_changed",
+        ):
+            with self.subTest(event_name=event_name):
+                result, calls = self.run_plugin(
+                    agent="claude",
+                    agent_status="working",
+                    tab_status="working",
+                    current_label="[2] ✴️🤖1",
+                    title_text="",
+                    event_name=event_name,
+                )
+
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(calls, [])
+
     def test_codex_uses_its_own_id_emoji(self):
         result, calls = self.run_plugin(
             agent="codex",
@@ -1176,6 +1254,21 @@ class HerdrPluginTabIconTest(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, ["w1:t1 ✴️🤖ここに会話概要が入る"])
+        self.assertEqual(state, ["ここに会話概要が入る\nsession-abc"])
+
+    def test_indexed_default_label_adopts_conversation_title_inside_prefix(self):
+        state = []
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="[2] 1",
+            title_text="ここに会話概要が入る",
+            state_observer=state,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 [2] ✴️🤖ここに会話概要が入る"])
         self.assertEqual(state, ["ここに会話概要が入る\nsession-abc"])
 
     def test_conversation_title_length_boundary(self):
@@ -1687,6 +1780,19 @@ class HerdrPluginTabIconTest(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, ["w1:t1 ✴️✋1"])
+
+    def test_marker_pin_keeps_jump_index_outermost(self):
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="[2] ✴️🤖1",
+            title_text="",
+            input_wait_marker="✋",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 [2] ✴️✋1"])
 
     def test_marker_preserves_wait_on_agentless_pane_focus(self):
         # AI未検出タブ（tab_status空）のpane.focusedは従来アイコンを全部剥がして

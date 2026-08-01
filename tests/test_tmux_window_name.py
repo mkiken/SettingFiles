@@ -224,6 +224,8 @@ class TestComputeUpdatedLabel(unittest.TestCase):
             ("明示identifierは現ラベルの識別子を上書き", f"{ID}{BUSY}main", DONE, ID_CODEX, f"{ID_CODEX}{DONE}main"),
             ("明示空文字identifierは識別子を消す", f"{ID}{BUSY}main", DONE, "", f"{DONE}main"),
             ("バッジ保持", f"{ID}{BUSY}{ALERT}main", DONE, None, f"{ID}{DONE}{ALERT}main"),
+            ("Herdr番号prefix保持", f"[2] {ID}{BUSY}main", DONE, None, f"[2] {ID}{DONE}main"),
+            ("二桁は番号prefix扱いしない", f"[10] {ID}{BUSY}main", DONE, None, f"{DONE}[10] {ID}{BUSY}main"),
         ]
         for desc, current, status_emoji, identifier, expected in cases:
             with self.subTest(desc):
@@ -244,6 +246,7 @@ class TestComputeCleanedLabel(unittest.TestCase):
             ("識別子なしは状態除去のみ", f"{WAIT}main", "main"),
             ("バッジは保持", f"{ID}{DONE}{ALERT}main", f"{ID}{ALERT}main"),
             ("状態アイコンなしは不変", f"{ID}main", f"{ID}main"),
+            ("Herdr番号prefix保持", f"[9] {ID}{DONE}main", f"[9] {ID}main"),
         ]
         for desc, current, expected in cases:
             with self.subTest(desc):
@@ -518,6 +521,11 @@ class TestComputeLabelCli(unittest.TestCase):
                 ["compute-updated-label", f"{ID}{BUSY}main", DONE, ""],
                 f"{DONE}main",
             ),
+            (
+                "Herdr番号prefix保持",
+                ["compute-updated-label", f"[2] {ID}{BUSY}main", DONE],
+                f"[2] {ID}{DONE}main",
+            ),
         ]
         for desc, argv, expected_stdout in cases:
             with self.subTest(desc):
@@ -532,6 +540,7 @@ class TestComputeLabelCli(unittest.TestCase):
             # (説明, argv, expected_stdout)
             ("識別子は残し状態のみ除去", ["compute-cleaned-label", f"{ID}{DONE}main"], f"{ID}main"),
             ("識別子なしは状態除去のみ", ["compute-cleaned-label", f"{WAIT}main"], "main"),
+            ("Herdr番号prefix保持", ["compute-cleaned-label", f"[2] {ID}{DONE}main"], f"[2] {ID}main"),
         ]
         for desc, argv, expected_stdout in cases:
             with self.subTest(desc):
