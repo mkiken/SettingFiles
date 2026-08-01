@@ -275,7 +275,7 @@ class RepositoryWorktreeTest(unittest.TestCase):
     def test_popup_picker_routes_selected_worktree_by_accept_key(self):
         cases = (
             ("", "workspace create", ""),
-            ("ctrl-t", "tab create", ""),
+            ("alt-t", "tab create", ""),
             ("ctrl-s", "pane split --pane w1:p1 --direction down", "w1:p1"),
             ("ctrl-v", "pane split --pane w1:p1 --direction right", "w1:p1"),
         )
@@ -300,7 +300,7 @@ class RepositoryWorktreeTest(unittest.TestCase):
         result, values = self.run_repository_worktree(
             "_herdr_pick_worktree_target",
             herdr=True,
-            extra_env={"FWT_ONLY_MAIN_WORKTREE": "1", "FWT_FILTER_EXPECT_KEY": "ctrl-t"},
+            extra_env={"FWT_ONLY_MAIN_WORKTREE": "1", "FWT_FILTER_EXPECT_KEY": "alt-t"},
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)

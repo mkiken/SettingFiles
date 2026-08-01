@@ -67,7 +67,7 @@ height = "99%"
 key = "prefix+shift+f"
 type = "popup"
 command = "HERDR_POPUP_COMMAND=1 zsh -ilc \"_herdr_pick_worktree_target\""
-description = "worktree picker: Enter workspace, C-t tab, C-s down split, C-v right split"
+description = "worktree picker: Enter workspace, Alt-T tab, C-s down split, C-v right split"
 width = "90%"
 height = "90%"
 

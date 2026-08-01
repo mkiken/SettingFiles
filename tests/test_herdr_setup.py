@@ -142,7 +142,7 @@ class HerdrConfigurationTest(unittest.TestCase):
             'HERDR_POPUP_COMMAND=1 zsh -ilc "_herdr_pick_worktree_target"',
         )
         self.assertIn("Enter workspace", popup["description"])
-        self.assertIn("C-t tab", popup["description"])
+        self.assertIn("Alt-T tab", popup["description"])
         self.assertIn("C-s down split", popup["description"])
         self.assertIn("C-v right split", popup["description"])
         self.assertIn(

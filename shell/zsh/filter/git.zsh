@@ -802,7 +802,7 @@ function _filter_git_worktree_path() {
       }')
 
   local -a filter_args=()
-  $target_picker && filter_args=(--expect=ctrl-t,ctrl-s,ctrl-v)
+  $target_picker && filter_args=(--expect=alt-t,ctrl-s,ctrl-v)
 
   local selected
   selected=$(print -r -- "$worktrees" | filter \
@@ -820,10 +820,13 @@ function _filter_git_worktree_path() {
 
   if $target_picker; then
     local action="enter"
-    if [[ "$selected" == ctrl-[tsv]$'\n'* ]]; then
-      action="${selected%%$'\n'*}"
-      selected="${selected#*$'\n'}"
-    fi
+    local expected_key="${selected%%$'\n'*}"
+    case "$expected_key" in
+      alt-t|ctrl-s|ctrl-v)
+        action="$expected_key"
+        selected="${selected#*$'\n'}"
+        ;;
+    esac
 
     local worktree_path
     worktree_path=$(print -r -- "$selected" | cut -f2)
@@ -957,7 +960,7 @@ function _herdr_pick_worktree_target() {
 
   case "$action" in
     enter) _herdr_open_worktree_workspace "$worktree_path" ;;
-    ctrl-t) _herdr_open_worktree_tab "$worktree_path" ;;
+    alt-t) _herdr_open_worktree_tab "$worktree_path" ;;
     ctrl-s) _herdr_open_worktree_split "$worktree_path" down ;;
     ctrl-v) _herdr_open_worktree_split "$worktree_path" right ;;
     *)
