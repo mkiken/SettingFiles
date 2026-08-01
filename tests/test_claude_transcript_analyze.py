@@ -364,6 +364,37 @@ def task_stop_line(task_id, **extra):
     )
 
 
+def sync_agent_launch_line(tool_use_id, subagent_type="Explore", extra_content=None, **extra):
+    """同期（フォアグラウンド）Agentツールの起動行。run_in_backgroundを付けない
+    （実transcriptで同フィールドが省略されるケースを再現）。extra_contentで同一
+    メッセージへテキストを同梱できる（手順4の順序トラップ用テストケース16向け）。
+    """
+    content = list(extra_content) if extra_content else []
+    content.append(
+        {
+            "type": "tool_use",
+            "id": tool_use_id,
+            "name": "Agent",
+            "input": {"subagent_type": subagent_type, "description": "test"},
+        }
+    )
+    return assistant_line(content, **extra)
+
+
+def sync_agent_result_line(tool_use_id, **extra):
+    """同期Agentの完了tool_result（asyncマーカーを含まない）。"""
+    return user_line(
+        [
+            {
+                "type": "tool_result",
+                "tool_use_id": tool_use_id,
+                "content": [{"type": "text", "text": "Agent finished"}],
+            }
+        ],
+        **extra,
+    )
+
+
 def api_error_line(text, error="server_error", **extra):
     """APIエラー行（実transcriptの形状を再現）。isApiErrorMessage/errorはトップレベル。"""
     return json.dumps(
@@ -526,6 +557,22 @@ class TestLastTurnApiError(unittest.TestCase):
         self.assertEqual(result["pending_background_work"], 1)
         self.assertEqual(result["last_turn_api_error"], "server_error")
 
+    def test_sync_agent_pending_coexists_with_api_error(self):
+        # プラグインのゲートは `pending==1 && -z api_error` という連言なので、
+        # 同期サブエージェントがpending中でもAPIエラーがあれば通知は握りつぶされない。
+        # last_turn_api_errorが正しくセットされ続けることをここで固定する。
+        result = cta.analyze_lines(
+            [
+                sync_agent_launch_line("toolu_sync1", timestamp=TS1),
+                sync_agent_result_line("toolu_sync1", timestamp=TS2),
+                api_error_line(
+                    "API Error: Connection closed mid-response.", timestamp=TS3
+                ),
+            ]
+        )
+        self.assertEqual(result["pending_background_work"], 1)
+        self.assertEqual(result["last_turn_api_error"], "server_error")
+
     def test_error_text_extracted(self):
         text = "You've hit your session limit · resets 2:30pm (Asia/Tokyo)"
         result = cta.analyze_lines(
@@ -660,6 +707,186 @@ class TestPendingBackgroundWork(unittest.TestCase):
                 [
                     launch_result_line("a7f5fbcb58a095e87", timestamp=TS1),
                     schedule_wakeup_line({"stop": True}, timestamp=TS2),
+                ],
+                1,
+            ),
+            (
+                "同期Agent起動・tool_resultなし（実行中）",
+                [
+                    user_line("herdrの通知バグを直して", timestamp=TS1),
+                    sync_agent_launch_line("toolu_sync1", timestamp=TS2),
+                ],
+                1,
+            ),
+            (
+                "同期Agent起動+resultが最終行（本バグ: メインエージェント未再開）",
+                [
+                    user_line("herdrの通知バグを直して", timestamp=TS1),
+                    sync_agent_launch_line("toolu_sync1", timestamp=TS2),
+                    sync_agent_result_line("toolu_sync1", timestamp=TS3),
+                ],
+                1,
+            ),
+            (
+                "同期Agent起動+result+後続assistantテキスト（本物の完了）",
+                [
+                    user_line("herdrの通知バグを直して", timestamp=TS1),
+                    sync_agent_launch_line("toolu_sync1", timestamp=TS2),
+                    sync_agent_result_line("toolu_sync1", timestamp=TS2),
+                    assistant_line([{"type": "text", "text": "修正しました"}], timestamp=TS3),
+                ],
+                0,
+            ),
+            (
+                "同期Agent起動+result+後続assistant tool_use（会話継続）。"
+                "テキストを伴わない純粋なtool_use行（実測で全assistant行の約半数を占める）"
+                "でもsync_last_eventがリセットされることを固定する",
+                [
+                    user_line("herdrの通知バグを直して", timestamp=TS1),
+                    sync_agent_launch_line("toolu_sync1", timestamp=TS2),
+                    sync_agent_result_line("toolu_sync1", timestamp=TS2),
+                    assistant_line(
+                        [{"type": "tool_use", "id": "t9", "name": "Read", "input": {}}],
+                        timestamp=TS3,
+                    ),
+                ],
+                0,
+            ),
+            (
+                "同期Agent起動+result+後続の実userメッセージ",
+                [
+                    sync_agent_launch_line("toolu_sync1", timestamp=TS1),
+                    sync_agent_result_line("toolu_sync1", timestamp=TS2),
+                    user_line("ありがとう、続けて", timestamp=TS3),
+                ],
+                0,
+            ),
+            (
+                "同期Agent 2件、1件目のみtool_result対応済み",
+                [
+                    sync_agent_launch_line("toolu_sync1", timestamp=TS1),
+                    sync_agent_launch_line("toolu_sync2", timestamp=TS1),
+                    sync_agent_result_line("toolu_sync1", timestamp=TS2),
+                ],
+                1,
+            ),
+            (
+                "並列fan-out6件、resultが順不同で一部のみ到着（pr-review-subagents相当）",
+                [
+                    sync_agent_launch_line("toolu_s1", timestamp=TS1),
+                    sync_agent_launch_line("toolu_s2", timestamp=TS1),
+                    sync_agent_launch_line("toolu_s3", timestamp=TS1),
+                    sync_agent_launch_line("toolu_s4", timestamp=TS1),
+                    sync_agent_launch_line("toolu_s5", timestamp=TS1),
+                    sync_agent_launch_line("toolu_s6", timestamp=TS1),
+                    sync_agent_result_line("toolu_s3", timestamp=TS2),
+                    sync_agent_result_line("toolu_s1", timestamp=TS2),
+                ],
+                1,
+            ),
+            (
+                "並列fan-out6件が全対応済み+後続assistantテキスト",
+                [
+                    sync_agent_launch_line("toolu_s1", timestamp=TS1),
+                    sync_agent_launch_line("toolu_s2", timestamp=TS1),
+                    sync_agent_launch_line("toolu_s3", timestamp=TS1),
+                    sync_agent_launch_line("toolu_s4", timestamp=TS1),
+                    sync_agent_launch_line("toolu_s5", timestamp=TS1),
+                    sync_agent_launch_line("toolu_s6", timestamp=TS1),
+                    sync_agent_result_line("toolu_s1", timestamp=TS2),
+                    sync_agent_result_line("toolu_s2", timestamp=TS2),
+                    sync_agent_result_line("toolu_s3", timestamp=TS2),
+                    sync_agent_result_line("toolu_s4", timestamp=TS2),
+                    sync_agent_result_line("toolu_s5", timestamp=TS2),
+                    sync_agent_result_line("toolu_s6", timestamp=TS2),
+                    assistant_line([{"type": "text", "text": "全レビュー完了"}], timestamp=TS3),
+                ],
+                0,
+            ),
+            (
+                "run_in_background=Trueのasync Agent、result最終行だがasyncマーカーなし"
+                "（async経路の管轄であり同期ガードは反応しない）",
+                [
+                    assistant_line(
+                        [
+                            {
+                                "type": "tool_use",
+                                "id": "toolu_async1",
+                                "name": "Agent",
+                                "input": {"run_in_background": True, "description": "test"},
+                            }
+                        ],
+                        timestamp=TS1,
+                    ),
+                    user_line(
+                        [
+                            {
+                                "type": "tool_result",
+                                "tool_use_id": "toolu_async1",
+                                "content": [
+                                    {"type": "text", "text": "Agent launched in background"}
+                                ],
+                            }
+                        ],
+                        timestamp=TS2,
+                    ),
+                ],
+                0,
+            ),
+            (
+                "同期resultが最終行、後続はisSidechain行のみ（サブエージェント内部行では"
+                "リセットされない）",
+                [
+                    sync_agent_launch_line("toolu_sync1", timestamp=TS1),
+                    sync_agent_result_line("toolu_sync1", timestamp=TS2),
+                    assistant_line(
+                        [{"type": "text", "text": "内部思考"}],
+                        timestamp=TS3,
+                        isSidechain=True,
+                    ),
+                ],
+                1,
+            ),
+            (
+                "同期resultが最終行、後続は<task-notification>のみ（システム扱いで"
+                "リセットされない）",
+                [
+                    sync_agent_launch_line("toolu_sync1", timestamp=TS1),
+                    sync_agent_result_line("toolu_sync1", timestamp=TS2),
+                    task_notification_line("aefc7d35e7d4178fb", timestamp=TS3),
+                ],
+                1,
+            ),
+            (
+                "同期resultが最終行、後続はlast-prompt等の短い/システム系行のみ",
+                [
+                    sync_agent_launch_line("toolu_sync1", timestamp=TS1),
+                    sync_agent_result_line("toolu_sync1", timestamp=TS2),
+                    user_line("  <system-reminder>context</system-reminder>", timestamp=TS3),
+                ],
+                1,
+            ),
+            (
+                "同期pendingかつ末尾APIエラー: エラーは握りつぶさず1のまま"
+                "（プラグイン側のlast_turn_api_error連言で結局は通知される）",
+                [
+                    sync_agent_launch_line("toolu_sync1", timestamp=TS1),
+                    sync_agent_result_line("toolu_sync1", timestamp=TS2),
+                    api_error_line(
+                        "API Error: Connection closed mid-response.", timestamp=TS3
+                    ),
+                ],
+                1,
+            ),
+            (
+                "同一assistantメッセージにテキストと同期Agent tool_useを同梱、"
+                "tool_result未着（手順4の順序トラップ: sync_pendingはリセットされない不変条件）",
+                [
+                    sync_agent_launch_line(
+                        "toolu_sync1",
+                        extra_content=[{"type": "text", "text": "続けて調査します"}],
+                        timestamp=TS1,
+                    ),
                 ],
                 1,
             ),

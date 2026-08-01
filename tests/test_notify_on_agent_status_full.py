@@ -180,6 +180,111 @@ class NotifyOnAgentStatusFullTest(unittest.TestCase):
         self.assertIn("Hero", log)
         self.assertIn("✅", log)
 
+    def _sync_agent_launch(self, tool_use_id, timestamp):
+        return json.dumps(
+            {
+                "timestamp": timestamp,
+                "message": {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "id": tool_use_id,
+                            "name": "Agent",
+                            "input": {"subagent_type": "Explore", "description": "test"},
+                        }
+                    ],
+                },
+            }
+        )
+
+    def _sync_agent_result(self, tool_use_id, timestamp):
+        return json.dumps(
+            {
+                "timestamp": timestamp,
+                "message": {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": tool_use_id,
+                            "content": [{"type": "text", "text": "Agent finished"}],
+                        }
+                    ],
+                },
+            }
+        )
+
+    def test_sync_subagent_tail_suppresses_notification(self):
+        # 同期サブエージェントのtool_resultがtranscript末尾（メインエージェント未再開）
+        # の場合、Herdrがスピナー消失をdoneと誤認してもterminal-notifierは呼ばれない。
+        result = self.run_hook(
+            [
+                json.dumps(
+                    {
+                        "timestamp": "2026-07-11T12:00:00.000Z",
+                        "message": {"role": "user", "content": "herdrの通知バグを直して"},
+                    }
+                ),
+                self._sync_agent_launch("toolu_sync1", "2026-07-11T12:01:00.000Z"),
+                self._sync_agent_result("toolu_sync1", "2026-07-11T12:01:05.000Z"),
+            ]
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse(
+            self.notifier_log.exists() and self.notifier_log.read_text(encoding="utf-8"),
+            "同期サブエージェント完了直後は通知が送られてはならない",
+        )
+
+    def test_sync_subagent_followed_by_real_completion_notifies(self):
+        # 同じtranscriptに本物の完了（後続assistantテキスト）が続けば通常どおり通知される
+        result = self.run_hook(
+            [
+                json.dumps(
+                    {
+                        "timestamp": "2026-07-11T12:00:00.000Z",
+                        "message": {"role": "user", "content": "herdrの通知バグを直して"},
+                    }
+                ),
+                self._sync_agent_launch("toolu_sync1", "2026-07-11T12:01:00.000Z"),
+                self._sync_agent_result("toolu_sync1", "2026-07-11T12:01:05.000Z"),
+                json.dumps(
+                    {
+                        "timestamp": "2026-07-11T12:01:10.000Z",
+                        "message": {
+                            "role": "assistant",
+                            "content": [{"type": "text", "text": "修正しました"}],
+                        },
+                    }
+                ),
+            ]
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        log = self.notifier_log.read_text(encoding="utf-8")
+        self.assertIn("Hero", log)
+        self.assertIn("✅", log)
+
+    def test_sync_subagent_tail_with_blocked_status_still_notifies(self):
+        # ガードはagent_status=doneのみを対象とする（claude_transcript_analyze.pyの
+        # PENDING_BACKGROUND_WORK抑止はプラグイン側でdone判定の後にしか参照されない）。
+        # blocked（入力待ち）では同期サブエージェント末尾でも通知は抑止されない。
+        result = self.run_hook(
+            [
+                json.dumps(
+                    {
+                        "timestamp": "2026-07-11T12:00:00.000Z",
+                        "message": {"role": "user", "content": "herdrの通知バグを直して"},
+                    }
+                ),
+                self._sync_agent_launch("toolu_sync1", "2026-07-11T12:01:00.000Z"),
+                self._sync_agent_result("toolu_sync1", "2026-07-11T12:01:05.000Z"),
+            ],
+            agent_status="blocked",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        log = self.notifier_log.read_text(encoding="utf-8")
+        self.assertIn("Glass", log)
+
     def test_normal_done_sends_completion_notification(self):
         result = self.run_hook(
             [

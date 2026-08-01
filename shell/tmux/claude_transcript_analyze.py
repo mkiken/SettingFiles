@@ -42,6 +42,17 @@ _TASK_ID_RE = re.compile(r"<task-id>([0-9a-z]+)</task-id>")
 # TaskStopのinputスキーマは未固定のため、ID形状の文字列値だけを停止対象として拾う
 _TASK_STOP_ID_RE = re.compile(r"^[0-9a-z_-]{6,}$")
 
+# 同期（フォアグラウンド）サブエージェント検出:
+# Herdrのagent_statusは画面スクレイピング（OSCタイトルのスピナー有無）で決まるため、
+# 同期Agent実行中はメインエージェントがトークンを吐かずスピナーが消え、Herdrが
+# working→idleと誤認してagent_status=doneを発火する。これは非asyncなのでasync専用の
+# _AGENT_LAUNCH_MARKERでは検知できない、別種のバックグラウンド作業として扱う。
+# Taskを含めるのは防御的・前方互換のためであり実在を確認したものではない
+# （実測300 transcript中の起動はすべてAgent名で記録され、Task名のtool_useは0件。
+# live settings.jsonのPostToolUse matcherにTaskがあるが、matcher文字列はツール実在の
+# 証拠にならない）。
+_SYNC_AGENT_TOOLS = ("Agent", "Task")
+
 
 def squeeze_spaces(text):
     return _SQUEEZE_RE.sub(" ", text)
@@ -164,6 +175,9 @@ def _collect_background_signals(obj, role, raw_content, state):
     - launched: async Agent起動結果(tool_result)のagentId
     - completed: task-notificationのtask-id、およびTaskStop対象ID
     - wakeup_deadline: 武装中ScheduleWakeupの発火予定時刻（stop:trueでリセット）
+    - sync_pending: 未対応の同期Agent/Task tool_use_id集合
+    - sync_last_event: 直近の同期Agentイベント種別("launch"|"result"|None)。
+      呼び出し側(analyze_lines)が実会話行到達時にNoneへリセットする。
     """
     if role == "user":
         if isinstance(raw_content, list):
@@ -174,11 +188,23 @@ def _collect_background_signals(obj, role, raw_content, state):
                     text = _tool_result_text(item)
                     if _AGENT_LAUNCH_MARKER in text:
                         state["launched"].update(_AGENT_ID_RE.findall(text))
+                    tool_use_id = item.get("tool_use_id")
+                    if tool_use_id in state["sync_pending"]:
+                        del state["sync_pending"][tool_use_id]
+                        state["sync_last_event"] = "result"
                 elif item.get("type") == "text":
                     state["completed"].update(_TASK_ID_RE.findall(item.get("text", "")))
         elif isinstance(raw_content, str):
             state["completed"].update(_TASK_ID_RE.findall(raw_content))
     elif role == "assistant" and isinstance(raw_content, list):
+        # メインエージェントが何らかのtool_useを発行した時点で「再開した」とみなし
+        # sync_last_eventをリセットする。analyze_lines側のリセット（327行目付近）は
+        # 抽出テキストが非空の行でしか発火しないため、テキストを伴わない
+        # 純粋なtool_use行（Read/Edit等、実測で全assistant行の約半数を占める）
+        # では再開が検知できない。ここで無条件にリセットしておき、この行自身が
+        # 新たな同期Agent/Task起動であれば直後のループで"launch"に上書きされる。
+        if any(isinstance(item, dict) and item.get("type") == "tool_use" for item in raw_content):
+            state["sync_last_event"] = None
         for item in raw_content:
             if not isinstance(item, dict) or item.get("type") != "tool_use":
                 continue
@@ -203,6 +229,9 @@ def _collect_background_signals(obj, role, raw_content, state):
                     for value in tool_input.values()
                     if isinstance(value, str) and _TASK_STOP_ID_RE.match(value)
                 )
+            elif name in _SYNC_AGENT_TOOLS and tool_input.get("run_in_background") is not True:
+                state["sync_pending"][item.get("id")] = True
+                state["sync_last_event"] = "launch"
 
 
 def _resolve_pending_background_work(state, last_timestamp):
@@ -210,6 +239,12 @@ def _resolve_pending_background_work(state, last_timestamp):
 
     武装中wakeupは発火予定時刻がtranscript末尾時刻より未来の場合のみ有効
     （発火済みwakeupの残骸で完了通知を抑止し続けないため）。
+
+    同期サブエージェントは2条件で抑止する: (a) tool_resultが未着（実行中）、
+    (b) tool_resultは届いたがそれが最後の会話行（メインエージェント未再開）。
+    実測(150 transcript, 2026-08-01時点)では同期起動98件中、放棄（tool_result
+    が永久に届かない）は0件、末尾がtool_resultになる静止transcriptも0/37
+    （dig独立検証で0/113）のため、staleness boundは設けず無制限のまま扱う。
     """
     if state["launched"] - state["completed"]:
         return 1
@@ -218,6 +253,10 @@ def _resolve_pending_background_work(state, last_timestamp):
         end = parse_naive_timestamp(last_timestamp)
         if end is None or end < deadline:
             return 1
+    if state["sync_pending"]:
+        return 1
+    if state["sync_last_event"] == "result":
+        return 1
     return 0
 
 
@@ -231,7 +270,13 @@ def analyze_lines(lines):
         "last_turn_api_error": "",
         "last_turn_api_error_text": "",
     }
-    background_state = {"launched": set(), "completed": set(), "wakeup_deadline": None}
+    background_state = {
+        "launched": set(),
+        "completed": set(),
+        "wakeup_deadline": None,
+        "sync_pending": {},
+        "sync_last_event": None,
+    }
     for line in lines:
         line = line.strip()
         if not line:
@@ -323,10 +368,12 @@ def analyze_lines(lines):
                 # 除外済みなので、ここに到達するassistant行は常に真の会話行でありガード不要。
                 result["last_turn_api_error"] = ""
                 result["last_turn_api_error_text"] = ""
+                background_state["sync_last_event"] = None
         elif role == "assistant":
             result["assistant_count"] += 1
             result["last_turn_api_error"] = ""
             result["last_turn_api_error_text"] = ""
+            background_state["sync_last_event"] = None
     result["pending_background_work"] = _resolve_pending_background_work(
         background_state, result["last_timestamp"]
     )
