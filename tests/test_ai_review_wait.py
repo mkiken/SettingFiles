@@ -143,7 +143,7 @@ class AiReviewWaitLivenessTest(unittest.TestCase):
 
     def test_closed_tab_with_partial_files_returns_3(self):
         (self.run_dir / "codex.md").write_text("result")
-        result = self.run_wait("claude.md=t1", "codex.md=t2")
+        result = self.run_wait("claude.md=t1", "codex.md=t2", timeout="5")
         self.assertEqual(result.returncode, 3)
         self.assertIn("閉鎖✗", result.stderr)
         self.assertIn("閉じられました", result.stderr)

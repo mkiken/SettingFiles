@@ -47,7 +47,7 @@ class HerdrConfigurationTest(unittest.TestCase):
         self.assertEqual(
             config["terminal"],
             {
-                "default_shell": "/bin/zsh",
+                "default_shell": "zsh",
                 "shell_mode": "auto",
                 "new_cwd": "follow",
             },

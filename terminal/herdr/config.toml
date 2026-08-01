@@ -4,9 +4,7 @@ onboarding = false
 name = "terminal"
 
 [terminal]
-# Amazon Q's qterm wrapper hides the real foreground process from Herdr's macOS
-# agent detector. Use the system zsh only inside Herdr; normal terminal shells keep qterm.
-default_shell = "/bin/zsh"
+default_shell = "zsh"
 shell_mode = "auto"
 new_cwd = "follow"
 
