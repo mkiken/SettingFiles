@@ -111,6 +111,12 @@ type = "plugin_action"
 command = "herdr-zoxide.browse"
 description = "Browse zoxide directories"
 
+[[keys.command]]
+key = "prefix+g"
+type = "plugin_action"
+command = "herdr-bar.open"
+description = "command bar"
+
 [ui]
 mouse_capture = true
 copy_on_select = true
