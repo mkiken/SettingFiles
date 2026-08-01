@@ -645,6 +645,7 @@ class HerdrPluginSetupTest(unittest.TestCase):
         already_linked: bool = False,
         link_rc: int = 0,
         remote_already_installed: bool = False,
+        herdr_zoxide_already_installed: bool = False,
         automatic_rename_already_installed: bool = False,
         usagebar_already_installed: bool = False,
         install_rc: int = 0,
@@ -697,6 +698,9 @@ class HerdrPluginSetupTest(unittest.TestCase):
                     "true" if automatic_rename_already_installed else "false"
                 )
                 termscope_installed = "true" if remote_already_installed else "false"
+                herdr_zoxide_installed = (
+                    "true" if herdr_zoxide_already_installed else "false"
+                )
                 usagebar_installed = "true" if usagebar_already_installed else "false"
                 usagebar_json = json.dumps(
                     {"plugin_id": "usagebar", "plugin_root": str(plugin_root)}
@@ -705,6 +709,7 @@ class HerdrPluginSetupTest(unittest.TestCase):
                     "typeset -g test_notify_linked=" + notify_linked + "\n"
                     "typeset -g test_automatic_rename_installed=" + automatic_rename_installed + "\n"
                     "typeset -g test_termscope_installed=" + termscope_installed + "\n"
+                    "typeset -g test_herdr_zoxide_installed=" + herdr_zoxide_installed + "\n"
                     "typeset -g test_usagebar_installed=" + usagebar_installed + "\n"
                     "function _test_plugins_json() {\n"
                     "  local first=true\n"
@@ -721,6 +726,11 @@ class HerdrPluginSetupTest(unittest.TestCase):
                     "  if [[ $test_termscope_installed == true ]]; then\n"
                     "    [[ $first == true ]] || print -n -- ','\n"
                     "    print -n -- '{\"plugin_id\":\"termscope\"}'\n"
+                    "    first=false\n"
+                    "  fi\n"
+                    "  if [[ $test_herdr_zoxide_installed == true ]]; then\n"
+                    "    [[ $first == true ]] || print -n -- ','\n"
+                    "    print -n -- '{\"plugin_id\":\"herdr-zoxide\"}'\n"
                     "    first=false\n"
                     "  fi\n"
                     "  if [[ $test_usagebar_installed == true ]]; then\n"
@@ -741,6 +751,7 @@ class HerdrPluginSetupTest(unittest.TestCase):
                     f"    if (( {install_rc} == 0 )); then\n"
                     '      [[ "$3" == "qu8n/herdr-automatic-rename" ]] && test_automatic_rename_installed=true\n'
                     '      [[ "$3" == "iurysza/termscope" ]] && test_termscope_installed=true\n'
+                    '      [[ "$3" == "den-tanui/herdr-zoxide" ]] && test_herdr_zoxide_installed=true\n'
                     '      [[ "$3" == "senna-lang/herdr-agent-usage" ]] && test_usagebar_installed=true\n'
                     "    fi\n"
                     f"    return {install_rc}\n"
@@ -777,6 +788,7 @@ class HerdrPluginSetupTest(unittest.TestCase):
             result.stdout,
         )
         self.assertIn("plugin install qu8n/herdr-automatic-rename --yes", result.stdout)
+        self.assertIn("plugin install den-tanui/herdr-zoxide --yes", result.stdout)
         self.assertIn("plugin install senna-lang/herdr-agent-usage --yes", result.stdout)
         self.assertIn("plugin action invoke usagebar.setup", result.stdout)
         self.assertEqual(result.stdout.splitlines()[-1], "rc=0")
@@ -787,6 +799,7 @@ class HerdrPluginSetupTest(unittest.TestCase):
         )
 
         self.assertIn("plugin install iurysza/termscope --yes", result.stdout)
+        self.assertIn("plugin install den-tanui/herdr-zoxide --yes", result.stdout)
         self.assertIn("plugin install qu8n/herdr-automatic-rename --yes", result.stdout)
         self.assertEqual(result.stdout.splitlines()[-1], "rc=0")
 
@@ -843,6 +856,7 @@ class HerdrPluginSetupTest(unittest.TestCase):
         result = self.run_setup_herdr_plugins(
             already_linked=True,
             remote_already_installed=True,
+            herdr_zoxide_already_installed=True,
             automatic_rename_already_installed=True,
             usagebar_already_installed=True,
         )
@@ -852,6 +866,7 @@ class HerdrPluginSetupTest(unittest.TestCase):
         self.assertIn(
             "✓ Herdr plugin already installed: herdr-automatic-rename", result.stdout
         )
+        self.assertIn("✓ Herdr plugin already installed: herdr-zoxide", result.stdout)
         self.assertIn("✓ Herdr plugin already installed: usagebar", result.stdout)
         self.assertIn("plugin action invoke usagebar.setup", result.stdout)
 

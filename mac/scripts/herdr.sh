@@ -5,6 +5,7 @@ HERDR_CODEX_COMMAND="bash ~/.codex/herdr-agent-state.sh session"
 typeset -a HERDR_REMOTE_PLUGINS=(
   "herdr-automatic-rename:qu8n/herdr-automatic-rename"
   "termscope:iurysza/termscope"
+  "herdr-zoxide:den-tanui/herdr-zoxide"
   "usagebar:senna-lang/herdr-agent-usage"
 )
 
