@@ -1098,7 +1098,7 @@ function fwtm() {
     return 1
   fi
 
-  git -C "$target_path" merge --ff-only -- "$source_branch" || return $?
+  git -C "$target_path" merge -- "$source_branch" || return $?
 
   builtin cd -q "$target_path" || return $?
   git worktree remove -- "$source_path" || return $?
