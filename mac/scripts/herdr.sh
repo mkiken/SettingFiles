@@ -2,6 +2,9 @@
 
 HERDR_CLAUDE_COMMAND="bash ~/.claude/hooks/herdr-agent-state.sh session"
 HERDR_CODEX_COMMAND="bash ~/.codex/herdr-agent-state.sh session"
+typeset -a HERDR_REMOTE_PLUGINS=(
+  "termscope:iurysza/termscope"
+)
 
 function _herdr_require_command() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -603,12 +606,29 @@ function setup_herdr_service() {
   brew services start herdr
 }
 
+function _setup_herdr_remote_plugin() {
+  local plugin_id="$1"
+  local plugin_source="$2"
+
+  if herdr plugin list --json 2>/dev/null \
+    | jq -e --arg plugin_id "$plugin_id" \
+      '.result.plugins[]? | select(.plugin_id == $plugin_id)' >/dev/null 2>&1; then
+    echo "✓ Herdr plugin already installed: $plugin_id"
+    return 0
+  fi
+
+  herdr plugin install "$plugin_source"
+}
+
 function setup_herdr_plugins() {
   # notify-rich プラグイン(terminal/herdr/plugins/notify-rich)を herdr に登録する。
   # Herdr自身のtoastの代わりにこのリポジトリのリッチMac通知を出すためのevent hookプラグイン。
   # 冪等: plugin list に既に notify-rich が登録済みならlinkし直さない。
   local repo_root="${1:-$Repo}"
   local plugin_dir="${repo_root%/}/terminal/herdr/plugins/notify-rich"
+  local plugin=""
+  local plugin_id=""
+  local plugin_source=""
 
   _herdr_require_command herdr || return 1
   _herdr_require_command jq || return 1
@@ -618,15 +638,18 @@ function setup_herdr_plugins() {
     return 1
   fi
 
-  local already_linked=""
-  already_linked="$(herdr plugin list --json 2>/dev/null \
-    | jq -e '.result.plugins[]? | select(.plugin_id=="notify-rich")' >/dev/null 2>&1 && echo 1)"
-  if [[ -n "$already_linked" ]]; then
+  if herdr plugin list --json 2>/dev/null \
+    | jq -e '.result.plugins[]? | select(.plugin_id == "notify-rich")' >/dev/null 2>&1; then
     echo "✓ Herdr plugin already linked: notify-rich"
-    return 0
+  else
+    herdr plugin link "$plugin_dir" || return 1
   fi
 
-  herdr plugin link "$plugin_dir"
+  for plugin in "${HERDR_REMOTE_PLUGINS[@]}"; do
+    plugin_id="${plugin%%:*}"
+    plugin_source="${plugin#*:}"
+    _setup_herdr_remote_plugin "$plugin_id" "$plugin_source" || return 1
+  done
 }
 
 function setup_herdr() {

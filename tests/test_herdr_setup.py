@@ -585,14 +585,17 @@ class HerdrPluginSetupTest(unittest.TestCase):
         jq_present: bool = True,
         already_linked: bool = False,
         link_rc: int = 0,
+        remote_already_installed: bool = False,
+        install_rc: int = 0,
         manifest_present: bool = True,
     ) -> subprocess.CompletedProcess[str]:
         definitions = []
-        plugins_json = (
-            '{"result":{"plugins":[{"plugin_id":"notify-rich"}]}}'
-            if already_linked
-            else '{"result":{"plugins":[]}}'
-        )
+        plugin_ids = []
+        if already_linked:
+            plugin_ids.append('{"plugin_id":"notify-rich"}')
+        if remote_already_installed:
+            plugin_ids.append('{"plugin_id":"termscope"}')
+        plugins_json = '{"result":{"plugins":[' + ",".join(plugin_ids) + "]}}"
         if herdr_present:
             definitions.append(
                 "function herdr() {\n"
@@ -602,6 +605,9 @@ class HerdrPluginSetupTest(unittest.TestCase):
                 '  elif [[ "$1" == "plugin" && "$2" == "link" ]]; then\n'
                 '    print -r -- "plugin link $3"\n'
                 f"    return {link_rc}\n"
+                '  elif [[ "$1" == "plugin" && "$2" == "install" ]]; then\n'
+                '    print -r -- "plugin install $3"\n'
+                f"    return {install_rc}\n"
                 "  fi\n"
                 "}"
             )
@@ -630,12 +636,41 @@ class HerdrPluginSetupTest(unittest.TestCase):
         )
         self.assertEqual(result.stdout.splitlines()[-1], "rc=0")
 
+    def test_installs_declared_remote_plugin_when_not_yet_registered(self):
+        result = self.run_setup_herdr_plugins(
+            already_linked=True, remote_already_installed=False
+        )
+
+        self.assertIn("plugin install iurysza/termscope", result.stdout)
+        self.assertEqual(result.stdout.splitlines()[-1], "rc=0")
+
+    def test_skips_remote_plugin_install_when_already_registered(self):
+        result = self.run_setup_herdr_plugins(
+            already_linked=True, remote_already_installed=True
+        )
+
+        self.assertNotIn("plugin install", result.stdout)
+        self.assertIn("✓ Herdr plugin already installed: termscope", result.stdout)
+
+    def test_remote_plugin_install_failure_propagates_as_nonzero(self):
+        result = self.run_setup_herdr_plugins(
+            already_linked=True, install_rc=1
+        )
+
+        self.assertEqual(result.stdout.splitlines()[-1], "rc=1")
+
     def test_skips_link_when_already_registered(self):
-        result = self.run_setup_herdr_plugins(already_linked=True)
+        result = self.run_setup_herdr_plugins(
+            already_linked=True, remote_already_installed=True
+        )
 
         self.assertEqual(
             result.stdout.splitlines(),
-            ["✓ Herdr plugin already linked: notify-rich", "rc=0"],
+            [
+                "✓ Herdr plugin already linked: notify-rich",
+                "✓ Herdr plugin already installed: termscope",
+                "rc=0",
+            ],
         )
 
     def test_link_failure_propagates_as_nonzero(self):

@@ -91,6 +91,12 @@ description = "open current branch's PR in browser"
 width = "90%"
 height = "80%"
 
+[[keys.command]]
+key = "prefix+u"
+type = "plugin_action"
+command = "termscope.open-links"
+description = "visible-screen link picker"
+
 [ui]
 mouse_capture = true
 copy_on_select = true
