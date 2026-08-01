@@ -102,10 +102,20 @@ When presenting a markdown plan artifact (plan-mode plan file, SDD spec/design/t
 - It contains mermaid diagrams, tables, or images.
 - The plan spans multiple files.
 
-Ask via the platform-specific `# User Confirmation` mechanism. If accepted, launch mdts in the background — the launch shape depends on the artifact:
+Ask via the platform-specific `# User Confirmation` mechanism. If accepted, launch mdts in the background — the launch shape depends on the artifact.
 
-- **Plan-mode plan file** (a single file among many in `~/.claude/plans/`): reuse a persistent server on the fixed port 8600, mounting `~/.claude/plans`. Probe first (e.g. `curl -s -o /dev/null http://localhost:8600/api/filetree`); only start it if the probe fails. **Never stop this server** — a fixed port keeps the browser origin (and therefore its `localStorage`-backed layout/sidebar preferences) stable across reviews, and killing it drops any tab the user still has open on it. Open the target directly via `http://localhost:8600/<filename>` — no glob needed since the file tree stays collapsed by user preference. If port 8600 is already taken by something else, fall back to `mdts -p auto --no-open ~/.claude/plans -g '<filename>'` for that one review (directory argument before `-g` — it is variadic and will otherwise swallow the directory, silently mounting the wrong path and watching zero files), parse the port from the log with `grep -a` (the log mixes ANSI escapes and OSC8 hyperlinks), and treat that instance as ephemeral like the SDD case below.
-- **Small self-contained directory** (e.g. an SDD feature directory): run `mdts -p auto <that directory>` per review; stop it once the user finishes — never on a timer.
+mdts's own `-p auto` scans upward from its default port (8521) and gives up after 10 tries, colliding with the user's own manual `mdts` (which also defaults to 8521) and eventually exhausting the whole default band. Ephemeral AI-launched instances must instead pick a free port starting from 8610, reserving 8521+ for the user's manual use — find one with a shell loop before invoking mdts, e.g.:
+
+```bash
+for p in $(seq 8610 8620); do
+  if ! /usr/sbin/lsof -nP -iTCP:$p -sTCP:LISTEN >/dev/null 2>&1; then echo "$p"; break; fi
+done
+```
+
+Passing that number explicitly (not `auto`) is required — `-p <number>` still fails outright on collision (mdts does not retry a numeric port), so the free-port search above must run first every time, even when a prior probe succeeded.
+
+- **Plan-mode plan file** (a single file among many in `~/.claude/plans/`): reuse a persistent server on the fixed port 8600, mounting `~/.claude/plans`. Probe first (e.g. `curl -s -o /dev/null http://localhost:8600/api/filetree`); only start it if the probe fails. **Never stop this server** — a fixed port keeps the browser origin (and therefore its `localStorage`-backed layout/sidebar preferences) stable across reviews, and killing it drops any tab the user still has open on it. Open the target directly via `http://localhost:8600/<filename>` — no glob needed since the file tree stays collapsed by user preference. If port 8600 is already taken by something else, find a free port as above and fall back to `mdts -p <found-port> --no-open ~/.claude/plans -g '<filename>'` for that one review (directory argument before `-g` — it is variadic and will otherwise swallow the directory, silently mounting the wrong path and watching zero files), and treat that instance as ephemeral like the SDD case below.
+- **Small self-contained directory** (e.g. an SDD feature directory): find a free port as above and run `mdts -p <found-port> --no-open <that directory>` per review; stop it once the user finishes — never on a timer.
 
 Tell the user which file to review in either case.
 
