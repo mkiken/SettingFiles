@@ -756,6 +756,14 @@ function _filter_zoxide_git_repo() {
 # 追加worktreeが無く本体のみの場合は選択UIを出さず、本体のパスをそのまま返す
 # 戻り値: 選択されたworktreeのフルパス、キャンセル/候補ゼロ時は $EXIT_CODE_SIGINT
 function _filter_git_worktree_path() {
+  local target_picker=false
+  if [[ "${1:-}" == "--target-picker" ]]; then
+    target_picker=true
+  elif [[ $# -gt 0 ]]; then
+    echo "Usage: _filter_git_worktree_path [--target-picker]" >&2
+    return 2
+  fi
+
   local raw_list
   raw_list=$(git worktree list --porcelain 2>/dev/null)
 
@@ -767,7 +775,7 @@ function _filter_git_worktree_path() {
   # 追加worktreeが無く本体のみ（worktree行が1件）なら選択UIを出さず、そのパスを直接返す
   local worktree_line_count
   worktree_line_count=$(print -r -- "$raw_list" | grep -c '^worktree ')
-  if [[ "$worktree_line_count" -eq 1 ]]; then
+  if ! $target_picker && [[ "$worktree_line_count" -eq 1 ]]; then
     print -r -- "$raw_list" | awk '/^worktree /{print substr($0, 10)}'
     return 0
   fi
@@ -793,17 +801,35 @@ function _filter_git_worktree_path() {
         for (j = 1; j <= i; j++) printf fmt, dirs[j], branches[j], paths[j]
       }')
 
+  local -a filter_args=()
+  $target_picker && filter_args=(--expect=ctrl-t,ctrl-s,ctrl-v)
+
   local selected
   selected=$(print -r -- "$worktrees" | filter \
-    --header "worktreeを選択" \
+    --header "worktreeを選択 | Enter: workspace | C-t: tab | C-s: 横split | C-v: 縦split" \
     --header-lines 1 \
     --prompt "worktree> " \
     --delimiter $'\t' \
     --with-nth 1 \
-    --preview 'echo {2} | xargs -I{} git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"')
+    --preview 'echo {2} | xargs -I{} git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"' \
+    "${filter_args[@]}")
 
   if [[ -z "$selected" ]]; then
     return $EXIT_CODE_SIGINT
+  fi
+
+  if $target_picker; then
+    local action="enter"
+    if [[ "$selected" == ctrl-[tsv]$'\n'* ]]; then
+      action="${selected%%$'\n'*}"
+      selected="${selected#*$'\n'}"
+    fi
+
+    local worktree_path
+    worktree_path=$(print -r -- "$selected" | cut -f2)
+    [[ -z "$worktree_path" ]] && return $EXIT_CODE_SIGINT
+    print -r -- "${action}"$'\t'"${worktree_path}"
+    return 0
   fi
 
   # タブ区切りの2番目のフィールド（フルパス）を抽出
@@ -813,6 +839,7 @@ function _filter_git_worktree_path() {
 # zoxideからリポジトリ、続けてそのリポジトリのworktreeを選択する
 # 戻り値: 選択されたworktreeのフルパス、キャンセル/候補ゼロ時は $EXIT_CODE_SIGINT
 function _filter_zoxide_git_worktree_path() {
+  local -a filter_args=("$@")
   local repo_path
   repo_path=$(_filter_zoxide_git_repo)
   if [[ $? -ne 0 ]] || [[ -z "$repo_path" ]]; then
@@ -820,7 +847,7 @@ function _filter_zoxide_git_worktree_path() {
   fi
 
   local worktree_path
-  worktree_path=$(cdq "$repo_path" && _filter_git_worktree_path)
+  worktree_path=$(cdq "$repo_path" && _filter_git_worktree_path "${filter_args[@]}")
   if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
     return $EXIT_CODE_SIGINT
   fi
@@ -909,6 +936,36 @@ function repository-worktree() {
 alias frw='repository-worktree'
 alias frww='repository-worktree -w'
 alias frws='repository-worktree -s'
+
+function _herdr_pick_worktree_target() {
+  if [[ "$(_ai_multiplexer_kind)" != "herdr" ]]; then
+    echo "Herdr popup内で実行してください" >&2
+    return 1
+  fi
+
+  local selection
+  selection=$(_filter_zoxide_git_worktree_path --target-picker)
+  if [[ $? -ne 0 ]] || [[ -z "$selection" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  local action="${selection%%$'\t'*}"
+  local worktree_path="${selection#*$'\t'}"
+  if [[ -z "$worktree_path" ]] || [[ "$worktree_path" == "$selection" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  case "$action" in
+    enter) _herdr_open_worktree_workspace "$worktree_path" ;;
+    ctrl-t) _herdr_open_worktree_tab "$worktree_path" ;;
+    ctrl-s) _herdr_open_worktree_split "$worktree_path" down ;;
+    ctrl-v) _herdr_open_worktree_split "$worktree_path" right ;;
+    *)
+      echo "未知worktree picker操作: $action" >&2
+      return 2
+      ;;
+  esac
+}
 
 # 現在のリポジトリのworktreeをfilterで選択し、カレントpaneでcdする
 # zoxideは挟まず現在リポジトリのworktreeのみが対象

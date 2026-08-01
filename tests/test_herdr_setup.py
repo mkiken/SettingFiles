@@ -125,7 +125,14 @@ class HerdrConfigurationTest(unittest.TestCase):
         keys = tomllib.loads(read_text("terminal/herdr/config.toml"))["keys"]
         popup = next(c for c in keys["command"] if c["key"] == "prefix+shift+f")
 
-        self.assertEqual(popup["command"], 'HERDR_POPUP_COMMAND=1 zsh -ilc "frws"')
+        self.assertEqual(
+            popup["command"],
+            'HERDR_POPUP_COMMAND=1 zsh -ilc "_herdr_pick_worktree_target"',
+        )
+        self.assertIn("Enter workspace", popup["description"])
+        self.assertIn("C-t tab", popup["description"])
+        self.assertIn("C-s down split", popup["description"])
+        self.assertIn("C-v right split", popup["description"])
         self.assertIn(
             '[[ -n "$CURSOR_AGENT" || -n "$HERDR_POPUP_COMMAND" ]]',
             read_text("shell/zsh/managed.zsh"),
