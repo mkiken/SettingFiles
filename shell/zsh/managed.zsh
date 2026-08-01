@@ -113,6 +113,13 @@ colors
 # 重複するパスの削除
 typeset -U path
 
+if command -v wt >/dev/null 2>&1; then
+  wt_shell_init="$(command wt config shell init zsh)"
+  wt_shell_init=${wt_shell_init//rm\ -f\ \"\$cd_file\"\ \"\$exec_file\"/command\ rm\ -f\ \"\$cd_file\"\ \"\$exec_file\"}
+  eval "$wt_shell_init"
+  unset wt_shell_init
+fi
+
 # emacsのthemeが読み込める
 # http://www.emacswiki.org/emacs/ColorThemeQuestions
 # TERMが未設定またはdumbの場合のみ設定

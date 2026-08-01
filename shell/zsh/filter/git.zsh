@@ -722,84 +722,6 @@ function fgcp() {
   return $cherry_pick_result
 }
 
-# workmux listからworktree名をfilterで選択する内部関数
-# 戻り値: 選択されたworktree名（ディレクトリ名）、キャンセル時は $EXIT_CODE_SIGINT で終了
-function _filter_workmux_worktree() {
-  local raw_list
-  raw_list=$(wml | tail -n +2 | grep -v '(here)')
-
-  if [[ -z "$raw_list" ]]; then
-    echo "選択可能なworktreeがありません" >&2
-    return $EXIT_CODE_SIGINT
-  fi
-
-  local worktrees
-  worktrees=$(echo "$raw_list" | awk '
-      {path=$6; branch=$1; n=split(path, a, "/"); dirs[NR]=a[n]; branches[NR]=branch; paths[NR]=path; if(length(a[n])>max) max=length(a[n])}
-      END {
-        if(max < 8) max = 8;
-        fmt = "%-" max "s  %s\t%s\n";
-        printf fmt, "worktree", "ブランチ", "";
-        for(i=1; i<=NR; i++) printf fmt, dirs[i], branches[i], paths[i]
-      }')
-
-  local selected
-  selected=$(echo "$worktrees" | filter \
-    --header "worktreeを選択" \
-    --header-lines 1 \
-    --prompt "worktree> " \
-    --delimiter $'\t' \
-    --with-nth 1 \
-    --preview 'echo {2} | xargs -I{} git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"'
-  )
-
-  if [[ -z "$selected" ]]; then
-    return $EXIT_CODE_SIGINT
-  fi
-
-  # パディング済みフィールドの最初のワード（dirname）を抽出
-  echo "$selected" | awk '{print $1}'
-}
-
-# workmux listからworktreeのフルパスをfilterで選択する内部関数
-# 戻り値: 選択されたworktreeのフルパス、キャンセル時は $EXIT_CODE_SIGINT で終了
-function _filter_workmux_worktree_path() {
-  local raw_list
-  raw_list=$(wml | tail -n +2 | grep -v '(here)')
-
-  if [[ -z "$raw_list" ]]; then
-    echo "選択可能なworktreeがありません" >&2
-    return $EXIT_CODE_SIGINT
-  fi
-
-  local worktrees
-  worktrees=$(echo "$raw_list" | awk '
-      {path=$6; branch=$1; n=split(path, a, "/"); dirs[NR]=a[n]; branches[NR]=branch; paths[NR]=path; if(length(a[n])>max) max=length(a[n])}
-      END {
-        if(max < 8) max = 8;
-        fmt = "%-" max "s  %s\t%s\n";
-        printf fmt, "worktree", "ブランチ", "";
-        for(i=1; i<=NR; i++) printf fmt, dirs[i], branches[i], paths[i]
-      }')
-
-  local selected
-  selected=$(echo "$worktrees" | filter \
-    --header "worktreeを選択" \
-    --header-lines 1 \
-    --prompt "worktree> " \
-    --delimiter $'\t' \
-    --with-nth 1 \
-    --preview 'echo {2} | xargs -I{} git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"'
-  )
-
-  if [[ -z "$selected" ]]; then
-    return $EXIT_CODE_SIGINT
-  fi
-
-  # タブ区切りの2番目のフィールド（fullpath）を抽出
-  echo "$selected" | cut -f2
-}
-
 # zoxide候補から .git ディレクトリを持つメインリポジトリだけを絞り、filterで1つ選ぶ
 # 戻り値: 選択されたリポジトリのフルパス、キャンセル/候補ゼロ時は $EXIT_CODE_SIGINT
 function _filter_zoxide_git_repo() {
@@ -829,7 +751,7 @@ function _filter_zoxide_git_repo() {
 }
 
 # `git worktree list --porcelain` からworktree（メインリポジトリ含む）をfilterで選択する内部関数
-# workmux（wm）に依存せず、gitのみで完結する
+# Gitのworktree情報だけで完結する
 # 表示は「ディレクトリ名 + ブランチ名」の2列（detachedの場合は短縮SHA）、フルパスはタブ区切りで保持する
 # 追加worktreeが無く本体のみの場合は選択UIを出さず、本体のパスをそのまま返す
 # 戻り値: 選択されたworktreeのフルパス、キャンセル/候補ゼロ時は $EXIT_CODE_SIGINT
@@ -989,7 +911,7 @@ alias frww='repository-worktree -w'
 alias frws='repository-worktree -s'
 
 # 現在のリポジトリのworktreeをfilterで選択し、カレントpaneでcdする
-# zoxideは挟まず現在リポジトリのworktreeのみが対象（fwmoのgit版）
+# zoxideは挟まず現在リポジトリのworktreeのみが対象
 function fgwt() {
   local worktree_path
   worktree_path=$(_filter_git_worktree_path)
@@ -999,6 +921,18 @@ function fgwt() {
   fi
 
   save_history cd "$worktree_path"
+}
+
+# 現在リポジトリのworktreeをfilterで選択し、新しいtmux windowで開く
+function fwmon() {
+  local worktree_path
+  worktree_path=$(_filter_git_worktree_path)
+
+  if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  tmux new-window -c "$worktree_path"
 }
 
 # 現在のリポジトリのworktreeをfilterで選択し、herdrの新しいタブで開く（cd済みシェル）
@@ -1021,109 +955,47 @@ function fgwtc() {
   _herdr_run_in_new_tab "" "$worktree_path" "${worktree_path:t}" ":" || return 1
 }
 
-# workmux listからworktree名とフルパスをfilterで選択する内部関数
-# 戻り値: "<name>\t<path>"、キャンセル時は $EXIT_CODE_SIGINT で終了
-function _filter_workmux_worktree_with_path() {
+# worktrunkのJSONから、現在worktreeとdetached HEADを除く統合先branchを選択する
+# schema 1（配列）とschema 2（items配列）はworktreeフィールド構造が異なる
+function fwtm() {
   local raw_list
-  raw_list=$(wml | tail -n +2 | grep -v '(here)')
+  raw_list=$(wtl --format=json)
+  local wtl_status=$?
+  [[ $wtl_status -ne 0 ]] && return $wtl_status
 
-  if [[ -z "$raw_list" ]]; then
-    echo "選択可能なworktreeがありません" >&2
+  local candidates
+  candidates=$(jq -r '
+    if type == "array" then
+      .[]
+      | select(.kind == "worktree" and (.is_current | not) and (.branch | type == "string") and (.path | type == "string"))
+      | [.branch, .path]
+    else
+      .items[]
+      | select(.worktree != null and (.worktree.current | not) and (.branch | type == "string") and (.worktree.path | type == "string"))
+      | [.branch, .worktree.path]
+    end
+    | @tsv
+  ' <<< "$raw_list") || return $?
+
+  if [[ -z "$candidates" ]]; then
+    echo "統合可能なworktreeがありません" >&2
     return $EXIT_CODE_SIGINT
   fi
 
-  local worktrees
-  worktrees=$(echo "$raw_list" | awk '
-      {path=$6; branch=$1; n=split(path, a, "/"); dirs[NR]=a[n]; branches[NR]=branch; paths[NR]=path; if(length(a[n])>max) max=length(a[n])}
-      END {
-        if(max < 8) max = 8;
-        fmt = "%-" max "s  %s\t%s\n";
-        printf fmt, "worktree", "ブランチ", "";
-        for(i=1; i<=NR; i++) printf fmt, dirs[i], branches[i], paths[i]
-      }')
-
   local selected
-  selected=$(echo "$worktrees" | filter \
-    --header "worktreeを選択" \
-    --header-lines 1 \
-    --prompt "worktree> " \
+  selected=$(print -r -- "$candidates" | filter \
+    --header "統合するworktreeを選択" \
+    --prompt "merge> " \
     --delimiter $'\t' \
     --with-nth 1 \
-    --preview 'echo {2} | xargs -I{} git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"'
-  )
+    --preview 'echo {2} | xargs -I{} git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"')
 
   if [[ -z "$selected" ]]; then
     return $EXIT_CODE_SIGINT
   fi
 
-  local first_col="${selected%%$'\t'*}"
-  local name="${first_col%% *}"
-  local path="${selected#*$'\t'}"
-  printf '%s\t%s\n' "$name" "$path"
-}
+  local target_branch="${selected%%$'\t'*}"
+  [[ -z "$target_branch" ]] && return $EXIT_CODE_SIGINT
 
-# filterでworktreeを選択して現在のpaneでcdする
-function fwmo() {
-  local worktree_path
-  worktree_path=$(_filter_workmux_worktree_path)
-
-  if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
-    return $EXIT_CODE_SIGINT
-  fi
-
-  save_history cd "$worktree_path"
-}
-
-# filterでworktreeを選択して新しいウィンドウで開く（workmux open）
-function fwmon() {
-  local selected
-  selected=$(_filter_workmux_worktree_with_path)
-
-  if [[ $? -ne 0 ]] || [[ -z "$selected" ]]; then
-    return $EXIT_CODE_SIGINT
-  fi
-
-  local worktree_name="${selected%%$'\t'*}"
-  local worktree_path="${selected#*$'\t'}"
-
-  save_history wmo "$worktree_name"
-
-  local set_dir="${SET:-$HOME/Desktop/repository/SettingFiles}"
-  "${set_dir}/shell/tmux/rename-window-git.sh" "$worktree_path"
-}
-
-# filterでworktreeを選択して水平分割（左右）して新しいpaneで開く
-function fwmoh() {
-  local worktree_path
-  worktree_path=$(_filter_workmux_worktree_path)
-
-  if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
-    return $EXIT_CODE_SIGINT
-  fi
-
-  tmux split-window -h -c "$worktree_path"
-}
-
-# filterでworktreeを選択して垂直分割（上下）して新しいpaneで開く
-function fwmov() {
-  local worktree_path
-  worktree_path=$(_filter_workmux_worktree_path)
-
-  if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
-    return $EXIT_CODE_SIGINT
-  fi
-
-  tmux split-window -v -c "$worktree_path"
-}
-
-# filterでworktreeを選択してworkmux removeを実行
-function fwmr() {
-  local worktree_name
-  worktree_name=$(_filter_workmux_worktree)
-
-  if [[ $? -ne 0 ]] || [[ -z "$worktree_name" ]]; then
-    return $EXIT_CODE_SIGINT
-  fi
-
-  save_history wmr "$worktree_name"
+  wt merge "$target_branch"
 }

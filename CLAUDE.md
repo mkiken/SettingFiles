@@ -95,7 +95,7 @@ When comparing or selecting an external tool to adopt here (CLI, plugin, package
 - `/vimfiles/nvim/` - Neovim configuration (lazy.nvim)
 - `/shell/zsh/` - Zsh configuration with znap plugin manager
 - `/submodules/` - znap plugin manager (git submodule); other Zsh plugins are downloaded by znap at runtime
-- `/gitfiles/` - Git configurations (gitui, lazygit, gh-dash, workmux)
+- `/gitfiles/` - Git configurations (gitui, lazygit, gh-dash)
 - `/terminal/` - Terminal emulator configs (ghostty, etc.)
 
 ### Symlink Strategy
@@ -123,6 +123,8 @@ Key symlinks:
 - `~/.zshrc` loads `shell/zsh/managed.zsh` through a managed loader block
 - `vimfiles/nvim` → `~/.config/nvim`
 - `gitfiles/.gitconfig` → `~/.gitconfig`
+
+**Worktrunk**: Install from `mac/Brewfile`; `shell/zsh/managed.zsh` manually initializes its shell integration. Never run `wt config shell install`: it edits the managed `~/.zshrc` and creates duplicate integration.
 
 ### No Personal Info or Personal Paths
 Never hardcode personally identifying information — the user's real name, personal email address, or similar — in committed sources, including metadata fields such as `@author`, `Copyright`, or `package.json` `author`; use a handle (`mkiken`) or omit the field. Likewise never hardcode a user-specific absolute path (e.g. `/Users/<name>/…`, a real home directory, or an account-name-derived path) in committed sources — scripts, tests, fixtures, or config. Use `$HOME`/`~`, `$SET`, a repo-root-relative path, or a clearly generic placeholder (`/Users/testuser/…`) instead. Machine- or account-specific values belong in un-tracked `*.local` files, not the repository.

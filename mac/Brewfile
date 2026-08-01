@@ -32,7 +32,7 @@ brew "node"
 brew "nvm"
 brew "pam-reattach"
 brew "powerlevel10k"
-brew "raine/workmux/workmux", trusted: true
+brew "worktrunk"
 brew "reattach-to-user-namespace"
 brew "ripgrep"
 brew "rlwrap"

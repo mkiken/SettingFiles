@@ -33,11 +33,11 @@ fgm-pr-review()              { _fai-pr-review gm-pr-review "$@" }
 freview()           { _fai-pr-review review "$@" }
 freview-subagents() { _fai-pr-review review-subagents "$@" }
 
-# worktreeをfilterで選択し、cdしてからAIレビュー関数を実行する共通ヘルパー
+# 現在リポジトリのworktreeをfilterで選択し、cdしてからAIレビュー関数を実行する共通ヘルパー
 # 引数: 元関数名, [元関数に渡す追加引数...]
 _fwmo-review() {
     local func_name="$1"; shift
-    fwmo || return $?
+    fgwt || return $?
     "$func_name" "$@"
 }
 

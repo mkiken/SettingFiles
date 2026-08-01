@@ -118,6 +118,46 @@ class FgwtTest(unittest.TestCase):
                 self.assertEqual(values["__STATUS"], "130", result.stderr)
 
 
+class FwmonTest(FgwtTest):
+    """fwmon: 現在リポジトリのworktreeを選択して新しいtmux windowで開く"""
+
+    def setUp(self):
+        super().setUp()
+        self.tmux_log = self.root / "tmux.log"
+        self._write_executable(
+            "tmux",
+            "#!/bin/sh\n"
+            "printf '%s\\n' \"$@\" >> \"$FWMON_TMUX_LOG\"\n",
+        )
+
+    def run_fwmon(self, extra_env=None):
+        env = {
+            "FWMON_TMUX_LOG": str(self.tmux_log),
+            **(extra_env or {}),
+        }
+        return self.run_fgwt(command="fwmon", extra_env=env)
+
+    def tmux_calls(self):
+        return self.tmux_log.read_text().splitlines() if self.tmux_log.exists() else []
+
+    def test_opens_selected_worktree_in_a_new_tmux_window(self):
+        result, values = self.run_fwmon()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        self.assertEqual(
+            self.tmux_calls(),
+            ["new-window", "-c", str(self.worktree)],
+        )
+
+    def test_returns_sigint_when_selection_cannot_complete(self):
+        result, values = self.run_fwmon(extra_env={"FGWT_FILTER_CANCEL": "1"})
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(values["__STATUS"], "130", result.stderr)
+        self.assertEqual(self.tmux_calls(), [])
+
+
 class FgwtcTest(unittest.TestCase):
     """fgwtc: herdr専用。worktreeを選択してherdrの新タブで開く（cdのみ、AI起動なし）"""
 

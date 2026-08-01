@@ -201,74 +201,22 @@ alias dia='di --include-untracked .'
 alias diw='di working'
 alias dis='di staged'
 
-# workmux
-alias wma='wm add'
-alias wmm='wm merge'
-alias wml='wm list'
-alias wmd='wm dashboard'
+wtc() {
+  wt switch --create "$@"
+}
 
-# workmuxの対話プロンプト発生を出力から検知し、手動setupを案内する
-# 目的: fwmon等がworkmuxの初回プロンプト待ちで見えないハングを起こすのを防ぐ
-_workmux_ensure_setup() {
-  [[ -n "$WORKMUX_SKIP_SETUP_CHECK" ]] && return 0
-  [[ -e /dev/tty ]] || return 0
+wtl() {
+  wt list "$@"
+}
 
-  # macOSにtimeoutコマンドがないため、perlのfork+alarmで代替（3秒でタイムアウト、exit 124）
-  local output rc
-  output=$(perl -e '
-    use POSIX ":sys_wait_h";
-    my $pid = fork // die "fork: $!";
-    if ($pid == 0) {
-      open STDIN, "<", "/dev/tty" or exit 1;
-      open STDERR, ">&", \*STDOUT or exit 1;
-      exec "workmux", "list" or exit 1;
-    }
-    local $SIG{ALRM} = sub { kill 9, $pid; waitpid($pid, 0); exit 124 };
-    alarm 3;
-    waitpid $pid, 0;
-    alarm 0;
-    exit $? >> 8;
-  ' 2>&1)
-  rc=$?
+wts() {
+  wt switch "$@"
+}
 
-  local trigger="" reason=""
-  if (( rc == 124 )); then
-    trigger=1
-    reason="プローブがタイムアウト（対話プロンプト待ちで応答なし）"
-  elif print -r -- "$output" | grep -qE '\[Y/n\]|\[y/N\]|Install .+\?|Detected .+\(found'; then
-    trigger=1
-    reason="対話プロンプトらしい出力パターンを検出"
+wtr() {
+  if (( $# == 0 )); then
+    wt switch
+  else
+    wt remove "$@"
   fi
-
-  [[ -z "$trigger" ]] && return 0
-
-  {
-    print -- ""
-    print -- "⚠️  workmux: 未処理の対話プロンプトを検出しました"
-    print -- "   理由: ${reason}"
-    print -- "   出力サンプル:"
-    print -r -- "$output" | sed 's/^/     /' | head -10
-    print -- ""
-    print -- "   自動で workmux setup は実行しません。"
-    print -- "   必要なsetupだけ手動で実行してください:"
-    print -- "     workmux setup --hooks"
-    print -- "     workmux setup --skills"
-    print -- "     workmux setup"
-    print -- ""
-    print -- "   一時的にスキップするには: WORKMUX_SKIP_SETUP_CHECK=1 <cmd>"
-    print -- ""
-  } > /dev/tty
-
-  return 1
-}
-
-wm() {
-  _workmux_ensure_setup || return $?
-  workmux "$@"
-}
-wmo() {
-  wm open "$@"
-}
-wmr() {
-  wm remove "$@"
 }
