@@ -66,8 +66,8 @@ height = "99%"
 [[keys.command]]
 key = "prefix+shift+f"
 type = "popup"
-command = "HERDR_POPUP_COMMAND=1 zsh -ilc \"frws\""
-description = "worktree picker -> new workspace"
+command = "HERDR_POPUP_COMMAND=1 zsh -ilc \"_herdr_pick_worktree_target\""
+description = "worktree picker: Enter workspace, C-t tab, C-s down split, C-v right split"
 width = "90%"
 height = "90%"
 

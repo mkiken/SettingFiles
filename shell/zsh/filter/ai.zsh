@@ -152,9 +152,10 @@ _fwmon_review_herdr() {
 # 引数: cwd（作成するworkspaceの初期ディレクトリ）
 _herdr_open_worktree_workspace() {
     local cwd="$1"
+    local herdr_bin="${HERDR_BIN_PATH:-herdr}"
 
     local ws_json
-    ws_json=$(herdr workspace create --label "${cwd:t}" --cwd "$cwd" --focus) || {
+    ws_json=$("$herdr_bin" workspace create --label "${cwd:t}" --cwd "$cwd" --focus) || {
         echo "herdr workspace createに失敗しました" >&2
         return 1
     }
@@ -173,9 +174,10 @@ _herdr_open_worktree_workspace() {
 # 引数: cwd（作成するtabの初期ディレクトリ）
 _herdr_open_worktree_tab() {
     local cwd="$1"
+    local herdr_bin="${HERDR_BIN_PATH:-herdr}"
 
     local tab_json
-    tab_json=$(herdr tab create --cwd "$cwd" --label "${cwd:t}" --focus) || {
+    tab_json=$("$herdr_bin" tab create --cwd "$cwd" --label "${cwd:t}" --focus) || {
         echo "herdr tab createに失敗しました" >&2
         return 1
     }
@@ -186,6 +188,31 @@ _herdr_open_worktree_tab() {
         echo "herdr tab createの結果からpane_idを取得できませんでした" >&2
         return 1
     fi
+}
+
+_herdr_open_worktree_split() {
+    local cwd="$1"
+    local direction="$2"
+    local source_pane_id="${HERDR_ACTIVE_PANE_ID:-}"
+    local herdr_bin="${HERDR_BIN_PATH:-herdr}"
+
+    case "$direction" in
+        down|right) ;;
+        *)
+            echo "Herdr split方向が不正です: $direction" >&2
+            return 2
+            ;;
+    esac
+
+    if [[ -z "$source_pane_id" ]]; then
+        echo "Herdr popupの発火元paneを取得できませんでした" >&2
+        return 1
+    fi
+
+    "$herdr_bin" pane split --pane "$source_pane_id" --direction "$direction" --cwd "$cwd" --focus || {
+        echo "herdr pane splitに失敗しました" >&2
+        return 1
+    }
 }
 
 # リポジトリ→worktreeの2段階選択後、reviewセッション相当の場所に新windowを作りAIレビューを実行する

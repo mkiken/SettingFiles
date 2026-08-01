@@ -79,6 +79,13 @@ class RepositoryWorktreeTest(unittest.TestCase):
             "[ \"${FWT_FILTER_CANCEL:-}\" = 1 ] && exit 0\n"
             "if [ \"$count\" -eq 0 ]; then\n"
             "  printf '%s\\n' \"$FWT_REPO\"\n"
+            "elif [ -n \"${FWT_FILTER_EXPECT_KEY:-}\" ]; then\n"
+            "  printf '%s\\n' \"$FWT_FILTER_EXPECT_KEY\"\n"
+            "  if [ \"${FWT_ONLY_MAIN_WORKTREE:-}\" = 1 ]; then\n"
+            "    printf 'repo\\t%s\\n' \"$FWT_REPO\"\n"
+            "  else\n"
+            "    printf 'worktree\\t%s\\n' \"$FWT_WORKTREE\"\n"
+            "  fi\n"
             "elif [ \"${FWT_FILTER_TARGET:-worktree}\" = repo ]; then\n"
             "  printf 'repo\\t%s\\n' \"$FWT_REPO\"\n"
             "else\n"
@@ -264,6 +271,57 @@ class RepositoryWorktreeTest(unittest.TestCase):
                 self.assertIn(f"--cwd {self.worktree}", calls[0])
                 self.assertIn("--focus", calls[0])
                 self.assertNotIn("--no-focus", calls[0])
+
+    def test_popup_picker_routes_selected_worktree_by_accept_key(self):
+        cases = (
+            ("", "workspace create", ""),
+            ("ctrl-t", "tab create", ""),
+            ("ctrl-s", "pane split --pane w1:p1 --direction down", "w1:p1"),
+            ("ctrl-v", "pane split --pane w1:p1 --direction right", "w1:p1"),
+        )
+        for key, command, active_pane_id in cases:
+            with self.subTest(key=key or "enter"):
+                extra_env = {"FWT_FILTER_EXPECT_KEY": key}
+                if active_pane_id:
+                    extra_env["HERDR_ACTIVE_PANE_ID"] = active_pane_id
+                result, values = self.run_repository_worktree(
+                    "_herdr_pick_worktree_target", herdr=True, extra_env=extra_env
+                )
+
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(values["__STATUS"], "0", result.stderr)
+                calls = self.herdr_calls()
+                self.assertEqual(len(calls), 1, calls)
+                self.assertIn(command, calls[0])
+                self.assertIn(f"--cwd {self.worktree}", calls[0])
+                self.assertIn("--focus", calls[0])
+
+    def test_popup_picker_shows_single_worktree_for_target_selection(self):
+        result, values = self.run_repository_worktree(
+            "_herdr_pick_worktree_target",
+            herdr=True,
+            extra_env={"FWT_ONLY_MAIN_WORKTREE": "1", "FWT_FILTER_EXPECT_KEY": "ctrl-t"},
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        self.assertEqual((self.root / "filter-count").read_text(), "2")
+        calls = self.herdr_calls()
+        self.assertEqual(len(calls), 1, calls)
+        self.assertIn("tab create", calls[0])
+        self.assertIn(f"--cwd {self.repo}", calls[0])
+
+    def test_popup_picker_split_requires_the_popup_source_pane(self):
+        result, values = self.run_repository_worktree(
+            "_herdr_pick_worktree_target",
+            herdr=True,
+            extra_env={"FWT_FILTER_EXPECT_KEY": "ctrl-s"},
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(values["__STATUS"], "1", result.stderr)
+        self.assertIn("発火元pane", result.stderr)
+        self.assertEqual(self.herdr_calls(), [])
 
     def test_returns_sigint_when_selection_cannot_complete(self):
         cases = (
