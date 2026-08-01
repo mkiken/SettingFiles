@@ -11,6 +11,7 @@
     "context-mode@context-mode": true,
     "dig@kuu-marketplace": true,
     "example-skills@anthropic-agent-skills": true,
+    "genshijin@genshijin": true,
     "superpowers@claude-plugins-official": true,
     "tsumiki@tsumiki": true
   },
@@ -29,6 +30,12 @@
     "context-mode": {
       "source": {
         "repo": "mksglu/context-mode",
+        "source": "github"
+      }
+    },
+    "genshijin": {
+      "source": {
+        "repo": "InterfaceX-co-jp/genshijin",
         "source": "github"
       }
     },

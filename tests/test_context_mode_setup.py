@@ -59,6 +59,7 @@ class ContextModeSetupTest(unittest.TestCase):
         expected_functions = {
             "mac/scripts/ai/claude.sh": (
                 "setup_claude_context_mode",
+                "setup_claude_genshijin",
                 "setup_claude_superpowers",
                 "setup_claude_mem",
                 "setup_claude_dig",
@@ -89,6 +90,7 @@ class ContextModeSetupTest(unittest.TestCase):
                 (
                     "setup_claude_superpowers",
                     "setup_claude_context_mode",
+                    "setup_claude_genshijin",
                     "setup_claude_dig",
                     "setup_claude_example_skills",
                     "setup_claude_mem",
@@ -99,6 +101,7 @@ class ContextModeSetupTest(unittest.TestCase):
                 (
                     "setup_claude_superpowers",
                     "setup_claude_context_mode",
+                    "setup_claude_genshijin",
                     "setup_claude_dig",
                     "setup_claude_example_skills",
                     "setup_claude_mem",
@@ -124,6 +127,29 @@ class ContextModeSetupTest(unittest.TestCase):
 
         for script_path, (source_line, call_lines) in expected_sources.items():
             self.assert_source_before_call(script_path, source_line, call_lines)
+
+    def test_claude_genshijin_uses_upstream_marketplace(self):
+        script = read_text("mac/scripts/ai/claude.sh")
+        settings = json.loads(read_text("ai/claude/settings.json"))
+
+        self.assertIn("function setup_claude_genshijin()", script)
+        self.assertIn("claude plugin marketplace add InterfaceX-co-jp/genshijin", script)
+        self.assertIn("claude plugin marketplace update genshijin", script)
+        self.assertIn("genshijin@genshijin", script)
+        self.assertTrue(settings["enabledPlugins"]["genshijin@genshijin"])
+        self.assertEqual(
+            settings["extraKnownMarketplaces"]["genshijin"],
+            {
+                "source": {
+                    "repo": "InterfaceX-co-jp/genshijin",
+                    "source": "github",
+                }
+            },
+        )
+
+        # The upstream marketplace declares its registered name as genshijin,
+        # so repository slugs must not replace plugin or update identifiers.
+        self.assertNotIn("genshijin@InterfaceX-co-jp/genshijin", script)
 
     def test_assistant_setup_scripts_source_shared_claude_mem_helpers(self):
         for script_path in (

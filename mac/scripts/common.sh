@@ -276,6 +276,53 @@ function sync_herdr_skill() {
   return 0
 }
 
+# genshijin の常時有効化ルールを upstream から同期する。差分は作業ツリーに残し、
+# 取得失敗時は既存の検証済みルールを維持して update を継続する。
+function sync_genshijin_rule() {
+  local repo_root="${1:-$Repo}"
+  local rule_path="${repo_root%/}/ai/common/genshijin-activate.md"
+  local upstream_url="https://raw.githubusercontent.com/InterfaceX-co-jp/genshijin/main/rules/genshijin-activate.md"
+  local tmp_file
+
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "Warning: genshijin rule sync skipped — curl not found" >&2
+    return 0
+  fi
+
+  if [[ ! -f "$rule_path" ]]; then
+    echo "Warning: genshijin rule sync skipped — managed rule file is missing: $rule_path" >&2
+    return 0
+  fi
+
+  tmp_file="$(mktemp "${TMPDIR:-/tmp}/genshijin-rule-sync.XXXXXX")" || {
+    echo "Warning: genshijin rule sync skipped — failed to create temp file" >&2
+    return 0
+  }
+
+  if ! curl -fsSL "$upstream_url" >"$tmp_file" 2>/dev/null || [[ -z "$(<"$tmp_file")" ]]; then
+    echo "Warning: genshijin rule sync skipped — failed to fetch $upstream_url" >&2
+    /bin/rm -f "$tmp_file"
+    return 0
+  fi
+
+  if ! /usr/bin/grep -Fq "原始人のように簡潔に返答せよ" "$tmp_file"; then
+    echo "Warning: genshijin rule sync skipped — upstream content was unexpected" >&2
+    /bin/rm -f "$tmp_file"
+    return 0
+  fi
+
+  if cmp -s "$tmp_file" "$rule_path"; then
+    echo "genshijin rule: up to date"
+    /bin/rm -f "$tmp_file"
+    return 0
+  fi
+
+  /bin/cp "$tmp_file" "$rule_path"
+  /bin/rm -f "$tmp_file"
+  echo "genshijin rule UPDATED from upstream — review with 'git diff' before committing: $rule_path"
+  return 0
+}
+
 function setup_ai_skills() {
   local dest_dir="$1"
   shift
@@ -312,9 +359,9 @@ function setup_ai_pr_tools() {
   make_symlink "$source_dir" "$dest_bin"
 }
 
-# Codex の共通プロンプトとキャラクター設定を _AGENTS.md に連結する
+# Codex の共通プロンプトと genshijin ルールを _AGENTS.md に連結する
 function generate_codex_agents() {
-  { /bin/cat "${Repo}ai/common/prompt_base.md"; echo; /bin/cat "${Repo}ai/common/characters/nyaruko.md"; echo; /bin/cat "${Repo}ai/codex/codex_base.md"; } > "${Repo}ai/codex/_AGENTS.md"
+  { /bin/cat "${Repo}ai/common/prompt_base.md"; echo; /bin/cat "${Repo}ai/common/genshijin-activate.md"; echo; /bin/cat "${Repo}ai/codex/codex_base.md"; } > "${Repo}ai/codex/_AGENTS.md"
 }
 
 # pr-review-subagents のレビュアー定義を共有フラグメントから生成する

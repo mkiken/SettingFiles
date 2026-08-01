@@ -27,6 +27,29 @@ function setup_claude_context_mode() {
   fi
 }
 
+function setup_claude_genshijin() {
+  echo "Ensuring Claude genshijin plugin..."
+
+  require_ai_setup_command claude || return 1
+  require_ai_setup_command jq || return 1
+
+  if ! claude plugin marketplace list | /usr/bin/grep -Fq "genshijin"; then
+    claude plugin marketplace add InterfaceX-co-jp/genshijin || return 1
+  fi
+
+  claude plugin marketplace update genshijin || return 1
+
+  if claude plugin list --json | jq -e '.[] | select(.id == "genshijin@genshijin")' >/dev/null; then
+    claude plugin update genshijin@genshijin || return 1
+  else
+    claude plugin install genshijin@genshijin || return 1
+  fi
+
+  if ! claude plugin list --json | jq -e '.[] | select(.id == "genshijin@genshijin" and .enabled == true)' >/dev/null; then
+    claude plugin enable genshijin@genshijin || return 1
+  fi
+}
+
 function setup_claude_dig() {
   echo "Ensuring Claude dig plugin..."
 

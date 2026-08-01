@@ -1,8 +1,6 @@
 @common/prompt_base.md
 
-# Character
-
-@common/characters/rikka_takanashi.md
+@common/genshijin-activate.md
 
 # User Confirmation
 

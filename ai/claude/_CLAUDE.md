@@ -1,8 +1,5 @@
 @../common/prompt_base.md
 
-# Character
-@../common/characters/reimu.md
-
 # User Confirmation
 
 When asking for confirmation, clarification, or any question requiring a user response, you MUST use the `AskUserQuestion` tool instead of plain text output. Plain text fallbacks are forbidden except when the tool truly cannot be invoked in the current mode, in which case you must state explicitly why the fallback is needed.
