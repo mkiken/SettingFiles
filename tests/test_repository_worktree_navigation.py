@@ -28,6 +28,7 @@ class RepositoryWorktreeTest(unittest.TestCase):
         self.worktree.mkdir()
         self.tmux_log = self.root / "tmux.log"
         self.herdr_log = self.root / "herdr.log"
+        self.filter_args_log = self.root / "filter-args.log"
         self._write_fake_commands()
 
     def tearDown(self):
@@ -73,6 +74,7 @@ class RepositoryWorktreeTest(unittest.TestCase):
             "filter",
             "#!/bin/sh\n"
             "count_file=\"$FWT_FILTER_COUNT\"\n"
+            "printf '%s\\n' \"$@\" >> \"$FWT_FILTER_ARGS\"\n"
             "count=0\n"
             "[ -f \"$count_file\" ] && count=$(cat \"$count_file\")\n"
             "printf '%s' $((count + 1)) > \"$count_file\"\n"
@@ -116,7 +118,7 @@ class RepositoryWorktreeTest(unittest.TestCase):
     def run_repository_worktree(
         self, command="repository-worktree", *args, tmux=False, herdr=False, extra_env=None
     ):
-        for path in (self.root / "filter-count", self.tmux_log, self.herdr_log):
+        for path in (self.root / "filter-count", self.filter_args_log, self.tmux_log, self.herdr_log):
             if path.exists():
                 path.unlink()
         env = {
@@ -127,6 +129,7 @@ class RepositoryWorktreeTest(unittest.TestCase):
             "FWT_REPO": str(self.repo),
             "FWT_WORKTREE": str(self.worktree),
             "FWT_FILTER_COUNT": str(self.root / "filter-count"),
+            "FWT_FILTER_ARGS": str(self.filter_args_log),
             "FWT_TMUX_LOG": str(self.tmux_log),
             "FWT_HERDR_LOG": str(self.herdr_log),
             "TMUX": "",
@@ -173,6 +176,9 @@ class RepositoryWorktreeTest(unittest.TestCase):
 
     def herdr_calls(self):
         return self.herdr_log.read_text().splitlines() if self.herdr_log.exists() else []
+
+    def filter_args(self):
+        return self.filter_args_log.read_text().splitlines() if self.filter_args_log.exists() else []
 
     def test_moves_current_shell_without_tmux_or_rename(self):
         result, values = self.run_repository_worktree()
@@ -275,7 +281,7 @@ class RepositoryWorktreeTest(unittest.TestCase):
     def test_popup_picker_routes_selected_worktree_by_accept_key(self):
         cases = (
             ("", "workspace create", ""),
-            ("alt-t", "tab create", ""),
+            ("ctrl-o", "tab create", ""),
             ("ctrl-s", "pane split --pane w1:p1 --direction down", "w1:p1"),
             ("ctrl-v", "pane split --pane w1:p1 --direction right", "w1:p1"),
         )
@@ -300,7 +306,7 @@ class RepositoryWorktreeTest(unittest.TestCase):
         result, values = self.run_repository_worktree(
             "_herdr_pick_worktree_target",
             herdr=True,
-            extra_env={"FWT_ONLY_MAIN_WORKTREE": "1", "FWT_FILTER_EXPECT_KEY": "alt-t"},
+            extra_env={"FWT_ONLY_MAIN_WORKTREE": "1", "FWT_FILTER_EXPECT_KEY": "ctrl-o"},
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -310,6 +316,21 @@ class RepositoryWorktreeTest(unittest.TestCase):
         self.assertEqual(len(calls), 1, calls)
         self.assertIn("tab create", calls[0])
         self.assertIn(f"--cwd {self.repo}", calls[0])
+
+    def test_popup_picker_advertises_and_expects_ctrl_o_for_tab_creation(self):
+        result, values = self.run_repository_worktree(
+            "_herdr_pick_worktree_target",
+            herdr=True,
+            extra_env={"FWT_FILTER_EXPECT_KEY": "ctrl-o"},
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        self.assertIn("--expect=ctrl-o,ctrl-s,ctrl-v", self.filter_args())
+        self.assertIn(
+            "worktreeを選択 | Enter: workspace | C-o: tab | C-s: 横split | C-v: 縦split",
+            self.filter_args(),
+        )
 
     def test_popup_picker_split_requires_the_popup_source_pane(self):
         result, values = self.run_repository_worktree(
