@@ -122,14 +122,20 @@ rows = [
 [ui.sidebar.agents.rows_by_agent]
 claude = [
   ["workspace", "tab"],
-  ["state_icon", "agent", "state_text"],
+  ["state_icon", "$provider", "$limit", "state_text"],
+  ["$context"],
   ["terminal_title_stripped"],
+]
+codex = [
+  ["workspace", "tab"],
+  ["state_icon", "$provider", "$limit", "state_text"],
+  ["$context"],
 ]
 
 [ui.toast]
-# Rich Mac notifications now come from the notify-rich plugin (terminal/herdr/plugins/notify-rich),
-# which reacts to pane.agent_status_changed; Herdr's own toast is disabled to avoid double notifications.
-delivery = "off"
+# notify-rich continues to handle agent-status notifications. usagebar requires system delivery
+# for rate-limit warnings; the user accepted possible notification duplication.
+delivery = "system"
 delay_seconds = 1
 
 [ui.sound]

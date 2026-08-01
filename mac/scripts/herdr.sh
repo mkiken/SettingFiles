@@ -4,6 +4,7 @@ HERDR_CLAUDE_COMMAND="bash ~/.claude/hooks/herdr-agent-state.sh session"
 HERDR_CODEX_COMMAND="bash ~/.codex/herdr-agent-state.sh session"
 typeset -a HERDR_REMOTE_PLUGINS=(
   "termscope:iurysza/termscope"
+  "usagebar:senna-lang/herdr-agent-usage"
 )
 
 function _herdr_require_command() {
@@ -617,7 +618,40 @@ function _setup_herdr_remote_plugin() {
     return 0
   fi
 
-  herdr plugin install "$plugin_source"
+  herdr plugin install "$plugin_source" --yes
+}
+
+function _setup_herdr_usagebar() {
+  local target_home="$1"
+  local plugin_root=""
+  local source_script=""
+  local target_script="$target_home/.claude/herdr-agent-usage-statusline.sh"
+  local existing_target=""
+
+  herdr plugin action invoke usagebar.setup || return 1
+
+  plugin_root="$(herdr plugin list --json 2>/dev/null \
+    | jq -r '.result.plugins[]? | select(.plugin_id == "usagebar") | .plugin_root // empty')"
+  source_script="$plugin_root/bin/run-statusline.sh"
+  if [[ -z "$plugin_root" || ! -f "$source_script" ]]; then
+    echo "Error: usagebar statusLine script is unavailable: $source_script" >&2
+    return 1
+  fi
+
+  if [[ -L "$target_script" ]]; then
+    existing_target="$(readlink "$target_script")"
+    if [[ "$existing_target" != */herdr-agent-usage-*/bin/run-statusline.sh ]]; then
+      echo "Error: usagebar statusLine uses an unexpected symlink target: $existing_target" >&2
+      return 1
+    fi
+  elif [[ -e "$target_script" ]]; then
+    echo "Error: refusing to replace existing usagebar statusLine path: $target_script" >&2
+    return 1
+  fi
+
+  mkdir -p "${target_script:h}" || return 1
+  ln -sfn "$source_script" "$target_script" || return 1
+  echo "✓ Linked usagebar statusLine: $target_script -> $source_script"
 }
 
 function setup_herdr_plugins() {
@@ -625,6 +659,7 @@ function setup_herdr_plugins() {
   # Herdr自身のtoastの代わりにこのリポジトリのリッチMac通知を出すためのevent hookプラグイン。
   # 冪等: plugin list に既に notify-rich が登録済みならlinkし直さない。
   local repo_root="${1:-$Repo}"
+  local target_home="${2:-$HOME}"
   local plugin_dir="${repo_root%/}/terminal/herdr/plugins/notify-rich"
   local plugin=""
   local plugin_id=""
@@ -650,6 +685,13 @@ function setup_herdr_plugins() {
     plugin_source="${plugin#*:}"
     _setup_herdr_remote_plugin "$plugin_id" "$plugin_source" || return 1
   done
+
+  _setup_herdr_usagebar "$target_home"
+}
+
+function setup_herdr_reload_config() {
+  _herdr_require_command herdr || return 1
+  herdr server reload-config
 }
 
 function setup_herdr() {
@@ -672,7 +714,8 @@ function setup_herdr() {
   setup_herdr_integrations "$repo_root" "$target_home" "$mode" || return 1
   # プラグイン登録とservice常駐化は best-effort。失敗しても config/hook 登録という
   # 本体処理は成立済みなので initialize/update 全体を止めない。
-  setup_herdr_plugins "$repo_root" || echo "Warning: failed to link herdr notify-rich plugin; rich notifications not applied" >&2
+  setup_herdr_plugins "$repo_root" "$target_home" || echo "Warning: failed to configure herdr plugins; plugin features not applied" >&2
   setup_herdr_service || echo "Warning: failed to start herdr brew service; server persistence not applied" >&2
+  setup_herdr_reload_config || echo "Warning: failed to reload herdr config; restart or reload the server manually" >&2
   return 0
 }

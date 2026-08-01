@@ -52,7 +52,7 @@ class HerdrConfigurationTest(unittest.TestCase):
                 "new_cwd": "follow",
             },
         )
-        self.assertEqual(config["ui"]["toast"], {"delivery": "off", "delay_seconds": 1})
+        self.assertEqual(config["ui"]["toast"], {"delivery": "system", "delay_seconds": 1})
         self.assertTrue(config["ui"]["sound"]["enabled"])
         self.assertTrue(config["session"]["resume_agents_on_restore"])
         self.assertEqual(config["advanced"]["scrollback_limit_bytes"], 104857600)
@@ -66,6 +66,32 @@ class HerdrConfigurationTest(unittest.TestCase):
         flattened = [cell for row in rows for cell in row]
         self.assertIn("$shell_status", flattened)
         self.assertIn("state_icon", flattened)
+
+    @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
+    def test_usagebar_rows_target_only_claude_and_codex(self):
+        agents = tomllib.loads(read_text("terminal/herdr/config.toml"))["ui"]["sidebar"]["agents"]
+
+        self.assertEqual(
+            agents["rows_by_agent"]["claude"],
+            [
+                ["workspace", "tab"],
+                ["state_icon", "$provider", "$limit", "state_text"],
+                ["$context"],
+                ["terminal_title_stripped"],
+            ],
+        )
+        self.assertEqual(
+            agents["rows_by_agent"]["codex"],
+            [
+                ["workspace", "tab"],
+                ["state_icon", "$provider", "$limit", "state_text"],
+                ["$context"],
+            ],
+        )
+        self.assertEqual(
+            agents["rows"],
+            [["workspace", "tab"], ["state_icon", "agent", "state_text"]],
+        )
 
     @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
     def test_managed_config_maps_basic_tmux_style_keys(self):
@@ -357,6 +383,7 @@ class HerdrServiceSetupTest(unittest.TestCase):
                 "function setup_herdr_integrations() { return 0; }",
                 "function setup_herdr_plugins() { return 0; }",
                 "function setup_herdr_service() { return 1; }",
+                "function setup_herdr_reload_config() { return 0; }",
                 'setup_herdr "/tmp/repo" "/tmp/home"',
                 "print -r -- rc=$?",
             )
@@ -374,6 +401,7 @@ class HerdrServiceSetupTest(unittest.TestCase):
                 "function setup_herdr_integrations() { return 0; }",
                 "function setup_herdr_plugins() { return 1; }",
                 "function setup_herdr_service() { return 0; }",
+                "function setup_herdr_reload_config() { return 0; }",
                 'setup_herdr "/tmp/repo" "/tmp/home"',
                 "print -r -- rc=$?",
             )
@@ -381,7 +409,25 @@ class HerdrServiceSetupTest(unittest.TestCase):
         result = run_zsh(script)
 
         self.assertEqual(result.stdout.splitlines()[-1], "rc=0")
-        self.assertIn("Warning: failed to link herdr notify-rich plugin", result.stderr)
+        self.assertIn("Warning: failed to configure herdr plugins", result.stderr)
+
+    def test_setup_herdr_treats_reload_failure_as_best_effort(self):
+        script = "; ".join(
+            (
+                "source mac/scripts/herdr.sh",
+                "function setup_herdr_config() { return 0; }",
+                "function setup_herdr_integrations() { return 0; }",
+                "function setup_herdr_plugins() { return 0; }",
+                "function setup_herdr_service() { return 0; }",
+                "function setup_herdr_reload_config() { return 1; }",
+                'setup_herdr "/tmp/repo" "/tmp/home"',
+                "print -r -- rc=$?",
+            )
+        )
+        result = run_zsh(script)
+
+        self.assertEqual(result.stdout.splitlines()[-1], "rc=0")
+        self.assertIn("Warning: failed to reload herdr config", result.stderr)
 
 
 class HerdrIntegrationsModeTest(unittest.TestCase):
@@ -536,6 +582,7 @@ class SetupHerdrOrchestrationTest(unittest.TestCase):
                 "function setup_herdr_integrations() { print -r -- \"integrations $*\"; return 0; }",
                 "function setup_herdr_plugins() { print -r -- \"plugins $*\"; return 0; }",
                 "function setup_herdr_service() { print -r -- \"service $*\"; return 0; }",
+                "function setup_herdr_reload_config() { print -r -- \"reload $*\"; return 0; }",
                 f'setup_herdr "repo" "home"{mode_literal}',
                 "print -r -- rc=$?",
             )
@@ -548,8 +595,9 @@ class SetupHerdrOrchestrationTest(unittest.TestCase):
         lines = result.stdout.splitlines()
         self.assertIn("integrations repo home install", lines)
         self.assertIn("config repo home", lines)
-        self.assertIn("plugins repo", lines)
+        self.assertIn("plugins repo home", lines)
         self.assertIn("service ", lines)
+        self.assertIn("reload ", lines)
         self.assertEqual(lines[-1], "rc=0")
 
     def test_default_mode_is_update(self):
@@ -586,46 +634,99 @@ class HerdrPluginSetupTest(unittest.TestCase):
         already_linked: bool = False,
         link_rc: int = 0,
         remote_already_installed: bool = False,
+        usagebar_already_installed: bool = False,
         install_rc: int = 0,
+        setup_rc: int = 0,
         manifest_present: bool = True,
+        statusline_conflict: bool = False,
+        statusline_symlink_conflict: bool = False,
     ) -> subprocess.CompletedProcess[str]:
-        definitions = []
-        plugin_ids = []
-        if already_linked:
-            plugin_ids.append('{"plugin_id":"notify-rich"}')
-        if remote_already_installed:
-            plugin_ids.append('{"plugin_id":"termscope"}')
-        plugins_json = '{"result":{"plugins":[' + ",".join(plugin_ids) + "]}}"
-        if herdr_present:
-            definitions.append(
-                "function herdr() {\n"
-                '  if [[ "$1" == "plugin" && "$2" == "list" ]]; then\n'
-                f"    print -r -- '{plugins_json}'\n"
-                "    return 0\n"
-                '  elif [[ "$1" == "plugin" && "$2" == "link" ]]; then\n'
-                '    print -r -- "plugin link $3"\n'
-                f"    return {link_rc}\n"
-                '  elif [[ "$1" == "plugin" && "$2" == "install" ]]; then\n'
-                '    print -r -- "plugin install $3"\n'
-                f"    return {install_rc}\n"
-                "  fi\n"
-                "}"
-            )
-        repo_root = REPO_ROOT if manifest_present else "/tmp/settingfiles-plugin-manifest-missing"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            home = root / "home"
+            plugin_root = root / "usagebar"
+            source_script = plugin_root / "bin" / "run-statusline.sh"
+            source_script.parent.mkdir(parents=True)
+            source_script.write_text("#!/bin/bash\nexit 0\n", encoding="utf-8")
+            source_script.chmod(0o755)
+            if statusline_conflict:
+                conflict = home / ".claude" / "herdr-agent-usage-statusline.sh"
+                conflict.parent.mkdir(parents=True)
+                conflict.write_text("conflict\n", encoding="utf-8")
+            if statusline_symlink_conflict:
+                conflict = home / ".claude" / "herdr-agent-usage-statusline.sh"
+                conflict.parent.mkdir(parents=True, exist_ok=True)
+                unexpected = root / "unexpected-statusline.sh"
+                unexpected.write_text("#!/bin/bash\nexit 0\n", encoding="utf-8")
+                conflict.symlink_to(unexpected)
 
-        script = "; ".join(
-            (
-                *definitions,
-                "source mac/scripts/herdr.sh",
-                f'setup_herdr_plugins "{repo_root}"',
-                "print -r -- rc=$?",
+            definitions = []
+            if herdr_present:
+                notify_linked = "true" if already_linked else "false"
+                termscope_installed = "true" if remote_already_installed else "false"
+                usagebar_installed = "true" if usagebar_already_installed else "false"
+                usagebar_json = json.dumps(
+                    {"plugin_id": "usagebar", "plugin_root": str(plugin_root)}
+                )
+                definitions.append(
+                    "typeset -g test_notify_linked=" + notify_linked + "\n"
+                    "typeset -g test_termscope_installed=" + termscope_installed + "\n"
+                    "typeset -g test_usagebar_installed=" + usagebar_installed + "\n"
+                    "function _test_plugins_json() {\n"
+                    "  local first=true\n"
+                    "  print -n -- '{\"result\":{\"plugins\":['\n"
+                    "  if [[ $test_notify_linked == true ]]; then\n"
+                    "    print -n -- '{\"plugin_id\":\"notify-rich\"}'\n"
+                    "    first=false\n"
+                    "  fi\n"
+                    "  if [[ $test_termscope_installed == true ]]; then\n"
+                    "    [[ $first == true ]] || print -n -- ','\n"
+                    "    print -n -- '{\"plugin_id\":\"termscope\"}'\n"
+                    "    first=false\n"
+                    "  fi\n"
+                    "  if [[ $test_usagebar_installed == true ]]; then\n"
+                    "    [[ $first == true ]] || print -n -- ','\n"
+                    f"    print -n -- '{usagebar_json}'\n"
+                    "  fi\n"
+                    "  print -r -- ']}}'\n"
+                    "}\n"
+                    "function herdr() {\n"
+                    '  if [[ "$1" == "plugin" && "$2" == "list" ]]; then\n'
+                    "    _test_plugins_json\n"
+                    "    return 0\n"
+                    '  elif [[ "$1" == "plugin" && "$2" == "link" ]]; then\n'
+                    '    print -r -- "plugin link $3"\n'
+                    f"    test_notify_linked=true\n    return {link_rc}\n"
+                    '  elif [[ "$1" == "plugin" && "$2" == "install" ]]; then\n'
+                    '    print -r -- "plugin install $3 $4"\n'
+                    f"    if (( {install_rc} == 0 )); then\n"
+                    '      [[ "$3" == "iurysza/termscope" ]] && test_termscope_installed=true\n'
+                    '      [[ "$3" == "senna-lang/herdr-agent-usage" ]] && test_usagebar_installed=true\n'
+                    "    fi\n"
+                    f"    return {install_rc}\n"
+                    '  elif [[ "$1" == "plugin" && "$2" == "action" ]]; then\n'
+                    '    print -r -- "plugin action $3 $4"\n'
+                    f"    return {setup_rc}\n"
+                    "  fi\n"
+                    "}\n"
+                )
+            repo_root = REPO_ROOT if manifest_present else "/tmp/settingfiles-plugin-manifest-missing"
+            statusline_link = home / ".claude" / "herdr-agent-usage-statusline.sh"
+            script = "; ".join(
+                (
+                    *definitions,
+                    "source mac/scripts/herdr.sh",
+                    f'setup_herdr_plugins "{repo_root}" "{home}"',
+                    "result_rc=$?",
+                    f'print -r -- "statusline=$(readlink \"{statusline_link}\" 2>/dev/null)"',
+                    "print -r -- rc=$result_rc",
+                )
             )
-        )
-        if jq_present:
-            return run_zsh(script)
-        # jq自体はシステムPATH上の実体(/usr/bin/jq)なので関数モックでは隠せない。
-        # 「jqが無い」環境を再現するため、jqを含まない空ディレクトリだけのPATHを渡す。
-        return run_zsh(script, {"PATH": "/nonexistent-empty-bin"})
+            if jq_present:
+                return run_zsh(script)
+            # jq自体はシステムPATH上の実体(/usr/bin/jq)なので関数モックでは隠せない。
+            # 「jqが無い」環境を再現するため、jqを含まない空ディレクトリだけのPATHを渡す。
+            return run_zsh(script, {"PATH": "/nonexistent-empty-bin"})
 
     def test_links_plugin_when_not_yet_registered(self):
         result = self.run_setup_herdr_plugins(already_linked=False)
@@ -634,6 +735,8 @@ class HerdrPluginSetupTest(unittest.TestCase):
             f"plugin link {REPO_ROOT}/terminal/herdr/plugins/notify-rich",
             result.stdout,
         )
+        self.assertIn("plugin install senna-lang/herdr-agent-usage --yes", result.stdout)
+        self.assertIn("plugin action invoke usagebar.setup", result.stdout)
         self.assertEqual(result.stdout.splitlines()[-1], "rc=0")
 
     def test_installs_declared_remote_plugin_when_not_yet_registered(self):
@@ -641,16 +744,20 @@ class HerdrPluginSetupTest(unittest.TestCase):
             already_linked=True, remote_already_installed=False
         )
 
-        self.assertIn("plugin install iurysza/termscope", result.stdout)
+        self.assertIn("plugin install iurysza/termscope --yes", result.stdout)
         self.assertEqual(result.stdout.splitlines()[-1], "rc=0")
 
     def test_skips_remote_plugin_install_when_already_registered(self):
         result = self.run_setup_herdr_plugins(
-            already_linked=True, remote_already_installed=True
+            already_linked=True,
+            remote_already_installed=True,
+            usagebar_already_installed=True,
         )
 
         self.assertNotIn("plugin install", result.stdout)
         self.assertIn("✓ Herdr plugin already installed: termscope", result.stdout)
+        self.assertIn("✓ Herdr plugin already installed: usagebar", result.stdout)
+        self.assertIn("plugin action invoke usagebar.setup", result.stdout)
 
     def test_remote_plugin_install_failure_propagates_as_nonzero(self):
         result = self.run_setup_herdr_plugins(
@@ -659,19 +766,48 @@ class HerdrPluginSetupTest(unittest.TestCase):
 
         self.assertEqual(result.stdout.splitlines()[-1], "rc=1")
 
-    def test_skips_link_when_already_registered(self):
+    def test_links_usagebar_statusline_after_setup(self):
         result = self.run_setup_herdr_plugins(
-            already_linked=True, remote_already_installed=True
+            already_linked=True,
+            remote_already_installed=True,
+            usagebar_already_installed=True,
         )
 
-        self.assertEqual(
-            result.stdout.splitlines(),
-            [
-                "✓ Herdr plugin already linked: notify-rich",
-                "✓ Herdr plugin already installed: termscope",
-                "rc=0",
-            ],
+        self.assertIn("✓ Linked usagebar statusLine:", result.stdout)
+        self.assertIn("statusline=", result.stdout)
+        self.assertIn("/usagebar/bin/run-statusline.sh", result.stdout)
+
+    def test_usagebar_setup_failure_propagates_as_nonzero(self):
+        result = self.run_setup_herdr_plugins(
+            already_linked=True,
+            remote_already_installed=True,
+            usagebar_already_installed=True,
+            setup_rc=1,
         )
+
+        self.assertEqual(result.stdout.splitlines()[-1], "rc=1")
+
+    def test_existing_statusline_file_is_not_overwritten(self):
+        result = self.run_setup_herdr_plugins(
+            already_linked=True,
+            remote_already_installed=True,
+            usagebar_already_installed=True,
+            statusline_conflict=True,
+        )
+
+        self.assertEqual(result.stdout.splitlines()[-1], "rc=1")
+        self.assertIn("refusing to replace existing usagebar statusLine path", result.stderr)
+
+    def test_unexpected_statusline_symlink_is_not_replaced(self):
+        result = self.run_setup_herdr_plugins(
+            already_linked=True,
+            remote_already_installed=True,
+            usagebar_already_installed=True,
+            statusline_symlink_conflict=True,
+        )
+
+        self.assertEqual(result.stdout.splitlines()[-1], "rc=1")
+        self.assertIn("usagebar statusLine uses an unexpected symlink target", result.stderr)
 
     def test_link_failure_propagates_as_nonzero(self):
         result = self.run_setup_herdr_plugins(already_linked=False, link_rc=1)
@@ -681,19 +817,19 @@ class HerdrPluginSetupTest(unittest.TestCase):
     def test_missing_manifest_fails_before_calling_herdr(self):
         result = self.run_setup_herdr_plugins(manifest_present=False)
 
-        self.assertEqual(result.stdout.splitlines(), ["rc=1"])
+        self.assertEqual(result.stdout.splitlines()[-1], "rc=1")
         self.assertIn("managed Herdr plugin manifest is unavailable", result.stderr)
 
     def test_missing_herdr_command_fails(self):
         result = self.run_setup_herdr_plugins(herdr_present=False)
 
-        self.assertEqual(result.stdout.splitlines(), ["rc=1"])
+        self.assertEqual(result.stdout.splitlines()[-1], "rc=1")
         self.assertIn("required command not found: herdr", result.stderr)
 
     def test_missing_jq_command_fails(self):
         result = self.run_setup_herdr_plugins(jq_present=False)
 
-        self.assertEqual(result.stdout.splitlines(), ["rc=1"])
+        self.assertEqual(result.stdout.splitlines()[-1], "rc=1")
         self.assertIn("required command not found: jq", result.stderr)
 
 

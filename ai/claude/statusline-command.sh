@@ -3,6 +3,11 @@
 
 input=$(cat)
 
+usagebar_statusline="$HOME/.claude/herdr-agent-usage-statusline.sh"
+if [[ -L "$usagebar_statusline" && -f "$usagebar_statusline" ]]; then
+  printf '%s' "$input" | /bin/bash "$usagebar_statusline" >/dev/null 2>&1 || true
+fi
+
 # Extract fields from JSON
 model=$(echo "$input" | jq -r '.model.display_name // ""')
 effort=$(echo "$input" | jq -r '.effort.level // ""')
