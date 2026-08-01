@@ -19,9 +19,9 @@ REPO_ROOT="${SET:-$HOME/Desktop/repository/SettingFiles}"
 export LANG="${LANG:-en_US.UTF-8}"
 
 # Herdrは[[events]]フックを[[keys.command]]と同じstripped PATH（Homebrewなし）で
-# 起動するため、Homebrew専用のterminal-notifierが解決できず通知だけが失敗する
-# （herdrはHERDR_BIN_PATH注入、jq/python3はシステム版で偶然動く）。先頭でなく
-# 末尾に追加し、テストのfake_binや通常シェルのPATH優先順位は変えない。
+# 起動する。通常配信はHERDR_BIN_PATHのnotification APIを使うが、API失敗時の
+# terminal-notifierフォールバック用にHomebrew binを末尾追加。テストのfake_binや
+# 通常シェルのPATH優先順位は変えない。
 case ":$PATH:" in
   *:/opt/homebrew/bin:*) ;;
   *) export PATH="$PATH:/opt/homebrew/bin:/usr/local/bin" ;;
@@ -418,10 +418,22 @@ if [[ -n "$agent" && -n "$session_id" ]]; then
   group="${agent}-${session_id}"
 fi
 
+# Homebrew terminal-notifier 2.0.0 is unsigned and can return success while modern macOS
+# silently suppresses it. Herdr is the stable notification identity and honors
+# [ui.toast] delivery="system". Keep terminal-notifier only as an API-failure fallback.
+case "${sound_event:-completed}" in
+  completed) herdr_sound="done" ;;
+  *) herdr_sound="request" ;;
+esac
+if "$herdr_bin" notification show "$title" --body "$notify_body" --sound "$herdr_sound" \
+  >/dev/null 2>&1; then
+  exit 0
+fi
+
 source "${REPO_ROOT}/shell/zsh/alias/notification.zsh"
 
 # NOTIFY_NO_DECORATE: this pane is outside tmux, so notify()'s auto tmux-label
 # decoration would be a no-op anyway, but it also strips our own time suffix —
 # suppress it since we build the full title (including time) ourselves.
-# NOTIFY_FORCE: bypass AI-session suppression; this hook intentionally notifies.
+# NOTIFY_FORCE: bypass AI-session suppression; this fallback intentionally notifies.
 NOTIFY_NO_DECORATE=1 NOTIFY_FORCE=1 notify "$title" "$notify_body" "$(ai_notification_sound "${sound_event:-completed}")" "$group"

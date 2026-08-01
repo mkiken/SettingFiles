@@ -61,6 +61,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         initial_managed_label: str | None = None,
         initial_state_session_id: str | None = None,
         socket_path: str = "/tmp/herdr.sock",
+        notification_rc: int = 0,
         rename_observer: list[str] | None = None,
     ) -> tuple[subprocess.CompletedProcess[str], Path]:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -220,6 +221,13 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                     '  echo "$3|$4" >> "$HERDR_TEST_RENAME_CALLS"\n'
                     'elif [[ "$1" == "workspace" && "$2" == "list" ]]; then\n'
                     f"  echo '{json.dumps(workspace_result)}'\n"
+                    'elif [[ "$1" == "notification" && "$2" == "show" ]]; then\n'
+                    f"  if (( {notification_rc} != 0 )); then exit {notification_rc}; fi\n"
+                    '  {\n'
+                    '    printf "%s\\n" "title=$3"\n'
+                    '    printf "%s\\n" "message=$5"\n'
+                    '    printf "%s\\n" "sound=$7"\n'
+                    '  } >> "$HERDR_TEST_EVENTS"\n'
                     "fi\n",
                     encoding="utf-8",
                 )
@@ -307,13 +315,12 @@ class HerdrPluginNotifyTest(unittest.TestCase):
             title_line.startswith("title=CLAUDE_IDDONE Claude完了 🖥️ai-work 🕰️"),
             title_line,
         )
-        # 音はイベント種別（done=完了→completed）で決まるためHero（全AI共通）。
+        # Herdrのシステム通知音はdone。
         self.assertEqual(
             events[1:],
             [
                 "message=Herdr通知をカスタマイズしてworkspace情報を表示",
-                "sound=Hero",
-                "group=claude-session-abc",
+                "sound=done",
             ],
         )
 
@@ -322,8 +329,8 @@ class HerdrPluginNotifyTest(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("message=Herdr通知をカスタマイズしてworkspace情報を表示", events)
-        # 音はイベント種別（blocked=入力待ち→waiting）で決まるためGlass（全AI共通）。
-        self.assertIn("sound=Glass", events)
+        # Herdrのシステム通知音はrequest。
+        self.assertIn("sound=request", events)
         self.assertTrue(
             any(
                 line.startswith("title=CLAUDE_IDWAIT Claude入力待ち 🖥️ai-work 🕰️")
@@ -434,7 +441,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
     def test_codex_done_notifies_with_transcript_summary(self):
         # 完了はtmuxの✅終了と同形式: タスク種別絵文字＋最終ユーザーメッセージ＋統計行。
         # 「修正」を含むユーザーメッセージ→💻、10:00:00〜10:05:02→⏳5m2s。
-        # 音はイベント種別（done=完了→completed）で決まるためHero（全AI共通）。
+        # Herdrのシステム通知音はdone。
         result, events = self.run_plugin(
             agent="codex",
             agent_status="done",
@@ -447,14 +454,13 @@ class HerdrPluginNotifyTest(unittest.TestCase):
             [
                 "message=💻 通知のバグを修正して",
                 "🔄1 ⏳5m2s",
-                "sound=Hero",
-                "group=codex-session-abc",
+                "sound=done",
             ],
         )
 
     def test_codex_blocked_notifies_with_assistant_message(self):
         # 入力待ちはtmuxの✋応答待ちと同形式: ✋＋最終アシスタントメッセージ＋統計行。
-        # 音はイベント種別（blocked=入力待ち→waiting）で決まるためGlass（全AI共通）。
+        # Herdrのシステム通知音はrequest。
         result, events = self.run_plugin(
             agent="codex",
             agent_status="blocked",
@@ -467,8 +473,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
             [
                 "message=✋ 修正しました。テストも追加しています。",
                 "🔄1 ⏳5m2s",
-                "sound=Glass",
-                "group=codex-session-abc",
+                "sound=request",
             ],
         )
 
@@ -763,13 +768,18 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         self.assertEqual(events, [])
 
     def test_empty_pane_result_skips_notification(self):
-        # pane get succeeds but returns no usable pane fields (empty title -> placeholder,
-        # but no session id -> no group). Should still notify, just without a group.
+        # pane get succeeds but returns no usable pane fields (empty title -> placeholder).
         result, events = self.run_plugin(agent_status="done", pane_get_empty=True)
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("message=(no title)", events)
-        self.assertIn("group=", events)
+
+    def test_notification_api_failure_uses_terminal_notifier_fallback(self):
+        result, events = self.run_plugin(agent_status="done", notification_rc=1)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("sound=Hero", events)
+        self.assertIn("group=claude-session-abc", events)
 
     def test_gemini_done_does_not_notify(self):
         # Gemini has no Herdr installer integration; its agent_status is derived solely

@@ -151,7 +151,7 @@ class AiReviewWaitLivenessTest(unittest.TestCase):
 
     def test_all_closed_without_files_returns_3(self):
         # 0件時の中断/案内は _review_run 側の責務なので、ここではrc 3のみを固定する
-        result = self.run_wait("claude.md=t1", "codex.md=t2")
+        result = self.run_wait("claude.md=t1", "codex.md=t2", timeout="5")
         self.assertEqual(result.returncode, 3)
 
     def test_file_written_before_close_returns_0(self):

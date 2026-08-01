@@ -47,7 +47,7 @@ class HerdrConfigurationTest(unittest.TestCase):
         self.assertEqual(
             config["terminal"],
             {
-                "default_shell": "zsh",
+                "default_shell": "/bin/zsh",
                 "shell_mode": "auto",
                 "new_cwd": "follow",
             },
@@ -119,6 +119,17 @@ class HerdrConfigurationTest(unittest.TestCase):
 
         # [[keys.command]]ポップアップ群は個数を固定せず、代表エントリの存在のみ確認する
         self.assertTrue(any(c["key"] == "prefix+ctrl+g" for c in keys["command"]))
+
+    @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
+    def test_worktree_popup_skips_prompt_theme_initialization(self):
+        keys = tomllib.loads(read_text("terminal/herdr/config.toml"))["keys"]
+        popup = next(c for c in keys["command"] if c["key"] == "prefix+shift+f")
+
+        self.assertEqual(popup["command"], 'HERDR_POPUP_COMMAND=1 zsh -ilc "frws"')
+        self.assertIn(
+            '[[ -n "$CURSOR_AGENT" || -n "$HERDR_POPUP_COMMAND" ]]',
+            read_text("shell/zsh/managed.zsh"),
+        )
 
     def test_brewfile_and_entrypoints_keep_tmux_beside_herdr(self):
         brewfile = read_text("mac/Brewfile")

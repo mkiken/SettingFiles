@@ -52,7 +52,7 @@ cd mac && brew bundle
 ```bash
 python3 -m unittest discover -s tests
 ```
-Run before committing code changes (the suite takes seconds). Fix failures, or report them explicitly at the commit confirmation — never leave the suite red.
+Run before committing code changes (the full suite can take several minutes). Fix failures, or report them explicitly at the commit confirmation — never leave the suite red.
 
 Shell functions (e.g. those in `shell/tmux/ai_notification_*.sh`) are unit-tested from Python: a `tests/test_*.py` `source`s the `.sh` and invokes the function via `bash -c`, asserting on stdout and the return code (see `tests/test_ai_notification_summary.py` for the `run_fn` helper pattern). Write new shell-function tests in this style so `unittest discover` collects them — a standalone `.sh` test file is not picked up by the suite.
 

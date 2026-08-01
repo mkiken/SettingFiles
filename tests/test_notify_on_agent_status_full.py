@@ -2,8 +2,8 @@
 
 claude+doneイベントで、transcript末尾がAPIエラーの場合に通常の「✅完了」ではなく
 エラー用の見た目（絵文字/ラベル/音/本文）で通知されることを固定する。
-herdr CLI（pane get/tab get/workspace list/tab rename）はフェイクスクリプトで
-スタブし、terminal-notifierもフェイクで捕捉する。
+herdr CLI（pane get/tab get/workspace list/tab rename/notification show）は
+フェイクスクリプトでスタブし、システム通知引数を捕捉する。
 """
 
 import json
@@ -35,8 +35,7 @@ class NotifyOnAgentStatusFullTest(unittest.TestCase):
         )
         notifier.chmod(notifier.stat().st_mode | stat.S_IXUSR)
 
-        # herdr CLIスタブ: pane get / tab get / workspace list のみ応答する。
-        # tab renameは実行はするが結果を無視してよい（no-op）。
+        # herdr CLIスタブ: 参照、tab rename、システム通知に応答する。
         self.herdr_stub = fake_bin / "herdr"
         self.herdr_stub.write_text(
             "#!/bin/sh\n"
@@ -45,6 +44,9 @@ class NotifyOnAgentStatusFullTest(unittest.TestCase):
             '  "tab get") cat "$HERDR_STUB_TAB_JSON" ;;\n'
             '  "workspace list") echo \'{"result":{"workspaces":[]}}\' ;;\n'
             '  "tab rename") exit 0 ;;\n'
+            '  "notification show") {\n'
+            '    printf "%s\\n" "$3" "$5" "$7" >> "$NOTIFY_TEST_LOG"\n'
+            '  } ;;\n'
             "  *) exit 0 ;;\n"
             "esac\n",
             encoding="utf-8",
@@ -140,7 +142,7 @@ class NotifyOnAgentStatusFullTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         log = self.notifier_log.read_text(encoding="utf-8")
         self.assertIn("API Error: Connection closed mid-response.", log)
-        self.assertIn("Basso", log)
+        self.assertIn("request", log)
         self.assertIn("❌", log)
 
     def test_unresolvable_transcript_falls_back_to_normal_completion(self):
@@ -177,7 +179,7 @@ class NotifyOnAgentStatusFullTest(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         log = self.notifier_log.read_text(encoding="utf-8")
-        self.assertIn("Hero", log)
+        self.assertIn("done", log)
         self.assertIn("✅", log)
 
     def _sync_agent_launch(self, tool_use_id, timestamp):
@@ -217,7 +219,7 @@ class NotifyOnAgentStatusFullTest(unittest.TestCase):
 
     def test_sync_subagent_tail_suppresses_notification(self):
         # 同期サブエージェントのtool_resultがtranscript末尾（メインエージェント未再開）
-        # の場合、Herdrがスピナー消失をdoneと誤認してもterminal-notifierは呼ばれない。
+        # の場合、Herdrがスピナー消失をdoneと誤認してもシステム通知は呼ばれない。
         result = self.run_hook(
             [
                 json.dumps(
@@ -261,7 +263,7 @@ class NotifyOnAgentStatusFullTest(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         log = self.notifier_log.read_text(encoding="utf-8")
-        self.assertIn("Hero", log)
+        self.assertIn("done", log)
         self.assertIn("✅", log)
 
     def test_sync_subagent_tail_with_blocked_status_still_notifies(self):
@@ -283,7 +285,7 @@ class NotifyOnAgentStatusFullTest(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         log = self.notifier_log.read_text(encoding="utf-8")
-        self.assertIn("Glass", log)
+        self.assertIn("request", log)
 
     def test_normal_done_sends_completion_notification(self):
         result = self.run_hook(
@@ -307,7 +309,7 @@ class NotifyOnAgentStatusFullTest(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         log = self.notifier_log.read_text(encoding="utf-8")
-        self.assertIn("Hero", log)
+        self.assertIn("done", log)
         self.assertIn("✅", log)
         self.assertNotIn("❌", log)
 

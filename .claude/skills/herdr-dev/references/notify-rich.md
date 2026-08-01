@@ -2,6 +2,10 @@
 
 The plugin's runtime environment and the debug/reload loop: `plugin-env.md`. The plugin also rebuilds tab labels on every focus/status event, which stomps shell-set glyphs; the ✋ ownership-marker contract it must honor is in `status-icon.md`.
 
+## macOS delivery
+
+Notify-rich sends through `HERDR_BIN_PATH notification show`, which honors `[ui.toast] delivery = "system"` and gives macOS a stable Herdr notification identity. Homebrew `terminal-notifier` 2.0.0 is unsigned and can return exit 0 while modern macOS suppresses it; keep it only as an API-failure fallback. Map done to Herdr's `done` sound and blocked/error to `request`. Verification requires both a successful plugin log and user-visible receipt: first trigger a dedicated status transition, then send `herdr notification show` directly to separate plugin logic from OS delivery.
+
 ## Tab label writer contract
 
 Tab labels have three cooperating writers: `herdr-automatic-rename` owns only the exact outer `[1-9] ` jump-key prefix; notify-rich owns the AI identifier, agent-status glyph, and conversation-summary base; the shell status integration temporarily replaces only the status glyph. Notify-rich must split `[1-9] ` before default/manual-label classification and state-file comparison, rebuild the unnumbered body, then restore the prefix immediately before rename. Never store the index in `last_auto_label` or include it in notification `screen_label`; repeated focus/status/detected events must not stack prefixes or emoji. Prefixes outside the exact one-digit form are ordinary label text. Required tests: `tests/test_herdr_plugin_notify.py`, `tests/test_tmux_window_name.py`, and `tests/test_herdr_status_icon.py`.

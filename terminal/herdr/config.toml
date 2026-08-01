@@ -4,7 +4,9 @@ onboarding = false
 name = "terminal"
 
 [terminal]
-default_shell = "zsh"
+# Amazon Q's qterm wrapper hides the real foreground process from Herdr's macOS
+# agent detector. Use the system zsh only inside Herdr; normal terminal shells keep qterm.
+default_shell = "/bin/zsh"
 shell_mode = "auto"
 new_cwd = "follow"
 
@@ -66,7 +68,7 @@ height = "99%"
 [[keys.command]]
 key = "prefix+shift+f"
 type = "popup"
-command = "zsh -ilc \"frws\""
+command = "HERDR_POPUP_COMMAND=1 zsh -ilc \"frws\""
 description = "worktree picker -> new workspace"
 width = "90%"
 height = "90%"
