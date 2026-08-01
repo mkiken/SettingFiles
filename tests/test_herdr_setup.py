@@ -121,6 +121,18 @@ class HerdrConfigurationTest(unittest.TestCase):
         self.assertTrue(any(c["key"] == "prefix+ctrl+g" for c in keys["command"]))
 
     @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
+    def test_wtc_popup_uses_the_managed_worktree_tab_script(self):
+        keys = tomllib.loads(read_text("terminal/herdr/config.toml"))["keys"]
+        popup = next(c for c in keys["command"] if c["key"] == "prefix+shift+g")
+
+        self.assertEqual(popup["type"], "popup")
+        self.assertEqual(
+            popup["command"],
+            "HERDR_POPUP_COMMAND=1 zsh -ilc 'source \"$HOME/.tmux/scripts/herdr-create-worktree-tab.sh\"'",
+        )
+        self.assertIn("herdr-create-worktree-tab.sh", read_text("mac/initialization/tmux.sh"))
+
+    @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
     def test_worktree_popup_skips_prompt_theme_initialization(self):
         keys = tomllib.loads(read_text("terminal/herdr/config.toml"))["keys"]
         popup = next(c for c in keys["command"] if c["key"] == "prefix+shift+f")

@@ -1012,9 +1012,28 @@ function fgwtc() {
   _herdr_run_in_new_tab "" "$worktree_path" "${worktree_path:t}" ":" || return 1
 }
 
-# worktrunkのJSONから、現在worktreeとdetached HEADを除く統合先branchを選択する
+# worktrunkのJSONから統合先worktreeを選択し、そのローカルbranchへfast-forward mergeする
 # schema 1（配列）とschema 2（items配列）はworktreeフィールド構造が異なる
 function fwtm() {
+  local source_path
+  source_path=$(git rev-parse --show-toplevel) || return $?
+  source_path=$(builtin cd -q "$source_path" && pwd -P) || return $?
+
+  local source_branch
+  source_branch=$(git branch --show-current) || return $?
+  if [[ -z "$source_branch" ]]; then
+    echo "detached HEADでは統合できません" >&2
+    return 1
+  fi
+
+  local primary_path
+  primary_path=$(git worktree list --porcelain | sed -n '1s/^worktree //p') || return $?
+  primary_path=$(builtin cd -q "$primary_path" && pwd -P) || return $?
+  if [[ "$source_path" == "$primary_path" ]]; then
+    echo "primary worktreeからは統合できません" >&2
+    return 1
+  fi
+
   local raw_list
   raw_list=$(wtl --format=json)
   local wtl_status=$?
@@ -1052,7 +1071,33 @@ function fwtm() {
   fi
 
   local target_branch="${selected%%$'\t'*}"
-  [[ -z "$target_branch" ]] && return $EXIT_CODE_SIGINT
+  local target_path="${selected#*$'\t'}"
+  if [[ -z "$target_branch" ]] || [[ "$target_path" == "$selected" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
 
-  wt merge "$target_branch"
+  target_path=$(git -C "$target_path" rev-parse --show-toplevel) || return $?
+  target_path=$(builtin cd -q "$target_path" && pwd -P) || return $?
+
+  local target_current_branch
+  target_current_branch=$(git -C "$target_path" branch --show-current) || return $?
+  if [[ "$target_current_branch" != "$target_branch" ]]; then
+    echo "統合先worktreeのbranchが選択時から変わりました" >&2
+    return 1
+  fi
+
+  if [[ -n "$(git status --porcelain)" ]]; then
+    echo "統合元worktreeに未コミット変更があります" >&2
+    return 1
+  fi
+  if [[ -n "$(git -C "$target_path" status --porcelain)" ]]; then
+    echo "統合先worktreeに未コミット変更があります" >&2
+    return 1
+  fi
+
+  git -C "$target_path" merge --ff-only -- "$source_branch" || return $?
+
+  builtin cd -q "$target_path" || return $?
+  git worktree remove -- "$source_path" || return $?
+  git branch -d -- "$source_branch"
 }

@@ -72,6 +72,14 @@ width = "90%"
 height = "90%"
 
 [[keys.command]]
+key = "prefix+shift+g"
+type = "popup"
+command = "HERDR_POPUP_COMMAND=1 zsh -ilc 'source \"$HOME/.tmux/scripts/herdr-create-worktree-tab.sh\"'"
+description = "create worktree -> new tab"
+width = "60%"
+height = "25%"
+
+[[keys.command]]
 key = "prefix+ctrl+s"
 type = "shell"
 command = "bash -lc '\"$HOME/.tmux/scripts/herdr-split-snapshot-pane.sh\" down'"

@@ -20,6 +20,7 @@ function setup_tmux_symlinks() {
     resurrect-restore-wrapper.sh
     resurrect-setup.sh
     split-snapshot-pane.sh
+    herdr-create-worktree-tab.sh
     herdr-split-snapshot-pane.sh
     herdr_wait_shell_ready.sh
     tmux-file-picker.sh
