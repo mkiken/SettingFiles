@@ -6,6 +6,10 @@ Guidance for AI coding agents working in this repository. Root `AGENTS.md` is a 
 
 Personal dotfiles for Mac and Windows development environments, synchronized via symbolic links.
 
+## User Environment Scope
+
+For environment-specific work, unless explicitly requested, target only macOS, Herdr (not tmux), zsh, Ghostty, Homebrew, and Worktrunk. Do not add, run targeted validation for, or manually verify support outside this environment. Retain existing Windows and tmux assets; change or test them only when explicitly targeted. Treat shared modules under `shell/tmux/` by their active consumer; the directory name alone does not make them tmux assets.
+
 ## Repository Branch Policy
 
 Implementation work may start directly on `main`/`master`; when a workflow or skill requires explicit consent for that, treat this section as standing consent. It covers only starting implementation in place — never skip separately required confirmation flows for destructive or side-effecting operations (commits, pushes, pull requests, deletes, deployments, external API writes).
