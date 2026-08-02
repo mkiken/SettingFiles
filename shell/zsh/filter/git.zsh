@@ -1113,3 +1113,56 @@ function fwtm() {
 
   wtm "$target_branch"
 }
+
+# worktrunkのworktree一覧を複数選択し、wtrへ渡して削除する
+function fwtr() {
+  local raw_list
+  raw_list=$(wtl --format=json --config-set list.json-schema=2)
+  local wtl_status=$?
+  [[ $wtl_status -ne 0 ]] && return $wtl_status
+
+  local candidates
+  candidates=$(jq -r '
+    .items[]
+    | select(.worktree != null and (.worktree.current | not) and (.branch | type == "string") and (.worktree.path | type == "string"))
+    | [.branch, .worktree.path]
+    | @tsv
+  ' <<< "$raw_list") || return $?
+
+  if [[ -z "$candidates" ]]; then
+    echo "削除可能なworktreeがありません" >&2
+    return $EXIT_CODE_SIGINT
+  fi
+
+  local selected
+  selected=$(print -r -- "$candidates" | filter \
+    --multi \
+    --header "削除するworktreeを選択" \
+    --prompt "remove> " \
+    --delimiter $'\t' \
+    --with-nth 1 \
+    --preview 'git -C {2} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"')
+
+  if [[ -z "$selected" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  local -a branches
+  local selected_line branch worktree_path
+  while IFS= read -r selected_line; do
+    if [[ "$selected_line" != *$'\t'* ]]; then
+      return $EXIT_CODE_SIGINT
+    fi
+
+    branch="${selected_line%%$'\t'*}"
+    worktree_path="${selected_line#*$'\t'}"
+    if [[ -z "$branch" ]] || [[ -z "$worktree_path" ]]; then
+      return $EXIT_CODE_SIGINT
+    fi
+
+    branches+=("$branch")
+  done <<< "$selected"
+
+  (( ${#branches[@]} > 0 )) || return $EXIT_CODE_SIGINT
+  wtr "${branches[@]}"
+}
