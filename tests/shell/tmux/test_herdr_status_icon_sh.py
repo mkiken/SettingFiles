@@ -256,10 +256,10 @@ class UpdateHerdrStatusIconTest(HerdrStatusIconTestBase):
         self.assertTrue(any("shell_status=" + WAIT in line for line in metadata), metadata)
 
 
-class SetHerdrWorktreeTabLabelTest(HerdrStatusIconTestBase):
+class SetHerdrTaskTabLabelTest(HerdrStatusIconTestBase):
     def test_replaces_only_base_label(self):
         result, rename, _, _ = self.run_shell(
-            'set_herdr_worktree_tab_label "worktree-tab-name"',
+            'set_herdr_task_tab_label "worktree-tab-name"',
             tab_label=f"[4] {ID_CODEX}{BUSY}4",
         )
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -270,7 +270,7 @@ class SetHerdrWorktreeTabLabelTest(HerdrStatusIconTestBase):
 
     def test_long_label_is_truncated_to_twenty_characters(self):
         result, rename, _, _ = self.run_shell(
-            'set_herdr_worktree_tab_label "worktree-task-plan-handoff"',
+            'set_herdr_task_tab_label "worktree-task-plan-handoff"',
             tab_label=f"[2] {ID_CLAUDE}{DONE}2",
         )
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -281,7 +281,7 @@ class SetHerdrWorktreeTabLabelTest(HerdrStatusIconTestBase):
 
     def test_no_op_outside_herdr(self):
         result, rename, _, _ = self.run_shell(
-            'set_herdr_worktree_tab_label "worktree-tab-name"',
+            'set_herdr_task_tab_label "worktree-tab-name"',
             herdr_env=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -289,7 +289,7 @@ class SetHerdrWorktreeTabLabelTest(HerdrStatusIconTestBase):
 
     def test_notify_silent_does_not_disable_worktree_label(self):
         result, rename, _, _ = self.run_shell(
-            'set_herdr_worktree_tab_label "worktree-tab-name"',
+            'set_herdr_task_tab_label "worktree-tab-name"',
             notify_silent=True,
             tab_label=f"{ID_CODEX}{BUSY}1",
         )
@@ -298,10 +298,28 @@ class SetHerdrWorktreeTabLabelTest(HerdrStatusIconTestBase):
 
     def test_rename_failure_is_reported_to_caller(self):
         result, _, _, _ = self.run_shell(
-            'set_herdr_worktree_tab_label "worktree-tab-name"',
+            'set_herdr_task_tab_label "worktree-tab-name"',
+            tab_label=f"{ID_CODEX}{BUSY}1",
             rename_exit_code=7,
         )
         self.assertEqual(result.returncode, 7, result.stderr)
+
+    def test_manual_label_is_not_replaced(self):
+        manual_label = f"[3] {ID_CODEX}{BUSY}manual-tab"
+        result, rename, _, _ = self.run_shell(
+            'set_herdr_task_tab_label "worktree-tab-name"',
+            tab_label=manual_label,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(rename, [])
+
+    def test_legacy_worktree_function_delegates(self):
+        result, rename, _, _ = self.run_shell(
+            'set_herdr_worktree_tab_label "worktree-tab-name"',
+            tab_label=f"{ID_CODEX}{BUSY}1",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(rename, [f"w1:t1|{ID_CODEX}{BUSY}worktree-tab-name"])
 
 
 class ShellStatusMarkerTest(HerdrStatusIconTestBase):

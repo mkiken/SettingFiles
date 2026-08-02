@@ -52,10 +52,10 @@ _herdr_resolve_workspace_id() {
     herdr pane get "${HERDR_PANE_ID}" 2>/dev/null | jq -r '.result.pane.workspace_id // empty' 2>/dev/null
 }
 
-# worktree-taskが現在tabの本文を概要slugへ差し替える。Herdrの番号prefix、
-# AI識別子、状態アイコン、context badgeは純粋関数側で保持する。Herdr外はno-op、
-# Herdr内の解決/rename失敗は呼び出し元が警告できるよう非zeroを返す。
-set_herdr_worktree_tab_label() {
+# herdr-tab-labelが現在tabのHerdr既定本文を概要slugへ差し替える。手動本文は
+# 変更せず、番号prefix、AI識別子、状態アイコン、context badgeは純粋関数側で
+# 保持する。Herdr外はno-op、Herdr内の解決/rename失敗は呼び出し元へ返す。
+set_herdr_task_tab_label() {
     local base_label="$1"
     [[ -z "${base_label}" ]] && return 1
     [[ -n "${TMUX:-}" ]] && return 0
@@ -71,11 +71,16 @@ set_herdr_worktree_tab_label() {
     [[ -z "${current_label}" ]] && return 1
 
     local new_label
-    new_label="$(python3 "${_HERDR_STATUS_ICON_DIR}/tmux_window_name.py" compute-rebased-label "${current_label}" "${base_label}" 2>/dev/null)"
+    new_label="$(python3 "${_HERDR_STATUS_ICON_DIR}/tmux_window_name.py" compute-initial-task-label "${current_label}" "${base_label}" 2>/dev/null)"
     [[ -z "${new_label}" ]] && return 1
     [[ "${new_label}" == "${current_label}" ]] && return 0
 
     herdr tab rename "${tab_id}" "${new_label}" >/dev/null 2>&1
+}
+
+# 更新前promptを保持する稼働中セッション向け互換入口。
+set_herdr_worktree_tab_label() {
+    set_herdr_task_tab_label "$@"
 }
 
 # シェル所有✋マーカーのパスを返す。notify-richプラグインのラベル再構築が

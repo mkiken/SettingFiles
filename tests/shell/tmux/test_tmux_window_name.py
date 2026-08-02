@@ -584,6 +584,39 @@ class TestComputeLabelCli(unittest.TestCase):
             f"[4] {ID_CODEX}{BUSY}worktree-task-plan-…\n",
         )
 
+    def test_compute_initial_task_label_changes_only_herdr_defaults(self):
+        cases = [
+            (
+                "番号既定名は差し替え、context badgeは保持",
+                f"[4] {ID_CODEX}{BUSY}{ALERT}4",
+                f"[4] {ID_CODEX}{BUSY}{ALERT}codex-tab-label",
+            ),
+            (
+                "agent既定名は差し替え",
+                f"{ID_CODEX}{DONE}Codex",
+                f"{ID_CODEX}{DONE}codex-tab-label",
+            ),
+            (
+                "cwd既定名は差し替え",
+                f"{ID_CODEX}{BUSY}/Users/testuser/project",
+                f"{ID_CODEX}{BUSY}codex-tab-label",
+            ),
+            (
+                "手動名は完全維持",
+                f"[2] {ID_CODEX}{BUSY}manual-tab",
+                f"[2] {ID_CODEX}{BUSY}manual-tab",
+            ),
+        ]
+        for desc, current, expected in cases:
+            with self.subTest(desc):
+                stdout = io.StringIO()
+                with contextlib.redirect_stdout(stdout):
+                    code = twn.main(
+                        ["compute-initial-task-label", current, "codex-tab-label"]
+                    )
+                self.assertEqual(code, 0)
+                self.assertEqual(stdout.getvalue(), expected + "\n")
+
     def test_compute_updated_label_missing_args_is_usage_error(self):
         stderr = io.StringIO()
         with contextlib.redirect_stderr(stderr):
@@ -600,6 +633,12 @@ class TestComputeLabelCli(unittest.TestCase):
         stderr = io.StringIO()
         with contextlib.redirect_stderr(stderr):
             code = twn.main(["compute-rebased-label", "main"])
+        self.assertEqual(code, twn._EX_USAGE)
+
+    def test_compute_initial_task_label_missing_args_is_usage_error(self):
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = twn.main(["compute-initial-task-label", "main"])
         self.assertEqual(code, twn._EX_USAGE)
 
     def test_is_herdr_default_label_table(self):

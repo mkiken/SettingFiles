@@ -1,0 +1,4 @@
+interface:
+  display_name: "Herdr Tab Label"
+  short_description: "Set a safe task label for the active Herdr tab"
+  default_prompt: "Use $herdr-tab-label to label the active Herdr tab from this task."

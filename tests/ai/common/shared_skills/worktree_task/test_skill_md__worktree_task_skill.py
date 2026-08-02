@@ -138,28 +138,20 @@ class WorktreeTaskSkillContentTest(unittest.TestCase):
     def test_slug_drives_shared_herdr_tab_label(self):
         normalized_content = " ".join(self.content.split())
         for required in (
-            "The slug also becomes the Herdr tab label",
-            "identify the affected target and intended change",
-            "put its distinguishing terms first",
-            "do not use a generic name made only of words",
+            "Load `herdr-tab-label`",
+            "using its shared rules",
+            "both the branch name and the later tab-label attempt",
             "After validation succeeds",
-            "for both Claude and Codex when `HERDR_ENV=1`",
+            "apply `herdr-tab-label` from the invoking path",
             "Use the slug alone—not the `task/` namespace or timestamp",
-            "truncates labels longer than 20 characters to 19 characters plus `…`",
-            "If the helper is missing or the rename fails",
+            "preserves any non-default tab label",
             "continue the implementation",
-            "remains after merge and cleanup",
-            "manual tab rename takes precedence",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, normalized_content)
 
-        self.assertIn(
-            "zsh -ic 'builtin cd -q -- \"$1\" && source \"$2\" && "
-            "set_herdr_worktree_tab_label \"$3\"' zsh \"$original_path\" "
-            "\"$herdr_label_helper\" \"$slug\"",
-            self.content,
-        )
+        self.assertNotIn("lowercase ASCII letters, digits, and hyphens only", self.content)
+        self.assertNotIn("set_herdr_task_tab_label", self.content)
 
     def test_any_post_wtc_failure_cleanup_is_fail_safe(self):
         for required in (

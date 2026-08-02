@@ -169,6 +169,15 @@ def is_herdr_default_label(base_label: str) -> bool:
     return _looks_like_cwd_path(base_label)
 
 
+def compute_initial_task_label(current: str, base_label: str) -> str:
+    """Herdr既定名の時だけ、prefixを保持して初回タスク名へ差し替える。"""
+    _, label_body = _split_herdr_index_prefix(current)
+    current_base = strip_emoji_prefix(label_body)
+    if not is_herdr_default_label(current_base):
+        return current
+    return compute_rebased_label(current, base_label)
+
+
 # 外部エディタ由来と断定できる閉じた集合のみ。拡張子ヒューリスティック等の汎用判定は
 # 採らない（実測で会話概要の約4割がスペース無しスラッグであり、update-readme.md の
 # ような正当な概要をサイレントに捨てるため）。
@@ -373,6 +382,7 @@ _USAGE = (
     " | remove [--report-error] | add-badge | remove-badge"
     " | compute-updated-label <current> <status-emoji> [identifier]"
     " | compute-rebased-label <current> <base-label>"
+    " | compute-initial-task-label <current> <base-label>"
     " | compute-cleaned-label <current>"
     " | is-herdr-default-label <base-label>"
     " | is-editor-set-title <title>"
@@ -401,6 +411,12 @@ def main(argv: list[str]) -> int:
     if command == "compute-rebased-label":
         if len(args) == 2:
             print(compute_rebased_label(args[0], args[1]))
+            return 0
+        print(_USAGE, file=sys.stderr)
+        return _EX_USAGE
+    if command == "compute-initial-task-label":
+        if len(args) == 2:
+            print(compute_initial_task_label(args[0], args[1]))
             return 0
         print(_USAGE, file=sys.stderr)
         return _EX_USAGE

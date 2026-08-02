@@ -57,7 +57,7 @@ Use this executable boundary for every configured Zsh function: keep the `-c` sc
 
 ## Create the task worktree
 
-1. Derive a short English slug from the task prompt: lowercase ASCII letters, digits, and hyphens only; collapse separators and trim leading or trailing hyphens. The slug also becomes the Herdr tab label, so make it identify the affected target and intended change, put its distinguishing terms first, and do not use a generic name made only of words such as `task`, `change`, `update`, or `fix` when the prompt provides specific terms. Use `task` only if no meaningful slug remains.
+1. Load `herdr-tab-label` and derive the slug from the task prompt using its shared rules. Retain that slug for both the branch name and the later tab-label attempt.
 2. Form `task/<slug>-<timestamp>`. If that local branch exists, append `-2`, `-3`, and so on until the name is unused. Record that the final `refs/heads/<task-branch>` is absent before invoking `wtc`.
 3. Run the following from the invoking worktree. It executes exactly `wtc <task-branch> --base <original-branch> --no-cd` semantics through the configured interactive Zsh:
 
@@ -69,14 +69,7 @@ Use this executable boundary for every configured Zsh function: keep the `-c` sc
 
 4. Do not infer the new path from command output or naming conventions. Re-read `git worktree list --porcelain`, match the unique `branch refs/heads/<task-branch>` entry, and record its `worktree` path. If the match is missing or not unique, use the failure handling below.
 5. Confirm the task worktree is on the task branch at the recorded original `HEAD`. On failure, use the same failure handling.
-6. After validation succeeds, update the invoking Herdr tab for both Claude and Codex when `HERDR_ENV=1`. Use the slug alone—not the `task/` namespace or timestamp—as the label body. The helper keeps the jump-key number, AI identifier, status glyph, and context badge, and truncates labels longer than 20 characters to 19 characters plus `…`:
-
-   ```bash
-   herdr_label_helper="${SET:-$HOME/Desktop/repository/SettingFiles}/shell/tmux/herdr_status_icon.sh"
-   zsh -ic 'builtin cd -q -- "$1" && source "$2" && set_herdr_worktree_tab_label "$3"' zsh "$original_path" "$herdr_label_helper" "$slug"
-   ```
-
-   Keep the script literal and all derived values positional. If the helper is missing or the rename fails, report the tab-label warning and continue the implementation. The worktree label remains after merge and cleanup; a later manual tab rename takes precedence because notify-rich preserves manual label bodies.
+6. After validation succeeds, apply `herdr-tab-label` from the invoking path with the existing slug. Use the slug alone—not the `task/` namespace or timestamp. The shared procedure is fail-safe and preserves any non-default tab label; continue the implementation after a reported warning.
 
 ### Handle any post-invocation failure
 
