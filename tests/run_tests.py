@@ -8,12 +8,15 @@ import subprocess
 import sys
 import tempfile
 import time
+import tomllib
 import unittest
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 
 TEST_DIR = Path(__file__).resolve().parent
+REPO_ROOT = TEST_DIR.parent
+DEPENDENCY_MAP_PATH = TEST_DIR / "dependencies.toml"
 MAX_DEFAULT_JOBS = 8
 
 
@@ -61,6 +64,12 @@ def parse_args(argv=None):
         default=default_job_count(os.cpu_count()),
         help="number of parallel test processes (default: min(8, CPU count))",
     )
+    parser.add_argument(
+        "--paths",
+        nargs="+",
+        metavar="PATH",
+        help="repo-relative changed paths; runs only convention-mapped tests",
+    )
     return parser.parse_args(argv)
 
 
@@ -79,6 +88,106 @@ def discover_test_ids(test_dir=TEST_DIR):
         top_level_dir=str(test_dir),
     )
     return sorted(test.id() for test in iter_tests(suite))
+
+
+def normalize_name(value):
+    normalized = []
+    previous_separator = False
+    for character in value.lower():
+        if character.isalnum() or character == "_":
+            normalized.append(character)
+            previous_separator = False
+        elif not previous_separator:
+            normalized.append("_")
+            previous_separator = True
+    return "".join(normalized).strip("_")
+
+
+def normalize_directory(value):
+    if value.startswith("."):
+        value = f"dot_{value[1:]}"
+    return normalize_name(value)
+
+
+def normalize_repo_path(value):
+    path = PurePosixPath(value.replace("\\", "/"))
+    if path.is_absolute() or ".." in path.parts or str(path) in {"", "."}:
+        raise ValueError(f"path must be repo-relative: {value}")
+    return path
+
+
+def test_path_prefix_for_source(source_path, test_dir=TEST_DIR):
+    source = normalize_repo_path(str(source_path))
+    parts = source.parts
+    parent_parts = parts[1:-1] if parts[0] == "tests" else parts[:-1]
+    filename = parts[-1]
+    if filename.endswith(".py"):
+        filename = filename[:-3]
+    filename = normalize_name(filename)
+    parent = test_dir.joinpath(*(normalize_directory(part) for part in parent_parts))
+    return parent / f"test_{filename}"
+
+
+def test_module_name(test_path, test_dir=TEST_DIR):
+    return ".".join(test_path.relative_to(test_dir).with_suffix("").parts)
+
+
+def load_dependency_map(map_path=DEPENDENCY_MAP_PATH):
+    if not map_path.exists():
+        return {}
+    with map_path.open("rb") as map_file:
+        data = tomllib.load(map_file)
+    entries = data.get("extra_tests", {})
+    if not isinstance(entries, dict):
+        raise ValueError("dependencies.toml [extra_tests] must be a table")
+    if any(
+        not isinstance(source, str)
+        or not isinstance(test_paths, list)
+        or any(not isinstance(test_path, str) for test_path in test_paths)
+        for source, test_paths in entries.items()
+    ):
+        raise ValueError("dependencies.toml entries must map paths to string lists")
+    return entries
+
+
+def selected_test_paths(source_paths, test_dir=TEST_DIR, dependency_map=None):
+    dependency_map = dependency_map if dependency_map is not None else load_dependency_map()
+    selected = set()
+    unmatched = []
+    for source_value in source_paths:
+        source = normalize_repo_path(str(source_value))
+        source_string = source.as_posix()
+        direct = []
+        source_file = REPO_ROOT / source
+        if source_string.startswith("tests/") and source_file.name.startswith("test_") and source_file.suffix == ".py":
+            direct.append(source_file)
+        else:
+            prefix = test_path_prefix_for_source(source, test_dir)
+            direct.extend([prefix.with_suffix(".py"), *sorted(prefix.parent.glob(f"{prefix.name}__*.py"))])
+        mapped = [REPO_ROOT / normalize_repo_path(path) for path in dependency_map.get(source_string, [])]
+        missing_mapped = [path for path in mapped if not path.is_file()]
+        if missing_mapped:
+            raise ValueError(
+                "dependencies.toml references missing tests: "
+                + ", ".join(str(path.relative_to(REPO_ROOT)) for path in missing_mapped)
+            )
+        candidates = direct + mapped
+        existing = [path for path in candidates if path.is_file()]
+        if not existing:
+            unmatched.append(source_string)
+        selected.update(existing)
+    return sorted(selected), unmatched
+
+
+def select_test_ids(source_paths, test_ids, test_dir=TEST_DIR, dependency_map=None):
+    paths, unmatched = selected_test_paths(source_paths, test_dir, dependency_map)
+    modules = {test_module_name(path, test_dir) for path in paths}
+    selected = [
+        test_id
+        for test_id in test_ids
+        if any(test_id.startswith(f"{module}.") for module in modules)
+    ]
+    return sorted(selected), paths, unmatched
 
 
 def partition_test_ids(test_ids, jobs):
@@ -203,6 +312,20 @@ def print_results(results, total_duration):
 def main(argv=None):
     args = parse_args(argv)
     test_ids = discover_test_ids()
+    if args.paths:
+        try:
+            test_ids, selected_paths, unmatched = select_test_ids(args.paths, test_ids)
+        except ValueError as error:
+            print(error, file=sys.stderr)
+            return 2
+        print(
+            f"Selected {len(test_ids)} tests from {len(selected_paths)} test modules",
+            flush=True,
+        )
+        if unmatched:
+            print(f"No mapped tests: {', '.join(unmatched)}", file=sys.stderr)
+        if not test_ids:
+            return 0
     if not test_ids:
         print("No tests discovered", file=sys.stderr)
         return 1

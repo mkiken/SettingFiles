@@ -6,7 +6,7 @@ shlex-quote済みの VAR=... 行として出力する（フック側で eval す
 旧実装の1行ごとのjq起動（行数×最大10プロセス）とタイムスタンプ用の
 全ファイル再走査を、1回のストリーミングパスに置き換える。
 
-bash旧実装とのパリティ仕様は tests/test_claude_transcript_analyze.py が固定する。
+bash旧実装とのパリティ仕様は tests/shell/tmux/test_claude_transcript_analyze.py が固定する。
 """
 
 import json

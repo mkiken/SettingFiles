@@ -3,7 +3,7 @@
 # 値を @sh クォート済みの1行（フック側で eval）として出力する。
 # 時間計算（セッション時間/JST完了時刻）もここで行い、旧実装のbashヘルパー
 # format_session_duration / format_completion_time_jst の date 起動×4を削減する。
-# パリティ仕様は tests/test_gemini_transcript_summary.py が固定する。
+# パリティ仕様は tests/shell/tmux/test_gemini_transcript_summary_jq.py が固定する。
 #
 # 時間計算のパリティ根拠: 旧bashヘルパーはTZなしローカルパース→ローカル表示で
 # マシンTZが相殺される。jqの strptime/mktime/gmtime はUTCパース→UTC表示で

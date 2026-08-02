@@ -16,7 +16,7 @@
 - 削除は必ず `trash`(引数にrm系フラグ不可)。`rm`/`/bin/rm` は permission-denied。
 - AIプロンプトファイルの新規内容は英語・簡潔に(CLAUDE.md「AI Prompt File Editing」)。
 - 生成物(Codex `SKILL.md`)は直接編集せずソース編集→再生成→`verify_ai_skill_generation_idempotency`。
-- テストは `python3 -m unittest discover -s tests` に統合。シェル関数はPythonから `bash -c`(zsh関数は `zsh -c`)で呼ぶ既存流儀(`tests/test_ai_notification_summary.py` の `run_fn` 参照)。
+- テストは `python3 -m unittest discover -s tests` に統合。シェル関数はPythonから `bash -c`(zsh関数は `zsh -c`)で呼ぶ既存流儀(`tests/shell/tmux/test_ai_notification_summary_sh.py` の `run_fn` 参照)。
 - コミットは czg 形式 `<type>(<scope>): <emoji> <subject>`(subject 50字以内・小文字始まり)。scope は `.commitlintrc.json` の enum から。
 - zsh: 一時変数名に `path`/`status` を使わない。`$(...)` 内の cd は `builtin cd -q`。
 - 破壊的コマンドを含むコードの検証は必ず使い捨てディレクトリ(`mktemp -d`)で行う。テストから `trash` を呼ぶ経路は必ずスタブに差し替える。
@@ -34,7 +34,7 @@
 - `ai/common/pr_post_mechanics_core.md` — pr-comment-postから分離する投稿メカニクス
 - `ai/claude/skills/{review-merge,review-post,review-fix}/SKILL.md` — Claudeアダプタ
 - `ai/codex/skills/{review-merge,review-post,review-fix}/skill_head.md`(+生成される `SKILL.md`)
-- `tests/test_ai_review_run_dir.py` / `tests/test_ai_review_wait.py` / `tests/test_generate_review_report.py` / `tests/test_ai_review_launcher.py`
+- `tests/shell/common/pr/test_ai_review_run_dir_sh.py` / `tests/shell/common/pr/test_ai_review_wait_sh.py` / `tests/shell/common/pr/test_generate_review_report.py` / `tests/shell/zsh/alias/ai/test_ai_zsh__ai_review_launcher.py`
 
 変更:
 
@@ -55,14 +55,14 @@
 
 **Files:**
 - Create: `shell/common/pr/ai_review_run_dir.sh`
-- Test: `tests/test_ai_review_run_dir.py`
+- Test: `tests/shell/common/pr/test_ai_review_run_dir_sh.py`
 
 **Interfaces:**
 - Produces: CLI `ai_review_run_dir.sh <pr_number>` → 新規ランディレクトリの絶対パスをstdoutに1行出力(作成・latest更新・保持ポリシー適用込み)。`ai_review_run_dir.sh --latest <pr_number>` → 最新ランディレクトリの実体パスを出力(作成しない、無ければ非0)。環境変数 `AI_REVIEW_CACHE_ROOT`(default `~/.cache/ai-review`)、`AI_REVIEW_RUN_ID`(テスト用run-id固定)、`AI_REVIEW_KEEP_RUNS`(default 5)。カレントディレクトリのgit remote originからslug(`owner__repo`)を解決する。
 
 - [ ] **Step 1: 失敗するテストを書く**
 
-`tests/test_ai_review_run_dir.py` を作成。既存 `tests/test_ai_notification_summary.py` の「シェルをPythonから叩く」流儀に合わせる。テンポラリgitリポジトリ+スタブtrash+`AI_REVIEW_CACHE_ROOT` で完全隔離する。
+`tests/shell/common/pr/test_ai_review_run_dir_sh.py` を作成。既存 `tests/shell/tmux/test_ai_notification_summary_sh.py` の「シェルをPythonから叩く」流儀に合わせる。テンポラリgitリポジトリ+スタブtrash+`AI_REVIEW_CACHE_ROOT` で完全隔離する。
 
 ```python
 import os
@@ -293,7 +293,7 @@ Expected: 全PASS。
 - [ ] **Step 5: コミット**
 
 ```bash
-git add shell/common/pr/ai_review_run_dir.sh tests/test_ai_review_run_dir.py
+git add shell/common/pr/ai_review_run_dir.sh tests/shell/common/pr/test_ai_review_run_dir_sh.py
 git commit -m "feat(shell): ✨ AIレビューのランディレクトリ管理を追加"
 ```
 
@@ -303,14 +303,14 @@ git commit -m "feat(shell): ✨ AIレビューのランディレクトリ管理�
 
 **Files:**
 - Create: `shell/common/pr/ai_review_wait.sh`
-- Test: `tests/test_ai_review_wait.py`
+- Test: `tests/shell/common/pr/test_ai_review_wait_sh.py`
 
 **Interfaces:**
 - Produces: CLI `ai_review_wait.sh <run_dir> <file...>` — 指定ファイルが全て非空で存在するまでポーリング。進捗はstderrに1行上書き表示。終了コード: 0=揃った / 1=引数不正 / 2=タイムアウト。環境変数 `AI_REVIEW_WAIT_INTERVAL`(default 5秒)、`AI_REVIEW_WAIT_TIMEOUT`(default 7200秒)。
 
 - [ ] **Step 1: 失敗するテストを書く**
 
-`tests/test_ai_review_wait.py`:
+`tests/shell/common/pr/test_ai_review_wait_sh.py`:
 
 ```python
 import os
@@ -450,7 +450,7 @@ Expected: 全PASS。
 - [ ] **Step 5: コミット**
 
 ```bash
-git add shell/common/pr/ai_review_wait.sh tests/test_ai_review_wait.py
+git add shell/common/pr/ai_review_wait.sh tests/shell/common/pr/test_ai_review_wait_sh.py
 git commit -m "feat(shell): ✨ レビュー結果の完了監視ウォッチャーを追加"
 ```
 
@@ -461,7 +461,7 @@ git commit -m "feat(shell): ✨ レビュー結果の完了監視ウォッチャ
 **Files:**
 - Create: `shell/common/pr/generate_review_report.py`
 - Modify: `mac/scripts/common.sh` の `setup_ai_pr_tools`(*.py も個別symlink対象に)
-- Test: `tests/test_generate_review_report.py`
+- Test: `tests/shell/common/pr/test_generate_review_report.py`
 
 **Interfaces:**
 - Consumes: `merged.json`(スキーマはTask 6のコアに定義。本タスクはその形を前提にする)
@@ -469,7 +469,7 @@ git commit -m "feat(shell): ✨ レビュー結果の完了監視ウォッチャ
 
 - [ ] **Step 1: 失敗するテストを書く**
 
-`tests/test_generate_review_report.py`:
+`tests/shell/common/pr/test_generate_review_report.py`:
 
 ```python
 import importlib.util
@@ -875,7 +875,7 @@ Expected: `~/.config/ai-pr/bin` がディレクトリごとsymlinkの環境で�
 - [ ] **Step 6: コミット**
 
 ```bash
-git add shell/common/pr/generate_review_report.py tests/test_generate_review_report.py mac/scripts/common.sh
+git add shell/common/pr/generate_review_report.py tests/shell/common/pr/test_generate_review_report.py mac/scripts/common.sh
 git commit -m "feat(shell): ✨ レビュー統合HTMLレポート生成を追加"
 ```
 
@@ -1124,7 +1124,7 @@ git commit -m "feat(ai): ✨ review-mergeスキルを追加"
 
 **Files:**
 - Modify: `shell/zsh/alias/ai/ai.zsh`(305-485行の review 系を置換)
-- Test: `tests/test_ai_review_launcher.py`
+- Test: `tests/shell/zsh/alias/ai/test_ai_zsh__ai_review_launcher.py`
 
 **Interfaces:**
 - Consumes: `ai_review_run_dir.sh`(Task 1)、`ai_review_wait.sh`(Task 2)、`cl-review-merge`(Task 6)、既存 `cl-pr-review`/`gm-pr-review`/`cx-pr-review`(+subagents変種。codexは単数形 `cx-pr-review-subagent` なことに注意)
@@ -1132,7 +1132,7 @@ git commit -m "feat(ai): ✨ review-mergeスキルを追加"
 
 - [ ] **Step 1: 失敗するテストを書く**
 
-`tests/test_ai_review_launcher.py`(zsh関数の純粋部分のみ検証):
+`tests/shell/zsh/alias/ai/test_ai_zsh__ai_review_launcher.py`(zsh関数の純粋部分のみ検証):
 
 ```python
 import subprocess
@@ -1345,7 +1345,7 @@ Expected: 全PASS(従前の既知failureを除く)。
 - [ ] **Step 6: コミット**
 
 ```bash
-git add shell/zsh/alias/ai/ai.zsh tests/test_ai_review_launcher.py
+git add shell/zsh/alias/ai/ai.zsh tests/shell/zsh/alias/ai/test_ai_zsh__ai_review_launcher.py
 git commit -m "feat(shell): ✨ reviewコマンドに自動マージチェーンを追加"
 ```
 

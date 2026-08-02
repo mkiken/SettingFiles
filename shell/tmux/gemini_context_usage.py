@@ -6,7 +6,7 @@ ai/gemini/hooks/notification.sh のcontext逼迫アラートから呼ばれ、
 トークン抽出（旧インラインpython + jq3回 + bc）を1回のpython起動に集約し、
 shlex-quote済みの VAR=... 行として出力する（フック側で eval する）。
 
-旧bash実装とのパリティ仕様は tests/test_gemini_context_usage.py と
+旧bash実装とのパリティ仕様は tests/shell/tmux/test_gemini_context_usage.py と
 ai/gemini/hooks/tests/test_notification_context.py が固定する。
 """
 

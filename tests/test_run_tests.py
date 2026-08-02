@@ -10,6 +10,16 @@ import run_tests
 
 
 class RunTestsTest(unittest.TestCase):
+    def create_test_file(self, test_dir, relative_path, class_name="ExampleTest"):
+        path = test_dir / relative_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            "import unittest\n"
+            f"class {class_name}(unittest.TestCase):\n"
+            "    def test_example(self): pass\n"
+        )
+        return path
+
     def test_discovers_each_test_once_in_stable_order(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             test_dir = Path(temp_dir)
@@ -60,6 +70,83 @@ class RunTestsTest(unittest.TestCase):
                 with self.assertRaises(SystemExit):
                     with mock.patch("sys.stderr", io.StringIO()):
                         run_tests.parse_args(["--jobs", value])
+
+    def test_paths_argument_accepts_multiple_repo_relative_paths(self):
+        args = run_tests.parse_args(
+            ["--paths", "shell/tmux/example.sh", "mac/scripts/example.sh"]
+        )
+
+        self.assertEqual(args.paths, ["shell/tmux/example.sh", "mac/scripts/example.sh"])
+
+    def test_source_path_convention_preserves_extension_and_scenarios(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            test_dir = Path(temp_dir)
+            direct = self.create_test_file(test_dir, "shell/tmux/test_example_sh.py", "DirectTest")
+            scenario = self.create_test_file(
+                test_dir,
+                "shell/tmux/test_example_sh__edge_case.py",
+                "ScenarioTest",
+            )
+
+            selected, unmatched = run_tests.selected_test_paths(
+                ["shell/tmux/example.sh"],
+                test_dir=test_dir,
+                dependency_map={},
+            )
+
+        self.assertEqual(selected, [direct, scenario])
+        self.assertEqual(unmatched, [])
+
+    def test_python_and_dot_directories_have_deterministic_test_paths(self):
+        self.assertEqual(
+            run_tests.test_path_prefix_for_source("shell/tmux/example.py"),
+            run_tests.TEST_DIR / "shell" / "tmux" / "test_example",
+        )
+        self.assertEqual(
+            run_tests.test_path_prefix_for_source(".claude/skills/worktree-task/SKILL.md"),
+            run_tests.TEST_DIR
+            / "dot_claude"
+            / "skills"
+            / "worktree_task"
+            / "test_skill_md",
+        )
+
+    def test_select_test_ids_deduplicates_direct_and_dependency_tests(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            test_dir = repo_root / "tests"
+            test_file = self.create_test_file(test_dir, "shell/test_example_sh.py")
+            test_ids = ["shell.test_example_sh.ExampleTest.test_example"]
+            with mock.patch.object(run_tests, "REPO_ROOT", repo_root):
+                selected, paths, unmatched = run_tests.select_test_ids(
+                    ["shell/example.sh"],
+                    test_ids,
+                    test_dir=test_dir,
+                    dependency_map={"shell/example.sh": ["tests/shell/test_example_sh.py"]},
+                )
+
+        self.assertEqual(selected, test_ids)
+        self.assertEqual(paths, [test_file])
+        self.assertEqual(unmatched, [])
+
+    def test_unmapped_paths_and_invalid_dependency_targets_are_reported(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_root = Path(temp_dir)
+            test_dir = repo_root / "tests"
+            with mock.patch.object(run_tests, "REPO_ROOT", repo_root):
+                selected, paths, unmatched = run_tests.select_test_ids(
+                    ["shell/no_test.sh"], [], test_dir=test_dir, dependency_map={}
+                )
+                self.assertEqual((selected, paths, unmatched), ([], [], ["shell/no_test.sh"]))
+                with self.assertRaisesRegex(ValueError, "missing tests"):
+                    run_tests.selected_test_paths(
+                        ["shell/example.sh"],
+                        test_dir=test_dir,
+                        dependency_map={"shell/example.sh": ["tests/missing.py"]},
+                    )
+
+        with self.assertRaises(ValueError):
+            run_tests.normalize_repo_path("../outside.sh")
 
     def test_result_status_preserves_single_and_multiple_failures(self):
         success = run_tests.ShardResult(1, 2, 0, 0.1, "ok")

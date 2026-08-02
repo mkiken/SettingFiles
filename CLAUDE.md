@@ -56,11 +56,19 @@ cd mac && brew bundle
 ```bash
 python3 tests/run_tests.py
 ```
-Run before committing code changes (the full suite can take several minutes). Fix failures, or report them explicitly at the commit confirmation — never leave the suite red.
+For ordinary implementation changes, run only the tests owned by the files changed in the task:
+```bash
+python3 tests/run_tests.py --paths <repo-relative changed paths>
+```
+Fix targeted failures, or report them explicitly at the commit confirmation. Run the full suite only when changing the runner, test layout, `tests/support.py`, `tests/dependencies.toml`, or when explicitly requested. Never leave a suite that was run red.
+
+Main-suite tests mirror their primary implementation owner: `tests/<normalized source parent>/test_<source name>[__scenario].py`. Python source names omit `.py`; other extensions remain encoded in the test name. A test that exercises several files stays with the entrypoint or canonical source that owns its behavior; do not add ordinary ownership to a map.
+
+`tests/dependencies.toml` is for proven exceptional dependencies only. When a wider run reveals a failing test omitted by targeted selection, first confirm that a changed source caused the failure, then propose an exact source-to-test entry. After approval, add it and verify that `--paths <source>` selects the test. Do not record unrelated or pre-existing failures. If a valid changed path has no mapped test, the runner reports it and exits successfully; state that omission in the handoff.
 
 The runner executes deterministic test-ID shards in parallel. Tests must be order-independent, must not write shared tracked state, and must use temporary directories for filesystem mutations. Use `python3 tests/run_tests.py --jobs 1` or `python3 -m unittest discover -s tests` for sequential diagnosis.
 
-Shell functions (e.g. those in `shell/tmux/ai_notification_*.sh`) are unit-tested from Python: a `tests/test_*.py` `source`s the `.sh` and invokes the function via `bash -c`, asserting on stdout and the return code (see `tests/test_ai_notification_summary.py` for the `run_fn` helper pattern). Write new shell-function tests in this style so `unittest discover` collects them — a standalone `.sh` test file is not picked up by the suite.
+Shell functions (e.g. those in `shell/tmux/ai_notification_*.sh`) are unit-tested from Python: the corresponding `tests/shell/tmux/test_<name>_sh.py` `source`s the `.sh` and invokes the function via `bash -c`, asserting on stdout and the return code (see `tests/shell/tmux/test_ai_notification_summary_sh.py` for the `run_fn` helper pattern). Write new shell-function tests in this style so `unittest discover` collects them — a standalone `.sh` test file is not picked up by the suite.
 
 When a test pins an exclusion (e.g. `assertNotIn`, a must-not-subscribe list), state the reason in an adjacent comment — an unexplained negative pin forces a later session to rediscover the rejection through history archaeology, or to re-attempt the rejected approach.
 
