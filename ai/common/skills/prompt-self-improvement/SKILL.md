@@ -80,6 +80,24 @@ Loaded by the always-on `# Opportunistic Improvement Proposals` rule once at lea
 - Present each proposal per "Presenting proposals for approval" below, then ask approval per proposal via the platform-specific `# User Confirmation` mechanism — options per proposal: apply now / do not apply. Apply edits only to approved proposals.
 - Outside the Completion-Time Check, say nothing when no proposal qualifies.
 
+### Apply approved proposals in isolation
+
+Before editing SettingFiles for an approved proposal, resolve its source
+repository and require its source worktree to be clean with an attached
+branch. Never edit that source worktree directly.
+
+When `$worktree-task` is available, treat the approved proposal or compatible
+approved set as a fresh task prompt and run the complete isolated workflow in
+a newly created branch and worktree. Do not reuse a removed task worktree,
+deleted branch, or an unrelated existing worktree. The proposal approval
+authorizes only its described edits; retain the workflow's commit, merge,
+cleanup, and push confirmations.
+
+When `$worktree-task` is unavailable, use another already-validated isolated
+worktree workflow. If none is available, preserve the approved proposal and
+stop without editing SettingFiles. Never fall back to changing the source
+worktree directly.
+
 ### Plan Handoff
 
 - When writing an implementation plan for approval and at least one candidate exists, add a `### 自己改善引き継ぎ` section to the plan artifact (plan file, `<proposed_plan>` block, or the plan text shown for approval) listing each candidate condensed: Target behavior / Evidence / Diagnosis / Proposed source changes. It is a record surviving the post-approval context reset, not a proposal — do not ask for approval at plan time. Omit the section when no candidate exists.
