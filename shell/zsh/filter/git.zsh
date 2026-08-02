@@ -1015,6 +1015,49 @@ function fgwtc() {
   _herdr_run_in_new_tab "" "$worktree_path" "${worktree_path:t}" ":" || return 1
 }
 
+# worktrunkのworktree一覧をfilterで選択し、選択branchへswitchする
+function fwts() {
+  local raw_list
+  raw_list=$(wtl --format=json)
+  local wtl_status=$?
+  [[ $wtl_status -ne 0 ]] && return $wtl_status
+
+  local candidates
+  candidates=$(jq -r '
+    if type == "array" then
+      .[]
+      | select(.kind == "worktree" and (.branch | type == "string") and (.path | type == "string"))
+      | [.branch, .path]
+    else
+      .items[]
+      | select(.worktree != null and (.branch | type == "string") and (.worktree.path | type == "string"))
+      | [.branch, .worktree.path]
+    end
+    | @tsv
+  ' <<< "$raw_list") || return $?
+
+  if [[ -z "$candidates" ]]; then
+    echo "switch可能なworktreeがありません" >&2
+    return $EXIT_CODE_SIGINT
+  fi
+
+  local selected
+  selected=$(print -r -- "$candidates" | filter \
+    --header "switchするworktreeを選択" \
+    --prompt "switch> " \
+    --delimiter $'\t' \
+    --with-nth 1,2)
+
+  if [[ -z "$selected" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  local branch="${selected%%$'\t'*}"
+  [[ -z "$branch" ]] && return $EXIT_CODE_SIGINT
+
+  wts "$branch"
+}
+
 # worktrunkのJSONから統合先worktreeを選択し、そのローカルbranchへmergeする
 # schema 1（配列）とschema 2（items配列）はworktreeフィールド構造が異なる
 function fwtm() {
