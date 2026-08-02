@@ -70,6 +70,21 @@ Use this executable boundary for every configured Zsh function: keep the `-c` sc
 4. Do not infer the new path from command output or naming conventions. Re-read `git worktree list --porcelain`, match the unique `branch refs/heads/<task-branch>` entry, and record its `worktree` path. If the match is missing or not unique, use the failure handling below.
 5. Confirm the task worktree is on the task branch at the recorded original `HEAD`. On failure, use the same failure handling.
 6. After validation succeeds, apply `herdr-tab-label` from the invoking path with the existing slug. Use the slug alone—not the `task/` namespace or timestamp. The shared procedure is fail-safe and preserves any non-default tab label; continue the implementation after a reported warning.
+7. When `HERDR_ENV=1`, record the validated task worktree for the invoking tab. Herdr popups use this context to open lazygit in the task worktree while the AI pane remains in the invoking worktree. Keep the script literal and values positional; report a warning and continue if recording fails:
+
+   ```bash
+   herdr_context_helper="${SET:-$HOME/Desktop/repository/SettingFiles}/shell/tmux/herdr_worktree_context.sh"
+   zsh -ic 'builtin cd -q -- "$1" && source "$2" && set_herdr_task_worktree_context "$3"' zsh "$original_path" "$herdr_context_helper" "$task_path"
+   ```
+
+### Clear Herdr task-worktree context
+
+After confirming that the task worktree entry is absent, clear its invoking-tab context. Keep the script literal and values positional; report a warning if clearing fails:
+
+```bash
+herdr_context_helper="${SET:-$HOME/Desktop/repository/SettingFiles}/shell/tmux/herdr_worktree_context.sh"
+zsh -ic 'builtin cd -q -- "$1" && source "$2" && clear_herdr_task_worktree_context' zsh "$original_path" "$herdr_context_helper"
+```
 
 ### Handle any post-invocation failure
 
@@ -96,7 +111,7 @@ If the task worktree remains clean and its `HEAD` still equals the recorded orig
 
 1. From the recorded invoking worktree, remove the task worktree with `git worktree remove <task-worktree>`.
 2. Delete the task branch with `git branch -d <task-branch>`.
-3. Independently verify that the worktree entry and local branch no longer exist.
+3. Independently verify that the worktree entry and local branch no longer exist. After the worktree entry is absent, run `Clear Herdr task-worktree context`.
 4. Report that the task produced no changes.
 
 Use only safe deletion. If either cleanup operation fails, preserve the remaining state and report it.
@@ -130,7 +145,7 @@ Allow normal `git merge` semantics: fast-forward when possible, otherwise a merg
 After success, verify merge and cleanup independently:
 
 - Merge: re-read the invoking worktree's branch and `HEAD`, require the recorded task commit to be an ancestor of the original branch, and confirm the invoking worktree is clean.
-- Cleanup: require the task worktree entry to be absent and `refs/heads/<task-branch>` not to exist.
+- Cleanup: require the task worktree entry to be absent and `refs/heads/<task-branch>` not to exist. After the worktree entry is absent, run `Clear Herdr task-worktree context`.
 
 If merge succeeded but cleanup did not, do not push. Report the remaining worktree or branch and the failed check.
 
@@ -172,8 +187,9 @@ For agent-applied resolution, edit only the invoking worktree, stage each resolv
 Because the failed `wtm` invocation cannot perform its success cleanup, after confirming the continued merge contains the task commit:
 
 1. From the recorded invoking worktree, remove the task worktree with `git worktree remove <task-worktree>`.
-2. Delete the task branch with `git branch -d <task-branch>`.
-3. Run the same independent merge and cleanup checks required after a conflict-free `wtm` run.
+2. After confirming the task worktree entry is absent, run `Clear Herdr task-worktree context`.
+3. Delete the task branch with `git branch -d <task-branch>`.
+4. Run the same independent merge and cleanup checks required after a conflict-free `wtm` run.
 
 Never abort the merge unless the user explicitly requests it.
 

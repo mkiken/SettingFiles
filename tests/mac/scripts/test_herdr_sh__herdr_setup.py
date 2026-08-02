@@ -121,7 +121,15 @@ class HerdrConfigurationTest(unittest.TestCase):
         self.assertNotIn("open_worktree", keys)
 
         # [[keys.command]]ポップアップ群は個数を固定せず、代表エントリの存在のみ確認する
-        self.assertTrue(any(c["key"] == "prefix+ctrl+g" for c in keys["command"]))
+        lazygit = next(c for c in keys["command"] if c["key"] == "prefix+ctrl+g")
+        self.assertEqual(lazygit["type"], "popup")
+        self.assertEqual(
+            lazygit["command"],
+            "HERDR_POPUP_COMMAND=1 zsh -ilc 'exec bash \"$HOME/.tmux/scripts/herdr-open-lazygit.sh\"'",
+        )
+        tmux_scripts = read_text("mac/initialization/tmux.sh")
+        self.assertIn("herdr-open-lazygit.sh", tmux_scripts)
+        self.assertIn("herdr_worktree_context.sh", tmux_scripts)
         zoxide = next(c for c in keys["command"] if c["command"] == "herdr-zoxide.browse")
         self.assertEqual(zoxide["key"], "prefix+shift+o")
 

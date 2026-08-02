@@ -21,8 +21,10 @@ function setup_tmux_symlinks() {
     resurrect-setup.sh
     split-snapshot-pane.sh
     herdr-create-worktree-tab.sh
+    herdr-open-lazygit.sh
     herdr-split-snapshot-pane.sh
     herdr_wait_shell_ready.sh
+    herdr_worktree_context.sh
     tmux-file-picker.sh
   )
 

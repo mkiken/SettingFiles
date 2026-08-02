@@ -34,7 +34,7 @@ previous_agent = "prefix+ctrl+p"
 [[keys.command]]
 key = "prefix+ctrl+g"
 type = "popup"
-command = "zsh -ilc \"XDG_CONFIG_HOME=\\\"$HOME/.config\\\" lazygit\""
+command = "HERDR_POPUP_COMMAND=1 zsh -ilc 'exec bash \"$HOME/.tmux/scripts/herdr-open-lazygit.sh\"'"
 description = "run lazygit"
 width = "99%"
 height = "99%"

@@ -146,6 +146,11 @@ class WorktreeTaskSkillContentTest(unittest.TestCase):
             "Use the slug alone—not the `task/` namespace or timestamp",
             "preserves any non-default tab label",
             "continue the implementation",
+            "record the validated task worktree for the invoking tab",
+            "set_herdr_task_worktree_context",
+            "## Clear Herdr task-worktree context",
+            "clear_herdr_task_worktree_context",
+            "After confirming that the task worktree entry is absent",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, normalized_content)
