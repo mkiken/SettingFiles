@@ -66,6 +66,17 @@ class AlwaysOnSkillPointerTest(unittest.TestCase):
                 f"the '{anchor}' heading that the always-on OIP rule refers to",
             )
 
+    def test_oip_corrective_retry_exclusion_is_precisely_bounded(self):
+        text = (REPO_ROOT / "ai/common/prompt_base.md").read_text(encoding="utf-8")
+        exclusion = (
+            "Not for a single corrective retry in the same turn, with no additional "
+            "user input, after which the original task resumes and completes. This "
+            "exclusion does not apply to additional user confirmation or instructions, "
+            "a second retry, a task that does not resume or is interrupted, a dangerous "
+            "operation, or the same root cause recurring in the session."
+        )
+        self.assertIn(exclusion, text)
+
 
 if __name__ == "__main__":
     unittest.main()

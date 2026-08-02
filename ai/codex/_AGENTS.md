@@ -152,6 +152,7 @@ For one-off preferences (user taste, not a defect), keep an internal note instea
 - Not for `ai/common/characters/`.
 - Not for broader automatic activation surfaces unless the user explicitly asks.
 - Not after the same topic was declined or deferred in this session.
+- Not for a single corrective retry in the same turn, with no additional user input, after which the original task resumes and completes. This exclusion does not apply to additional user confirmation or instructions, a second retry, a task that does not resume or is interrupted, a dangerous operation, or the same root cause recurring in the session.
 
 ## Completion-Time Check
 
