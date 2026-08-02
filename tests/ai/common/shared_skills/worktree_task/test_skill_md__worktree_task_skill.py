@@ -103,6 +103,24 @@ class WorktreeTaskSkillContentTest(unittest.TestCase):
             with self.subTest(required=required):
                 self.assertIn(required, self.content)
 
+    def test_plan_mode_handoff_reinvokes_the_workflow_after_context_reset(self):
+        normalized_content = " ".join(self.content.split())
+        for required in (
+            "When invoked while the active conversation is in plan mode, plan only",
+            "Do not record repository state, invoke `wtc`, create a branch or worktree, or edit files",
+            "## Worktree Task Handoff",
+            "Implementation entry: `$worktree-task <self-contained task prompt>`",
+            "Treat the approved plan as the implementation scope and acceptance criteria",
+            "Before any repository mutation, load the current `worktree-task` instructions",
+            "without relying on planning context outside the approved artifact",
+            "Always include the explicit invocation even when implementation may continue",
+            "execute the stateful workflow exactly once, only after plan approval",
+            "After a context reset, treat the handoff as a fresh explicit invocation",
+            "from `Record the original state` through its remaining checkpoints",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, normalized_content)
+
     def test_configured_zsh_functions_use_safe_positional_boundaries(self):
         for required in (
             "zsh -ic 'builtin cd -q -- \"$1\" && type wtc >/dev/null && type wtm >/dev/null' zsh \"$original_path\"",
