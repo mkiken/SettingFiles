@@ -1,0 +1,4 @@
+interface:
+  display_name: "Worktree Task"
+  short_description: "Run a task safely in an isolated Git worktree"
+  default_prompt: "Use $worktree-task to complete this task in an isolated Git worktree."

@@ -21,7 +21,8 @@ All paths below are relative to the SettingFiles repository root. When the curre
 - Codex source fragments: `ai/common/prompt_base.md`, `ai/common/characters/nyaruko.md`, `ai/codex/codex_base.md`
 - Codex generated file: `ai/codex/_AGENTS.md`; do not edit it directly
 - Tool-specific workflows: `ai/*/skills/`, `ai/*/commands/`, `ai/*/agents/`
-- Shared workflow skills: `ai/common/skills/`
+- All-platform shared workflow skills: `ai/common/skills/`
+- Selectively shared workflow skills: canonical sources in `ai/common/shared_skills/`, exposed by relative directory symlinks under only the intended `ai/<platform>/skills/` directories
 - Shared-core generation sources: `ai/common/*_core.md` plus platform adapters (`skill_head.md`/`skill_tail.md`) and `ai/*/agents_src/`; generated outputs (Codex/Gemini generated `SKILL.md`, pr-reviewer agents, `_AGENTS.md`) are never edited directly — regenerate per the "Regenerate AI Prompts" table in the repository `CLAUDE.md`
 - Sync scripts: `mac/initialization/ai/*.sh` and `mac/updates/*.sh`
 

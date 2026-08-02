@@ -335,7 +335,7 @@ function setup_ai_skills() {
       continue
     fi
 
-    for skill_dir in "${skills_root}"/*(/N); do
+    for skill_dir in "${skills_root}"/*(-/N); do
       skill_name=$(basename "$skill_dir")
       make_symlink "$skill_dir" "${dest_dir}/${skill_name}"
     done

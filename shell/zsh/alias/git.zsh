@@ -220,3 +220,200 @@ wtr() {
     wt remove "$@"
   fi
 }
+
+# Merge the current secondary worktree branch into the worktree that has the
+# requested local branch checked out. Cleanup runs only after a successful merge.
+wtm() {
+  if (( $# != 1 )) || [[ -z "$1" ]]; then
+    echo "Usage: wtm <target-branch>" >&2
+    return 2
+  fi
+
+  local target_branch="$1"
+  local source_path
+  source_path=$(git rev-parse --show-toplevel) || return $?
+  source_path=$(builtin cd -q "$source_path" && pwd -P) || return $?
+
+  local source_branch
+  source_branch=$(git symbolic-ref --quiet --short HEAD)
+  local source_branch_status=$?
+  if [[ $source_branch_status -ne 0 ]] || [[ -z "$source_branch" ]]; then
+    echo "detached HEAD cannot be merged with wtm" >&2
+    return 1
+  fi
+
+  local worktree_list
+  worktree_list=$(git worktree list --porcelain) || return $?
+
+  local primary_path
+  primary_path=$(print -r -- "$worktree_list" | sed -n '1s/^worktree //p')
+  if [[ -z "$primary_path" ]]; then
+    echo "primary worktree could not be resolved" >&2
+    return 1
+  fi
+  primary_path=$(builtin cd -q "$primary_path" && pwd -P) || return $?
+  if [[ "$source_path" == "$primary_path" ]]; then
+    echo "wtm cannot merge from the primary worktree" >&2
+    return 1
+  fi
+
+  if [[ "$source_branch" == "$target_branch" ]]; then
+    echo "source and target branches must differ" >&2
+    return 1
+  fi
+
+  local source_head
+  source_head=$(git -C "$source_path" rev-parse --verify "HEAD^{commit}") || return $?
+
+  local target_ref="refs/heads/${target_branch}"
+  local target_matches
+  target_matches=$(print -r -- "$worktree_list" | awk -v target_ref="$target_ref" '
+    /^worktree / { worktree_path = substr($0, 10); next }
+    $0 == "branch " target_ref { print worktree_path }
+  ')
+
+  local -a target_paths
+  if [[ -n "$target_matches" ]]; then
+    target_paths=("${(@f)target_matches}")
+  else
+    target_paths=()
+  fi
+
+  if (( ${#target_paths[@]} == 0 )); then
+    echo "target branch is not checked out in a worktree: $target_branch" >&2
+    return 1
+  fi
+  if (( ${#target_paths[@]} > 1 )); then
+    echo "target branch is checked out in multiple worktrees: $target_branch" >&2
+    return 1
+  fi
+
+  local target_path="${target_paths[1]}"
+  target_path=$(git -C "$target_path" rev-parse --show-toplevel) || return $?
+  target_path=$(builtin cd -q "$target_path" && pwd -P) || return $?
+
+  local target_current_branch
+  target_current_branch=$(git -C "$target_path" symbolic-ref --quiet --short HEAD)
+  local target_branch_status=$?
+  if [[ $target_branch_status -ne 0 ]] || [[ "$target_current_branch" != "$target_branch" ]]; then
+    echo "target worktree branch changed before merge" >&2
+    return 1
+  fi
+
+  local target_head
+  target_head=$(git -C "$target_path" rev-parse --verify "HEAD^{commit}") || return $?
+
+  local source_status_output
+  source_status_output=$(git -C "$source_path" status --porcelain)
+  local source_status_exit=$?
+  if [[ $source_status_exit -ne 0 ]]; then
+    echo "failed to inspect source worktree status" >&2
+    return $source_status_exit
+  fi
+  if [[ -n "$source_status_output" ]]; then
+    echo "source worktree has uncommitted changes" >&2
+    return 1
+  fi
+
+  local target_status_output
+  target_status_output=$(git -C "$target_path" status --porcelain)
+  local target_status_exit=$?
+  if [[ $target_status_exit -ne 0 ]]; then
+    echo "failed to inspect target worktree status" >&2
+    return $target_status_exit
+  fi
+  if [[ -n "$target_status_output" ]]; then
+    echo "target worktree has uncommitted changes" >&2
+    return 1
+  fi
+
+  local verified_source_branch_head
+  verified_source_branch_head=$(git rev-parse --verify "refs/heads/${source_branch}^{commit}" 2>/dev/null)
+  if [[ "$verified_source_branch_head" != "$source_head" ]]; then
+    echo "source branch changed before merge" >&2
+    return 1
+  fi
+
+  local verified_source_worktree_head
+  verified_source_worktree_head=$(git -C "$source_path" rev-parse --verify "HEAD^{commit}" 2>/dev/null)
+  if [[ "$verified_source_worktree_head" != "$source_head" ]]; then
+    echo "source worktree HEAD changed before merge" >&2
+    return 1
+  fi
+
+  local verified_target_branch
+  verified_target_branch=$(git -C "$target_path" symbolic-ref --quiet --short HEAD 2>/dev/null)
+  if [[ "$verified_target_branch" != "$target_branch" ]]; then
+    echo "target worktree branch changed before merge" >&2
+    return 1
+  fi
+
+  local verified_target_head
+  verified_target_head=$(git -C "$target_path" rev-parse --verify "HEAD^{commit}" 2>/dev/null)
+  if [[ "$verified_target_head" != "$target_head" ]]; then
+    echo "target worktree HEAD changed before merge" >&2
+    return 1
+  fi
+
+  git -C "$target_path" merge --no-edit -- "$source_head" || return $?
+
+  local cleanup_target_branch
+  cleanup_target_branch=$(git -C "$target_path" symbolic-ref --quiet --short HEAD 2>/dev/null)
+  if [[ "$cleanup_target_branch" != "$target_branch" ]]; then
+    echo "target worktree branch changed after merge; cleanup stopped" >&2
+    return 1
+  fi
+
+  local cleanup_target_status_output
+  cleanup_target_status_output=$(git -C "$target_path" status --porcelain)
+  local cleanup_target_status_exit=$?
+  if [[ $cleanup_target_status_exit -ne 0 ]]; then
+    echo "failed to inspect target worktree status after merge; cleanup stopped" >&2
+    return $cleanup_target_status_exit
+  fi
+  if [[ -n "$cleanup_target_status_output" ]]; then
+    echo "target worktree changed after merge; cleanup stopped" >&2
+    return 1
+  fi
+
+  local cleanup_source_worktree_branch
+  cleanup_source_worktree_branch=$(git -C "$source_path" symbolic-ref --quiet --short HEAD 2>/dev/null)
+  if [[ "$cleanup_source_worktree_branch" != "$source_branch" ]]; then
+    echo "source worktree branch changed after merge; cleanup stopped" >&2
+    return 1
+  fi
+
+  local cleanup_source_worktree_head
+  cleanup_source_worktree_head=$(git -C "$source_path" rev-parse --verify "HEAD^{commit}" 2>/dev/null)
+  if [[ "$cleanup_source_worktree_head" != "$source_head" ]]; then
+    echo "source worktree HEAD changed after merge; cleanup stopped" >&2
+    return 1
+  fi
+
+  local cleanup_source_status_output
+  cleanup_source_status_output=$(git -C "$source_path" status --porcelain)
+  local cleanup_source_status_exit=$?
+  if [[ $cleanup_source_status_exit -ne 0 ]]; then
+    echo "failed to inspect source worktree status after merge; cleanup stopped" >&2
+    return $cleanup_source_status_exit
+  fi
+  if [[ -n "$cleanup_source_status_output" ]]; then
+    echo "source worktree changed after merge; cleanup stopped" >&2
+    return 1
+  fi
+
+  local cleanup_source_branch_head
+  cleanup_source_branch_head=$(git rev-parse --verify "refs/heads/${source_branch}^{commit}" 2>/dev/null)
+  if [[ "$cleanup_source_branch_head" != "$source_head" ]]; then
+    echo "source branch changed after merge; cleanup stopped" >&2
+    return 1
+  fi
+  if ! git -C "$target_path" merge-base --is-ancestor "$source_head" HEAD; then
+    echo "merged source commit is not an ancestor of target HEAD; cleanup stopped" >&2
+    return 1
+  fi
+
+  builtin cd -q "$target_path" || return $?
+  git worktree remove -- "$source_path" || return $?
+  git branch -d -- "$source_branch"
+}
