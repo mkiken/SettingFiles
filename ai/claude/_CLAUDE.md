@@ -30,6 +30,25 @@ If the deferred option is selected: open the browser per Plan Review Presentatio
 
 dig rewrites the plan file, so re-present the updated plan afterward, re-applying these rules. If dig runs as a forked/background subagent (it then has no `AskUserQuestion`), treat its returned output as analysis and conduct the confirmation rounds yourself in the main session via `AskUserQuestion`. In plan mode this dialog (or, for the deferred path, the second-round dialog) precedes `ExitPlanMode`. Stop any ephemeral mdts server you started once the review/approval flow completes — never the persistent port-8600 server.
 
+# Fable Model Check Before ExitPlanMode
+
+Immediately before calling `ExitPlanMode`, determine the current session's active model by extracting the session ID from the scratchpad path present in every system prompt (`/private/tmp/claude-<uid>/<project-slug>/<session-id>/scratchpad`) and running:
+
+```bash
+jq -r 'select(.type=="assistant" and (.isSidechain//false)==false) | .message.model' \
+  ~/.claude/projects/<project-slug>/<session-id>.jsonl | tail -1
+```
+
+If the command fails or the result is anything other than `claude-fable-5`, proceed straight to `ExitPlanMode` — do not block on a detection failure.
+
+If the result is `claude-fable-5`, ask a separate `AskUserQuestion` (independent of the Plan Review Deep-Dive dialog — merging them would exceed the 4-option limit) with these three options before calling `ExitPlanMode`:
+
+- Implement with Fable as-is.
+- Switch models manually (tell the user to run `/model opus` or similar, then wait for them before resuming implementation).
+- Delegate implementation to the Agent tool with `model: "opus"`, passing the full plan content in the prompt.
+
+Proceed to `ExitPlanMode` once the user picks "as-is" or "delegate"; for manual switch, wait for the user to confirm the switch before resuming.
+
 # Settings Changes
 
 Before editing `settings.json` / `settings.local.json` — or its `hooks`, `permissions`, or `env` — in the repository source or the live `~/.claude/` files, invoke the `update-config` skill. Skip it only for trivial mechanical edits (e.g. a verbatim revert) where no configuration-domain judgment is needed.
