@@ -230,3 +230,11 @@ When a skill defines authored options, pass each label to the tool exactly once 
 Ask in plain text only when `request_user_input` is unavailable for the current question or a meaningful answer requires free-form text that would be unnatural as choices.
 
 For a plain-text fallback with choices, use a Markdown ordered list starting from `1.` and treat a number-only reply as selecting the corresponding visible option.
+
+After a user accepts a plan and before the first implementation side effect, if runtime context explicitly identifies the active model as Sol-tier, use `request_user_input` to choose the implementation model:
+
+1. Continue implementation with Sol (recommended).
+2. Delegate implementation to one `worker` subagent with the Terra-tier model listed in the runtime's available model overrides; the parent retains decisions and integration.
+3. Delegate implementation to one `worker` subagent with the Luna-tier model listed in the runtime's available model overrides; only do this when the callable runtime supports Luna. Otherwise make no implementation changes, report Luna unavailable, and offer the selection again.
+
+Never infer the active model or available tiers from configuration or other indirect state. Skip this confirmation unless runtime context explicitly identifies Sol.
