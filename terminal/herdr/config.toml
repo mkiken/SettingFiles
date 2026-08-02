@@ -19,12 +19,12 @@ prefix = "ctrl+t"
 navigate_pane_up = ["k", "ctrl+p"]
 navigate_pane_down = ["j", "ctrl+n"]
 
-# workspace operations (shift modifier); tab operations keep their unmodified defaults
+# pane/workspace operations; `o` matches tmux next-pane
+cycle_pane_next = "prefix+o"
 next_workspace = "prefix+shift+n"
 previous_workspace = "prefix+shift+p"
 new_workspace = "prefix+shift+c"
 switch_workspace = "prefix+shift+1..9"
-open_worktree = "prefix+shift+o"
 
 # agent operations (ctrl modifier)
 focus_agent = "prefix+ctrl+1..9"
@@ -106,7 +106,7 @@ command = "termscope.open-links"
 description = "visible-screen link picker"
 
 [[keys.command]]
-key = "prefix+o"
+key = "prefix+shift+o"
 type = "plugin_action"
 command = "herdr-zoxide.browse"
 description = "Browse zoxide directories"

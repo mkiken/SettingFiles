@@ -104,11 +104,11 @@ class HerdrConfigurationTest(unittest.TestCase):
         expected_bindings = (
             ("navigate_pane_up", ["k", "ctrl+p"]),
             ("navigate_pane_down", ["j", "ctrl+n"]),
+            ("cycle_pane_next", "prefix+o"),
             ("next_workspace", "prefix+shift+n"),
             ("previous_workspace", "prefix+shift+p"),
             ("new_workspace", "prefix+shift+c"),
             ("switch_workspace", "prefix+shift+1..9"),
-            ("open_worktree", "prefix+shift+o"),
             ("focus_agent", "prefix+ctrl+1..9"),
             ("next_agent", "prefix+ctrl+n"),
             ("previous_agent", "prefix+ctrl+p"),
@@ -117,8 +117,13 @@ class HerdrConfigurationTest(unittest.TestCase):
             with self.subTest(binding=name):
                 self.assertEqual(keys[name], value)
 
+        # prefix+shift+o is reserved for zoxide, so open_worktree must not reclaim it.
+        self.assertNotIn("open_worktree", keys)
+
         # [[keys.command]]ポップアップ群は個数を固定せず、代表エントリの存在のみ確認する
         self.assertTrue(any(c["key"] == "prefix+ctrl+g" for c in keys["command"]))
+        zoxide = next(c for c in keys["command"] if c["command"] == "herdr-zoxide.browse")
+        self.assertEqual(zoxide["key"], "prefix+shift+o")
 
     @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
     def test_wtc_popup_uses_the_managed_worktree_tab_script(self):
