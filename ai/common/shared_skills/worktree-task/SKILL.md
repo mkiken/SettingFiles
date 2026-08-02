@@ -9,6 +9,32 @@ Invoke as `$worktree-task <task prompt>`. Treat the text after `$worktree-task` 
 
 Keep the task isolated from the invoking worktree. Defer any ambient post-implementation commit/push workflow until this workflow finishes; do not show its usual three-option confirmation during the isolated task.
 
+## Preserve the workflow through plan mode
+
+When invoked while the active conversation is in plan mode, plan only. Do not
+record repository state, invoke `wtc`, create a branch or worktree, or edit
+files.
+
+Add this section to the platform's plan artifact:
+
+```markdown
+## Worktree Task Handoff
+
+- Implementation entry: `$worktree-task <self-contained task prompt>`
+- Scope: Treat the approved plan as the implementation scope and acceptance criteria.
+- Start: Before any repository mutation, load the current `worktree-task` instructions and begin at `Record the original state`.
+```
+
+Replace the placeholder with a concise prompt that identifies the deliverable
+without relying on planning context outside the approved artifact. Keep the
+workflow itself in this skill rather than copying it into the plan.
+
+Always include the explicit invocation even when implementation may continue
+in the same context. Reloading the instructions is acceptable; execute the
+stateful workflow exactly once, only after plan approval. After a context
+reset, treat the handoff as a fresh explicit invocation and follow this skill
+from `Record the original state` through its remaining checkpoints.
+
 ## Record the original state
 
 Before creating a branch or changing files:
