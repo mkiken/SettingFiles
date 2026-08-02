@@ -1,6 +1,14 @@
 #!/bin/zsh
 
 source "${Repo}mac/scripts/ai/claude_mem.sh"
+source "${Repo}mac/scripts/ai/rtk.sh"
+
+function setup_gemini_rtk() {
+  echo "Ensuring Gemini RTK hook..."
+
+  require_rtk_token_killer || return 1
+  ensure_rtk_hook "$HOME/.gemini/settings.json" "BeforeTool" "run_shell_command" "rtk hook gemini"
+}
 
 function _remove_gemini_env_destination_symlink() {
   local dst="$1"

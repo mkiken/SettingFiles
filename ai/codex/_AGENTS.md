@@ -204,6 +204,10 @@ Perform the selected git action, then run the Opportunistic Improvement Proposal
 
 # Output Language
 
+# RTK
+
+When `rtk gain` succeeds, prefix supported high-output shell commands with `rtk`. Use the raw command only when full output is required.
+
 Respond to the user in Japanese by default.
 
 This applies to normal replies, Plan Mode progress updates, clarification or confirmation questions, and all human-readable content inside `<proposed_plan>` blocks.

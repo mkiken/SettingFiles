@@ -2,6 +2,14 @@
 
 source "${Repo}mac/scripts/ai/claude_mem.sh"
 source "${Repo}mac/scripts/ai/gsd_core.sh"
+source "${Repo}mac/scripts/ai/rtk.sh"
+
+function setup_claude_rtk() {
+  echo "Ensuring Claude RTK hook..."
+
+  require_rtk_token_killer || return 1
+  ensure_rtk_hook "$HOME/.claude/settings.json" "PreToolUse" "Bash" "rtk hook claude"
+}
 
 function setup_claude_context_mode() {
   echo "Ensuring Claude context-mode plugin..."

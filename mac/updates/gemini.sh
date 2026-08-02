@@ -44,6 +44,7 @@ setup_ai_skills ~/.gemini/skills "${Repo}ai/common/skills" "${Repo}ai/gemini/ski
 
 setup_gemini_superpowers
 setup_gemini_context_mode
+setup_gemini_rtk
 setup_gemini_claude_mem
 
 echo "Gemini settings update completed."

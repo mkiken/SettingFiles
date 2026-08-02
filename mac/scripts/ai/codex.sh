@@ -2,6 +2,13 @@
 
 source "${Repo}mac/scripts/ai/claude_mem.sh"
 source "${Repo}mac/scripts/ai/gsd_core.sh"
+source "${Repo}mac/scripts/ai/rtk.sh"
+
+function setup_codex_rtk() {
+  echo "Ensuring Codex RTK command support..."
+
+  require_rtk_token_killer
+}
 
 function setup_codex_context_mode() {
   echo "Ensuring Codex context-mode plugin..."

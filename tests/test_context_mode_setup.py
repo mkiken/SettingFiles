@@ -59,6 +59,7 @@ class ContextModeSetupTest(unittest.TestCase):
         expected_functions = {
             "mac/scripts/ai/claude.sh": (
                 "setup_claude_context_mode",
+                "setup_claude_rtk",
                 "setup_claude_genshijin",
                 "setup_claude_superpowers",
                 "setup_claude_mem",
@@ -67,11 +68,13 @@ class ContextModeSetupTest(unittest.TestCase):
             ),
             "mac/scripts/ai/gemini.sh": (
                 "setup_gemini_context_mode",
+                "setup_gemini_rtk",
                 "setup_gemini_superpowers",
                 "setup_gemini_claude_mem",
             ),
             "mac/scripts/ai/codex.sh": (
                 "setup_codex_context_mode",
+                "setup_codex_rtk",
                 "setup_codex_superpowers",
                 "setup_codex_claude_mem",
             ),
@@ -90,6 +93,7 @@ class ContextModeSetupTest(unittest.TestCase):
                 (
                     "setup_claude_superpowers",
                     "setup_claude_context_mode",
+                    "setup_claude_rtk",
                     "setup_claude_genshijin",
                     "setup_claude_dig",
                     "setup_claude_example_skills",
@@ -101,6 +105,7 @@ class ContextModeSetupTest(unittest.TestCase):
                 (
                     "setup_claude_superpowers",
                     "setup_claude_context_mode",
+                    "setup_claude_rtk",
                     "setup_claude_genshijin",
                     "setup_claude_dig",
                     "setup_claude_example_skills",
@@ -109,19 +114,19 @@ class ContextModeSetupTest(unittest.TestCase):
             ),
             "mac/initialization/ai/gemini.sh": (
                 'source "${Repo}mac/scripts/ai/gemini.sh"',
-                ("setup_gemini_superpowers", "setup_gemini_context_mode", "setup_gemini_claude_mem"),
+                ("setup_gemini_superpowers", "setup_gemini_context_mode", "setup_gemini_rtk", "setup_gemini_claude_mem"),
             ),
             "mac/updates/gemini.sh": (
                 'source "${Repo}mac/scripts/ai/gemini.sh"',
-                ("setup_gemini_superpowers", "setup_gemini_context_mode", "setup_gemini_claude_mem"),
+                ("setup_gemini_superpowers", "setup_gemini_context_mode", "setup_gemini_rtk", "setup_gemini_claude_mem"),
             ),
             "mac/initialization/ai/codex.sh": (
                 'source "${Repo}mac/scripts/ai/codex.sh"',
-                ("setup_codex_superpowers", "setup_codex_context_mode", "setup_codex_claude_mem"),
+                ("setup_codex_superpowers", "setup_codex_context_mode", "setup_codex_rtk", "setup_codex_claude_mem"),
             ),
             "mac/updates/codex.sh": (
                 'source "${Repo}mac/scripts/ai/codex.sh"',
-                ("setup_codex_superpowers", "setup_codex_context_mode", "setup_codex_claude_mem"),
+                ("setup_codex_superpowers", "setup_codex_context_mode", "setup_codex_rtk", "setup_codex_claude_mem"),
             ),
         }
 
