@@ -517,7 +517,7 @@ function generate_core_skills() {
   done
 }
 
-# 単一の真実源: shared-core スキルの <skill名>:<コアパス> エントリ一覧。
+# 単一の真実源: generated shared-core スキルの <skill名>:<コアパス> エントリ一覧。
 # generate_codex_skills / generate_gemini_skills / verify_ai_skill_generation_idempotency が
 # 全てここから読む。新規スキルを shared-core 化するときはこの2配列に追記するだけでよく、
 # 生成物パスの列挙（旧 verify_ai_skill_generation_idempotency のハードコード配列）は不要。
@@ -533,8 +533,6 @@ CODEX_CORE_SKILL_ENTRIES=(
   "review-merge:review_merge_core.md"
   "review-post:review_post_core.md pr_post_mechanics_core.md"
   "review-fix:review_fix_core.md"
-  "fact-based:fact_based_core.md"
-  "write-tests:write_tests_core.md"
 )
 
 GEMINI_CORE_SKILL_ENTRIES=(

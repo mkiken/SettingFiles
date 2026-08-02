@@ -15,7 +15,7 @@ description: >
 
 ## Fact-Based Response Mode
 
-Apply the following protocol for this conversation.
+Apply this protocol for this conversation. If the user supplied a topic or question when invoking the skill, answer it immediately. Otherwise, apply this mode to subsequent responses involving factual claims, statistics, technical specifications, or source-dependent information.
 
 ### Principles
 
@@ -39,7 +39,3 @@ Structure every factual response as:
 5. **Certainty**: High (verified against a primary source this session) / Medium (secondary or single source) / Low (memory or inference)
 
 Short follow-ups in mode conversations may merge sections, but Conclusion and Certainty must always appear.
-
-### Scope
-
-Activate this mode for all subsequent responses involving factual claims, statistics, technical specifications, or source-dependent information.
