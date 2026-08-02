@@ -114,6 +114,19 @@ def compute_updated_label(current: str, status_emoji: str, identifier: Optional[
     return f"{index_prefix}{build_updated_name(label_body, status_emoji, resolved_identifier)}"
 
 
+HERDR_TAB_BASE_MAX_LENGTH = 20
+
+
+def compute_rebased_label(current: str, base_label: str) -> str:
+    """Herdrの番号・識別子・状態/badgeを保ち、本文だけを差し替える。"""
+    index_prefix, label_body = _split_herdr_index_prefix(current)
+    identifier, rest = split_identifier_prefix(label_body)
+    emoji_prefix, _ = _split_emoji_prefix(rest)
+    if len(base_label) > HERDR_TAB_BASE_MAX_LENGTH:
+        base_label = base_label[: HERDR_TAB_BASE_MAX_LENGTH - 1] + "…"
+    return f"{index_prefix}{identifier}{emoji_prefix}{base_label}"
+
+
 def compute_cleaned_label(current: str) -> str:
     """状態アイコンだけを除去し、AI識別子とcontextバッジは残したラベルを計算する
     純粋関数（tmux/herdrへの問い合わせや書き込みは行わない）。
@@ -359,6 +372,7 @@ _USAGE = (
     " {update <emoji-prefix> [identifier] [--report-error]"
     " | remove [--report-error] | add-badge | remove-badge"
     " | compute-updated-label <current> <status-emoji> [identifier]"
+    " | compute-rebased-label <current> <base-label>"
     " | compute-cleaned-label <current>"
     " | is-herdr-default-label <base-label>"
     " | is-editor-set-title <title>"
@@ -381,6 +395,12 @@ def main(argv: list[str]) -> int:
             return 0
         if len(args) == 3:
             print(compute_updated_label(args[0], args[1], args[2]))
+            return 0
+        print(_USAGE, file=sys.stderr)
+        return _EX_USAGE
+    if command == "compute-rebased-label":
+        if len(args) == 2:
+            print(compute_rebased_label(args[0], args[1]))
             return 0
         print(_USAGE, file=sys.stderr)
         return _EX_USAGE

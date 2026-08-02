@@ -30,6 +30,27 @@ ERROR = "❌"
 WAIT = "✋"
 BUSY = "🤖"
 ID_CLAUDE = "✴️"
+ID_CODEX = "🪷"
+
+
+class HerdrStatusIconSourceTest(unittest.TestCase):
+    def test_source_does_not_trigger_chpwd_output(self):
+        result = subprocess.run(
+            [
+                "zsh",
+                "-fc",
+                'function chpwd() { print -r -- polluted; }; '
+                'source "shell/tmux/herdr_status_icon.sh"; '
+                'print -r -- "${_HERDR_STATUS_ICON_DIR}"',
+            ],
+            cwd=REPO_ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), str(SCRIPT.parent))
 
 
 class HerdrStatusIconTestBase(unittest.TestCase):
@@ -46,6 +67,7 @@ class HerdrStatusIconTestBase(unittest.TestCase):
         herdr_env: bool = True,
         tmux_env: bool = False,
         notify_silent: bool = False,
+        rename_exit_code: int = 0,
         marker_content: str | None = None,
         marker_age_seconds: int = 0,
         extra_env: dict | None = None,
@@ -87,6 +109,7 @@ class HerdrStatusIconTestBase(unittest.TestCase):
                     f"  echo '{json.dumps(tab_result)}'\n"
                     'elif [[ "$1" == "tab" && "$2" == "rename" ]]; then\n'
                     '  echo "$3|$4" >> "$HERDR_TEST_RENAME_CALLS"\n'
+                    f"  exit {rename_exit_code}\n"
                     'elif [[ "$1" == "tab" && "$2" == "list" ]]; then\n'
                     f"  echo '{json.dumps(tab_list_result)}'\n"
                     'elif [[ "$1" == "pane" && "$2" == "get" ]]; then\n'
@@ -231,6 +254,54 @@ class UpdateHerdrStatusIconTest(HerdrStatusIconTestBase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue(any("shell_status=" + WAIT in line for line in metadata), metadata)
+
+
+class SetHerdrWorktreeTabLabelTest(HerdrStatusIconTestBase):
+    def test_replaces_only_base_label(self):
+        result, rename, _, _ = self.run_shell(
+            'set_herdr_worktree_tab_label "worktree-tab-name"',
+            tab_label=f"[4] {ID_CODEX}{BUSY}4",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(
+            rename,
+            [f"w1:t1|[4] {ID_CODEX}{BUSY}worktree-tab-name"],
+        )
+
+    def test_long_label_is_truncated_to_twenty_characters(self):
+        result, rename, _, _ = self.run_shell(
+            'set_herdr_worktree_tab_label "worktree-task-plan-handoff"',
+            tab_label=f"[2] {ID_CLAUDE}{DONE}2",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(
+            rename,
+            [f"w1:t1|[2] {ID_CLAUDE}{DONE}worktree-task-plan-…"],
+        )
+
+    def test_no_op_outside_herdr(self):
+        result, rename, _, _ = self.run_shell(
+            'set_herdr_worktree_tab_label "worktree-tab-name"',
+            herdr_env=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(rename, [])
+
+    def test_notify_silent_does_not_disable_worktree_label(self):
+        result, rename, _, _ = self.run_shell(
+            'set_herdr_worktree_tab_label "worktree-tab-name"',
+            notify_silent=True,
+            tab_label=f"{ID_CODEX}{BUSY}1",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(rename, [f"w1:t1|{ID_CODEX}{BUSY}worktree-tab-name"])
+
+    def test_rename_failure_is_reported_to_caller(self):
+        result, _, _, _ = self.run_shell(
+            'set_herdr_worktree_tab_label "worktree-tab-name"',
+            rename_exit_code=7,
+        )
+        self.assertEqual(result.returncode, 7, result.stderr)
 
 
 class ShellStatusMarkerTest(HerdrStatusIconTestBase):

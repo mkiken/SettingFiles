@@ -236,6 +236,23 @@ class TestComputeUpdatedLabel(unittest.TestCase):
                 )
 
 
+class TestComputeRebasedLabel(unittest.TestCase):
+    """Herdrタブ本文だけをworktree概要へ置き換える純粋関数。"""
+
+    def test_table(self):
+        cases = [
+            ("番号・識別子・状態保持", f"[4] {ID_CODEX}{BUSY}4", "worktree-tab-name", f"[4] {ID_CODEX}{BUSY}worktree-tab-name"),
+            ("Claude識別子・完了状態保持", f"[2] {ID}{DONE}old", "new-worktree", f"[2] {ID}{DONE}new-worktree"),
+            ("context badge保持", f"{ID}{WAIT}{ALERT}old", "new", f"{ID}{WAIT}{ALERT}new"),
+            ("prefixなし", "old", "new", "new"),
+            ("20文字は省略しない", f"{ID}{BUSY}old", "12345678901234567890", f"{ID}{BUSY}12345678901234567890"),
+            ("21文字は末尾ellipsis", f"{ID}{BUSY}old", "123456789012345678901", f"{ID}{BUSY}1234567890123456789…"),
+        ]
+        for desc, current, base_label, expected in cases:
+            with self.subTest(desc):
+                self.assertEqual(twn.compute_rebased_label(current, base_label), expected)
+
+
 class TestComputeCleanedLabel(unittest.TestCase):
     """状態アイコンだけを除去し、AI識別子は残すラベル計算（tmuxのcontextバッジ除去と
     同様、Herdr側で「状態だけ外す」ために使う）。"""
@@ -551,6 +568,22 @@ class TestComputeLabelCli(unittest.TestCase):
                 self.assertEqual(code, 0)
                 self.assertEqual(stdout.getvalue(), expected_stdout + "\n")
 
+    def test_compute_rebased_label_preserves_prefixes_and_truncates(self):
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            code = twn.main(
+                [
+                    "compute-rebased-label",
+                    f"[4] {ID_CODEX}{BUSY}4",
+                    "worktree-task-plan-handoff",
+                ]
+            )
+        self.assertEqual(code, 0)
+        self.assertEqual(
+            stdout.getvalue(),
+            f"[4] {ID_CODEX}{BUSY}worktree-task-plan-…\n",
+        )
+
     def test_compute_updated_label_missing_args_is_usage_error(self):
         stderr = io.StringIO()
         with contextlib.redirect_stderr(stderr):
@@ -561,6 +594,12 @@ class TestComputeLabelCli(unittest.TestCase):
         stderr = io.StringIO()
         with contextlib.redirect_stderr(stderr):
             code = twn.main(["compute-cleaned-label"])
+        self.assertEqual(code, twn._EX_USAGE)
+
+    def test_compute_rebased_label_missing_args_is_usage_error(self):
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = twn.main(["compute-rebased-label", "main"])
         self.assertEqual(code, twn._EX_USAGE)
 
     def test_is_herdr_default_label_table(self):

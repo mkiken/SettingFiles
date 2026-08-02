@@ -1603,6 +1603,23 @@ class HerdrPluginTabIconTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(calls, ["w1:t1 ✴️✅My Task"])
 
+    def test_worktree_slug_remains_manual_while_status_updates_for_both_agents(self):
+        for agent, identifier in (("claude", "✴️"), ("codex", "🪷")):
+            with self.subTest(agent=agent):
+                result, calls = self.run_plugin(
+                    agent=agent,
+                    agent_status="done",
+                    tab_status="done",
+                    current_label=f"[4] {identifier}🤖worktree-tab-name",
+                    title_text="different-conversation-summary",
+                )
+
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(
+                    calls,
+                    [f"w1:t1 [4] {identifier}✅worktree-tab-name"],
+                )
+
     def test_pane_focus_refreshes_managed_conversation_title(self):
         state = []
         result, calls = self.run_plugin(
