@@ -208,6 +208,25 @@ class WorktreeTaskSkillContentTest(unittest.TestCase):
             with self.subTest(required=required):
                 self.assertIn(required, self.content)
 
+    def test_non_conflict_wtm_failure_preserves_state_until_retry_is_safe(self):
+        normalized_content = " ".join(self.content.split())
+        for required in (
+            "## Handle other `wtm` failures",
+            "Use the conflict workflow below only when they identify unmerged paths",
+            "check whether the recorded task commit is already an ancestor",
+            "If it is, do not retry the merge",
+            "If the task commit is not merged, preserve the invoking worktree, task worktree, and task branch",
+            "Record the exact `wtm` failure output",
+            "both worktrees' branches, `HEAD` values, `git status --porcelain` output",
+            "Report the blocking state and the preserved task path, branch, and commit",
+            "Never stash, reset, clean, commit, or otherwise alter unrelated invoking worktree changes",
+            "Do not retry automatically",
+            "only after the blocker is confirmed resolved",
+            "revalidated as clean, attached to the recorded original branch, and safe to merge",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, normalized_content)
+
 
 if __name__ == "__main__":
     unittest.main()

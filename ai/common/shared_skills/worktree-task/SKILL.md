@@ -141,6 +141,29 @@ After success, verify merge and cleanup independently:
 
 If merge succeeded but cleanup did not, do not push. Report the remaining worktree or branch and the failed check.
 
+## Handle other `wtm` failures
+
+If `wtm` returns nonzero, first inspect
+`git diff --name-only --diff-filter=U` and `git ls-files -u` in the invoking
+worktree. Use the conflict workflow below only when they identify unmerged
+paths.
+
+When no conflicts exist, check whether the recorded task commit is already an
+ancestor of the original branch. If it is, do not retry the merge; run the
+independent merge and cleanup checks above and report any cleanup failure.
+
+If the task commit is not merged, preserve the invoking worktree, task
+worktree, and task branch. Record the exact `wtm` failure output, then inspect
+both worktrees' branches, `HEAD` values, `git status --porcelain` output,
+operation state, and `git worktree list --porcelain`. Report the blocking
+state and the preserved task path, branch, and commit.
+
+Never stash, reset, clean, commit, or otherwise alter unrelated invoking
+worktree changes to make `wtm` pass. Do not retry automatically. Retry the
+same `wtm <original-branch>` invocation only after the blocker is confirmed
+resolved and the invoking worktree is revalidated as clean, attached to the
+recorded original branch, and safe to merge.
+
 ## Handle merge conflicts
 
 If `wtm` returns nonzero because of conflicts, expect the merge state in the invoking worktree and the task worktree and branch to remain intact.
