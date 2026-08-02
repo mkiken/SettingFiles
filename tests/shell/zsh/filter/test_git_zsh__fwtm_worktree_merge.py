@@ -23,7 +23,9 @@ class FwtmTest(unittest.TestCase):
         self.bin_dir = self.root / "bin"
         self.bin_dir.mkdir()
         self.filter_input = self.root / "filter-input"
+        self.filter_args = self.root / "filter-args"
         self.wtm_calls = self.root / "wtm-calls"
+        self.wtl_args = self.root / "wtl-args"
         self._write_fake_commands()
 
     def tearDown(self):
@@ -38,12 +40,14 @@ class FwtmTest(unittest.TestCase):
         self._write_executable(
             "wtl",
             "#!/bin/sh\n"
+            "printf '%s\\n' \"$@\" > \"$FWTM_WTL_ARGS\"\n"
             "[ \"${FWTM_WTL_STATUS:-0}\" -ne 0 ] && exit \"$FWTM_WTL_STATUS\"\n"
             "printf '%s' \"$FWTM_LIST_JSON\"\n",
         )
         self._write_executable(
             "filter",
             "#!/bin/sh\n"
+            "printf '%s\\n' \"$@\" > \"$FWTM_FILTER_ARGS\"\n"
             "cat > \"$FWTM_FILTER_INPUT\"\n"
             "[ \"${FWTM_FILTER_CANCEL:-}\" = 1 ] && exit 0\n"
             "grep \"^$FWTM_FILTER_BRANCH\" \"$FWTM_FILTER_INPUT\" | head -1\n",
@@ -55,12 +59,12 @@ class FwtmTest(unittest.TestCase):
             "exit \"${FWTM_WTM_STATUS:-0}\"\n",
         )
 
-    def list_json(self, schema):
+    def list_json(self):
         items = [
             {
                 "kind": "worktree",
                 "branch": "main",
-                "path": "/tmp/repository",
+                "path": "/tmp/repository with spaces",
                 "is_current": False,
             },
             {
@@ -76,8 +80,6 @@ class FwtmTest(unittest.TestCase):
                 "is_current": False,
             },
         ]
-        if schema == 1:
-            return json.dumps(items)
         return json.dumps(
             {
                 "schema": 2,
@@ -95,15 +97,17 @@ class FwtmTest(unittest.TestCase):
             }
         )
 
-    def run_fwtm(self, schema=1, *, extra_env=None):
+    def run_fwtm(self, *, extra_env=None):
         env = {
             **os.environ,
             "PATH": f"{self.bin_dir}:{os.environ['PATH']}",
             "EXIT_CODE_SIGINT": "130",
-            "FWTM_LIST_JSON": self.list_json(schema),
+            "FWTM_LIST_JSON": self.list_json(),
             "FWTM_FILTER_INPUT": str(self.filter_input),
+            "FWTM_FILTER_ARGS": str(self.filter_args),
             "FWTM_FILTER_BRANCH": "main",
             "FWTM_WTM_CALLS": str(self.wtm_calls),
+            "FWTM_WTL_ARGS": str(self.wtl_args),
             **(extra_env or {}),
         }
         result = subprocess.run(
@@ -124,24 +128,33 @@ class FwtmTest(unittest.TestCase):
         )
         return result, status
 
-    def assert_delegates_once(self, schema):
-        result, status = self.run_fwtm(schema=schema)
+    def assert_delegates_once(self):
+        result, status = self.run_fwtm()
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(status, "0", result.stderr)
         self.assertEqual(
             self.filter_input.read_text(encoding="utf-8").splitlines(),
-            ["main\t/tmp/repository"],
+            ["main\t/tmp/repository with spaces"],
         )
         self.assertEqual(
             self.wtm_calls.read_text(encoding="utf-8").splitlines(), ["main"]
         )
-
-    def test_schema_1_selection_delegates_to_wtm_once(self):
-        self.assert_delegates_once(schema=1)
+        self.assertEqual(
+            self.wtl_args.read_text(encoding="utf-8").splitlines(),
+            ["--format=json", "--config-set", "list.json-schema=2"],
+        )
+        filter_args = self.filter_args.read_text(encoding="utf-8").splitlines()
+        preview = filter_args[filter_args.index("--preview") + 1]
+        self.assertEqual(
+            preview,
+            'git -C {2} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"',
+        )
+        self.assertNotIn("echo {2}", preview)
+        self.assertNotIn("xargs", preview)
 
     def test_schema_2_selection_delegates_to_wtm_once(self):
-        self.assert_delegates_once(schema=2)
+        self.assert_delegates_once()
 
     def test_propagates_wtm_failure_status(self):
         result, status = self.run_fwtm(extra_env={"FWTM_WTM_STATUS": "17"})
@@ -161,20 +174,19 @@ class FwtmTest(unittest.TestCase):
 
     def test_returns_sigint_without_delegating_when_no_candidate_exists(self):
         current_only = json.dumps(
-            [
-                {
-                    "kind": "worktree",
-                    "branch": "feature/login",
-                    "path": "/tmp/feature",
-                    "is_current": True,
-                },
-                {
-                    "kind": "worktree",
-                    "branch": None,
-                    "path": "/tmp/detached",
-                    "is_current": False,
-                },
-            ]
+            {
+                "schema": 2,
+                "items": [
+                    {
+                        "branch": "feature/login",
+                        "worktree": {"path": "/tmp/feature", "current": True},
+                    },
+                    {
+                        "branch": None,
+                        "worktree": {"path": "/tmp/detached", "current": False},
+                    },
+                ],
+            }
         )
         result, status = self.run_fwtm(
             extra_env={"FWTM_LIST_JSON": current_only}

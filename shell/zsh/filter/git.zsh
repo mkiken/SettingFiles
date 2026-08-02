@@ -1018,21 +1018,37 @@ function fgwtc() {
 # worktrunkのworktree一覧をfilterで選択し、選択branchへswitchする
 function fwts() {
   local raw_list
-  raw_list=$(wtl --format=json)
+  raw_list=$(wtl --format=json --config-set list.json-schema=2)
   local wtl_status=$?
   [[ $wtl_status -ne 0 ]] && return $wtl_status
 
   local candidates
   candidates=$(jq -r '
-    if type == "array" then
-      .[]
-      | select(.kind == "worktree" and (.branch | type == "string") and (.path | type == "string"))
-      | [.branch, .path]
-    else
-      .items[]
-      | select(.worktree != null and (.branch | type == "string") and (.worktree.path | type == "string"))
-      | [.branch, .worktree.path]
-    end
+    def diff:
+      if . == null then ""
+      else [if (.added // 0) != 0 then "+\(.added)" else empty end,
+            if (.deleted // 0) != 0 then "-\(.deleted)" else empty end] | join(" ")
+      end;
+    def ahead_behind:
+      if . == null then ""
+      else [if (.ahead // 0) != 0 then "↑\(.ahead)" else empty end,
+            if (.behind // 0) != 0 then "↓\(.behind)" else empty end] | join(" ")
+      end;
+    def age:
+      if . == null then ""
+      else (now - fromdateiso8601 | floor) as $seconds
+      | if $seconds < 60 then "\($seconds)s"
+        elif $seconds < 3600 then "\(($seconds / 60 | floor))m"
+        elif $seconds < 86400 then "\(($seconds / 3600 | floor))h"
+        elif $seconds < 604800 then "\(($seconds / 86400 | floor))d"
+        elif $seconds < 2592000 then "\(($seconds / 604800 | floor))w"
+        elif $seconds < 31536000 then "\(($seconds / 2592000 | floor))mo"
+        else "\(($seconds / 31536000 | floor))y"
+        end
+      end;
+    .items[]
+    | select(.worktree != null and (.branch | type == "string") and (.worktree.path | type == "string"))
+    | [.branch, (.display.symbols // ""), (.worktree.changes.diff | diff), (.default_branch | ahead_behind), (.default_branch.diff | diff), (.upstream | ahead_behind), .worktree.path, (.head.short_sha // ""), (.head.committed_at | age), (.head.subject // "")]
     | @tsv
   ' <<< "$raw_list") || return $?
 
@@ -1046,7 +1062,7 @@ function fwts() {
     --header "switchするworktreeを選択" \
     --prompt "switch> " \
     --delimiter $'\t' \
-    --with-nth 1,2)
+    --with-nth 1,2,3,4,5,6,7,8,9,10)
 
   if [[ -z "$selected" ]]; then
     return $EXIT_CODE_SIGINT
@@ -1058,25 +1074,18 @@ function fwts() {
   wts "$branch"
 }
 
-# worktrunkのJSONから統合先worktreeを選択し、wtmにbranchを渡す
-# schema 1（配列）とschema 2（items配列）はworktreeフィールド構造が異なる
+# worktrunk schema 2から統合先worktreeを選択し、wtmにbranchを渡す
 function fwtm() {
   local raw_list
-  raw_list=$(wtl --format=json)
+  raw_list=$(wtl --format=json --config-set list.json-schema=2)
   local wtl_status=$?
   [[ $wtl_status -ne 0 ]] && return $wtl_status
 
   local candidates
   candidates=$(jq -r '
-    if type == "array" then
-      .[]
-      | select(.kind == "worktree" and (.is_current | not) and (.branch | type == "string") and (.path | type == "string"))
-      | [.branch, .path]
-    else
-      .items[]
-      | select(.worktree != null and (.worktree.current | not) and (.branch | type == "string") and (.worktree.path | type == "string"))
-      | [.branch, .worktree.path]
-    end
+    .items[]
+    | select(.worktree != null and (.worktree.current | not) and (.branch | type == "string") and (.worktree.path | type == "string"))
+    | [.branch, .worktree.path]
     | @tsv
   ' <<< "$raw_list") || return $?
 
@@ -1091,7 +1100,7 @@ function fwtm() {
     --prompt "merge> " \
     --delimiter $'\t' \
     --with-nth 1 \
-    --preview 'echo {2} | xargs -I{} git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"')
+    --preview 'git -C {2} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"')
 
   if [[ -z "$selected" ]]; then
     return $EXIT_CODE_SIGINT

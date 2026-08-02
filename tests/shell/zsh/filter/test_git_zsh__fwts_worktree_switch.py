@@ -24,6 +24,7 @@ class FwtsTest(unittest.TestCase):
         self.bin_dir.mkdir()
         self.filter_input = self.root / "filter-input"
         self.switch_args = self.root / "switch-args"
+        self.wtl_args = self.root / "wtl-args"
         self._write_fake_commands()
 
     def tearDown(self):
@@ -38,6 +39,8 @@ class FwtsTest(unittest.TestCase):
         self._write_executable(
             "wtl",
             "#!/bin/sh\n"
+            "printf '%s\\n' \"$@\" > \"$FWTS_WTL_ARGS\"\n"
+            "[ \"${FWTS_WTL_STATUS:-0}\" -ne 0 ] && exit \"$FWTS_WTL_STATUS\"\n"
             "printf '%s' \"$FWTS_LIST_JSON\"\n",
         )
         self._write_executable(
@@ -53,27 +56,28 @@ class FwtsTest(unittest.TestCase):
             "printf '%s\\n' \"$@\" > \"$FWTS_SWITCH_ARGS\"\n",
         )
 
-    def run_fwts(self, schema=1, *, extra_env=None):
-        items = [
-            {"kind": "worktree", "branch": "main", "path": "/tmp/main"},
-            {"kind": "worktree", "branch": "feature/login", "path": "/tmp/login"},
-            {"kind": "worktree", "branch": None, "path": "/tmp/detached"},
-        ]
-        list_json = (
-            json.dumps(items)
-            if schema == 1
-            else json.dumps(
-                {
-                    "schema": 2,
-                    "items": [
-                        {
-                            "branch": item["branch"],
-                            "worktree": {"path": item["path"]},
-                        }
-                        for item in items
-                    ],
-                }
-            )
+    def run_fwts(self, *, extra_env=None):
+        list_json = json.dumps(
+            {
+                "schema": 2,
+                "items": [
+                    {
+                        "branch": "main",
+                        "display": {"symbols": "^"},
+                        "worktree": {"path": "/tmp/main", "changes": {"diff": {"added": 0, "deleted": 0}}},
+                        "head": {"short_sha": "main1234", "committed_at": "2026-08-01T00:00:00Z", "subject": "Main commit"},
+                    },
+                    {
+                        "branch": "feature/login",
+                        "display": {"symbols": "!?↑"},
+                        "worktree": {"path": "/tmp/login", "changes": {"diff": {"added": 12, "deleted": 3}}},
+                        "default_branch": {"ahead": 2, "behind": 1, "diff": {"added": 30, "deleted": 8}},
+                        "upstream": {"ahead": 4, "behind": 0},
+                        "head": {"short_sha": "feature1", "committed_at": "2026-08-01T00:00:00Z", "subject": "Add login page"},
+                    },
+                    {"branch": None, "worktree": {"path": "/tmp/detached"}},
+                ],
+            }
         )
         env = {
             **os.environ,
@@ -83,6 +87,7 @@ class FwtsTest(unittest.TestCase):
             "FWTS_FILTER_INPUT": str(self.filter_input),
             "FWTS_FILTER_BRANCH": "feature/login",
             "FWTS_SWITCH_ARGS": str(self.switch_args),
+            "FWTS_WTL_ARGS": str(self.wtl_args),
             **(extra_env or {}),
         }
         result = subprocess.run(
@@ -99,19 +104,24 @@ class FwtsTest(unittest.TestCase):
         )
         return result, status
 
-    def test_switches_selected_schema_1_worktree(self):
+    def test_formats_schema_2_worktree_and_switches_selected_branch(self):
         result, status = self.run_fwts()
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(status, "0", result.stderr)
-        self.assertEqual(self.filter_input.read_text().splitlines(), ["main\t/tmp/main", "feature/login\t/tmp/login"])
-        self.assertEqual(self.switch_args.read_text(), "feature/login\n")
-
-    def test_switches_selected_schema_2_worktree(self):
-        result, status = self.run_fwts(schema=2)
-
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(status, "0", result.stderr)
+        candidates = self.filter_input.read_text().splitlines()
+        main = candidates[0].split("\t")
+        self.assertEqual(main[:8], ["main", "^", "", "", "", "", "/tmp/main", "main1234"])
+        self.assertRegex(main[8], r"^\d+(?:s|m|h|d|w|mo|y)$")
+        self.assertEqual(main[9], "Main commit")
+        feature = candidates[1].split("\t")
+        self.assertEqual(feature[:8], ["feature/login", "!?↑", "+12 -3", "↑2 ↓1", "+30 -8", "↑4", "/tmp/login", "feature1"])
+        self.assertRegex(feature[8], r"^\d+(?:s|m|h|d|w|mo|y)$")
+        self.assertEqual(feature[9], "Add login page")
+        self.assertEqual(
+            self.wtl_args.read_text().splitlines(),
+            ["--format=json", "--config-set", "list.json-schema=2"],
+        )
         self.assertEqual(self.switch_args.read_text(), "feature/login\n")
 
     def test_returns_sigint_without_switch_when_selection_is_cancelled(self):
@@ -119,4 +129,12 @@ class FwtsTest(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(status, "130", result.stderr)
+        self.assertFalse(self.switch_args.exists())
+
+    def test_preserves_wtl_failure_without_opening_picker_or_switching(self):
+        result, status = self.run_fwts(extra_env={"FWTS_WTL_STATUS": "23"})
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(status, "23", result.stderr)
+        self.assertFalse(self.filter_input.exists())
         self.assertFalse(self.switch_args.exists())
