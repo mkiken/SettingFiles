@@ -821,10 +821,12 @@ function _filter_git_worktree_path() {
   if $target_picker; then
     local action="enter"
     local expected_key="${selected%%$'\n'*}"
+    if [[ "$selected" == *$'\n'* ]]; then
+      selected="${selected#*$'\n'}"
+    fi
     case "$expected_key" in
       ctrl-o|ctrl-s|ctrl-v)
         action="$expected_key"
-        selected="${selected#*$'\n'}"
         ;;
     esac
 
