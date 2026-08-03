@@ -27,6 +27,8 @@ clp() {
 
 clr() { cl --resume "$@"; }
 
+cloh() { clo --effort high "$@"; }
+
 clor() { clo --resume "$@"; }
 
 clfr() { clf --resume "$@"; }
@@ -73,7 +75,7 @@ cl-review-merge() {
         echo "Usage: cl-review-merge <run_dir>" >&2
         return 1
     fi
-    clh --dangerously-skip-permissions "/review-merge $run_dir"
+    cloh --dangerously-skip-permissions "/review-merge $run_dir"
 }
 
 cl-review-post() {
