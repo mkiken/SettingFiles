@@ -432,12 +432,17 @@ fi
 # Homebrew terminal-notifier 2.0.0 is unsigned and can return success while modern macOS
 # silently suppresses it. Herdr is the stable notification identity and honors
 # [ui.toast] delivery="system". Keep terminal-notifier only as an API-failure fallback.
+# Exit code alone is not enough: "notification show" exits 0 even when
+# [ui.toast] delivery="off" suppresses delivery (response body has shown:false),
+# so the fallback below was unreachable while toast delivery stayed disabled.
 case "${sound_event:-completed}" in
   completed) herdr_sound="done" ;;
   *) herdr_sound="request" ;;
 esac
-if "$herdr_bin" notification show "$title" --body "$notify_body" --sound "$herdr_sound" \
-  >/dev/null 2>&1; then
+herdr_notify_response="$("$herdr_bin" notification show "$title" --body "$notify_body" \
+  --sound "$herdr_sound" 2>/dev/null)"
+if [[ $? -eq 0 ]] \
+   && print -r -- "$herdr_notify_response" | jq -e '.result.shown == true' >/dev/null 2>&1; then
   exit 0
 fi
 

@@ -36,6 +36,8 @@ class NotifyOnAgentStatusFullTest(unittest.TestCase):
         notifier.chmod(notifier.stat().st_mode | stat.S_IXUSR)
 
         # herdr CLIスタブ: 参照、tab rename、システム通知に応答する。
+        # notification showはshown(既定true)をHERDR_STUB_NOTIFICATION_SHOWNで
+        # 切替え、実装同様JSON応答（.result.shown）で結果を伝える。
         self.herdr_stub = fake_bin / "herdr"
         self.herdr_stub.write_text(
             "#!/bin/sh\n"
@@ -46,6 +48,7 @@ class NotifyOnAgentStatusFullTest(unittest.TestCase):
             '  "tab rename") exit 0 ;;\n'
             '  "notification show") {\n'
             '    printf "%s\\n" "$3" "$5" "$7" >> "$NOTIFY_TEST_LOG"\n'
+            '    printf \'{"result":{"shown":%s}}\' "${HERDR_STUB_NOTIFICATION_SHOWN:-true}"\n'
             '  } ;;\n'
             "  *) exit 0 ;;\n"
             "esac\n",
@@ -54,7 +57,11 @@ class NotifyOnAgentStatusFullTest(unittest.TestCase):
         self.herdr_stub.chmod(self.herdr_stub.stat().st_mode | stat.S_IXUSR)
 
     def run_hook(
-        self, transcript_lines: list[str], session_id: str = "s1", agent_status: str = "done"
+        self,
+        transcript_lines: list[str],
+        session_id: str = "s1",
+        agent_status: str = "done",
+        notification_shown: str = "true",
     ) -> subprocess.CompletedProcess:
         projects_dir = self.root / "projects" / "proj"
         projects_dir.mkdir(parents=True, exist_ok=True)
@@ -110,6 +117,7 @@ class NotifyOnAgentStatusFullTest(unittest.TestCase):
             "HERDR_BIN_PATH": str(self.herdr_stub),
             "HERDR_STUB_PANE_JSON": str(pane_json),
             "HERDR_STUB_TAB_JSON": str(tab_json),
+            "HERDR_STUB_NOTIFICATION_SHOWN": notification_shown,
             "CLAUDE_CONFIG_DIR": str(self.root),
         }
         return subprocess.run(
@@ -286,6 +294,35 @@ class NotifyOnAgentStatusFullTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         log = self.notifier_log.read_text(encoding="utf-8")
         self.assertIn("request", log)
+
+    def test_toast_disabled_falls_back_to_terminal_notifier(self):
+        # [ui.toast] delivery="off" のように herdr notification show が
+        # exit 0 で shown:false を返すケース: exit codeだけの判定だと
+        # terminal-notifierフォールバックへ到達せず完全無通知になっていたバグの回帰。
+        result = self.run_hook(
+            [
+                json.dumps(
+                    {
+                        "timestamp": "2026-07-11T12:00:00.000Z",
+                        "message": {"role": "user", "content": "テストして"},
+                    }
+                ),
+                json.dumps(
+                    {
+                        "timestamp": "2026-07-11T12:01:00.000Z",
+                        "message": {
+                            "role": "assistant",
+                            "content": [{"type": "text", "text": "完了しました"}],
+                        },
+                    }
+                ),
+            ],
+            notification_shown="false",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        log = self.notifier_log.read_text(encoding="utf-8")
+        self.assertIn("done", log)
+        self.assertIn("✅", log)
 
     def test_normal_done_sends_completion_notification(self):
         result = self.run_hook(
