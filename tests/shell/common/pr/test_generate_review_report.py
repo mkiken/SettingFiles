@@ -106,6 +106,7 @@ class RenderTest(unittest.TestCase):
         self.assertIn("decision-skip", html)
         self.assertIn("#expand-all", html)
         self.assertIn("#save-state", html)
+        self.assertIn('id="copy-run-dir"', html)
         self.assertIn(".card-toggle{color:var(--link)}", html)
         self.assertIn('data-filter="pending"', html)
         self.assertIn("対応するリスト", html)
@@ -169,11 +170,17 @@ class RenderTest(unittest.TestCase):
         self.assertIn("group.hidden=![...group.querySelectorAll", html)
         self.assertNotIn("showCompleted", html)
 
-    def test_copy_params_control_is_removed(self):
+    def test_run_dir_copy_control_and_save_feedback_are_rendered(self):
         html = mod.render(merged([item(1)]))
         self.assertNotIn("番号をコピー", html)
         self.assertNotIn("copy-params", html)
-        self.assertNotIn("clipboard.writeText", html)
+        self.assertIn('id="toast"', html)
+        self.assertIn('role="status" aria-live="polite"', html)
+        self.assertIn("state.json を保存しました", html)
+        self.assertIn("実行ディレクトリをコピー", html)
+        self.assertIn("navigator.clipboard.writeText(runDir)", html)
+        self.assertIn('document.execCommand("copy")', html)
+        self.assertIn('typeof DATA.run_dir==="string"&&DATA.run_dir', html)
 
     def test_schema_v1_remains_renderable(self):
         legacy = merged([item(1)])
