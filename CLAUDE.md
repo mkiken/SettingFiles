@@ -80,7 +80,7 @@ Canonical source-to-command mapping for regenerating committed outputs. The full
 
 | Edited source | Regenerate with |
 | --- | --- |
-| `ai/common/prompt_base.md`, `ai/common/genshijin-activate.md` (Claude/Gemini load these at runtime via `@file`) | Codex only: `zsh -c 'source mac/scripts/common.sh && generate_codex_agents'` |
+| `ai/common/prompt_base.md`, `ai/common/genshijin-activate.md`, `ai/common/genshijin-file-policy.md` (Claude/Gemini load the applicable sources at runtime via `@file`) | Codex only: `zsh -c 'source mac/scripts/common.sh && generate_codex_agents'` |
 | `ai/codex/codex_base.md` | `zsh -c 'source mac/scripts/common.sh && generate_codex_agents'` |
 | Shared-core skill sources (`ai/common/*_core.md`, `ai/{codex,gemini}/skills/*/skill_head.md`/`skill_tail.md`; includes pr-review-subagents skill adapters) | `zsh -c 'source mac/scripts/common.sh && verify_ai_skill_generation_idempotency'` |
 | pr-reviewer agent sources (`ai/common/pr_review_subagents/intro_*.md`, `ai/common/pr_review_subagents/format_*.md`, `ai/*/agents_src/`) | `zsh -c 'source mac/scripts/common.sh && generate_pr_reviewer_agents <platform>'` |
@@ -161,12 +161,12 @@ Repository-local domain-knowledge skills live in `.claude/skills/<name>/SKILL.md
 Throughout this section: edit the sources, never the generated committed outputs — regenerate via the "Regenerate AI Prompts" table under Key Commands.
 
 Both `_CLAUDE.md` and `_GEMINI.md` are static files using `@file` import syntax to compose prompts from shared source files at runtime:
-- **Claude** (`ai/claude/_CLAUDE.md`): `@../common/prompt_base.md`
-- **Gemini** (`ai/gemini/_GEMINI.md`): `@common/prompt_base.md` + `@common/genshijin-activate.md` + inline Language rules
+- **Claude** (`ai/claude/_CLAUDE.md`): `@../common/prompt_base.md` + `@../common/genshijin-file-policy.md`; the plugin supplies the upstream genshijin rule
+- **Gemini** (`ai/gemini/_GEMINI.md`): `@common/prompt_base.md` + `@common/genshijin-activate.md` + `@common/genshijin-file-policy.md` + inline Language rules
 
 Edit these sources directly — no build step. Gemini additionally merges `ai/common/mcp.json` (and `mcp.local.json` if present) into its `settings.json`.
 
-- **Codex** (`ai/codex/_AGENTS.md`): Codex's AGENTS.md does not support `@file` imports, so `mac/initialization/ai/codex.sh` (and `mac/updates/codex.sh`) generates `_AGENTS.md` by `cat`-concatenating `ai/common/prompt_base.md` + `ai/common/genshijin-activate.md` + `ai/codex/codex_base.md`; the generated file is committed and symlinked to `~/.codex/AGENTS.md`.
+- **Codex** (`ai/codex/_AGENTS.md`): Codex's AGENTS.md does not support `@file` imports, so `mac/initialization/ai/codex.sh` (and `mac/updates/codex.sh`) generates `_AGENTS.md` by `cat`-concatenating `ai/common/prompt_base.md` + `ai/common/genshijin-activate.md` + `ai/common/genshijin-file-policy.md` + `ai/codex/codex_base.md`; the generated file is committed and symlinked to `~/.codex/AGENTS.md`.
 
 `ai/common/characters/` is an inactive, swappable persona palette. No platform loads it by default; hestia, mizuki_himeji, nagato_yuki, reimu, rikka_takanashi, and nyaruko remain available for an explicit future swap.
 

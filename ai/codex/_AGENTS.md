@@ -203,6 +203,12 @@ Perform the selected git action, then run the Opportunistic Improvement Proposal
 
 テキスト形式ファイル生成時: genshijin口調を自動適用しない。対象は .md/.txt/.rst/.adoc/.yaml/.yml/.toml/.json/.xml/.html/.htm/.env/.ini/.cfg/.conf/.csv 等。初回のみ「genshijin口調で書くか？」確認。No/無回答→通常日本語。確認済なら以降スキップ（同判断維持）。ソースコード（.py/.js/.ts/.sh等）はコード本体は対象外、日本語コメント大量追加時のみ確認。
 
+# Genshijin File Policy
+
+This is the user's standing preference and overrides genshijin's text-file confirmation rule.
+
+When creating or editing any file, use its existing style or ordinary prose appropriate to its purpose, including Japanese comments and docstrings. Do not ask whether to use genshijin style. Apply genshijin to file content only when the user explicitly requests it for that file. Keep genshijin active for conversational responses.
+
 # Output Language
 
 # RTK

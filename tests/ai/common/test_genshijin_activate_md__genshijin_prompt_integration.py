@@ -17,11 +17,27 @@ class GenshijinPromptIntegrationTest(unittest.TestCase):
         self.assertIn("原始人やめて", rule)
         self.assertIn("破壊的操作の確認", rule)
 
+    def test_local_file_policy_overrides_upstream_confirmation(self):
+        rule = read_text("ai/common/genshijin-activate.md")
+        policy = read_text("ai/common/genshijin-file-policy.md")
+
+        self.assertIn("genshijin口調で書くか", rule)
+        self.assertIn("Do not ask whether to use genshijin style.", policy)
+        self.assertIn("only when the user explicitly requests it for that file", policy)
+        self.assertIn("Keep genshijin active for conversational responses.", policy)
+
     def test_active_entrypoints_use_genshijin_without_character_imports(self):
         claude = read_text("ai/claude/_CLAUDE.md")
         gemini = read_text("ai/gemini/_GEMINI.md")
 
-        self.assertIn("@common/genshijin-activate.md", gemini)
+        self.assertLess(
+            claude.index("@../common/prompt_base.md"),
+            claude.index("@../common/genshijin-file-policy.md"),
+        )
+        self.assertLess(
+            gemini.index("@common/genshijin-activate.md"),
+            gemini.index("@common/genshijin-file-policy.md"),
+        )
 
         # Character files remain as an inactive palette, so active entrypoints
         # must not import them alongside the single genshijin style source.

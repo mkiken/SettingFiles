@@ -1,6 +1,7 @@
 @common/prompt_base.md
 
 @common/genshijin-activate.md
+@common/genshijin-file-policy.md
 
 # User Confirmation
 
