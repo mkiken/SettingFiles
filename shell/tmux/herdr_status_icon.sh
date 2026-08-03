@@ -5,9 +5,9 @@
 # tab（tmux windowに相当）: 後勝ちでラベルの状態アイコン部分を差し替える。
 #   AI識別子（✴️/💎/🪷）は現ラベルから継承して保持する（tmux_window_name.pyの
 #   compute-updated-label/compute-cleaned-labelサブコマンドを再利用）。
-# workspace（tmux sessionに相当・spaces表示）: 同workspace内の全tabラベルを
-#   ✋>❌>🤖>✅の優先度でOR集約し、`herdr workspace report-metadata`の
-#   shell_statusトークンに書く（tmuxの@session_ai_status user optionと等価）。
+# workspace（tmux sessionに相当・spaces表示）: 同workspace内のシェル所有状態を
+#   ✋>❌>✅の優先度でOR集約し、`herdr workspace report-metadata`の
+#   shell_statusトークンに書く。AIが書くtabラベルの状態とは分離する。
 #
 # 失敗はすべてfail-safe（no set -e）: 通知/アイコン付与に失敗しても呼び出し元の
 # 処理を止めない（notify-on-agent-status.shと同じポリシー）。
@@ -24,6 +24,7 @@ fi
 # シェル所有の入力待ち✋マーカーのTTL（秒）。プロンプト放置は正当なので長め(24h)に
 # とり、シェルがマーカーを消せずに死んだ場合のスタック防止バックストップとする。
 _HERDR_SHELL_STATUS_TTL=86400
+_HERDR_SHELL_STATUS_STATE_TTL=86400
 
 # Herdr環境かつtmux外かどうかを判定する（tmux/Herdrは排他）
 _herdr_status_available() {
@@ -97,6 +98,50 @@ _herdr_shell_status_marker_path() {
     echo "${XDG_CACHE_HOME:-$HOME/.cache}/herdr-shell-status/${session_key}/${tab_key}"
 }
 
+# シェル所有の✅/❌状態キャッシュ。✋はプラグイン側のpinにも使う既存markerを
+# 所有権シグナルにするため別保存する。タブラベルではAI状態と区別できない。
+_herdr_shell_status_state_path() {
+    local tab_id="$1"
+    [[ -z "${tab_id}" ]] && return 1
+    local session_key="${HERDR_SOCKET_PATH:-default}"
+    session_key="${session_key//[^A-Za-z0-9._-]/_}"
+    local tab_key="${tab_id//[^A-Za-z0-9._-]/_}"
+    echo "${XDG_CACHE_HOME:-$HOME/.cache}/herdr-shell-status-state/${session_key}/${tab_key}"
+}
+
+_herdr_shell_status_state_read() {
+    local state_path
+    state_path="$(_herdr_shell_status_state_path "$1")" || return 0
+    [[ -f "${state_path}" ]] || return 0
+    local mtime now
+    mtime="$(stat -f %m "${state_path}" 2>/dev/null)"
+    now="$(date +%s)"
+    if [[ -z "${mtime}" ]] || (( now - mtime > _HERDR_SHELL_STATUS_STATE_TTL )); then
+        rm -f "${state_path}" 2>/dev/null
+        return 0
+    fi
+    local glyph=""
+    IFS= read -r glyph < "${state_path}" 2>/dev/null
+    case "${glyph}" in
+        "${EMOJI_STATUS_COMPLETED}"|"${EMOJI_STATUS_ERROR}") echo "${glyph}" ;;
+        *) rm -f "${state_path}" 2>/dev/null ;;
+    esac
+}
+
+_herdr_shell_status_state_write() {
+    local tab_id="$1"
+    local glyph="$2"
+    local state_path
+    state_path="$(_herdr_shell_status_state_path "${tab_id}")" || return 0
+    case "${glyph}" in
+        "${EMOJI_STATUS_COMPLETED}"|"${EMOJI_STATUS_ERROR}")
+            mkdir -p "${state_path%/*}" 2>/dev/null
+            printf '%s\n' "${glyph}" > "${state_path}" 2>/dev/null
+            ;;
+        *) rm -f "${state_path}" 2>/dev/null ;;
+    esac
+}
+
 # 有効なマーカー（TTL内・内容が✋）ならグリフをechoする。stale/不正内容は
 # 削除して空を返す。全てfail-safe（呼び出し元を止めない）。
 _herdr_shell_status_marker_read() {
@@ -119,19 +164,25 @@ _herdr_shell_status_marker_read() {
     echo "${glyph}"
 }
 
-# workspace内の全tabラベルを ✋>❌>🤖>✅ の優先度でOR集約し、集約結果の絵文字を返す
-# （tmuxのupdate-session-ai-status.shと同じOR集約方式）。該当なしは空文字。
+# workspace内の全tabのシェル所有状態を ✋>❌>✅ の優先度でOR集約し、集約結果を返す。
+# AIプラグインが書くtabラベルは読まない。該当なしは空文字。
 _herdr_aggregate_workspace_status() {
     local workspace_id="$1"
-    local labels
-    labels="$(herdr tab list --workspace "${workspace_id}" 2>/dev/null | jq -r '.result.tabs[]?.label // empty' 2>/dev/null)"
-    [[ -z "${labels}" ]] && return 0
+    local tab_ids
+    tab_ids="$(herdr tab list --workspace "${workspace_id}" 2>/dev/null | jq -r '.result.tabs[]?.tab_id // empty' 2>/dev/null)"
+    [[ -z "${tab_ids}" ]] && return 0
     local emoji
-    for emoji in "${EMOJI_STATUS_NOTIFICATION}" "${EMOJI_STATUS_ERROR}" "${EMOJI_STATUS_ONGOING}" "${EMOJI_STATUS_COMPLETED}"; do
-        if printf '%s' "${labels}" | grep -qF "${emoji}"; then
-            echo "${emoji}"
-            return 0
-        fi
+    for emoji in "${EMOJI_STATUS_NOTIFICATION}" "${EMOJI_STATUS_ERROR}" "${EMOJI_STATUS_COMPLETED}"; do
+        local tab_id glyph
+        while IFS= read -r tab_id; do
+            [[ -z "${tab_id}" ]] && continue
+            glyph="$(_herdr_shell_status_marker_read "${tab_id}")"
+            [[ -z "${glyph}" ]] && glyph="$(_herdr_shell_status_state_read "${tab_id}")"
+            if [[ "${glyph}" == "${emoji}" ]]; then
+                echo "${emoji}"
+                return 0
+            fi
+        done <<< "${tab_ids}"
     done
 }
 
@@ -159,8 +210,8 @@ update_herdr_status_icon() {
     tab_id="$(_herdr_resolve_tab_id)"
     [[ -z "${tab_id}" ]] && return 0
 
-    # ✋はrename前にマーカーを書く（rename直後にプラグインが発火しても見えるように）。
-    # ✋以外のグリフは待ち状態の終了を意味するのでマーカーを消す。
+    # ✋はrename前にmarkerを書く。✅/❌は状態キャッシュへ保存する。
+    # どちらも後段のworkspace集約はtabラベルでなくこの状態を読む。
     local marker_path
     marker_path="$(_herdr_shell_status_marker_path "${tab_id}")"
     if [[ -n "${marker_path}" ]]; then
@@ -171,6 +222,7 @@ update_herdr_status_icon() {
             rm -f "${marker_path}" 2>/dev/null
         fi
     fi
+    _herdr_shell_status_state_write "${tab_id}" "${status_emoji}"
 
     local current_label
     current_label="$(herdr tab get "${tab_id}" 2>/dev/null | jq -r '.result.tab.label // empty' 2>/dev/null)"
@@ -204,6 +256,7 @@ remove_herdr_status_icon() {
     local marker_path
     marker_path="$(_herdr_shell_status_marker_path "${tab_id}")"
     [[ -n "${marker_path}" ]] && rm -f "${marker_path}" 2>/dev/null
+    _herdr_shell_status_state_write "${tab_id}" ""
 
     local current_label
     current_label="$(herdr tab get "${tab_id}" 2>/dev/null | jq -r '.result.tab.label // empty' 2>/dev/null)"

@@ -22,6 +22,12 @@ def marker_relpath(tab_id: str) -> Path:
     sanitized = re.sub(r"[^A-Za-z0-9._-]", "_", tab_id)
     return Path("herdr-shell-status") / "default" / sanitized
 
+
+def state_relpath(tab_id: str) -> Path:
+    """シェル所有✅/❌状態キャッシュのXDG_CACHE_HOME相対パス。"""
+    sanitized = re.sub(r"[^A-Za-z0-9._-]", "_", tab_id)
+    return Path("herdr-shell-status-state") / "default" / sanitized
+
 # tmux_emoji.conf の実値（テストでも実物を使う。理由はtest_herdr_plugin_notify.py
 # のコメント通り: strip系ロジックはUnicode絵文字専用パターンなのでASCIIスタブでは
 # 検証できない）。
@@ -70,6 +76,8 @@ class HerdrStatusIconTestBase(unittest.TestCase):
         rename_exit_code: int = 0,
         marker_content: str | None = None,
         marker_age_seconds: int = 0,
+        state_contents: dict[str, str] | None = None,
+        state_age_seconds: int = 0,
         extra_env: dict | None = None,
     ) -> tuple[subprocess.CompletedProcess[str], list[str], list[str], str | None]:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -86,6 +94,13 @@ class HerdrStatusIconTestBase(unittest.TestCase):
                 if marker_age_seconds:
                     past = marker_file.stat().st_mtime - marker_age_seconds
                     os.utime(marker_file, (past, past))
+            for state_tab_id, state_content in (state_contents or {}).items():
+                state_file = cache_dir / state_relpath(state_tab_id)
+                state_file.parent.mkdir(parents=True, exist_ok=True)
+                state_file.write_text(state_content + "\n", encoding="utf-8")
+                if state_age_seconds:
+                    past = state_file.stat().st_mtime - state_age_seconds
+                    os.utime(state_file, (past, past))
 
             tab_result = {"result": {"tab": {"label": tab_label, "tab_id": tab_id}}}
             pane_result = {
@@ -95,7 +110,7 @@ class HerdrStatusIconTestBase(unittest.TestCase):
             tab_list_result = {
                 "result": {
                     "tabs": [
-                        {"tab_id": f"w1:t{i}", "label": label}
+                        {"tab_id": tab_id if i == 0 else f"w1:t{i}", "label": label}
                         for i, label in enumerate(labels)
                     ]
                 }
@@ -245,15 +260,25 @@ class UpdateHerdrStatusIconTest(HerdrStatusIconTestBase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue(any("shell_status=" + WAIT in line for line in metadata), metadata)
 
-    def test_workspace_aggregates_across_multiple_tabs_by_priority(self):
-        # 優先度 WAIT > ERROR > BUSY > DONE。BUSYとDONEが混在してもWAITが勝つ。
+    def test_workspace_aggregates_shell_state_across_multiple_tabs_by_priority(self):
+        # AI状態🤖は無視。シェル状態だけをWAIT > ERROR > DONEで集約する。
         result, _, metadata, _ = self.run_shell(
             f'update_herdr_status_icon "{DONE}"',
             tab_label=f"{BUSY}other",
-            tab_list_labels=[f"{BUSY}other", f"{WAIT}main2", f"{DONE}main3"],
+            tab_list_labels=[f"{BUSY}other", f"{BUSY}main2", f"{DONE}main3"],
+            state_contents={"w1:t1": DONE, "w1:t2": ERROR},
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertTrue(any("shell_status=" + WAIT in line for line in metadata), metadata)
+        self.assertTrue(any("shell_status=" + ERROR in line for line in metadata), metadata)
+
+    def test_workspace_ignores_ai_status_icons_in_tab_labels(self):
+        result, _, metadata, _ = self.run_shell(
+            "remove_herdr_status_icon",
+            tab_label=f"{BUSY}working",
+            tab_list_labels=[f"{BUSY}working", f"{WAIT}blocked", f"{DONE}done"],
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(any("--clear-token shell_status" in line for line in metadata), metadata)
 
 
 class SetHerdrTaskTabLabelTest(HerdrStatusIconTestBase):
@@ -392,6 +417,20 @@ class ShellStatusMarkerTest(HerdrStatusIconTestBase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout.strip(), "")
         self.assertIsNone(marker)
+
+    def test_state_read_discards_expired_or_invalid_content(self):
+        for name, contents, age in (
+            ("expired", {"w1:t1": DONE}, 86401),
+            ("invalid", {"w1:t1": BUSY}, 0),
+        ):
+            with self.subTest(name=name):
+                result, _, _, _ = self.run_shell(
+                    '_herdr_shell_status_state_read "w1:t1"',
+                    state_contents=contents,
+                    state_age_seconds=age,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout.strip(), "")
 
 
 class RemoveHerdrStatusIconTest(HerdrStatusIconTestBase):

@@ -126,11 +126,9 @@ pane_borders = true
 show_agent_labels_on_pane_borders = true
 
 [ui.sidebar.spaces]
-# state_icon: Herdr組み込みのAI状態。$shell_status: herdr_status_icon.shが
-# `workspace report-metadata --source shell-status --token shell_status=<emoji>`
-# で書くAI以外のシェル状態（入力待ち✋・完了✅・失敗❌のOR集約、tmuxの
-# @session_ai_status user optionと等価）。
-rows = [["state_icon", "$shell_status", "workspace"], ["git_status", "branch"]]
+# $shell_status: herdr_status_icon.shが書くシェル状態（入力待ち✋・完了✅・失敗❌）。
+# AI状態はAgents sidebarだけに表示する。
+rows = [["$shell_status", "workspace"], ["git_status", "branch"]]
 
 [ui.sidebar.agents]
 row_gap = 0

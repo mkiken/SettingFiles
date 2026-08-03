@@ -59,13 +59,12 @@ class HerdrConfigurationTest(unittest.TestCase):
         self.assertTrue(config["experimental"]["pane_history"])
 
     @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
-    def test_sidebar_spaces_includes_shell_status_token(self):
-        # $shell_status はherdr_status_icon.shがreport-metadataで書くworkspace
-        # トークン列（shell以外のAI状態と併記して同列に表示する）。
+    def test_sidebar_spaces_includes_only_shell_status_token(self):
+        # AI状態はAgents sidebarへ集約。Spacesはシェル状態だけを表示する。
         rows = tomllib.loads(read_text("terminal/herdr/config.toml"))["ui"]["sidebar"]["spaces"]["rows"]
         flattened = [cell for row in rows for cell in row]
         self.assertIn("$shell_status", flattened)
-        self.assertIn("state_icon", flattened)
+        self.assertNotIn("state_icon", flattened)
 
     @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
     def test_usagebar_rows_target_only_claude_and_codex(self):
