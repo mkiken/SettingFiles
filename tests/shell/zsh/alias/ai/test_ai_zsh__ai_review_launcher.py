@@ -174,9 +174,9 @@ echo "rc=$?"
 
 
 class ReviewCloseAiTabsTest(unittest.TestCase):
-    """_review_close_ai_tabs のガード・確認・クローズ処理（herdr/confirmはstub）。"""
+    """_review_close_ai_tabs のガード・クローズ処理（herdr/confirmはstub）。確認プロンプトは挟まない。"""
 
-    def run_close(self, tab_ids, confirm_rc=0, current_tab_id="", get_failures=(), close_failures=()):
+    def run_close(self, tab_ids, current_tab_id="", get_failures=(), close_failures=()):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         close_log = Path(self.tmp.name) / "close.log"
@@ -188,7 +188,7 @@ GET_FAILURES=({get_failures_zsh})
 CLOSE_FAILURES=({close_failures_zsh})
 _ai_multiplexer_kind() {{ echo "herdr"; }}
 _ai_herdr_current_tab_id() {{ echo "{current_tab_id}"; }}
-confirm() {{ print -r -- "CONFIRM:$1"; return {confirm_rc}; }}
+confirm() {{ print -r -- "CONFIRM:$1"; return 0; }}
 herdr() {{
     if [[ "$1 $2" == "tab get" ]]; then
         for f in "${{GET_FAILURES[@]}}"; do [[ "$f" == "$3" ]] && return 1; done
@@ -208,40 +208,42 @@ echo "rc=$?"
         closed = close_log.read_text().splitlines() if close_log.exists() else []
         return result, closed
 
-    def test_confirm_yes_closes_all_candidates(self):
-        result, closed = self.run_close(["t1", "t2", "t3"], confirm_rc=0)
+    def test_all_candidates_closed_without_confirm(self):
+        result, closed = self.run_close(["t1", "t2", "t3"])
         self.assertIn("rc=0", result.stdout)
         self.assertEqual(closed, ["CLOSE:t1", "CLOSE:t2", "CLOSE:t3"])
 
-    def test_confirm_no_closes_nothing(self):
-        result, closed = self.run_close(["t1", "t2"], confirm_rc=1)
-        self.assertIn("rc=0", result.stdout)
-        self.assertEqual(closed, [])
+    def test_confirm_never_invoked(self):
+        # 成果物(report.html/merged.json)を呼び出し元が確認済みのため、確認なしで閉じる設計。
+        # confirmを復活させるとfreviewのたびに手動応答が必要になるため、不在をピンする
+        result, closed = self.run_close(["t1", "t2"])
+        self.assertNotIn("CONFIRM:", result.stdout)
+        self.assertEqual(closed, ["CLOSE:t1", "CLOSE:t2"])
 
     def test_self_tab_excluded_from_candidates(self):
-        result, closed = self.run_close(["t1", "t2"], confirm_rc=0, current_tab_id="t1")
-        self.assertIn("CONFIRM:レビュー用の3AIタブ（1件）", result.stdout)
+        result, closed = self.run_close(["t1", "t2"], current_tab_id="t1")
+        self.assertIn("レビュー用のAIタブ（1件）を閉じます。", result.stdout)
         self.assertEqual(closed, ["CLOSE:t2"])
 
     def test_empty_tab_id_excluded_from_candidates(self):
-        result, closed = self.run_close(["t1", ""], confirm_rc=0)
-        self.assertIn("CONFIRM:レビュー用の3AIタブ（1件）", result.stdout)
+        result, closed = self.run_close(["t1", ""])
+        self.assertIn("レビュー用のAIタブ（1件）を閉じます。", result.stdout)
         self.assertEqual(closed, ["CLOSE:t1"])
 
     def test_already_closed_tab_skipped(self):
-        result, closed = self.run_close(["t1", "t2"], confirm_rc=0, get_failures=["t1"])
-        self.assertIn("CONFIRM:レビュー用の3AIタブ（1件）", result.stdout)
+        result, closed = self.run_close(["t1", "t2"], get_failures=["t1"])
+        self.assertIn("レビュー用のAIタブ（1件）を閉じます。", result.stdout)
         self.assertEqual(closed, ["CLOSE:t2"])
 
-    def test_no_surviving_candidates_skips_confirm(self):
+    def test_no_surviving_candidates_reports_and_skips_close(self):
         result, closed = self.run_close(["t1", "t2"], get_failures=["t1", "t2"])
         self.assertIn("rc=0", result.stdout)
-        self.assertNotIn("CONFIRM:", result.stdout)
-        self.assertIn("既にすべて閉じられています", result.stdout)
+        self.assertIn("レビュー用のAIタブは既にすべて閉じられています。", result.stdout)
+        self.assertNotIn("を閉じます。", result.stdout)
         self.assertEqual(closed, [])
 
     def test_one_close_failure_does_not_stop_the_rest(self):
-        result, closed = self.run_close(["t1", "t2"], confirm_rc=0, close_failures=["t1"])
+        result, closed = self.run_close(["t1", "t2"], close_failures=["t1"])
         self.assertIn("rc=0", result.stdout)
         self.assertEqual(closed, ["CLOSE:t1", "CLOSE:t2"])
         self.assertIn("herdr tab closeに失敗しました", result.stderr)

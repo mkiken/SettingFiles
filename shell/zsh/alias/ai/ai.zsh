@@ -408,7 +408,8 @@ _review_watch() {
     fi
 }
 
-# レビュー用に開いた3AIタブ（herdr）をユーザー確認の上で閉じる。tmux未対応（no-op）
+# レビュー用に開いた3AIタブ（herdr）を確認なしで閉じる。tmux未対応（no-op）
+# 呼び出し元がreport.html/merged.jsonの生成を確認済みのため、成果物は失われない前提で即クローズする
 # 引数: tab_id...（liveness検知用に控えていたもの。空要素は無視する）
 _review_close_ai_tabs() {
     if [[ "$(_ai_multiplexer_kind)" != "herdr" ]]; then
@@ -432,9 +433,8 @@ _review_close_ai_tabs() {
         return 0
     fi
 
-    echo
-    confirm "レビュー用の3AIタブ（${#candidates[@]}件）を閉じますか？（会話ログは失われますが、claude.md/gemini.md/codex.md と merged.json は保存済みのため結果は失われません）" \
-        --default-no --no-cancel-msg || return 0
+    # 無言でタブが消えると原因が追えないため、クローズ前に理由を1行残す
+    echo "レビュー用のAIタブ（${#candidates[@]}件）を閉じます。（会話ログは失われますが、claude.md/gemini.md/codex.md と merged.json は保存済みのため結果は失われません）"
 
     for tab_id in "${candidates[@]}"; do
         herdr tab close "${tab_id}" >/dev/null 2>&1 || echo "herdr tab closeに失敗しました (tab_id=${tab_id})" >&2
