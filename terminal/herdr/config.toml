@@ -106,10 +106,14 @@ command = "termscope.open-links"
 description = "visible-screen link picker"
 
 [[keys.command]]
+# plugin_action 直呼びだと Herdr が PATH を剥ぎ取るため picker が zoxide/fzf を解決できない。
+# ログインシェルを挟んで PATH を復元してから picker 本体へ橋渡しする。
 key = "prefix+shift+o"
-type = "plugin_action"
-command = "herdr-zoxide.browse"
+type = "popup"
+command = "HERDR_POPUP_COMMAND=1 zsh -ilc '$HOME/.tmux/scripts/herdr-open-zoxide-picker.sh'"
 description = "Browse zoxide directories"
+width = "90%"
+height = "90%"
 
 [[keys.command]]
 key = "prefix+g"
@@ -125,6 +129,7 @@ pane_borders = true
 
 show_agent_labels_on_pane_borders = true
 
+agent_panel_sort = "priority"
 [ui.sidebar.spaces]
 # $shell_status: herdr_status_icon.shが書くシェル状態（入力待ち✋・完了✅・失敗❌）。
 # AI状態はAgents sidebarだけに表示する。

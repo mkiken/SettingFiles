@@ -22,6 +22,7 @@ function setup_tmux_symlinks() {
     split-snapshot-pane.sh
     herdr-create-worktree-tab.sh
     herdr-open-lazygit.sh
+    herdr-open-zoxide-picker.sh
     herdr-split-snapshot-pane.sh
     herdr_wait_shell_ready.sh
     herdr_worktree_context.sh
