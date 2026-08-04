@@ -16,11 +16,11 @@ Merge the per-AI PR review result files in <RUN_DIR> into `merged.json` and gene
    - previous state `adopt: true` → `"carryover": "should_be_fixed"`
    No previous run, no state, or no match → `"carryover": null`.
 6. Fetch report metadata before writing JSON: `gh pr view <PR_NUMBER> --json url,title,author,headRefName,headRefOid` and `gh repo view --json nameWithOwner,url`. Store the PR URL/title/author login/head branch/head SHA and repository name/URL in the schema below. The report uses these values for its header, GitHub links, and code-context fallback.
-7. Write `<RUN_DIR>/merged.json` (schema below), then render and open the report:
+7. Write `<RUN_DIR>/merged.json`, then render and serve the report. Start the server **without** `--open` through a mechanism that survives the current command environment. Obtain its URL and independently confirm that `<URL>/report.html` responds successfully before opening that URL in a browser exactly once. If the server start fails, retry only the server start and verification; never open a browser before verification or repeat the browser-open step. A supported fallback is:
 
 ```bash
 python3 ~/.config/ai-pr/bin/generate_review_report.py <RUN_DIR>/merged.json <RUN_DIR>/report.html
-nohup python3 ~/.config/ai-pr/bin/serve_review_report.py --open <RUN_DIR> >/dev/null 2>&1 &
+nohup python3 ~/.config/ai-pr/bin/serve_review_report.py <RUN_DIR> >/dev/null 2>&1 &
 ```
 
 8. Print a Japanese summary: per-AI finding counts, merged item count, how many duplicates were merged, carryover counts, and the follow-up usage — review decisions save directly to `state.json` in <RUN_DIR>; use the manual save button or accept the confirmation after all items are decided, then run `review-post` (PRコメント投稿) or `review-fix` (修正) with <RUN_DIR>. To reopen the report later (the report server stops after being idle), run `review-report` (or `review-report <PR番号>`) instead of opening `report.html` directly — it reuses a live server for this run or starts a new one, so state saves stay server-backed instead of falling back to a file-save dialog.
