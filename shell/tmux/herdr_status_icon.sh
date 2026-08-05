@@ -171,9 +171,11 @@ _herdr_aggregate_workspace_status() {
     local tab_ids
     tab_ids="$(herdr tab list --workspace "${workspace_id}" 2>/dev/null | jq -r '.result.tabs[]?.tab_id // empty' 2>/dev/null)"
     [[ -z "${tab_ids}" ]] && return 0
-    local emoji
+    # ループ本体でlocalを宣言しない: zshのlocalはtypesetと同一で、既に宣言済みの
+    # 変数を再宣言すると現在値をstdoutへ出力する（bashは無音）。この関数の出力は
+    # コマンド置換で集約結果として読まれるため、宣言はループ外に置く。
+    local emoji tab_id glyph
     for emoji in "${EMOJI_STATUS_NOTIFICATION}" "${EMOJI_STATUS_ERROR}" "${EMOJI_STATUS_COMPLETED}"; do
-        local tab_id glyph
         while IFS= read -r tab_id; do
             [[ -z "${tab_id}" ]] && continue
             glyph="$(_herdr_shell_status_marker_read "${tab_id}")"
@@ -186,12 +188,18 @@ _herdr_aggregate_workspace_status() {
     done
 }
 
-# workspaceトークンを再集約して反映する（非空なら書き込み、空ならclear）
+# workspaceトークンを再集約して反映する（想定グリフ1文字なら書き込み、それ以外はclear）
+# 集約結果は書き込む前に検証する: 想定外の文字列をトークンに焼き付けると
+# Spacesサイドバーにそのまま表示され、次の更新まで残り続けるため。
 _herdr_refresh_workspace_token() {
     local workspace_id="$1"
     [[ -z "${workspace_id}" ]] && return 0
     local aggregated
     aggregated="$(_herdr_aggregate_workspace_status "${workspace_id}")"
+    case "${aggregated}" in
+        "${EMOJI_STATUS_NOTIFICATION}"|"${EMOJI_STATUS_ERROR}"|"${EMOJI_STATUS_COMPLETED}") ;;
+        *) aggregated="" ;;
+    esac
     if [[ -n "${aggregated}" ]]; then
         herdr workspace report-metadata "${workspace_id}" --source shell-status --token "shell_status=${aggregated}" >/dev/null 2>&1 || true
     else

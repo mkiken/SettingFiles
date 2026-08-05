@@ -79,6 +79,8 @@ class HerdrStatusIconTestBase(unittest.TestCase):
         state_contents: dict[str, str] | None = None,
         state_age_seconds: int = 0,
         extra_env: dict | None = None,
+        shell: str = "bash",
+        prelude: str = "",
     ) -> tuple[subprocess.CompletedProcess[str], list[str], list[str], str | None]:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -107,10 +109,12 @@ class HerdrStatusIconTestBase(unittest.TestCase):
                 "result": {"pane": {"tab_id": tab_id, "workspace_id": workspace_id}}
             }
             labels = tab_list_labels if tab_list_labels is not None else [tab_label]
+            # 先頭は呼び出し元のtab_id、以降は連番。同一tab_idが重複すると集約が
+            # 同じ状態を二重に読むため、先頭以外はインデックスをずらす。
             tab_list_result = {
                 "result": {
                     "tabs": [
-                        {"tab_id": tab_id if i == 0 else f"w1:t{i}", "label": label}
+                        {"tab_id": tab_id if i == 0 else f"w1:t{i + 1}", "label": label}
                         for i, label in enumerate(labels)
                     ]
                 }
@@ -176,10 +180,11 @@ class HerdrStatusIconTestBase(unittest.TestCase):
 
             command = (
                 f'source "{SCRIPT}"\n'
+                f"{prelude}\n"
                 f"{function_call}\n"
             )
             result = subprocess.run(
-                ["bash", "-c", command],
+                [shell, "-c", command],
                 cwd=REPO_ROOT,
                 env=env,
                 text=True,
@@ -279,6 +284,86 @@ class UpdateHerdrStatusIconTest(HerdrStatusIconTestBase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue(any("--clear-token shell_status" in line for line in metadata), metadata)
+
+
+class WorkspaceAggregationPurityTest(HerdrStatusIconTestBase):
+    """集約関数の出力が絵文字1文字ちょうどであることを保証する。
+
+    zshのlocalはtypesetと同一で、宣言済み変数をループ内で再宣言すると現在値を
+    stdoutへ出力する（bashは無音）。この関数の出力はコマンド置換でworkspace
+    トークンとして書き込まれるため、zshでの実行を必ず含める。
+    """
+
+    def test_aggregate_outputs_single_glyph_in_both_shells(self):
+        for shell in ("bash", "zsh"):
+            with self.subTest(shell=shell):
+                result, _, _, _ = self.run_shell(
+                    '_herdr_aggregate_workspace_status "w1"',
+                    shell=shell,
+                    tab_list_labels=["a", "b", "c"],
+                    state_contents={"w1:t1": DONE, "w1:t2": DONE, "w1:t3": DONE},
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout, DONE + "\n")
+
+    def test_workspace_token_receives_single_glyph_in_both_shells(self):
+        for shell in ("bash", "zsh"):
+            with self.subTest(shell=shell):
+                result, _, metadata, _ = self.run_shell(
+                    f'update_herdr_status_icon "{DONE}"',
+                    shell=shell,
+                    tab_label="main",
+                    tab_list_labels=["a", "b", "c"],
+                    state_contents={"w1:t2": DONE, "w1:t3": DONE},
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                token_calls = [line for line in metadata if "--token" in line]
+                self.assertEqual(len(token_calls), 1, metadata)
+                self.assertIn(f"--token shell_status={DONE}", token_calls[0])
+
+
+class WorkspaceTokenFailsafeTest(HerdrStatusIconTestBase):
+    """集約結果が想定グリフ1文字でなければトークンを書かずclearする。
+
+    想定外の文字列を書き込むとSpacesサイドバーに焼き付き、次の更新まで残るため。
+    """
+
+    def test_unexpected_aggregate_result_clears_token(self):
+        for name, stub_output in (
+            ("multiline_garbage", "tab_id=''\\nglyph=✅\\n✅"),
+            ("unexpected_glyph", BUSY),
+            ("multiple_glyphs", DONE + ERROR),
+        ):
+            with self.subTest(case=name):
+                result, _, metadata, _ = self.run_shell(
+                    '_herdr_refresh_workspace_token "w1"',
+                    prelude=(
+                        "_herdr_aggregate_workspace_status() { "
+                        f"printf '%b' \"{stub_output}\"; }}"
+                    ),
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertTrue(
+                    any("--clear-token shell_status" in line for line in metadata),
+                    metadata,
+                )
+                self.assertFalse(any("--token" in line for line in metadata), metadata)
+
+    def test_expected_glyph_is_written_as_token(self):
+        for emoji in (WAIT, ERROR, DONE):
+            with self.subTest(emoji=emoji):
+                result, _, metadata, _ = self.run_shell(
+                    '_herdr_refresh_workspace_token "w1"',
+                    prelude=(
+                        "_herdr_aggregate_workspace_status() { "
+                        f"printf '%s' '{emoji}'; }}"
+                    ),
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertTrue(
+                    any(f"--token shell_status={emoji}" in line for line in metadata),
+                    metadata,
+                )
 
 
 class SetHerdrTaskTabLabelTest(HerdrStatusIconTestBase):
