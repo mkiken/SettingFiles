@@ -33,6 +33,23 @@ alias gcp='g cp'
 alias gd='no_notify git diff'
 alias gdc='gd --cached'
 alias gdn='gd --name-status'
+
+# untracked ファイルだけの差分を表示する
+# gdc (staged) の対になる存在。index を変更せず --no-index で比較する
+function gdu() {
+  local -a files
+  files=(${(0)"$(git ls-files -o --exclude-standard -z -- "$@")"})
+  (( $#files )) || return 0
+  local f
+  export _DISABLE_NOTIFY_FOR_CURRENT_CMD=1
+  {
+    for f in $files; do
+      git --no-pager diff --no-index -- /dev/null $f
+    done
+  } | delta
+  unset _DISABLE_NOTIFY_FOR_CURRENT_CMD
+  return 0
+}
 alias gfp='git fetch --all --prune'
 alias gl='no_notify git log'
 alias gln='gl --name-status'
