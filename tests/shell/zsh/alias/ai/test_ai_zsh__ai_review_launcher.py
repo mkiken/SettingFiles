@@ -140,37 +140,71 @@ echo "rc=$?"
 
 
 class ReviewWatchClosesTabsTest(unittest.TestCase):
-    """_review_watch のマージ成功後タブクローズ委譲（cl-review-mergeはreport.html/merged.jsonを実際に作るstub）。"""
+    """_review_watch のタブクローズ委譲。成果物出揃い(wait rc 0)がgateで、マージの成否には依存しない。"""
 
-    def run_watch(self, merge_creates_artifacts=True, close_calls_log=None):
+    def run_watch(self, wait_rc=0, specs="claude.md=t1 gemini.md=t2 codex.md",
+                  arrived_files=(), confirm_rc=None):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         run_dir = Path(self.tmp.name)
-        artifact_setup = ""
-        if merge_creates_artifacts:
-            (run_dir / "report.html").write_text("<h1>report</h1>")
-            (run_dir / "merged.json").write_text("{}")
-        close_log = close_calls_log or (Path(self.tmp.name) / "close.log")
+        for name in arrived_files:
+            (run_dir / name).write_text("result")
+        # クローズとマージを同一ログへ追記し、順序（クローズがマージより前）も検証できるようにする
+        order_log = run_dir / "order.log"
+        confirm_stub = ""
+        if confirm_rc is not None:
+            confirm_stub = f'confirm() {{ print -r -- "CONFIRM:$1"; return {confirm_rc}; }}\n'
         snippet = f'''
-bash() {{ print -r -- "WAIT:$*"; return 0; }}
-cl-review-merge() {{ print -r -- "MERGE:$1"; }}
-_review_close_ai_tabs() {{ printf '%s\\n' "$*" >> "{close_log}"; }}
-_review_watch "{run_dir}" claude.md=t1 gemini.md=t2 codex.md
+bash() {{ print -r -- "WAIT:$*"; return {wait_rc}; }}
+cl-review-merge() {{ printf 'MERGE %s\\n' "$1" >> "{order_log}"; }}
+_review_close_ai_tabs() {{ printf 'CLOSE %s\\n' "$*" >> "{order_log}"; }}
+{confirm_stub}_review_watch "{run_dir}" {specs}
 echo "rc=$?"
 '''
-        return run_zsh(snippet), close_log
+        result = run_zsh(snippet)
+        order = order_log.read_text().splitlines() if order_log.exists() else []
+        return result, order
 
-    def test_close_tabs_called_with_tab_ids_when_merge_succeeds(self):
-        result, close_log = self.run_watch(merge_creates_artifacts=True)
+    def test_close_tabs_precedes_merge_when_files_arrived(self):
+        result, order = self.run_watch(wait_rc=0)
         self.assertIn("rc=0", result.stdout)
-        self.assertEqual(close_log.read_text().strip(), "t1 t2")
+        self.assertEqual(order[0], "CLOSE t1 t2")
+        self.assertTrue(order[1].startswith("MERGE "), order)
 
-    def test_close_tabs_not_called_when_report_html_missing(self):
-        # cl-review-mergeのexit codeは信頼できない可能性があるため、report.html/merged.json
-        # の存在を追加のgateにしている
-        result, close_log = self.run_watch(merge_creates_artifacts=False)
+    def test_close_tabs_independent_of_merge_artifacts(self):
+        # report.html/merged.json をgateにしない契約: マージが成果物を作らなくてもクローズ済み。
+        # 成果物ファイル(claude.md等)が残っていればマージは review-merge で再実行できる
+        result, order = self.run_watch(wait_rc=0)
         self.assertIn("rc=0", result.stdout)
-        self.assertFalse(close_log.exists())
+        self.assertIn("CLOSE t1 t2", order)
+
+    def test_close_tabs_not_called_when_files_incomplete_and_merge_confirmed(self):
+        # wait rc 3(不揃い)では部分マージを承諾してもクローズしない。未出力AIタブを
+        # 手で確認できるよう残す設計のため、この不在は意図的
+        result, order = self.run_watch(
+            wait_rc=3, arrived_files=("claude.md",), confirm_rc=0,
+        )
+        self.assertIn("rc=0", result.stdout)
+        self.assertFalse(any(line.startswith("CLOSE ") for line in order), order)
+        self.assertTrue(any(line.startswith("MERGE ") for line in order), order)
+
+    def test_close_tabs_and_merge_skipped_when_merge_declined(self):
+        result, order = self.run_watch(
+            wait_rc=3, arrived_files=("claude.md",), confirm_rc=1,
+        )
+        self.assertIn("rc=1", result.stdout)
+        self.assertEqual(order, [])
+
+    def test_close_tabs_not_called_on_timeout(self):
+        result, order = self.run_watch(wait_rc=2)
+        self.assertIn("rc=2", result.stdout)
+        self.assertEqual(order, [])
+
+    def test_specs_without_tab_ids_close_with_no_candidates(self):
+        # tmux相当のspec（=なし）ではtab_idを抽出できないため空引数で委譲する
+        result, order = self.run_watch(specs="claude.md gemini.md codex.md")
+        self.assertIn("rc=0", result.stdout)
+        self.assertEqual(order[0], "CLOSE ")
 
 
 class ReviewCloseAiTabsTest(unittest.TestCase):
@@ -214,7 +248,7 @@ echo "rc=$?"
         self.assertEqual(closed, ["CLOSE:t1", "CLOSE:t2", "CLOSE:t3"])
 
     def test_confirm_never_invoked(self):
-        # 成果物(report.html/merged.json)を呼び出し元が確認済みのため、確認なしで閉じる設計。
+        # 成果物ファイル(claude.md等)の出揃いを呼び出し元が確認済みのため、確認なしで閉じる設計。
         # confirmを復活させるとfreviewのたびに手動応答が必要になるため、不在をピンする
         result, closed = self.run_close(["t1", "t2"])
         self.assertNotIn("CONFIRM:", result.stdout)

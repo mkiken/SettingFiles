@@ -383,7 +383,7 @@ _review_launch_herdr() {
     return 0
 }
 
-# orchestratorタブ内で実行される: 完了待ち→マージ可否判断→cl-review-merge→(成功時)3AIタブを閉じる確認
+# orchestratorタブ内で実行される: 完了待ち→(出揃い時)3AIタブを閉じる→マージ可否判断→cl-review-merge
 # 引数: run_dir <file>[=<tab_id>]...
 _review_watch() {
     local run_dir="$1"
@@ -392,12 +392,11 @@ _review_watch() {
     local -a specs=("$@")
     local wait_status=0
     bash "$HOME/.config/ai-pr/bin/ai_review_wait.sh" --liveness herdr "${run_dir}" "${specs[@]}" || wait_status=$?
-    _review_handle_wait_status "${wait_status}" "${run_dir}" || return $?
-    cl-review-merge "${run_dir}"
 
-    # マージ成功（report.html生成済み）を確認できた場合のみタブを閉じる候補にする。
-    # cl-review-merge のexit codeはスキル失敗時も0を返しうるため、生成物の存在を追加のgateにする
-    if [[ -f "${run_dir}/report.html" && -f "${run_dir}/merged.json" ]]; then
+    # 3AIタブが必要なのは成果物ファイルの生成までなので、出揃った時点（マージ前）で閉じる。
+    # マージはファイルが残っていれば review-merge で再実行できるため、その成否をgateにしない。
+    # 不揃い(exit 3)のときは未出力のAIタブを手で確認できるよう残す
+    if (( wait_status == 0 )); then
         local -a tab_ids=()
         local spec tab_id
         for spec in "${specs[@]}"; do
@@ -406,10 +405,14 @@ _review_watch() {
         done
         _review_close_ai_tabs "${tab_ids[@]}"
     fi
+
+    _review_handle_wait_status "${wait_status}" "${run_dir}" || return $?
+    cl-review-merge "${run_dir}"
 }
 
 # レビュー用に開いた3AIタブ（herdr）を確認なしで閉じる。tmux未対応（no-op）
-# 呼び出し元がreport.html/merged.jsonの生成を確認済みのため、成果物は失われない前提で即クローズする
+# 呼び出し元が3AIの成果物ファイル出揃いを確認済みのため、マージは review-merge <run_dir> で
+# 後から再実行できる。よって会話ログ以外は失われない前提で即クローズする
 # 引数: tab_id...（liveness検知用に控えていたもの。空要素は無視する）
 _review_close_ai_tabs() {
     if [[ "$(_ai_multiplexer_kind)" != "herdr" ]]; then
@@ -434,7 +437,7 @@ _review_close_ai_tabs() {
     fi
 
     # 無言でタブが消えると原因が追えないため、クローズ前に理由を1行残す
-    echo "レビュー用のAIタブ（${#candidates[@]}件）を閉じます。（会話ログは失われますが、claude.md/gemini.md/codex.md と merged.json は保存済みのため結果は失われません）"
+    echo "レビュー用のAIタブ（${#candidates[@]}件）を閉じます。（会話ログは失われますが、claude.md/gemini.md/codex.md は保存済みでマージは後から再実行できます）"
 
     for tab_id in "${candidates[@]}"; do
         herdr tab close "${tab_id}" >/dev/null 2>&1 || echo "herdr tab closeに失敗しました (tab_id=${tab_id})" >&2
