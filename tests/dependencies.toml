@@ -1,2 +1,9 @@
 # Add only dependencies proven by a wider test run after targeted testing missed them.
 [extra_tests]
+# herdr_wait_shell_ready.sh は ai.zsh と herdr-split-snapshot-pane.sh から source される
+# 共有関数で、テストはその両呼び出し元側にある。helper 単体をパスに渡すと
+# tests/shell/tmux/test_herdr_wait_shell_ready_sh.py を探して0件になるため明示する。
+"shell/tmux/herdr_wait_shell_ready.sh" = [
+  "tests/shell/zsh/alias/ai/test_ai_zsh__herdr_run_in_new_tab.py",
+  "tests/shell/tmux/test_herdr_split_snapshot_pane_sh.py",
+]

@@ -268,8 +268,10 @@ class FgwtcTest(unittest.TestCase):
         self.assertEqual(values["__STATUS"], "0", result.stderr)
         calls = self.herdr_calls()
         # tab create 直後、_herdr_wait_shell_ready がシェルready確認のマーカーecho +
-        # pane wait-output を挟んでから本命(no-opの ':')を投入する。マーカー文字列自体は
-        # $$/RANDOM由来で実行毎に変わるため、末尾の本命投入のみ厳密に検証する。
+        # pane wait-output + ready後の行クリア(send-keys ctrl+u)を挟んでから
+        # 本命(no-opの ':')を投入する。マーカー文字列自体は $$/RANDOM/attempt由来で
+        # 実行毎に変わり、helper内部の呼び出し数も将来変わりうるため、本命投入が
+        # 列に存在することを述語で検証する。
         self.assertEqual(
             calls[:7],
             [
@@ -282,8 +284,18 @@ class FgwtcTest(unittest.TestCase):
                 "--no-focus",
             ],
         )
-        self.assertEqual(calls[-4:], ["pane", "run", "pane-1", ":"])
+        self.assertIn(
+            ["pane", "run", "pane-1", ":"],
+            [calls[i:i + 4] for i in range(len(calls) - 3)],
+            calls,
+        )
         self.assertTrue(any("__herdr_ready_" in line for line in calls))
+        # ready判定後に行バッファをクリアしてから本命を投入する
+        self.assertIn(
+            ["pane", "send-keys", "pane-1", "ctrl+u"],
+            [calls[i:i + 4] for i in range(len(calls) - 3)],
+            calls,
+        )
 
     def test_rejects_when_not_in_herdr_environment(self):
         result, values = self.run_fgwtc(extra_env={"HERDR_ENV": ""})

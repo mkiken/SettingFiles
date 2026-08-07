@@ -173,7 +173,9 @@ class TestHerdrSplitSnapshotPane(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         for call in calls[1:]:
             self.assertTrue(
-                call.startswith("pane run w3:p42") or call.startswith("pane wait-output w3:p42"),
+                call.startswith("pane run w3:p42")
+                or call.startswith("pane wait-output w3:p42")
+                or call.startswith("pane send-keys w3:p42"),
                 call,
             )
 
