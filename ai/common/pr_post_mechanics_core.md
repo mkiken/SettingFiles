@@ -11,6 +11,10 @@ If `gh pr view` fails, ask the user for the PR number. Inline comments require a
 
 2. If the review result this index was built from was produced against a different head commit (its headRefOid, when known, differs from the current one), do not post with stale anchors: diff the two revisions for the affected files, re-anchor each selected item's line to the current head, and check whether the newer commits already addressed an item. Surface every adjustment (old→new line) and each already-addressed candidate in the preview so the user decides whether to post or skip it.
 
+3. Before building the preview, verify every selected item can actually be an inline comment. GitHub anchors inline comments only to lines the diff shows, so fetch `gh pr diff {pr_number} --patch` and build, per file, the set of head-side line numbers the hunks cover: walk each `@@ -old +start,count @@` header, then count added (`+`) and context (` `) lines forward from `start`, skipping removed (`-`) lines. An item qualifies only when its `line` — and, for a range, both `start_line` and `line` — is in that set. Hunks are non-contiguous, so a line can fall in a gap between them even when the head commit matches and no `~` prefix is present; matching commits do not imply a valid anchor.
+
+   For each item outside the set, look for a diff-covered line inside the same declaration or function body and re-anchor to it, surfacing `old→new` in the preview. Accept a candidate only when it still carries the finding's subject — the statement, field, or signature the item is about; a line that merely sits in the same block (a closing brace, a blank line, an unrelated statement) moves the comment away from what it describes, so treat it as no candidate at all. When no such line exists, mark the item `※diff範囲外` in the preview and ask the user how to handle those items: fold them into the review body with their `file:line`, post them individually with `gh pr comment`, or drop them. Never send an unverified out-of-range item to the Review API.
+
 ## Preview And Confirm
 
 Show only the selected items, keeping their original serial numbers:
