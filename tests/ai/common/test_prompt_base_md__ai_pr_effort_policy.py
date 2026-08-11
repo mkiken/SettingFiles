@@ -186,6 +186,7 @@ class ReviewerAgentEffortPolicyTest(unittest.TestCase):
         "history",
         "tests",
         "performance",
+        "claims",
     )
 
     def test_claude_reviewer_sources_and_generated_agents_match(self):
@@ -206,6 +207,21 @@ class ReviewerAgentEffortPolicyTest(unittest.TestCase):
                 for field in ("model", "model_reasoning_effort"):
                     self.assertFalse(toml_header_has_field(source, field))
                     self.assertFalse(toml_header_has_field(generated, field))
+
+    def test_claude_verifier_source_and_generated_agent_match(self):
+        source = REPO_ROOT / "ai/claude/agents_src/pr_review_verify/head_verifier.md"
+        generated = REPO_ROOT / "ai/claude/agents/pr-review-verifier.md"
+        self.assertEqual(frontmatter_value(source, "effort"), "high")
+        self.assertEqual(frontmatter_value(generated, "effort"), "high")
+        self.assertEqual(frontmatter_value(generated, "model"), frontmatter_value(source, "model"))
+
+    def test_codex_verifier_declares_no_model_fields(self):
+        source = REPO_ROOT / "ai/codex/agents_src/pr_review_verify/head_verifier.toml"
+        generated = REPO_ROOT / "ai/codex/agents/pr_review_verifier.toml"
+        # The verifier inherits the caller's model and effort configuration.
+        for field in ("model", "model_reasoning_effort"):
+            self.assertFalse(toml_header_has_field(source, field))
+            self.assertFalse(toml_header_has_field(generated, field))
 
     def test_codex_review_fix_agents_inherit_caller_model_and_effort(self):
         for role in ("designer", "implementer"):

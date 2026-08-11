@@ -84,6 +84,7 @@ Canonical source-to-command mapping for regenerating committed outputs. The full
 | `ai/codex/codex_base.md` | `zsh -c 'source mac/scripts/common.sh && generate_codex_agents'` |
 | Shared-core skill sources (`ai/common/*_core.md`, `ai/{codex,gemini}/skills/*/skill_head.md`/`skill_tail.md`; includes pr-review-subagents skill adapters) | `zsh -c 'source mac/scripts/common.sh && verify_ai_skill_generation_idempotency'` |
 | pr-reviewer agent sources (`ai/common/pr_review_subagents/intro_*.md`, `ai/common/pr_review_subagents/format_*.md`, `ai/*/agents_src/`) | `zsh -c 'source mac/scripts/common.sh && generate_pr_reviewer_agents <platform>'` |
+| pr-review verifier sources (`ai/common/pr_review_subagents/verifier_core.md`, `ai/*/agents_src/pr_review_verify/`) | `zsh -c 'source mac/scripts/common.sh && verify_pr_review_verifier_agent_generation_idempotency'` (regenerates and verifies) |
 | config-audit auditor sources (`ai/common/config_audit_subagents/`, `ai/*/agents_src/config_audit/`) | `generate_config_auditor_agents <platform>` from `mac/scripts/common.sh` |
 | review-fix subagent sources (`ai/common/review_fix_subagents/`, `ai/codex/agents_src/review_fix/`) | `zsh -c 'source mac/scripts/common.sh && verify_review_fix_agent_generation_idempotency'` (regenerates and verifies) |
 
@@ -119,6 +120,8 @@ Initialize scripts symlink repository files to system locations; core utility fu
 - `smart_merge_json` - Deep-merge JSON files with conflict resolution (supports overwrite, keep, merge-with-priority)
 
 When adding a managed symlink, apply it to the live environment and verify it with `readlink`; if the target exists unexpectedly, stop and report it instead of overwriting it.
+
+Generated agents are symlinked per file into `~/.claude/agents/`, `~/.gemini/agents/`, and `~/.codex/agents/`; init/update only add links, so removing or adding a generated agent in the repository requires manually deleting the stale live link (it dangles otherwise) or creating the new one.
 
 When adding a new initialization step to `mac/initialization/`, `mac/updates/`, or `mac/scripts/ai/` setup functions, ask the user whether re-running it on an already-initialized environment should skip the step (an idempotency guard) before implementing it — a step that re-runs unconditionally can corrupt state it already wrote (e.g. duplicate plugin registrations) on a repeated `mac/initialize`.
 
@@ -194,7 +197,7 @@ When changing a skill's core composition or adapter-head bits, update this table
 
 Beyond their shared cores (table above), three skill families have GENERATED, committed subagent definitions, assembled by functions in `mac/scripts/common.sh` (called by the init/update scripts). Subagent definition files support no runtime file inclusion on any platform, hence build-time generation.
 
-- **pr-review-subagents** — 18 reviewer agents (6 dimensions × 3 platforms: `ai/claude/agents/pr-reviewer-*.md`, `ai/gemini/agents/pr-reviewer-*.md`, `ai/codex/agents/pr_reviewer_*.toml`): `generate_pr_reviewer_agents` assembles each from shared dimension fragments (`intro_<dim>.md`, `format_<dim>.md`) plus per-platform `ai/<platform>/agents_src/` files (`head_<dim>`, `rules_<dim>`, `rules_common`).
+- **pr-review-subagents** — 21 reviewer agents (7 dimensions × 3 platforms: `ai/claude/agents/pr-reviewer-*.md`, `ai/gemini/agents/pr-reviewer-*.md`, `ai/codex/agents/pr_reviewer_*.toml`): `generate_pr_reviewer_agents` assembles each from shared dimension fragments (`intro_<dim>.md`, `format_<dim>.md`) plus per-platform `ai/<platform>/agents_src/` files (`head_<dim>`, `rules_<dim>`, `rules_common`). Plus 3 adversarial-verification agents (`pr-review-verifier.md` ×2, `pr_review_verifier.toml`): `generate_pr_review_verifier_agents` assembles each from `ai/common/pr_review_subagents/verifier_core.md` plus `ai/<platform>/agents_src/pr_review_verify/head_verifier`.
 - **config-audit** — 18 auditor agents (6 dimensions × 3 platforms: `config-auditor-*.md` / `config_auditor_*.toml` in the same `agents` dirs): `generate_config_auditor_agents` assembles each from `ai/common/config_audit_subagents/` fragments (`intro_<dim>.md`, shared `rules_common.md`, `format_<dim>.md`) plus per-platform `ai/<platform>/agents_src/config_audit/head_<dim>` files.
 - **review-fix** — 2 Codex agents (`ai/codex/agents/review_fix_{designer,implementer}.toml`): `generate_review_fix_agents` (arg-less, Codex-only) assembles each from `ai/common/review_fix_subagents/<role>_core.md` plus `ai/codex/agents_src/review_fix/head_<role>.toml`. Claude has no generated counterpart — its ad-hoc Task subagents read the same role cores from `~/.claude/common/review_fix_subagents/` at runtime.
 

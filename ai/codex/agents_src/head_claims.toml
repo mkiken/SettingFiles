@@ -1,0 +1,5 @@
+name = "pr_reviewer_claims"
+description = "Read-only PR reviewer verifying PR claims against the actual diff."
+sandbox_mode = "read-only"
+
+developer_instructions = '''

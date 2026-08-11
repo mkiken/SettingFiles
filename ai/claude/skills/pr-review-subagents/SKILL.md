@@ -1,5 +1,5 @@
 ---
-description: "Comprehensive PR review using 6 parallel specialist sub-agents for bugs and error handling, security, design quality, history, tests, and performance"
+description: "Comprehensive PR review using 7 parallel specialist sub-agents for bugs and error handling, security, design quality, history, tests, performance, and claim verification"
 model: opus
 allowed-tools: Bash(gh:*), Bash(git:*), Bash(python:*), Bash(/bin/cat:*)
 argument-hint: "[prNumber] [additionalInstructions...]"
@@ -9,7 +9,7 @@ effort: high
 
 ## Instructions
 
-Review the target PR with 6 read-only specialist sub-agents in parallel.
+Review the target PR with 7 read-only specialist sub-agents in parallel.
 
 Inputs: parse `$ARGUMENTS` as `[prNumber] [additionalInstructions...]`. If the first token is a PR number (`123` or `#123`) or PR URL, use it as `<PR_NUMBER>` and treat the rest as `<ADDITIONAL_INSTRUCTIONS>`. Otherwise, resolve the current branch's PR with `gh pr view --json number --jq .number` and treat all arguments as `<ADDITIONAL_INSTRUCTIONS>`.
 
@@ -45,8 +45,11 @@ Start all simultaneously:
 4. **pr-reviewer-history** — Git履歴・リグレッションリスク
 5. **pr-reviewer-tests** — テスト品質・カバレッジ
 6. **pr-reviewer-performance** — パフォーマンス
+7. **pr-reviewer-claims** — 主張検証（PR説明・コミットメッセージと実装の乖離）
 
 If a launched sub-agent fails mid-run on a transient API error (e.g. session limit), do not respawn it: resume the same agent with SendMessage so it continues with its context intact. For a session-limit failure, check the current time against the reported reset time first and resume only after it has passed.
+
+For the adversarial verification stage in the core below, the verifier sub-agent is **pr-review-verifier**: launch it once as a fresh Task sub-agent with exactly the payload the core specifies, only when High findings exist.
 
 !`/bin/cat ~/.claude/common/pr_review_subagents/orchestrator_core.md`
 

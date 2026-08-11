@@ -1,8 +1,8 @@
 ---
 name: pr-review-subagents
 description: >
-  Comprehensive PR review using six Codex custom subagents, parallelized up to the
-  runtime limit, for bugs and error handling, security, design quality, git history, tests, and performance. Use when the
+  Comprehensive PR review using seven Codex custom subagents, parallelized up to the
+  runtime limit, for bugs and error handling, security, design quality, git history, tests, performance, and claim verification. Use when the
   user wants PR review with subagents, review-subagents, or parallel specialist
   reviewers. Accepts an optional PR number plus extra review instructions; if omitted,
   detect the current branch PR.
@@ -10,7 +10,7 @@ description: >
 
 ## Instructions
 
-Review a PR with six read-only specialist Codex subagents.
+Review a PR with seven read-only specialist Codex subagents.
 
 Inputs: parse the user's message as `[prNumber] [additionalInstructions...]`. If the first PR-like token is a PR number (`123` or `#123`) or PR URL, use it as `<PR_NUMBER>` and treat the rest as `<ADDITIONAL_INSTRUCTIONS>`. Otherwise, resolve the current branch's PR and treat any remaining request text as `<ADDITIONAL_INSTRUCTIONS>`:
 
@@ -58,7 +58,7 @@ Pass every subagent directly: PR number, metadata, repo owner/name, the compact 
 
 ### Spawn
 
-Run all six exactly once, parallelized up to the child-agent slots available at runtime:
+Run all seven exactly once, parallelized up to the child-agent slots available at runtime:
 
 - `pr_reviewer_bugs`
 - `pr_reviewer_security`
@@ -66,8 +66,11 @@ Run all six exactly once, parallelized up to the child-agent slots available at 
 - `pr_reviewer_history`
 - `pr_reviewer_tests`
 - `pr_reviewer_performance`
+- `pr_reviewer_claims`
 
-If fewer than six child-agent slots are available, use waves. Launch the maximum safe number, start the next specialist whenever a slot becomes free, and continue until all six have completed. Never combine review dimensions merely to fit the slot limit.
+If fewer than seven child-agent slots are available, use waves. Launch the maximum safe number, start the next specialist whenever a slot becomes free, and continue until all seven have completed. Never combine review dimensions merely to fit the slot limit.
+
+For the adversarial verification stage in the core below, the verifier subagent is `pr_review_verifier`: spawn it once as a fresh subagent with exactly the payload the core specifies, only when High findings exist.
 
 Each subagent stays read-only and returns Japanese findings in its configured format.
 Read-only includes not creating scratch files: never redirect diffs, comments, or command output to files in the repository or elsewhere.
@@ -94,7 +97,7 @@ If `<ADDITIONAL_INSTRUCTIONS>` is non-empty, ensure every specialist received it
 3. Recheck existing comments NDJSON. Skip a duplicate — same path within ±5 lines and same root cause, or same target symbol/concept fixable by the same change — with duplicate confidence >= 70, regardless of `is_resolved` / `is_outdated`. Below 70, or when the finding needs a different fix, keep it. Collect skipped findings for `[既コメント済]`; when the matched comment is resolved or outdated, say so in the reason (e.g. `resolved済みの既存コメント #<id> と同一根本原因`).
 4. Route `[既存コード]` findings (critical pre-existing issues) to `## 既存コードに関する指摘`, keeping the critical category in the detail line.
 5. Route all other test-related findings to `## テストに関する指摘` regardless of source agent. Pre-existing-vs-changed is decided first: a `[既存コード]` finding about tests goes to `## 既存コードに関する指摘`.
-6. Same-root-cause cross-agent overlaps: bug + missing test → keep the bug, mention the test gap as supporting detail unless a distinct test change is required; bug + security vulnerability → keep the security finding (attack framing drives the fix), fold the bug behavior into its detail; history + design → keep the design finding (the cited counterpart path points at the fix), fold the commit evidence into its detail. A merged finding takes the highest confidence and 影響度 of the pair.
+6. Same-root-cause cross-agent overlaps: bug + missing test → keep the bug, mention the test gap as supporting detail unless a distinct test change is required; bug + security vulnerability → keep the security finding (attack framing drives the fix), fold the bug behavior into its detail; history + design → keep the design finding (the cited counterpart path points at the fix), fold the commit evidence into its detail; 主張検証 + any code-level finding (bug/security/design/tests) → keep the code-level finding, fold the claim-vs-reality evidence (quoted claim + source) into its detail — a 主張検証 finding stands alone only when no code-level finding covers the mismatch. A merged finding takes the highest confidence and 影響度 of the pair.
 7. Keep only actionable findings requiring a concrete response — no praise, compliance confirmations, or non-actionable observations.
 8. Assign priority from 影響度 × 信頼度 per the Output Format section below. If an agent omitted 影響度, infer it from category and description.
 9. Every finding needs `[path:line]` backed by 行番号根拠 (`[path:~line]` only for pre-existing code outside the diff). Drop findings whose 行番号根拠 is missing, uses `OLD`/deleted/approximate lines, or does not match the line-numbered diff. Spot-check suspicious anchors against the head-revision file. Never show 行番号根拠 in final output.
@@ -103,16 +106,18 @@ If `<ADDITIONAL_INSTRUCTIONS>` is non-empty, ensure every specialist received it
 
 ### Verify High Findings
 
-Re-verify every High-priority finding as a skeptic before final output. Findings that depend on external CLI/API/parser/library behavior or output formats must also satisfy Aggregate item 10 regardless of priority; do not otherwise re-verify Medium/Low findings.
+Adversarially verify every High-priority finding in a fresh context before final output. Findings that depend on external CLI/API/parser/library behavior or output formats must also satisfy Aggregate item 10 regardless of priority; do not otherwise re-verify Medium/Low findings.
 
-1. In one batched pass (read each cited file at most once), re-read the cited head-revision code plus enough surrounding context to test the claim (local mode: read the file; remote mode: `gh api` contents).
-2. Actively seek refuting evidence: existing guards or validation, unreachable paths, framework/library behavior, tests proving the claimed failure cannot occur, or a misread diff.
-3. Verdict per finding — confirmed: keep as High; unverifiable: downgrade to Medium and append 「要検証: <理由>」 to its detail; refuted: drop it and subtract it from the summary counts.
-4. If any finding was refuted or downgraded, add one line before `## 総合評価`: `検証により High 指摘 N 件を棄却、M 件を Medium に降格しました。`
+1. If there are zero High findings, skip this stage entirely.
+2. Launch the dedicated verifier subagent (name and launch primitive per the platform instructions above) once, batched over all High findings. Pass exactly: each High finding verbatim (header, 行番号根拠, detail), repo owner/name, PR number, local-mode flag, `baseRefOid`/`headRefOid`, cited file paths, and captured source labels. Do not pass your own reasoning, non-High findings, or aggregation history — the verifier must judge from primary sources only.
+3. The verifier attempts to REFUTE each finding and returns per-finding verdicts with evidence.
+4. Merge verdicts — confirmed: keep as High; unverifiable: downgrade to Medium and append 「要検証: <理由>」 to its detail; refuted: drop it and subtract it from the summary counts. Treat a missing or garbled verdict as unverifiable, never as confirmed.
+5. Only if the session cannot launch a subagent, run the same protocol inline as a skeptical batched pass: read each cited head-revision file at most once with enough context to test the claim (local mode: read the file; remote mode: `gh api` contents), and actively seek refuting evidence — existing guards or validation, unreachable paths, framework/library behavior, tests proving the claimed failure cannot occur, or a misread diff.
+6. If any finding was refuted or downgraded, add one line before `## 総合評価`: `検証により High 指摘 N 件を棄却、M 件を Medium に降格しました。`
 
 ### Final Format
 
-Finding-header 領域 labels: バグ検出, セキュリティ, 設計品質, Git履歴, テスト品質, パフォーマンス.
+Finding-header 領域 labels: バグ検出, セキュリティ, 設計品質, Git履歴, テスト品質, パフォーマンス, 主張検証.
 
 Prepend this summary table before the first priority section of the Output Format skeleton below:
 
@@ -127,6 +132,7 @@ Prepend this summary table before the first priority section of the Output Forma
 | Git履歴 | N | XX |
 | テスト品質 | N | XX |
 | パフォーマンス | N | XX |
+| 主張検証 | N | XX |
 ```
 
 ## Result File Output

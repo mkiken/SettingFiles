@@ -1,0 +1,5 @@
+name = "pr_review_verifier"
+description = "Read-only adversarial verifier for High-priority review findings."
+sandbox_mode = "read-only"
+
+developer_instructions = '''

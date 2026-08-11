@@ -1,8 +1,8 @@
 ---
 name: pr-review-subagents
 description: >
-  Comprehensive PR review using six Codex custom subagents, parallelized up to the
-  runtime limit, for bugs and error handling, security, design quality, git history, tests, and performance. Use when the
+  Comprehensive PR review using seven Codex custom subagents, parallelized up to the
+  runtime limit, for bugs and error handling, security, design quality, git history, tests, performance, and claim verification. Use when the
   user wants PR review with subagents, review-subagents, or parallel specialist
   reviewers. Accepts an optional PR number plus extra review instructions; if omitted,
   detect the current branch PR.
@@ -10,7 +10,7 @@ description: >
 
 ## Instructions
 
-Review a PR with six read-only specialist Codex subagents.
+Review a PR with seven read-only specialist Codex subagents.
 
 Inputs: parse the user's message as `[prNumber] [additionalInstructions...]`. If the first PR-like token is a PR number (`123` or `#123`) or PR URL, use it as `<PR_NUMBER>` and treat the rest as `<ADDITIONAL_INSTRUCTIONS>`. Otherwise, resolve the current branch's PR and treat any remaining request text as `<ADDITIONAL_INSTRUCTIONS>`:
 
@@ -58,7 +58,7 @@ Pass every subagent directly: PR number, metadata, repo owner/name, the compact 
 
 ### Spawn
 
-Run all six exactly once, parallelized up to the child-agent slots available at runtime:
+Run all seven exactly once, parallelized up to the child-agent slots available at runtime:
 
 - `pr_reviewer_bugs`
 - `pr_reviewer_security`
@@ -66,8 +66,11 @@ Run all six exactly once, parallelized up to the child-agent slots available at 
 - `pr_reviewer_history`
 - `pr_reviewer_tests`
 - `pr_reviewer_performance`
+- `pr_reviewer_claims`
 
-If fewer than six child-agent slots are available, use waves. Launch the maximum safe number, start the next specialist whenever a slot becomes free, and continue until all six have completed. Never combine review dimensions merely to fit the slot limit.
+If fewer than seven child-agent slots are available, use waves. Launch the maximum safe number, start the next specialist whenever a slot becomes free, and continue until all seven have completed. Never combine review dimensions merely to fit the slot limit.
+
+For the adversarial verification stage in the core below, the verifier subagent is `pr_review_verifier`: spawn it once as a fresh subagent with exactly the payload the core specifies, only when High findings exist.
 
 Each subagent stays read-only and returns Japanese findings in its configured format.
 Read-only includes not creating scratch files: never redirect diffs, comments, or command output to files in the repository or elsewhere.
