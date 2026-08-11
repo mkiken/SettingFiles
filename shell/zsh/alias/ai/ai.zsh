@@ -286,9 +286,10 @@ ai-all() {
 
 # worktree非依存・tmux非依存でreview系のラベル(AI識別絵文字+🔍+git名)を計算する
 # filter/ai.zsh の _review_window_git_name（純git実装）を流用する
-# 引数: ai_emoji（省略可。ai-all同様、AI種別を視覚的に区別するための識別絵文字を前置）
+# 引数: ai_emoji（省略可。ai-all同様、AI種別を視覚的に区別するための識別絵文字を前置） cwd（レビュー対象ディレクトリ）
 _ai_review_herdr_label() {
     local ai_emoji="$1"
+    local cwd="$2"
     local set_dir="${SET:-$HOME/Desktop/repository/SettingFiles}"
     source "${set_dir}/shell/tmux/tmux_emoji.conf"
 
@@ -298,7 +299,7 @@ _ai_review_herdr_label() {
     fi
 
     local git_name
-    git_name=$(_review_window_git_name "${PWD}")
+    git_name=$(_review_window_git_name "${cwd}")
     echo "${ai_emoji}${EMOJI_STATUS_REVIEW}${git_name}"
 }
 
@@ -328,18 +329,23 @@ _review_launch_herdr() {
     local set_dir="${SET:-$HOME/Desktop/repository/SettingFiles}"
     source "${set_dir}/shell/tmux/tmux_emoji.conf"
 
+    # レビュー対象ディレクトリ: AI_REVIEW_CWDが未設定なら$PWD（従来どおり）
+    # worktreeピッカー経由のfreviewはコマンド前置でこれを渡し、workspace/タブ/ラベルを
+    # 選択worktree基準にする（exportしないため並列実行でも他プロセスへ漏れない）
+    local review_cwd="${AI_REVIEW_CWD:-${PWD}}"
+
     local claude_label gemini_label codex_label
     local claude_command gemini_command codex_command
     # ラベル計算（git名依存）を先に行い、失敗時は無駄なworkspace作成を避ける
-    claude_label=$(_ai_review_herdr_label "${EMOJI_ID_CLAUDE}") || return 1
-    gemini_label=$(_ai_review_herdr_label "${EMOJI_ID_GEMINI}") || return 1
-    codex_label=$(_ai_review_herdr_label "${EMOJI_ID_CODEX}") || return 1
+    claude_label=$(_ai_review_herdr_label "${EMOJI_ID_CLAUDE}" "${review_cwd}") || return 1
+    gemini_label=$(_ai_review_herdr_label "${EMOJI_ID_GEMINI}" "${review_cwd}") || return 1
+    codex_label=$(_ai_review_herdr_label "${EMOJI_ID_CODEX}" "${review_cwd}") || return 1
     claude_command=$(_ai_review_env_command "${run_dir}/claude.md" "${claude_fn}" "${review_args[@]}") || return 1
     gemini_command=$(_ai_review_env_command "${run_dir}/gemini.md" "${gemini_fn}" "${review_args[@]}") || return 1
     codex_command=$(_ai_review_env_command "${run_dir}/codex.md" "${codex_fn}" "${review_args[@]}") || return 1
 
     local ws_json ws_id orch_tab_id orch_pane_id
-    ws_json=$(_herdr_create_review_workspace "${PWD}") || return 1
+    ws_json=$(_herdr_create_review_workspace "${review_cwd}") || return 1
     ws_id=$(print -r -- "${ws_json}" | jq -r '.result.workspace.workspace_id // empty')
     if [[ -z "${ws_id}" ]]; then
         echo "review workspaceのworkspace_id取得に失敗しました" >&2
@@ -350,9 +356,9 @@ _review_launch_herdr() {
 
     # Claudeも新規タブで起動し、tab_idを閉鎖検知(--liveness)用に控える
     local claude_tab="" gemini_tab="" codex_tab=""
-    _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${claude_label}" "${claude_command}" claude_tab || return 1
-    _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${gemini_label}" "${gemini_command}" gemini_tab || return 1
-    _herdr_run_in_new_tab "${ws_id}" "${PWD}" "${codex_label}" "${codex_command}" codex_tab || return 1
+    _herdr_run_in_new_tab "${ws_id}" "${review_cwd}" "${claude_label}" "${claude_command}" claude_tab || return 1
+    _herdr_run_in_new_tab "${ws_id}" "${review_cwd}" "${gemini_label}" "${gemini_command}" gemini_tab || return 1
+    _herdr_run_in_new_tab "${ws_id}" "${review_cwd}" "${codex_label}" "${codex_command}" codex_tab || return 1
 
     if [[ "${create_watcher}" == "1" ]]; then
         if [[ -z "${orch_pane_id}" ]]; then
@@ -363,7 +369,7 @@ _review_launch_herdr() {
         # 注: renameした手動ラベルはauto_managed=falseのため、マージでclaudeが動いても
         # 本文は自動置換されず "orchestrator:<git名>" が残り続ける（専用タブなので意図どおり）
         local orchestrator_git_name watch_command
-        orchestrator_git_name=$(_review_window_git_name "${PWD}")
+        orchestrator_git_name=$(_review_window_git_name "${review_cwd}")
         [[ -n "${orch_tab_id}" ]] && herdr tab rename "${orch_tab_id}" \
             "${EMOJI_STATUS_REVIEW}orchestrator:${orchestrator_git_name}" >/dev/null 2>&1
         watch_command="_review_watch ${(q)run_dir}"
@@ -471,6 +477,8 @@ _review_launch_tmux() {
 # herdrではレビューごとに専用workspace(review-<ディレクトリ名>)を作り、完了待ち以降を
 # その初期タブ=orchestratorタブ(_review_watch)へ委譲して即return、
 # tmuxでは従来どおりカレントウィンドウで完了待ちする
+# 環境変数 AI_REVIEW_CWD が設定されていれば、herdr経路のworkspace/タブ/ラベルは
+# $PWD ではなくそのパスを基準にする（worktreeピッカー経由のfreviewが使う）
 # 引数: claude_fn gemini_fn codex_fn [--no-merge] [pr] [prompt...]
 _review_run() {
     local claude_fn="$1" gemini_fn="$2" codex_fn="$3"
@@ -501,7 +509,7 @@ _review_run() {
             if (( no_merge )); then
                 echo "レビューを起動しました（自動マージなし）: ${run_dir}"
             else
-                echo "レビューを起動しました。完了待ち〜マージは review-${PWD:t} スペースの🔍orchestratorタブで実行します: ${run_dir}"
+                echo "レビューを起動しました。完了待ち〜マージは review-${${AI_REVIEW_CWD:-${PWD}}:t} スペースの🔍orchestratorタブで実行します: ${run_dir}"
             fi
             return 0
             ;;

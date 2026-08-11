@@ -30,8 +30,85 @@ _fai-pr-review() {
 fcl-pr-review()              { _fai-pr-review cl-pr-review "$@" }
 fcl-pr-review-subagents()    { _fai-pr-review cl-pr-review-subagents "$@" }
 fgm-pr-review()              { _fai-pr-review gm-pr-review "$@" }
-freview()           { _fai-pr-review review "$@" }
-freview-subagents() { _fai-pr-review review-subagents "$@" }
+
+# 選択worktreeが汚れていないか確認する（親シェルからgit -Cで検査）
+# 引数: worktree_path
+_freview_assert_clean() {
+    local worktree_path="$1"
+    if ! git -C "$worktree_path" diff-index --quiet HEAD -- 2>/dev/null \
+        || [[ -n $(git -C "$worktree_path" ls-files --others --exclude-standard) ]]; then
+        echo "${worktree_path} に作業中のファイルがあります。stashまたはcommitしてください。" >&2
+        return 1
+    fi
+}
+
+# リポジトリ→worktree→PRを選択し、選択worktreeでcheckoutしてAIレビューを起動する
+# 現ペインはcdしない。Herdr専用: reviewが作るworkspace(review-<worktree名>)を唯一の
+# 新規workspaceにするため中継ペインを置かず、AI_REVIEW_CWDで対象worktreeをreviewへ伝える
+# （コマンド前置のためexportされず、並列実行中の他プロセスへは漏れない）
+# 引数: 元関数名, [元関数に渡す追加引数...]
+_freview_worktree() {
+    local func_name="$1"; shift
+
+    if [[ "$(_ai_multiplexer_kind)" != "herdr" ]]; then
+        echo "worktree選択付きレビューはHerdr内で実行してください（現在地でレビューするには -c）" >&2
+        return 1
+    fi
+
+    # _review_run は [--no-merge] [pr] [prompt...] の順を前提とするため、
+    # PR番号を自前で解決してここへ挿入するにはこの時点で--no-mergeを剥がして
+    # 先に確保しておく必要がある（そのまま末尾に流すとPR番号の後ろに来て
+    # PR参照と誤認されずAIプロンプトへ混入し、無効化される）
+    local -a no_merge_flag=()
+    if [[ "${1:-}" == "--no-merge" ]]; then
+        no_merge_flag=(--no-merge)
+        shift
+    fi
+
+    local worktree_path
+    worktree_path=$(_filter_zoxide_git_worktree_path)
+    if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
+        return $EXIT_CODE_SIGINT
+    fi
+
+    _freview_assert_clean "$worktree_path" || return 1
+
+    # gh pr list はcwd依存のため、選択worktreeへcdしたサブシェルでPRを選ぶ
+    # fzfはTUIを/dev/ttyに描くのでコマンド置換内でも動く
+    # （_filter_zoxide_git_worktree_path が cdq + filter で同じことをしている）
+    local pr_number
+    pr_number=$(cdq "$worktree_path" && _fgh_select_pr_number)
+    if [[ $? -ne 0 ]] || [[ -z "$pr_number" ]]; then
+        return $EXIT_CODE_SIGINT
+    fi
+
+    # checkoutも選択worktree側で行う。失敗をこの場で覚知させるためreviewより前に実行する
+    ( cdq "$worktree_path" && gh co "$pr_number" ) || {
+        echo "gh co ${pr_number} に失敗しました: ${worktree_path}" >&2
+        return 1
+    }
+
+    # freviewのシェル自体はcdしない（現ペインは元のリポジトリのまま）ため、
+    # reviewが「現在のブランチから自動解決」を試みても選択worktreeとは無関係になる。
+    # そのためPR番号は明示的に渡す（_fai-pr-review の自動解決前提は使えない）
+    AI_REVIEW_CWD="$worktree_path" "$func_name" "${no_merge_flag[@]}" "$pr_number" "$@"
+}
+
+# -c 指定時のみ従来動作（現在地でPR選択→gh co→レビュー）
+# -c は先頭のみ認識し、以降の引数はreviewへそのまま渡す（--no-merge/プロンプトと競合させない）
+# 引数: 元関数名, [-c] [元関数に渡す追加引数...]
+_freview_dispatch() {
+    local func_name="$1"; shift
+    if [[ "${1:-}" == "-c" ]]; then
+        shift
+        _fai-pr-review "$func_name" "$@"
+        return $?
+    fi
+    _freview_worktree "$func_name" "$@"
+}
+
+freview()           { _freview_dispatch review "$@" }
+freview-subagents() { _freview_dispatch review-subagents "$@" }
 
 # 現在リポジトリのworktreeをfilterで選択し、cdしてからAIレビュー関数を実行する共通ヘルパー
 # 引数: 元関数名, [元関数に渡す追加引数...]

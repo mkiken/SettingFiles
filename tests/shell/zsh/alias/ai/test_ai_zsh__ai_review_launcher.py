@@ -43,6 +43,17 @@ class AiReviewLauncherTest(unittest.TestCase):
                 result = run_zsh(f"typeset -f -- {name} >/dev/null")
                 self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_review_herdr_label_uses_given_cwd_not_pwd(self):
+        # _ai_review_herdr_labelはcwd引数を受け取り、$PWDに依存しない
+        snippet = '''
+_review_window_git_name() { printf 'git_name_arg %s\\n' "$1" >&2; echo "my-branch"; }
+_ai_review_herdr_label "🤖" /path/to/wt
+'''
+        result = run_zsh(snippet)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("git_name_arg /path/to/wt", result.stderr)
+        self.assertIn("my-branch", result.stdout)
+
 
 class ReviewLaunchHerdrTest(unittest.TestCase):
     """_review_launch_herdr の専用workspace作成とorchestratorタブ委譲（herdr/下位関数はstub）。"""
@@ -52,17 +63,18 @@ class ReviewLaunchHerdrTest(unittest.TestCase):
         '"tab":{"tab_id":"t0"},"root_pane":{"pane_id":"p0"}}}'
     )
 
-    def run_launch(self, create_watcher):
+    def run_launch(self, create_watcher, extra_env=""):
         with tempfile.TemporaryDirectory() as temp_dir:
             log = Path(temp_dir) / "calls.log"
             snippet = f'''
+{extra_env}
 LOG="{log}"
 herdr() {{
     printf '%s\\n' "$*" >> "$LOG"
     [[ "$1 $2" == "workspace create" ]] && printf '%s' '{self.WS_JSON}'
     return 0
 }}
-_review_window_git_name() {{ echo "my-branch"; }}
+_review_window_git_name() {{ printf 'git_name_arg %s\\n' "$1" >> "$LOG"; echo "my-branch"; }}
 _herdr_wait_shell_ready() {{ printf 'shell_ready %s\\n' "$1" >> "$LOG"; }}
 # 実体は test_herdr_run_in_new_tab.py で検証済みなので、ここでは連番tab_idを代入するstubにする
 _herdr_run_in_new_tab() {{
@@ -111,6 +123,30 @@ print -r -- "rc=$?"
         self.assertFalse(any("_review_watch" in c for c in calls), calls)
         self.assertFalse(any(c.startswith("tab rename ") for c in calls), calls)
         self.assertFalse(any(c.startswith("tab focus ") for c in calls), calls)
+
+    def test_ai_review_cwd_overrides_pwd_for_workspace_and_tabs(self):
+        # AI_REVIEW_CWDが設定されていれば、workspace cwd・3AIタブcwd・ラベル計算対象は
+        # $PWDではなくそのパスを基準にする（worktreeピッカー経由のfreviewが使う）
+        result, calls = self.run_launch(
+            create_watcher=1, extra_env="AI_REVIEW_CWD=/path/to/wt"
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("rc=0", result.stdout)
+        creates = [c for c in calls if c.startswith("workspace create ")]
+        self.assertEqual(len(creates), 1, calls)
+        self.assertIn("--cwd /path/to/wt", creates[0])
+        newtabs = [c for c in calls if c.startswith("newtab ")]
+        self.assertEqual(len(newtabs), 3, calls)
+        for newtab in newtabs:
+            self.assertIn("/path/to/wt", newtab, calls)
+        self.assertIn("git_name_arg /path/to/wt", calls)
+
+    def test_ai_review_cwd_unset_falls_back_to_pwd(self):
+        # 従来どおりreviewを直接叩く使い方は完全に不変であることの回帰確認
+        result, calls = self.run_launch(create_watcher=1)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("rc=0", result.stdout)
+        self.assertFalse(any("/path/to/wt" in c for c in calls), calls)
 
 
 class ReviewWatchTest(unittest.TestCase):
