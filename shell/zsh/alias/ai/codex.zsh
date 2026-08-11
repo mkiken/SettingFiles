@@ -33,6 +33,10 @@ cxt() {
     cx --model gpt-5.6-terra "$@"
 }
 
+cxth() {
+    cxt -c 'model_reasoning_effort="high"'  "$@"
+}
+
 cxl() {
     cx --model gpt-5.6-luna "$@"
 }
