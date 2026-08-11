@@ -49,6 +49,8 @@ If `gh pr view` fails, ask the user for the PR number. Inline comments require a
 
    For each item outside the set, look for a diff-covered line inside the same declaration or function body and re-anchor to it, surfacing `old→new` in the preview. Accept a candidate only when it still carries the finding's subject — the statement, field, or signature the item is about; a line that merely sits in the same block (a closing brace, a blank line, an unrelated statement) moves the comment away from what it describes, so treat it as no candidate at all. When no such line exists, mark the item `※diff範囲外` in the preview and ask the user how to handle those items: fold them into the review body with their `file:line`, post them individually with `gh pr comment`, or drop them. Never send an unverified out-of-range item to the Review API.
 
+   When the user chooses individual general comments, post exactly one `gh pr comment` for each out-of-range finding after the inline review succeeds. Its body must contain the quoted `{ai_header}`, `対象: {file}:{line_spec}`, and the normal finding body. Build it with `printf`, preflight real newlines (no literal `\\n`), record its returned URL/comment ID, then re-fetch `repos/{owner}/{repo}/issues/comments/{comment_id}` and require the body to match exactly. Do not collapse multiple findings into one general comment or post them before the selected inline review is verified.
+
 ## Preview And Confirm
 
 Show only the selected items, keeping their original serial numbers:
