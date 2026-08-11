@@ -618,13 +618,19 @@ git log "${PRE_COMMIT_HEAD}..HEAD" --format='%H %s'
 Fill the previewed reply body's `Commit` section with this output; do not
 replace the body with only commit lines.
 
+The reply body is multi-line and may contain backticks or `$(...)`-like
+sequences. Write it to a temp file with the `Write` tool first (never build it
+via a shell heredoc or command substitution passed inline to `gh`), then pass
+it by file reference — never inline the body text into the shell command
+string:
+
 ```bash
 # Thread only
 gh api "repos/${OWNER}/${REPO}/pulls/${PULL_NUMBER}/comments/${COMMENT_ID}/replies" \
-  -X POST -f body="${BODY}"
+  -X POST -F body=@"${BODY_FILE}"
 
 # Standalone only
-gh pr comment "${PULL_NUMBER}" -R "${OWNER}/${REPO}" --body "${BODY}"
+gh pr comment "${PULL_NUMBER}" -R "${OWNER}/${REPO}" --body-file "${BODY_FILE}"
 ```
 
 If thread reply fails, report status/body and ask retry, standalone downgrade,
