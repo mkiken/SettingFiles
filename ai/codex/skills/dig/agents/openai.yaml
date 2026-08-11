@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dig"
+  short_description: "Stress-test a plan by surfacing hidden assumptions"
+  default_prompt: "Use $dig to challenge the hidden assumptions in this plan."

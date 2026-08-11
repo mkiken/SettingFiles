@@ -31,3 +31,19 @@ Ask in plain text only when `request_user_input` is unavailable for the current 
 For a plain-text fallback with choices, use a Markdown ordered list starting from `1.` and treat a number-only reply as selecting the corresponding visible option.
 
 When finalizing a plan in Plan Mode or starting implementation of an accepted plan, load the `plan-model-handoff` skill and follow it before emitting the final plan or causing the first implementation side effect.
+
+# Plan Review Deep-Dive (dig)
+
+This section's skip criterion governs both the `dig` skill offer and the Plan Review Presentation browser offer — the shared file's own line-count/format criteria do not apply here; use this criterion for both instead. Its port-selection and launch mechanics still apply when the browser is actually opened.
+
+When finalizing a plan in Plan Mode, offer both — but first skip both for trivially mechanical plans: renames, bulk replacements, reverts, single-file fixes with no design decision, or plans whose every task is a stated verbatim edit. For those, skip straight to the final `<proposed_plan>` with no dialog.
+
+Otherwise, offer a single choice via `request_user_input` (or its plain-text fallback) with exactly three options in this order:
+
+1. Both: open the browser and also run dig.
+2. Open the browser now, decide on dig after reading.
+3. Neither.
+
+If option 1 is chosen, open the browser first, then load the `dig` skill.
+
+Codex has no `~/.codex/plans` directory — the plan exists only as this turn's `<proposed_plan>` content, not a file on disk. When the browser is accepted, write the current plan text to a scratchpad file first, then treat it as the SDD case in Plan Review Presentation: find a free port from 8610, launch `mdts -p <found-port> --no-open <scratchpad-dir>`, and stop that instance once the review finishes. Do not reuse the fixed port 8600 / `~/.claude/plans` mount — that path is Claude-only and does not exist here. The written scratchpad file is a session temp; Temp File Cleanup applies.
