@@ -162,6 +162,22 @@ class HerdrConfigurationTest(unittest.TestCase):
             read_text("shell/zsh/managed.zsh"),
         )
 
+    @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
+    def test_current_repo_worktree_popup_passes_the_current_repo_flag(self):
+        keys = tomllib.loads(read_text("terminal/herdr/config.toml"))["keys"]
+        popup = next(c for c in keys["command"] if c["key"] == "prefix+ctrl+f")
+
+        self.assertEqual(popup["type"], "popup")
+        self.assertEqual(
+            popup["command"],
+            'HERDR_POPUP_COMMAND=1 zsh -ilc "_herdr_pick_worktree_target --current-repo"',
+        )
+        self.assertIn("current repo worktree picker", popup["description"])
+        self.assertIn("Enter workspace", popup["description"])
+        self.assertIn("Ctrl-O tab", popup["description"])
+        self.assertIn("C-s down split", popup["description"])
+        self.assertIn("C-v right split", popup["description"])
+
     def test_brewfile_and_entrypoints_keep_tmux_beside_herdr(self):
         brewfile = read_text("mac/Brewfile")
         initialize = read_text("mac/initialization/initialize")

@@ -326,7 +326,7 @@ class RepositoryWorktreeTest(unittest.TestCase):
         # 発火元paneがgitリポジトリ内なら、zoxideのリポジトリ選択を挟まず
         # そのリポジトリのworktreeだけをpickerに出す（filterは1回だけ）。
         result, values = self.run_repository_worktree(
-            "_herdr_pick_worktree_target",
+            "_herdr_pick_worktree_target --current-repo",
             herdr=True,
             extra_env={
                 "HERDR_ACTIVE_PANE_CWD": str(self.repo),
@@ -345,7 +345,7 @@ class RepositoryWorktreeTest(unittest.TestCase):
     def test_popup_picker_still_shows_ui_for_a_single_worktree_repository(self):
         # 候補が本体1件でもEnter/C-o/C-s/C-vの開き方選択を残すためUIを出す。
         result, values = self.run_repository_worktree(
-            "_herdr_pick_worktree_target",
+            "_herdr_pick_worktree_target --current-repo",
             herdr=True,
             extra_env={
                 "HERDR_ACTIVE_PANE_CWD": str(self.repo),
@@ -375,7 +375,7 @@ class RepositoryWorktreeTest(unittest.TestCase):
         for description, extra_env in cases:
             with self.subTest(description=description):
                 result, values = self.run_repository_worktree(
-                    "_herdr_pick_worktree_target",
+                    "_herdr_pick_worktree_target --current-repo",
                     herdr=True,
                     extra_env={"FWT_FILTER_EXPECT_KEY": "ctrl-o", **extra_env},
                 )
@@ -386,6 +386,35 @@ class RepositoryWorktreeTest(unittest.TestCase):
                 calls = self.herdr_calls()
                 self.assertEqual(len(calls), 1, calls)
                 self.assertIn("tab create", calls[0])
+
+    def test_popup_picker_ignores_current_repo_context_without_the_flag(self):
+        # 引数なし（prefix+shift+f）は発火元がリポジトリ内でも常にzoxide
+        # 2段階選択を通す。--current-repo（prefix+ctrl+f）との区別を固定する。
+        result, values = self.run_repository_worktree(
+            "_herdr_pick_worktree_target",
+            herdr=True,
+            extra_env={
+                "HERDR_ACTIVE_PANE_CWD": str(self.repo),
+                "FWT_FILTER_EXPECT_KEY": "ctrl-o",
+            },
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        self.assertEqual((self.root / "filter-count").read_text(), "2")
+        calls = self.herdr_calls()
+        self.assertEqual(len(calls), 1, calls)
+        self.assertIn("tab create", calls[0])
+
+    def test_popup_picker_rejects_unknown_arguments(self):
+        result, values = self.run_repository_worktree(
+            "_herdr_pick_worktree_target --bogus", herdr=True
+        )
+
+        self.assertEqual(values["__STATUS"], "2")
+        self.assertIn(
+            "Usage: _herdr_pick_worktree_target [--current-repo]", result.stderr
+        )
 
     def test_popup_picker_advertises_and_expects_ctrl_o_for_tab_creation(self):
         result, values = self.run_repository_worktree(

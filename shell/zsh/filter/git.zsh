@@ -955,21 +955,35 @@ function _herdr_active_pane_repo_root() {
   print -r -- "$repo_root"
 }
 
+# Usage: _herdr_pick_worktree_target [--current-repo]
+# 引数なし: zoxide履歴からリポジトリ→worktreeの2段階選択（prefix+shift+f）
+# --current-repo: popupの発火元pane（HERDR_ACTIVE_PANE_CWD）が属するリポジトリの
+#   worktreeだけを対象にする（prefix+ctrl+f）。発火元がgitリポジトリ外なら
+#   zoxide経由の2段階選択にフォールバックする。
 function _herdr_pick_worktree_target() {
+  local current_repo=false
+  if [[ "${1:-}" == "--current-repo" ]]; then
+    current_repo=true
+  elif [[ $# -gt 0 ]]; then
+    echo "Usage: _herdr_pick_worktree_target [--current-repo]" >&2
+    return 2
+  fi
+
   if [[ "$(_ai_multiplexer_kind)" != "herdr" ]]; then
     echo "Herdr popup内で実行してください" >&2
     return 1
   fi
 
-  # popupはherdr serverの子プロセスで、自身のcwdは発火元paneと無関係。
-  # 発火元がgitリポジトリ内ならそのリポジトリのworktreeだけを対象にし、
-  # 外ならzoxide履歴からリポジトリを選ぶ従来の2段階選択にフォールバックする。
-  local active_repo
-  active_repo=$(_herdr_active_pane_repo_root)
-
   local selection
-  if [[ -n "$active_repo" ]]; then
-    selection=$(cdq "$active_repo" && _filter_git_worktree_path --target-picker)
+  if $current_repo; then
+    # popupはherdr serverの子プロセスで、自身のcwdは発火元paneと無関係。
+    local active_repo
+    active_repo=$(_herdr_active_pane_repo_root)
+    if [[ -n "$active_repo" ]]; then
+      selection=$(cdq "$active_repo" && _filter_git_worktree_path --target-picker)
+    else
+      selection=$(_filter_zoxide_git_worktree_path --target-picker)
+    fi
   else
     selection=$(_filter_zoxide_git_worktree_path --target-picker)
   fi
