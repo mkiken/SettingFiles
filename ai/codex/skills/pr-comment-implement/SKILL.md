@@ -63,6 +63,22 @@ in later phases:
 
 If unclassified, ask which reply method to use.
 
+Whenever a branch above sets `REPLY_PATH=standalone`, also capture the values
+needed for the standalone reply's reference header (see Phase 5):
+`REPLY_REF_URL` (the original comment's or review's `html_url`),
+`REPLY_REF_SUMMARY` (a one-line paraphrase of what it says, composed later in
+Phase 5 — not fetched here), and `REPLY_REF_LOCATION` (a short locator string,
+when one is meaningful for this branch). For the `#issuecomment-` branch,
+fetch the comment body now so Phase 5 can paraphrase it:
+
+```bash
+ISSUE_COMMENT_JSON=$(gh api "repos/${OWNER}/${REPO}/issues/comments/${ISSUE_COMMENT_ID}" \
+  --jq '{html_url: .html_url, body: .body, login: .user.login, type: .user.type}')
+REPLY_REF_URL=$(echo "$ISSUE_COMMENT_JSON" | jq -r '.html_url')
+COMMENT_AUTHOR=$(echo "$ISSUE_COMMENT_JSON" | jq -r '.login')
+COMMENT_AUTHOR_TYPE=$(echo "$ISSUE_COMMENT_JSON" | jq -r '.type')
+```
+
 For `#pullrequestreview-{review_id}`, fetch inline comments:
 
 ```bash
@@ -76,15 +92,24 @@ gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/comments \
   and `REACTION_TARGET` as above for the selected comment.
 - 0: treat the review as standalone (`REPLY_PATH=standalone`). No single
   comment identifies the review itself, so leave `REACTION_TARGET` unset and
-  skip the reaction steps below, reporting why.
+  skip the reaction steps below, reporting why. Fetch the review itself
+  (`gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id} --jq
+  '{html_url: .html_url, body: .body, login: .user.login, type: .user.type}'`)
+  and set `REPLY_REF_URL` to its `html_url`, `COMMENT_AUTHOR` /
+  `COMMENT_AUTHOR_TYPE` to its author; leave `REPLY_REF_LOCATION` unset (the
+  whole review is the target, no finer locator applies).
 
 Regardless of the inline-comment count, when `PROMPT` identifies a finding
 that matches no inline comment — e.g. one listed only in the review **body**
 (such as a "diff 範囲外のため行コメント不可" section) — fetch the review body
-(`gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id} --jq '.body'`)
+(`gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id} --jq
+'{html_url: .html_url, body: .body, login: .user.login, type: .user.type}'`)
 to locate it, skip the target-selection question, and treat it like the
 0-comment case: `REPLY_PATH=standalone`, `REACTION_TARGET` unset, reaction and
-resolve reported as not applicable.
+resolve reported as not applicable. Set `REPLY_REF_URL` / `COMMENT_AUTHOR` /
+`COMMENT_AUTHOR_TYPE` from this same fetch, and set `REPLY_REF_LOCATION` to a
+short phrase naming where in the review body the finding lives (e.g.
+「レビュー本文の『diff 範囲外』節」).
 
 ### React to the target comment (🚀)
 
@@ -117,6 +142,12 @@ designing the change:
 
 The URL target is primary; same-thread replies are required context. Reflect
 their corrections, constraints, or implementation intent in the design.
+
+From step 1's fetch, also keep `REPLY_REF_URL` (`.html_url`),
+`REPLY_REF_LOCATION` (`` `{.path}:{.line}` ``, when `.line` is present), and
+the comment body for a later paraphrase. `REPLY_PATH` is `thread` here, so
+none of this is used unless Phase 6 downgrades to standalone — it is kept
+only so that downgrade doesn't need a second fetch.
 
 For `REPLY_PATH=thread`, determine the target comment's role before
 designing — this is reused in Phase 2's handoff and in Phase 5, and must not
@@ -407,6 +438,29 @@ For `NO_CODE_CHANGE=true`, use this shape and do not add a `Commit` section:
 - {why no code change is warranted}
 ```
 
+When `REPLY_PATH=standalone`, prepend a reference header to either shape above
+so the reply is self-contained on the PR timeline instead of appearing as an
+unrelated top-level comment — `gh pr comment` posts with no thread context:
+
+```
+> 返信対象: [{one-line paraphrase}]({REPLY_REF_URL})
+> （{auxiliary info, only what is available}）
+
+ご指摘ありがとうございます。...
+```
+
+- `{one-line paraphrase}` is composed from the original comment/review body —
+  compress its point to one line; never paste the raw text verbatim or use a
+  vague restatement.
+- The second header line lists only auxiliary info that was actually
+  captured in Phase 1 — `` `{file}:{line}` `` when the original review
+  comment's path/line is known (thread-downgrade case below), `@{login}` when
+  `COMMENT_AUTHOR` is known, or `REPLY_REF_LOCATION` when set. Join whatever
+  is available with ` / `; omit the entire second line when nothing is
+  available. Never emit a placeholder for a value that wasn't captured.
+- For `REPLY_PATH=thread`, omit this header entirely — GitHub already renders
+  the reply inside its thread.
+
 Preview with placeholder hashes before commit; fill real hashes after commit.
 Before asking the final action question, show the applicable sections below.
 Omit the commit-message section when `NO_CODE_CHANGE=true`:
@@ -635,7 +689,13 @@ gh pr comment "${PULL_NUMBER}" -R "${OWNER}/${REPO}" --body-file "${BODY_FILE}"
 
 If thread reply fails, report status/body and ask retry, standalone downgrade,
 or abort; never fall back automatically. Warn that downgrading from
-`#discussion_r` loses thread context. Track `REPLY_STATUS`.
+`#discussion_r` loses thread context, but that the reply body will carry a
+reference header linking back to it (Phase 5). Track `REPLY_STATUS`.
+
+On standalone downgrade, the reply body was originally composed for a thread
+reply and has no reference header yet — prepend one now, following Phase 5's
+standalone rule, using the `REPLY_REF_URL` / `REPLY_REF_LOCATION` already kept
+from Phase 1's target-comment fetch and a one-line paraphrase of its body.
 
 ### React to the target comment (🎉)
 
