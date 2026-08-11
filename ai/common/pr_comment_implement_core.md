@@ -53,6 +53,14 @@ gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/comments \
   comment identifies the review itself, so leave `REACTION_TARGET` unset and
   skip the reaction steps below, reporting why.
 
+Regardless of the inline-comment count, when `PROMPT` identifies a finding
+that matches no inline comment — e.g. one listed only in the review **body**
+(such as a "diff 範囲外のため行コメント不可" section) — fetch the review body
+(`gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id} --jq '.body'`)
+to locate it, skip the target-selection question, and treat it like the
+0-comment case: `REPLY_PATH=standalone`, `REACTION_TARGET` unset, reaction and
+resolve reported as not applicable.
+
 ### React to the target comment (🚀)
 
 As soon as `REACTION_TARGET` is known, mark the comment as being worked on so
@@ -483,7 +491,16 @@ possible, otherwise a merge commit; never squash or rebase:
 zsh -ic 'builtin cd -q -- "$1" && wtm "$2"' zsh "$TASK_PATH" "$HEAD_BRANCH"
 ```
 
-If `wtm` returns nonzero, first check for real conflicts
+If `wtm` returns nonzero, first run `git status --porcelain` in
+`ORIGINAL_PATH`. When it is dirty with changes this task did not make
+(typically a parallel session working in the invoking worktree; `wtm` refuses
+with "target worktree has uncommitted changes"), do not stash, reset, or
+otherwise alter them — the task commit is safe on `TASK_BRANCH`. Ask via the
+user-confirmation mechanism whether to wait for the parallel work to be
+committed and then retry the same `wtm` invocation (re-verify the target is
+clean first), or to stop with all state preserved.
+
+Otherwise check for real conflicts
 (`git diff --name-only --diff-filter=U` / `git ls-files -u` in
 `ORIGINAL_PATH`) rather than assuming failure. When conflicts exist:
 
