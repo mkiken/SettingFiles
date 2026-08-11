@@ -325,11 +325,26 @@ When `NO_CODE_CHANGE=false`, commit:
 PRE_COMMIT_HEAD=$(git rev-parse HEAD)
 git add <reviewed files from Phase 4>
 git diff --cached --name-only
+```
+
+If `git diff --cached --name-only` lists paths you did not stage, unstage
+them before continuing.
+
+Immediately before committing, re-check `git rev-parse HEAD` against
+`PRE_COMMIT_HEAD`. A mismatch means another process advanced this branch
+while you were staging — commonly a parallel session on the same worktree.
+Committing anyway risks bundling its changes into your commit or losing
+track of what it did. Stop and use `AskUserQuestion` to show the user both
+HEAD values and the new commit(s) (`git log <PRE_COMMIT_HEAD>..HEAD --oneline`),
+then let them choose: commit your staged changes as-is, re-verify the
+staged diff against the new HEAD first, or abort.
+
+```bash
 git commit -m "<drafted message>"
 ```
 
-If `git diff --cached --name-only` lists paths you did not stage, commit with
-an explicit pathspec (`git commit -m "<message>" -- <paths>`) so only your
+If the staged diff contains paths beyond what you intended, commit with an
+explicit pathspec (`git commit -m "<message>" -- <paths>`) so only your
 paths are committed.
 
 If commit fails, abort before push/reply/resolve.
