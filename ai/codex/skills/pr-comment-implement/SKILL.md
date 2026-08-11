@@ -31,39 +31,25 @@ before proceeding.
 Analyze the target comment, `PROMPT`, affected files, and surrounding code
 before designing the change.
 
-Check the working tree state and branch alignment first:
+Check the working tree state first — this must be clean, since Phase 1
+creates an isolated task worktree rather than editing in place:
 
 ```bash
-git status --short
-git branch --show-current
-gh pr view "$PR_URL" --json headRefName --jq .headRefName
+git status --porcelain
 ```
 
-If the current branch differs from `headRefName`, stop before editing. Check
-for an existing worktree first — `git worktree list` — since checking out the
-PR branch in place can collide with work already in progress in another
-worktree:
-
-```bash
-git worktree list
-```
-
-If a worktree already has `headRefName` checked out, offer using that
-worktree's directory as an option alongside checkout / continue on the
-current branch / abort. When the worktree option is chosen, run every
-subsequent Phase 1–6 command (read, edit, build, test, git add/commit/push)
-from that worktree's directory instead of the current one; note the absolute
-path in the design (Phase 2) so it survives a context reset. Implementing on
-the wrong branch pushes commits the PR never receives.
+If it lists anything, including untracked files, stop. Do not stash, clean,
+or reset to force a clean state.
 
 Parse `PR_URL`, extract `OWNER`, `REPO`, `PULL_NUMBER`, then classify the
-fragment. The result (`REPLY_PATH`, `COMMENT_ID`) is reused in Phase 5:
+fragment. The result (`REPLY_PATH`, `COMMENT_ID`, `REACTION_TARGET`) is reused
+in later phases:
 
 | Fragment pattern | Action |
 |---|---|
-| `#discussion_r(\d+)` | Extract `COMMENT_ID` → `REPLY_PATH=thread` |
+| `#discussion_r(\d+)` | Extract `COMMENT_ID` → `REPLY_PATH=thread`, `REACTION_TARGET=repos/${OWNER}/${REPO}/pulls/comments/${COMMENT_ID}` |
 | `#pullrequestreview-(\d+)` | Fetch inline comments (below) and resolve concrete target |
-| `#issuecomment-(\d+)` | `REPLY_PATH=standalone` (no `COMMENT_ID`) |
+| `#issuecomment-(\d+)` | Extract `ISSUE_COMMENT_ID` → `REPLY_PATH=standalone`, `REACTION_TARGET=repos/${OWNER}/${REPO}/issues/comments/${ISSUE_COMMENT_ID}` |
 
 If unclassified, ask which reply method to use.
 
@@ -74,9 +60,31 @@ gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/comments \
   --jq '[.[] | {id: .id, path: .path, body: (.body | .[0:80])}]'
 ```
 
-- 1 comment: use it as `COMMENT_ID`, `REPLY_PATH=thread`.
-- Multiple: ask the user to select the target; then `REPLY_PATH=thread`.
-- 0: treat the review as standalone (`REPLY_PATH=standalone`).
+- 1 comment: use it as `COMMENT_ID`, `REPLY_PATH=thread`,
+  `REACTION_TARGET=repos/${OWNER}/${REPO}/pulls/comments/${COMMENT_ID}`.
+- Multiple: ask the user to select the target; then set `REPLY_PATH=thread`
+  and `REACTION_TARGET` as above for the selected comment.
+- 0: treat the review as standalone (`REPLY_PATH=standalone`). No single
+  comment identifies the review itself, so leave `REACTION_TARGET` unset and
+  skip the reaction steps below, reporting why.
+
+### React to the target comment (🚀)
+
+As soon as `REACTION_TARGET` is known, mark the comment as being worked on so
+parallel `cl-pci` / `cx-pci` runs don't pick up the same comment twice. Do
+this before Phase 2's approval gate — visibility into what's claimed matters
+more than waiting for approval.
+
+```bash
+ROCKET_REACTION_ID=$(gh api "${REACTION_TARGET}/reactions" -X POST -f content=rocket --jq '.id')
+```
+
+Reaction calls are best-effort and never block the workflow: if this fails,
+report a warning and continue. A repeat reaction from the same account
+returns the existing reaction (HTTP 200), so this is safe to retry. Carry
+`ROCKET_REACTION_ID` forward into Phase 2's handoff section so it survives a
+context reset; if it's lost later, re-derive it with
+`gh api "${REACTION_TARGET}/reactions" --jq '.[] | select(.user.login == $SELF_LOGIN and .content == "rocket") | .id'`.
 
 When `REPLY_PATH=thread`, always read the complete review thread before
 designing the change:
@@ -122,6 +130,73 @@ this and treat `ROLE` as not applicable.
 Read affected files and surrounding code. If the comment targets stale code,
 inspect the current equivalent symbol or concept.
 
+### Create an isolated task worktree
+
+Implement in a dedicated worktree, not the invoking one, so parallel
+`cl-pci` / `cx-pci` runs against the same PR never share a working tree.
+
+```bash
+ORIGINAL_PATH=$(git rev-parse --show-toplevel)
+HEAD_BRANCH=$(gh pr view "$PR_URL" --json headRefName --jq .headRefName)
+```
+
+Ensure a local ref for `HEAD_BRANCH` exists (fetch it if this is the first
+time this repo has seen that branch) — it only needs to exist as a ref to
+serve as the worktree's `--base`; nothing needs to check it out:
+
+```bash
+git show-ref --verify --quiet "refs/heads/${HEAD_BRANCH}" || \
+  git fetch origin "${HEAD_BRANCH}:${HEAD_BRANCH}"
+```
+
+Confirm `wtc` and `wtm` are available in the configured interactive Zsh from
+the original worktree; stop with a clear setup error if either is missing:
+
+```bash
+zsh -ic 'builtin cd -q -- "$1" && type wtc >/dev/null && type wtm >/dev/null' zsh "$ORIGINAL_PATH"
+```
+
+Load `herdr-tab-label` and derive a slug from the comment/`PROMPT` using its
+shared rules. Form `TASK_BRANCH="task/<slug>-<timestamp>"`; if that local
+branch exists, append `-2`, `-3`, ... until unused. Record that
+`refs/heads/<task-branch>` is absent before creating the worktree — this
+proves ownership for later cleanup.
+
+Create the worktree through the same executable boundary `worktree-task`
+uses: keep the `-c` script literal, pass paths/branches only as positional
+arguments, never interpolate task-derived values into the script string.
+
+```bash
+zsh -ic 'builtin cd -q -- "$1" && wtc "$2" --base "$3" --no-cd' zsh "$ORIGINAL_PATH" "$TASK_BRANCH" "$HEAD_BRANCH"
+```
+
+Capture the exit status; a nonzero result may still have partially created a
+branch or worktree, so don't assume it created nothing. Never infer the new
+path from command output — re-read `git worktree list --porcelain`, match the
+unique `branch refs/heads/<task-branch>` entry, and record its `worktree`
+path as `TASK_PATH`. If the match is missing or not unique, or the task
+worktree's branch/`HEAD` don't match the recorded original `HEAD`, treat this
+like `worktree-task`'s post-invocation failure handling: gather read-only Git
+evidence, and only clean up when every ownership invariant (branch was absent
+beforehand, exactly one matching worktree, `HEAD` equals the recorded value,
+working tree clean, no operation in progress) is proven. Otherwise preserve
+all state and report it.
+
+When `HERDR_ENV=1`:
+
+```bash
+herdr_context_helper="${SET:-$HOME/Desktop/repository/SettingFiles}/shell/tmux/herdr_worktree_context.sh"
+zsh -ic 'builtin cd -q -- "$1" && source "$2" && set_herdr_task_worktree_context "$3"' zsh "$ORIGINAL_PATH" "$herdr_context_helper" "$TASK_PATH"
+```
+
+Then apply `herdr-tab-label` from `ORIGINAL_PATH` using the slug alone (not
+the `task/` namespace or timestamp). Both steps are fail-safe: report a
+warning and continue on failure rather than blocking the task.
+
+From this point on, run every Phase 1–6 command (read, edit, build, test, git
+add/commit) from `TASK_PATH`, not `ORIGINAL_PATH`. `ORIGINAL_PATH` is only
+touched again for the merge-back in Phase 6.
+
 ### Phase 2: Design Review (MANDATORY)
 
 Before editing, present this Japanese design and wait for explicit approval:
@@ -158,18 +233,31 @@ Before editing, present this Japanese design and wait for explicit approval:
 - Reply本文作成: 実装差分、または変更不要の根拠と検証結果を反映して作成する
 - 省略禁止: context reset後もPRへの返信とresolve判断を省略しない
 
+### 作業環境引き継ぎ
+- Task worktree: <TASK_PATH>
+- Task branch: <task/slug-timestamp>
+- Merge target (PR head): <HEAD_BRANCH>
+- Invoking worktree: <ORIGINAL_PATH>
+- Rocket reaction ID: <ROCKET_REACTION_ID、または再取得が必要な旨>
+
 この設計で実装を進めてよろしいですか？修正点があればお知らせください。
 ```
 
 Wait for approval; revise and re-present if requested. Do not edit before
 approval.
 
-The `PR返信引き継ぎ` section is the handoff that survives a context reset: it
-must give the next worker enough reply/resolve target information to continue
-the GitHub response workflow. If a target cannot be fully determined before
-implementation, state the exact item to re-fetch instead of omitting it. In
-plan mode, write this design (including that section) into the platform's
-plan artifact.
+If the user declines (an explicit abort rather than requesting revisions),
+remove the 🚀 reaction (best-effort) and clean up the task worktree/branch
+under the same ownership-proof rule described above, then report the
+preserved or removed state.
+
+The `PR返信引き継ぎ` and `作業環境引き継ぎ` sections are the handoff that
+survives a context reset: together they must give the next worker enough
+reply/resolve target information and enough working-directory information
+(which worktree to resume in) to continue. If a target cannot be fully
+determined before implementation, state the exact item to re-fetch instead of
+omitting it. In plan mode, write this design (including both sections) into
+the platform's plan artifact.
 
 `role` is the `ROLE` value already derived in Phase 1 (`gh api user` vs. the
 comment author) — never write a guessed `other` here. A comment authored by
@@ -183,6 +271,8 @@ no-change workflow below; it does not authorize a GitHub reply yet.
 
 ### Phase 3: Implementation (Only after approval)
 
+Work only inside `TASK_PATH`. Never edit `ORIGINAL_PATH`.
+
 Implement only the approved scope and update tests when behavior risk
 warrants it. Run the
 narrowest useful verification command; broaden only when the touched surface
@@ -194,7 +284,8 @@ then continue to Phase 4.
 
 ### Phase 4: Review Changes
 
-Confirm the diff matches the design; check for missing tests or side effects:
+Confirm the diff matches the design; check for missing tests or side effects.
+Run these from `TASK_PATH`:
 
 ```bash
 git diff --check
@@ -339,12 +430,16 @@ post-implementation commit question again.
 
 Execute selected actions sequentially and stop on failure unless retry is chosen.
 
-For `NO_CODE_CHANGE=true`, skip commit and push. Execute a selected reply via
-the same thread or standalone API below, then resolve only when that option was
-offered and selected. A reply failure still requires the same retry,
-standalone-downgrade, or abort decision.
+For `NO_CODE_CHANGE=true`, skip commit, merge, and push — `TASK_PATH` stays
+clean at the recorded original `HEAD`, so there is nothing to merge back.
+Execute a selected reply via the same thread or standalone API below, then
+resolve only when that option was offered and selected. A reply failure still
+requires the same retry, standalone-downgrade, or abort decision. On success,
+react (below), then remove the task worktree/branch directly from
+`ORIGINAL_PATH` (`git worktree remove` then `git branch -d`, verifying both
+are gone) and clear the Herdr task-worktree context.
 
-When `NO_CODE_CHANGE=false`, commit:
+When `NO_CODE_CHANGE=false`, commit (run from `TASK_PATH`):
 
 ```bash
 PRE_COMMIT_HEAD=$(git rev-parse HEAD)
@@ -372,13 +467,91 @@ If the staged diff contains paths beyond what you intended, commit with an
 explicit pathspec (`git commit -m "<message>" -- <paths>`) so only your
 paths are committed.
 
-If commit fails, abort before push/reply/resolve.
+If commit fails, abort before merge/push/reply/resolve.
+
+If the selection was `コミットのみ`, stop here: do not merge or push. Report
+`TASK_PATH` and `TASK_BRANCH` as preserved, and leave the 🚀 reaction in place
+(work is still in progress from the PR's perspective).
+
+#### Merge the task branch back into the PR head
+
+Run from `TASK_PATH`, through the same executable boundary as worktree
+creation. This performs `wtm <HEAD_BRANCH>` semantics — fast-forward when
+possible, otherwise a merge commit; never squash or rebase:
+
+```bash
+zsh -ic 'builtin cd -q -- "$1" && wtm "$2"' zsh "$TASK_PATH" "$HEAD_BRANCH"
+```
+
+If `wtm` returns nonzero, first check for real conflicts
+(`git diff --name-only --diff-filter=U` / `git ls-files -u` in
+`ORIGINAL_PATH`) rather than assuming failure. When conflicts exist:
+
+1. Report every conflicted path with a concrete resolution proposal.
+2. Ask exactly `提案を適用` (resolve in `ORIGINAL_PATH` as proposed, stage
+   each path explicitly, continue the merge — never rebase) or `自分で解決`
+   (preserve merge state, task worktree, and task branch; stop).
+3. After a successful agent-applied continuation, `wtm` cannot run its own
+   cleanup — manually run `git worktree remove` for `TASK_PATH` from
+   `ORIGINAL_PATH`, then `git branch -d` for `TASK_BRANCH`, then verify both
+   are gone.
+
+When `wtm` failed without conflicts, check whether the task commit is already
+an ancestor of `HEAD_BRANCH` — if so, do not retry; just run the independent
+checks below. Otherwise preserve all state (`ORIGINAL_PATH`, `TASK_PATH`,
+`TASK_BRANCH`), record the exact failure output, and report the blocking
+state without stashing, resetting, or otherwise altering either worktree to
+force the merge through.
+
+After merge success (including a resolved-conflict continuation),
+independently verify — never trust `wtm`'s own cleanup:
+
+- Merge: re-read `ORIGINAL_PATH`'s branch and `HEAD`; require the task commit
+  to be an ancestor of `HEAD_BRANCH`; confirm `ORIGINAL_PATH` is clean.
+- Cleanup: require the task worktree entry to be absent and
+  `refs/heads/<task-branch>` to not exist.
+
+If merge succeeded but cleanup didn't, do not push — report the remaining
+worktree/branch and the failed check.
+
+Once cleanup is verified, clear the Herdr task-worktree context (fail-safe,
+warn and continue on failure):
+
+```bash
+herdr_context_helper="${SET:-$HOME/Desktop/repository/SettingFiles}/shell/tmux/herdr_worktree_context.sh"
+zsh -ic 'builtin cd -q -- "$1" && source "$2" && clear_herdr_task_worktree_context' zsh "$ORIGINAL_PATH" "$herdr_context_helper"
+```
+
+#### Push, handling a racing remote
+
+Parallel `cl-pci` / `cx-pci` runs against the same PR merge back into the
+same `HEAD_BRANCH` and can race here. Run from `ORIGINAL_PATH`:
+
+```bash
+git fetch origin "$HEAD_BRANCH"
+git rev-list --left-right --count "HEAD...origin/${HEAD_BRANCH}"
+```
+
+If `origin/${HEAD_BRANCH}` is ahead or history diverged, show the ahead
+commits (`git log HEAD..origin/${HEAD_BRANCH} --oneline`) and ask exactly
+`pull して再push` or `中断`:
+
+- `pull して再push`: `git pull --ff-only origin "$HEAD_BRANCH"`; if that's not
+  possible, merge (never rebase, never force) and re-run this check before
+  pushing.
+- `中断`: do not push. Report the local merged branch and commit as
+  preserved; skip reply and resolve.
+
+Never force-push.
 
 ```bash
 git push origin HEAD
 ```
 
-If push fails, ask retry/abort; skip reply and resolve on abort.
+If push fails for a reason other than the race just handled, ask retry/abort;
+skip reply and resolve on abort. After a successful push, re-fetch
+`origin/${HEAD_BRANCH}` and require its object ID to equal the pushed commit
+before reporting the push as successful.
 
 Commit list for the reply body:
 
@@ -402,6 +575,20 @@ If thread reply fails, report status/body and ask retry, standalone downgrade,
 or abort; never fall back automatically. Warn that downgrading from
 `#discussion_r` loses thread context. Track `REPLY_STATUS`.
 
+### React to the target comment (🎉)
+
+Once the reply succeeds (`REPLY_STATUS` OK), swap the reaction — best-effort,
+warn and continue on failure, and skip entirely if `REACTION_TARGET` was
+never set:
+
+```bash
+gh api "${REACTION_TARGET}/reactions/${ROCKET_REACTION_ID}" -X DELETE
+gh api "${REACTION_TARGET}/reactions" -X POST -f content=hooray
+```
+
+If `ROCKET_REACTION_ID` is unavailable, re-derive it first (Phase 1) before
+deleting; if it still can't be found, skip the delete and still add 🎉.
+
 ```bash
 gh api graphql \
   -F id="$THREAD_NODE_ID" \
@@ -414,16 +601,27 @@ gh api graphql \
 Run resolve only when selected. If reply failed, ask before resolving. If
 mutation fails or stays unresolved, ask retry/skip.
 
+### Abort or decline cleanup
+
+If the user chooses `コミットしない`, or any step above stops with `abort`,
+remove the 🚀 reaction (best-effort) before reporting — a preserved task
+worktree with no forward progress shouldn't keep showing as claimed on
+GitHub. Leave `TASK_PATH` and `TASK_BRANCH` intact for manual continuation
+unless a merge already completed.
+
 Final execution summary:
 
 ```
 ## 実行結果
 - ✅ Commit: {full_hash} {subject}
-- ✅ Push: origin/{branch}
+- ✅ Merge: task branch → {HEAD_BRANCH}
+- ✅ Push: origin/{HEAD_BRANCH}
 - ✅ Reply: {url} （thread reply）
+- ✅ Reaction: 🚀 → 🎉
 - ✅ Resolve: thread {PRRT_...} を resolved に変更
 ```
 
 Use `⚠️` for errors and `⏭️` for skipped steps. Final summary must include
 modified files, verification, commit hash/message or an explicit no-change
-result, push, reply URL/result, resolve result, and remaining manual action.
+result, merge result, push, reply URL/result, reaction result, resolve
+result, and remaining manual action.
