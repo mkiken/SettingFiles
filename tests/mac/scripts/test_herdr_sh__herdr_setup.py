@@ -129,8 +129,11 @@ class HerdrConfigurationTest(unittest.TestCase):
         tmux_scripts = read_text("mac/initialization/tmux.sh")
         self.assertIn("herdr-open-lazygit.sh", tmux_scripts)
         self.assertIn("herdr_worktree_context.sh", tmux_scripts)
-        zoxide = next(c for c in keys["command"] if c["command"] == "herdr-zoxide.browse")
-        self.assertEqual(zoxide["key"], "prefix+shift+o")
+        # plugin_action直呼びだとHerdrがPATHを剥ぎ取りzoxide/fzfを解決できないため、
+        # popup経由でherdr-open-zoxide-picker.shを叩く方式になっている。
+        zoxide = next(c for c in keys["command"] if c["key"] == "prefix+shift+o")
+        self.assertEqual(zoxide["type"], "popup")
+        self.assertIn("herdr-open-zoxide-picker.sh", zoxide["command"])
 
     @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
     def test_wtc_popup_uses_the_managed_worktree_tab_script(self):

@@ -237,6 +237,9 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                     '    printf "%s\\n" "message=$5"\n'
                     '    printf "%s\\n" "sound=$7"\n'
                     '  } >> "$HERDR_TEST_EVENTS"\n'
+                    # 実装は.result.shownで成否判定するため、exit 0時はJSON応答も返す
+                    # （sound=falseのfallback経路は姉妹テストfullのHERDR_STUB_NOTIFICATION_SHOWNで担保済み）。
+                    '  printf \'{"result":{"shown":true}}\'\n'
                     "fi\n",
                     encoding="utf-8",
                 )

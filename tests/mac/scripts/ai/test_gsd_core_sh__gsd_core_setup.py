@@ -666,6 +666,7 @@ _restore_managed_codex_gsd_hooks "$1" "$2"
         hooks = json.loads(read_text("ai/codex/hooks.json"))["hooks"]
         expected_commands = {
             "PermissionRequest": ["~/.codex/hooks/codex-stop-notification.sh"],
+            "PreToolUse": ["python3 ~/.codex/hooks/codex-disable-auto-resolution.py"],
             "PostToolUse": [
                 "~/.codex/hooks/codex-context-alert.sh",
                 "python3 ~/.codex/hooks/codex-hook.py",

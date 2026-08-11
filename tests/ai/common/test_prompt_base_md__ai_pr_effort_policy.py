@@ -81,13 +81,15 @@ class PrCommentImplementAliasTest(unittest.TestCase):
     URL = "https://github.com/acme/widget/pull/42#discussion_r123"
     EXTRA = "fix only the failing path"
 
+    # tier "terra-high": cx-pciは日常運用の既定として低コストのterraを維持しつつ
+    # effortだけhighに上げている（cxh-pciはsolへ切り替える上位版）。
     ALIASES = (
         ("cl-pr-comment-implement", "_cl-pr-comment-implement", "light"),
         ("cl-pci", "_cl-pr-comment-implement", "light"),
         ("clh-pr-comment-implement", "_clh-pr-comment-implement", "high"),
         ("clh-pci", "_clh-pr-comment-implement", "high"),
-        ("cx-pr-comment-implement", "_cx-pr-comment-implement", "light"),
-        ("cx-pci", "_cx-pr-comment-implement", "light"),
+        ("cx-pr-comment-implement", "_cx-pr-comment-implement", "terra-high"),
+        ("cx-pci", "_cx-pr-comment-implement", "terra-high"),
         ("cxh-pr-comment-implement", "_cxh-pr-comment-implement", "high"),
         ("cxh-pci", "_cxh-pr-comment-implement", "high"),
     )
@@ -122,6 +124,9 @@ class PrCommentImplementAliasTest(unittest.TestCase):
                     if tier == "light":
                         self.assertNotIn("--model", captured)
                         self.assertNotIn("-c", captured)
+                    elif tier == "terra-high":
+                        self.assertEqual(captured[:2], ["--model", "gpt-5.6-terra"])
+                        self.assertEqual(captured[2:4], ["-c", 'model_reasoning_effort="high"'])
                     else:
                         self.assertEqual(captured[:2], ["--model", "gpt-5.6-sol"])
                         self.assertEqual(captured[2:4], ["-c", 'model_reasoning_effort="high"'])
