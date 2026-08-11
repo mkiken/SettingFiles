@@ -80,6 +80,22 @@ width = "90%"
 height = "90%"
 
 [[keys.command]]
+key = "prefix+ctrl+r"
+type = "popup"
+command = "HERDR_POPUP_COMMAND=1 zsh -ilc \"freview\""
+description = "AI review: pick repo/worktree -> PR"
+width = "90%"
+height = "90%"
+
+[[keys.command]]
+key = "prefix+ctrl+shift+r"
+type = "popup"
+command = "HERDR_POPUP_COMMAND=1 zsh -ilc \"freview-subagents\""
+description = "AI review (subagents): pick repo/worktree -> PR"
+width = "90%"
+height = "90%"
+
+[[keys.command]]
 key = "prefix+shift+g"
 type = "popup"
 command = "HERDR_POPUP_COMMAND=1 zsh -ilc 'source \"$HOME/.tmux/scripts/herdr-create-worktree-tab.sh\"'"

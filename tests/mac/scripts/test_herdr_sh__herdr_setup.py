@@ -178,6 +178,31 @@ class HerdrConfigurationTest(unittest.TestCase):
         self.assertIn("C-s down split", popup["description"])
         self.assertIn("C-v right split", popup["description"])
 
+    @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
+    def test_freview_popups_launch_the_review_pickers(self):
+        keys = tomllib.loads(read_text("terminal/herdr/config.toml"))["keys"]
+        review = next(c for c in keys["command"] if c["key"] == "prefix+ctrl+r")
+        review_subagents = next(
+            c for c in keys["command"] if c["key"] == "prefix+ctrl+shift+r"
+        )
+
+        self.assertEqual(review["type"], "popup")
+        self.assertEqual(
+            review["command"], 'HERDR_POPUP_COMMAND=1 zsh -ilc "freview"'
+        )
+        self.assertIn("AI review", review["description"])
+        self.assertEqual(review["width"], "90%")
+        self.assertEqual(review["height"], "90%")
+
+        self.assertEqual(review_subagents["type"], "popup")
+        self.assertEqual(
+            review_subagents["command"],
+            'HERDR_POPUP_COMMAND=1 zsh -ilc "freview-subagents"',
+        )
+        self.assertIn("AI review", review_subagents["description"])
+        self.assertEqual(review_subagents["width"], "90%")
+        self.assertEqual(review_subagents["height"], "90%")
+
     def test_brewfile_and_entrypoints_keep_tmux_beside_herdr(self):
         brewfile = read_text("mac/Brewfile")
         initialize = read_text("mac/initialization/initialize")
