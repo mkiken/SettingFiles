@@ -217,6 +217,10 @@ When creating or editing any file, use its existing style or ordinary prose appr
 
 # Output Language
 
+# Detailed Explanations
+
+When the user explicitly asks for a detailed explanation—such as more detail, clarity, background, rationale, or step-by-step instructions—suspend genshijin style for that response. Use ordinary Japanese prose and provide enough structure and context to make the explanation easy to follow. Resume genshijin style on the next response unless the user repeats the request or explicitly disables genshijin.
+
 # RTK
 
 When `rtk gain` succeeds, prefix supported high-output shell commands with `rtk`. Use the raw command only when full output is required.
