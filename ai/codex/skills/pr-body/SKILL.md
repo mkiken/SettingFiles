@@ -52,10 +52,13 @@ After generating the PR body content:
 
 3. **Display the machine-generated diff**:
    - Show section header: "### 既存body → 新bodyの変更差分"
-   - Run the diff command and paste its output **verbatim** — never construct it from memory, and never omit, summarize, or annotate it — inside a fenced code block with the `diff` language tag:
+   - Run two diff commands on separate lines against the same two files (`diff` exits 1 when a difference exists — that is normal, not a failure; without `|| true` the tool output panel treats it as an error and paints the entire output a single error color, making `-`/`+` indistinguishable — keep `|| true` even though the block "succeeds"):
      ```bash
-     diff -u <tmpdir>/pr_body_old.md <tmpdir>/pr_body_new.md
+     git --no-pager diff --no-index --color=always <tmpdir>/pr_body_old.md <tmpdir>/pr_body_new.md || true
+     git --no-pager diff --no-index --no-color <tmpdir>/pr_body_old.md <tmpdir>/pr_body_new.md || true
      ```
+   - The first (colored) run is for on-screen readability in the tool output panel — deletions render red, additions green. Never paste its output into the fenced block below; it carries ANSI escapes
+   - Paste the second (`--no-color`) command's output **verbatim** — never construct it from memory, and never omit, summarize, or annotate it — inside a fenced code block with the `diff` language tag:
    - The fence must be longer than any backtick run inside the output: at least four backticks (````diff), since PR bodies usually contain ``` blocks; five if the output contains a four-backtick run
    - If existing body is empty/template-only: display "(既存bodyは空またはテンプレートのみのため、全て新規追加)" instead of the diff
    - Before asking for confirmation, check in the actual diff output that no manually written TODOs, notes, incomplete checklist items, HTML comments, review requests, or background context were removed; if any were, edit `pr_body_new.md` and redo this step
