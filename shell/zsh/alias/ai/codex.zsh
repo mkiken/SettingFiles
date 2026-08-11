@@ -116,7 +116,7 @@ _cx-pr-comment-review() {
 alias cx-pr-comment-implement='noglob _cx-pr-comment-implement'
 alias cx-pci='noglob _cx-pr-comment-implement'
 _cx-pr-comment-implement() {
-    cx "\$pr-comment-implement $*"
+    cxth "\$pr-comment-implement $*"
 }
 
 alias cxh-pr-comment-implement='noglob _cxh-pr-comment-implement'
