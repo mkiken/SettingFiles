@@ -28,6 +28,8 @@ Bash commands may be aliased:
 
 Use an absolute path when standard behavior matters; verify non-obvious paths with `type <name>` or `command -v <name>` before hard-coding them.
 
+When declaring shell variables, avoid zsh special parameters such as `status` and `path`; use task-specific names such as `test_exit`.
+
 - The `-i` aliases (`cp`, `mv`) prompt before overwriting; in non-interactive runs the prompt auto-declines and the copy/move silently fails — use `/bin/cp` / `/bin/mv` to overwrite.
 - Deletion is the exception to that `/bin/` escape hatch: `rm` and `/bin/rm` are permission-denied in all cases, even non-interactively — always delete via `trash`.
 - `trash` does not accept rm-style flags (`-r`, `-f`, `-rf` fail); pass files and directories without flags.
