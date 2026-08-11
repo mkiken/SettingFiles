@@ -17,7 +17,9 @@ When the decision context exceeds what the `question` field and option previews 
 
 # Plan Review Deep-Dive (dig)
 
-When presenting a plan artifact for review, also offer the `dig` skill — but first skip it for trivially mechanical plans: renames, bulk replacements, reverts, single-file fixes with no design decision, or plans whose every task is a stated verbatim edit. For those, fall back to the Plan Review Presentation browser offer alone (its own line-count/format criteria still apply, so even that may be skipped).
+This section's skip criterion governs both the `dig` skill offer and the Plan Review Presentation browser offer — on Claude, that shared file's own line-count/format criteria do not apply; use this criterion for both instead. Its port-selection and launch mechanics still apply when the browser is actually opened.
+
+When presenting a plan artifact for review, offer both — but first skip both for trivially mechanical plans: renames, bulk replacements, reverts, single-file fixes with no design decision, or plans whose every task is a stated verbatim edit. For those, skip straight to `ExitPlanMode` with no dialog.
 
 Otherwise, merge this with the Plan Review Presentation offer into a single `AskUserQuestion` dialog (single-select, no multiSelect) with exactly three fixed options:
 
