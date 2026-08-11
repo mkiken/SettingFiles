@@ -1,7 +1,7 @@
-description = "Review a PR with nine parallel specialist agents. Expects [prNumber] [additionalInstructions...]."
+description = "Review a PR with six parallel specialist agents. Expects [prNumber] [additionalInstructions...]."
 
 prompt = """
-Review the target PR with nine specialist agents in parallel. Respond in Japanese.
+Review the target PR with six specialist agents in parallel. Respond in Japanese.
 
 Inputs: parse `{{args}}` as `[prNumber] [additionalInstructions...]`. If the first token is a PR number (`123` or `#123`) or PR URL, use it as `<PR_NUMBER>` and treat the rest as `<ADDITIONAL_INSTRUCTIONS>`. Otherwise, resolve the current branch's PR with `gh pr view --json number --jq .number` and treat all arguments as `<ADDITIONAL_INSTRUCTIONS>`.
 
@@ -31,17 +31,14 @@ Derive a compact manifest for every top-level inline thread (`kind=inline` and `
 
 Pass each agent directly: PR number, metadata, repo owner/name, the compact comment manifest, local mode, base/head names, `baseRefOid`, `headRefOid`, and `<ADDITIONAL_INSTRUCTIONS>`. For a line-numbered diff of at most 100 lines, also pass both diffs directly. For a larger diff, do not paste either full payload; pass the changed-file list and captured source labels instead. Every agent must inspect every changed file and its relevant diff at the exact PR revisions (local mode: local head file plus `git diff <baseRefOid>...<headRefOid>`; remote mode: `gh api` contents at `headRefOid` plus the PR-files patch). Indexed snippets alone are insufficient. Do not refetch the whole PR diff or make duplicate detection depend only on an indexed source. Each agent's focus and review rules are in its definition.
 
-Invoke all nine with `wait_for_previous=false`:
+Invoke all six with `wait_for_previous=false`:
 
-1. **pr-reviewer-bugs** — バグ検出・ロジックエラー
+1. **pr-reviewer-bugs** — バグ検出・ロジックエラー・エラーハンドリング
 2. **pr-reviewer-security** — セキュリティ脆弱性
-3. **pr-reviewer-architecture** — アーキテクチャ・設計品質
-4. **pr-reviewer-errors** — エラーハンドリング品質
-5. **pr-reviewer-history** — Git履歴・リグレッションリスク
-6. **pr-reviewer-tests** — テスト品質・カバレッジ
-7. **pr-reviewer-performance** — パフォーマンス
-8. **pr-reviewer-consistency** — 一貫性（既存コードとの整合）
-9. **pr-reviewer-simplification** — 簡素化・可読性改善提案
+3. **pr-reviewer-design** — 設計品質（アーキテクチャ・一貫性・簡素化）
+4. **pr-reviewer-history** — Git履歴・リグレッションリスク
+5. **pr-reviewer-tests** — テスト品質・カバレッジ
+6. **pr-reviewer-performance** — パフォーマンス
 
 !{cat ~/.gemini/common/pr_review_subagents/orchestrator_core.md}
 

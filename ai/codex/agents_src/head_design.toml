@@ -1,0 +1,5 @@
+name = "pr_reviewer_design"
+description = "Read-only PR reviewer for design quality: architecture, consistency, and simplification."
+sandbox_mode = "read-only"
+
+developer_instructions = '''

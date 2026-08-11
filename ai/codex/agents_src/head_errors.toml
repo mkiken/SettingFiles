@@ -1,5 +1,0 @@
-name = "pr_reviewer_errors"
-description = "Read-only PR reviewer for error handling quality."
-sandbox_mode = "read-only"
-
-developer_instructions = '''

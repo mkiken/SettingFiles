@@ -1,5 +1,5 @@
 ---
-description: "Comprehensive PR review using 9 parallel specialist sub-agents for bugs, security, architecture, error handling, history, tests, performance, consistency, and simplification"
+description: "Comprehensive PR review using 6 parallel specialist sub-agents for bugs and error handling, security, design quality, history, tests, and performance"
 model: opus
 allowed-tools: Bash(gh:*), Bash(git:*), Bash(python:*), Bash(/bin/cat:*)
 argument-hint: "[prNumber] [additionalInstructions...]"
@@ -9,7 +9,7 @@ effort: high
 
 ## Instructions
 
-Review the target PR with 9 read-only specialist sub-agents in parallel.
+Review the target PR with 6 read-only specialist sub-agents in parallel.
 
 Inputs: parse `$ARGUMENTS` as `[prNumber] [additionalInstructions...]`. If the first token is a PR number (`123` or `#123`) or PR URL, use it as `<PR_NUMBER>` and treat the rest as `<ADDITIONAL_INSTRUCTIONS>`. Otherwise, resolve the current branch's PR with `gh pr view --json number --jq .number` and treat all arguments as `<ADDITIONAL_INSTRUCTIONS>`.
 
@@ -39,15 +39,12 @@ Pass every sub-agent directly: PR number, metadata, repo owner/name, the compact
 
 Start all simultaneously:
 
-1. **pr-reviewer-bugs** — バグ検出・ロジックエラー
+1. **pr-reviewer-bugs** — バグ検出・ロジックエラー・エラーハンドリング
 2. **pr-reviewer-security** — セキュリティ脆弱性
-3. **pr-reviewer-architecture** — アーキテクチャ・設計品質
-4. **pr-reviewer-errors** — エラーハンドリング品質
-5. **pr-reviewer-history** — Git履歴・リグレッションリスク
-6. **pr-reviewer-tests** — テスト品質・カバレッジ
-7. **pr-reviewer-performance** — パフォーマンス
-8. **pr-reviewer-consistency** — 一貫性（既存コードとの整合）
-9. **pr-reviewer-simplification** — 簡素化・可読性改善提案
+3. **pr-reviewer-design** — 設計品質（アーキテクチャ・一貫性・簡素化）
+4. **pr-reviewer-history** — Git履歴・リグレッションリスク
+5. **pr-reviewer-tests** — テスト品質・カバレッジ
+6. **pr-reviewer-performance** — パフォーマンス
 
 If a launched sub-agent fails mid-run on a transient API error (e.g. session limit), do not respawn it: resume the same agent with SendMessage so it continues with its context intact. For a session-limit failure, check the current time against the reported reset time first and resume only after it has passed.
 

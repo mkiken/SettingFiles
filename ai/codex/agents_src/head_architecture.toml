@@ -1,5 +1,0 @@
-name = "pr_reviewer_architecture"
-description = "Read-only PR reviewer for architecture and module design."
-sandbox_mode = "read-only"
-
-developer_instructions = '''

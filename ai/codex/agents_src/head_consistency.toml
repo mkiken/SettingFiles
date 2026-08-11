@@ -1,5 +1,0 @@
-name = "pr_reviewer_consistency"
-description = "Read-only PR reviewer for consistency with existing repository conventions."
-sandbox_mode = "read-only"
-
-developer_instructions = '''

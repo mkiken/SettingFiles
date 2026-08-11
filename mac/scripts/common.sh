@@ -374,7 +374,7 @@ function generate_pr_reviewer_agents() {
   local notice="GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/, ai/${platform}/agents_src/. Regen: mac/updates/${platform}.sh."
   local dim out
 
-  for dim in bugs security architecture errors history tests performance consistency simplification; do
+  for dim in bugs security design history tests performance; do
     case "$platform" in
       claude | gemini)
         out="${Repo}ai/${platform}/agents/pr-reviewer-${dim}.md"

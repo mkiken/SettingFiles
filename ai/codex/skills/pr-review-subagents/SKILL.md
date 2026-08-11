@@ -1,8 +1,8 @@
 ---
 name: pr-review-subagents
 description: >
-  Comprehensive PR review using nine Codex custom subagents, parallelized up to the
-  runtime limit, for bugs, security, architecture, error handling, git history, tests, performance, consistency, and simplification. Use when the
+  Comprehensive PR review using six Codex custom subagents, parallelized up to the
+  runtime limit, for bugs and error handling, security, design quality, git history, tests, and performance. Use when the
   user wants PR review with subagents, review-subagents, or parallel specialist
   reviewers. Accepts an optional PR number plus extra review instructions; if omitted,
   detect the current branch PR.
@@ -10,7 +10,7 @@ description: >
 
 ## Instructions
 
-Review a PR with nine read-only specialist Codex subagents.
+Review a PR with six read-only specialist Codex subagents.
 
 Inputs: parse the user's message as `[prNumber] [additionalInstructions...]`. If the first PR-like token is a PR number (`123` or `#123`) or PR URL, use it as `<PR_NUMBER>` and treat the rest as `<ADDITIONAL_INSTRUCTIONS>`. Otherwise, resolve the current branch's PR and treat any remaining request text as `<ADDITIONAL_INSTRUCTIONS>`:
 
@@ -58,19 +58,16 @@ Pass every subagent directly: PR number, metadata, repo owner/name, the compact 
 
 ### Spawn
 
-Run all nine exactly once, parallelized up to the child-agent slots available at runtime:
+Run all six exactly once, parallelized up to the child-agent slots available at runtime:
 
 - `pr_reviewer_bugs`
 - `pr_reviewer_security`
-- `pr_reviewer_architecture`
-- `pr_reviewer_errors`
+- `pr_reviewer_design`
 - `pr_reviewer_history`
 - `pr_reviewer_tests`
 - `pr_reviewer_performance`
-- `pr_reviewer_consistency`
-- `pr_reviewer_simplification`
 
-If fewer than nine child-agent slots are available, use waves. Launch the maximum safe number, start the next specialist whenever a slot becomes free, and continue until all nine have completed. Never combine review dimensions merely to fit the slot limit.
+If fewer than six child-agent slots are available, use waves. Launch the maximum safe number, start the next specialist whenever a slot becomes free, and continue until all six have completed. Never combine review dimensions merely to fit the slot limit.
 
 Each subagent stays read-only and returns Japanese findings in its configured format.
 Read-only includes not creating scratch files: never redirect diffs, comments, or command output to files in the repository or elsewhere.
@@ -97,7 +94,7 @@ If `<ADDITIONAL_INSTRUCTIONS>` is non-empty, ensure every specialist received it
 3. Recheck existing comments NDJSON. Skip a duplicate — same path within ±5 lines and same root cause, or same target symbol/concept fixable by the same change — with duplicate confidence >= 70, regardless of `is_resolved` / `is_outdated`. Below 70, or when the finding needs a different fix, keep it. Collect skipped findings for `[既コメント済]`; when the matched comment is resolved or outdated, say so in the reason (e.g. `resolved済みの既存コメント #<id> と同一根本原因`).
 4. Route `[既存コード]` findings (critical pre-existing issues) to `## 既存コードに関する指摘`, keeping the critical category in the detail line.
 5. Route all other test-related findings to `## テストに関する指摘` regardless of source agent. Pre-existing-vs-changed is decided first: a `[既存コード]` finding about tests goes to `## 既存コードに関する指摘`.
-6. Same-root-cause cross-agent overlaps: bug + missing test → keep the bug, mention the test gap as supporting detail unless a distinct test change is required; bug + error-handling gap → keep the bug, fold the handling aspect into its detail unless the handling fix is a separate change; bug + security vulnerability → keep the security finding (attack framing drives the fix), fold the bug behavior into its detail; architecture + consistency → keep the architecture finding (structural framing drives the fix), fold the precedent into its detail; history + consistency → keep the consistency finding (the cited counterpart path points at the fix), fold the commit evidence into its detail; consistency (reuse an existing utility) + simplification (duplicated logic) → keep the consistency finding (it names the concrete reuse target); architecture + simplification on the same structure → keep architecture when the fix crosses module boundaries, otherwise keep simplification. A merged finding takes the highest confidence and 影響度 of the pair.
+6. Same-root-cause cross-agent overlaps: bug + missing test → keep the bug, mention the test gap as supporting detail unless a distinct test change is required; bug + security vulnerability → keep the security finding (attack framing drives the fix), fold the bug behavior into its detail; history + design → keep the design finding (the cited counterpart path points at the fix), fold the commit evidence into its detail. A merged finding takes the highest confidence and 影響度 of the pair.
 7. Keep only actionable findings requiring a concrete response — no praise, compliance confirmations, or non-actionable observations.
 8. Assign priority from 影響度 × 信頼度 per the Output Format section below. If an agent omitted 影響度, infer it from category and description.
 9. Every finding needs `[path:line]` backed by 行番号根拠 (`[path:~line]` only for pre-existing code outside the diff). Drop findings whose 行番号根拠 is missing, uses `OLD`/deleted/approximate lines, or does not match the line-numbered diff. Spot-check suspicious anchors against the head-revision file. Never show 行番号根拠 in final output.
@@ -115,7 +112,7 @@ Re-verify every High-priority finding as a skeptic before final output. Findings
 
 ### Final Format
 
-Finding-header 領域 labels: バグ検出, セキュリティ, アーキテクチャ, エラーハンドリング, Git履歴, テスト品質, パフォーマンス, 一貫性, 簡素化.
+Finding-header 領域 labels: バグ検出, セキュリティ, 設計品質, Git履歴, テスト品質, パフォーマンス.
 
 Prepend this summary table before the first priority section of the Output Format skeleton below:
 
@@ -126,13 +123,10 @@ Prepend this summary table before the first priority section of the Output Forma
 | ---- | ------ | ---------- |
 | バグ検出 | N | XX |
 | セキュリティ | N | XX |
-| アーキテクチャ | N | XX |
-| エラーハンドリング | N | XX |
+| 設計品質 | N | XX |
 | Git履歴 | N | XX |
 | テスト品質 | N | XX |
 | パフォーマンス | N | XX |
-| 一貫性 | N | XX |
-| 簡素化 | N | XX |
 ```
 
 ## Result File Output
