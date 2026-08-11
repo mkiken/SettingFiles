@@ -303,27 +303,31 @@ _ai_review_herdr_label() {
     echo "${ai_emoji}${EMOJI_STATUS_REVIEW}${git_name}"
 }
 
-# レビュー実行ごとに専用のHerdr workspace（label: review-<ディレクトリ名>）を新規作成し、
+# レビュー実行ごとに専用のHerdr workspace（label: <variant>-<ディレクトリ名>）を新規作成し、
 # 作成応答のJSONをそのまま出力する（workspace_id/初期タブ/root paneを呼び出し元が使う）
-# 引数: cwd（初期tabのcwd。ラベルのディレクトリ名にも使う）
+# 引数: variant（review / review-subagents。ラベルの前置に使い、fzf側の--label-prefixと
+#   同じ文字列にして表示を揃える） cwd（初期tabのcwd。ラベルのディレクトリ名にも使う）
 _herdr_create_review_workspace() {
-    local cwd="$1"
+    local variant="$1"
+    local cwd="$2"
 
     local ws_json
-    ws_json=$(herdr workspace create --label "review-${cwd:t}" --cwd "${cwd}" --no-focus) || {
+    ws_json=$(herdr workspace create --label "${variant}-${cwd:t}" --cwd "${cwd}" --no-focus) || {
         echo "herdr workspace createに失敗しました" >&2
         return 1
     }
     print -r -- "${ws_json}"
 }
 
-# 3AIをレビュー実行ごとの専用workspace（review-<ディレクトリ名>）の新規タブで起動する（herdr）
-# 引数: create_watcher(1なら完了待ち〜マージをworkspaceの初期タブ=orchestratorタブで実行) run_dir claude_fn gemini_fn codex_fn review_args...
+# 3AIをレビュー実行ごとの専用workspace（<variant>-<ディレクトリ名>）の新規タブで起動する（herdr）
+# 引数: create_watcher(1なら完了待ち〜マージをworkspaceの初期タブ=orchestratorタブで実行) variant(review/review-subagents) run_dir claude_fn gemini_fn codex_fn review_args...
+# variantはworkspaceラベルにのみ反映する。タブ名（3AI/orchestrator）はworkspace内に
+# 居れば区別が自明なため、バリアント間で意図的に同一のままにする
 # 呼び出し元タブは拘束しない: 完了待ち〜マージはworkspace作成時にできる初期タブを
 # orchestratorタブ（_review_watch実行）として使い、そちらへ委譲する
 _review_launch_herdr() {
-    local create_watcher="$1" run_dir="$2" claude_fn="$3" gemini_fn="$4" codex_fn="$5"
-    shift 5
+    local create_watcher="$1" variant="$2" run_dir="$3" claude_fn="$4" gemini_fn="$5" codex_fn="$6"
+    shift 6
     local -a review_args=("$@")
 
     local set_dir="${SET:-$HOME/Desktop/repository/SettingFiles}"
@@ -345,7 +349,7 @@ _review_launch_herdr() {
     codex_command=$(_ai_review_env_command "${run_dir}/codex.md" "${codex_fn}" "${review_args[@]}") || return 1
 
     local ws_json ws_id orch_tab_id orch_pane_id
-    ws_json=$(_herdr_create_review_workspace "${review_cwd}") || return 1
+    ws_json=$(_herdr_create_review_workspace "${variant}" "${review_cwd}") || return 1
     ws_id=$(print -r -- "${ws_json}" | jq -r '.result.workspace.workspace_id // empty')
     if [[ -z "${ws_id}" ]]; then
         echo "review workspaceのworkspace_id取得に失敗しました" >&2
@@ -479,10 +483,10 @@ _review_launch_tmux() {
 # tmuxでは従来どおりカレントウィンドウで完了待ちする
 # 環境変数 AI_REVIEW_CWD が設定されていれば、herdr経路のworkspace/タブ/ラベルは
 # $PWD ではなくそのパスを基準にする（worktreeピッカー経由のfreviewが使う）
-# 引数: claude_fn gemini_fn codex_fn [--no-merge] [pr] [prompt...]
+# 引数: variant(review/review-subagents。workspaceラベルの前置に使う) claude_fn gemini_fn codex_fn [--no-merge] [pr] [prompt...]
 _review_run() {
-    local claude_fn="$1" gemini_fn="$2" codex_fn="$3"
-    shift 3
+    local variant="$1" claude_fn="$2" gemini_fn="$3" codex_fn="$4"
+    shift 4
 
     local no_merge=0
     if [[ "${1:-}" == "--no-merge" ]]; then
@@ -504,12 +508,12 @@ _review_run() {
             # 完了待ち〜マージはreview workspaceのorchestratorタブへ委譲し、呼び出し元タブは即解放する
             local create_watcher=1
             (( no_merge )) && create_watcher=0
-            _review_launch_herdr "${create_watcher}" \
+            _review_launch_herdr "${create_watcher}" "${variant}" \
                 "${run_dir}" "${claude_fn}" "${gemini_fn}" "${codex_fn}" "${review_args[@]}" || return 1
             if (( no_merge )); then
                 echo "レビューを起動しました（自動マージなし）: ${run_dir}"
             else
-                echo "レビューを起動しました。完了待ち〜マージは review-${${AI_REVIEW_CWD:-${PWD}}:t} スペースの🔍orchestratorタブで実行します: ${run_dir}"
+                echo "レビューを起動しました。完了待ち〜マージは ${variant}-${${AI_REVIEW_CWD:-${PWD}}:t} スペースの🔍orchestratorタブで実行します: ${run_dir}"
             fi
             return 0
             ;;
@@ -561,11 +565,11 @@ _review_handle_wait_status() {
 }
 
 review() {
-    _review_run cl-pr-review gm-pr-review cx-pr-review "$@"
+    _review_run review cl-pr-review gm-pr-review cx-pr-review "$@"
 }
 
 review-subagents() {
-    _review_run cl-pr-review-subagents gm-pr-review-subagent cx-pr-review-subagent "$@"
+    _review_run review-subagents cl-pr-review-subagents gm-pr-review-subagent cx-pr-review-subagent "$@"
 }
 
 # 引数(PR参照 or 現ブランチ)から最新ランディレクトリを解決する（review-merge/review-report共用）

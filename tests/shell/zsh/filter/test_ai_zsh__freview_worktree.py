@@ -94,11 +94,14 @@ class FreviewWorktreeFixture:
         )
         # filter: --headerの文言でrepoピッカー/worktreeピッカー/PRピッカーを判別する。
         # worktreeピッカーはcdq経由でrepoへcdした状態で呼ばれるため($PWD==repo)、
-        # PWDでは区別できず--headerの文言で見分ける必要がある
+        # PWDでは区別できず--headerの文言で見分ける必要がある。
+        # --label-prefix由来の--promptは判別に使わず、argv全体をログへ記録するだけにする
+        # （headerの文言を変えると判別ロジックが壊れるため、prompt側だけで検証する）
         self._write_executable(
             "filter",
             "#!/bin/sh\n"
             "printf 'FILTER_CALL\\n' >> \"$FREVIEW_LOG\"\n"
+            "printf 'FILTER_ARGS %s\\n' \"$*\" >> \"$FREVIEW_LOG\"\n"
             "args=\"$*\"\n"
             "case \"$args\" in\n"
             "  *Number*)\n"
@@ -160,7 +163,11 @@ class FreviewWorktreeFixture:
             source "{GITHUB_FILTER}"
             source "{AI_FILTER}"
             _filter_zoxide_git_repo() {{
-                zoxide query --list | filter --height 40%
+                local label_prefix=""
+                if [[ "${{1:-}}" == "--label-prefix" ]]; then
+                    label_prefix="$2"
+                fi
+                zoxide query --list | filter --height 40% --prompt "${{label_prefix:+$label_prefix }}repo> "
             }}
             review() {{ printf 'REVIEW review %s (AI_REVIEW_CWD=%s)\\n' "$*" "$AI_REVIEW_CWD" >> "$FREVIEW_LOG"; }}
             review-subagents() {{ printf 'REVIEW review-subagents %s (AI_REVIEW_CWD=%s)\\n' "$*" "$AI_REVIEW_CWD" >> "$FREVIEW_LOG"; }}
@@ -215,6 +222,30 @@ class FreviewWorktreeModeTest(FreviewWorktreeFixture, unittest.TestCase):
         calls = self.calls()
         self.assertEqual(len([c for c in calls if c.startswith("REVIEW review-subagents ")]), 1, calls)
         self.assertEqual(len([c for c in calls if c.startswith("REVIEW review ")]), 0, calls)
+
+    def test_freview_prompts_are_labeled_review_without_subagents(self):
+        # 3ピッカーすべてのpromptに"review"が付き、"subagents"は付かないことを確認する
+        # （押し間違いに気づけるようにする対策のfreview側の固定）
+        result, values = self.run_freview()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        calls = self.calls()
+        filter_args = [c for c in calls if c.startswith("FILTER_ARGS ")]
+        self.assertEqual(len(filter_args), 3, calls)
+        for args in filter_args:
+            self.assertIn("--prompt review ", args, calls)
+            self.assertNotIn("subagents", args, calls)
+
+    def test_freview_subagents_prompts_are_labeled_with_subagents(self):
+        # freview-subagents実行時は3ピッカーすべてのpromptに"review-subagents"が付く
+        result, values = self.run_freview(command="freview-subagents")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        calls = self.calls()
+        filter_args = [c for c in calls if c.startswith("FILTER_ARGS ")]
+        self.assertEqual(len(filter_args), 3, calls)
+        for args in filter_args:
+            self.assertIn("--prompt review-subagents ", args, calls)
 
     def test_pr_picker_runs_with_selected_worktree_as_cwd(self):
         result, values = self.run_freview()

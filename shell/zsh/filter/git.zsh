@@ -723,8 +723,15 @@ function fgcp() {
 }
 
 # zoxide候補から .git ディレクトリを持つメインリポジトリだけを絞り、filterで1つ選ぶ
+# 引数: --label-prefix <文字列>（省略可。promptの前置ラベル。呼び出し元の区別用途）
 # 戻り値: 選択されたリポジトリのフルパス、キャンセル/候補ゼロ時は $EXIT_CODE_SIGINT
 function _filter_zoxide_git_repo() {
+  local label_prefix=""
+  if [[ "${1:-}" == "--label-prefix" ]]; then
+    label_prefix="$2"
+    shift 2
+  fi
+
   if ! command -v zoxide >/dev/null 2>&1; then
     echo "zoxide が見つかりません" >&2
     return $EXIT_CODE_SIGINT
@@ -743,7 +750,7 @@ function _filter_zoxide_git_repo() {
   local selected
   selected=$(print -r -- "$repos" | filter \
     --header "リポジトリを選択" \
-    --prompt "repo> " \
+    --prompt "${label_prefix:+$label_prefix }repo> " \
     --preview 'git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"')
 
   [[ -z "$selected" ]] && return $EXIT_CODE_SIGINT
@@ -757,12 +764,23 @@ function _filter_zoxide_git_repo() {
 # 戻り値: 選択されたworktreeのフルパス、キャンセル/候補ゼロ時は $EXIT_CODE_SIGINT
 function _filter_git_worktree_path() {
   local target_picker=false
-  if [[ "${1:-}" == "--target-picker" ]]; then
-    target_picker=true
-  elif [[ $# -gt 0 ]]; then
-    echo "Usage: _filter_git_worktree_path [--target-picker]" >&2
-    return 2
-  fi
+  local label_prefix=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --target-picker)
+        target_picker=true
+        shift
+        ;;
+      --label-prefix)
+        label_prefix="$2"
+        shift 2
+        ;;
+      *)
+        echo "Usage: _filter_git_worktree_path [--target-picker] [--label-prefix <文字列>]" >&2
+        return 2
+        ;;
+    esac
+  done
 
   local raw_list
   raw_list=$(git worktree list --porcelain 2>/dev/null)
@@ -808,7 +826,7 @@ function _filter_git_worktree_path() {
   selected=$(print -r -- "$worktrees" | filter \
     --header "worktreeを選択 | Enter: workspace | C-o: tab | C-s: 横split | C-v: 縦split" \
     --header-lines 1 \
-    --prompt "worktree> " \
+    --prompt "${label_prefix:+$label_prefix }worktree> " \
     --delimiter $'\t' \
     --with-nth 1 \
     --preview 'echo {2} | xargs -I{} git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"' \
@@ -842,11 +860,26 @@ function _filter_git_worktree_path() {
 }
 
 # zoxideからリポジトリ、続けてそのリポジトリのworktreeを選択する
+# 引数: --target-picker / --label-prefix <文字列>（両方省略可、_filter_git_worktree_pathへそのまま転送）
+# --label-prefixはリポジトリ選択の段にも当てるため、ここで一度取り出してから両段へ渡し直す
 # 戻り値: 選択されたworktreeのフルパス、キャンセル/候補ゼロ時は $EXIT_CODE_SIGINT
 function _filter_zoxide_git_worktree_path() {
   local -a filter_args=("$@")
+  local label_prefix=""
+  local -a repo_args=()
+  local i=1
+  while (( i <= $# )); do
+    if [[ "${filter_args[$i]}" == "--label-prefix" ]]; then
+      label_prefix="${filter_args[$((i + 1))]}"
+      repo_args=(--label-prefix "$label_prefix")
+      i=$((i + 2))
+    else
+      i=$((i + 1))
+    fi
+  done
+
   local repo_path
-  repo_path=$(_filter_zoxide_git_repo)
+  repo_path=$(_filter_zoxide_git_repo "${repo_args[@]}")
   if [[ $? -ne 0 ]] || [[ -z "$repo_path" ]]; then
     return $EXIT_CODE_SIGINT
   fi

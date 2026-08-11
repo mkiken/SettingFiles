@@ -43,6 +43,28 @@ class AiReviewLauncherTest(unittest.TestCase):
                 result = run_zsh(f"typeset -f -- {name} >/dev/null")
                 self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_review_run_message_label_matches_workspace_label(self):
+        # _review_run起動メッセージ内のラベル（ai.zsh内の再計算）が
+        # _herdr_create_review_workspaceの実体ラベルと乖離しないことの固定
+        with tempfile.TemporaryDirectory() as temp_dir:
+            run_dir = Path(temp_dir) / "run"
+            snippet = f'''
+_ai_multiplexer_kind() {{ echo herdr; }}
+_review_launch_herdr() {{ return 0; }}
+ai_review_run_dir_sh() {{ printf '%s' "{run_dir}"; }}
+bash() {{
+    case "$*" in
+        *ai_review_run_dir.sh*) ai_review_run_dir_sh ;;
+    esac
+}}
+AI_REVIEW_CWD=/path/to/my-worktree
+_review_run review-subagents cl-fn gm-fn cx-fn '#123'
+'''
+            result = run_zsh(snippet)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("review-subagents-my-worktree", result.stdout)
+        self.assertNotIn("review-my-worktree", result.stdout)
+
     def test_review_herdr_label_uses_given_cwd_not_pwd(self):
         # _ai_review_herdr_labelはcwd引数を受け取り、$PWDに依存しない
         snippet = '''
@@ -63,7 +85,7 @@ class ReviewLaunchHerdrTest(unittest.TestCase):
         '"tab":{"tab_id":"t0"},"root_pane":{"pane_id":"p0"}}}'
     )
 
-    def run_launch(self, create_watcher, extra_env=""):
+    def run_launch(self, create_watcher, variant="review", extra_env=""):
         with tempfile.TemporaryDirectory() as temp_dir:
             log = Path(temp_dir) / "calls.log"
             snippet = f'''
@@ -82,7 +104,7 @@ _herdr_run_in_new_tab() {{
     local n=$(grep -c "^newtab " "$LOG")
     [[ -n "${{5:-}}" ]] && _ai_pr_review_assign "$5" "t${{n}}"
 }}
-_review_launch_herdr {create_watcher} /tmp/run cl-fn gm-fn cx-fn 123
+_review_launch_herdr {create_watcher} {variant} /tmp/run cl-fn gm-fn cx-fn 123
 print -r -- "rc=$?"
 '''
             result = run_zsh(snippet)
@@ -112,6 +134,36 @@ print -r -- "rc=$?"
         # workspace focus後にorchestratorタブ(t0)へフォーカスする
         self.assertIn("workspace focus ws1", calls)
         self.assertIn("tab focus t0", calls)
+
+    def test_workspace_label_uses_given_variant(self):
+        # reviewとreview-subagentsを取り違えても気づけるよう、workspaceラベルに
+        # variantをそのまま前置する（review-<dir> / review-subagents-<dir>）
+        result, calls = self.run_launch(create_watcher=1, variant="review-subagents")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        creates = [c for c in calls if c.startswith("workspace create ")]
+        self.assertEqual(len(creates), 1, calls)
+        self.assertIn("--label review-subagents-", creates[0])
+
+        result, calls = self.run_launch(create_watcher=1, variant="review")
+        creates = [c for c in calls if c.startswith("workspace create ")]
+        self.assertIn("--label review-", creates[0])
+        # "review-" 前置だが "review-subagents-" ではないことを確認する
+        # （review-subagentsの"review-"部分一致で誤って通過しないようにするピン留め）
+        self.assertNotIn("--label review-subagents-", creates[0])
+
+    def test_tab_names_stay_identical_across_variants(self):
+        # orchestrator/3AIタブ名は「workspace内に居れば区別が自明」という設計判断により
+        # variant間で意図的に同一のまま。誤って差異を入れる変更を検知するための負のピン留め
+        _, review_calls = self.run_launch(create_watcher=1, variant="review")
+        _, subagents_calls = self.run_launch(create_watcher=1, variant="review-subagents")
+
+        review_rename = [c for c in review_calls if c.startswith("tab rename ")]
+        subagents_rename = [c for c in subagents_calls if c.startswith("tab rename ")]
+        self.assertEqual(review_rename, subagents_rename)
+
+        review_newtabs = [c for c in review_calls if c.startswith("newtab ")]
+        subagents_newtabs = [c for c in subagents_calls if c.startswith("newtab ")]
+        self.assertEqual(review_newtabs, subagents_newtabs)
 
     def test_no_watcher_when_disabled(self):
         # --no-merge相当: サブタブ3つのみで、初期タブへの投入・ラベル付け・フォーカスはしない

@@ -17,16 +17,32 @@ function fgh_compare_url(){
 }
 
 # マージ先のブランチ名を表示するPR一覧
+# 先頭の --label-prefix <文字列> はここで剥がしてfilterのpromptへ渡し、
+# 残りの引数はghpl_branch（gh pr listのクエリフラグ）へそのまま転送する
 function _fgh_select_pr() {
-  ghpl_branch "$@" \
-    | filter --height 40% --layout reverse --info inline --border \
-        --header $'Number\tTitle\tAuthor\tBase\tHead' \
-        --delimiter $'\t' --with-nth 1,2,3,4,5
+  local label_prefix=""
+  if [[ "${1:-}" == "--label-prefix" ]]; then
+    label_prefix="$2"
+    shift 2
+  fi
+
+  local -a filter_args=(--height 40% --layout reverse --info inline --border
+    --header $'Number\tTitle\tAuthor\tBase\tHead'
+    --delimiter $'\t' --with-nth 1,2,3,4,5)
+  [[ -n "$label_prefix" ]] && filter_args+=(--prompt "${label_prefix} ")
+
+  ghpl_branch "$@" | filter "${filter_args[@]}"
 }
 
 function _fgh_select_pr_number() {
+  local -a label_args=()
+  if [[ "${1:-}" == "--label-prefix" ]]; then
+    label_args=(--label-prefix "$2")
+    shift 2
+  fi
+
   local selected_pr
-  selected_pr=$(_fgh_select_pr "$@")
+  selected_pr=$(_fgh_select_pr "${label_args[@]}" "$@")
   if [[ -z "$selected_pr" ]]; then
     return $EXIT_CODE_SIGINT
   fi

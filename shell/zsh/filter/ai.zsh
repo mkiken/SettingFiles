@@ -66,7 +66,7 @@ _freview_worktree() {
     fi
 
     local worktree_path
-    worktree_path=$(_filter_zoxide_git_worktree_path)
+    worktree_path=$(_filter_zoxide_git_worktree_path --label-prefix "$func_name")
     if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
         return $EXIT_CODE_SIGINT
     fi
@@ -76,8 +76,10 @@ _freview_worktree() {
     # gh pr list はcwd依存のため、選択worktreeへcdしたサブシェルでPRを選ぶ
     # fzfはTUIを/dev/ttyに描くのでコマンド置換内でも動く
     # （_filter_zoxide_git_worktree_path が cdq + filter で同じことをしている）
+    # --label-prefixにfunc_name（review/review-subagents）を渡し、fzfのpromptで
+    # どのバリアントを実行中か常に見分けられるようにする
     local pr_number
-    pr_number=$(cdq "$worktree_path" && _fgh_select_pr_number)
+    pr_number=$(cdq "$worktree_path" && _fgh_select_pr_number --label-prefix "$func_name")
     if [[ $? -ne 0 ]] || [[ -z "$pr_number" ]]; then
         return $EXIT_CODE_SIGINT
     fi
