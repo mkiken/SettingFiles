@@ -433,6 +433,11 @@ always add "コミットしない"
 
 Question: `対応が完了しました。以下のうちどこまで自動実行しますか？（プレビューは上記参照）`
 
+Use the platform's confirmation primitive only when it can display every
+executable option. If its option limit is lower, ask this one final question
+as a plain-text ordered list of every option and accept a number-only reply.
+Never omit or group executable options to fit the UI limit.
+
 If the user declines every action (cancel or an equivalent `コミットしない`
 choice), stop without git or GitHub side effects and report that. This
 question is the commit decision for this workflow; do not ask a generic

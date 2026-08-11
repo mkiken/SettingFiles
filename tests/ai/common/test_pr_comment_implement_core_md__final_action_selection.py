@@ -28,6 +28,15 @@ class PrCommentImplementFinalActionSelectionTest(unittest.TestCase):
             with self.subTest(compound_option=compound_option):
                 self.assertIn(compound_option, self.content)
 
+    def test_option_limit_preserves_every_executable_action(self):
+        for contract in (
+            "only when it can display every",
+            "plain-text ordered list of every option",
+            "Never omit or group executable options",
+        ):
+            with self.subTest(contract=contract):
+                self.assertIn(contract, self.content)
+
     def test_commit_only_stops_before_merge(self):
         commit_only = self.content.index("If the selection was `コミットのみ`")
         merge = self.content.index("#### Merge the task branch back into the PR head")
@@ -74,6 +83,7 @@ class PrCommentImplementFinalActionSelectionTest(unittest.TestCase):
         self.assertIn("~/.claude/common/pr_comment_implement_core.md", claude_skill)
         self.assertIn("~/.gemini/common/pr_comment_implement_core.md", gemini_command)
         self.assertIn('add "コミット & 親ブランチにマージ"', codex_skill)
+        self.assertIn("plain-text ordered list of every option", codex_skill)
 
 
 if __name__ == "__main__":
