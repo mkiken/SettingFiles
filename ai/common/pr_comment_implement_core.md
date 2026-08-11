@@ -6,6 +6,16 @@ before proceeding.
 Analyze the target comment, `PROMPT`, affected files, and surrounding code
 before designing the change.
 
+### Executable boundary in plan mode
+
+Plan mode does not suspend Phase 1. Run every read-only step below (working
+tree check, URL parsing, `gh api` GET, thread and file reading) and the 🚀
+reaction POST as written — claiming the comment before the approval gate is
+the point, and skipping it lets a parallel run pick up the same comment.
+Execution stops at `Create an isolated task worktree`: in plan mode, plan that
+section instead of running it, and follow the plan-mode variant of Phase 2's
+`作業環境引き継ぎ` below.
+
 Check the working tree state first — this must be clean, since Phase 1
 creates an isolated task worktree rather than editing in place:
 
@@ -110,6 +120,11 @@ inspect the current equivalent symbol or concept.
 Implement in a dedicated worktree, not the invoking one, so parallel
 `cl-pci` / `cx-pci` runs against the same PR never share a working tree.
 
+In plan mode, stop executing here: plan this section and everything after it,
+and do not run `git fetch`, `wtc`, or the Herdr context helper. Create the
+worktree at the start of Phase 3, immediately after approval and before any
+edit.
+
 ```bash
 ORIGINAL_PATH=$(git rev-parse --show-toplevel)
 HEAD_BRANCH=$(gh pr view "$PR_URL" --json headRefName --jq .headRefName)
@@ -140,6 +155,9 @@ proves ownership for later cleanup.
 Create the worktree through the same executable boundary `worktree-task`
 uses: keep the `-c` script literal, pass paths/branches only as positional
 arguments, never interpolate task-derived values into the script string.
+That reference covers the invocation mechanics only — do not carry over
+`worktree-task`'s own plan-mode or handoff rules, which govern that skill's
+entry point, not this workflow's.
 
 ```bash
 zsh -ic 'builtin cd -q -- "$1" && wtc "$2" --base "$3" --no-cd' zsh "$ORIGINAL_PATH" "$TASK_BRANCH" "$HEAD_BRANCH"
@@ -209,8 +227,8 @@ Before editing, present this Japanese design and wait for explicit approval:
 - 省略禁止: context reset後もPRへの返信とresolve判断を省略しない
 
 ### 作業環境引き継ぎ
-- Task worktree: <TASK_PATH>
-- Task branch: <task/slug-timestamp>
+- Task worktree: <TASK_PATH、または plan mode のため未作成>
+- Task branch: <task/slug-timestamp、または plan mode のため未作成（実装開始時に採番）>
 - Merge target (PR head): <HEAD_BRANCH>
 - Invoking worktree: <ORIGINAL_PATH>
 - Rocket reaction ID: <ROCKET_REACTION_ID、または再取得が必要な旨>
@@ -233,6 +251,13 @@ reply/resolve target information and enough working-directory information
 determined before implementation, state the exact item to re-fetch instead of
 omitting it. In plan mode, write this design (including both sections) into
 the platform's plan artifact.
+
+In plan mode the task worktree does not exist yet, so `作業環境引き継ぎ` records
+intent instead of resolved paths: state that the worktree is uncreated and that
+the implementer must start at `Create an isolated task worktree` before any
+edit. `Rocket reaction ID` is still a real value — the reaction was posted in
+Phase 1 — so record it, not a placeholder. Decline cleanup then only removes
+the 🚀 reaction; there is no worktree or branch to clean up.
 
 `role` is the `ROLE` value already derived in Phase 1 (`gh api user` vs. the
 comment author) — never write a guessed `other` here. A comment authored by
