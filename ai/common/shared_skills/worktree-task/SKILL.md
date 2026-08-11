@@ -118,19 +118,30 @@ Use only safe deletion. If either cleanup operation fails, preserve the remainin
 
 ## Confirm and create the commit
 
-When deliverable changes exist, summarize the changed paths and verification results. Ask exactly these two authored choices through the platform's user-confirmation mechanism:
+When deliverable changes exist, summarize the changed paths and verification results. Ask exactly these four authored choices through the platform's user-confirmation mechanism:
 
-- `コミットのみ` — create the task commit and continue to merge; do not push yet
-- `コミットしない` — leave the task worktree, branch, and changes intact; do not merge
+- `コミット & 親ブランチにマージ & push` — create the task commit, merge it into the original branch, clean up the task worktree and branch, then push the original branch
+- `コミット & 親ブランチにマージ` — create the task commit, merge it into the original branch, clean up the task worktree and branch, then stop without pushing
+- `コミットのみ` — create the task commit, preserve the task worktree and branch, and stop without merging or pushing
+- `コミットしない` — preserve the task worktree, branch, and changes without committing, merging, or pushing
 
-Do not offer a push choice at this checkpoint. If the user declines the commit, report the preserved worktree path and branch, then stop.
+Map the four displayed choices in order to `commit_merge_push`,
+`commit_merge`, `commit_only`, and `no_commit`, and record the selected action.
+The selection is final; do not ask a second push confirmation. If the
+platform's confirmation UI cannot present four authored choices, use a
+plain-text ordered list and treat a number-only reply as selecting the
+corresponding visible option.
 
-For the commit choice:
+For `no_commit`, report the preserved worktree path and branch, then stop. For
+every other action:
 
 1. Recheck the task worktree and stage only paths changed for this task, using explicit paths rather than `git add .` or `git add -A`.
 2. Verify the staged diff contains only intended hunks and follow the repository's commit-message convention.
 3. Commit in the task worktree. If the commit fails, preserve the worktree and branch, report the failure, and stop.
 4. Record the task commit object ID and confirm the task worktree is clean.
+
+For `commit_only`, report the preserved task worktree path, branch, and commit,
+then stop before merge.
 
 ## Merge and verify cleanup
 
@@ -193,16 +204,11 @@ Because the failed `wtm` invocation cannot perform its success cleanup, after co
 
 Never abort the merge unless the user explicitly requests it.
 
-## Confirm and perform the push
+## Finish the selected merge action
 
-Only after both merge and cleanup checks pass, ask exactly these two authored choices through the platform's user-confirmation mechanism:
-
-- `プッシュする` — push the updated original branch
-- `プッシュしない` — leave the merged original branch local
-
-If the user declines the push, report the local branch and merged commit, then stop.
-
-If the user accepts the push:
+Only after both merge and cleanup checks pass, inspect the recorded action. For
+`commit_merge`, report the local branch and merged commit, then stop without
+pushing. Continue with the push steps only for `commit_merge_push`:
 
 1. Re-read the current branch from the recorded invoking worktree. Require it to be attached and equal to the recorded original branch.
 2. Resolve its configured upstream remote and remote branch. Stop rather than guessing if no upstream is configured.

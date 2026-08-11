@@ -176,20 +176,37 @@ class WorktreeTaskSkillContentTest(unittest.TestCase):
             with self.subTest(required=required):
                 self.assertIn(required, self.content)
 
-    def test_confirmation_contract_has_three_exact_two_choice_gates(self):
+    def test_confirmation_contract_has_four_way_finalization_and_conflict_gate(self):
+        normalized_content = " ".join(self.content.split())
         for label in (
+            "`コミット & 親ブランチにマージ & push`",
+            "`コミット & 親ブランチにマージ`",
             "`コミットのみ`",
             "`コミットしない`",
             "`提案を適用`",
             "`自分で解決`",
-            "`プッシュする`",
-            "`プッシュしない`",
         ):
             with self.subTest(label=label):
                 self.assertEqual(self.content.count(label), 1)
 
-        self.assertIn("Do not offer a push choice at this checkpoint", self.content)
-        self.assertIn("ask exactly these two authored choices", self.content)
+        for required in (
+            "Ask exactly these four authored choices",
+            "The selection is final; do not ask a second push confirmation",
+            "If the platform's confirmation UI cannot present four authored choices",
+            "use a plain-text ordered list",
+            "For `commit_only`",
+            "stop before merge",
+            "For `commit_merge`",
+            "stop without pushing",
+            "Continue with the push steps only for `commit_merge_push`",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, normalized_content)
+
+        # Push is selected in the initial four-way gate, so a second push gate
+        # would make the supposedly final choice ambiguous.
+        self.assertNotIn("`プッシュする`", self.content)
+        self.assertNotIn("`プッシュしない`", self.content)
 
     def test_conflict_handoff_merge_cleanup_and_push_safety_are_explicit(self):
         for required in (

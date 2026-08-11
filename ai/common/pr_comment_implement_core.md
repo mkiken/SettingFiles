@@ -422,10 +422,12 @@ if NO_CODE_CHANGE:
     add "返信のみ"
 else:
   if CAN_OFFER_RESOLVE:
-    add "コミット & push & 返信 & resolve"
+    add "コミット & 親ブランチにマージ & push & 返信 & resolve"
   if REPLY_PATH in ("thread", "standalone"):
-    add "コミット & push & 返信"
-  add "コミット & push", "コミットのみ"
+    add "コミット & 親ブランチにマージ & push & 返信"
+  add "コミット & 親ブランチにマージ & push"
+  add "コミット & 親ブランチにマージ"
+  add "コミットのみ"
 always add "コミットしない"
 ```
 
@@ -539,7 +541,14 @@ herdr_context_helper="${SET:-$HOME/Desktop/repository/SettingFiles}/shell/tmux/h
 zsh -ic 'builtin cd -q -- "$1" && source "$2" && clear_herdr_task_worktree_context' zsh "$ORIGINAL_PATH" "$herdr_context_helper"
 ```
 
+If the selection was `コミット & 親ブランチにマージ`, stop here. Report the
+local `HEAD_BRANCH` and merged commit; skip fetch, push, reply, and resolve.
+Leave the 🚀 reaction in place because the PR head has not been updated on
+GitHub yet.
+
 #### Push, handling a racing remote
+
+Run this section only when the selected action contains `& push`.
 
 Parallel `cl-pci` / `cx-pci` runs against the same PR merge back into the
 same `HEAD_BRANCH` and can race here. Run from `ORIGINAL_PATH`:

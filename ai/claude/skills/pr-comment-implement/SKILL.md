@@ -1,6 +1,6 @@
 ---
 allowed-tools: Bash(gh:*), Bash(git:*), Bash(jq:*), Bash(zsh:*), Bash(/bin/cat:*), Read, Edit, Write
-description: "Implement code changes based on PR review comments, with design review phase before implementation."
+description: "Implement code changes based on PR review comments, with design review and explicit commit, merge, and push finalization."
 argument-hint: [prCommentUrl] [instructions...]
 disable-model-invocation: true
 effort: high

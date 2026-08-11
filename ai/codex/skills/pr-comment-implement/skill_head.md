@@ -7,8 +7,8 @@ description: >
   phrases such as "PRコメント対応", "このレビューコメントを直して",
   "implement this PR comment", or invokes `$pr-comment-implement`.
   The workflow performs analysis, presents an implementation design before
-  editing, implements after approval, and can optionally commit, push, reply
-  to the original comment, and resolve the review thread.
+  editing, implements after approval, and can optionally commit, merge, push,
+  reply to the original comment, and resolve the review thread.
 ---
 
 ## Inputs
