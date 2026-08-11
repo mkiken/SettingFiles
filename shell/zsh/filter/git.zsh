@@ -942,14 +942,37 @@ alias frw='repository-worktree'
 alias frww='repository-worktree -w'
 alias frws='repository-worktree -s'
 
+# popupの発火元pane（HERDR_ACTIVE_PANE_CWD）がgitリポジトリ内ならそのトップレベルを返す
+# 発火元cwdが未設定・存在しない・git管理外なら何も出力せず1を返す
+function _herdr_active_pane_repo_root() {
+  local active_cwd="${HERDR_ACTIVE_PANE_CWD:-}"
+  [[ -n "$active_cwd" && -d "$active_cwd" ]] || return 1
+
+  local repo_root
+  repo_root=$(cdq "$active_cwd" && git rev-parse --show-toplevel 2>/dev/null)
+  [[ -n "$repo_root" ]] || return 1
+
+  print -r -- "$repo_root"
+}
+
 function _herdr_pick_worktree_target() {
   if [[ "$(_ai_multiplexer_kind)" != "herdr" ]]; then
     echo "Herdr popup内で実行してください" >&2
     return 1
   fi
 
+  # popupはherdr serverの子プロセスで、自身のcwdは発火元paneと無関係。
+  # 発火元がgitリポジトリ内ならそのリポジトリのworktreeだけを対象にし、
+  # 外ならzoxide履歴からリポジトリを選ぶ従来の2段階選択にフォールバックする。
+  local active_repo
+  active_repo=$(_herdr_active_pane_repo_root)
+
   local selection
-  selection=$(_filter_zoxide_git_worktree_path --target-picker)
+  if [[ -n "$active_repo" ]]; then
+    selection=$(cdq "$active_repo" && _filter_git_worktree_path --target-picker)
+  else
+    selection=$(_filter_zoxide_git_worktree_path --target-picker)
+  fi
   if [[ $? -ne 0 ]] || [[ -z "$selection" ]]; then
     return $EXIT_CODE_SIGINT
   fi

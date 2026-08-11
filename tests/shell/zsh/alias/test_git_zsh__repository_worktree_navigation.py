@@ -49,6 +49,7 @@ class RepositoryWorktreeTest(unittest.TestCase):
             "git",
             "#!/bin/sh\n"
             "if [ \"$1\" = rev-parse ] && [ \"$2\" = --show-toplevel ]; then\n"
+            "  [ \"${FWT_NOT_A_REPO:-}\" = 1 ] && exit 128\n"
             "  printf '%s\\n' \"$FWT_REPO\"\n"
             "  exit 0\n"
             "fi\n"
@@ -83,7 +84,7 @@ class RepositoryWorktreeTest(unittest.TestCase):
             "for arg in \"$@\"; do\n"
             "  [ \"$arg\" = \"--expect=ctrl-o,ctrl-s,ctrl-v\" ] && target_picker=1\n"
             "done\n"
-            "if [ \"$count\" -eq 0 ]; then\n"
+            "if [ \"$count\" -eq 0 ] && [ \"$target_picker\" -eq 0 ]; then\n"
             "  printf '%s\\n' \"$FWT_REPO\"\n"
             "elif [ \"$target_picker\" -eq 1 ]; then\n"
             "  printf '%s\\n' \"$FWT_FILTER_EXPECT_KEY\"\n"
@@ -320,6 +321,71 @@ class RepositoryWorktreeTest(unittest.TestCase):
         self.assertEqual(len(calls), 1, calls)
         self.assertIn("tab create", calls[0])
         self.assertIn(f"--cwd {self.repo}", calls[0])
+
+    def test_popup_picker_skips_repository_selection_inside_a_repository(self):
+        # 発火元paneがgitリポジトリ内なら、zoxideのリポジトリ選択を挟まず
+        # そのリポジトリのworktreeだけをpickerに出す（filterは1回だけ）。
+        result, values = self.run_repository_worktree(
+            "_herdr_pick_worktree_target",
+            herdr=True,
+            extra_env={
+                "HERDR_ACTIVE_PANE_CWD": str(self.repo),
+                "FWT_FILTER_EXPECT_KEY": "ctrl-o",
+            },
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        self.assertEqual((self.root / "filter-count").read_text(), "1")
+        calls = self.herdr_calls()
+        self.assertEqual(len(calls), 1, calls)
+        self.assertIn("tab create", calls[0])
+        self.assertIn(f"--cwd {self.worktree}", calls[0])
+
+    def test_popup_picker_still_shows_ui_for_a_single_worktree_repository(self):
+        # 候補が本体1件でもEnter/C-o/C-s/C-vの開き方選択を残すためUIを出す。
+        result, values = self.run_repository_worktree(
+            "_herdr_pick_worktree_target",
+            herdr=True,
+            extra_env={
+                "HERDR_ACTIVE_PANE_CWD": str(self.repo),
+                "FWT_ONLY_MAIN_WORKTREE": "1",
+                "FWT_FILTER_EXPECT_KEY": "ctrl-o",
+            },
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        self.assertEqual((self.root / "filter-count").read_text(), "1")
+        calls = self.herdr_calls()
+        self.assertEqual(len(calls), 1, calls)
+        self.assertIn(f"--cwd {self.repo}", calls[0])
+
+    def test_popup_picker_falls_back_to_zoxide_outside_a_repository(self):
+        # 発火元cwdが未設定・不在・git管理外なら従来のzoxide→リポジトリ→worktreeの
+        # 2段階選択（filter 2回）に戻す。
+        cases = (
+            ("active cwd unset", {}),
+            ("active cwd missing", {"HERDR_ACTIVE_PANE_CWD": str(self.root / "gone")}),
+            (
+                "active cwd not a repository",
+                {"HERDR_ACTIVE_PANE_CWD": str(self.root), "FWT_NOT_A_REPO": "1"},
+            ),
+        )
+        for description, extra_env in cases:
+            with self.subTest(description=description):
+                result, values = self.run_repository_worktree(
+                    "_herdr_pick_worktree_target",
+                    herdr=True,
+                    extra_env={"FWT_FILTER_EXPECT_KEY": "ctrl-o", **extra_env},
+                )
+
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(values["__STATUS"], "0", result.stderr)
+                self.assertEqual((self.root / "filter-count").read_text(), "2")
+                calls = self.herdr_calls()
+                self.assertEqual(len(calls), 1, calls)
+                self.assertIn("tab create", calls[0])
 
     def test_popup_picker_advertises_and_expects_ctrl_o_for_tab_creation(self):
         result, values = self.run_repository_worktree(
