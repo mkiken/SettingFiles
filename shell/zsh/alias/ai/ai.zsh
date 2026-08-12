@@ -364,6 +364,17 @@ _review_launch_herdr() {
     _herdr_run_in_new_tab "${ws_id}" "${review_cwd}" "${gemini_label}" "${gemini_command}" gemini_tab || return 1
     _herdr_run_in_new_tab "${ws_id}" "${review_cwd}" "${codex_label}" "${codex_command}" codex_tab || return 1
 
+    # spec一覧はコマンド引数ではなくrun_dir内のファイルで受け渡す:
+    # herdr pane runの送信は稀に末尾が欠落し、codex分のspecだけ落ちた2/3監視で
+    # watchが起動した事故があるため。ペイン出力の文字列照合による着地検証は
+    # 履歴共有の誤マッチ（herdr_wait_shell_ready.sh参照）で使えないので、
+    # 送信文字列を最小化し、欠落時はファイル不在エラーとして顕在化させる。
+    # --no-merge時も書いておくと、後から手動で _review_watch <run_dir> を実行できる
+    print -rl -- \
+        "claude.md${claude_tab:+=${claude_tab}}" \
+        "gemini.md${gemini_tab:+=${gemini_tab}}" \
+        "codex.md${codex_tab:+=${codex_tab}}" > "${run_dir}/watch_specs"
+
     if [[ "${create_watcher}" == "1" ]]; then
         if [[ -z "${orch_pane_id}" ]]; then
             echo "review workspaceのroot pane取得に失敗しました" >&2
@@ -377,9 +388,6 @@ _review_launch_herdr() {
         [[ -n "${orch_tab_id}" ]] && herdr tab rename "${orch_tab_id}" \
             "${EMOJI_STATUS_REVIEW}orchestrator:${orchestrator_git_name}" >/dev/null 2>&1
         watch_command="_review_watch ${(q)run_dir}"
-        watch_command+=" ${(q):-claude.md${claude_tab:+=${claude_tab}}}"
-        watch_command+=" ${(q):-gemini.md${gemini_tab:+=${gemini_tab}}}"
-        watch_command+=" ${(q):-codex.md${codex_tab:+=${codex_tab}}}"
         _herdr_wait_shell_ready "${orch_pane_id}" || return 1
         herdr pane run "${orch_pane_id}" "${watch_command}" || {
             echo "herdr pane runに失敗しました (pane_id=${orch_pane_id})" >&2
@@ -394,12 +402,35 @@ _review_launch_herdr() {
 }
 
 # orchestratorタブ内で実行される: 完了待ち→(出揃い時)3AIタブを閉じる→マージ可否判断→cl-review-merge
-# 引数: run_dir <file>[=<tab_id>]...
+# 引数: run_dir [<file>[=<tab_id>]...]
+# spec省略時は起動側（_review_launch_herdr）が書いた ${run_dir}/watch_specs から読み戻す。
+# 引数で受けるとpane run送信の末尾欠落で一部AIが監視から漏れるため、通常経路はファイル渡し。
+# 明示specは手動再実行用に残す
 _review_watch() {
     local run_dir="$1"
     shift
 
+    # run_dir自体の実在確認: 送信欠落がパス途中で起きた場合もここで顕在化する
+    if [[ ! -d "${run_dir}" ]]; then
+        echo "run_dirがありません（送信コマンドの欠落の可能性）: ${run_dir}" >&2
+        return 1
+    fi
+
     local -a specs=("$@")
+    if (( ${#specs[@]} == 0 )); then
+        local specs_file="${run_dir}/watch_specs"
+        if [[ ! -f "${specs_file}" ]]; then
+            echo "watch specファイルがありません: ${specs_file}" >&2
+            echo "手動で再実行するには: _review_watch ${run_dir} <file>[=<tab_id>]..." >&2
+            return 1
+        fi
+        specs=("${(@f)$(<"${specs_file}")}")
+        specs=(${specs:#})
+        if (( ${#specs[@]} == 0 )); then
+            echo "watch specファイルが空です: ${specs_file}" >&2
+            return 1
+        fi
+    fi
     local wait_status=0
     bash "$HOME/.config/ai-pr/bin/ai_review_wait.sh" --liveness herdr "${run_dir}" "${specs[@]}" || wait_status=$?
 
@@ -500,8 +531,17 @@ _review_run() {
     local -a review_args=("${pr_number}")
     [[ -n "${review_prompt}" ]] && review_args+=("${review_prompt}")
 
+    # run_dirのslug(owner__repo)はgit remoteから決まるため、レビュー対象ディレクトリ
+    # （worktreeピッカー経由ならAI_REVIEW_CWD）側で解決する。呼び出し元シェルの$PWD基準だと
+    # 別リポジトリのslugでrun_dirが作られ、同番PRのラン保持(prune)や--latest解決が混線する
     local run_dir
-    run_dir=$(bash "$HOME/.config/ai-pr/bin/ai_review_run_dir.sh" "${pr_number}") || return 1
+    run_dir=$(
+        builtin cd -q "${AI_REVIEW_CWD:-${PWD}}" 2>/dev/null || {
+            echo "レビュー対象ディレクトリへ移動できません: ${AI_REVIEW_CWD:-${PWD}}" >&2
+            exit 1
+        }
+        bash "$HOME/.config/ai-pr/bin/ai_review_run_dir.sh" "${pr_number}"
+    ) || return 1
 
     case "$(_ai_multiplexer_kind)" in
         herdr)

@@ -48,6 +48,8 @@ class AiReviewLauncherTest(unittest.TestCase):
         # _herdr_create_review_workspaceの実体ラベルと乖離しないことの固定
         with tempfile.TemporaryDirectory() as temp_dir:
             run_dir = Path(temp_dir) / "run"
+            worktree = Path(temp_dir) / "my-worktree"
+            worktree.mkdir()
             snippet = f'''
 _ai_multiplexer_kind() {{ echo herdr; }}
 _review_launch_herdr() {{ return 0; }}
@@ -57,13 +59,50 @@ bash() {{
         *ai_review_run_dir.sh*) ai_review_run_dir_sh ;;
     esac
 }}
-AI_REVIEW_CWD=/path/to/my-worktree
+AI_REVIEW_CWD="{worktree}"
 _review_run review-subagents cl-fn gm-fn cx-fn '#123'
 '''
             result = run_zsh(snippet)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("review-subagents-my-worktree", result.stdout)
         self.assertNotIn("review-my-worktree", result.stdout)
+
+    def test_review_run_resolves_run_dir_in_ai_review_cwd(self):
+        # run_dirのslugはgit remote依存のため、$PWDではなくレビュー対象
+        # （AI_REVIEW_CWD）へcdした上でai_review_run_dir.shを実行する
+        with tempfile.TemporaryDirectory() as temp_dir:
+            run_dir = Path(temp_dir) / "run"
+            worktree = Path(temp_dir) / "my-worktree"
+            worktree.mkdir()
+            snippet = f'''
+_ai_multiplexer_kind() {{ echo herdr; }}
+_review_launch_herdr() {{ return 0; }}
+bash() {{
+    case "$*" in
+        *ai_review_run_dir.sh*) printf 'RUN_DIR_PWD:%s\\n' "$PWD" >&2; printf '%s' "{run_dir}" ;;
+    esac
+}}
+AI_REVIEW_CWD="{worktree}"
+_review_run review cl-fn gm-fn cx-fn '#123'
+'''
+            result = run_zsh(snippet)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        # cd -qは論理パスを保つため、渡したパスがそのまま$PWDになる
+        self.assertIn(f"RUN_DIR_PWD:{worktree}", result.stderr)
+
+    def test_review_run_errors_when_ai_review_cwd_missing(self):
+        # 対象ディレクトリへcdできない場合は起動前に大きく失敗する（fail-safe）
+        snippet = '''
+_ai_multiplexer_kind() { echo herdr; }
+_review_launch_herdr() { echo "LAUNCHED"; }
+AI_REVIEW_CWD=/nonexistent/worktree
+_review_run review cl-fn gm-fn cx-fn '#123'
+echo "rc=$?"
+'''
+        result = run_zsh(snippet)
+        self.assertIn("rc=1", result.stdout)
+        self.assertNotIn("LAUNCHED", result.stdout)
+        self.assertIn("移動できません", result.stderr)
 
     def test_review_herdr_label_uses_given_cwd_not_pwd(self):
         # _ai_review_herdr_labelはcwd引数を受け取り、$PWDに依存しない
@@ -88,6 +127,8 @@ class ReviewLaunchHerdrTest(unittest.TestCase):
     def run_launch(self, create_watcher, variant="review", extra_env=""):
         with tempfile.TemporaryDirectory() as temp_dir:
             log = Path(temp_dir) / "calls.log"
+            run_dir = Path(temp_dir) / "run"
+            run_dir.mkdir()
             snippet = f'''
 {extra_env}
 LOG="{log}"
@@ -104,15 +145,17 @@ _herdr_run_in_new_tab() {{
     local n=$(grep -c "^newtab " "$LOG")
     [[ -n "${{5:-}}" ]] && _ai_pr_review_assign "$5" "t${{n}}"
 }}
-_review_launch_herdr {create_watcher} {variant} /tmp/run cl-fn gm-fn cx-fn 123
+_review_launch_herdr {create_watcher} {variant} "{run_dir}" cl-fn gm-fn cx-fn 123
 print -r -- "rc=$?"
 '''
             result = run_zsh(snippet)
             calls = log.read_text().splitlines() if log.exists() else []
-        return result, calls
+            specs_file = run_dir / "watch_specs"
+            specs = specs_file.read_text().splitlines() if specs_file.exists() else None
+        return result, calls, specs, str(run_dir)
 
     def test_creates_per_run_workspace_and_orchestrator_in_root_tab(self):
-        result, calls = self.run_launch(create_watcher=1)
+        result, calls, specs, run_dir = self.run_launch(create_watcher=1)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("rc=0", result.stdout)
         # レビューごとの専用workspace（review-<ディレクトリ名>）を新規作成する
@@ -125,12 +168,14 @@ print -r -- "rc=$?"
         # 初期タブ(t0)をorchestratorにラベル付けし、shell-ready後にroot pane(p0)へ_review_watchを投入
         self.assertIn("tab rename t0 🔍orchestrator:my-branch", calls)
         self.assertIn("shell_ready p0", calls)
+        # 投入コマンドは run_dir だけの最短形にする（長い引数列はpane run送信の
+        # 末尾欠落でspecが監視から漏れる事故があったため、spec一覧はファイル渡し）
         watch_runs = [c for c in calls if c.startswith("pane run p0 _review_watch ")]
         self.assertEqual(len(watch_runs), 1, calls)
-        self.assertIn("_review_watch /tmp/run", watch_runs[0])
-        self.assertIn("claude.md=t1", watch_runs[0])
-        self.assertIn("gemini.md=t2", watch_runs[0])
-        self.assertIn("codex.md=t3", watch_runs[0])
+        self.assertEqual(watch_runs[0], f"pane run p0 _review_watch {run_dir}")
+        self.assertEqual(
+            specs, ["claude.md=t1", "gemini.md=t2", "codex.md=t3"],
+        )
         # workspace focus後にorchestratorタブ(t0)へフォーカスする
         self.assertIn("workspace focus ws1", calls)
         self.assertIn("tab focus t0", calls)
@@ -138,13 +183,13 @@ print -r -- "rc=$?"
     def test_workspace_label_uses_given_variant(self):
         # reviewとreview-subagentsを取り違えても気づけるよう、workspaceラベルに
         # variantをそのまま前置する（review-<dir> / review-subagents-<dir>）
-        result, calls = self.run_launch(create_watcher=1, variant="review-subagents")
+        result, calls, _, _ = self.run_launch(create_watcher=1, variant="review-subagents")
         self.assertEqual(result.returncode, 0, result.stderr)
         creates = [c for c in calls if c.startswith("workspace create ")]
         self.assertEqual(len(creates), 1, calls)
         self.assertIn("--label review-subagents-", creates[0])
 
-        result, calls = self.run_launch(create_watcher=1, variant="review")
+        result, calls, _, _ = self.run_launch(create_watcher=1, variant="review")
         creates = [c for c in calls if c.startswith("workspace create ")]
         self.assertIn("--label review-", creates[0])
         # "review-" 前置だが "review-subagents-" ではないことを確認する
@@ -154,20 +199,29 @@ print -r -- "rc=$?"
     def test_tab_names_stay_identical_across_variants(self):
         # orchestrator/3AIタブ名は「workspace内に居れば区別が自明」という設計判断により
         # variant間で意図的に同一のまま。誤って差異を入れる変更を検知するための負のピン留め
-        _, review_calls = self.run_launch(create_watcher=1, variant="review")
-        _, subagents_calls = self.run_launch(create_watcher=1, variant="review-subagents")
+        _, review_calls, _, review_run_dir = self.run_launch(
+            create_watcher=1, variant="review")
+        _, subagents_calls, _, subagents_run_dir = self.run_launch(
+            create_watcher=1, variant="review-subagents")
 
         review_rename = [c for c in review_calls if c.startswith("tab rename ")]
         subagents_rename = [c for c in subagents_calls if c.startswith("tab rename ")]
         self.assertEqual(review_rename, subagents_rename)
 
-        review_newtabs = [c for c in review_calls if c.startswith("newtab ")]
-        subagents_newtabs = [c for c in subagents_calls if c.startswith("newtab ")]
+        # run_dirは実行ごとのtemp dirで異なるため、正規化してから比較する
+        review_newtabs = [
+            c.replace(review_run_dir, "<RUN>")
+            for c in review_calls if c.startswith("newtab ")
+        ]
+        subagents_newtabs = [
+            c.replace(subagents_run_dir, "<RUN>")
+            for c in subagents_calls if c.startswith("newtab ")
+        ]
         self.assertEqual(review_newtabs, subagents_newtabs)
 
     def test_no_watcher_when_disabled(self):
         # --no-merge相当: サブタブ3つのみで、初期タブへの投入・ラベル付け・フォーカスはしない
-        result, calls = self.run_launch(create_watcher=0)
+        result, calls, specs, _ = self.run_launch(create_watcher=0)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("rc=0", result.stdout)
         newtabs = [c for c in calls if c.startswith("newtab ")]
@@ -175,11 +229,16 @@ print -r -- "rc=$?"
         self.assertFalse(any("_review_watch" in c for c in calls), calls)
         self.assertFalse(any(c.startswith("tab rename ") for c in calls), calls)
         self.assertFalse(any(c.startswith("tab focus ") for c in calls), calls)
+        # watch_specsはwatcher無しでも書く: 後から手動で
+        # `_review_watch <run_dir>` を実行できるようにするため
+        self.assertEqual(
+            specs, ["claude.md=t1", "gemini.md=t2", "codex.md=t3"],
+        )
 
     def test_ai_review_cwd_overrides_pwd_for_workspace_and_tabs(self):
         # AI_REVIEW_CWDが設定されていれば、workspace cwd・3AIタブcwd・ラベル計算対象は
         # $PWDではなくそのパスを基準にする（worktreeピッカー経由のfreviewが使う）
-        result, calls = self.run_launch(
+        result, calls, _, _ = self.run_launch(
             create_watcher=1, extra_env="AI_REVIEW_CWD=/path/to/wt"
         )
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -195,7 +254,7 @@ print -r -- "rc=$?"
 
     def test_ai_review_cwd_unset_falls_back_to_pwd(self):
         # 従来どおりreviewを直接叩く使い方は完全に不変であることの回帰確認
-        result, calls = self.run_launch(create_watcher=1)
+        result, calls, _, _ = self.run_launch(create_watcher=1)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("rc=0", result.stdout)
         self.assertFalse(any("/path/to/wt" in c for c in calls), calls)
@@ -204,27 +263,74 @@ print -r -- "rc=$?"
 class ReviewWatchTest(unittest.TestCase):
     """_review_watch の完了待ち→マージ委譲（waitスクリプト呼び出しとcl-review-mergeはstub）。"""
 
-    def run_watch(self, wait_rc, handle_pre=""):
+    def run_watch(self, wait_rc, specs="claude.md=t1 gemini.md=t2 codex.md",
+                  specs_file_lines=None, run_dir_override=None):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        run_dir = Path(self.tmp.name)
+        if specs_file_lines is not None:
+            (run_dir / "watch_specs").write_text(
+                "".join(f"{line}\n" for line in specs_file_lines)
+            )
+        target = run_dir_override if run_dir_override is not None else run_dir
         snippet = f'''
 bash() {{ print -r -- "WAIT:$*"; return {wait_rc}; }}
 cl-review-merge() {{ print -r -- "MERGE:$1"; }}
-{handle_pre}
-_review_watch /tmp/run claude.md=t1 gemini.md=t2 codex.md
+_review_watch "{target}" {specs}
 echo "rc=$?"
 '''
-        return run_zsh(snippet)
+        return run_zsh(snippet), str(run_dir)
 
     def test_wait_success_runs_merge_with_liveness_specs(self):
-        result = self.run_watch(wait_rc=0)
+        result, run_dir = self.run_watch(wait_rc=0)
         self.assertIn("rc=0", result.stdout)
-        self.assertIn("--liveness herdr /tmp/run claude.md=t1 gemini.md=t2 codex.md", result.stdout)
-        self.assertIn("MERGE:/tmp/run", result.stdout)
+        self.assertIn(
+            f"--liveness herdr {run_dir} claude.md=t1 gemini.md=t2 codex.md",
+            result.stdout,
+        )
+        self.assertIn(f"MERGE:{run_dir}", result.stdout)
 
     def test_wait_failure_skips_merge(self):
         # rc 2(タイムアウト)は _review_handle_wait_status がそのまま伝播しマージしない
-        result = self.run_watch(wait_rc=2)
+        result, _ = self.run_watch(wait_rc=2)
         self.assertIn("rc=2", result.stdout)
         self.assertNotIn("MERGE:", result.stdout)
+
+    def test_specs_read_from_watch_specs_file_when_args_omitted(self):
+        # 通常経路: 起動側が書いたwatch_specsから読み戻す（pane run送信の末尾欠落対策で
+        # 引数渡しを廃止したため、これが_review_launch_herdrからの本経路）
+        result, run_dir = self.run_watch(
+            wait_rc=0, specs="",
+            specs_file_lines=["claude.md=t1", "gemini.md=t2", "codex.md=t3"],
+        )
+        self.assertIn("rc=0", result.stdout)
+        self.assertIn(
+            f"--liveness herdr {run_dir} claude.md=t1 gemini.md=t2 codex.md=t3",
+            result.stdout,
+        )
+        self.assertIn(f"MERGE:{run_dir}", result.stdout)
+
+    def test_missing_watch_specs_file_fails_loudly(self):
+        result, _ = self.run_watch(wait_rc=0, specs="")
+        self.assertIn("rc=1", result.stdout)
+        self.assertIn("watch specファイルがありません", result.stderr)
+        self.assertNotIn("WAIT:", result.stdout)
+        self.assertNotIn("MERGE:", result.stdout)
+
+    def test_empty_watch_specs_file_fails_loudly(self):
+        result, _ = self.run_watch(wait_rc=0, specs="", specs_file_lines=[])
+        self.assertIn("rc=1", result.stdout)
+        self.assertIn("watch specファイルが空です", result.stderr)
+        self.assertNotIn("WAIT:", result.stdout)
+
+    def test_nonexistent_run_dir_fails_loudly(self):
+        # 送信欠落がrun_dirパス途中で起きたケース: 実在しないパスは即エラー
+        result, _ = self.run_watch(
+            wait_rc=0, specs="", run_dir_override="/nonexistent/run-dir",
+        )
+        self.assertIn("rc=1", result.stdout)
+        self.assertIn("run_dirがありません", result.stderr)
+        self.assertNotIn("WAIT:", result.stdout)
 
 
 class ReviewWatchClosesTabsTest(unittest.TestCase):
