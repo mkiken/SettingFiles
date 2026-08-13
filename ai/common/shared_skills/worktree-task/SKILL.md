@@ -42,7 +42,7 @@ Before creating a branch or changing files:
 1. Resolve and record the invoking worktree's top-level path.
 2. Record its current branch and exact `HEAD` object ID.
 3. Require the branch to be attached. Stop if `HEAD` is detached.
-4. Require `git status --porcelain` to be empty, including untracked files. Stop if dirty.
+4. Record `git status --porcelain` output, including untracked files, as the invoking worktree's pre-existing changes. A dirty invoking worktree does not block worktree creation or the task itself: `wtc --base <original-branch>` branches from the recorded commit, so uncommitted work stays behind in the invoking worktree. The clean requirement applies later, at `Require a clean invoking worktree before merging`.
 5. Confirm `wtc` and `wtm` are available in the configured interactive Zsh from the original worktree:
 
    ```bash
@@ -51,7 +51,7 @@ Before creating a branch or changing files:
 
    Stop with a clear setup error if either function is unavailable.
 
-Do not stash, clean, reset, or otherwise alter the invoking worktree to bypass these checks.
+Do not stash, clean, reset, or otherwise alter the invoking worktree to bypass these checks or the later merge gate.
 
 Use this executable boundary for every configured Zsh function: keep the `-c` script literal, pass paths and branches only as positional arguments, and select the worktree with `builtin cd -q -- "$1"`. Never interpolate task-derived values into the script string.
 
@@ -118,7 +118,9 @@ Use only safe deletion. If either cleanup operation fails, preserve the remainin
 
 ## Confirm and create the commit
 
-When deliverable changes exist, summarize the changed paths and verification results. Ask exactly these four authored choices through the platform's user-confirmation mechanism:
+When deliverable changes exist, summarize the changed paths and verification results. If the invoking worktree is currently dirty, say so in that summary and name the dirty paths, so the merge choices are not selected under the assumption that they will succeed.
+
+Ask exactly these four authored choices through the platform's user-confirmation mechanism:
 
 - `コミット & 親ブランチにマージ & push` — create the task commit, merge it into the original branch, clean up the task worktree and branch, then push the original branch
 - `コミット & 親ブランチにマージ` — create the task commit, merge it into the original branch, clean up the task worktree and branch, then stop without pushing
@@ -142,6 +144,18 @@ every other action:
 
 For `commit_only`, report the preserved task worktree path, branch, and commit,
 then stop before merge.
+
+## Require a clean invoking worktree before merging
+
+`no_commit` and `commit_only` never touch the invoking worktree, so they proceed regardless of its state. For `commit_merge` and `commit_merge_push`, re-read the invoking worktree immediately before invoking `wtm` and require all of the following:
+
+- It is attached to the recorded original branch.
+- Its `HEAD` still equals the recorded original `HEAD`, or has advanced on that same branch without diverging from it.
+- `git status --porcelain` is empty, including untracked files.
+
+Merging into a dirty invoking worktree can fold unrelated uncommitted work into the merge result, and a failed merge leaves conflict state in a worktree another session may be using.
+
+If any requirement fails, do not invoke `wtm`. Downgrade to `commit_only` semantics: preserve the task worktree, branch, and commit, then report the failed requirement, the paths still dirty, and that merging can be retried once the invoking worktree is clean. Do not stash, clean, reset, or commit the invoking worktree's changes to satisfy this gate, and do not merge from a different branch than the recorded original.
 
 ## Merge and verify cleanup
 

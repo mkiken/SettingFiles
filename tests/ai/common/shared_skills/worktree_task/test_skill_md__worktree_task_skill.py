@@ -103,6 +103,54 @@ class WorktreeTaskSkillContentTest(unittest.TestCase):
             with self.subTest(required=required):
                 self.assertIn(required, self.content)
 
+    def test_dirty_invoking_worktree_blocks_merge_rather_than_creation(self):
+        normalized_content = " ".join(self.content.split())
+
+        # Creating a worktree from a dirty invoking worktree is safe because the
+        # task branch starts from the recorded commit, so the gate belongs at
+        # merge time instead. A creation-time clean requirement would strand the
+        # common case where another session has work in progress.
+        for required in (
+            "A dirty invoking worktree does not block worktree creation or the task itself",
+            "uncommitted work stays behind in the invoking worktree",
+            "The clean requirement applies later, at `Require a clean invoking worktree before merging`",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, normalized_content)
+
+        for required in (
+            "## Require a clean invoking worktree before merging",
+            "`no_commit` and `commit_only` never touch the invoking worktree",
+            "re-read the invoking worktree immediately before invoking `wtm`",
+            "It is attached to the recorded original branch",
+            "`git status --porcelain` is empty, including untracked files",
+            "can fold unrelated uncommitted work into the merge result",
+            "If any requirement fails, do not invoke `wtm`",
+            "Downgrade to `commit_only` semantics",
+            "merging can be retried once the invoking worktree is clean",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, normalized_content)
+
+        # The bypass ban has to survive the gate move; otherwise relaxing
+        # creation would read as license to clean the invoking worktree.
+        self.assertIn(
+            "Do not stash, clean, reset, or otherwise alter the invoking worktree "
+            "to bypass these checks or the later merge gate",
+            normalized_content,
+        )
+        self.assertIn(
+            "Do not stash, clean, reset, or commit the invoking worktree's changes "
+            "to satisfy this gate",
+            normalized_content,
+        )
+
+        # The merge gate must precede the section that actually runs wtm.
+        self.assertLess(
+            self.content.index("## Require a clean invoking worktree before merging"),
+            self.content.index("## Merge and verify cleanup"),
+        )
+
     def test_plan_mode_handoff_reinvokes_the_workflow_after_context_reset(self):
         normalized_content = " ".join(self.content.split())
         for required in (
@@ -191,6 +239,9 @@ class WorktreeTaskSkillContentTest(unittest.TestCase):
 
         for required in (
             "Ask exactly these four authored choices",
+            # A dirty invoking worktree now reaches the four-way choice, so the
+            # merge options must not be picked believing they will succeed.
+            "If the invoking worktree is currently dirty, say so in that summary",
             "The selection is final; do not ask a second push confirmation",
             "If the platform's confirmation UI cannot present four authored choices",
             "use a plain-text ordered list",
