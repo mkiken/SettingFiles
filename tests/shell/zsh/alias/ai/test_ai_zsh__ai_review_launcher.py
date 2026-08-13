@@ -524,6 +524,52 @@ echo "rc=$?"
         self.assertIn("report.htmlが見つかりません", result.stderr)
 
 
+class ResolveLatestRunDirTest(unittest.TestCase):
+    """_ai_pr_review_resolve_latest_run_dir 本体の呼び出し元localへの値伝播。
+
+    ReviewReportTest はこのresolverをスタブへ差し替えるため、実装側の
+    変数スコープ問題を再現できない。ここでは本体をそのまま呼ぶ。
+    """
+
+    def run_resolver(self, caller_local):
+        # ai_review_run_dir.sh はgit remote依存なのでスタブ化し、固定パスを返させる
+        with tempfile.TemporaryDirectory() as temp_dir:
+            run_dir = Path(temp_dir) / "run"
+            run_dir.mkdir()
+            snippet = f'''
+bash() {{
+    case "$*" in
+        *ai_review_run_dir.sh*) printf '%s\\n' "{run_dir}" ;;
+        *) command bash "$@" ;;
+    esac
+}}
+caller() {{
+    local {caller_local}
+    _ai_pr_review_resolve_latest_run_dir {caller_local} 123 || return 1
+    printf 'resolved=[%s]\\n' "${{{caller_local}}}"
+}}
+caller
+echo "rc=$?"
+'''
+            result = run_zsh(snippet)
+        return result, run_dir
+
+    def test_resolver_assigns_to_caller_local_named_run_dir(self):
+        # 呼び出し元のlocal名は実装(review-report/review-merge)と同じ run_dir を
+        # 意図的に使う。resolver側が同名localを宣言すると動的スコープで呼び出し元が
+        # 隠され、代入がresolver終了時に破棄される回帰をここで検知する
+        result, run_dir = self.run_resolver("run_dir")
+        self.assertIn("rc=0", result.stdout, result.stderr)
+        self.assertIn(f"resolved=[{run_dir}]", result.stdout)
+
+    def test_resolver_assigns_to_caller_local_with_unrelated_name(self):
+        # 変数名が衝突しない場合は元々動いていた。上のテストとの差分が
+        # スコープ衝突そのものであることを示すための対照
+        result, run_dir = self.run_resolver("other_dir")
+        self.assertIn("rc=0", result.stdout, result.stderr)
+        self.assertIn(f"resolved=[{run_dir}]", result.stdout)
+
+
 class ReviewHandleWaitStatusTest(unittest.TestCase):
     """_review_handle_wait_status のマージ可否分岐（confirmはstub）。"""
 
