@@ -87,6 +87,8 @@ When a bug lives in an execution context you cannot run directly (another proces
 
 After any side-effecting operation (git commit/push, API writes, deletes, deploys), confirm it took effect via an independent check issued as a real tool call (e.g. `git log -1`, re-fetch the record) before reporting done — never narrate a command in prose and assume it ran. If verification fails or output is garbled, re-issue and re-verify; don't claim completion.
 
+Report a tool call's outcome only from the text that call actually returned — never compose, reconstruct, or pre-fill its output (a commit hash, changed-file count, a push's ref-update line). If you have not yet seen the result, you do not know it; say so instead of supplying a plausible one.
+
 Before `git push`, never hard-code the target branch — run `git branch --show-current` immediately before push, push that branch, and verify its remote ref advanced afterward. A parallel session may re-point the branch mid-task, and a hard-coded target can silently no-op (`Everything up-to-date`) while the current branch's commits stay unpushed.
 
 # Destructive-Command Verification Safety

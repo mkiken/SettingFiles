@@ -255,3 +255,4 @@ Do not duplicate the allowed lists here. When changing types or scopes, update `
 - **scope is required** — empty scope will be rejected
 - **subject**: 1–50 characters, must NOT start with an uppercase letter
 - **emoji**: czg auto-prepends it; manual commits must include the appropriate emoji at the start of the subject
+- **body**: 1行100文字以内に折り返す（`body-max-line-length` は commitlint 既定値で有効。`.commitlintrc.json` に明示エントリは無い）。日本語本文は超過しやすい
