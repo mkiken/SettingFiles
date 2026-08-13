@@ -629,9 +629,11 @@ _ai_pr_review_resolve_latest_run_dir() {
         }
     fi
 
-    local run_dir
-    run_dir=$(bash "$HOME/.config/ai-pr/bin/ai_review_run_dir.sh" --latest "${pr_number}") || return 1
-    _ai_pr_review_assign "${run_dir_var}" "${run_dir}"
+    # 呼び出し元が run_dir というlocalを持つため、同名にすると動的スコープで呼び出し元側が
+    # 隠され、代入がこの関数のlocalに吸われて呼び出し元に伝わらない
+    local resolved_run_dir
+    resolved_run_dir=$(bash "$HOME/.config/ai-pr/bin/ai_review_run_dir.sh" --latest "${pr_number}") || return 1
+    _ai_pr_review_assign "${run_dir_var}" "${resolved_run_dir}"
 }
 
 # 手動マージ（救済用）: 最新ランディレクトリを解決して review-merge スキルを起動する
