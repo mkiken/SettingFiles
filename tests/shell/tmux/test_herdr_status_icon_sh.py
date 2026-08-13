@@ -557,5 +557,321 @@ class RemoveHerdrStatusIconTest(HerdrStatusIconTestBase):
         self.assertEqual(metadata, [])
 
 
+class ClearHerdrShellStatusStateTest(unittest.TestCase):
+    """focus契機のクリア（clear_herdr_shell_status_state）を検証する。
+
+    run_shellと分けているのは、このテストがherdrへの `tab get` 呼び出し回数と
+    状態キャッシュの事後有無まで見る必要があり、既存34テストが固定4要素タプルで
+    アンパックしているrun_shellの戻り値を拡張できないため。
+    """
+
+    def run_clear(
+        self,
+        function_call: str,
+        *,
+        tab_id: str = "w1:t1",
+        tab_label: str = "main",
+        tab_list_labels: list[str] | None = None,
+        state_contents: dict[str, str] | None = None,
+        state_age_seconds: int = 0,
+        marker_content: str | None = None,
+        rename_exit_code: int = 0,
+        herdr_on_path: bool = True,
+        use_bin_path_env: bool = False,
+        shell: str = "bash",
+    ) -> dict:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            fake_bin = root / "bin"
+            fake_bin.mkdir()
+            get_calls = root / "get_calls"
+            rename_calls = root / "rename_calls"
+            metadata_calls = root / "metadata_calls"
+            cache_dir = root / "cache"
+
+            marker_file = cache_dir / marker_relpath(tab_id)
+            if marker_content is not None:
+                marker_file.parent.mkdir(parents=True, exist_ok=True)
+                marker_file.write_text(marker_content + "\n", encoding="utf-8")
+            state_file = cache_dir / state_relpath(tab_id)
+            for state_tab_id, state_content in (state_contents or {}).items():
+                path = cache_dir / state_relpath(state_tab_id)
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(state_content + "\n", encoding="utf-8")
+                if state_age_seconds:
+                    past = path.stat().st_mtime - state_age_seconds
+                    os.utime(path, (past, past))
+
+            tab_result = {"result": {"tab": {"label": tab_label, "tab_id": tab_id}}}
+            labels = tab_list_labels if tab_list_labels is not None else [tab_label]
+            tab_list_result = {
+                "result": {
+                    "tabs": [
+                        {"tab_id": tab_id if i == 0 else f"w1:t{i + 1}", "label": label}
+                        for i, label in enumerate(labels)
+                    ]
+                }
+            }
+
+            # `tab get` も記録する: 状態キャッシュ不在時のearly-returnが本当に
+            # herdrを起動していないことを確認するため。
+            herdr_script = (
+                "#!/bin/bash\n"
+                'if [[ "$1" == "tab" && "$2" == "get" ]]; then\n'
+                '  echo "$3" >> "$HERDR_TEST_GET_CALLS"\n'
+                f"  echo '{json.dumps(tab_result)}'\n"
+                'elif [[ "$1" == "tab" && "$2" == "rename" ]]; then\n'
+                '  echo "$3|$4" >> "$HERDR_TEST_RENAME_CALLS"\n'
+                f"  exit {rename_exit_code}\n"
+                'elif [[ "$1" == "tab" && "$2" == "list" ]]; then\n'
+                f"  echo '{json.dumps(tab_list_result)}'\n"
+                'elif [[ "$1" == "workspace" && "$2" == "report-metadata" ]]; then\n'
+                '  echo "$*" >> "$HERDR_TEST_METADATA_CALLS"\n'
+                "fi\n"
+            )
+            if herdr_on_path:
+                on_path = fake_bin / "herdr"
+                on_path.write_text(herdr_script, encoding="utf-8")
+                on_path.chmod(0o755)
+            # HERDR_BIN_PATH用は常にPATH外へ置く（PATH経由と経路を区別するため）
+            off_path = root / "herdr-off-path"
+            off_path.write_text(herdr_script, encoding="utf-8")
+            off_path.chmod(0o755)
+
+            env = os.environ.copy()
+            real_jq = shutil.which("jq")
+            self.assertIsNotNone(real_jq)
+            real_python3 = shutil.which("python3")
+            self.assertIsNotNone(real_python3)
+            env.update(
+                {
+                    "HERDR_TEST_GET_CALLS": str(get_calls),
+                    "HERDR_TEST_RENAME_CALLS": str(rename_calls),
+                    "HERDR_TEST_METADATA_CALLS": str(metadata_calls),
+                    "PATH": ":".join(
+                        [
+                            str(fake_bin),
+                            os.path.dirname(real_python3),
+                            os.path.dirname(real_jq),
+                            "/usr/bin:/bin",
+                        ]
+                    ),
+                    "XDG_CACHE_HOME": str(cache_dir),
+                }
+            )
+            for key in (
+                "TMUX",
+                "TERM_PROGRAM",
+                "HERDR_ENV",
+                "HERDR_PANE_ID",
+                "HERDR_TAB_ID",
+                "HERDR_WORKSPACE_ID",
+                "NOTIFY_SILENT",
+                "HERDR_SOCKET_PATH",
+                "HERDR_BIN_PATH",
+            ):
+                env.pop(key, None)
+            if use_bin_path_env:
+                env["HERDR_BIN_PATH"] = str(off_path)
+
+            result = subprocess.run(
+                [shell, "-c", f'source "{SCRIPT}"\n{function_call}\n'],
+                cwd=REPO_ROOT,
+                env=env,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            read_lines = lambda p: (
+                p.read_text(encoding="utf-8").splitlines() if p.exists() else []
+            )
+            return {
+                "result": result,
+                "get": read_lines(get_calls),
+                "rename": read_lines(rename_calls),
+                "metadata": read_lines(metadata_calls),
+                "state_exists": state_file.exists(),
+                "marker_exists": marker_file.exists(),
+            }
+
+    def test_missing_state_returns_without_calling_herdr(self):
+        out = self.run_clear(
+            'clear_herdr_shell_status_state "w1:t1" "w1"', tab_label=f"{DONE}main"
+        )
+        self.assertEqual(out["result"].returncode, 0, out["result"].stderr)
+        self.assertEqual(out["get"], [])
+        self.assertEqual(out["rename"], [])
+        self.assertEqual(out["metadata"], [])
+
+    def test_clears_done_state_and_strips_label_glyph(self):
+        for emoji in (DONE, ERROR):
+            with self.subTest(emoji=emoji):
+                out = self.run_clear(
+                    'clear_herdr_shell_status_state "w1:t1" "w1"',
+                    tab_label=f"{ID_CLAUDE}{emoji}work",
+                    state_contents={"w1:t1": emoji},
+                )
+                self.assertEqual(out["result"].returncode, 0, out["result"].stderr)
+                self.assertFalse(out["state_exists"])
+                self.assertEqual(out["rename"], [f"w1:t1|{ID_CLAUDE}work"])
+                self.assertTrue(
+                    any("--clear-token shell_status" in line for line in out["metadata"]),
+                    out["metadata"],
+                )
+
+    def test_wait_marker_blocks_rename_but_state_is_cleared(self):
+        """✋マーカー生存中はラベルのグリフを触らない。
+
+        ✋は「今readでブロック中」という生きた状態で、focusしただけで消すと
+        応答待ちを見落とす。グリフはプラグインのピン留めに任せる。
+        """
+        out = self.run_clear(
+            'clear_herdr_shell_status_state "w1:t1" "w1"',
+            tab_label=f"{ID_CLAUDE}{WAIT}work",
+            state_contents={"w1:t1": DONE},
+            marker_content=WAIT,
+        )
+        self.assertEqual(out["result"].returncode, 0, out["result"].stderr)
+        self.assertFalse(out["state_exists"])
+        self.assertTrue(out["marker_exists"])
+        self.assertEqual(out["rename"], [])
+        self.assertTrue(
+            any(f"--token shell_status={WAIT}" in line for line in out["metadata"]),
+            out["metadata"],
+        )
+
+    def test_wait_marker_without_state_returns_early(self):
+        out = self.run_clear(
+            'clear_herdr_shell_status_state "w1:t1" "w1"',
+            tab_label=f"{ID_CLAUDE}{WAIT}work",
+            marker_content=WAIT,
+        )
+        self.assertEqual(out["result"].returncode, 0, out["result"].stderr)
+        self.assertTrue(out["marker_exists"])
+        self.assertEqual(out["get"], [])
+        self.assertEqual(out["rename"], [])
+        self.assertEqual(out["metadata"], [])
+
+    def test_empty_tab_id_is_no_op(self):
+        out = self.run_clear('clear_herdr_shell_status_state "" "w1"')
+        self.assertEqual(out["result"].returncode, 0, out["result"].stderr)
+        self.assertEqual(out["get"], [])
+        self.assertEqual(out["rename"], [])
+        self.assertEqual(out["metadata"], [])
+
+    def test_empty_workspace_id_skips_token_refresh(self):
+        out = self.run_clear(
+            'clear_herdr_shell_status_state "w1:t1" ""',
+            tab_label=f"{ID_CLAUDE}{DONE}work",
+            state_contents={"w1:t1": DONE},
+        )
+        self.assertEqual(out["result"].returncode, 0, out["result"].stderr)
+        self.assertEqual(out["rename"], [f"w1:t1|{ID_CLAUDE}work"])
+        self.assertEqual(out["metadata"], [])
+
+    def test_works_in_plugin_env_via_herdr_bin_path(self):
+        """プラグインのstripped PATHではherdrがPATH上に無い。
+
+        _herdr_status_availableのcommand -v herdrゲートに依存せず、
+        HERDR_BIN_PATH経由で動くことを保証する回帰テスト。
+        """
+        out = self.run_clear(
+            'clear_herdr_shell_status_state "w1:t1" "w1"',
+            tab_label=f"{ID_CLAUDE}{DONE}work",
+            state_contents={"w1:t1": DONE},
+            herdr_on_path=False,
+            use_bin_path_env=True,
+        )
+        self.assertEqual(out["result"].returncode, 0, out["result"].stderr)
+        self.assertFalse(out["state_exists"])
+        self.assertEqual(out["rename"], [f"w1:t1|{ID_CLAUDE}work"])
+        self.assertTrue(
+            any("--clear-token shell_status" in line for line in out["metadata"]),
+            out["metadata"],
+        )
+
+    def test_stale_state_is_removed_and_token_cleared(self):
+        out = self.run_clear(
+            'clear_herdr_shell_status_state "w1:t1" "w1"',
+            tab_label=f"{ID_CLAUDE}{DONE}work",
+            state_contents={"w1:t1": DONE},
+            state_age_seconds=86401,
+        )
+        self.assertEqual(out["result"].returncode, 0, out["result"].stderr)
+        self.assertFalse(out["state_exists"])
+        self.assertTrue(
+            any("--clear-token shell_status" in line for line in out["metadata"]),
+            out["metadata"],
+        )
+
+    def test_rename_failure_is_failsafe(self):
+        out = self.run_clear(
+            'clear_herdr_shell_status_state "w1:t1" "w1"',
+            tab_label=f"{ID_CLAUDE}{DONE}work",
+            state_contents={"w1:t1": DONE},
+            rename_exit_code=1,
+        )
+        self.assertEqual(out["result"].returncode, 0, out["result"].stderr)
+        self.assertTrue(
+            any("--clear-token shell_status" in line for line in out["metadata"]),
+            out["metadata"],
+        )
+
+    def test_other_tab_state_keeps_workspace_token(self):
+        """同workspaceの別タブに✅が残れば Space 行のアイコンも残る。
+
+        focusは1タブ単位で、見ていないタブの完了/失敗を消さないための保証。
+        """
+        out = self.run_clear(
+            'clear_herdr_shell_status_state "w1:t1" "w1"',
+            tab_label=f"{ID_CLAUDE}{DONE}work",
+            tab_list_labels=["work", "other"],
+            state_contents={"w1:t1": DONE, "w1:t2": DONE},
+        )
+        self.assertEqual(out["result"].returncode, 0, out["result"].stderr)
+        self.assertEqual(out["rename"], [f"w1:t1|{ID_CLAUDE}work"])
+        self.assertTrue(
+            any(f"--token shell_status={DONE}" in line for line in out["metadata"]),
+            out["metadata"],
+        )
+        self.assertFalse(
+            any("--clear-token" in line for line in out["metadata"]), out["metadata"]
+        )
+
+    def test_behaves_identically_in_both_shells(self):
+        for shell in ("bash", "zsh"):
+            with self.subTest(shell=shell):
+                out = self.run_clear(
+                    'clear_herdr_shell_status_state "w1:t1" "w1"',
+                    tab_label=f"{ID_CLAUDE}{DONE}work",
+                    state_contents={"w1:t1": DONE},
+                    shell=shell,
+                )
+                self.assertEqual(out["result"].returncode, 0, out["result"].stderr)
+                self.assertEqual(out["result"].stdout, "")
+                self.assertEqual(out["rename"], [f"w1:t1|{ID_CLAUDE}work"])
+                self.assertTrue(
+                    any(
+                        "--clear-token shell_status" in line
+                        for line in out["metadata"]
+                    ),
+                    out["metadata"],
+                )
+
+    def test_herdr_cli_prefers_bin_path_env(self):
+        out = self.run_clear(
+            '_herdr_cli tab get "w1:t1" >/dev/null',
+            herdr_on_path=False,
+            use_bin_path_env=True,
+        )
+        self.assertEqual(out["result"].returncode, 0, out["result"].stderr)
+        self.assertEqual(out["get"], ["w1:t1"])
+
+    def test_herdr_cli_falls_back_to_path(self):
+        out = self.run_clear('_herdr_cli tab get "w1:t1" >/dev/null')
+        self.assertEqual(out["result"].returncode, 0, out["result"].stderr)
+        self.assertEqual(out["get"], ["w1:t1"])
+
+
 if __name__ == "__main__":
     unittest.main()

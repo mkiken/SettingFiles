@@ -9,6 +9,11 @@
 #   ✋>❌>✅の優先度でOR集約し、`herdr workspace report-metadata`の
 #   shell_statusトークンに書く。AIが書くtabラベルの状態とは分離する。
 #
+# クリア契機は3つ: プロンプト応答（✋: _finish_prompt_wait_notification）、
+# 次コマンド開始（✅/❌: _notification_preexec）、そしてタブfocus
+# （✅/❌のみ: clear_herdr_shell_status_state。notify-richプラグインの
+# pane.focusedイベントから呼ばれる。「見た＝確認済み」として落とす）。
+#
 # 失敗はすべてfail-safe（no set -e）: 通知/アイコン付与に失敗しても呼び出し元の
 # 処理を止めない（notify-on-agent-status.shと同じポリシー）。
 
@@ -25,6 +30,17 @@ fi
 # とり、シェルがマーカーを消せずに死んだ場合のスタック防止バックストップとする。
 _HERDR_SHELL_STATUS_TTL=86400
 _HERDR_SHELL_STATUS_STATE_TTL=86400
+
+# herdr CLIの解決点を1箇所に集約する。notify-richプラグインはstripped PATH
+# （/usr/bin:/bin:/usr/sbin:/sbin）で起動されHomebrewのherdrがPATH上に無いため、
+# プラグイン経路から呼ばれる関数はbare `herdr`ではなくこれを使う。
+_herdr_cli() {
+    if [[ -n "${HERDR_BIN_PATH:-}" ]]; then
+        "${HERDR_BIN_PATH}" "$@"
+    else
+        herdr "$@"
+    fi
+}
 
 # Herdr環境かつtmux外かどうかを判定する（tmux/Herdrは排他）
 _herdr_status_available() {
@@ -169,7 +185,7 @@ _herdr_shell_status_marker_read() {
 _herdr_aggregate_workspace_status() {
     local workspace_id="$1"
     local tab_ids
-    tab_ids="$(herdr tab list --workspace "${workspace_id}" 2>/dev/null | jq -r '.result.tabs[]?.tab_id // empty' 2>/dev/null)"
+    tab_ids="$(_herdr_cli tab list --workspace "${workspace_id}" 2>/dev/null | jq -r '.result.tabs[]?.tab_id // empty' 2>/dev/null)"
     [[ -z "${tab_ids}" ]] && return 0
     # ループ本体でlocalを宣言しない: zshのlocalはtypesetと同一で、既に宣言済みの
     # 変数を再宣言すると現在値をstdoutへ出力する（bashは無音）。この関数の出力は
@@ -201,9 +217,9 @@ _herdr_refresh_workspace_token() {
         *) aggregated="" ;;
     esac
     if [[ -n "${aggregated}" ]]; then
-        herdr workspace report-metadata "${workspace_id}" --source shell-status --token "shell_status=${aggregated}" >/dev/null 2>&1 || true
+        _herdr_cli workspace report-metadata "${workspace_id}" --source shell-status --token "shell_status=${aggregated}" >/dev/null 2>&1 || true
     else
-        herdr workspace report-metadata "${workspace_id}" --source shell-status --clear-token shell_status >/dev/null 2>&1 || true
+        _herdr_cli workspace report-metadata "${workspace_id}" --source shell-status --clear-token shell_status >/dev/null 2>&1 || true
     fi
 }
 
@@ -246,6 +262,46 @@ update_herdr_status_icon() {
     local workspace_id
     workspace_id="$(_herdr_resolve_workspace_id)"
     _herdr_refresh_workspace_token "${workspace_id}"
+    return 0
+}
+
+# 指定tabのシェル所有✅/❌だけをクリアする（✋マーカーは触らない）。タブをfocus
+# した＝完了/失敗を見たので確認済みとして落とす、という契機で呼ばれる。
+# remove_herdr_status_iconとの違い:
+#   - tab_id/workspace_idを引数で受ける（プラグインには呼び出し元シェルが無く、
+#     HERDR_TAB_ID/HERDR_PANE_IDから解決できない）
+#   - _herdr_status_availableを呼ばない（そのゲートのcommand -v herdrは
+#     プラグインのstripped PATHでfalseになる。herdrは_herdr_cli経由で叩く）
+#   - ✋マーカーを消さない。✋は「今まさにreadでブロック中」という生きた状態で、
+#     focusしただけで消すと応答待ちを見落とす。マーカー生存中はラベルの状態
+#     グリフもプラグインのピン留めに任せてrenameしない。
+# Usage: clear_herdr_shell_status_state "w5G:t4" "w5G"
+clear_herdr_shell_status_state() {
+    local tab_id="$1"
+    local workspace_id="$2"
+    [[ -z "${tab_id}" ]] && return 0
+
+    local state_path
+    state_path="$(_herdr_shell_status_state_path "${tab_id}")" || return 0
+    # focusイベントは頻繁に飛ぶ。状態キャッシュを作るのは
+    # _herdr_shell_status_state_writeだけなので、不在＝シェルは✅/❌を持たない。
+    # ここでstat 1回だけ払い、herdr/jq/python3の起動をすべて回避する。
+    [[ -f "${state_path}" ]] || return 0
+
+    rm -f "${state_path}" 2>/dev/null
+
+    local marker_glyph
+    marker_glyph="$(_herdr_shell_status_marker_read "${tab_id}")"
+    if [[ -z "${marker_glyph}" ]]; then
+        local current_label new_label
+        current_label="$(_herdr_cli tab get "${tab_id}" 2>/dev/null | jq -r '.result.tab.label // empty' 2>/dev/null)"
+        new_label="$(python3 "${_HERDR_STATUS_ICON_DIR}/tmux_window_name.py" compute-cleaned-label "${current_label}" 2>/dev/null)"
+        if [[ -n "${new_label}" && "${new_label}" != "${current_label}" ]]; then
+            _herdr_cli tab rename "${tab_id}" "${new_label}" >/dev/null 2>&1 || true
+        fi
+    fi
+
+    [[ -n "${workspace_id}" ]] && _herdr_refresh_workspace_token "${workspace_id}"
     return 0
 }
 

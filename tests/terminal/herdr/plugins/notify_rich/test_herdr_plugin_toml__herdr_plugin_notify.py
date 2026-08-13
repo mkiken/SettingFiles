@@ -854,6 +854,9 @@ class HerdrPluginTabIconTest(unittest.TestCase):
         input_wait_marker: str | None = None,
         marker_age_seconds: int = 0,
         marker_observer: list[str | None] | None = None,
+        shell_status_state: str | None = None,
+        shell_status_state_observer: list[str | None] | None = None,
+        break_status_icon_source: bool = False,
         break_editor_predicate: bool = False,
     ) -> tuple[subprocess.CompletedProcess[str], list[str]]:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -900,6 +903,20 @@ class HerdrPluginTabIconTest(unittest.TestCase):
                     past = marker_file.stat().st_mtime - marker_age_seconds
                     os.utime(marker_file, (past, past))
 
+            # シェル所有✅/❌状態キャッシュ。pane.focused でだけ
+            # clear_herdr_shell_status_state が消すことを検証する
+            shell_state_file = (
+                cache_dir
+                / "herdr-shell-status-state"
+                / state_key(socket_path)
+                / state_key(tab_id)
+            )
+            if shell_status_state is not None:
+                shell_state_file.parent.mkdir(parents=True, exist_ok=True)
+                shell_state_file.write_text(
+                    shell_status_state + "\n", encoding="utf-8"
+                )
+
             dependencies = {
                 "shell/zsh/alias/notification.zsh": (
                     'function notify() { :; }\n'
@@ -928,6 +945,13 @@ class HerdrPluginTabIconTest(unittest.TestCase):
                 real_file = REPO_ROOT / "shell/tmux" / name
                 (fake_tmux_dir / name).write_text(
                     real_file.read_text(encoding="utf-8"), encoding="utf-8"
+                )
+
+            # source失敗時もプラグインが落ちないこと（focusクリアと✋ピンが
+            # 無効になるだけ）を検証するためのスタブ。
+            if break_status_icon_source:
+                (fake_tmux_dir / "herdr_status_icon.sh").write_text(
+                    "return 1\n", encoding="utf-8"
                 )
 
             # 統合analyzerがクラッシュ相当で終わる状況を再現するスタブ。
@@ -1063,6 +1087,12 @@ class HerdrPluginTabIconTest(unittest.TestCase):
                 marker_observer.append(
                     marker_file.read_text(encoding="utf-8").rstrip("\n")
                     if marker_file.exists()
+                    else None
+                )
+            if shell_status_state_observer is not None:
+                shell_status_state_observer.append(
+                    shell_state_file.read_text(encoding="utf-8").rstrip("\n")
+                    if shell_state_file.exists()
                     else None
                 )
             return result, calls

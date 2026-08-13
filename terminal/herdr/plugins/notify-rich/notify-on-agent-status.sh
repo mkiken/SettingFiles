@@ -7,6 +7,12 @@
 # conversation-title label).
 # Gemini is excluded entirely (see the agent=="gemini" guard below) and handled by
 # its own hooks instead.
+# pane.focused additionally clears the SHELL-owned ✅/❌ status icon for that tab
+# (clear_herdr_shell_status_state): focusing a tab means the user saw the completion
+# or failure, so it is dropped instead of lingering until the next command starts.
+# That block sits BEFORE the gemini guard (shell state is agent-independent) and
+# before the label-rebuild block (a rebuild reading the pre-clear label would write
+# the glyph back). ✋ input-wait is deliberately NOT cleared — it is a live state.
 #
 # Deliberately no `set -e`: a failed lookup should fall back to "no notification",
 # never abort mid-way and leave the agent silently un-notified (same policy as
@@ -70,15 +76,34 @@ pane_json="$("$herdr_bin" pane get "$pane_id" 2>/dev/null)"
 
 [[ -z "$agent" ]] \
   && agent="$(print -r -- "$pane_json" | jq -r '.result.pane.agent // empty' 2>/dev/null)"
+
+# タブをfocusした＝シェルの完了✅/失敗❌を見たので確認済みとして落とす。
+# gemini guardより前に置くのは意図的: このクリアはシェル所有の状態が対象で、
+# そのタブでどのAIが動いているかとは無関係。geminiがnotify-richの通知/ラベル
+# 再構築からoptoutしていても、シェルのアイコンは同じ契機で消えるべき。
+# 既存のラベル再構築ブロックより前に置くのも必須で、後ろだとクリア前のラベルを
+# 読んだ再構築が状態グリフを書き戻してしまう。
+# ✋（応答待ち）は対象外: 生きた状態なのでclear側がマーカーを見て自制する。
+# state不在ならstat 1回でreturnするので、頻発するfocusイベントでも実質無コスト。
+tab_id="$(print -r -- "$pane_json" | jq -r '.result.pane.tab_id // empty' 2>/dev/null)"
+# シェル所有✋マーカーのread（_herdr_shell_status_marker_read）と、focusクリアの
+# clear_herdr_shell_status_stateを読み込む。
+# fail-safe: 読み込めなくてもピン留めとfocusクリアが無効になるだけで処理は続行する。
+source "${REPO_ROOT}/shell/tmux/herdr_status_icon.sh" 2>/dev/null || true
+case "$event_kind" in
+  pane.focused|pane_focused)
+    if [[ -n "$tab_id" ]] && (( ${+functions[clear_herdr_shell_status_state]} )); then
+      clear_herdr_shell_status_state "$tab_id" "${HERDR_WORKSPACE_ID:-}" || true
+    fi
+    ;;
+esac
+
 [[ "$agent" == "gemini" ]] && exit 0
 
 source "${REPO_ROOT}/shell/tmux/tmux_emoji.conf"
 # 通知音マップ（ai_notification_sound <event>）。tmux経路の共通ヘッダと同じ定義を共有し、
 # イベント種別（done→completed / blocked→waiting）で音を決める（全AI共通）。
 source "${REPO_ROOT}/shell/tmux/ai_notification_sound.sh"
-# シェル所有✋マーカーのreadヘルパー（_herdr_shell_status_marker_read）を読み込む。
-# fail-safe: 読み込めなくてもピン留めが無効になるだけで他の処理は続行する。
-source "${REPO_ROOT}/shell/tmux/herdr_status_icon.sh" 2>/dev/null || true
 # APIエラー通知のburst抑止（tmux経路 stop-send-notification.sh と共有）。
 source "${REPO_ROOT}/shell/tmux/ai_notification_burst_guard.sh" 2>/dev/null || true
 
@@ -126,7 +151,7 @@ last_auto_label=""
 # working=進行中🤖 blocked=入力待ち✋ done=完了✅、idle(既読)/unknown(AI未検出)は
 # アイコンを外して元のラベルに戻す。集約状態は `tab get` の agent_status（タブ内
 # 複数paneがあってもHerdrが1つに集約済み）を使い、識別子だけ発火paneのagentを使う。
-tab_id="$(print -r -- "$pane_json" | jq -r '.result.pane.tab_id // empty' 2>/dev/null)"
+# tab_idはfocusクリアのため冒頭で解決済み（gemini guardの前）。
 # screen_label生成（後段）でも参照するため、タブ処理ブロック未到達（tab_id/tab_json
 # が空）でも未定義参照にならないよう既定値を先出しする。真になるのはブロック内で
 # base_labelを会話概要20字truncateに置き換えた時だけ。
