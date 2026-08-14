@@ -54,6 +54,10 @@ If the result is `claude-fable-5`, ask a separate `AskUserQuestion` (independent
 
 Proceed to `ExitPlanMode` once the user picks "as-is" or "delegate"; for manual switch, wait for the user to confirm the switch before resuming.
 
+# Delegated-Work Verification
+
+A background agent's `task-notification` is its own claim, not proof of work — `status: completed` only means the agent stopped. Before treating a delegated phase as done, verify the claimed artifacts through your own tool calls: read the file it says it wrote, run the tests it says pass, check the commit it says it made. A `completed` notification whose result only describes intent or progress ("re-dispatching", "the fork is still running", "will report when finished") is an unfinished phase — execute it yourself, or re-dispatch via `SendMessage` with an explicit instruction to do the work directly and not delegate onward. Never let a delegated verification step be the sole evidence that verification happened.
+
 # Settings Changes
 
 Before editing `settings.json` / `settings.local.json` — or its `hooks`, `permissions`, or `env` — in the repository source or the live `~/.claude/` files, invoke the `update-config` skill. Skip it only for trivial mechanical edits (e.g. a verbatim revert) where no configuration-domain judgment is needed.
