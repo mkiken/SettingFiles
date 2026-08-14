@@ -255,6 +255,10 @@ For a plain-text fallback with choices, use a Markdown ordered list starting fro
 
 When finalizing a plan in Plan Mode or starting implementation of an accepted plan, load the `plan-model-handoff` skill and follow it before emitting the final plan or causing the first implementation side effect.
 
+# Plan Approval Detail
+
+For a non-trivial `<proposed_plan>`, provide a reviewable implementation explanation, not a generic checklist. For every implementation group, state the target behavior, concrete mechanism, material files or interfaces, failure or edge behavior, and test condition with expected outcome. Preserve accepted user choices in Assumptions. Keep the plan concise, but never omit a material decision merely to shorten it.
+
 # Plan Review Deep-Dive (dig)
 
 This section's skip criterion governs both the `dig` skill offer and the Plan Review Presentation browser offer — the shared file's own line-count/format criteria do not apply here; use this criterion for both instead. Its port-selection and launch mechanics still apply when the browser is actually opened.

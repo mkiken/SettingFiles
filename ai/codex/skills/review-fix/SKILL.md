@@ -82,7 +82,7 @@ Group status: `designing|designed|approved|implementing|fixed|skipped|rejected`.
 
 ### Design Phase (parallel)
 
-Spawn one design subagent per group, all in parallel (the adapter defines the launch primitive and slot limit). Payload per designer: <RUN_DIR>, group id, group file, item ids (the designer reads merged.json itself for detail), output path `<RUN_DIR>/fix/design-<group>-<basename>.md`, and — on a redesign round — the user's feedback. Designers return only a 1-2 line Japanese summary; all detail lives in the design file.
+Spawn one design subagent per group, all in parallel (the adapter defines the launch primitive and slot limit). Payload per designer: <RUN_DIR>, group id, group file, item ids (the designer reads merged.json itself for detail), output path `<RUN_DIR>/fix/design-<group>-<basename>.md`, and optional <CONSTRAINTS> containing accepted user decisions that are not in merged.json; on a redesign round, also include the user's feedback. Designers return only a 1-2 line Japanese summary; all detail lives in the design file.
 
 ### Rolling Confirmation
 
