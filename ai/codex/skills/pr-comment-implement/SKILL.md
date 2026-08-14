@@ -638,7 +638,7 @@ Parallel `cl-pci` / `cx-pci` runs against the same PR merge back into the
 same `HEAD_BRANCH` and can race here. Run from `ORIGINAL_PATH`:
 
 ```bash
-git fetch origin "$HEAD_BRANCH"
+git fetch origin "+refs/heads/${HEAD_BRANCH}:refs/remotes/origin/${HEAD_BRANCH}"
 git rev-list --left-right --count "HEAD...origin/${HEAD_BRANCH}"
 ```
 
@@ -659,9 +659,13 @@ git push origin HEAD
 ```
 
 If push fails for a reason other than the race just handled, ask retry/abort;
-skip reply and resolve on abort. After a successful push, re-fetch
-`origin/${HEAD_BRANCH}` and require its object ID to equal the pushed commit
-before reporting the push as successful.
+skip reply and resolve on abort. After a successful push, refresh the tracking
+ref and require its object ID to equal the pushed commit before reporting the
+push as successful:
+
+```bash
+git fetch origin "+refs/heads/${HEAD_BRANCH}:refs/remotes/origin/${HEAD_BRANCH}"
+```
 
 Commit list for the reply body:
 

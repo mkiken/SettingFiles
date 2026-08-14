@@ -69,6 +69,19 @@ class PrCommentImplementFinalActionSelectionTest(unittest.TestCase):
         self.assertIn("Never force-push", push_contract)
         self.assertIn("require its object ID to equal the pushed commit", push_contract)
 
+    def test_push_race_refreshes_the_tracking_ref(self):
+        fetch_command = (
+            'git fetch origin "+refs/heads/${HEAD_BRANCH}:'
+            'refs/remotes/origin/${HEAD_BRANCH}"'
+        )
+
+        self.assertEqual(self.content.count(fetch_command), 2)
+
+        codex_skill = (
+            REPO_ROOT / "ai/codex/skills/pr-comment-implement/SKILL.md"
+        ).read_text(encoding="utf-8")
+        self.assertEqual(codex_skill.count(fetch_command), 2)
+
     def test_platform_adapters_receive_the_shared_contract(self):
         claude_skill = (
             REPO_ROOT / "ai/claude/skills/pr-comment-implement/SKILL.md"
