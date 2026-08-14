@@ -11,6 +11,8 @@ Plain text questions end the turn and trigger the Stop hook, sending a "finished
 
 When a question depends on explanatory context (proposals, trade-offs, anything not self-evident), make it self-contained: put the essential context in the `question` field itself, with options' `description`/`preview` as supplements. Response text that precedes a tool call in the same turn may not be displayed to the user, or may not appear adjacent to the dialog — never leave the explanation only in earlier text.
 
+For design or implementation trade-off choices, the first dialog must already explain each option's mechanism and concrete consequences (why it wins or loses) in the `question` field, using `preview` for code or flow comparisons; conclusion-only labels with brief descriptions force a second explanatory round.
+
 When the decision context exceeds what the `question` field and option previews can legibly carry (multi-step timelines, side-by-side scenario comparisons), write a self-contained HTML figure (inline CSS only) to the scratchpad, `open` it in the browser, and reference it from the `question`. The file is a session temp — Temp File Cleanup applies.
 
 **Note:** "I do not have access to the tool" is NOT a valid reason to skip — `AskUserQuestion` is deferred; load its schema via ToolSearch and use it.
