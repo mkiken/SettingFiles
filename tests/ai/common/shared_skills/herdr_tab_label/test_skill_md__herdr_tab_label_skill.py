@@ -35,6 +35,7 @@ class HerdrTabLabelSkillContentTest(unittest.TestCase):
             "Do not use a generic name made only of words",
             "If the active collaboration mode forbids side effects",
             "absolute invoking working directory as `task_path`",
+            "zsh -fc 'builtin cd -q -- \"$1\" && source \"$2\" && set_herdr_task_tab_label \"$3\"'",
             "set_herdr_task_tab_label \"$3\"",
             "preserves any non-default label",
             "Do not retry during later ordinary tasks",

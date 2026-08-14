@@ -25,7 +25,7 @@ Record the task's absolute invoking working directory as `task_path`; callers su
 
 ```bash
 herdr_label_helper="${SET:-$HOME/Desktop/repository/SettingFiles}/shell/tmux/herdr_status_icon.sh"
-zsh -ic 'builtin cd -q -- "$1" && source "$2" && set_herdr_task_tab_label "$3"' zsh "$task_path" "$herdr_label_helper" "$slug"
+zsh -fc 'builtin cd -q -- "$1" && source "$2" && set_herdr_task_tab_label "$3"' zsh "$task_path" "$herdr_label_helper" "$slug"
 ```
 
 Keep the `-c` script literal and pass the path, helper, and slug only as positional arguments. The helper is a no-op outside Herdr and preserves any non-default label. It keeps the jump-key number, AI identifier, status glyph, and context badge, and truncates a long slug to 19 characters plus `…`.
