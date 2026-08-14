@@ -124,16 +124,29 @@ class ReviewLaunchHerdrTest(unittest.TestCase):
         '"tab":{"tab_id":"t0"},"root_pane":{"pane_id":"p0"}}}'
     )
 
-    def run_launch(self, create_watcher, variant="review", extra_env=""):
+    def run_launch(self, create_watcher, variant="review", extra_env="",
+                   marker_on_attempt=1):
+        """marker_on_attempt: pane runの第何回目でwatch_startedマーカーを作るか。
+
+        0を渡すとマーカーを一度も作らない（投入が届かない事故の再現）。
+        """
         with tempfile.TemporaryDirectory() as temp_dir:
             log = Path(temp_dir) / "calls.log"
             run_dir = Path(temp_dir) / "run"
             run_dir.mkdir()
             snippet = f'''
 {extra_env}
+# 実時間のsleepでテストが遅くならないよう、投入検証のポーリングを最小化する
+AI_REVIEW_WATCH_POLL_COUNT=1
+AI_REVIEW_WATCH_POLL_INTERVAL=0
 LOG="{log}"
+MARKER_ON_ATTEMPT={marker_on_attempt}
 herdr() {{
     printf '%s\\n' "$*" >> "$LOG"
+    if [[ "$1 $2 $4" == "pane run _review_watch" ]]; then
+        local n=$(grep -c "^pane run .* _review_watch$" "$LOG")
+        (( MARKER_ON_ATTEMPT > 0 && n >= MARKER_ON_ATTEMPT )) && : > "{run_dir}/watch_started"
+    fi
     [[ "$1 $2" == "workspace create" ]] && printf '%s' '{self.WS_JSON}'
     return 0
 }}
@@ -168,11 +181,14 @@ print -r -- "rc=$?"
         # 初期タブ(t0)をorchestratorにラベル付けし、shell-ready後にroot pane(p0)へ_review_watchを投入
         self.assertIn("tab rename t0 🔍orchestrator:my-branch", calls)
         self.assertIn("shell_ready p0", calls)
-        # 投入コマンドは run_dir だけの最短形にする（長い引数列はpane run送信の
-        # 末尾欠落でspecが監視から漏れる事故があったため、spec一覧はファイル渡し）
-        watch_runs = [c for c in calls if c.startswith("pane run p0 _review_watch ")]
+        # 投入コマンドは引数なしの最短形にする（pane run送信の末尾欠落で
+        # spec漏れ・別ランのパス成立が起きた事故があったため、
+        # spec一覧はファイル渡し、run_dirはworkspaceの--env渡し）
+        watch_runs = [c for c in calls if c.startswith("pane run p0 _review_watch")]
         self.assertEqual(len(watch_runs), 1, calls)
-        self.assertEqual(watch_runs[0], f"pane run p0 _review_watch {run_dir}")
+        self.assertEqual(watch_runs[0], "pane run p0 _review_watch")
+        # run_dirは--envでシェル環境へ渡す
+        self.assertIn(f"--env AI_REVIEW_RUN_DIR={run_dir}", creates[0])
         self.assertEqual(
             specs, ["claude.md=t1", "gemini.md=t2", "codex.md=t3"],
         )
@@ -259,6 +275,32 @@ print -r -- "rc=$?"
         self.assertIn("rc=0", result.stdout)
         self.assertFalse(any("/path/to/wt" in c for c in calls), calls)
 
+    def test_watch_send_retried_until_marker_appears(self):
+        # pane runの末尾欠落でコマンドが実行されないことがあるため、
+        # _review_watchが書くマーカーの出現を確認し、出なければ再送する
+        result, calls, _, _ = self.run_launch(create_watcher=1, marker_on_attempt=2)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("rc=0", result.stdout)
+        watch_runs = [c for c in calls if c == "pane run p0 _review_watch"]
+        self.assertEqual(len(watch_runs), 2, calls)
+        # 再送前に行バッファをクリアする（前回送信の残骸との連結を避ける）
+        self.assertIn("pane send-keys p0 ctrl+u", calls)
+
+    def test_watch_send_fails_loudly_after_max_attempts(self):
+        result, calls, _, run_dir = self.run_launch(
+            create_watcher=1, marker_on_attempt=0)
+        self.assertIn("rc=1", result.stdout)
+        watch_runs = [c for c in calls if c == "pane run p0 _review_watch"]
+        self.assertEqual(len(watch_runs), 3, calls)
+        self.assertIn("起動を確認できませんでした", result.stderr)
+        # 手動復旧手順（run_dirつき）を案内する
+        self.assertIn(f"_review_watch {run_dir}", result.stderr)
+
+    def test_no_marker_polling_when_watcher_disabled(self):
+        # --no-merge相当では投入自体しないので、検証・再送も走らない
+        _, calls, _, _ = self.run_launch(create_watcher=0, marker_on_attempt=0)
+        self.assertFalse(any(c.startswith("pane send-keys ") for c in calls), calls)
+
 
 class ReviewWatchTest(unittest.TestCase):
     """_review_watch の完了待ち→マージ委譲（waitスクリプト呼び出しとcl-review-mergeはstub）。"""
@@ -330,6 +372,60 @@ echo "rc=$?"
         )
         self.assertIn("rc=1", result.stdout)
         self.assertIn("run_dirがありません", result.stderr)
+        self.assertNotIn("WAIT:", result.stdout)
+
+    def test_writes_start_marker_for_launch_side_verification(self):
+        # 起動側(_herdr_send_watch_verified)は、このマーカーの出現で投入成功を判定する
+        result, run_dir = self.run_watch(
+            wait_rc=0, specs="",
+            specs_file_lines=["claude.md=t1", "gemini.md=t2", "codex.md=t3"],
+        )
+        self.assertIn("rc=0", result.stdout)
+        self.assertTrue((Path(run_dir) / "watch_started").exists())
+
+
+class ReviewWatchRunDirSourceTest(unittest.TestCase):
+    """_review_watch のrun_dir解決（引数 / AI_REVIEW_RUN_DIR環境変数）。"""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.run_dir = Path(self.tmp.name)
+        (self.run_dir / "watch_specs").write_text("claude.md=t1\n")
+
+    def run_watch(self, arg_run_dir=None, env_run_dir=None):
+        env_line = ""
+        if env_run_dir is not None:
+            env_line = f'export AI_REVIEW_RUN_DIR="{env_run_dir}"'
+        arg = f'"{arg_run_dir}"' if arg_run_dir is not None else ""
+        snippet = f'''
+{env_line}
+bash() {{ print -r -- "WAIT:$*"; return 0; }}
+cl-review-merge() {{ print -r -- "MERGE:$1"; }}
+_review_close_ai_tabs() {{ :; }}
+_review_watch {arg}
+echo "rc=$?"
+'''
+        return run_zsh(snippet)
+
+    def test_env_run_dir_used_when_arg_omitted(self):
+        # 通常経路: workspace create --env で渡ったrun_dirを使う
+        result = self.run_watch(env_run_dir=self.run_dir)
+        self.assertIn("rc=0", result.stdout)
+        self.assertIn(f"--liveness herdr {self.run_dir} claude.md=t1", result.stdout)
+
+    def test_explicit_arg_wins_over_env(self):
+        # 手動再実行 `_review_watch <run_dir>` は環境変数より優先する
+        result = self.run_watch(
+            arg_run_dir=self.run_dir, env_run_dir="/nonexistent/env-run-dir")
+        self.assertIn("rc=0", result.stdout)
+        self.assertIn(f"--liveness herdr {self.run_dir}", result.stdout)
+        self.assertNotIn("/nonexistent/env-run-dir", result.stdout)
+
+    def test_missing_arg_and_env_fails_loudly(self):
+        result = self.run_watch()
+        self.assertIn("rc=1", result.stdout)
+        self.assertIn("run_dirが未指定です", result.stderr)
         self.assertNotIn("WAIT:", result.stdout)
 
 

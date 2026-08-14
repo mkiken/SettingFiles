@@ -305,18 +305,61 @@ _ai_review_herdr_label() {
 
 # レビュー実行ごとに専用のHerdr workspace（label: <variant>-<ディレクトリ名>）を新規作成し、
 # 作成応答のJSONをそのまま出力する（workspace_id/初期タブ/root paneを呼び出し元が使う）
+# run_dirはherdrのAPI経由（--env）で初期タブのシェル環境へ渡す: orchestratorタブへの
+# 投入コマンドからパス文字列を消すためで、pane runのキーストローク送信が末尾欠落しても
+# 別ランのパスが成立してしまう事故を構造的に防ぐ
 # 引数: variant（review / review-subagents。ラベルの前置に使い、fzf側の--label-prefixと
-#   同じ文字列にして表示を揃える） cwd（初期tabのcwd。ラベルのディレクトリ名にも使う）
+#   同じ文字列にして表示を揃える） cwd（初期tabのcwd。ラベルのディレクトリ名にも使う） run_dir
 _herdr_create_review_workspace() {
     local variant="$1"
     local cwd="$2"
+    local run_dir="$3"
 
     local ws_json
-    ws_json=$(herdr workspace create --label "${variant}-${cwd:t}" --cwd "${cwd}" --no-focus) || {
+    ws_json=$(herdr workspace create --label "${variant}-${cwd:t}" --cwd "${cwd}" \
+        --env "AI_REVIEW_RUN_DIR=${run_dir}" --no-focus) || {
         echo "herdr workspace createに失敗しました" >&2
         return 1
     }
     print -r -- "${ws_json}"
+}
+
+# orchestratorタブへ _review_watch を投入し、実際に起動したことを確認する。
+# 起動確認は _review_watch 側が run_dir に書くマーカーファイルで行う:
+# herdr pane run のキーストローク送信は稀に末尾（Enter含む）が欠落し、コマンドが
+# プロンプト行に残ったまま実行されないことがある（watch_specs対策と同じ事故の再発）。
+# ペイン出力の文字列照合は履歴由来のautosuggestionゴーストや累積スナップショットへ
+# 誤マッチするため使えない（herdr_wait_shell_ready.sh の記録を参照）が、
+# run_dirはラン毎の新規ディレクトリなのでマーカーファイルはstale化せず確実に判定できる。
+# 再送前に ctrl+u で行バッファをクリアし、前回の残骸との連結を避ける。
+# 引数: pane_id run_dir
+_herdr_send_watch_verified() {
+    local pane_id="$1"
+    local run_dir="$2"
+    local marker="${run_dir}/watch_started"
+    # テストが待ち時間を潰せるよう環境変数で上書き可能にする（既定は本番値）
+    local max_attempts="${AI_REVIEW_WATCH_SEND_ATTEMPTS:-3}"
+    local poll_count="${AI_REVIEW_WATCH_POLL_COUNT:-10}"
+    local poll_interval="${AI_REVIEW_WATCH_POLL_INTERVAL:-0.5}"
+
+    local attempt poll
+    for (( attempt = 1; attempt <= max_attempts; attempt++ )); do
+        # 再送時は前回送信の残骸を消してから投入する（初回はwait_shell_readyがクリア済み）
+        (( attempt > 1 )) && herdr pane send-keys "${pane_id}" ctrl+u >/dev/null 2>&1
+        # run_dirは workspace create の --env で渡してあるため引数なしで投入する
+        herdr pane run "${pane_id}" "_review_watch" || {
+            echo "herdr pane runに失敗しました (pane_id=${pane_id})" >&2
+            return 1
+        }
+        for (( poll = 1; poll <= poll_count; poll++ )); do
+            [[ -f "${marker}" ]] && return 0
+            sleep "${poll_interval}"
+        done
+    done
+
+    echo "完了待ち(_review_watch)の起動を確認できませんでした (pane_id=${pane_id})" >&2
+    echo "3AIのレビュー自体は進行中です。orchestratorタブで手動実行してください: _review_watch ${run_dir}" >&2
+    return 1
 }
 
 # 3AIをレビュー実行ごとの専用workspace（<variant>-<ディレクトリ名>）の新規タブで起動する（herdr）
@@ -349,7 +392,7 @@ _review_launch_herdr() {
     codex_command=$(_ai_review_env_command "${run_dir}/codex.md" "${codex_fn}" "${review_args[@]}") || return 1
 
     local ws_json ws_id orch_tab_id orch_pane_id
-    ws_json=$(_herdr_create_review_workspace "${variant}" "${review_cwd}") || return 1
+    ws_json=$(_herdr_create_review_workspace "${variant}" "${review_cwd}" "${run_dir}") || return 1
     ws_id=$(print -r -- "${ws_json}" | jq -r '.result.workspace.workspace_id // empty')
     if [[ -z "${ws_id}" ]]; then
         echo "review workspaceのworkspace_id取得に失敗しました" >&2
@@ -383,16 +426,12 @@ _review_launch_herdr() {
         # 初期タブをorchestratorタブとして使う: ラベル付けして完了待ち〜マージを投入する
         # 注: renameした手動ラベルはauto_managed=falseのため、マージでclaudeが動いても
         # 本文は自動置換されず "orchestrator:<git名>" が残り続ける（専用タブなので意図どおり）
-        local orchestrator_git_name watch_command
+        local orchestrator_git_name
         orchestrator_git_name=$(_review_window_git_name "${review_cwd}")
         [[ -n "${orch_tab_id}" ]] && herdr tab rename "${orch_tab_id}" \
             "${EMOJI_STATUS_REVIEW}orchestrator:${orchestrator_git_name}" >/dev/null 2>&1
-        watch_command="_review_watch ${(q)run_dir}"
         _herdr_wait_shell_ready "${orch_pane_id}" || return 1
-        herdr pane run "${orch_pane_id}" "${watch_command}" || {
-            echo "herdr pane runに失敗しました (pane_id=${orch_pane_id})" >&2
-            return 1
-        }
+        _herdr_send_watch_verified "${orch_pane_id}" "${run_dir}" || return 1
     fi
 
     herdr workspace focus "${ws_id}" >/dev/null 2>&1
@@ -402,19 +441,31 @@ _review_launch_herdr() {
 }
 
 # orchestratorタブ内で実行される: 完了待ち→(出揃い時)3AIタブを閉じる→マージ可否判断→cl-review-merge
-# 引数: run_dir [<file>[=<tab_id>]...]
+# 引数: [run_dir] [<file>[=<tab_id>]...]
+# run_dir省略時は起動側が workspace create の --env で渡した AI_REVIEW_RUN_DIR を使う。
+# 通常経路が環境変数なのは、pane run送信の末尾欠落でパスが別ランのものとして成立する
+# 事故を防ぐため。明示引数は手動再実行用に残し、そちらを優先する。
 # spec省略時は起動側（_review_launch_herdr）が書いた ${run_dir}/watch_specs から読み戻す。
 # 引数で受けるとpane run送信の末尾欠落で一部AIが監視から漏れるため、通常経路はファイル渡し。
 # 明示specは手動再実行用に残す
 _review_watch() {
-    local run_dir="$1"
-    shift
+    local run_dir="${1:-${AI_REVIEW_RUN_DIR:-}}"
+    (( $# > 0 )) && shift
+
+    if [[ -z "${run_dir}" ]]; then
+        echo "run_dirが未指定です（AI_REVIEW_RUN_DIRも未設定）: _review_watch <run_dir> で実行してください" >&2
+        return 1
+    fi
 
     # run_dir自体の実在確認: 送信欠落がパス途中で起きた場合もここで顕在化する
     if [[ ! -d "${run_dir}" ]]; then
         echo "run_dirがありません（送信コマンドの欠落の可能性）: ${run_dir}" >&2
         return 1
     fi
+
+    # 起動側（_herdr_send_watch_verified）が投入成功を判定するためのマーカー。
+    # run_dirはラン毎の新規ディレクトリなので、他ランのマーカーと混同しない
+    : > "${run_dir}/watch_started"
 
     local -a specs=("$@")
     if (( ${#specs[@]} == 0 )); then
