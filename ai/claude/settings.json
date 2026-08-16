@@ -5,6 +5,7 @@
     "commit": "",
     "pr": ""
   },
+  "awaySummaryEnabled": false,
   "effortLevel": "medium",
   "enabledPlugins": {
     "claude-mem@thedotmack": true,
