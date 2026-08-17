@@ -176,8 +176,12 @@ when `IS_BOT`, else `self` when `IS_SELF`, else `other` (bot takes priority
 when both would match). For `REPLY_PATH=standalone` (no `COMMENT_ID`), skip
 this and treat `ROLE` as not applicable.
 
-Read affected files and surrounding code. If the comment targets stale code,
-inspect the current equivalent symbol or concept.
+Read affected files, surrounding code, and the closest existing test. If the
+comment targets stale code, inspect the current equivalent symbol or concept.
+For a security finding already fixed in code, confirm the test asserts the
+requested mitigation's observable output—not merely a malicious fixture or an
+unrelated property—before setting `NO_CODE_CHANGE`; otherwise plan a focused
+regression test.
 
 ### Create an isolated task worktree
 
