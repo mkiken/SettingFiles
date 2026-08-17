@@ -49,6 +49,8 @@ If a context-mode tool rejects a read because the target resolves outside the ac
 
 Before working on files in a repository other than the session's project — editing, running its tooling, or committing there — read that repository's root AI instruction file (CLAUDE.md / AGENTS.md / GEMINI.md, whichever exists) and follow it, including commit message conventions and pre-commit verification; out-of-project instruction files are not auto-loaded into the session.
 
+If a workflow or tool resolves a write target outside the session project, display the exact target and obtain confirmation before mutating it, unless the user explicitly named that external target.
+
 # Configuration Change Scope
 
 For narrow fixes, prefer the smallest owned integration point. Do not disable broader native features or product-level settings unless the user explicitly asks or that feature is the target; if considering one, explain the side effect before editing.
