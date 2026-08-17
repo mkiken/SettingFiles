@@ -125,6 +125,14 @@ _herdr_shell_status_state_path() {
     echo "${XDG_CACHE_HOME:-$HOME/.cache}/herdr-shell-status-state/${session_key}/${tab_key}"
 }
 
+# このファイルは対話zshからもsourceされるため、rmはユーザーaliasへ展開され得る。
+# cache entryは単一ファイルなので、alias非依存のunlinkでfail-safeに削除する。
+_herdr_delete_cache_file() {
+    local cache_file="$1"
+    [[ -z "${cache_file}" ]] && return 0
+    /bin/unlink "${cache_file}" 2>/dev/null || true
+}
+
 _herdr_shell_status_state_read() {
     local state_path
     state_path="$(_herdr_shell_status_state_path "$1")" || return 0
@@ -133,14 +141,14 @@ _herdr_shell_status_state_read() {
     mtime="$(stat -f %m "${state_path}" 2>/dev/null)"
     now="$(date +%s)"
     if [[ -z "${mtime}" ]] || (( now - mtime > _HERDR_SHELL_STATUS_STATE_TTL )); then
-        rm -f "${state_path}" 2>/dev/null
+        _herdr_delete_cache_file "${state_path}"
         return 0
     fi
     local glyph=""
     IFS= read -r glyph < "${state_path}" 2>/dev/null
     case "${glyph}" in
         "${EMOJI_STATUS_COMPLETED}"|"${EMOJI_STATUS_ERROR}") echo "${glyph}" ;;
-        *) rm -f "${state_path}" 2>/dev/null ;;
+        *) _herdr_delete_cache_file "${state_path}" ;;
     esac
 }
 
@@ -154,7 +162,7 @@ _herdr_shell_status_state_write() {
             mkdir -p "${state_path%/*}" 2>/dev/null
             printf '%s\n' "${glyph}" > "${state_path}" 2>/dev/null
             ;;
-        *) rm -f "${state_path}" 2>/dev/null ;;
+        *) _herdr_delete_cache_file "${state_path}" ;;
     esac
 }
 
@@ -168,13 +176,13 @@ _herdr_shell_status_marker_read() {
     mtime="$(stat -f %m "${marker_path}" 2>/dev/null)"
     now="$(date +%s)"
     if [[ -z "${mtime}" ]] || (( now - mtime > _HERDR_SHELL_STATUS_TTL )); then
-        rm -f "${marker_path}" 2>/dev/null
+        _herdr_delete_cache_file "${marker_path}"
         return 0
     fi
     local glyph=""
     IFS= read -r glyph < "${marker_path}" 2>/dev/null
     if [[ "${glyph}" != "${EMOJI_STATUS_NOTIFICATION}" ]]; then
-        rm -f "${marker_path}" 2>/dev/null
+        _herdr_delete_cache_file "${marker_path}"
         return 0
     fi
     echo "${glyph}"
@@ -243,7 +251,7 @@ update_herdr_status_icon() {
             mkdir -p "${marker_path%/*}" 2>/dev/null
             printf '%s\n' "${status_emoji}" > "${marker_path}" 2>/dev/null
         else
-            rm -f "${marker_path}" 2>/dev/null
+            _herdr_delete_cache_file "${marker_path}"
         fi
     fi
     _herdr_shell_status_state_write "${tab_id}" "${status_emoji}"
@@ -288,7 +296,7 @@ clear_herdr_shell_status_state() {
     # ここでstat 1回だけ払い、herdr/jq/python3の起動をすべて回避する。
     [[ -f "${state_path}" ]] || return 0
 
-    rm -f "${state_path}" 2>/dev/null
+    _herdr_delete_cache_file "${state_path}"
 
     local marker_glyph
     marker_glyph="$(_herdr_shell_status_marker_read "${tab_id}")"
@@ -319,7 +327,7 @@ remove_herdr_status_icon() {
     # レースは、次のプラグインイベントで自己修復する。
     local marker_path
     marker_path="$(_herdr_shell_status_marker_path "${tab_id}")"
-    [[ -n "${marker_path}" ]] && rm -f "${marker_path}" 2>/dev/null
+    _herdr_delete_cache_file "${marker_path}"
     _herdr_shell_status_state_write "${tab_id}" ""
 
     local current_label

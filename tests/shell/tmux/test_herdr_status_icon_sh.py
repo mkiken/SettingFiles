@@ -80,6 +80,7 @@ class HerdrStatusIconTestBase(unittest.TestCase):
         state_age_seconds: int = 0,
         extra_env: dict | None = None,
         shell: str = "bash",
+        before_source: str = "",
         prelude: str = "",
     ) -> tuple[subprocess.CompletedProcess[str], list[str], list[str], str | None]:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -179,6 +180,7 @@ class HerdrStatusIconTestBase(unittest.TestCase):
                 env.update(extra_env)
 
             command = (
+                f"{before_source}\n"
                 f'source "{SCRIPT}"\n'
                 f"{prelude}\n"
                 f"{function_call}\n"
@@ -459,6 +461,18 @@ class ShellStatusMarkerTest(HerdrStatusIconTestBase):
             "remove_herdr_status_icon",
             tab_label=f"{WAIT}main",
             marker_content=WAIT,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIsNone(marker)
+
+    def test_remove_deletes_marker_when_rm_is_aliased(self):
+        # 対話zshではrmがtrashへaliasされるため、source時のalias展開を再現する
+        result, _, _, marker = self.run_shell(
+            "remove_herdr_status_icon",
+            tab_label=f"{WAIT}main",
+            marker_content=WAIT,
+            shell="zsh",
+            before_source="alias rm=trash",
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIsNone(marker)
