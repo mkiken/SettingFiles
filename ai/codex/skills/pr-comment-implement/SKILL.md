@@ -183,6 +183,13 @@ requested mitigation's observable output—not merely a malicious fixture or an
 unrelated property—before setting `NO_CODE_CHANGE`; otherwise plan a focused
 regression test.
 
+When a relevant targeted baseline check fails, inspect `git blame` and `git
+log -S` for the failed symbol or test before asking to expand scope. If Git
+evidence shows a current-PR or prior review-response change left a directly
+dependent update incomplete, include the smallest correction in the
+`implement` scope and record the evidence. Otherwise treat it as unrelated
+baseline state and ask the user whether to expand scope.
+
 ### Decide whether the comment should be acted on (MANDATORY)
 
 Do not treat the review comment as an implementation order. Before designing
