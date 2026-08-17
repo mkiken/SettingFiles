@@ -158,6 +158,39 @@ requested mitigation's observable output—not merely a malicious fixture or an
 unrelated property—before setting `NO_CODE_CHANGE`; otherwise plan a focused
 regression test.
 
+### Decide whether the comment should be acted on (MANDATORY)
+
+Do not treat the review comment as an implementation order. Before designing
+any change, evaluate its exact claim against repository evidence:
+
+- current behavior in the affected code and its callers;
+- the complete review thread, repository requirements, and established
+  conventions that reveal the intended behavior;
+- the closest tests and whether they already prove or contradict the claim;
+- the requested change's scope, regression risk, and effect on correctness,
+  security, or maintainability.
+
+The comment author's role or authority is not evidence that the claim is
+correct. Record the concrete evidence inspected, then set
+`COMMENT_DISPOSITION` to exactly one value:
+
+- `implement`: the claim is valid, unaddressed, in scope, and the requested
+  outcome is supported by repository evidence. Set `NO_CODE_CHANGE=false`.
+- `reject`: the premise is incorrect, conflicts with intended behavior, is out
+  of scope, or would make the code worse. Set `NO_CODE_CHANGE=true`.
+- `already-satisfied`: current code already provides the requested behavior.
+  Set `NO_CODE_CHANGE=true`; require a test that observes the claimed behavior
+  when risk warrants it.
+- `needs-user-decision`: evidence is missing or conflicting, or the comment
+  requires a product or compatibility tradeoff the repository cannot settle.
+  Do not default to implementation or no change.
+
+For `needs-user-decision`, stop before Phase 2 and ask a focused question that
+shows the competing options, evidence for each, and their behavior and risk.
+Use the answer to replace `needs-user-decision` with `implement`, `reject`, or
+`already-satisfied`; Phase 2 must not begin while the disposition is
+unresolved.
+
 ### Create an isolated task worktree
 
 Implement in a dedicated worktree, not the invoking one, so parallel
@@ -261,6 +294,12 @@ Before editing, present this Japanese design and wait for explicit approval:
 - 種別: review thread / review / standalone
 - 要旨:
 
+### 採否判断
+- 判定: 対応する / 対応不要 / 既対応
+- 指摘の前提:
+- 確認した証拠:
+- 判断理由:
+
 ### 変更方針
 - 対応種別: code change / no code change
 - 変更する振る舞い:
@@ -323,10 +362,12 @@ comment author) — never write a guessed `other` here. A comment authored by
 the logged-in account (including one posted by a local AI through that same
 account) is `self`, not `other`.
 
-If the analysis shows that the requested behavior already matches repository
-conventions or that no code change is warranted, set `NO_CODE_CHANGE=true` in
-the design and explain the evidence. Approval of that design authorizes the
-no-change workflow below; it does not authorize a GitHub reply yet.
+The mandatory Phase 1 disposition controls the design: `implement` uses
+`NO_CODE_CHANGE=false`; `reject` and `already-satisfied` use
+`NO_CODE_CHANGE=true`. Explain the evidence and reasoning in `採否判断`; do not
+collapse a `needs-user-decision` result into either path without the user's
+choice. Approval of a no-change design authorizes the no-change workflow
+below; it does not authorize a GitHub reply yet.
 
 ### Phase 3: Implementation (Only after approval)
 
