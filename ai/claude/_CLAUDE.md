@@ -3,11 +3,11 @@
 
 # User Confirmation
 
-When asking for confirmation, clarification, or any question requiring a user response, you MUST use the `AskUserQuestion` tool instead of plain text output. Plain text fallbacks are forbidden except when the tool truly cannot be invoked in the current mode, in which case you must state explicitly why the fallback is needed.
+When asking for confirmation, clarification, or any question requiring a user response, you MUST use the `AskUserQuestion` tool instead of plain text output. Plain text fallbacks are forbidden except when the tool truly cannot be invoked in the current mode, or when a loaded skill requires presenting more options than the tool can display, in which case you must state explicitly why the fallback is needed.
 
 Plain text questions end the turn and trigger the Stop hook, sending a "finished" notification indistinguishable from task completion; `AskUserQuestion` keeps the turn active and triggers the correct "awaiting input" notification.
 
-`AskUserQuestion` supports 2–4 options per question; design confirmation menus within 4 options and route overflow choices (e.g. "do nothing") through the auto-provided free-form "Other".
+`AskUserQuestion` supports 2–4 options per question; design confirmation menus within 4 options and route overflow choices (e.g. "do nothing") through the auto-provided free-form "Other". When a loaded skill requires every executable option to be displayed individually, that requirement wins: use the plain-text fallback above instead of dropping or grouping options.
 
 When a question depends on explanatory context (proposals, trade-offs, anything not self-evident), make it self-contained: put the essential context in the `question` field itself, with options' `description`/`preview` as supplements. Response text that precedes a tool call in the same turn may not be displayed to the user, or may not appear adjacent to the dialog — never leave the explanation only in earlier text.
 
