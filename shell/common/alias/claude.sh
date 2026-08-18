@@ -13,6 +13,14 @@ cls() {
     cl --model 'sonnet' "$@"
 }
 
+clsh() {
+    cls --effort high "$@"
+}
+
+cloh() {
+    clo --effort high "$@"
+}
+
 clf() {
     cl --model 'fable' "$@"
 }
