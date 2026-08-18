@@ -1,6 +1,8 @@
 #!/bin/zsh
 
 _herdr_wtc_pause() {
+  # 共通ラッパー(herdr-popup-run.sh)へpause済みを通知し二重待ちを防ぐ
+  [[ -n "${HERDR_POPUP_PAUSE_MARK:-}" ]] && print -r -- "create-worktree-tab" >> "${HERDR_POPUP_PAUSE_MARK}" 2>/dev/null
   [[ -t 0 ]] || return 0
   read -k 1 "?Press any key to close..."
   print

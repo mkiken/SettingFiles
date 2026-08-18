@@ -32,6 +32,7 @@ class HerdrCreateWorktreeTabTest(unittest.TestCase):
         active_pane_cwd: str | None = None,
         wtc_status: int = 0,
         tab_status: int = 0,
+        extra_env: dict | None = None,
     ) -> subprocess.CompletedProcess[str]:
         active_pane_cwd = str(self.source) if active_pane_cwd is None else active_pane_cwd
         script = f'''\
@@ -53,6 +54,7 @@ print -r -- "__STATUS=$exit_code"
             "HERDR_ENV": "1",
             "HERDR_ACTIVE_PANE_ID": active_pane_id,
             "HERDR_ACTIVE_PANE_CWD": active_pane_cwd,
+            **(extra_env or {}),
         }
         return subprocess.run(
             [ZSH, "-fc", script],
@@ -114,3 +116,31 @@ print -r -- "__STATUS=$exit_code"
                 f"newtab:w7 {self.worktree} feature/demo :  1",
             ],
         )
+
+    def test_pause_writes_mark_when_provided(self):
+        with tempfile.NamedTemporaryFile() as mark:
+            result = self.run_script(
+                input_text="feature/demo\n",
+                wtc_status=17,
+                extra_env={"HERDR_POPUP_PAUSE_MARK": mark.name},
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("__STATUS=17", result.stdout)
+            self.assertTrue(Path(mark.name).stat().st_size > 0)
+
+    def test_pause_is_a_no_op_without_mark(self):
+        result = self.run_script(input_text="feature/demo\n", wtc_status=17)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("__STATUS=17", result.stdout)
+
+    def test_pause_swallows_unwritable_mark_path(self):
+        result = self.run_script(
+            input_text="feature/demo\n",
+            wtc_status=17,
+            extra_env={"HERDR_POPUP_PAUSE_MARK": "/nonexistent-dir/mark"},
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("__STATUS=17", result.stdout)

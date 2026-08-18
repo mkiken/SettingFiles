@@ -6,7 +6,25 @@ When a `[[keys.command]]` popup needs to act on the pane that triggered it (not 
 
 Before reloading config from a secondary worktree, check `readlink "$HOME/.config/herdr/config.toml"`: the live symlink can point at another worktree, so reloading the current checkout's config has no effect.
 
-An interactive login shell used only to load aliases/functions can fail before its popup command runs: Powerlevel10k's gitstatus initialization attempts `setopt monitor`, which Herdr's popup PTY rejects, then the `zsh -ilc` child exits immediately. Set `HERDR_POPUP_COMMAND=1` on such bindings; `shell/zsh/managed.zsh` uses it to skip prompt-theme initialization while still loading commands such as `frws`. Pin both the binding and the skip gate in tests.
+An interactive login shell used only to load aliases/functions can fail before its popup command runs: Powerlevel10k's gitstatus initialization attempts `setopt monitor`, which Herdr's popup PTY rejects, then the `zsh -ilc` child exits immediately. `HERDR_POPUP_COMMAND=1` gates this in `shell/zsh/managed.zsh` (skip prompt-theme init while still loading commands such as `frws`). Since `herdr-popup-run.sh` (below) exports it unconditionally for every wrapped popup, config.toml bindings no longer set it themselves — pin the export in the wrapper's own tests, not per-binding.
+
+## Common error-pause wrapper: `shell/tmux/herdr-popup-run.sh`
+
+A popup closes the instant its command exits, so a failure's stderr disappears before it can be read. Every `[[keys.command]]` popup except two (below) is wrapped: `command = "$HOME/.tmux/scripts/herdr-popup-run.sh <original command...>"`. The wrapper runs the command as-is (no `eval`, argv passed straight through), and on a non-zero, non-130 exit prints the code and waits for a keypress (`[ -t 0 ]` guarded, so it never blocks a tty-less run) before propagating the original exit code. `130` (Ctrl-C) is exempt because pickers use it for a normal cancel.
+
+Two variables are exported, and they mean different things — do not conflate them:
+
+- `HERDR_POPUP_COMMAND=1` — the p10k gate above. Nothing else should read it.
+- `HERDR_POPUP_WRAPPED=1` — "running under the pause wrapper". `_freview_pause_if_popup` (`shell/zsh/filter/ai.zsh`) reads this one to decide whether to pause. Mixing the two would make any future `[[ -n $HERDR_POPUP_COMMAND ]]` pause check fire silently across every wrapped popup, not just the one it was written for.
+
+Some bindings already had their own contextual pause (freview, `herdr-create-worktree-tab.sh`, `open-pr-web.sh`) before the wrapper existed. They coexist via a flag file: the wrapper creates a temp file and exports its path as `HERDR_POPUP_PAUSE_MARK`; an individual pause writes to it after showing its own message. The wrapper checks `[ -s "$mark" ]` and skips its own pause if non-empty — individual pause wins, wrapper is the fail-safe when there is none. If you add a new individual pause, write to `HERDR_POPUP_PAUSE_MARK` (no-op if unset) so it doesn't double up with the wrapper.
+
+Two popups are intentionally **not** wrapped, and a new binding should default to wrapped unless it shares one of these traits:
+
+- `prefix+t` (`zsh -il`, a plain interactive shell) — there's no "error disappears before you read it" problem since the shell stays open until the user closes it; wrapping it would also make routine nonzero exits (interactive zsh inherits the last command's status, e.g. `zsh -ic 'false'` → 1) trigger a keypress every time, and the unconditional `HERDR_POPUP_COMMAND=1` export would newly skip p10k theme init, changing the prompt.
+- `prefix+ctrl+shift+g` (difit, `dia`) — same three reasons: it's a long-running server closed with Ctrl-C (130, already exempt) so the problem barely applies; `di` returns 1 on the mundane "nothing changed" case, which would force a keypress on a no-op; and it currently runs as non-login `zsh -ic` with no `HERDR_POPUP_COMMAND`, so wrapping would newly introduce the p10k skip.
+
+The zoxide picker (`prefix+shift+o`) is wrapped but the wrap has a known blind spot: upstream `zoxide-picker.sh` ends in fzf's `--bind "enter:become($herdr_bin workspace create ...)"`. `become` execs, replacing the process, and `herdr workspace create` returns 0 even for a nonexistent cwd (measured) — so a failed navigation never reaches a nonzero exit for the wrapper to catch. It only catches `herdr-open-zoxide-picker.sh`'s own errors (missing plugin, missing picker file).
 
 Sending the first command to a freshly created pane (`pane split`/`tab create` + `pane run`) races with shell startup: input sent during zshrc init is dropped, and `pane wait-output --source recent` matches the input-echo line, so a single-form marker false-positives before the shell is ready. Gate the first real command behind the shared `_herdr_wait_shell_ready` (`shell/tmux/herdr_wait_shell_ready.sh`, sourced by `ai.zsh` and `herdr-split-snapshot-pane.sh`) — split-token marker + per-attempt unique marker + short-timeout retries + a `ctrl+u` line clear once ready — instead of re-implementing markers inline.
 

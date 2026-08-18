@@ -412,7 +412,7 @@ class FreviewPopupPauseTest(FreviewWorktreeFixture, unittest.TestCase):
     def test_pauses_on_error_inside_popup(self):
         result, values = self.run_freview(
             extra_env={
-                "HERDR_POPUP_COMMAND": "1",
+                "HERDR_POPUP_WRAPPED": "1",
                 "FREVIEW_DIRTY": "1",
                 "FREVIEW_DIRTY_PATH": str(self.worktree),
             }
@@ -432,14 +432,14 @@ class FreviewPopupPauseTest(FreviewWorktreeFixture, unittest.TestCase):
     def test_does_not_pause_on_picker_cancel(self):
         # キャンセルは正常操作。待たせるとpopupを閉じるのに余計な操作が要る
         result, values = self.run_freview(
-            extra_env={"HERDR_POPUP_COMMAND": "1", "FREVIEW_PR_CANCEL": "1"}
+            extra_env={"HERDR_POPUP_WRAPPED": "1", "FREVIEW_PR_CANCEL": "1"}
         )
 
         self.assertEqual(values["__STATUS"], "130", result.stderr)
         self.assertNotIn(self.PAUSE_MARKER, result.stderr)
 
     def test_does_not_pause_on_success(self):
-        result, values = self.run_freview(extra_env={"HERDR_POPUP_COMMAND": "1"})
+        result, values = self.run_freview(extra_env={"HERDR_POPUP_WRAPPED": "1"})
 
         self.assertEqual(values["__STATUS"], "0", result.stderr)
         self.assertNotIn(self.PAUSE_MARKER, result.stderr)
@@ -450,7 +450,7 @@ class FreviewPopupPauseTest(FreviewWorktreeFixture, unittest.TestCase):
         result, values = self.run_freview(
             args="-c",
             extra_env={
-                "HERDR_POPUP_COMMAND": "1",
+                "HERDR_POPUP_WRAPPED": "1",
                 "FREVIEW_DIRTY": "1",
                 "FREVIEW_DIRTY_PATH": str(self.repo),
             },
@@ -458,6 +458,49 @@ class FreviewPopupPauseTest(FreviewWorktreeFixture, unittest.TestCase):
 
         self.assertEqual(values["__STATUS"], "1", result.stderr)
         self.assertIn(self.PAUSE_MARKER, result.stderr)
+
+    def test_pause_writes_mark_when_provided(self):
+        # マークは「pauseした事実の記録」であってpopup判定ではない、という不変条件を固定する
+        with tempfile.NamedTemporaryFile() as mark:
+            result, values = self.run_freview(
+                extra_env={
+                    "HERDR_POPUP_WRAPPED": "1",
+                    "HERDR_POPUP_PAUSE_MARK": mark.name,
+                    "FREVIEW_DIRTY": "1",
+                    "FREVIEW_DIRTY_PATH": str(self.worktree),
+                }
+            )
+
+            self.assertEqual(values["__STATUS"], "1", result.stderr)
+            self.assertIn(self.PAUSE_MARKER, result.stderr)
+            self.assertTrue(Path(mark.name).stat().st_size > 0)
+
+    def test_mark_stays_empty_when_not_wrapped(self):
+        with tempfile.NamedTemporaryFile() as mark:
+            result, values = self.run_freview(
+                extra_env={
+                    "HERDR_POPUP_PAUSE_MARK": mark.name,
+                    "FREVIEW_DIRTY": "1",
+                    "FREVIEW_DIRTY_PATH": str(self.worktree),
+                }
+            )
+
+            self.assertEqual(values["__STATUS"], "1", result.stderr)
+            self.assertNotIn(self.PAUSE_MARKER, result.stderr)
+            self.assertEqual(Path(mark.name).stat().st_size, 0)
+
+    def test_mark_stays_empty_on_picker_cancel(self):
+        with tempfile.NamedTemporaryFile() as mark:
+            result, values = self.run_freview(
+                extra_env={
+                    "HERDR_POPUP_WRAPPED": "1",
+                    "HERDR_POPUP_PAUSE_MARK": mark.name,
+                    "FREVIEW_PR_CANCEL": "1",
+                }
+            )
+
+            self.assertEqual(values["__STATUS"], "130", result.stderr)
+            self.assertEqual(Path(mark.name).stat().st_size, 0)
 
 
 class FreviewCurrentModeTest(FreviewWorktreeFixture, unittest.TestCase):

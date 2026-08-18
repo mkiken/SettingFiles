@@ -185,10 +185,14 @@ class HerdrZoxideKeyBindingTest(unittest.TestCase):
         self.assertIn("zsh -ilc", self.binding["command"])
         self.assertNotIn("zsh -ic", self.binding["command"])
 
-    def test_binding_sets_popup_command_guard(self):
+    def test_binding_goes_through_the_common_popup_wrapper(self):
         # HERDR_POPUP_COMMAND=1 が無いと Powerlevel10k の gitstatus 初期化が
         # popup PTY に弾かれ、zsh -ilc の子プロセスが即終了する。
-        self.assertIn("HERDR_POPUP_COMMAND=1", self.binding["command"])
+        # この前置きは herdr-popup-run.sh がexportして吸収するため、config.toml側
+        # には残らず、代わりにラッパー経由であることを確認する。
+        self.assertIn("herdr-popup-run.sh", self.binding["command"])
+        wrapper_body = (REPO_ROOT / "shell/tmux/herdr-popup-run.sh").read_text()
+        self.assertIn("export HERDR_POPUP_COMMAND=1", wrapper_body)
 
     def test_binding_invokes_the_managed_launcher(self):
         self.assertIn("herdr-open-zoxide-picker.sh", self.binding["command"])

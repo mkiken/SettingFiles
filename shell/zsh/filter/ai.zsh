@@ -33,10 +33,14 @@ fgm-pr-review()              { _fai-pr-review gm-pr-review "$@" }
 
 # Herdr popupはコマンド終了と同時に閉じるため、エラーメッセージが読めないまま消える。
 # popup実行時のみキー入力を待って、原因を読み切れるようにする。
-# 通常シェルからの直接実行やテストでは待たない（HERDR_POPUP_COMMANDが空）
+# 通常シェルからの直接実行やテストでは待たない（HERDR_POPUP_WRAPPEDが空）。
+# HERDR_POPUP_COMMAND（p10k gate専用）ではなくHERDR_POPUP_WRAPPED（herdr-popup-run.shの
+# pause契約変数）を見る。1変数に2つの意味を持たせると将来別箇所の判定が全popupへ波及するため分離している
 _freview_pause_if_popup() {
-    [[ -z "${HERDR_POPUP_COMMAND:-}" ]] && return 0
+    [[ -z "${HERDR_POPUP_WRAPPED:-}" ]] && return 0
     echo "エラーで終了しました。何かキーを押すと閉じます" >&2
+    # 共通ラッパー(herdr-popup-run.sh)へpause済みを通知し二重待ちを防ぐ
+    [[ -n "${HERDR_POPUP_PAUSE_MARK:-}" ]] && print -r -- "ai.zsh" >> "${HERDR_POPUP_PAUSE_MARK}" 2>/dev/null
     # ttyが無ければ待てないので読み取りは省く（待つと閉じられないpopupになる）。
     # 直前のメッセージはpause判定の観測点でもあるため、読み取りの可否に関わらず出す
     [[ -t 0 ]] || return 0

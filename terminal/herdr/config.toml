@@ -34,11 +34,16 @@ previous_agent = "prefix+ctrl+p"
 [[keys.command]]
 key = "prefix+ctrl+g"
 type = "popup"
-command = "HERDR_POPUP_COMMAND=1 zsh -ilc 'exec bash \"$HOME/.tmux/scripts/herdr-open-lazygit.sh\"'"
+command = "$HOME/.tmux/scripts/herdr-popup-run.sh zsh -ilc 'exec bash \"$HOME/.tmux/scripts/herdr-open-lazygit.sh\"'"
 description = "run lazygit"
 width = "99%"
 height = "99%"
 
+# difit はラップしない: 長時間稼働のサーバで通常の閉じ方はCtrl-C(130)なのでそもそも
+# 「読む前に閉じる」問題が起きにくい。加えて di は「変更なし」の平凡なケースでrc=1を返す
+# ため、ラップすると無害なno-opにキー待ちを強制する。さらに現行 zsh -ic（非ログイン、
+# HERDR_POPUP_COMMANDなし）にラップでp10kスキップが新規に乗りプロンプトが変わる
+# （prefix+tを除外した理由と同じ）。
 [[keys.command]]
 key = "prefix+ctrl+shift+g"
 type = "popup"
@@ -50,11 +55,14 @@ height = "80%"
 [[keys.command]]
 key = "prefix+f"
 type = "popup"
-command = "$HOME/.tmux/scripts/tmux-file-picker.sh"
+command = "$HOME/.tmux/scripts/herdr-popup-run.sh $HOME/.tmux/scripts/tmux-file-picker.sh"
 description = "file picker (@path insert when AI agent detected)"
 width = "90%"
 height = "90%"
 
+# 対話シェルはラップしない: 直前コマンド由来の非ゼロ終了/Ctrl-D終了が日常的で
+# 誤検知が常態化するうえ、ラッパーのHERDR_POPUP_COMMAND=1がp10kテーマ初期化を
+# 飛ばしてプロンプトが素になる（managed.zshのgate）。
 [[keys.command]]
 key = "prefix+t"
 type = "popup"
@@ -66,7 +74,7 @@ height = "99%"
 [[keys.command]]
 key = "prefix+shift+f"
 type = "popup"
-command = "HERDR_POPUP_COMMAND=1 zsh -ilc \"_herdr_pick_worktree_target\""
+command = "$HOME/.tmux/scripts/herdr-popup-run.sh zsh -ilc \"_herdr_pick_worktree_target\""
 description = "worktree picker: Enter workspace, Ctrl-O tab, C-s down split, C-v right split"
 width = "90%"
 height = "90%"
@@ -74,7 +82,7 @@ height = "90%"
 [[keys.command]]
 key = "prefix+ctrl+f"
 type = "popup"
-command = "HERDR_POPUP_COMMAND=1 zsh -ilc \"_herdr_pick_worktree_target --current-repo\""
+command = "$HOME/.tmux/scripts/herdr-popup-run.sh zsh -ilc \"_herdr_pick_worktree_target --current-repo\""
 description = "current repo worktree picker: Enter workspace, Ctrl-O tab, C-s down split, C-v right split"
 width = "90%"
 height = "90%"
@@ -82,7 +90,7 @@ height = "90%"
 [[keys.command]]
 key = "prefix+ctrl+r"
 type = "popup"
-command = "HERDR_POPUP_COMMAND=1 zsh -ilc \"freview\""
+command = "$HOME/.tmux/scripts/herdr-popup-run.sh zsh -ilc \"freview\""
 description = "AI review: pick repo/worktree -> PR"
 width = "90%"
 height = "90%"
@@ -90,7 +98,7 @@ height = "90%"
 [[keys.command]]
 key = "prefix+ctrl+shift+r"
 type = "popup"
-command = "HERDR_POPUP_COMMAND=1 zsh -ilc \"freview-subagents\""
+command = "$HOME/.tmux/scripts/herdr-popup-run.sh zsh -ilc \"freview-subagents\""
 description = "AI review (subagents): pick repo/worktree -> PR"
 width = "90%"
 height = "90%"
@@ -98,7 +106,7 @@ height = "90%"
 [[keys.command]]
 key = "prefix+shift+g"
 type = "popup"
-command = "HERDR_POPUP_COMMAND=1 zsh -ilc 'source \"$HOME/.tmux/scripts/herdr-create-worktree-tab.sh\"'"
+command = "$HOME/.tmux/scripts/herdr-popup-run.sh zsh -ilc 'source \"$HOME/.tmux/scripts/herdr-create-worktree-tab.sh\"'"
 description = "create worktree -> new tab"
 width = "60%"
 height = "25%"
@@ -118,7 +126,7 @@ description = "snapshot current pane output -> right split"
 [[keys.command]]
 key = "prefix+shift+v"
 type = "popup"
-command = "zsh -ilc \"$HOME/.tmux/scripts/open-pr-web.sh\""
+command = "$HOME/.tmux/scripts/herdr-popup-run.sh zsh -ilc \"$HOME/.tmux/scripts/open-pr-web.sh\""
 description = "open current branch's PR in browser"
 width = "90%"
 height = "80%"
@@ -132,9 +140,13 @@ description = "visible-screen link picker"
 [[keys.command]]
 # plugin_action 直呼びだと Herdr が PATH を剥ぎ取るため picker が zoxide/fzf を解決できない。
 # ログインシェルを挟んで PATH を復元してから picker 本体へ橋渡しする。
+# この popup が拾えるのは herdr-open-zoxide-picker.sh 自身のエラー（プラグイン未
+# インストール等）のみ。上流 zoxide-picker.sh は fzf の enter:become(...) で終わり、
+# become は exec でプロセスを置き換えるうえ herdr workspace create は存在しない cwd
+# でも rc=0 を返すため、実際の移動失敗はこのラッパーで観測できない。
 key = "prefix+shift+o"
 type = "popup"
-command = "HERDR_POPUP_COMMAND=1 zsh -ilc '$HOME/.tmux/scripts/herdr-open-zoxide-picker.sh'"
+command = "$HOME/.tmux/scripts/herdr-popup-run.sh zsh -ilc '$HOME/.tmux/scripts/herdr-open-zoxide-picker.sh'"
 description = "Browse zoxide directories"
 width = "90%"
 height = "90%"

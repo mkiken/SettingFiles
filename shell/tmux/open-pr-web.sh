@@ -35,6 +35,8 @@ print -u2 -- "現在のブランチ: $(_current_branch_name)"
 print -u2 -- "終了コード: $exit_status"
 print -u2 -- ""
 print -u2 -- "Enterで閉じます。"
+# 共通ラッパー(herdr-popup-run.sh)へpause済みを通知し二重待ちを防ぐ
+[[ -n "${HERDR_POPUP_PAUSE_MARK:-}" ]] && print -r -- "open-pr-web" >> "${HERDR_POPUP_PAUSE_MARK}" 2>/dev/null
 read -r _
 
 exit "$exit_status"

@@ -124,16 +124,76 @@ class HerdrConfigurationTest(unittest.TestCase):
         self.assertEqual(lazygit["type"], "popup")
         self.assertEqual(
             lazygit["command"],
-            "HERDR_POPUP_COMMAND=1 zsh -ilc 'exec bash \"$HOME/.tmux/scripts/herdr-open-lazygit.sh\"'",
+            "$HOME/.tmux/scripts/herdr-popup-run.sh zsh -ilc 'exec bash \"$HOME/.tmux/scripts/herdr-open-lazygit.sh\"'",
         )
         tmux_scripts = read_text("mac/initialization/tmux.sh")
         self.assertIn("herdr-open-lazygit.sh", tmux_scripts)
         self.assertIn("herdr_worktree_context.sh", tmux_scripts)
+        self.assertIn("herdr-popup-run.sh", tmux_scripts)
         # plugin_action直呼びだとHerdrがPATHを剥ぎ取りzoxide/fzfを解決できないため、
         # popup経由でherdr-open-zoxide-picker.shを叩く方式になっている。
         zoxide = next(c for c in keys["command"] if c["key"] == "prefix+shift+o")
         self.assertEqual(zoxide["type"], "popup")
         self.assertIn("herdr-open-zoxide-picker.sh", zoxide["command"])
+
+    @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
+    def test_all_popups_go_through_the_common_wrapper_except_the_excluded_two(self):
+        # prefix+t（対話シェル）とprefix+ctrl+shift+g（difit）以外の全popupは
+        # herdr-popup-run.sh 経由にする。個別に例外を足さず一括カバーするのが目的
+        keys = tomllib.loads(read_text("terminal/herdr/config.toml"))["keys"]
+        excluded_keys = {"prefix+t", "prefix+ctrl+shift+g"}
+
+        for entry in keys["command"]:
+            if entry["type"] != "popup":
+                continue
+            with self.subTest(key=entry["key"]):
+                if entry["key"] in excluded_keys:
+                    self.assertNotIn("herdr-popup-run.sh", entry["command"])
+                else:
+                    self.assertTrue(
+                        entry["command"].startswith(
+                            "$HOME/.tmux/scripts/herdr-popup-run.sh "
+                        ),
+                        entry["command"],
+                    )
+
+    @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
+    def test_interactive_shell_popup_is_intentionally_not_wrapped(self):
+        keys = tomllib.loads(read_text("terminal/herdr/config.toml"))["keys"]
+        popup = next(c for c in keys["command"] if c["key"] == "prefix+t")
+
+        self.assertEqual(popup["command"], "zsh -il")
+        self.assertNotIn("herdr-popup-run.sh", popup["command"])
+
+    @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
+    def test_difit_popup_is_intentionally_not_wrapped(self):
+        keys = tomllib.loads(read_text("terminal/herdr/config.toml"))["keys"]
+        popup = next(c for c in keys["command"] if c["key"] == "prefix+ctrl+shift+g")
+
+        self.assertEqual(popup["command"], 'zsh -ic "dia"')
+        self.assertNotIn("herdr-popup-run.sh", popup["command"])
+
+    @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
+    def test_shell_and_plugin_action_types_are_not_wrapped(self):
+        keys = tomllib.loads(read_text("terminal/herdr/config.toml"))["keys"]
+        non_popup_keys = ("prefix+ctrl+s", "prefix+ctrl+v", "prefix+u", "prefix+g")
+
+        for entry in keys["command"]:
+            if entry["key"] in non_popup_keys:
+                with self.subTest(key=entry["key"]):
+                    self.assertNotIn("herdr-popup-run.sh", entry["command"])
+
+    @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
+    def test_no_popup_still_carries_the_old_variable_prefix(self):
+        # HERDR_POPUP_COMMAND=1 の前置きはラッパーがexportするため、
+        # config.toml側からは全popupで消えている必要がある
+        keys = tomllib.loads(read_text("terminal/herdr/config.toml"))["keys"]
+
+        for entry in keys["command"]:
+            if entry["type"] != "popup":
+                continue
+            with self.subTest(key=entry["key"]):
+                self.assertNotIn("HERDR_POPUP_COMMAND=1", entry["command"])
 
     @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
     def test_wtc_popup_uses_the_managed_worktree_tab_script(self):
@@ -143,7 +203,7 @@ class HerdrConfigurationTest(unittest.TestCase):
         self.assertEqual(popup["type"], "popup")
         self.assertEqual(
             popup["command"],
-            "HERDR_POPUP_COMMAND=1 zsh -ilc 'source \"$HOME/.tmux/scripts/herdr-create-worktree-tab.sh\"'",
+            "$HOME/.tmux/scripts/herdr-popup-run.sh zsh -ilc 'source \"$HOME/.tmux/scripts/herdr-create-worktree-tab.sh\"'",
         )
         self.assertIn("herdr-create-worktree-tab.sh", read_text("mac/initialization/tmux.sh"))
 
@@ -154,7 +214,7 @@ class HerdrConfigurationTest(unittest.TestCase):
 
         self.assertEqual(
             popup["command"],
-            'HERDR_POPUP_COMMAND=1 zsh -ilc "_herdr_pick_worktree_target"',
+            '$HOME/.tmux/scripts/herdr-popup-run.sh zsh -ilc "_herdr_pick_worktree_target"',
         )
         self.assertIn("Enter workspace", popup["description"])
         self.assertIn("Ctrl-O tab", popup["description"])
@@ -173,7 +233,7 @@ class HerdrConfigurationTest(unittest.TestCase):
         self.assertEqual(popup["type"], "popup")
         self.assertEqual(
             popup["command"],
-            'HERDR_POPUP_COMMAND=1 zsh -ilc "_herdr_pick_worktree_target --current-repo"',
+            '$HOME/.tmux/scripts/herdr-popup-run.sh zsh -ilc "_herdr_pick_worktree_target --current-repo"',
         )
         self.assertIn("current repo worktree picker", popup["description"])
         self.assertIn("Enter workspace", popup["description"])
@@ -191,7 +251,7 @@ class HerdrConfigurationTest(unittest.TestCase):
 
         self.assertEqual(review["type"], "popup")
         self.assertEqual(
-            review["command"], 'HERDR_POPUP_COMMAND=1 zsh -ilc "freview"'
+            review["command"], '$HOME/.tmux/scripts/herdr-popup-run.sh zsh -ilc "freview"'
         )
         self.assertIn("AI review", review["description"])
         self.assertEqual(review["width"], "90%")
@@ -200,7 +260,7 @@ class HerdrConfigurationTest(unittest.TestCase):
         self.assertEqual(review_subagents["type"], "popup")
         self.assertEqual(
             review_subagents["command"],
-            'HERDR_POPUP_COMMAND=1 zsh -ilc "freview-subagents"',
+            '$HOME/.tmux/scripts/herdr-popup-run.sh zsh -ilc "freview-subagents"',
         )
         self.assertIn("AI review", review_subagents["description"])
         self.assertEqual(review_subagents["width"], "90%")
