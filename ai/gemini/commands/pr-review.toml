@@ -46,7 +46,7 @@ Review ALL changed files individually, checking ALL 7 quality perspectives defin
 
 ### Post-Review
 
-After completing the review, delete any temporary files created during the process (e.g. `diff.txt`) with `trash` (never `rm`).
+After completing the review, delete with `trash` (never `rm`) any temporary file that ended up inside the reviewed repository (e.g. `diff.txt`); per the Temp Files rules above, such files belong in the session scratchpad directory, not the repository.
 
 If at least one actionable finding remains, display the following message after outputting the review results and cleaning up:
 

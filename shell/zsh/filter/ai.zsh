@@ -31,15 +31,51 @@ fcl-pr-review()              { _fai-pr-review cl-pr-review "$@" }
 fcl-pr-review-subagents()    { _fai-pr-review cl-pr-review-subagents "$@" }
 fgm-pr-review()              { _fai-pr-review gm-pr-review "$@" }
 
-# 選択worktreeが汚れていないか確認する（親シェルからgit -Cで検査）
+# Herdr popupはコマンド終了と同時に閉じるため、エラーメッセージが読めないまま消える。
+# popup実行時のみキー入力を待って、原因を読み切れるようにする。
+# 通常シェルからの直接実行やテストでは待たない（HERDR_POPUP_COMMANDが空）
+_freview_pause_if_popup() {
+    [[ -z "${HERDR_POPUP_COMMAND:-}" ]] && return 0
+    echo "エラーで終了しました。何かキーを押すと閉じます" >&2
+    # ttyが無ければ待てないので読み取りは省く（待つと閉じられないpopupになる）。
+    # 直前のメッセージはpause判定の観測点でもあるため、読み取りの可否に関わらず出す
+    [[ -t 0 ]] || return 0
+    local _discard
+    read -k 1 -r _discard
+    echo "" >&2
+}
+
+# 選択worktreeがレビュー可能な状態か確認する（親シェルからgit -Cで検査）。
+# 追跡ファイルの変更はレビュー対象の差分に未コミット分が混入しうるため無条件で中断する。
+# 未追跡ファイルだけならレビュー自体は成立するので、内容を見せたうえで続行可否を選ばせる
+# （過去のAIレビューが残した一時ファイルでPR選択に到達できなくなるのを避けるため）
 # 引数: worktree_path
-_freview_assert_clean() {
+_freview_confirm_clean_enough() {
     local worktree_path="$1"
-    if ! git -C "$worktree_path" diff-index --quiet HEAD -- 2>/dev/null \
-        || [[ -n $(git -C "$worktree_path" ls-files --others --exclude-standard) ]]; then
+
+    if ! git -C "$worktree_path" diff-index --quiet HEAD -- 2>/dev/null; then
         echo "${worktree_path} に作業中のファイルがあります。stashまたはcommitしてください。" >&2
         return 1
     fi
+
+    local -a untracked
+    untracked=("${(@f)$(git -C "$worktree_path" ls-files --others --exclude-standard)}")
+    # コマンド置換が空文字を返すと1要素の空配列になるため、空要素を落として実数にする
+    untracked=("${(@)untracked:#}")
+    (( ${#untracked} == 0 )) && return 0
+
+    echo "${worktree_path} に未追跡ファイルが ${#untracked} 件あります:" >&2
+    # 大量の未追跡ファイルでpopupが埋まらないよう表示は先頭10件に抑える
+    local -i shown=0
+    local file
+    for file in "${untracked[@]}"; do
+        (( shown >= 10 )) && break
+        echo "  ${file}" >&2
+        shown+=1
+    done
+    (( ${#untracked} > shown )) && echo "  ... 他 $(( ${#untracked} - shown )) 件" >&2
+
+    confirm "未追跡ファイルを残したままレビューを続行しますか？" --default-no --no-notify --single-key
 }
 
 # リポジトリ→worktree→PRを選択し、選択worktreeでcheckoutしてAIレビューを起動する
@@ -71,7 +107,7 @@ _freview_worktree() {
         return $EXIT_CODE_SIGINT
     fi
 
-    _freview_assert_clean "$worktree_path" || return 1
+    _freview_confirm_clean_enough "$worktree_path" || return 1
 
     # gh pr list はcwd依存のため、選択worktreeへcdしたサブシェルでPRを選ぶ
     # fzfはTUIを/dev/ttyに描くのでコマンド置換内でも動く
@@ -98,15 +134,27 @@ _freview_worktree() {
 
 # -c 指定時のみ従来動作（現在地でPR選択→gh co→レビュー）
 # -c は先頭のみ認識し、以降の引数はreviewへそのまま渡す（--no-merge/プロンプトと競合させない）
+# エラー終了時のpopup pauseはここへ集約する。個別のエラー箇所に散らさないことで
+# 将来増えるエラー経路も自動的に可視化される
 # 引数: 元関数名, [-c] [元関数に渡す追加引数...]
 _freview_dispatch() {
     local func_name="$1"; shift
+
+    local dispatch_exit
     if [[ "${1:-}" == "-c" ]]; then
         shift
         _fai-pr-review "$func_name" "$@"
-        return $?
+        dispatch_exit=$?
+    else
+        _freview_worktree "$func_name" "$@"
+        dispatch_exit=$?
     fi
-    _freview_worktree "$func_name" "$@"
+
+    # ピッカーのキャンセルは正常操作なので待たせない
+    if (( dispatch_exit != 0 )) && (( dispatch_exit != EXIT_CODE_SIGINT )); then
+        _freview_pause_if_popup
+    fi
+    return $dispatch_exit
 }
 
 freview()           { _freview_dispatch review "$@" }

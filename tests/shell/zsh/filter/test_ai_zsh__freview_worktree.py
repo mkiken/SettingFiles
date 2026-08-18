@@ -84,9 +84,15 @@ class FreviewWorktreeFixture:
             "  fi\n"
             "  exit 0\n"
             "fi\n"
+            # 未追跡ファイルはFREVIEW_UNTRACKED_COUNT件（既定1件）を返す。
+            # 表示の打ち切り（先頭10件+残数）を検証するため件数を可変にしている
             "if [ \"$1\" = ls-files ]; then\n"
             "  if [ \"${FREVIEW_UNTRACKED:-}\" = 1 ] && [ \"$target\" = \"${FREVIEW_DIRTY_PATH:-$target}\" ]; then\n"
-            "    printf 'untracked.txt\\n'\n"
+            "    i=1\n"
+            "    while [ \"$i\" -le \"${FREVIEW_UNTRACKED_COUNT:-1}\" ]; do\n"
+            "      printf 'untracked%s.txt\\n' \"$i\"\n"
+            "      i=$((i + 1))\n"
+            "    done\n"
             "  fi\n"
             "  exit 0\n"
             "fi\n"
@@ -171,6 +177,12 @@ class FreviewWorktreeFixture:
             }}
             review() {{ printf 'REVIEW review %s (AI_REVIEW_CWD=%s)\\n' "$*" "$AI_REVIEW_CWD" >> "$FREVIEW_LOG"; }}
             review-subagents() {{ printf 'REVIEW review-subagents %s (AI_REVIEW_CWD=%s)\\n' "$*" "$AI_REVIEW_CWD" >> "$FREVIEW_LOG"; }}
+            # confirmはutils.zshに実装があるが対話待ちになるため差し替える。
+            # 呼び出し引数を記録し、FREVIEW_CONFIRM_ANSWERで応答を切り替える
+            confirm() {{
+                printf 'CONFIRM %s\\n' "$*" >> "$FREVIEW_LOG"
+                [[ "${{FREVIEW_CONFIRM_ANSWER:-no}}" == yes ]]
+            }}
             {command} {args}
             exit_code=$?
             print -r -- "__STATUS=$exit_code"
@@ -270,14 +282,67 @@ class FreviewWorktreeModeTest(FreviewWorktreeFixture, unittest.TestCase):
         pr_filter_calls = [c for c in calls if c == "FILTER_CALL"]
         self.assertEqual(len(pr_filter_calls), 2, calls)
 
-    def test_dirty_untracked_only_aborts(self):
+    def untracked_env(self, **overrides):
+        env = {"FREVIEW_UNTRACKED": "1", "FREVIEW_DIRTY_PATH": str(self.worktree)}
+        env.update(overrides)
+        return env
+
+    def test_dirty_untracked_only_aborts_when_confirm_declined(self):
         result, values = self.run_freview(
-            extra_env={"FREVIEW_UNTRACKED": "1", "FREVIEW_DIRTY_PATH": str(self.worktree)}
+            extra_env=self.untracked_env(FREVIEW_CONFIRM_ANSWER="no")
         )
 
         self.assertEqual(values["__STATUS"], "1", result.stderr)
-        self.assertIn("作業中のファイルがあります", result.stderr)
+        self.assertEqual(len([c for c in self.calls() if c.startswith("CONFIRM ")]), 1, self.calls())
         self.assertEqual([c for c in self.calls() if c.startswith("GH ")], [])
+        # PRピッカーへ到達しない: filterはrepo + worktreeの2回のみ
+        self.assertEqual(len([c for c in self.calls() if c == "FILTER_CALL"]), 2, self.calls())
+
+    def test_dirty_untracked_only_proceeds_when_confirm_accepted(self):
+        # 過去のAIレビューが残した一時ファイルでPR一覧に到達できなくなる不具合の回帰テスト
+        result, values = self.run_freview(
+            extra_env=self.untracked_env(FREVIEW_CONFIRM_ANSWER="yes")
+        )
+
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        review_calls = [c for c in self.calls() if c.startswith("REVIEW review ")]
+        self.assertEqual(len(review_calls), 1, self.calls())
+        self.assertIn("42", review_calls[0])
+
+    def test_dirty_tracked_change_never_asks_for_confirmation(self):
+        # 追跡ファイルの変更はレビュー対象差分に混入しうるため続行を選ばせない
+        result, values = self.run_freview(
+            extra_env={
+                "FREVIEW_DIRTY": "1",
+                "FREVIEW_DIRTY_PATH": str(self.worktree),
+                "FREVIEW_CONFIRM_ANSWER": "yes",
+            }
+        )
+
+        self.assertEqual(values["__STATUS"], "1", result.stderr)
+        self.assertEqual([c for c in self.calls() if c.startswith("CONFIRM ")], [], self.calls())
+        self.assertIn("作業中のファイルがあります", result.stderr)
+
+    def test_untracked_file_names_are_shown(self):
+        result, values = self.run_freview(
+            extra_env=self.untracked_env(FREVIEW_CONFIRM_ANSWER="no", FREVIEW_UNTRACKED_COUNT="2")
+        )
+
+        self.assertEqual(values["__STATUS"], "1", result.stderr)
+        self.assertIn("未追跡ファイルが 2 件あります", result.stderr)
+        self.assertIn("untracked1.txt", result.stderr)
+        self.assertIn("untracked2.txt", result.stderr)
+
+    def test_untracked_listing_is_truncated_after_ten(self):
+        result, values = self.run_freview(
+            extra_env=self.untracked_env(FREVIEW_CONFIRM_ANSWER="no", FREVIEW_UNTRACKED_COUNT="12")
+        )
+
+        self.assertEqual(values["__STATUS"], "1", result.stderr)
+        self.assertIn("未追跡ファイルが 12 件あります", result.stderr)
+        self.assertIn("untracked10.txt", result.stderr)
+        self.assertNotIn("untracked11.txt", result.stderr)
+        self.assertIn("他 2 件", result.stderr)
 
     def test_dirty_check_targets_selected_worktree_not_cwd(self):
         # 現在地(リポジトリ本体)が汚れていても、選択worktreeがcleanなら正常に起動する
@@ -337,6 +402,62 @@ class FreviewWorktreeModeTest(FreviewWorktreeFixture, unittest.TestCase):
         review_calls = [c for c in self.calls() if c.startswith("REVIEW review ")]
         self.assertEqual(len(review_calls), 1, review_calls)
         self.assertIn("--no-merge 42 観点X", review_calls[0])
+
+
+class FreviewPopupPauseTest(FreviewWorktreeFixture, unittest.TestCase):
+    """Herdr popupはコマンド終了と同時に閉じるため、エラー終了時のみキー待ちを挟む。"""
+
+    PAUSE_MARKER = "何かキーを押すと閉じます"
+
+    def test_pauses_on_error_inside_popup(self):
+        result, values = self.run_freview(
+            extra_env={
+                "HERDR_POPUP_COMMAND": "1",
+                "FREVIEW_DIRTY": "1",
+                "FREVIEW_DIRTY_PATH": str(self.worktree),
+            }
+        )
+
+        self.assertEqual(values["__STATUS"], "1", result.stderr)
+        self.assertIn(self.PAUSE_MARKER, result.stderr)
+
+    def test_does_not_pause_on_error_outside_popup(self):
+        result, values = self.run_freview(
+            extra_env={"FREVIEW_DIRTY": "1", "FREVIEW_DIRTY_PATH": str(self.worktree)}
+        )
+
+        self.assertEqual(values["__STATUS"], "1", result.stderr)
+        self.assertNotIn(self.PAUSE_MARKER, result.stderr)
+
+    def test_does_not_pause_on_picker_cancel(self):
+        # キャンセルは正常操作。待たせるとpopupを閉じるのに余計な操作が要る
+        result, values = self.run_freview(
+            extra_env={"HERDR_POPUP_COMMAND": "1", "FREVIEW_PR_CANCEL": "1"}
+        )
+
+        self.assertEqual(values["__STATUS"], "130", result.stderr)
+        self.assertNotIn(self.PAUSE_MARKER, result.stderr)
+
+    def test_does_not_pause_on_success(self):
+        result, values = self.run_freview(extra_env={"HERDR_POPUP_COMMAND": "1"})
+
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        self.assertNotIn(self.PAUSE_MARKER, result.stderr)
+
+    def test_pauses_on_error_in_current_mode(self):
+        # -c 経路のエラーもディスパッチャで拾う（pauseを1箇所へ集約していることの固定）。
+        # -c は現在地(=repo)のdirty checkで中断する
+        result, values = self.run_freview(
+            args="-c",
+            extra_env={
+                "HERDR_POPUP_COMMAND": "1",
+                "FREVIEW_DIRTY": "1",
+                "FREVIEW_DIRTY_PATH": str(self.repo),
+            },
+        )
+
+        self.assertEqual(values["__STATUS"], "1", result.stderr)
+        self.assertIn(self.PAUSE_MARKER, result.stderr)
 
 
 class FreviewCurrentModeTest(FreviewWorktreeFixture, unittest.TestCase):
