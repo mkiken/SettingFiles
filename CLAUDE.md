@@ -18,6 +18,10 @@ Multiple agent sessions can run against this repository concurrently (e.g. one s
 
 When a file mixes this session's changes with another session's unrelated in-progress edits, and only this session's hunks are staged (e.g. via a rebuilt index blob), do not run `git commit -- <paths>`: pathspec-scoped commit ignores the partially staged index for that path and instead commits the working tree's current content, silently pulling in the other session's unstaged changes. Verify `git diff --cached` matches intent, then commit with no pathspec.
 
+## Structured Configuration Transformations
+
+For structured configuration transformations, stop on failure (`set -e` or explicit error handling), validate the complete temporary output with the relevant parser, and replace the target only after validation succeeds. Never replace a target with output from a failed transformation.
+
 ## CLAUDE.md Maintenance
 
 At implementation completion, before the commit confirmation in the post-implementation flow — so an approved change lands in the same commit — check whether the work surfaced repository knowledge that materially changes how future work should be performed.
