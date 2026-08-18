@@ -23,7 +23,9 @@ This section's skip criterion governs both the `dig` skill offer and the Plan Re
 
 When presenting a plan artifact for review, offer both — but first skip both for trivially mechanical plans: renames, bulk replacements, reverts, single-file fixes with no design decision, or plans whose every task is a stated verbatim edit. For those, skip straight to `ExitPlanMode` with no dialog.
 
-Otherwise, merge this with the Plan Review Presentation offer into a single `AskUserQuestion` dialog (single-select, no multiSelect) with exactly four fixed options:
+Otherwise, before the dialog, output the plan file's current full content as ordinary assistant text in this same turn — not a summary or excerpt, the whole thing, and not wrapped in a code fence (the plan body itself may contain fences). Do this so the choice below is made after reading the plan, not before. `ExitPlanMode` will show the same file again once approved; that second appearance is intentional, not redundant — it is the platform's own approval surface, not a rendering this workflow controls, so do not collapse the two into one by skipping this output.
+
+Then merge the dig/HTML choice with the Plan Review Presentation offer into a single `AskUserQuestion` dialog (single-select, no multiSelect) with exactly four fixed options:
 
 - Both: open the browser and also run dig.
 - dig only: run dig without opening the browser.
