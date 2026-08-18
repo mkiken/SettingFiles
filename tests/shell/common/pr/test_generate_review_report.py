@@ -91,6 +91,38 @@ class RenderTest(unittest.TestCase):
         self.assertIn("codex詳細", html)
         self.assertIn("skipped_before", html)
 
+    def test_carryover_labels_table_driven(self):
+        labels = {
+            "skipped_before": "前回スキップ",
+            "should_be_fixed": "前回対応済のはず",
+            "fixed_before": "前回修正済み（再指摘）",
+            "fix_skipped_before": "前回修正スキップ",
+            "fix_rejected_before": "前回修正却下",
+        }
+        for value, label in labels.items():
+            with self.subTest(carryover=value):
+                html = mod.render(merged([item(1, carryover=value)]))
+                self.assertIn(label, html)
+
+    def test_carryover_unknown_value_falls_back_to_raw_string(self):
+        html = mod.render(merged([item(1, carryover="some_future_value")]))
+        self.assertIn("some_future_value", html)
+
+    def test_carryover_fixed_before_has_dedicated_style(self):
+        html = mod.render(merged([item(1, carryover="fixed_before")]))
+        self.assertIn(".badge.carry.carry-fixed{background:#bf3989}", html)
+        self.assertIn("CARRY_STYLE", html)
+
+    def test_carryover_badge_class_keeps_empty_string_fallback(self):
+        # CARRY_STYLE[item.carryover] が未定義でも "undefined" がクラス名に混入しないことを保証する。
+        # ||"" が失われると、未知のcarryover値でclass="badge carry undefined"になってしまう。
+        html = mod.render(merged([item(1)]))
+        self.assertIn('"badge carry "+(CARRY_STYLE[item.carryover]||"")', html)
+
+    def test_carryover_null_omits_badge(self):
+        html = mod.render(merged([item(1, carryover=None)]))
+        self.assertIn("if(item.carryover)toggle.appendChild", html)
+
     def test_render_contains_report_ui_features(self):
         html = mod.render(merged([item(1)]))
         self.assertIn("状態ファイルを保存", html)

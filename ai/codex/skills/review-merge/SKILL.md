@@ -26,9 +26,9 @@ Merge the per-AI PR review result files in <RUN_DIR> into `merged.json` and gene
 2. Merge findings that point at the same root cause (same file and same/overlapping lines, or clearly the same issue in meaning even if line numbers differ slightly). Never drop any source text: a merged item keeps every AI's original finding verbatim in `sources`.
 3. For each merged item set: `file` and `line_spec` from the most confident source, `area` from the most confident source, `priority` = highest among sources (high > medium > low; section headings map 🔴→high, 🟡→medium, 🟢→low), and write a one-sentence Japanese `summary` for the merged item yourself.
 4. Number items sequentially (`id` starting at 1), ordered high → medium → low.
-5. Carryover: resolve the previous run — the newest sibling run directory of <RUN_DIR> (same parent) that contains `merged.json`, excluding <RUN_DIR> itself. If found, read its `merged.json` and `state.json` (if present). For each new item that matches a previous item (same file and same root cause):
+5. Carryover: resolve the previous run — the newest sibling run directory of <RUN_DIR> (same parent) that contains `merged.json`, excluding <RUN_DIR> itself. If found, read its `merged.json`, `state.json`, and `fix/fix_state.json` (each if present). For each new item that matches a previous item (same file and same root cause):
    - previous state `adopt: false` (or unset) → `"carryover": "skipped_before"`
-   - previous state `adopt: true` → `"carryover": "should_be_fixed"`
+   - previous state `adopt: true` → look up the previous item's id in fix_state.json `items`; use its `status`: `fixed` → `"fixed_before"`, `skipped` → `"fix_skipped_before"`, `rejected` → `"fix_rejected_before"`. If fix_state.json is missing or unreadable, its `run_dir` is not the previous run, the id is absent, or the status is `pending` → `"should_be_fixed"`. Never infer an outcome from group status or design files.
    No previous run, no state, or no match → `"carryover": null`.
 6. Fetch report metadata before writing JSON: `gh pr view <PR_NUMBER> --json url,title,author,headRefName,headRefOid` and `gh repo view --json nameWithOwner,url`. Store the PR URL/title/author login/head branch/head SHA and repository name/URL in the schema below. The report uses these values for its header, GitHub links, and code-context fallback.
 7. Write `<RUN_DIR>/merged.json`, then render and serve the report. Start the server **without** `--open` through a mechanism that survives the current command environment. Obtain its URL and independently confirm that `<URL>/report.html` responds successfully before opening that URL in a browser exactly once. If the server start fails, retry only the server start and verification; never open a browser before verification or repeat the browser-open step. A supported fallback is:
@@ -75,4 +75,4 @@ nohup python3 ~/.config/ai-pr/bin/serve_review_report.py <RUN_DIR> >/dev/null 2>
 }
 ```
 
-`line_spec` keeps the original notation (`42`, `42-50`, `~42`). `carryover` is `null` / `"skipped_before"` / `"should_be_fixed"`. `schema_version: 1` remains readable by the renderer but cannot show the new PR metadata or GitHub links.
+`line_spec` keeps the original notation (`42`, `42-50`, `~42`). `carryover` is `null` / `"skipped_before"` / `"should_be_fixed"` (adopted, outcome unknown) / `"fixed_before"` / `"fix_skipped_before"` / `"fix_rejected_before"`. `schema_version: 1` remains readable by the renderer but cannot show the new PR metadata or GitHub links.

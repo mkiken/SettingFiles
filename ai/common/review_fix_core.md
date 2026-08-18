@@ -17,23 +17,9 @@ Group the selected items by their `file` field; items whose `area`/`summary` cle
 
 Present the selected items (`id. [file:line_spec] priority | area: summary`) with their grouping and confirm with the user before editing anything. Then: 1 group → Inline Flow; 2+ groups → Subagent Flow.
 
-## Inline Flow
+## fix_state.json
 
-1. Fix the items one by one. For each item: read the file and enough surrounding context, use every source's detail text as guidance, apply the fix. If the finding looks wrong, already fixed, or the fix is genuinely ambiguous, skip it and record the reason — never guess.
-2. After all items, run the repository's relevant tests (follow the project's documented test command).
-3. Final summary in Japanese: per item — 修正済み (what changed, files touched) or スキップ (why); then `git diff --stat` output. Do not commit — leave the commit decision to the session's normal workflow.
-
-## Subagent Flow
-
-Design subagents run in parallel; implementation subagents run strictly one at a time. Large content moves through files under `<RUN_DIR>/fix/`, never through conversation text. Never write `<RUN_DIR>/state.json` — the browser owns it.
-
-### Setup
-
-Create `<RUN_DIR>/fix/` if missing. If `<RUN_DIR>/fix/fix_state.json` already exists, ask the user: resume (keep it; skip groups already terminal) or discard and start over. Otherwise initialize it with every group `designing` and every item `pending`.
-
-### fix_state.json
-
-Single source of truth for flow state. Update it immediately at every status transition; re-read it before every transition and after any interruption or context compaction — never trust memory. It is also the durable per-item outcome record; keep outcomes and reasons accurate.
+Durable per-item outcome record, read by the next run's review-merge for carryover; keep outcomes and reasons accurate. Subagent Flow updates it immediately at every status transition and re-reads it before every transition and after any interruption or context compaction — never trust memory. Inline Flow writes it once at the end, with terminal statuses only.
 
 Group status: `designing|designed|approved|implementing|fixed|skipped|rejected`. Item status: `pending|fixed|skipped|rejected`.
 
@@ -60,7 +46,22 @@ Group status: `designing|designed|approved|implementing|fixed|skipped|rejected`.
 }
 ```
 
-`files` is copied from the design file's `## Files to edit` once the design completes.
+`files` is copied from the design file's `## Files to edit` once the design completes. Inline Flow's single implicit group needs no `groups` entry — write only `selected_ids` and `items`.
+
+## Inline Flow
+
+1. Fix the items one by one. For each item: read the file and enough surrounding context, use every source's detail text as guidance, apply the fix. If the finding looks wrong, already fixed, or the fix is genuinely ambiguous, skip it and record the reason — never guess.
+2. After all items, run the repository's relevant tests (follow the project's documented test command).
+3. Write `<RUN_DIR>/fix/fix_state.json` per the schema above with the final per-item outcomes (terminal statuses only) — the next merge run reads it for carryover.
+4. Final summary in Japanese: per item — 修正済み (what changed, files touched) or スキップ (why); then `git diff --stat` output. Do not commit — leave the commit decision to the session's normal workflow.
+
+## Subagent Flow
+
+Design subagents run in parallel; implementation subagents run strictly one at a time. Large content moves through files under `<RUN_DIR>/fix/`, never through conversation text. Never write `<RUN_DIR>/state.json` — the browser owns it.
+
+### Setup
+
+Create `<RUN_DIR>/fix/` if missing. If `<RUN_DIR>/fix/fix_state.json` already exists with any non-terminal group, ask the user: resume (keep it; skip groups already terminal) or discard and start over. If every group is already terminal, start over without asking. Otherwise initialize it with every group `designing` and every item `pending`.
 
 ### Design Phase (parallel)
 
