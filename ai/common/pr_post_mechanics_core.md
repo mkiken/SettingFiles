@@ -191,11 +191,14 @@ pending_id=$(gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews \
   --jq ".[] | select(.state==\"PENDING\" and .user.login==\"$viewer\") | .id" | head -1)
 ```
 
-Ask the user to choose `submit して続行` or `中断`. If continuing, submit the pending review as `COMMENT`, retry the Review API exactly once, and abort if that retry fails:
+Ask the user to choose `submit して続行` or `中断`. If continuing, submit the pending review as `COMMENT`, then independently re-fetch its state. Continue only when the state is `COMMENTED`; a submit HTTP error alone is not proof that the state change failed. If re-fetching fails or the state remains `PENDING`, abort without retrying. When `COMMENTED`, retry the Review API exactly once, and abort if that retry fails:
 
 ```bash
 gh api --method POST repos/{owner}/{repo}/pulls/{pr_number}/reviews/$pending_id/events \
   -f event=COMMENT
+
+gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews/$pending_id --jq .state \
+| grep -qx COMMENTED
 ```
 
 ## Final Report
