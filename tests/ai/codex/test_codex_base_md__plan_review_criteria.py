@@ -25,7 +25,33 @@ class PlanReviewCriteriaTest(unittest.TestCase):
         for required in (
             "renames, bulk replacements, reverts, single-file fixes with no design decision",
             "plans whose every task is a stated verbatim edit",
-            "skip both",
+            "skip both offers",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.codex_base)
+
+    def test_complete_terminal_preview_precedes_review_choice(self):
+        preview_instruction = "first output a terminal review preview"
+        choice_instruction = "Only after the full preview is visible, offer a single choice"
+
+        self.assertIn(preview_instruction, self.codex_base)
+        self.assertIn(choice_instruction, self.codex_base)
+        self.assertLess(
+            self.codex_base.index(preview_instruction),
+            self.codex_base.index(choice_instruction),
+        )
+        for required in (
+            "complete decision-complete plan exactly as it would appear inside `<proposed_plan>`",
+            "without the protocol tags",
+            "Do not replace it with a summary or partial update",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.codex_base)
+
+    def test_neither_finalizes_the_preview_and_dig_repeats_the_flow(self):
+        for required in (
+            "If option 4 is chosen, output the previewed plan unchanged",
+            "repeat the full terminal preview and review-choice flow with the revised plan",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.codex_base)
@@ -45,6 +71,7 @@ class PlanReviewCriteriaTest(unittest.TestCase):
         for required in (
             "governs both the `dig` skill offer and the Plan Review Presentation browser offer",
             "Codex has no `~/.codex/plans` directory",
+            "first output a terminal review preview",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.agents)

@@ -46,9 +46,9 @@ For a non-trivial `<proposed_plan>`, provide a reviewable implementation explana
 
 This section's skip criterion governs both the `dig` skill offer and the Plan Review Presentation browser offer — the shared file's own line-count/format criteria do not apply here; use this criterion for both instead. Its port-selection and launch mechanics still apply when the browser is actually opened.
 
-When finalizing a plan in Plan Mode, offer both — but first skip both for trivially mechanical plans: renames, bulk replacements, reverts, single-file fixes with no design decision, or plans whose every task is a stated verbatim edit. For those, skip straight to the final `<proposed_plan>` with no dialog.
+When finalizing a plan in Plan Mode, first skip both offers for trivially mechanical plans: renames, bulk replacements, reverts, single-file fixes with no design decision, or plans whose every task is a stated verbatim edit. For those, skip straight to the final `<proposed_plan>` with no dialog.
 
-Otherwise, offer a single choice via `request_user_input` (or its plain-text fallback) with exactly four options in this order:
+Otherwise, first output a terminal review preview containing the complete decision-complete plan exactly as it would appear inside `<proposed_plan>`, but without the protocol tags. Do not replace it with a summary or partial update. Only after the full preview is visible, offer a single choice via `request_user_input` (or its plain-text fallback) with exactly four options in this order:
 
 1. Both: open the browser and also run dig.
 2. dig only: run dig without opening the browser.
@@ -58,5 +58,7 @@ Otherwise, offer a single choice via `request_user_input` (or its plain-text fal
 If option 1 is chosen, open the browser first, then load the `dig` skill.
 
 If option 2 is chosen, load the dig skill without launching mdts.
+
+If option 4 is chosen, output the previewed plan unchanged inside the final `<proposed_plan>` block. After any dig round changes the candidate plan, repeat the full terminal preview and review-choice flow with the revised plan before finalizing it.
 
 Codex has no `~/.codex/plans` directory — the plan exists only as this turn's `<proposed_plan>` content, not a file on disk. When the browser is accepted, write the current plan text to a scratchpad file first, then treat it as the SDD case in Plan Review Presentation: find a free port from 8610, launch `mdts -p <found-port> --no-open <scratchpad-dir>`, and stop that instance once the review finishes. Do not reuse the fixed port 8600 / `~/.claude/plans` mount — that path is Claude-only and does not exist here. The written scratchpad file is a session temp; Temp File Cleanup applies.
