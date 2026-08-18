@@ -757,9 +757,53 @@ function _filter_zoxide_git_repo() {
   print -r -- "$selected"
 }
 
+# 端末の表示カラム幅を返す。取得できない環境では80にフォールバックする
+# popup内(zsh -ilc)や$(...)内では$COLUMNSが0になりうるため、正の整数のときだけ採用する
+function _filter_terminal_columns() {
+  local cols="${COLUMNS:-0}"
+  if [[ "$cols" != <-> ]] || (( cols <= 0 )); then
+    cols=$(tput cols 2>/dev/null)
+  fi
+  if [[ "$cols" != <-> ]] || (( cols <= 0 )); then
+    cols=80
+  fi
+  print -r -- "$cols"
+}
+
+# 表示幅がlimitを超える文字列を中央省略する（先頭…末尾）
+# ${(m)#s}でEast Asian Width込みの表示幅を測り、文字単位($str[i])で切るため
+# 日本語などマルチバイトでも壊れない（awkのlength/substrはバイト単位でマルチバイトを壊す）
+function _filter_truncate_middle() {
+  local str="$1"
+  local limit="$2"
+  local head_budget tail_budget i cand
+  local head_part="" tail_part=""
+
+  if (( ${(m)#str} <= limit )); then
+    print -r -- "$str"
+    return 0
+  fi
+  head_budget=$(( (limit - 1 + 1) / 2 ))
+  tail_budget=$(( (limit - 1) / 2 ))
+
+  for (( i = 1; i <= ${#str}; i++ )); do
+    cand="${head_part}${str[i]}"
+    (( ${(m)#cand} > head_budget )) && break
+    head_part="$cand"
+  done
+  for (( i = ${#str}; i >= 1; i-- )); do
+    cand="${str[i]}${tail_part}"
+    (( ${(m)#cand} > tail_budget )) && break
+    tail_part="$cand"
+  done
+
+  print -r -- "${head_part}…${tail_part}"
+}
+
 # `git worktree list --porcelain` からworktree（メインリポジトリ含む）をfilterで選択する内部関数
 # Gitのworktree情報だけで完結する
 # 表示は「ディレクトリ名 + ブランチ名」の2列（detachedの場合は短縮SHA）、フルパスはタブ区切りで保持する
+# ディレクトリ名は端末幅から算出した上限を超えると中央省略され、超えた分はプレビュー先頭の全文表示で確認できる
 # 追加worktreeが無く本体のみの場合は選択UIを出さず、本体のパスをそのまま返す
 # 戻り値: 選択されたworktreeのフルパス、キャンセル/候補ゼロ時は $EXIT_CODE_SIGINT
 function _filter_git_worktree_path() {
@@ -798,26 +842,56 @@ function _filter_git_worktree_path() {
     return 0
   fi
 
-  local worktrees
-  worktrees=$(print -r -- "$raw_list" | awk '
+  # awkはgit worktree list --porcelainのパースのみ行う（幅計算・省略・パディングはしない）
+  # ここに残るsubstrはASCII固定オフセット(worktree/branch行の先頭)とSHA短縮のみで
+  # 可変長のディレクトリ名・ブランチ名を切らないため、マルチバイトでも壊れない
+  local raw_rows
+  raw_rows=$(print -r -- "$raw_list" | awk '
       function flush() {
-        if (path == "") return
-        n = split(path, a, "/")
-        i++
-        dirs[i] = a[n]; branches[i] = branch; paths[i] = path
-        if (length(a[n]) > max) max = length(a[n])
+        if (wt == "") return
+        n = split(wt, a, "/")
+        printf "%s\t%s\t%s\n", a[n], branch, wt
       }
-      /^worktree / { flush(); path = substr($0, 10); branch = ""; next }
+      /^worktree / { flush(); wt = substr($0, 10); branch = ""; next }
       /^HEAD /     { head = substr($0, 6); next }
       /^branch refs\/heads\// { branch = substr($0, 19); next }
       /^detached$/ { branch = substr(head, 1, 7); next }
-      END {
-        flush()
-        if (max < 8) max = 8
-        fmt = "%-" max "s  %s\t%s\n"
-        printf fmt, "worktree", "ブランチ", ""
-        for (j = 1; j <= i; j++) printf fmt, dirs[j], branches[j], paths[j]
-      }')
+      END { flush() }')
+
+  # 端末幅からリスト側に使える幅を見積もる
+  # プレビューが右50%を占め、fzfのポインタ/マーカーで約4桁消費する前提
+  local term_cols list_cols name_col_max
+  term_cols=$(_filter_terminal_columns)
+  list_cols=$(( term_cols / 2 - 4 ))
+  (( list_cols < 24 )) && list_cols=24
+  # ディレクトリ名(左列)はリスト幅の55%を上限とし、残りをブランチ列に確保する
+  name_col_max=$(( list_cols * 55 / 100 ))
+  (( name_col_max < 12 )) && name_col_max=12
+
+  local name branch_name wt_path shown name_width max_width=0
+  local -a names=() branch_names=() wt_paths=() shown_names=()
+  while IFS=$'\t' read -r name branch_name wt_path; do
+    [[ -z "$wt_path" ]] && continue
+    shown=$(_filter_truncate_middle "$name" "$name_col_max")
+    names+=("$name")
+    branch_names+=("$branch_name")
+    wt_paths+=("$wt_path")
+    shown_names+=("$shown")
+    name_width=${(m)#shown}
+    (( name_width > max_width )) && max_width=$name_width
+  done <<< "$raw_rows"
+
+  (( max_width < 8 )) && max_width=8
+
+  local header_label="worktree"
+  local -a lines=()
+  lines+=("${(mr:${max_width}:: :)header_label}  ブランチ"$'\t'$'\t'$'\t')
+  local i
+  for (( i = 1; i <= ${#shown_names[@]}; i++ )); do
+    lines+=("${(mr:${max_width}:: :)shown_names[i]}  ${branch_names[i]}"$'\t'"${wt_paths[i]}"$'\t'"${names[i]}"$'\t'"${branch_names[i]}")
+  done
+  local worktrees
+  worktrees=${(F)lines}
 
   local -a filter_args=()
   $target_picker && filter_args=(--expect=ctrl-o,ctrl-s,ctrl-v)
@@ -829,7 +903,8 @@ function _filter_git_worktree_path() {
     --prompt "${label_prefix:+$label_prefix }worktree> " \
     --delimiter $'\t' \
     --with-nth 1 \
-    --preview 'echo {2} | xargs -I{} git -C {} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"' \
+    --preview 'printf "worktree: %s\nブランチ: %s\nパス: %s\n\n" {3} {4} {2}; git -C {2} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"' \
+    --preview-window=right:50%:wrap \
     "${filter_args[@]}")
 
   if [[ -z "$selected" ]]; then
