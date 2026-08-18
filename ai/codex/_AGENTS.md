@@ -269,12 +269,15 @@ This section's skip criterion governs both the `dig` skill offer and the Plan Re
 
 When finalizing a plan in Plan Mode, offer both — but first skip both for trivially mechanical plans: renames, bulk replacements, reverts, single-file fixes with no design decision, or plans whose every task is a stated verbatim edit. For those, skip straight to the final `<proposed_plan>` with no dialog.
 
-Otherwise, offer a single choice via `request_user_input` (or its plain-text fallback) with exactly three options in this order:
+Otherwise, offer a single choice via `request_user_input` (or its plain-text fallback) with exactly four options in this order:
 
 1. Both: open the browser and also run dig.
-2. Open the browser now, decide on dig after reading.
-3. Neither.
+2. dig only: run dig without opening the browser.
+3. Open the browser now, decide on dig after reading.
+4. Neither.
 
 If option 1 is chosen, open the browser first, then load the `dig` skill.
+
+If option 2 is chosen, load the dig skill without launching mdts.
 
 Codex has no `~/.codex/plans` directory — the plan exists only as this turn's `<proposed_plan>` content, not a file on disk. When the browser is accepted, write the current plan text to a scratchpad file first, then treat it as the SDD case in Plan Review Presentation: find a free port from 8610, launch `mdts -p <found-port> --no-open <scratchpad-dir>`, and stop that instance once the review finishes. Do not reuse the fixed port 8600 / `~/.claude/plans` mount — that path is Claude-only and does not exist here. The written scratchpad file is a session temp; Temp File Cleanup applies.
