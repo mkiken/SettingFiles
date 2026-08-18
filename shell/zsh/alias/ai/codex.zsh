@@ -55,7 +55,7 @@ cx-pr-body() {
         echo "現在のブランチに対応するPRが見つかりません。" >&2
         return 1
     }
-    cxh --dangerously-bypass-approvals-and-sandbox "\$pr-body PR #$pr_number のbodyを生成して $*"
+    cxth --dangerously-bypass-approvals-and-sandbox "\$pr-body PR #$pr_number のbodyを生成して $*"
 }
 
 cx-pr-create() {
