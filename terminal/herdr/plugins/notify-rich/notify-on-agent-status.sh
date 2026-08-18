@@ -119,18 +119,6 @@ managed_label_state_file() {
   print -r -- "${state_root}/tab-labels/${session_key}/${tab_key}"
 }
 
-# 表示名を最大10文字に丸める。超過時のみ先頭10文字に「..」を付す。
-# zshの ${str[1,10]} はマルチバイト1文字=1カウントなので日本語もそのまま切れる
-# （タブ処理ブロックの会話概要truncate ${title_text[1,20]} と同じ挙動）。
-truncate_display_name() {
-  local str="$1"
-  if (( ${#str} > 10 )); then
-    print -r -- "${str[1,10]}.."
-  else
-    print -r -- "$str"
-  fi
-}
-
 case "$agent" in
   claude) id_emoji="$EMOJI_ID_CLAUDE" ;;
   codex)  id_emoji="$EMOJI_ID_CODEX" ;;
@@ -152,7 +140,7 @@ last_auto_label=""
 # アイコンを外して元のラベルに戻す。集約状態は `tab get` の agent_status（タブ内
 # 複数paneがあってもHerdrが1つに集約済み）を使い、識別子だけ発火paneのagentを使う。
 # tab_idはfocusクリアのため冒頭で解決済み（gemini guardの前）。
-# screen_label生成（後段）でも参照するため、タブ処理ブロック未到達（tab_id/tab_json
+# 通知本文の場所行（後段）でも参照するため、タブ処理ブロック未到達（tab_id/tab_json
 # が空）でも未定義参照にならないよう既定値を先出しする。真になるのはブロック内で
 # base_labelを会話概要20字truncateに置き換えた時だけ。
 record_auto_label=false
@@ -161,6 +149,9 @@ if [[ -n "$tab_id" ]]; then
   if [[ -n "$tab_json" ]]; then
     tab_status="$(print -r -- "$tab_json" | jq -r '.result.tab.agent_status // empty' 2>/dev/null)"
     current_label="$(print -r -- "$tab_json" | jq -r '.result.tab.label // empty' 2>/dev/null)"
+    # 通知本文の場所行で使うタブ番号。ラベル先頭の `[N] ` ジャンプキーと同じ値だが、
+    # ラベル側は装飾除去前の文字列なので、番号は number フィールドから直接取る。
+    tab_number="$(print -r -- "$tab_json" | jq -r '.result.tab.number // empty' 2>/dev/null)"
 
     # herdr-automatic-rename owns the exact `[1-9] ` jump-key prefix. Keep it
     # outside notify-rich's identifier/status/base-label state machine.
@@ -348,30 +339,22 @@ fi
 # Workspace display name isn't in the context JSON; resolve it with one `workspace list` call.
 ws_id="${HERDR_WORKSPACE_ID:-}"
 ws_label=""
+ws_number=""
 if [[ -n "$ws_id" ]]; then
-  ws_label="$("$herdr_bin" workspace list 2>/dev/null \
-    | jq -r --arg w "$ws_id" '.result.workspaces[]? | select(.workspace_id==$w) | .label // empty' 2>/dev/null)"
+  # 番号とラベルを1回のjqでまとめて取る（プラグインはstripped PATH下で動くため
+  # プロセス起動を増やさない）。区切りはラベルに現れないタブ文字。
+  ws_row="$("$herdr_bin" workspace list 2>/dev/null \
+    | jq -r --arg w "$ws_id" '.result.workspaces[]? | select(.workspace_id==$w) | "\(.number // "")\t\(.label // "")"' 2>/dev/null)"
+  if [[ -n "$ws_row" ]]; then
+    ws_number="${ws_row%%$'\t'*}"
+    ws_label="${ws_row#*$'\t'}"
+  fi
 fi
 
 # herdr-automatic-rename also decorates workspace labels. Notification context
 # shows the stable workspace name, not the jump key that changes with ordering.
 if [[ "$ws_label" == \[[1-9]\]\ * ]]; then
   ws_label="${ws_label[5,-1]}"
-fi
-
-# screen_label shows workspace名:tab名. tab名はタブ処理ブロックで確定した装飾除去後の
-# base_label（claudeは会話概要、それ以外は素のタブ名）。どちらか取れなければ丸ごと省略。
-# ただしtab名が会話概要由来（record_auto_label==true: claude+概要採用）の場合は、
-# 通知本文(title_text)と内容が被るため ":tab名" を省き 🖥️ws名 だけにする。手動ラベルや
-# codex等（record_auto_label==false）は被らないため従来どおり ":tab名" を残す。
-tab_base="${base_label:-}"
-screen_label=""
-if [[ -n "$ws_label" && -n "$tab_base" ]]; then
-  if [[ "${record_auto_label:-false}" == true ]]; then
-    screen_label=" 🖥️$(truncate_display_name "$ws_label")"
-  else
-    screen_label=" 🖥️$(truncate_display_name "$ws_label"):$(truncate_display_name "$tab_base")"
-  fi
 fi
 
 # id_emoji は冒頭のタブアイコン処理で既に決定済み。ここでは通知本文用の
@@ -445,9 +428,26 @@ fi
 # APIエラー本文は上記どちらの分岐よりも優先する（エラー種別・内容を確実に伝えるため）
 [[ -n "$api_error_notify_body" ]] && notify_body="$api_error_notify_body"
 
+# 通知本文の場所行: 🖥️ [space番号] space名 : [tab番号] tab名。
+# タイトルは短さ優先でこの情報を持たず、本文側に一元化する（場所行はここに1回だけ追記）。
+# tab名はタブ処理ブロックで確定した装飾除去後のbase_label（claudeは会話概要、それ以外は
+# 素のタブ名）。番号は取れなければ `[N] ` だけ省いて名前は残す（fail-safe）。名前が
+# どちらも取れなければ場所行自体を省略する。
+tab_base="${base_label:-}"
+ws_part=""
+[[ -n "$ws_label" ]] && ws_part="${ws_number:+[$ws_number] }${ws_label}"
+tab_part=""
+[[ -n "$tab_base" ]] && tab_part="${tab_number:+[$tab_number] }${tab_base}"
+location_sep=""
+[[ -n "$ws_part" && -n "$tab_part" ]] && location_sep=" : "
+if [[ -n "$ws_part" || -n "$tab_part" ]]; then
+  notify_body="${notify_body}"$'
+'"🖥️ ${ws_part}${location_sep}${tab_part}"
+fi
+
 agent_label="${agent:0:1:u}${agent:1}"
 now="$(date '+%H:%M:%S')"
-title="${id_emoji}${status_emoji} ${agent_label}${label_text}${screen_label} 🕰️${now}"
+title="${id_emoji}${status_emoji} ${agent_label}${label_text} 🕰️${now}"
 
 group=""
 if [[ -n "$agent" && -n "$session_id" ]]; then

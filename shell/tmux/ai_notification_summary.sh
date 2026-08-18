@@ -29,13 +29,6 @@ format_completion_time_jst() {
     date -r $((end_epoch + 32400)) "+%H:%M:%S" 2>/dev/null
 }
 
-# 統計行を出力（例: "🔄3 ⏳5m2s"、時間なしは "🔄3"）
-# Usage: build_stats_line <user_count> <duration_formatted>
-build_stats_line() {
-    local user_count="$1" duration="$2"
-    if [[ -n "${duration}" ]]; then echo "🔄${user_count} ⏳${duration}"; else echo "🔄${user_count}"; fi
-}
-
 # 改行をスペース化・連続スペースを圧縮（タブは温存）・前後スペースを除去して1行で出力
 # 旧 echo|tr|sed|sed パイプライン（プロセス×4）の純bash置き換え
 # Usage: normalize_oneline <text>
@@ -110,16 +103,16 @@ resolve_host_transcript() {
     return 1
 }
 
-# セッション要約（メッセージ行 + 改行 + 統計行）を出力。user_count==0 のときは空出力とし、
+# セッション要約（メッセージ行のみ）を出力。user_count==0 のときは空出力とし、
 # 呼び出し側が ${summary:-<フォールバック文言>} や「非空なら追記」で扱えるようにする。
+# user_count はこの空出力ガード専用で、本文には出さない。duration も本文には出さないが、
+# 4箇所ある呼び出し側を変えずに済ませるため引数は受け取ったまま無視する
+# （旧: メッセージ行 + "🔄<回数> ⏳<経過時間>" の統計行。統計行は参照されなくなったため削除）。
 # Usage: build_session_summary <task_emoji> <message> <user_count> <duration_formatted>
 build_session_summary() {
-    local emoji="$1" message="$2" user_count="$3" duration="$4"
-    local stats_line msg_line
+    local emoji="$1" message="$2" user_count="$3"
     [[ "${user_count}" -gt 0 ]] 2>/dev/null || return 0
-    stats_line=$(build_stats_line "${user_count}" "${duration}")
-    msg_line=$(build_summary_msg_line "${emoji}" "${message}")
-    printf '%s\n%s\n' "${msg_line}" "${stats_line}"
+    build_summary_msg_line "${emoji}" "${message}"
 }
 
 # 最終ユーザーメッセージからタスク種別絵文字を推測して出力（デフォルト 💬）

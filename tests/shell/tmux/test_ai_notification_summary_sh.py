@@ -92,16 +92,6 @@ class GuessTaskTypeEmojiTest(unittest.TestCase):
                 self.assertEqual(result.stdout.strip(), expected)
 
 
-class BuildStatsLineTest(unittest.TestCase):
-    def test_with_duration(self):
-        result = run_fn('build_stats_line 3 "5m2s"')
-        self.assertEqual(result.stdout.strip(), "🔄3 ⏳5m2s")
-
-    def test_without_duration(self):
-        result = run_fn('build_stats_line 3 ""')
-        self.assertEqual(result.stdout.strip(), "🔄3")
-
-
 class BuildSummaryMsgLineTest(unittest.TestCase):
     def test_short_message_unchanged(self):
         result = run_fn('build_summary_msg_line "💻" "short message"')
@@ -207,14 +197,15 @@ class TruncateLineTest(unittest.TestCase):
 
 
 class BuildSessionSummaryTest(unittest.TestCase):
-    def test_with_duration(self):
+    def test_with_duration_argument_message_only(self):
+        # durationは引数として残すが本文には出さない（呼び出し側4箇所のシグネチャ維持のため）。
         result = run_fn('build_session_summary "💻" "fix the bug" 3 "5m2s"')
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(result.stdout, "💻 fix the bug\n🔄3 ⏳5m2s\n")
+        self.assertEqual(result.stdout, "💻 fix the bug\n")
 
     def test_without_duration(self):
         result = run_fn('build_session_summary "💬" "hello" 1 ""')
-        self.assertEqual(result.stdout, "💬 hello\n🔄1\n")
+        self.assertEqual(result.stdout, "💬 hello\n")
 
     def test_zero_user_count_outputs_nothing(self):
         result = run_fn('build_session_summary "💬" "" 0 ""')
@@ -225,6 +216,13 @@ class BuildSessionSummaryTest(unittest.TestCase):
         result = run_fn('build_session_summary "💬" "msg" "" ""')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, "")
+
+    def test_stats_line_no_longer_emitted(self):
+        # build_stats_line廃止のピン留め: 統計行(🔄回数 ⏳経過時間)はもう本文に出ない。
+        result = run_fn('build_session_summary "💻" "msg" 3 "5m2s"')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("🔄", result.stdout)
+        self.assertNotIn("⏳", result.stdout)
 
 
 if __name__ == "__main__":

@@ -35,8 +35,9 @@ class HerdrPluginNotifyTest(unittest.TestCase):
     """notify-on-agent-status.sh のロジック単体テスト。
 
     実herdr CLI/terminal-notifierには依存せず、fake_bin/herdrとnotify()スタブで
-    引数を記録し、done/blocked判定・絵文字出し分け・workspace番号/tab index整形・
-    screen_label省略(indexが取れない時)を検証する。
+    引数を記録し、done/blocked判定・絵文字出し分け・本文末尾の場所行(space/tab番号+名前)
+    整形・場所行省略(名前が取れない時)を検証する。タイトルには場所情報を持たせない
+    （🖥️は本文側だけに出る）ことも合わせて検証する。
     """
 
     def run_plugin(
@@ -48,7 +49,9 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         tab_id: str = "w1:t4",
         workspace_id: str = "w1",
         tab_label: str = "4",
+        tab_number: str = "2",
         ws_label: str = "ai-work",
+        ws_number: str = "7",
         title_text: str = "Herdr通知をカスタマイズしてworkspace情報を表示",
         session_id: str = "session-abc",
         herdr_present: bool = True,
@@ -209,16 +212,15 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                     else {"result": {"pane": pane_fields}}
                 )
                 tab_fields = {"agent_status": agent_status, "label": tab_label}
+                if tab_number:
+                    tab_fields["number"] = tab_number
                 tab_result = {"result": {"tab": tab_fields}}
-                workspace_result = {
-                    "result": {
-                        "workspaces": [
-                            {"workspace_id": workspace_id, "label": ws_label}
-                            if ws_label
-                            else {"workspace_id": workspace_id}
-                        ]
-                    }
-                }
+                ws_fields = {"workspace_id": workspace_id}
+                if ws_label:
+                    ws_fields["label"] = ws_label
+                if ws_number:
+                    ws_fields["number"] = ws_number
+                workspace_result = {"result": {"workspaces": [ws_fields]}}
                 fake_herdr = fake_bin / "herdr"
                 fake_herdr.write_text(
                     "#!/bin/bash\n"
@@ -321,17 +323,20 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         title_line = next(line for line in events if line.startswith("title="))
         # 時刻(🕰️HH:MM:SS)は非決定的なため、プレフィックス一致のみ検証する。
-        # tab名はclaudeの会話概要（title_text）採用時のbase_label由来で本文と被るため、
-        # ":tab名" 側は省略され 🖥️ws名 だけになる（record_auto_label==true）。
+        # タイトルは場所情報を持たない（🖥️は本文側の場所行にのみ出る）。
         self.assertTrue(
-            title_line.startswith("title=CLAUDE_IDDONE Claude完了 🖥️ai-work 🕰️"),
+            title_line.startswith("title=CLAUDE_IDDONE Claude完了 🕰️"),
             title_line,
         )
+        # tab名はclaudeの会話概要（title_text）採用時のbase_label由来（record_auto_label==true）。
+        # base_labelはタブ処理ブロックで会話概要20字にtruncate済みのものが場所行にも使われる
+        # （タブ名truncateはこの変更と無関係の既存挙動）。
         # Herdrのシステム通知音はdone。
         self.assertEqual(
             events[1:],
             [
                 "message=Herdr通知をカスタマイズしてworkspace情報を表示",
+                "🖥️ [7] ai-work : [2] Herdr通知をカスタマイズしてwork",
                 "sound=done",
             ],
         )
@@ -343,9 +348,10 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         self.assertIn("message=Herdr通知をカスタマイズしてworkspace情報を表示", events)
         # Herdrのシステム通知音はrequest。
         self.assertIn("sound=request", events)
+        # タイトルは場所情報を持たない（🖥️は本文側の場所行にのみ出る）。
         self.assertTrue(
             any(
-                line.startswith("title=CLAUDE_IDWAIT Claude入力待ち 🖥️ai-work 🕰️")
+                line.startswith("title=CLAUDE_IDWAIT Claude入力待ち 🕰️")
                 for line in events
             )
         )
@@ -467,8 +473,9 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         return "\n".join(lines) + "\n"
 
     def test_codex_done_notifies_with_transcript_summary(self):
-        # 完了はtmuxの✅終了と同形式: タスク種別絵文字＋最終ユーザーメッセージ＋統計行。
-        # 「修正」を含むユーザーメッセージ→💻、10:00:00〜10:05:02→⏳5m2s。
+        # 完了はtmuxの✅終了と同形式: タスク種別絵文字＋最終ユーザーメッセージ。
+        # 「修正」を含むユーザーメッセージ→💻。統計行は廃止済みのため出ない。
+        # tab_label(既定"4")はcodexなので会話概要に置き換わらず場所行にそのまま出る。
         # Herdrのシステム通知音はdone。
         result, events = self.run_plugin(
             agent="codex",
@@ -481,13 +488,14 @@ class HerdrPluginNotifyTest(unittest.TestCase):
             events[1:],
             [
                 "message=💻 通知のバグを修正して",
-                "🔄1 ⏳5m2s",
+                "🖥️ [7] ai-work : [2] 4",
                 "sound=done",
             ],
         )
 
     def test_codex_blocked_notifies_with_assistant_message(self):
-        # 入力待ちはtmuxの✋応答待ちと同形式: ✋＋最終アシスタントメッセージ＋統計行。
+        # 入力待ちはtmuxの✋応答待ちと同形式: ✋＋最終アシスタントメッセージ。
+        # 統計行は廃止済みのため出ない。
         # Herdrのシステム通知音はrequest。
         result, events = self.run_plugin(
             agent="codex",
@@ -500,7 +508,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
             events[1:],
             [
                 "message=✋ 修正しました。テストも追加しています。",
-                "🔄1 ⏳5m2s",
+                "🖥️ [7] ai-work : [2] 4",
                 "sound=request",
             ],
         )
@@ -566,6 +574,43 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         self.assertIn(
             "message=Herdr通知をカスタマイズしてworkspace情報を表示", events
         )
+
+    def test_claude_api_error_body_still_includes_location_line(self):
+        # APIエラー停止時はnotify_bodyがエラー種別本文へ上書きされるが、場所行は
+        # そのより後段で追記されるため、エラー時も場所を特定できるよう付く。
+        api_error_transcript = "\n".join(
+            [
+                json.dumps(
+                    {
+                        "type": "assistant",
+                        "isApiErrorMessage": True,
+                        "error": "server_error",
+                        "timestamp": "2026-07-11T12:00:00.000Z",
+                        "message": {
+                            "role": "assistant",
+                            "stop_reason": "stop_sequence",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "API Error: Connection closed mid-response.",
+                                }
+                            ],
+                        },
+                    }
+                )
+            ]
+        ) + "\n"
+        result, events = self.run_plugin(
+            agent="claude",
+            agent_status="done",
+            claude_transcript=api_error_transcript,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(
+            "message=API Error: Connection closed mid-response.", events
+        )
+        self.assertIn("🖥️ [7] ai-work : [2] Herdr通知をカスタマイズしてwork", events)
 
     # claudeのdone完了通知はtranscript解析のPENDING_BACKGROUND_WORKでゲートされる
     # （async Agent完了待ち中のターン終了で誤報しない）。fixtureは
@@ -658,63 +703,81 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue(any(line.startswith("title=🤖DONE") for line in events))
 
-    def test_missing_tab_id_omits_screen_label(self):
-        # tab_id が取れない -> tab get 自体が呼ばれず base_label が未設定 -> screen_label 省略。
+    def test_title_never_contains_location_info(self):
+        # タイトルは短さ優先で場所情報を持たない。🖥️は本文側の場所行にのみ出る
+        # （旧screen_label機構の廃止をピン留めする否定アサート）。
+        result, events = self.run_plugin(agent_status="done")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        title_line = next(line for line in events if line.startswith("title="))
+        self.assertNotIn("🖥️", title_line)
+
+    def test_missing_tab_id_keeps_workspace_part_only(self):
+        # tab_id が取れない -> tab get 自体が呼ばれず tab側の名前は空になるが、
+        # workspace解決はtab_idと無関係に行われるため、場所行はws部分のみ残る。
         result, events = self.run_plugin(agent_status="done", include_tab_id=False)
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        title_line = next(line for line in events if line.startswith("title="))
-        self.assertNotIn("🖥️", title_line)
+        self.assertIn("🖥️ [7] ai-work", events)
 
-    def test_missing_tab_label_omits_screen_label(self):
-        # tab get は成功するが応答の label が空 -> base_label も空 -> screen_label 省略
+    def test_missing_tab_label_omits_tab_part_only(self):
+        # tab get は成功するが応答の label が空 -> tab側の名前が空 -> 場所行はws側のみ
         # （会話概要へはフォールバックしない。title_text は概要置換を避けるため無効化）。
+        # 区切り" : "はws側/tab側の両方が揃った時だけ挿入される。
         result, events = self.run_plugin(agent_status="done", tab_label="", title_text="")
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        title_line = next(line for line in events if line.startswith("title="))
-        self.assertNotIn("🖥️", title_line)
+        self.assertIn("🖥️ [7] ai-work", events)
+        self.assertNotIn("🖥️ [7] ai-work : ", events)
 
-    def test_missing_workspace_label_omits_screen_label(self):
-        result, events = self.run_plugin(agent_status="done", ws_label="")
+    def test_missing_workspace_label_omits_location_line_when_tab_also_missing(self):
+        result, events = self.run_plugin(agent_status="done", ws_label="", tab_label="", title_text="")
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        title_line = next(line for line in events if line.startswith("title="))
-        self.assertNotIn("🖥️", title_line)
+        self.assertFalse(any(line.startswith("🖥️") for line in events))
 
-    def test_screen_label_format_is_colon_separated(self):
+    def test_location_line_format_is_bracketed_index_and_colon_separated(self):
         # 会話概要への置換を避けるため title_text を無効化し、素のタブ名(tab_label)を使う。
         result, events = self.run_plugin(
-            agent_status="done", ws_label="ws2", tab_label="tab7", title_text=""
+            agent_status="done",
+            ws_label="ws2",
+            ws_number="7",
+            tab_label="tab7",
+            tab_number="2",
+            title_text="",
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        title_line = next(line for line in events if line.startswith("title="))
-        self.assertIn("🖥️ws2:tab7", title_line)
+        self.assertIn("🖥️ [7] ws2 : [2] tab7", events)
 
-    def test_indexed_workspace_and_manual_tab_hide_indexes_only_from_notification(self):
+    def test_index_shown_with_manual_tab_label_and_index(self):
+        # 旧screen_labelは会話概要採用時(record_auto_label==true)に本文と被るとして
+        # ":tab名"を省いていたが、場所行は本文と別内容(index+名前)なので被らない。
+        # tab_label="[3] My Task"はHerdrデフォルト(連番)でも既存の管理ラベルでもない
+        # 手動ラベルのため会話概要には置き換わらず(auto_managed==false)、tab_baseは
+        # 装飾除去後の"My Task"のまま。この手動ラベルのケースでも場所行が省略されず
+        # 出ることをピン留めする。
         rename_calls = []
         result, events = self.run_plugin(
             agent="claude",
             agent_status="done",
             ws_label="[2] ai-work",
+            ws_number="2",
             tab_label="[3] My Task",
+            tab_number="3",
             title_text="概要文",
             rename_observer=rename_calls,
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        title_line = next(line for line in events if line.startswith("title="))
-        self.assertIn("🖥️ai-work:My Task", title_line)
-        self.assertNotIn("🖥️[2]", title_line)
-        self.assertNotIn(":[3]", title_line)
+        self.assertIn("🖥️ [2] ai-work : [3] My Task", events)
         self.assertEqual(rename_calls, ["w1:t4|[3] CLAUDE_IDDONEMy Task"])
 
-    def test_workspace_index_stripping_is_exact(self):
+    def test_workspace_label_prefix_stripping_is_exact(self):
         cases = (
-            ("one_digit_jump_index", "[9] team", "🖥️team:My Task"),
-            ("two_digit_text", "[10] team", "🖥️[10] team:My Task"),
-            ("non_numeric_text", "[x] team", "🖥️[x] team:My Task"),
+            ("one_digit_jump_index", "[9] team", "🖥️ [9] team : [2] My Task"),
+            ("two_digit_text", "[10] team", "🖥️ [7] [10] team : [2] My Task"),
+            ("non_numeric_text", "[x] team", "🖥️ [7] [x] team : [2] My Task"),
         )
         for name, ws_label, expected in cases:
             with self.subTest(case=name):
@@ -722,18 +785,17 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                     agent="claude",
                     agent_status="done",
                     ws_label=ws_label,
+                    ws_number="9" if name == "one_digit_jump_index" else "7",
                     tab_label="My Task",
                     title_text="概要文",
                 )
 
                 self.assertEqual(result.returncode, 0, result.stderr)
-                title_line = next(line for line in events if line.startswith("title="))
-                self.assertIn(expected, title_line)
+                self.assertIn(expected, events)
 
-    def test_claude_manual_label_keeps_tab_name(self):
+    def test_claude_manual_label_keeps_tab_name_in_location_line(self):
         # 手動タブ名（連番/Herdrデフォルトでない）は会話概要に置き換わらない
-        # （record_auto_label==false）ので、本文と被らず ":tab名" を維持する。
-        # title_usable単独で判定すると誤って省略されてしまう差を検出するテスト。
+        # （record_auto_label==false）ので、場所行にそのままの名前が出る。
         result, events = self.run_plugin(
             agent="claude",
             agent_status="done",
@@ -742,12 +804,11 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        title_line = next(line for line in events if line.startswith("title="))
-        self.assertIn("🖥️ai-work:My Task", title_line)
+        self.assertIn("🖥️ [7] ai-work : [2] My Task", events)
 
     def test_codex_keeps_tab_name_despite_conversation_summary(self):
         # codexは会話概要をタブ名に採用しない（record_auto_label==false）ため、
-        # terminal_title_strippedが概要でも screen_label の ":tab名" は維持される。
+        # terminal_title_strippedが概要でも場所行のtab名は維持される。
         result, events = self.run_plugin(
             agent="codex",
             agent_status="done",
@@ -757,31 +818,36 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        title_line = next(line for line in events if line.startswith("title="))
-        self.assertIn("🖥️ai-work:4", title_line)
+        self.assertIn("🖥️ [7] ai-work : [2] 4", events)
 
-    def test_screen_label_truncates_long_names(self):
-        # space名・tab名は10文字を超えると先頭10文字+".."に丸められる（超えなければそのまま）。
-        # 日本語もzshの ${str[1,10]} が1文字=1カウントで切るため境界は文字数ベース。
-        cases = (
-            ("ascii_ws_9_chars_kept", "a" * 9, "tab", "🖥️" + "a" * 9 + ":tab"),
-            ("ascii_ws_10_chars_kept", "a" * 10, "tab", "🖥️" + "a" * 10 + ":tab"),
-            ("ascii_ws_11_chars_truncated", "a" * 11, "tab", "🖥️" + "a" * 10 + "..:tab"),
-            ("japanese_tab_10_chars_kept", "ws", "あ" * 10, "🖥️ws:" + "あ" * 10),
-            ("japanese_tab_11_chars_truncated", "ws", "あ" * 11, "🖥️ws:" + "あ" * 10 + ".."),
+    def test_location_line_does_not_truncate_long_names(self):
+        # 旧screen_labelは10文字超で".."に丸めていたが、本文側の場所行は横幅に
+        # 余裕があるためtruncateしない（10文字超の名前もフル表示される）。
+        long_ws = "a" * 20
+        long_tab = "あ" * 20
+        result, events = self.run_plugin(
+            agent_status="done",
+            ws_label=long_ws,
+            tab_label=long_tab,
+            title_text="",
         )
-        for name, ws_label, tab_label, expected in cases:
-            with self.subTest(name=name):
-                result, events = self.run_plugin(
-                    agent_status="done",
-                    ws_label=ws_label,
-                    tab_label=tab_label,
-                    title_text="",
-                )
 
-                self.assertEqual(result.returncode, 0, result.stderr)
-                title_line = next(line for line in events if line.startswith("title="))
-                self.assertIn(expected, title_line)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(f"🖥️ [7] {long_ws} : [2] {long_tab}", events)
+
+    def test_location_line_omits_bracketed_index_when_number_missing(self):
+        # index取得失敗はfail-safe: [N] だけ省いて名前は残す（場所行自体は消えない）。
+        result, events = self.run_plugin(
+            agent_status="done",
+            ws_label="ai-work",
+            ws_number="",
+            tab_label="My Task",
+            tab_number="",
+            title_text="",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("🖥️ ai-work : My Task", events)
 
     def test_empty_conversation_title_uses_placeholder(self):
         result, events = self.run_plugin(agent_status="done", title_text="")
