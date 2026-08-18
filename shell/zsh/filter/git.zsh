@@ -864,8 +864,8 @@ function _filter_git_worktree_path() {
   term_cols=$(_filter_terminal_columns)
   list_cols=$(( term_cols / 2 - 4 ))
   (( list_cols < 24 )) && list_cols=24
-  # ディレクトリ名(左列)はリスト幅の55%を上限とし、残りをブランチ列に確保する
-  name_col_max=$(( list_cols * 55 / 100 ))
+  # ディレクトリ名(左列)はリスト幅の35%を上限とし、残りをブランチ列に確保する
+  name_col_max=$(( list_cols * 35 / 100 ))
   (( name_col_max < 12 )) && name_col_max=12
 
   local name branch_name wt_path shown name_width max_width=0

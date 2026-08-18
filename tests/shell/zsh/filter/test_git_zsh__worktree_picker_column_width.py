@@ -103,7 +103,8 @@ class WorktreePickerColumnWidthTest(unittest.TestCase):
             + fake_git_worktree_list([("/repo", "main"), (f"/repo.{LONG_NAME}", "feature")])
             + "_filter_git_worktree_path"
         )
-        result = run_zsh(snippet, columns=120)
+        # 35%上限では末尾10文字を確保するのにcolumns=120では幅不足のため160を使う
+        result = run_zsh(snippet, columns=160)
         self.assertEqual(result.returncode, 0, result.stderr)
         lines = self._candidate_lines(result)
         long_line = [l for l in lines if "feature" in l][0]
