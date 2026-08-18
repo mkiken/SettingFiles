@@ -797,6 +797,40 @@ worktree with no forward progress shouldn't keep showing as claimed on
 GitHub. Leave `TASK_PATH` and `TASK_BRANCH` intact for manual continuation
 unless a merge already completed.
 
+### Verify the final reaction state
+
+Before printing the summary, confirm the reaction on GitHub matches what the
+chosen action implies — a silently failed POST or DELETE otherwise ships as a
+wrong claim signal. Skip only when `REACTION_TARGET` was never set; report the
+reaction as `⏭️` then.
+
+Expected state by outcome:
+
+| Outcome | Expected |
+| --- | --- |
+| `コミットのみ` | 🚀 only |
+| `コミット & 親ブランチにマージ` (no push) | 🚀 only |
+| Push and reply succeeded | 🎉 only |
+| Design declined, `コミットしない`, or any `abort` | none |
+
+```bash
+gh api "${REACTION_TARGET}/reactions" \
+  --jq ".[] | select(.user.login == \"${SELF_LOGIN}\") | \"\(.content) \(.id)\""
+```
+
+`SELF_LOGIN` comes from Phase 1; re-derive it with `gh api user --jq '.login'`
+if it was lost. Compare the listing against the expected state and reconcile
+once:
+
+- Expected reaction missing → `gh api "${REACTION_TARGET}/reactions" -X POST -f content=<rocket|hooray>`
+- Unexpected reaction present → `gh api "${REACTION_TARGET}/reactions/<id>" -X DELETE` using the id from the listing
+
+Re-run the GET after reconciling. This step is mandatory: never print the
+summary without either a verified matching state or an explicit failure line.
+Stop after one reconcile pass — if the GET fails or the state still mismatches,
+report `⚠️ Reaction: expected <X>, actual <Y>（手動修正が必要）` naming the exact
+`gh api` command to run by hand.
+
 Final execution summary:
 
 ```
@@ -811,5 +845,5 @@ Final execution summary:
 
 Use `⚠️` for errors and `⏭️` for skipped steps. Final summary must include
 modified files, verification, commit hash/message or an explicit no-change
-result, merge result, push, reply URL/result, reaction result, resolve
-result, and remaining manual action.
+result, merge result, push, reply URL/result, reaction result (the verified
+state, not the intended one), resolve result, and remaining manual action.
