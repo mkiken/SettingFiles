@@ -32,7 +32,7 @@ class PlanReviewCriteriaTest(unittest.TestCase):
 
     def test_complete_terminal_preview_precedes_review_choice(self):
         preview_instruction = "first output a terminal review preview"
-        choice_instruction = "Only after the full preview is visible, offer a single choice"
+        choice_instruction = "Only after the full preview is visible, present this question"
 
         self.assertIn(preview_instruction, self.codex_base)
         self.assertIn(choice_instruction, self.codex_base)
@@ -47,6 +47,22 @@ class PlanReviewCriteriaTest(unittest.TestCase):
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.codex_base)
+
+    def test_four_option_review_choice_is_always_plain_text(self):
+        plan_review = self.codex_base.split("# Plan Review Deep-Dive (dig)", 1)[1]
+
+        for required in (
+            "plain-text Markdown ordered list",
+            "never call `request_user_input` for it",
+            "four authored options exceed the runtime limit",
+            "Treat a number-only reply as selecting the corresponding option",
+            "1. Both: open the browser and also run dig.",
+            "2. dig only: run dig without opening the browser.",
+            "3. Open the browser now, decide on dig after reading.",
+            "4. Neither.",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, plan_review)
 
     def test_neither_finalizes_the_preview_and_dig_repeats_the_flow(self):
         for required in (

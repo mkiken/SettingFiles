@@ -48,7 +48,7 @@ This section's skip criterion governs both the `dig` skill offer and the Plan Re
 
 When finalizing a plan in Plan Mode, first skip both offers for trivially mechanical plans: renames, bulk replacements, reverts, single-file fixes with no design decision, or plans whose every task is a stated verbatim edit. For those, skip straight to the final `<proposed_plan>` with no dialog.
 
-Otherwise, first output a terminal review preview containing the complete decision-complete plan exactly as it would appear inside `<proposed_plan>`, but without the protocol tags. Do not replace it with a summary or partial update. Only after the full preview is visible, offer a single choice via `request_user_input` (or its plain-text fallback) with exactly four options in this order:
+Otherwise, first output a terminal review preview containing the complete decision-complete plan exactly as it would appear inside `<proposed_plan>`, but without the protocol tags. Do not replace it with a summary or partial update. Only after the full preview is visible, present this question as a plain-text Markdown ordered list; never call `request_user_input` for it because its four authored options exceed the runtime limit. Treat a number-only reply as selecting the corresponding option. Preserve exactly this order:
 
 1. Both: open the browser and also run dig.
 2. dig only: run dig without opening the browser.
