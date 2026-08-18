@@ -44,13 +44,20 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
     def test_choice_flow_preserves_all_execution_routes(self):
         for required in (
             "`Continue with Sol (Recommended)`",
-            "`Delegate to Terra`",
-            "`Delegate to Luna`",
+            "`Use Terra subagent`",
+            "`Use Luna subagent`",
+            "the parent session remains on Sol; exactly one Terra `worker` subagent performs implementation; the parent retains decisions, integration, and verification.",
+            "the parent session remains on Sol; exactly one Luna `worker` subagent performs implementation; the parent retains decisions, integration, and verification.",
             "Resolve Terra and Luna only from callable runtime metadata",
             "If the selected tier is unavailable, make no implementation change",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.skill)
+
+        # Excluding the old labels prevents readers from mistaking delegation for a parent-model switch.
+        for excluded in ("`Delegate to Terra`", "`Delegate to Luna`"):
+            with self.subTest(excluded=excluded):
+                self.assertNotIn(excluded, self.skill)
 
     def test_implementation_fallback_and_detection_failure_are_non_blocking(self):
         for required in (
