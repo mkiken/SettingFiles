@@ -23,36 +23,39 @@ This section's skip criterion governs both the `dig` skill offer and the Plan Re
 
 When presenting a plan artifact for review, offer both — but first skip both for trivially mechanical plans: renames, bulk replacements, reverts, single-file fixes with no design decision, or plans whose every task is a stated verbatim edit. For those, skip straight to `ExitPlanMode` with no dialog.
 
-Otherwise, merge this with the Plan Review Presentation offer into a single `AskUserQuestion` dialog (single-select, no multiSelect) with exactly three fixed options:
+Otherwise, merge this with the Plan Review Presentation offer into a single `AskUserQuestion` dialog (single-select, no multiSelect) with exactly four fixed options:
 
 - Both: open the browser and also run dig.
+- dig only: run dig without opening the browser.
 - Open the browser now, decide on dig after reading.
 - Neither.
 
 If "both" is selected, open the browser first, then invoke the dig skill.
 
+If "dig only" is selected, invoke the dig skill without launching mdts.
+
 If the deferred option is selected: open the browser per Plan Review Presentation, then wait for the user to report they've finished reading — do not call `ExitPlanMode` yet; ending the turn on plain text would misfire the Stop hook's completion notification. Once they confirm, ask a second `AskUserQuestion` (dig now vs. proceed to approval). dig reads the plan file fresh from disk regardless of when it runs (it's a forked subagent), so deferring costs nothing functionally.
 
 dig rewrites the plan file, so re-present the updated plan afterward, re-applying these rules. If dig runs as a forked/background subagent (it then has no `AskUserQuestion`), treat its returned output as analysis and conduct the confirmation rounds yourself in the main session via `AskUserQuestion`. In plan mode this dialog (or, for the deferred path, the second-round dialog) precedes `ExitPlanMode`. Stop any ephemeral mdts server you started once the review/approval flow completes — never the persistent port-8600 server.
 
-# Fable Model Check Before ExitPlanMode
+# Fable Model Check After Plan Approval
 
-Immediately before calling `ExitPlanMode`, determine the current session's active model by extracting the session ID from the scratchpad path present in every system prompt (`/private/tmp/claude-<uid>/<project-slug>/<session-id>/scratchpad`) and running:
+Immediately after `ExitPlanMode` is approved — before any other tool call, ahead of starting implementation — determine the current session's active model by extracting the session ID from the scratchpad path present in every system prompt (`/private/tmp/claude-<uid>/<project-slug>/<session-id>/scratchpad`) and running:
 
 ```bash
 jq -r 'select(.type=="assistant" and (.isSidechain//false)==false) | .message.model' \
   ~/.claude/projects/<project-slug>/<session-id>.jsonl | tail -1
 ```
 
-If the command fails or the result is anything other than `claude-fable-5`, proceed straight to `ExitPlanMode` — do not block on a detection failure.
+If the command fails or the result is anything other than `claude-fable-5`, proceed straight to implementation — do not block on a detection failure. This check runs separately from the Plan Review Deep-Dive dialog (that one happens before `ExitPlanMode`; this one happens after), so there is no shared option-count constraint between them.
 
-If the result is `claude-fable-5`, ask a separate `AskUserQuestion` (independent of the Plan Review Deep-Dive dialog — merging them would exceed the 4-option limit) with these three options before calling `ExitPlanMode`:
+If the result is `claude-fable-5`, ask an `AskUserQuestion` with these options before writing or running anything:
 
 - Implement with Fable as-is.
-- Switch models manually (tell the user to run `/model opus` or similar, then wait for them before resuming implementation).
 - Delegate implementation to the Agent tool with `model: "opus"`, passing the full plan content in the prompt.
+- Delegate implementation to the Agent tool with `model: "sonnet"`, passing the full plan content in the prompt.
 
-Proceed to `ExitPlanMode` once the user picks "as-is" or "delegate"; for manual switch, wait for the user to confirm the switch before resuming.
+A manual model switch (`/model opus` or similar) is available through the free-form "Other" option — if chosen, wait for the user to confirm the switch before resuming implementation. Proceed once the user picks "as-is" or one of the delegate options. For a delegated implementation, the "Delegated-Work Verification" section below applies to whatever the subagent reports back.
 
 # Delegated-Work Verification
 
