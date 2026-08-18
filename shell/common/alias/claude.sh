@@ -95,7 +95,7 @@ _cl-pr-comment-implement() {
 }
 
 _clh-pr-comment-implement() {
-    clp --effort high "/pr-comment-implement $*"
+    clh "/pr-comment-implement $*"
 }
 
 cl-pr-body() {
