@@ -1,14 +1,8 @@
 ---
 name: pr-comment-implement
 description: >
-  Implement code changes requested by a GitHub Pull Request comment URL.
-  Use this skill when the user provides a PR comment URL and asks Codex to
-  fix, implement, address, respond to, or resolve the comment, including
-  phrases such as "PRコメント対応", "このレビューコメントを直して",
-  "implement this PR comment", or invokes `$pr-comment-implement`.
-  The workflow performs analysis, presents an implementation design before
-  editing, implements after approval, and can optionally commit, merge, push,
-  reply to the original comment, and resolve the review thread.
+  Implement changes requested by a GitHub PR comment URL. Use for a specific
+  review comment; the workflow can reply to and resolve its thread.
 ---
 
 ## Inputs

@@ -1,11 +1,8 @@
 ---
 name: pr-review-subagents
 description: >
-  Comprehensive PR review using seven Codex custom subagents, parallelized up to the
-  runtime limit, for bugs and error handling, security, design quality, git history, tests, performance, and claim verification. Use when the
-  user wants PR review with subagents, review-subagents, or parallel specialist
-  reviewers. Accepts an optional PR number plus extra review instructions; if omitted,
-  detect the current branch PR.
+  Review the current or specified GitHub PR with seven specialist Codex
+  subagents. Accepts an optional PR number and extra review instructions.
 ---
 
 ## Instructions

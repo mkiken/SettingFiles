@@ -1,11 +1,8 @@
 ---
 name: pr-review
 description: >
-  Comprehensive PR review using gh command. Use this skill when the user wants to
-  review a pull request, analyze a PR for bugs/security/architecture/readability,
-  or says things like "PRレビューして", "review PR", "このPRをレビュー", "review pull request".
-  Accepts an optional PR number plus extra review instructions; if no PR is provided,
-  detects from the current branch automatically.
+  Review the current or specified GitHub PR with gh. Accepts an optional PR
+  number and extra review instructions.
 ---
 
 ## Instructions
