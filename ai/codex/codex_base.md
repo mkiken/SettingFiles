@@ -36,7 +36,7 @@ Ask in plain text only when `request_user_input` is unavailable for the current 
 
 For a plain-text fallback with choices, use a Markdown ordered list starting from `1.` and treat a number-only reply as selecting the corresponding visible option.
 
-When finalizing a plan in Plan Mode or starting implementation of an accepted plan, load the `plan-model-handoff` skill and follow it before emitting the final plan or causing the first implementation side effect.
+When starting implementation of an accepted plan, load the `plan-model-handoff` skill and follow it immediately before the first implementation side effect.
 
 # Plan Approval Detail
 

@@ -31,12 +31,34 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
             with self.subTest(required=required):
                 self.assertIn(required, self.skill)
 
-    def test_plan_checkpoint_records_one_authoritative_marker(self):
+    def test_implementation_only_timing_keeps_new_plans_marker_free(self):
         for required in (
-            'final `<proposed_plan>`',
-            "Do not detect or ask again when a valid marker exists.",
+            "only immediately before the first implementation side effect",
+            "Do not write an implementation-model marker into a newly finalized plan.",
+            "completed `<proposed_plan>` before choosing how implementation runs",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.skill)
+
+        # Exclusions ensure model selection follows plan review instead of
+        # interrupting Plan Mode before the complete plan is visible.
+        for excluded in (
+            "Immediately before emitting the final `<proposed_plan>` in Plan Mode.",
+            "At the Plan Mode checkpoint",
             "Implementation model: parent/<detected-sol-model-id>",
             "Implementation model: worker/<selected-runtime-model-id>",
+        ):
+            with self.subTest(excluded=excluded):
+                self.assertNotIn(excluded, self.skill)
+
+    def test_legacy_markers_remain_authoritative(self):
+        for required in (
+            "For backward compatibility",
+            "Implementation model: parent/<model-id>",
+            "Implementation model: worker/<model-id>",
+            "Do not detect or ask again when a valid legacy marker exists.",
+            "For a `parent/` marker, continue in the parent session.",
+            "For a `worker/` marker, use exactly one `worker` subagent",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.skill)
@@ -62,10 +84,21 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
     def test_implementation_fallback_and_detection_failure_are_non_blocking(self):
         for required in (
             "first implementation side effect for an accepted plan",
-            "for a plan without a marker",
+            "For an accepted plan without a valid legacy marker",
             "Implementation-model check skipped: active model detection failed.",
             "continue without asking",
             "continue silently without asking",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.skill)
+
+    def test_manual_parent_model_switch_waits_without_side_effects(self):
+        for required in (
+            "Free-form `Other` means a manual parent-session model switch",
+            "not Terra/Luna worker delegation",
+            "Make no implementation change.",
+            "wait until the user confirms the switch",
+            "rerun detection on the next implementation attempt.",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.skill)

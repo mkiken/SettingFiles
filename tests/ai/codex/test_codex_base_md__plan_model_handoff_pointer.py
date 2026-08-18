@@ -11,12 +11,20 @@ class PlanModelHandoffPointerTest(unittest.TestCase):
     def setUpClass(cls):
         cls.codex_base = CODEX_BASE_PATH.read_text(encoding="utf-8")
 
-    def test_handoff_checkpoints_load_the_skill(self):
-        self.assertIn("finalizing a plan in Plan Mode", self.codex_base)
-        self.assertIn("starting implementation of an accepted plan", self.codex_base)
-        self.assertIn("load the `plan-model-handoff` skill", self.codex_base)
-        self.assertIn("before emitting the final plan", self.codex_base)
-        self.assertIn("causing the first implementation side effect", self.codex_base)
+    def test_accepted_plan_implementation_checkpoint_loads_the_skill(self):
+        pointer = next(
+            line
+            for line in self.codex_base.splitlines()
+            if "load the `plan-model-handoff` skill" in line
+        )
+        self.assertIn("starting implementation of an accepted plan", pointer)
+        self.assertIn("immediately before the first implementation side effect", pointer)
+
+        # Exclusions keep the handoff after the complete plan is visible, so the
+        # user can inspect it before choosing an implementation model.
+        for excluded in ("finalizing a plan in Plan Mode", "before emitting the final plan"):
+            with self.subTest(excluded=excluded):
+                self.assertNotIn(excluded, pointer)
 
     def test_procedure_stays_out_of_the_always_on_prompt(self):
         # Detection details belong in the skill so the always-on prompt stays
