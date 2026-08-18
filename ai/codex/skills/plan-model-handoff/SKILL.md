@@ -43,8 +43,8 @@ If the result is empty, report `Implementation-model check skipped: active model
 When the detected model matches `*-sol`, use `request_user_input` when available, otherwise the always-on confirmation fallback, with these choices in this order:
 
 1. `Continue with Sol (Recommended)` — keep implementation in the parent session.
-2. `Delegate to Terra` — use one `worker` with the Terra model listed in the runtime's available model overrides.
-3. `Delegate to Luna` — use one `worker` with the Luna model listed in the runtime's available model overrides.
+2. `Use Terra subagent` — the parent session remains on Sol; exactly one Terra `worker` subagent performs implementation; the parent retains decisions, integration, and verification.
+3. `Use Luna subagent` — the parent session remains on Sol; exactly one Luna `worker` subagent performs implementation; the parent retains decisions, integration, and verification.
 
 Resolve Terra and Luna only from callable runtime metadata, never local configuration. If the selected tier is unavailable, make no implementation change, report the unavailable tier, and offer the choice again.
 
