@@ -21,6 +21,10 @@ clh() {
     clf --effort high "$@"
 }
 
+clhp() {
+    clh --permission-mode plan "$@"
+}
+
 clp() {
     cl --permission-mode plan "$@"
 }
@@ -95,7 +99,7 @@ _cl-pr-comment-implement() {
 }
 
 _clh-pr-comment-implement() {
-    clh "/pr-comment-implement $*"
+    clhp "/pr-comment-implement $*"
 }
 
 cl-pr-body() {
