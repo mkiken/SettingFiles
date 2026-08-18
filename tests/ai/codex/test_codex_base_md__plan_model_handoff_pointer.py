@@ -11,14 +11,15 @@ class PlanModelHandoffPointerTest(unittest.TestCase):
     def setUpClass(cls):
         cls.codex_base = CODEX_BASE_PATH.read_text(encoding="utf-8")
 
-    def test_accepted_plan_implementation_checkpoint_loads_the_skill(self):
+    def test_accepted_plan_execution_entry_loads_the_skill(self):
         pointer = next(
             line
             for line in self.codex_base.splitlines()
             if "load the `plan-model-handoff` skill" in line
         )
-        self.assertIn("starting implementation of an accepted plan", pointer)
-        self.assertIn("immediately before the first implementation side effect", pointer)
+        self.assertIn("beginning execution of an accepted plan", pointer)
+        self.assertIn("before starting any task-specific workflow", pointer)
+        self.assertIn("repository operation for that plan", pointer)
 
         # Exclusions keep the handoff after the complete plan is visible, so the
         # user can inspect it before choosing an implementation model.

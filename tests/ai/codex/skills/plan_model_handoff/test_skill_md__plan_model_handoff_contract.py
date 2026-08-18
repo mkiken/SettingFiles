@@ -10,6 +10,7 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.skill = SKILL_PATH.read_text(encoding="utf-8")
+        cls.normalized_skill = " ".join(cls.skill.split())
 
     def test_frontmatter_uses_the_cross_platform_subset(self):
         frontmatter = self.skill.split("---", 2)[1]
@@ -29,16 +30,17 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
             'match `*-sol`',
         ):
             with self.subTest(required=required):
-                self.assertIn(required, self.skill)
+                self.assertIn(required, self.normalized_skill)
 
-    def test_implementation_only_timing_keeps_new_plans_marker_free(self):
+    def test_execution_entry_timing_keeps_new_plans_marker_free(self):
         for required in (
-            "only immediately before the first implementation side effect",
+            "when beginning execution of an accepted plan",
+            "before starting any task-specific workflow or repository operation",
             "Do not write an implementation-model marker into a newly finalized plan.",
             "completed `<proposed_plan>` before choosing how implementation runs",
         ):
             with self.subTest(required=required):
-                self.assertIn(required, self.skill)
+                self.assertIn(required, self.normalized_skill)
 
         # Exclusions ensure model selection follows plan review instead of
         # interrupting Plan Mode before the complete plan is visible.
@@ -51,25 +53,23 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
             with self.subTest(excluded=excluded):
                 self.assertNotIn(excluded, self.skill)
 
-    def test_legacy_markers_remain_authoritative(self):
-        for required in (
-            "For backward compatibility",
+    def test_legacy_plan_markers_are_removed(self):
+        for excluded in (
             "Implementation model: parent/<model-id>",
             "Implementation model: worker/<model-id>",
-            "Do not detect or ask again when a valid legacy marker exists.",
-            "For a `parent/` marker, continue in the parent session.",
-            "For a `worker/` marker, use exactly one `worker` subagent",
+            "valid legacy marker",
+            "For backward compatibility",
         ):
-            with self.subTest(required=required):
-                self.assertIn(required, self.skill)
+            with self.subTest(excluded=excluded):
+                self.assertNotIn(excluded, self.skill)
 
     def test_choice_flow_preserves_all_execution_routes(self):
         for required in (
             "`Continue with Sol (Recommended)`",
             "`Use Terra subagent`",
             "`Use Luna subagent`",
-            "the parent session remains on Sol; exactly one Terra `worker` subagent performs implementation; the parent retains decisions, integration, and verification.",
-            "the parent session remains on Sol; exactly one Luna `worker` subagent performs implementation; the parent retains decisions, integration, and verification.",
+            "exactly one Terra `worker` subagent owns the entire accepted-plan execution.",
+            "exactly one Luna `worker` subagent owns the entire accepted-plan execution.",
             "Resolve Terra and Luna only from callable runtime metadata",
             "If the selected tier is unavailable, make no implementation change",
         ):
@@ -81,10 +81,36 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
             with self.subTest(excluded=excluded):
                 self.assertNotIn(excluded, self.skill)
 
+    def test_worker_owns_the_full_execution_lifecycle(self):
+        for required in (
+            '`fork_turns="none"`',
+            "The accepted plan verbatim, the original task request, and every accepted user decision.",
+            "including an explicit `$worktree-task ...` entry when present",
+            "task-workflow setup and state capture",
+            "implementation, verification, user confirmations, commits, merges",
+            "in-scope PR or issue replies and resolution",
+            "independent side-effect verification, and the final report",
+            "delegation grants no new authority",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.normalized_skill)
+
+    def test_parent_only_relays_and_never_takes_over(self):
+        for required in (
+            "send the exact question and authored choices to the parent",
+            "The parent relays them unchanged",
+            "makes no decision on the worker's behalf",
+            "must not independently inspect or change the repository",
+            "run verification, integrate changes, commit, push",
+            "must not retry, spawn a replacement, or continue with Sol",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.normalized_skill)
+
     def test_implementation_fallback_and_detection_failure_are_non_blocking(self):
         for required in (
-            "first implementation side effect for an accepted plan",
-            "For an accepted plan without a valid legacy marker",
+            "beginning execution of an accepted plan",
+            "Apply the selected execution route to the current task",
             "Implementation-model check skipped: active model detection failed.",
             "continue without asking",
             "continue silently without asking",
