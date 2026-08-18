@@ -73,6 +73,5 @@ setup_codex_claude_mem
 
 # 共通設定テンプレートを ~/.codex/config.toml にマージ
 smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml
-setup_gsd_core_for_runtime codex update || exit 1
 
 echo "Codex tools update completed."

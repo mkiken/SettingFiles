@@ -72,6 +72,5 @@ setup_claude_genshijin
 setup_claude_dig
 setup_claude_example_skills
 setup_claude_mem
-setup_gsd_core_for_runtime claude install || exit 1
 
 echo 'Claude setup and tools installation completed.'

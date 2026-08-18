@@ -29,7 +29,7 @@ Reference implementation: `setup_claude_superpowers` in `mac/scripts/ai/claude.s
 
 1. **`mac/scripts/ai/claude.sh`** — add `setup_claude_<name>()` following the reference implementation.
 2. **`ai/claude/settings.json`** — add to `enabledPlugins` (`"<plugin>@<marketplace>": true`) and `extraKnownMarketplaces` (name-keyed, `{"source": {"repo": "...", "source": "github"}}` for a GitHub repo add, or `{"source": {"source": "git", "url": "..."}}` for a bare git URL like `tsumiki`). Keep both objects alphabetically sorted by key — this is a hand-maintained convention with no enforcing test, so check it manually (`python3 -c "import json; ..."` sorted-keys check).
-3. **`mac/initialization/ai/claude.sh`** — call the new setup function. Must stay above the `setup_gsd_core_for_runtime` line (see `tests/mac/scripts/ai/test_gsd_core_sh__gsd_core_setup.py`'s ordering assertion).
+3. **`mac/initialization/ai/claude.sh`** — call the new setup function.
 4. **`mac/updates/claude.sh`** — call the new setup function in the **same relative position**. This is the step tsumiki never reached; omitting it means the plugin never gets installed/repaired on existing machines, only on fresh `mac/initialize` runs.
 5. **`tests/mac/test_update__context_mode_setup.py`** — despite its name, this file is the de-facto test suite for all Claude/Gemini/Codex plugin wiring (it already covers claude-mem, context-mode, superpowers). Extend it rather than creating a new file:
    - Add the new function name to the `mac/scripts/ai/claude.sh` tuple in `test_assistant_specific_setup_functions_are_defined_in_own_files`.
