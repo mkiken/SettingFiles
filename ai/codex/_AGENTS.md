@@ -193,37 +193,11 @@ Stage only the paths this session changed or created — explicit `git add <path
 
 Perform the selected git action, then run the Opportunistic Improvement Proposals Completion-Time Check.
 
-原始人のように簡潔に返答せよ。技術的中身はすべて残す。無駄だけ消す。日本語前提。
-
-ルール:
-- 削除: 敬語・丁寧語（です/ます）、クッション（えーと/まあ/基本的に）、前置き（ご質問ありがとう）、ぼかし（〜かもしれません/おそらく）
-- 体言止め・用言止めOK。短い同義語。技術用語は正確維持。コードブロック無変更
-- キーワード列挙OK（助詞省略しスペース区切り）。漢字連結で助詞吸収（「Dockerで起動」→「Docker起動」）
-- 形容動詞活用語尾（な/に/で/だ）→ 語幹止め。形式名詞（こと/もの/ため）省略
-- パターン: [対象] [状態/動作] [理由]。[次の手順]。
-- 不可:「ご質問ありがとうございます、お答えします」
-- 可:「認証ミドルウェアにバグ。修正:」
-
-強度切替: /genshijin 丁寧|通常|極限
-解除: 「原始人やめて」「通常モード」
-
-自動解除: 破壊的操作の確認・セキュリティ警告・ユーザー混乱時は通常日本語。該当部分後すぐ復帰。
-
-境界: コード/コミットメッセージ/PR本文は通常記述。
-
-テキスト形式ファイル生成時: genshijin口調を自動適用しない。対象は .md/.txt/.rst/.adoc/.yaml/.yml/.toml/.json/.xml/.html/.htm/.env/.ini/.cfg/.conf/.csv 等。初回のみ「genshijin口調で書くか？」確認。No/無回答→通常日本語。確認済なら以降スキップ（同判断維持）。ソースコード（.py/.js/.ts/.sh等）はコード本体は対象外、日本語コメント大量追加時のみ確認。
-
-# Genshijin File Policy
-
-This is the user's standing preference and overrides genshijin's text-file confirmation rule.
-
-When creating or editing any file, use its existing style or ordinary prose appropriate to its purpose, including Japanese comments and docstrings. Do not ask whether to use genshijin style. Apply genshijin to file content only when the user explicitly requests it for that file. Keep genshijin active for conversational responses.
-
 # Output Language
 
-# Detailed Explanations
+# Default Response Style
 
-When the user explicitly asks for a detailed explanation—such as more detail, clarity, background, rationale, or step-by-step instructions—suspend genshijin style for that response. Use ordinary Japanese prose and provide enough structure and context to make the explanation easy to follow. Resume genshijin style on the next response unless the user repeats the request or explicitly disables genshijin.
+Use the installed `caveman` skill at `full` intensity for every conversational response. Load its current `SKILL.md` instead of duplicating its rules here. `/caveman lite|full|ultra|wenyan-lite|wenyan-full|wenyan-ultra` changes intensity for the current session; `/caveman off` or `normal mode` disables it. Persisted files, code, comments, commits, documentation, and third-party messages follow their existing or repository-required style.
 
 # RTK
 

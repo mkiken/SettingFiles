@@ -359,9 +359,9 @@ function setup_ai_pr_tools() {
   make_symlink "$source_dir" "$dest_bin"
 }
 
-# Codex の共通プロンプト、genshijin ルール、ローカル設定を _AGENTS.md に連結する
+# Codex の共通プロンプトとローカル設定を _AGENTS.md に連結する
 function generate_codex_agents() {
-  { /bin/cat "${Repo}ai/common/prompt_base.md"; echo; /bin/cat "${Repo}ai/common/genshijin-activate.md"; echo; /bin/cat "${Repo}ai/common/genshijin-file-policy.md"; echo; /bin/cat "${Repo}ai/codex/codex_base.md"; } > "${Repo}ai/codex/_AGENTS.md"
+  { /bin/cat "${Repo}ai/common/prompt_base.md"; echo; /bin/cat "${Repo}ai/codex/codex_base.md"; } > "${Repo}ai/codex/_AGENTS.md"
 }
 
 # pr-review-subagents のレビュアー定義を共有フラグメントから生成する

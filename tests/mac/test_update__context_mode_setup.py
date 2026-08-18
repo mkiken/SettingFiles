@@ -75,6 +75,8 @@ class ContextModeSetupTest(unittest.TestCase):
             "mac/scripts/ai/codex.sh": (
                 "setup_codex_context_mode",
                 "setup_codex_rtk",
+                "setup_codex_caveman",
+                "update_codex_caveman",
                 "setup_codex_superpowers",
                 "setup_codex_claude_mem",
             ),
@@ -122,11 +124,11 @@ class ContextModeSetupTest(unittest.TestCase):
             ),
             "mac/initialization/ai/codex.sh": (
                 'source "${Repo}mac/scripts/ai/codex.sh"',
-                ("setup_codex_superpowers", "setup_codex_context_mode", "setup_codex_rtk", "setup_codex_claude_mem"),
+                ("setup_codex_superpowers", "setup_codex_context_mode", "setup_codex_rtk", "setup_codex_caveman", "setup_codex_claude_mem"),
             ),
             "mac/updates/codex.sh": (
                 'source "${Repo}mac/scripts/ai/codex.sh"',
-                ("setup_codex_superpowers", "setup_codex_context_mode", "setup_codex_rtk", "setup_codex_claude_mem"),
+                ("setup_codex_superpowers", "setup_codex_context_mode", "setup_codex_rtk", "update_codex_caveman", "setup_codex_claude_mem"),
             ),
         }
 

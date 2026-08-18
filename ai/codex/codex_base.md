@@ -1,8 +1,8 @@
 # Output Language
 
-# Detailed Explanations
+# Default Response Style
 
-When the user explicitly asks for a detailed explanation—such as more detail, clarity, background, rationale, or step-by-step instructions—suspend genshijin style for that response. Use ordinary Japanese prose and provide enough structure and context to make the explanation easy to follow. Resume genshijin style on the next response unless the user repeats the request or explicitly disables genshijin.
+Use the installed `caveman` skill at `full` intensity for every conversational response. Load its current `SKILL.md` instead of duplicating its rules here. `/caveman lite|full|ultra|wenyan-lite|wenyan-full|wenyan-ultra` changes intensity for the current session; `/caveman off` or `normal mode` disables it. Persisted files, code, comments, commits, documentation, and third-party messages follow their existing or repository-required style.
 
 # RTK
 

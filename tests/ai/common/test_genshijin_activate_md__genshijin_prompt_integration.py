@@ -48,7 +48,7 @@ class GenshijinPromptIntegrationTest(unittest.TestCase):
         codex_update = read_text("mac/updates/codex.sh")
         gemini_update = read_text("mac/updates/gemini.sh")
 
-        self.assertLess(codex_update.index("sync_genshijin_rule"), codex_update.index("generate_codex_agents"))
+        self.assertNotIn("sync_genshijin_rule", codex_update)
         self.assertIn("sync_genshijin_rule", gemini_update)
 
     def test_sync_helper_protects_existing_rule_on_fetch_failure(self):

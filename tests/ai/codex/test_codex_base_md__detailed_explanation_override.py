@@ -7,29 +7,28 @@ CODEX_BASE_PATH = REPO_ROOT / "ai/codex/codex_base.md"
 AGENTS_PATH = REPO_ROOT / "ai/codex/_AGENTS.md"
 
 
-class DetailedExplanationOverrideTest(unittest.TestCase):
+class CavemanDefaultStyleTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.codex_base = CODEX_BASE_PATH.read_text(encoding="utf-8")
         cls.agents = AGENTS_PATH.read_text(encoding="utf-8")
 
-    def test_explicit_detail_requests_suspend_genshijin_for_one_response(self):
+    def test_codex_base_uses_caveman_as_the_default_conversation_style(self):
         for required in (
-            "explicitly asks for a detailed explanation",
-            "more detail, clarity, background, rationale, or step-by-step instructions",
-            "suspend genshijin style for that response",
-            "Use ordinary Japanese prose",
-            "Resume genshijin style on the next response",
+            "installed `caveman` skill",
+            "`full` intensity",
+            "Load its current `SKILL.md` instead of duplicating its rules here.",
+            "`/caveman off` or `normal mode` disables it.",
+            "Persisted files, code, comments, commits, documentation, and third-party messages",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.codex_base)
 
-    def test_generated_agents_applies_the_codex_override_after_genshijin(self):
-        override = "explicitly asks for a detailed explanation"
+    def test_generated_agents_applies_the_caveman_default_style(self):
+        directive = "Use the installed `caveman` skill"
 
-        self.assertIn("原始人のように簡潔に返答せよ", self.agents)
-        self.assertIn(override, self.agents)
-        self.assertLess(self.agents.index("原始人のように簡潔に返答せよ"), self.agents.index(override))
+        self.assertIn(directive, self.agents)
+        self.assertNotIn("原始人のように簡潔に返答せよ", self.agents)
 
 
 if __name__ == "__main__":

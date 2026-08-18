@@ -12,9 +12,8 @@ npm i -g @openai/codex@latest
 
 setup_ai_mcp update
 setup_ai_pr_tools
+update_codex_caveman || exit 1
 
-# upstream の genshijin ルールを更新してから共通プロンプトを再生成
-sync_genshijin_rule
 generate_codex_agents
 
 # hooks はファイル単位でシンボリックリンク

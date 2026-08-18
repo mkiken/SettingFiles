@@ -9,6 +9,41 @@ function setup_codex_rtk() {
   require_rtk_token_killer
 }
 
+function setup_codex_caveman() {
+  local caveman_skill="$HOME/.agents/skills/caveman/SKILL.md"
+
+  echo "Ensuring Codex Caveman skill..."
+
+  if [[ -f "$caveman_skill" ]]; then
+    echo "✓ Codex Caveman skill already installed."
+    return 0
+  fi
+
+  npx --yes skills@latest add JuliusBrussee/caveman --agent codex --global --skill caveman --yes || return 1
+
+  if [[ ! -f "$caveman_skill" ]]; then
+    echo "Error: Codex Caveman skill was not installed at $caveman_skill" >&2
+    return 1
+  fi
+}
+
+function update_codex_caveman() {
+  local caveman_skill="$HOME/.agents/skills/caveman/SKILL.md"
+
+  if [[ ! -f "$caveman_skill" ]]; then
+    setup_codex_caveman
+    return $?
+  fi
+
+  echo "Updating Codex Caveman skill..."
+  npx --yes skills@latest update caveman --global --yes || return 1
+
+  if [[ ! -f "$caveman_skill" ]]; then
+    echo "Error: Codex Caveman skill disappeared after update: $caveman_skill" >&2
+    return 1
+  fi
+}
+
 function setup_codex_context_mode() {
   echo "Ensuring Codex context-mode plugin..."
 
