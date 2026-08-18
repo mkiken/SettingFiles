@@ -43,7 +43,7 @@ After generating the PR body content:
 1. **Finalize both bodies as files** before showing anything. Use the platform's session temp/scratchpad directory as `<tmpdir>` if one exists (fall back to `mktemp -d`):
    - Save the existing body with CRLF normalized to LF (GitHub API bodies contain `\r\n`; unnormalized, the diff shows every line as changed):
      ```bash
-     gh pr view <PR_NUMBER> --json body --jq .body | tr -d '\r' > <tmpdir>/pr_body_old.md
+     gh pr view <PR_NUMBER> --json body --template '{{.body}}' | tr -d '\r' > <tmpdir>/pr_body_old.md
      ```
    - Write the complete generated body to `<tmpdir>/pr_body_new.md` (LF line endings, exactly one trailing newline)
    - From here `pr_body_new.md` is the single source of truth for display, diff, and apply. Never reconstruct the body text in chat
@@ -74,7 +74,7 @@ After generating the PR body content:
      ```
    - Verify the applied body matches the file exactly:
      ```bash
-     gh pr view <PR_NUMBER> --json body --jq .body | tr -d '\r' | diff - <tmpdir>/pr_body_new.md
+     gh pr view <PR_NUMBER> --json body --template '{{.body}}' | tr -d '\r' | diff - <tmpdir>/pr_body_new.md
      ```
      Expect empty output (a trailing-newline-only difference is acceptable); otherwise re-apply and re-verify once; if it still differs, stop and report the discrepancy to the user instead of looping
    - Show success message with PR URL
