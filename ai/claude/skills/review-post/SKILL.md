@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(gh:*), Bash(git:*), Bash(/bin/cat:*), Bash(ls:*), Bash(bash ~/.config/ai-pr/bin/ai_review_run_dir.sh:*), Read, Glob
+allowed-tools: Bash(gh:*), Bash(git:*), Bash(/bin/cat:*), Bash(ls:*), Bash(mkdir:*), Bash(bash ~/.config/ai-pr/bin/ai_review_run_dir.sh:*), Read, Write, Glob
 description: "Post adopted review items from a merge run directory as PR review comments"
 argument-hint: "[runDir] [itemNumbers...]"
 disable-model-invocation: true

@@ -44,10 +44,10 @@ class ReviewServerTest(unittest.TestCase):
 
     def valid_state(self):
         return {
-            "schema_version": 1,
+            "schema_version": 2,
             "items": {
-                "1": {"reviewed": False, "adopt": True},
-                "2": {"reviewed": True, "adopt": False},
+                "1": {"decision": "fix"},
+                "2": {"decision": "post"},
             },
         }
 
@@ -70,9 +70,42 @@ class ReviewServerTest(unittest.TestCase):
 
     def test_invalid_state_is_rejected_without_writing(self):
         invalid = self.valid_state()
-        invalid["items"]["1"] = {"reviewed": True, "adopt": True}
+        invalid["items"]["1"] = {"decision": "both"}
         with self.assertRaises(HTTPError) as error:
             self.request("/api/state", "POST", json.dumps(invalid).encode(), "application/json")
+        self.assertEqual(error.exception.code, 400)
+        error.exception.close()
+        self.assertFalse((self.run_dir / "state.json").exists())
+
+    def test_schema_version_1_payload_is_rejected(self):
+        legacy = {
+            "schema_version": 1,
+            "items": {
+                "1": {"reviewed": False, "adopt": True},
+                "2": {"reviewed": True, "adopt": False},
+            },
+        }
+        with self.assertRaises(HTTPError) as error:
+            self.request("/api/state", "POST", json.dumps(legacy).encode(), "application/json")
+        self.assertEqual(error.exception.code, 400)
+        error.exception.close()
+        self.assertFalse((self.run_dir / "state.json").exists())
+
+    def test_null_decision_is_accepted(self):
+        partial = self.valid_state()
+        partial["items"]["2"] = {"decision": None}
+        body = json.dumps(partial).encode()
+        with self.request("/api/state", "POST", body, "application/json") as response:
+            self.assertEqual(response.status, 204)
+        self.assertEqual(
+            json.loads((self.run_dir / "state.json").read_text(encoding="utf-8")), partial
+        )
+
+    def test_missing_item_key_is_rejected(self):
+        incomplete = self.valid_state()
+        del incomplete["items"]["2"]
+        with self.assertRaises(HTTPError) as error:
+            self.request("/api/state", "POST", json.dumps(incomplete).encode(), "application/json")
         self.assertEqual(error.exception.code, 400)
         error.exception.close()
         self.assertFalse((self.run_dir / "state.json").exists())

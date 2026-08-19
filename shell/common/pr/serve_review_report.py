@@ -25,19 +25,23 @@ def expected_item_ids(run_dir):
     return {str(item["id"]) for item in merged.get("items", [])}
 
 
+DECISIONS = frozenset({"fix", "post", "dismiss", None})
+
+
 def validate_state(payload, item_ids):
-    if not isinstance(payload, dict) or payload.get("schema_version") != 1:
-        raise ValueError("schema_version must be 1")
+    if not isinstance(payload, dict) or payload.get("schema_version") != 2:
+        raise ValueError("schema_version must be 2")
     items = payload.get("items")
     if not isinstance(items, dict) or set(items) != item_ids:
         raise ValueError("state items do not match this report")
-    for item_id, decision in items.items():
-        if not isinstance(item_id, str) or not isinstance(decision, dict):
+    for item_id, entry in items.items():
+        if not isinstance(item_id, str) or not isinstance(entry, dict):
             raise ValueError("invalid state item")
-        reviewed = decision.get("reviewed")
-        adopt = decision.get("adopt")
-        if not isinstance(reviewed, bool) or not isinstance(adopt, bool) or (reviewed and adopt):
-            raise ValueError("state decisions must be mutually exclusive booleans")
+        decision = entry.get("decision")
+        # None は「未判断」。保存ボタンはHTML側で全項目確定まで非活性なので通常は届かないが、
+        # 部分保存自体はサーバー側で拒否しない。
+        if decision not in DECISIONS:
+            raise ValueError("decision must be one of fix / post / dismiss / null")
 
 
 def write_json_atomically(path, payload):

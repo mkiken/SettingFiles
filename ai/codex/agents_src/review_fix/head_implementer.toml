@@ -1,5 +1,10 @@
 name = "review_fix_implementer"
-description = "Fix implementer for review-fix: applies an approved fix design to the working tree."
-sandbox_mode = "workspace-write"
+description = "Fix implementer for review-fix: applies an approved fix design inside its assigned task worktree."
+# The assigned task worktree is a sibling directory of the calling workspace, so
+# workspace-write would deny every edit. Matches review_fix_designer, which needs
+# the same out-of-workspace access to write into the run directory.
+# Unverifiable here (no Codex runtime in this environment); chosen as the safe side
+# because a too-narrow sandbox silently breaks every implementation.
+sandbox_mode = "danger-full-access"
 
 developer_instructions = '''

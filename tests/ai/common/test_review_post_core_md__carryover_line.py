@@ -19,6 +19,9 @@ CARRYOVER_LABELS = (
     ("fixed_before", "🔁", "前回修正済み（再指摘）"),
     ("fix_skipped_before", "⏸️", "前回修正スキップ"),
     ("fix_rejected_before", "❌", "前回修正却下"),
+    ("posted_before", "📮", "前回コメント投稿済み"),
+    ("should_be_posted", "❓", "前回投稿済のはず"),
+    ("post_skipped_before", "⏸️", "前回投稿スキップ"),
 )
 
 
@@ -86,11 +89,11 @@ class ReviewPostCarryoverLineTest(unittest.TestCase):
                 self.assertIn(label, self.core)
 
     def test_carryover_emoji_avoid_decision_button_emoji(self):
-        # 🚫/🔧はreport.htmlのdecisionボタンとdecision-statusで使用中
-        # (generate_review_report.py内 "対応する"/"対応しない")。
+        # 🔧/💬/🚫はreport.htmlのdecisionボタンとdecision-statusで使用中
+        # (generate_review_report.py内 "修正する"/"コメント投稿"/"対応しない")。
         # priority絵文字(🔴🟡🟢)ともpost側で衝突するため、
         # carryover絵文字はこの集合に含めない。
-        forbidden = {"🔧", "🚫", "🔴", "🟡", "🟢"}
+        forbidden = {"🔧", "💬", "🚫", "🔴", "🟡", "🟢"}
         used = {emoji for _, emoji, _ in CARRYOVER_LABELS}
         self.assertTrue(forbidden.isdisjoint(used))
 

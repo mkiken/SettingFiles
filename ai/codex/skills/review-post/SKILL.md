@@ -21,7 +21,7 @@ Post selected review items from a merge run directory to the PR as review commen
 ## Item Selection
 
 1. Read `<RUN_DIR>/merged.json`. `items[].id` are the serial numbers — never renumber.
-2. If <ITEM_NUMBERS> is non-empty, select those ids. Otherwise read `<RUN_DIR>/state.json` (`items` is an object keyed by id string with `{"reviewed": bool, "adopt": bool}`) and select ids with `adopt: true`. If state.json is missing and no numbers were given, list the available items (`id. [file:line_spec] priority | area: summary`) and ask the user which ids to post.
+2. If <ITEM_NUMBERS> is non-empty, select those ids. Otherwise read `<RUN_DIR>/state.json` and select by its `schema_version`: `2` → `items` is keyed by id string with `{"decision": "fix"|"post"|"dismiss"|null}`; select ids whose `decision` is `"post"`. `1` (legacy) → `items` values are `{"reviewed": bool, "adopt": bool}`; select ids with `adopt: true`. Any other `schema_version` → stop and report it. If state.json is missing and no numbers were given, list the available items (`id. [file:line_spec] priority | area: summary`) and ask the user which ids to post.
 3. If a selected id has no matching item, or state.json ids do not exist in merged.json (stale state), stop and report the mismatch instead of guessing.
 4. Build the posting index from the selected items: `N. [file:line_spec] Priority | 領域: 概要` where `N` = item id, Priority from `priority` (high→High, medium→Medium, low→Low), 領域 from `area`, 概要 from `summary`. When `expected_carryover` is non-empty, append ` ⟨{絵文字} {ラベル}⟩` — the same emoji and label as `expected_carryover`, without its surrounding underscores or the `前回対応状況: ` prefix — so the preview and the posted body can never disagree. The 概要 comparison in the posting mechanics ignores this appended carryover marker.
    - Before using the most confident source's detail `text`, inspect it for a report-level summary. If the text starts with the exact heading `## レビューサマリー`, remove that heading and every following line through the line before the next H2 heading. Retain the next H2 heading and all later text. If `## レビューサマリー` appears anywhere else, or no next H2 heading exists, stop before confirmation and report the unrecognized source-text shape; never guess a deletion boundary.
@@ -52,6 +52,9 @@ expected_carryover=$(jq -r --argjson item_id "$item_id" '
   elif . == "fixed_before" then "_前回対応状況: 🔁 前回修正済み（再指摘）_"
   elif . == "fix_skipped_before" then "_前回対応状況: ⏸️ 前回修正スキップ_"
   elif . == "fix_rejected_before" then "_前回対応状況: ❌ 前回修正却下_"
+  elif . == "posted_before" then "_前回対応状況: 📮 前回コメント投稿済み_"
+  elif . == "should_be_posted" then "_前回対応状況: ❓ 前回投稿済のはず_"
+  elif . == "post_skipped_before" then "_前回対応状況: ⏸️ 前回投稿スキップ_"
   else error("unknown carryover value")
   end
 ' "$run_dir/merged.json") || exit 1
@@ -64,6 +67,28 @@ expected_carryover=$(jq -r --argjson item_id "$item_id" '
 5. `head_ref_oid` in merged.json is the review-time head commit for the re-anchoring check in the posting mechanics below. Items whose `line_spec` starts with `~` are pre-existing-code anchors and cannot be inline comments (see the fallback rule in the mechanics). That prefix is only one reason an item cannot be inline: a plain line number can also fall outside the diff hunks, so decide inline eligibility with the diff-hunk check in the mechanics rather than the prefix alone.
 
 Then follow the posting mechanics below.
+
+## post_state.json
+
+After the posting mechanics' verification succeeds, `mkdir -p <RUN_DIR>/post` and write `<RUN_DIR>/post/post_state.json` exactly once. The next run's review-merge reads it for carryover, so keep the statuses and reasons accurate — a posted item recorded as missing shows up as ❓ 前回投稿済のはず. Never write `<RUN_DIR>/state.json`; the browser owns it.
+
+```json
+{
+  "schema_version": 1,
+  "run_dir": "/abs/path/to/run",
+  "pr_number": 123,
+  "head_ref_oid": "<head_ref_oid from merged.json>",
+  "posted_at": "2026-07-26T10:12:00+09:00",
+  "review_url": "https://github.com/owner/repository/pull/123#pullrequestreview-1",
+  "selected_ids": [2, 6],
+  "items": {
+    "2": { "status": "posted", "inline": true },
+    "6": { "status": "skipped", "inline": false, "reason": "diffハンク外のため個別コメント不可" }
+  }
+}
+```
+
+`items` covers every selected id. `status` is `posted` or `skipped`; `inline` records whether the item became an inline comment. `reason` is required for `skipped` and `null` otherwise. If posting stops before verification, do not write the file.
 
 ## PR Metadata And Re-Anchoring
 

@@ -98,6 +98,9 @@ class RenderTest(unittest.TestCase):
             "fixed_before": "前回修正済み（再指摘）",
             "fix_skipped_before": "前回修正スキップ",
             "fix_rejected_before": "前回修正却下",
+            "posted_before": "前回コメント投稿済み",
+            "should_be_posted": "前回投稿済のはず",
+            "post_skipped_before": "前回投稿スキップ",
         }
         for value, label in labels.items():
             with self.subTest(carryover=value):
@@ -132,25 +135,51 @@ class RenderTest(unittest.TestCase):
         self.assertIn("aria-expanded", html)
         self.assertIn('input.type="checkbox"', html)
         self.assertNotIn('input.type="radio"', html)
-        self.assertIn("🔧 対応する", html)
+        self.assertIn("🔧 修正する", html)
+        self.assertIn("💬 コメント投稿", html)
         self.assertIn("🚫 対応しない", html)
-        self.assertIn("decision-adopt", html)
-        self.assertIn("decision-skip", html)
+        for value in ("fix", "post", "dismiss"):
+            self.assertIn("decision-" + value, html)
         self.assertIn("#expand-all", html)
         self.assertIn("#save-state", html)
         self.assertIn('id="copy-run-dir"', html)
         self.assertIn(".card-toggle{color:var(--link)}", html)
-        self.assertIn('data-filter="pending"', html)
-        self.assertIn("対応するリスト", html)
+        for mode in ("pending", "fix", "post", "dismiss", "all"):
+            self.assertIn(f'data-filter="{mode}"', html)
+        self.assertIn("修正リスト", html)
+        self.assertIn("投稿リスト", html)
         self.assertIn("対応しないリスト", html)
+        # v1の2択語彙はUIから消えていること（review-fix/postの選択はdecisionに一本化された）
+        self.assertNotIn("対応するリスト", html)
         self.assertNotIn("toggle-completed", html)
 
     def test_decision_controls_are_mutually_exclusive_and_clearable(self):
         html = mod.render(merged([item(1)]))
-        self.assertIn('s.reviewed=input.checked&&value==="reviewed"', html)
-        self.assertIn('s.adopt=input.checked&&value==="adopt"', html)
-        self.assertIn('input.value==="adopt"?s.adopt:s.reviewed', html)
+        self.assertIn("s.decision=input.checked?value:null", html)
+        self.assertIn("input.checked=input.value===s.decision", html)
         self.assertIn("const counts={pending:DATA.items.length-done", html)
+
+    def test_embedded_state_is_schema_v2(self):
+        html = mod.render(merged([item(1)]))
+        self.assertIn("const state = {schema_version: 2, items: {}}", html)
+        self.assertIn("state.items[key]={decision:null}", html)
+
+    def test_save_payload_fills_every_item_key(self):
+        html = mod.render(merged([item(1)]))
+        # 保存前に全idのエントリを埋め、サーバー側のキー一致検証を満たす
+        self.assertIn("function syncStateItems()", html)
+        save_state_body = html.split("async function saveState()", 1)[1].split(
+            "function maybeOfferAutoSave", 1
+        )[0]
+        self.assertIn("syncStateItems()", save_state_body)
+
+    def test_save_button_requires_every_decision_non_null(self):
+        html = mod.render(merged([item(1)]))
+        self.assertIn(
+            "function allItemsCompleted(){return DATA.items.every("
+            "item=>itemState(item.id).decision!==null);}",
+            html,
+        )
 
     def test_state_save_is_in_footer_and_requires_all_items_completed(self):
         html = mod.render(merged([item(1)]))
