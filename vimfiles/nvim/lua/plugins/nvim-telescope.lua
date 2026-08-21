@@ -328,7 +328,7 @@ local function insert_at_paths()
 
     for _, entry in ipairs(selections) do
       local path
-      if mode_state.mode == "desktop" then
+      if mode_state.mode == "desktop" or mode_state.mode == "downloads" then
         path = preview_entry_path(entry, selected_cwd)
       else
         path = telescope_entry_path(entry, selected_cwd)
@@ -378,31 +378,39 @@ local function insert_at_paths()
     })
   end
 
-  local function switch_desktop_mode(prompt_bufnr)
-    local next_mode = mode_state.mode == "desktop" and "paths" or "desktop"
-    local next_cwd = next_mode == "desktop" and normalize_dir("~/Desktop") or cwd
-    if not next_cwd then
-      vim.notify("Desktop directory not found for @ path picker", vim.log.levels.WARN)
-      return
+  -- Desktop/Downloads のような外部ディレクトリ用トグルを生成する。
+  -- 現モードが既に target_mode ならファイル一覧モードへ戻し、そうでなければ
+  -- target_mode(絶対パス・深さ1)へ切り替える。
+  local function make_external_mode_switcher(target_mode, dir, prompt)
+    return function(prompt_bufnr)
+      local next_mode = mode_state.mode == target_mode and "paths" or target_mode
+      local next_cwd = next_mode == target_mode and normalize_dir(dir) or cwd
+      if not next_cwd then
+        vim.notify(("%s directory not found for @ path picker"):format(target_mode), vim.log.levels.WARN)
+        return
+      end
+
+      local finder = new_path_finder(next_cwd, next_mode == target_mode and { max_depth = 1 } or nil)
+      if not finder then
+        vim.notify("No path search command found for @ path picker", vim.log.levels.WARN)
+        return
+      end
+
+      mode_state.mode = next_mode
+      mode_state.cwd = next_cwd
+
+      local picker = action_state.get_current_picker(prompt_bufnr)
+      picker.sorter = picker_sorter(next_mode, next_cwd)
+      picker.sorter:_init()
+      picker:refresh(finder, {
+        reset_prompt = true,
+        new_prefix = next_mode == target_mode and prompt or "Paths> ",
+      })
     end
-
-    local finder = new_path_finder(next_cwd, next_mode == "desktop" and { max_depth = 1 } or nil)
-    if not finder then
-      vim.notify("No path search command found for @ path picker", vim.log.levels.WARN)
-      return
-    end
-
-    mode_state.mode = next_mode
-    mode_state.cwd = next_cwd
-
-    local picker = action_state.get_current_picker(prompt_bufnr)
-    picker.sorter = picker_sorter(next_mode, next_cwd)
-    picker.sorter:_init()
-    picker:refresh(finder, {
-      reset_prompt = true,
-      new_prefix = next_mode == "desktop" and "Desktop> " or "Paths> ",
-    })
   end
+
+  local switch_desktop_mode = make_external_mode_switcher("desktop", "~/Desktop", "Desktop> ")
+  local switch_downloads_mode = make_external_mode_switcher("downloads", "~/Downloads", "Downloads> ")
 
   local initial_finder = new_path_finder(cwd)
   if not initial_finder then
@@ -413,10 +421,13 @@ local function insert_at_paths()
   pickers.new({
     cwd = cwd,
     prompt_title = "Insert @ Path",
-    results_title = "C-s: grep/files | C-d: desktop/files",
+    results_title = "C-s: grep/files | C-d: desktop | C-l: downloads",
     prompt_prefix = "Paths> ",
     -- プレビューを広く取り chafa 画像プレビューの実効解像度(セル数)を稼ぐ
     layout_config = { width = 0.95, height = 0.95, preview_width = 0.6 },
+    -- sorting_strategy は明示指定せずデフォルトの "descending"(最良候補がリスト下部)
+    -- を維持する。fzf 側(tmux-file-picker.sh)をこちらに合わせて --reverse を外した
+    -- ため、ここに "ascending" を足さないこと自体が意図的な決定。
   }, {
     finder = initial_finder,
     previewer = path_picker_previewer(cwd, mode_state),
@@ -428,6 +439,7 @@ local function insert_at_paths()
 
       map({ "i", "n" }, "<C-s>", switch_mode)
       map({ "i", "n" }, "<C-d>", switch_desktop_mode)
+      map({ "i", "n" }, "<C-l>", switch_downloads_mode)
 
       return true
     end,

@@ -436,26 +436,39 @@ main() {
       desktop_reload_cmd="$fd_cmd --absolute-path --max-depth 1 $fd_flags . $desktop_dir_arg"
     fi
 
+    local downloads_dir="${HOME}/Downloads"
+    local downloads_reload_cmd='printf ""'
+    if [[ -d $downloads_dir ]]; then
+      local downloads_dir_arg
+      printf -v downloads_dir_arg "%q" "$downloads_dir"
+      downloads_reload_cmd="$fd_cmd --absolute-path --max-depth 1 $fd_flags . $downloads_dir_arg"
+    fi
+
     grep_toggle_flags=(
       --prompt 'Files> '
-      --header 'C-s: grep/files | C-d: desktop/files'
+      --header 'C-s: grep/files | C-d: desktop | C-l: downloads'
       --preview "$grep_preview_cmd"
       --bind 'start:unbind(change)'
       --bind "change:reload:$grep_reload_cmd"
       --bind "ctrl-s:transform:[[ \$FZF_PROMPT == \"Files> \" ]] && echo \"change-prompt(Grep> )+disable-search+clear-query+reload(: || true)+rebind(change)\" || echo \"change-prompt(Files> )+enable-search+clear-query+unbind(change)+reload($fd_cmd $fd_flags)\""
       --bind "ctrl-d:transform:[[ \$FZF_PROMPT == \"Desktop> \" ]] && echo \"change-prompt(Files> )+enable-search+clear-query+unbind(change)+reload($fd_cmd $fd_flags)\" || echo \"change-prompt(Desktop> )+enable-search+clear-query+unbind(change)+reload($desktop_reload_cmd)\""
+      --bind "ctrl-l:transform:[[ \$FZF_PROMPT == \"Downloads> \" ]] && echo \"change-prompt(Files> )+enable-search+clear-query+unbind(change)+reload($fd_cmd $fd_flags)\" || echo \"change-prompt(Downloads> )+enable-search+clear-query+unbind(change)+reload($downloads_reload_cmd)\""
     )
   fi
 
   read -r -a fd_flags_array <<<"$fd_flags"
 
   local selected_files_str
+  # --reverse を外しデフォルトレイアウト(プロンプト下端・最良候補が直上)にする。
+  # Neovim 側 Telescope ピッカーの sorting_strategy デフォルト "descending"(最良が下)
+  # とソート位置を揃えるための意図的な選択。--zoxide 側の fzf 呼び出しは対応する
+  # Neovim ピッカーが無いため --reverse を維持しており、この2箇所とは非対称。
   if [[ ${#search_dirs[@]} -eq 1 ]]; then
     # Single directory: cd into it for cleaner relative paths in fzf
-    selected_files_str=$(cd "${search_dirs[0]}" && "$fd_cmd" "${fd_flags_array[@]}" | SHELL=/bin/bash fzf --multi --cycle --reverse --freeze-right=1 --bind 'tab:toggle' --preview "$preview_cmd" "${grep_toggle_flags[@]}" || true)
+    selected_files_str=$(cd "${search_dirs[0]}" && "$fd_cmd" "${fd_flags_array[@]}" | SHELL=/bin/bash fzf --multi --cycle --freeze-right=1 --bind 'tab:toggle' --preview "$preview_cmd" "${grep_toggle_flags[@]}" || true)
   else
     # Multiple directories: pass them as arguments to fd (returns absolute paths)
-    selected_files_str=$("$fd_cmd" "${fd_flags_array[@]}" "${search_dirs[@]}" | SHELL=/bin/bash fzf --multi --cycle --reverse --freeze-right=1 --bind 'tab:toggle' --preview "$preview_cmd" "${grep_toggle_flags[@]}" || true)
+    selected_files_str=$("$fd_cmd" "${fd_flags_array[@]}" "${search_dirs[@]}" | SHELL=/bin/bash fzf --multi --cycle --freeze-right=1 --bind 'tab:toggle' --preview "$preview_cmd" "${grep_toggle_flags[@]}" || true)
   fi
 
   if [[ -z $selected_files_str ]]; then
@@ -491,7 +504,7 @@ main() {
       relative_paths=("${selected_files[@]}")
     fi
   elif [[ ${#selected_files[@]} -gt 0 && ${selected_files[0]} == /* ]]; then
-    # Desktop mode returns absolute paths so AI CLIs can read files outside the repository.
+    # Desktop/Downloads modes return absolute paths so AI CLIs can read files outside the repository.
     relative_paths=("${selected_files[@]}")
   else
     # Standard path relativization logic (non-zoxide always has single directory)
