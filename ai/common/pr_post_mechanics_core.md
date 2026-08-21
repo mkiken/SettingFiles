@@ -52,6 +52,10 @@ Inline comment body format, with no AI header and no item number:
 
 Never write `\n` inside a normal quoted string in shell and expect it to become a newline. Build multiline bodies with `printf`, pass the resulting variable to `jq`/`gh`, and preflight that the body contains real blank lines and no literal `\n` sequences (the `jq -n ... -e` lines below). If a preflight fails, rebuild the body with `printf` and re-run it; never post a body that failed preflight.
 
+When saving a JSON payload for later verification, always build the file directly with `jq -n --rawfile body "$file" ...` (or `--arg` from a variable) and redirect jq's own output; never write a JSON string assembled in a shell variable to a file, because a multiline body survives the variable as raw control characters and makes the file invalid JSON.
+
+Never chain a verification `jq -e` with `&& echo OK`: the short-circuit swallows the failure and prints success even under `set -e`. Run the verification as its own command and branch on its exit status.
+
 ### No `@file` With `gh api -f`
 
 `gh api -f key="@path/to/file"` does not read the file — `@` is a curl convention `gh api` does not implement, so the literal string `@path/to/file` is sent as the body. Always pass body content as an already-expanded shell variable (`-f body="$comment_body_with_header"`) or via `--input` with a `jq -n --rawfile body "$file" ...`-built JSON payload. After any post built from file content, re-fetch the created comment and confirm its body is the actual text, not a path string, before reporting success.
