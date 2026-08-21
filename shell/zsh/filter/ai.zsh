@@ -1,16 +1,13 @@
 #!/bin/zsh
 
 # fzfでPRを選択し、checkoutしてからAIレビュー関数を実行する共通ヘルパー
+# dirty checkは_freview_resolve_dirty_state（本ファイル後方で定義、zshは呼び出し時解決のため前方参照可）へ委譲する
 # 引数: 元関数名, [元関数に渡す追加引数...]
 _fai-pr-review() {
     local func_name="$1"
     shift
 
-    # dirty check
-    if ! git diff-index --quiet HEAD -- 2>/dev/null || [[ -n $(git ls-files --others --exclude-standard) ]]; then
-        echo "作業中のファイルがあります。stashまたはcommitしてください。" >&2
-        return 1
-    fi
+    _freview_resolve_dirty_state "$PWD" || return $?
 
     # fzf PR選択
     local pr_number
@@ -49,37 +46,146 @@ _freview_pause_if_popup() {
     echo "" >&2
 }
 
-# 選択worktreeがレビュー可能な状態か確認する（親シェルからgit -Cで検査）。
-# 追跡ファイルの変更はレビュー対象の差分に未コミット分が混入しうるため無条件で中断する。
-# 未追跡ファイルだけならレビュー自体は成立するので、内容を見せたうえで続行可否を選ばせる
-# （過去のAIレビューが残した一時ファイルでPR選択に到達できなくなるのを避けるため）
-# 引数: worktree_path
-_freview_confirm_clean_enough() {
-    local worktree_path="$1"
+# 未コミット状態への対処を選ばせ、proceed|reset|abort をstdoutへ返す。
+# confirm()（utils.zsh）は2値しか返せないためこの専用ヘルパーを使う。utils.zshの
+# 汎用プリミティブにはしない: 既存の複数択（prompt_merge_action等）はいずれも
+# smart_mergeドメイン専用で選択肢セットが呼び出し側と結合しており、消費者1件で
+# 汎用APIを作るとラベル/キー/既定値/通知/single-keyの全次元を引数化する羽目になる
+# （confirm自体の6フラグ問題の再演）。ローカルに置けばai.zsh単体テストの範囲に収まる。
+# 通知は呼ばない: 呼び出し元は元々--no-notify相当（通知不要）だったため、
+# utils.zshの通知プリミティブへの依存を新たに作らずに済む。
+# 引数: allow_proceed（1なら続行を選択肢に出す。追跡ファイルの変更があるときは
+#       レビュー対象の差分に未コミット分が混入するため呼び出し元が0を渡す）
+# 出力(stdout): proceed | reset | abort
+_freview_prompt_dirty_action() {
+    local allow_proceed="$1"
 
-    if ! git -C "$worktree_path" diff-index --quiet HEAD -- 2>/dev/null; then
-        echo "${worktree_path} に作業中のファイルがあります。stashまたはcommitしてください。" >&2
+    if [[ "$allow_proceed" == 1 ]]; then
+        echo "  [p] 続行  (未コミットのまま レビューする)" >&2
+    fi
+    echo "  [r] 元に戻す (git restore / git clean で破棄してからレビューする)" >&2
+    echo "  [a] 中止  (既定)" >&2
+
+    # popupは狭くEnter待ちは押し忘れで固まるため1キーで確定させる。
+    # ttyが無い・EOF等でreadが失敗した場合も安全側のabortへ落とす
+    local reply
+    read -k 1 -r reply"?選択してください [${allow_proceed:+p/}r/a] (既定: a) " || {
+        echo "" >&2
+        print -r -- abort
+        return 0
+    }
+    echo "" >&2
+
+    case "$reply" in
+        p|P) [[ "$allow_proceed" == 1 ]] && print -r -- proceed || print -r -- abort ;;
+        r|R) print -r -- reset ;;
+        *)   print -r -- abort ;;
+    esac
+}
+
+# 追跡ファイルの変更をHEADへ戻し、未追跡ファイルを削除して指定パスをクリーン化する。
+# 引数: target_path
+_freview_reset_worktree() {
+    local target_path="$1"
+
+    # 追跡ファイルの変更が無い状態でgit restoreを呼ぶと
+    # 「pathspec ':/' did not match any file(s)」で失敗するため、
+    # 対象がある場合のみ実行する（未追跡ファイルのみのdirtyでも通るようにするため）。
+    # --staged --worktree の両方を戻す: diff-indexはindexとHEADの差も拾うため、
+    # --worktreeだけだとステージ済み変更が残り「戻したのにまだdirty」になる。
+    # パススペックは:/（リポジトリルート全体）。-c経路はサブディレクトリで
+    # 実行されうるため「.」では対象が不足する
+    if ! git -C "$target_path" diff-index --quiet HEAD -- 2>/dev/null; then
+        if ! git -C "$target_path" restore --source=HEAD --staged --worktree -- :/; then
+            echo "${target_path} の変更を元に戻せませんでした。" >&2
+            return 1
+        fi
+    fi
+
+    # -xは付けない: .gitignore済みファイル（.env・ビルドキャッシュ等）を消すのは
+    # 破壊的すぎる。一覧表示に使うls-files --others --exclude-standardがignore外
+    # のみを返すため、-xなしのclean -fdが表示内容と一致する（表示と実行の一致）。
+    # trashを経由しないのは意図的（このリポジトリの方針より復元不可を許容する運用）
+    if ! git -C "$target_path" clean -fd -- :/; then
+        echo "${target_path} の未追跡ファイルを削除できませんでした（変更ファイルは元に戻し済みです）。" >&2
         return 1
     fi
 
+    # clean -fdは権限エラーやsubmodule等で終了コードだけでは信用できないことがあるため、
+    # ここで止めないと汚れた状態のままレビューへ進んでしまう
+    if ! git -C "$target_path" diff-index --quiet HEAD -- 2>/dev/null; then
+        echo "${target_path} は元に戻した後もクリーンになりませんでした。" >&2
+        return 1
+    fi
+    local -a remaining
+    remaining=("${(@f)$(git -C "$target_path" ls-files --others --exclude-standard)}")
+    remaining=("${(@)remaining:#}")
+    if (( ${#remaining} > 0 )); then
+        echo "${target_path} に未追跡ファイルが残っています: ${remaining[*]}" >&2
+        return 1
+    fi
+}
+
+# 指定パスがレビュー可能な状態か確認し、必要なら3択で対処を選ばせる（親シェルからgit -Cで検査）。
+# 追跡ファイルの変更はレビュー対象の差分に未コミット分が混入しうるため「続行」は出さず、
+# 「元に戻す」か「中止」のみ選べる。未追跡ファイルだけなら「続行」も選べる
+# （過去のAIレビューが残した一時ファイルでPR選択に到達できなくなるのを避けるため）。
+# 一覧・選択は1回のプロンプトにまとめる（追跡変更と未追跡が両方あっても2回聞かない）
+# 引数: target_path
+_freview_resolve_dirty_state() {
+    local target_path="$1"
+
+    local tracked_dirty=0
+    if ! git -C "$target_path" diff-index --quiet HEAD -- 2>/dev/null; then
+        tracked_dirty=1
+    fi
+
     local -a untracked
-    untracked=("${(@f)$(git -C "$worktree_path" ls-files --others --exclude-standard)}")
+    untracked=("${(@f)$(git -C "$target_path" ls-files --others --exclude-standard)}")
     # コマンド置換が空文字を返すと1要素の空配列になるため、空要素を落として実数にする
     untracked=("${(@)untracked:#}")
-    (( ${#untracked} == 0 )) && return 0
 
-    echo "${worktree_path} に未追跡ファイルが ${#untracked} 件あります:" >&2
-    # 大量の未追跡ファイルでpopupが埋まらないよう表示は先頭10件に抑える
-    local -i shown=0
+    (( tracked_dirty == 0 )) && (( ${#untracked} == 0 )) && return 0
+
+    echo "${target_path} がクリーンではありません:" >&2
+
+    local -a changed
+    local -i shown
     local file
-    for file in "${untracked[@]}"; do
-        (( shown >= 10 )) && break
-        echo "  ${file}" >&2
-        shown+=1
-    done
-    (( ${#untracked} > shown )) && echo "  ... 他 $(( ${#untracked} - shown )) 件" >&2
+    if (( tracked_dirty )); then
+        changed=("${(@f)$(git -C "$target_path" diff-index --name-only HEAD -- 2>/dev/null)}")
+        changed=("${(@)changed:#}")
+        echo "  変更(${#changed}件):" >&2
+        shown=0
+        for file in "${changed[@]}"; do
+            (( shown >= 10 )) && break
+            echo "    ${file}" >&2
+            shown+=1
+        done
+        (( ${#changed} > shown )) && echo "    ... 他 $(( ${#changed} - shown )) 件" >&2
+    fi
 
-    confirm "未追跡ファイルを残したままレビューを続行しますか？" --default-no --no-notify --single-key
+    if (( ${#untracked} > 0 )); then
+        echo "  未追跡(${#untracked}件):" >&2
+        # 大量の未追跡ファイルでpopupが埋まらないよう表示は先頭10件に抑える
+        shown=0
+        for file in "${untracked[@]}"; do
+            (( shown >= 10 )) && break
+            echo "    ${file}" >&2
+            shown+=1
+        done
+        (( ${#untracked} > shown )) && echo "    ... 他 $(( ${#untracked} - shown )) 件" >&2
+    fi
+
+    local -i allow_proceed=$(( tracked_dirty == 0 ))
+    local action
+    action=$(_freview_prompt_dirty_action "$allow_proceed")
+
+    case "$action" in
+        proceed) return 0 ;;
+        reset)   _freview_reset_worktree "$target_path" ;;
+        *)       return $EXIT_CODE_SIGINT ;;
+    esac
 }
 
 # リポジトリ→worktree→PRを選択し、選択worktreeでcheckoutしてAIレビューを起動する
@@ -111,7 +217,7 @@ _freview_worktree() {
         return $EXIT_CODE_SIGINT
     fi
 
-    _freview_confirm_clean_enough "$worktree_path" || return 1
+    _freview_resolve_dirty_state "$worktree_path" || return $?
 
     # gh pr list はcwd依存のため、選択worktreeへcdしたサブシェルでPRを選ぶ
     # fzfはTUIを/dev/ttyに描くのでコマンド置換内でも動く
