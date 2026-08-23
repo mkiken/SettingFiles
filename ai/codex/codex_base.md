@@ -46,7 +46,10 @@ For a non-trivial `<proposed_plan>`, provide a reviewable implementation explana
 
 This section's skip criterion governs both the `dig` skill offer and the Plan Review Presentation browser offer — the shared file's own line-count/format criteria do not apply here; use this criterion for both instead. Its port-selection and launch mechanics still apply when the browser is actually opened.
 
-When finalizing a plan in Plan Mode, first skip both offers for trivially mechanical plans: renames, bulk replacements, reverts, single-file fixes with no design decision, or plans whose every task is a stated verbatim edit. For those, skip straight to the final `<proposed_plan>` with no dialog.
+When finalizing a plan in Plan Mode, offer both only when two gates both hold; if either is unmet, skip straight to the final `<proposed_plan>` with no dialog.
+
+- **Gate 1 — content** (at least one of): the plan contains an undecided design decision or trade-off; it spans 3+ files or crosses subsystem/module boundaries; it includes an irreversible or externally-visible action (deletion, push, external API writes, deployment, breaking a live configuration). When it is unclear whether gate 1 holds, treat it as unmet.
+- **Gate 2 — size**: the decision-complete plan body that would go inside `<proposed_plan>` is 200 lines or more, counted directly rather than estimated. This supersedes the shared file's 100-line threshold for this decision.
 
 Otherwise, first output a terminal review preview containing the complete decision-complete plan exactly as it would appear inside `<proposed_plan>`, but without the protocol tags. Do not replace it with a summary or partial update. Only after the full preview is visible, present this question as a plain-text Markdown ordered list; never call `request_user_input` for it because its four authored options exceed the runtime limit. Treat a number-only reply as selecting the corresponding option. Preserve exactly this order:
 

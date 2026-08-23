@@ -52,6 +52,31 @@ class PlanReviewBodyOutputTest(unittest.TestCase):
             "skip straight to `ExitPlanMode` with no dialog", self.claude_md
         )
 
+    def test_two_gates_must_both_hold_before_offering(self):
+        for required in (
+            "offer both only when two gates both hold",
+            "Gate 1 — content",
+            "undecided design decision or trade-off",
+            "spans 3+ files or crosses subsystem/module boundaries",
+            "irreversible or externally-visible action",
+            "Gate 2 — size",
+            "200 lines or more",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.claude_md)
+
+    def test_ambiguous_gate_one_defaults_to_not_offering(self):
+        # Negative-pin rationale: inverting the old exclusion list into a
+        # positive "offer if..." condition invites the model to read its own
+        # plan as containing a "design decision" by default, reproducing the
+        # old near-every-plan dialog frequency. Without an explicit
+        # ambiguity-defaults-to-skip rule, ambiguity resolves toward showing
+        # the dialog rather than away from it.
+        self.assertIn(
+            "When it is unclear whether gate 1 holds, treat it as unmet",
+            self.claude_md,
+        )
+
     def test_four_dialog_options_are_intact(self):
         for required in (
             "Both: open the browser and also run dig.",

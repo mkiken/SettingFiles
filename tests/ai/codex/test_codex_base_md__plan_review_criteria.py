@@ -21,14 +21,28 @@ class PlanReviewCriteriaTest(unittest.TestCase):
             with self.subTest(required=required):
                 self.assertIn(required, self.codex_base)
 
-    def test_mechanical_plans_skip_both_offers(self):
+    def test_two_gates_must_both_hold_before_offering(self):
         for required in (
-            "renames, bulk replacements, reverts, single-file fixes with no design decision",
-            "plans whose every task is a stated verbatim edit",
-            "skip both offers",
+            "offer both only when two gates both hold",
+            "Gate 1 — content",
+            "undecided design decision or trade-off",
+            "spans 3+ files or crosses subsystem/module boundaries",
+            "irreversible or externally-visible action",
+            "Gate 2 — size",
+            "200 lines or more",
+            "skip straight to the final `<proposed_plan>` with no dialog",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.codex_base)
+
+    def test_ambiguous_gate_one_defaults_to_not_offering(self):
+        # Negative-pin rationale: inverting the old exclusion list into a
+        # positive "offer if..." condition invites the model to read its own
+        # plan as containing a "design decision" by default, reproducing the
+        # old near-every-plan dialog frequency. Without an explicit
+        # ambiguity-defaults-to-skip rule, ambiguity resolves toward showing
+        # the dialog rather than away from it.
+        self.assertIn("When it is unclear whether gate 1 holds, treat it as unmet", self.codex_base)
 
     def test_complete_terminal_preview_precedes_review_choice(self):
         preview_instruction = "first output a terminal review preview"
@@ -88,6 +102,8 @@ class PlanReviewCriteriaTest(unittest.TestCase):
             "governs both the `dig` skill offer and the Plan Review Presentation browser offer",
             "Codex has no `~/.codex/plans` directory",
             "first output a terminal review preview",
+            "offer both only when two gates both hold",
+            "200 lines or more",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.agents)

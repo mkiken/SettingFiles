@@ -21,7 +21,10 @@ When the decision context exceeds what the `question` field and option previews 
 
 This section's skip criterion governs both the `dig` skill offer and the Plan Review Presentation browser offer — on Claude, that shared file's own line-count/format criteria do not apply; use this criterion for both instead. Its port-selection and launch mechanics still apply when the browser is actually opened.
 
-When presenting a plan artifact for review, offer both — but first skip both for trivially mechanical plans: renames, bulk replacements, reverts, single-file fixes with no design decision, or plans whose every task is a stated verbatim edit. For those, skip straight to `ExitPlanMode` with no dialog.
+When presenting a plan artifact for review, offer both only when two gates both hold; if either is unmet, skip straight to `ExitPlanMode` with no dialog.
+
+- **Gate 1 — content** (at least one of): the plan contains an undecided design decision or trade-off; it spans 3+ files or crosses subsystem/module boundaries; it includes an irreversible or externally-visible action (deletion, push, external API writes, deployment, breaking a live configuration). When it is unclear whether gate 1 holds, treat it as unmet.
+- **Gate 2 — size**: the plan file (`wc -l` on the file at the path shown in the plan-mode system message) is 200 lines or more. This supersedes the shared file's 100-line threshold for this decision — measure, don't estimate.
 
 Otherwise, before the dialog, output the plan file's current full content as ordinary assistant text in this same turn — not a summary or excerpt, the whole thing, and not wrapped in a code fence (the plan body itself may contain fences). Do this so the choice below is made after reading the plan, not before. `ExitPlanMode` will show the same file again once approved; that second appearance is intentional, not redundant — it is the platform's own approval surface, not a rendering this workflow controls, so do not collapse the two into one by skipping this output.
 
