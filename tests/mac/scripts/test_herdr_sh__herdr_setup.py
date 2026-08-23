@@ -293,7 +293,6 @@ class HerdrShellStartupTest(unittest.TestCase):
         herdr_rc: int | None = 0,
         include_tmux: bool = True,
         is_tmux: bool = False,
-        is_ide: bool = False,
         is_warp: bool = False,
         env_overrides: dict[str, str] | None = None,
     ) -> subprocess.CompletedProcess[str]:
@@ -307,7 +306,7 @@ class HerdrShellStartupTest(unittest.TestCase):
             (
                 *definitions,
                 "source shell/zsh/auto_multiplexer.zsh",
-                f"auto_start_terminal_multiplexer {str(is_tmux).lower()} {str(is_ide).lower()} {str(is_warp).lower()}",
+                f"auto_start_terminal_multiplexer {str(is_tmux).lower()} {str(is_warp).lower()}",
                 "print -r -- rc=$?",
             )
         )
@@ -333,32 +332,46 @@ class HerdrShellStartupTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout.splitlines(), ["tmux", "rc=10"])
 
-    def test_nested_and_non_ghostty_shells_do_not_auto_start(self):
+    def test_nested_shells_do_not_auto_start(self):
         cases = (
-            ("herdr", False, False, False, {"HERDR_ENV": "1"}),
-            ("tmux", True, False, False, {"TMUX": "/tmp/tmux.sock"}),
-            ("ide", False, True, False, {}),
-            ("warp", False, False, True, {}),
-            ("other terminal", False, False, False, {"TERM_PROGRAM": "Apple_Terminal"}),
+            ("herdr", False, False, {"HERDR_ENV": "1"}),
+            ("tmux", True, False, {"TMUX": "/tmp/tmux.sock"}),
+            ("warp", False, True, {}),
         )
 
-        for name, is_tmux, is_ide, is_warp, env_overrides in cases:
+        for name, is_tmux, is_warp, env_overrides in cases:
             with self.subTest(case=name):
                 result = self.run_auto_start(
                     is_tmux=is_tmux,
-                    is_ide=is_ide,
                     is_warp=is_warp,
                     env_overrides=env_overrides,
                 )
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(result.stdout.splitlines(), ["rc=0"])
 
+    def test_ide_and_other_terminals_start_herdr(self):
+        # GoLand/VSCode の内蔵ターミナルでも herdr を起動する。ターミナル種別の
+        # 判定は撤去済みのため、多重起動でなければどの TERM_PROGRAM でも起動する
+        # ことをピンする（従来 "other terminal" は非起動だった挙動の反転）。
+        cases = (
+            ("vscode", {"TERM_PROGRAM": "vscode"}),
+            ("jetbrains", {"TERM_PROGRAM": ""}),
+            ("other terminal", {"TERM_PROGRAM": "Apple_Terminal"}),
+        )
+
+        for name, env_overrides in cases:
+            with self.subTest(case=name):
+                result = self.run_auto_start(env_overrides=env_overrides)
+
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout.splitlines(), ["herdr", "rc=10"])
+
     def test_managed_shell_stops_only_after_successful_multiplexer_run(self):
         managed = read_text("shell/zsh/managed.zsh")
 
         self.assertIn('if [[ -n "${TMUX:-}" ]]; then', managed)
         self.assertIn('source "$(dirname "$(realpath "${(%):-%x}")")/auto_multiplexer.zsh"', managed)
-        self.assertIn('auto_start_terminal_multiplexer "$IS_TMUX" "$IS_IDE" "$IS_WARP"', managed)
+        self.assertIn('auto_start_terminal_multiplexer "$IS_TMUX" "$IS_WARP"', managed)
         self.assertIn("if (( auto_multiplexer_rc == 10 )); then", managed)
 
 

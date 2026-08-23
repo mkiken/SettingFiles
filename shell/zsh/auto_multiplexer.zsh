@@ -1,19 +1,17 @@
 #!/bin/zsh
 
-# Start the preferred multiplexer only from a top-level Ghostty shell.
-# A return code of 10 tells managed.zsh to stop loading the outer shell after
-# a successful multiplexer run. Other return codes keep the current shell usable.
+# Start the preferred multiplexer from any interactive shell that isn't
+# already nested inside one. A return code of 10 tells managed.zsh to stop
+# loading the outer shell after a successful multiplexer run. Other return
+# codes keep the current shell usable.
 function auto_start_terminal_multiplexer() {
   local is_tmux="${1:-false}"
-  local is_ide="${2:-false}"
-  local is_warp="${3:-false}"
+  local is_warp="${2:-false}"
   local exit_code=0
 
   if [[ "${HERDR_ENV:-}" == "1" ]] \
      || [[ "$is_tmux" == "true" ]] \
-     || [[ "$is_ide" == "true" ]] \
-     || [[ "$is_warp" == "true" ]] \
-     || [[ "${TERM_PROGRAM:-}" != "ghostty" ]]; then
+     || [[ "$is_warp" == "true" ]]; then
     return 0
   fi
 

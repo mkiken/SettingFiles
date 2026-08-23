@@ -16,21 +16,6 @@ else
   IS_KIRO=false
 fi
 
-# JetBrains IDEの判定を変数化
-if [[ -n "${JETBRAINS_INTELLIJ_ZSH_DIR:-}" ]] \
-   || [[ "${TERMINAL_EMULATOR:-}" == "JetBrains-JediTerm" ]]; then
-  IS_JETBRAINS=true
-else
-  IS_JETBRAINS=false
-fi
-
-# IDEの判定を統合（JetBrains IDE、VSCode、Kiroの場合true）
-if $IS_JETBRAINS || $IS_VSCODE || $IS_KIRO; then
-  IS_IDE=true
-else
-  IS_IDE=false
-fi
-
 # Warpの判定を変数化
 if [ -z "$IS_WARP" ]; then
   if [[ "$TERM_PROGRAM" == "WarpTerminal" ]]; then
@@ -51,7 +36,7 @@ else
 fi
 
 source "$(dirname "$(realpath "${(%):-%x}")")/auto_multiplexer.zsh"
-auto_start_terminal_multiplexer "$IS_TMUX" "$IS_IDE" "$IS_WARP"
+auto_start_terminal_multiplexer "$IS_TMUX" "$IS_WARP"
 auto_multiplexer_rc=$?
 if (( auto_multiplexer_rc == 10 )); then
   unset auto_multiplexer_rc
