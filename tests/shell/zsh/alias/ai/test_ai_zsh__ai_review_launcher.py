@@ -125,10 +125,11 @@ class ReviewLaunchHerdrTest(unittest.TestCase):
     )
 
     def run_launch(self, create_watcher, variant="review", extra_env="",
-                   marker_on_attempt=1):
+                   marker_on_attempt=1, ai_marker_on_attempt=1):
         """marker_on_attempt: pane runの第何回目でwatch_startedマーカーを作るか。
 
         0を渡すとマーカーを一度も作らない（投入が届かない事故の再現）。
+        ai_marker_on_attempt は3AIタブの launched_<ai> マーカーについて同様。
         """
         with tempfile.TemporaryDirectory() as temp_dir:
             log = Path(temp_dir) / "calls.log"
@@ -137,26 +138,50 @@ class ReviewLaunchHerdrTest(unittest.TestCase):
             snippet = f'''
 {extra_env}
 # 実時間のsleepでテストが遅くならないよう、投入検証のポーリングを最小化する
-AI_REVIEW_WATCH_POLL_COUNT=1
-AI_REVIEW_WATCH_POLL_INTERVAL=0
+AI_REVIEW_POLL_COUNT=1
+AI_REVIEW_POLL_INTERVAL=0
 LOG="{log}"
 MARKER_ON_ATTEMPT={marker_on_attempt}
+AI_MARKER_ON_ATTEMPT={ai_marker_on_attempt}
 herdr() {{
     printf '%s\\n' "$*" >> "$LOG"
     if [[ "$1 $2 $4" == "pane run _review_watch" ]]; then
         local n=$(grep -c "^pane run .* _review_watch$" "$LOG")
         (( MARKER_ON_ATTEMPT > 0 && n >= MARKER_ON_ATTEMPT )) && : > "{run_dir}/watch_started"
     fi
+    if [[ "$1 $2 $4" == "pane run _review_run_ai" ]]; then
+        # paneごとに何回目の投入かを数え、規定回数に達したら該当AIのマーカーを作る
+        local n=$(grep -c "^pane run $3 _review_run_ai$" "$LOG")
+        local ai="${{AI_BY_PANE[$3]}}"
+        (( AI_MARKER_ON_ATTEMPT > 0 && n >= AI_MARKER_ON_ATTEMPT )) \\
+            && [[ -n "$ai" ]] && : > "{run_dir}/launched_${{ai}}"
+    fi
     [[ "$1 $2" == "workspace create" ]] && printf '%s' '{self.WS_JSON}'
     return 0
 }}
 _review_window_git_name() {{ printf 'git_name_arg %s\\n' "$1" >> "$LOG"; echo "my-branch"; }}
 _herdr_wait_shell_ready() {{ printf 'shell_ready %s\\n' "$1" >> "$LOG"; }}
-# 実体は test_herdr_run_in_new_tab.py で検証済みなので、ここでは連番tab_idを代入するstubにする
-_herdr_run_in_new_tab() {{
+# 実体は test_ai_zsh__herdr_run_in_new_tab.py で検証済みなので、
+# ここでは連番のpane_id/tab_idを代入するstubにする
+typeset -gA AI_BY_PANE=()
+_herdr_create_tab() {{
+    # タブ作成時点で3AIの起動ファイルが揃っているか（書き出し順の検証用）を記録する
+    local existing=""
+    local name
+    for name in claude gemini codex; do
+        [[ -f "{run_dir}/launch_${{name}}" ]] && existing+="${{name}},"
+    done
+    printf 'newtab_launchfiles %s\\n' "${{existing}}" >> "$LOG"
     printf 'newtab %s\\n' "$*" >> "$LOG"
     local n=$(grep -c "^newtab " "$LOG")
+    _ai_pr_review_assign "$4" "p${{n}}"
     [[ -n "${{5:-}}" ]] && _ai_pr_review_assign "$5" "t${{n}}"
+    # --env の AI_REVIEW_LAUNCH_FILE からAI名を割り出し、pane_idと対応付ける
+    local kv
+    for kv in "${{@:7}}"; do
+        [[ "$kv" == AI_REVIEW_LAUNCH_FILE=*launch_* ]] && AI_BY_PANE[p${{n}}]="${{kv##*launch_}}"
+    done
+    return 0
 }}
 _review_launch_herdr {create_watcher} {variant} "{run_dir}" cl-fn gm-fn cx-fn 123
 print -r -- "rc=$?"
@@ -165,10 +190,15 @@ print -r -- "rc=$?"
             calls = log.read_text().splitlines() if log.exists() else []
             specs_file = run_dir / "watch_specs"
             specs = specs_file.read_text().splitlines() if specs_file.exists() else None
-        return result, calls, specs, str(run_dir)
+            launch_files = {
+                name: (run_dir / f"launch_{name}").read_text().strip()
+                for name in ("claude", "gemini", "codex")
+                if (run_dir / f"launch_{name}").exists()
+            }
+        return result, calls, specs, str(run_dir), launch_files
 
     def test_creates_per_run_workspace_and_orchestrator_in_root_tab(self):
-        result, calls, specs, run_dir = self.run_launch(create_watcher=1)
+        result, calls, specs, run_dir, _ = self.run_launch(create_watcher=1)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("rc=0", result.stdout)
         # レビューごとの専用workspace（review-<ディレクトリ名>）を新規作成する
@@ -199,13 +229,13 @@ print -r -- "rc=$?"
     def test_workspace_label_uses_given_variant(self):
         # reviewとreview-subagentsを取り違えても気づけるよう、workspaceラベルに
         # variantをそのまま前置する（review-<dir> / review-subagents-<dir>）
-        result, calls, _, _ = self.run_launch(create_watcher=1, variant="review-subagents")
+        result, calls, _, _, _ = self.run_launch(create_watcher=1, variant="review-subagents")
         self.assertEqual(result.returncode, 0, result.stderr)
         creates = [c for c in calls if c.startswith("workspace create ")]
         self.assertEqual(len(creates), 1, calls)
         self.assertIn("--label review-subagents-", creates[0])
 
-        result, calls, _, _ = self.run_launch(create_watcher=1, variant="review")
+        result, calls, _, _, _ = self.run_launch(create_watcher=1, variant="review")
         creates = [c for c in calls if c.startswith("workspace create ")]
         self.assertIn("--label review-", creates[0])
         # "review-" 前置だが "review-subagents-" ではないことを確認する
@@ -215,9 +245,9 @@ print -r -- "rc=$?"
     def test_tab_names_stay_identical_across_variants(self):
         # orchestrator/3AIタブ名は「workspace内に居れば区別が自明」という設計判断により
         # variant間で意図的に同一のまま。誤って差異を入れる変更を検知するための負のピン留め
-        _, review_calls, _, review_run_dir = self.run_launch(
+        _, review_calls, _, review_run_dir, _ = self.run_launch(
             create_watcher=1, variant="review")
-        _, subagents_calls, _, subagents_run_dir = self.run_launch(
+        _, subagents_calls, _, subagents_run_dir, _ = self.run_launch(
             create_watcher=1, variant="review-subagents")
 
         review_rename = [c for c in review_calls if c.startswith("tab rename ")]
@@ -237,7 +267,7 @@ print -r -- "rc=$?"
 
     def test_no_watcher_when_disabled(self):
         # --no-merge相当: サブタブ3つのみで、初期タブへの投入・ラベル付け・フォーカスはしない
-        result, calls, specs, _ = self.run_launch(create_watcher=0)
+        result, calls, specs, _, _ = self.run_launch(create_watcher=0)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("rc=0", result.stdout)
         newtabs = [c for c in calls if c.startswith("newtab ")]
@@ -254,7 +284,7 @@ print -r -- "rc=$?"
     def test_ai_review_cwd_overrides_pwd_for_workspace_and_tabs(self):
         # AI_REVIEW_CWDが設定されていれば、workspace cwd・3AIタブcwd・ラベル計算対象は
         # $PWDではなくそのパスを基準にする（worktreeピッカー経由のfreviewが使う）
-        result, calls, _, _ = self.run_launch(
+        result, calls, _, _, _ = self.run_launch(
             create_watcher=1, extra_env="AI_REVIEW_CWD=/path/to/wt"
         )
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -270,7 +300,7 @@ print -r -- "rc=$?"
 
     def test_ai_review_cwd_unset_falls_back_to_pwd(self):
         # 従来どおりreviewを直接叩く使い方は完全に不変であることの回帰確認
-        result, calls, _, _ = self.run_launch(create_watcher=1)
+        result, calls, _, _, _ = self.run_launch(create_watcher=1)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("rc=0", result.stdout)
         self.assertFalse(any("/path/to/wt" in c for c in calls), calls)
@@ -278,7 +308,7 @@ print -r -- "rc=$?"
     def test_watch_send_retried_until_marker_appears(self):
         # pane runの末尾欠落でコマンドが実行されないことがあるため、
         # _review_watchが書くマーカーの出現を確認し、出なければ再送する
-        result, calls, _, _ = self.run_launch(create_watcher=1, marker_on_attempt=2)
+        result, calls, _, _, _ = self.run_launch(create_watcher=1, marker_on_attempt=2)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("rc=0", result.stdout)
         watch_runs = [c for c in calls if c == "pane run p0 _review_watch"]
@@ -287,7 +317,7 @@ print -r -- "rc=$?"
         self.assertIn("pane send-keys p0 ctrl+u", calls)
 
     def test_watch_send_fails_loudly_after_max_attempts(self):
-        result, calls, _, run_dir = self.run_launch(
+        result, calls, _, run_dir, _ = self.run_launch(
             create_watcher=1, marker_on_attempt=0)
         self.assertIn("rc=1", result.stdout)
         watch_runs = [c for c in calls if c == "pane run p0 _review_watch"]
@@ -297,9 +327,219 @@ print -r -- "rc=$?"
         self.assertIn(f"_review_watch {run_dir}", result.stderr)
 
     def test_no_marker_polling_when_watcher_disabled(self):
-        # --no-merge相当では投入自体しないので、検証・再送も走らない
-        _, calls, _, _ = self.run_launch(create_watcher=0, marker_on_attempt=0)
+        # --no-merge相当では_review_watchの投入自体しないので、その検証・再送も走らない
+        # （3AI側は1回目で着地するので再送のsend-keysは出ない）
+        _, calls, _, _, _ = self.run_launch(create_watcher=0, marker_on_attempt=0)
         self.assertFalse(any(c.startswith("pane send-keys ") for c in calls), calls)
+
+    def test_launch_files_hold_each_ai_command(self):
+        # 起動コマンドはキーストロークではなくファイルで渡す
+        _, _, _, run_dir, launch_files = self.run_launch(create_watcher=1)
+        self.assertEqual(
+            set(launch_files), {"claude", "gemini", "codex"}, launch_files)
+        for ai, fn in (("claude", "cl-fn"), ("gemini", "gm-fn"), ("codex", "cx-fn")):
+            with self.subTest(ai=ai):
+                self.assertEqual(
+                    launch_files[ai],
+                    f"AI_REVIEW_OUTPUT_FILE={run_dir}/{ai}.md {fn} 123",
+                )
+
+    def test_ai_tabs_get_launch_file_env_and_bare_token_keystroke(self):
+        # 正確さが要るパスは--envで渡し、キーストロークは固定トークンのみにする
+        # （pane runの末尾欠落で壊れた引数のまま実行された事故の再発防止）
+        _, calls, _, run_dir, _ = self.run_launch(create_watcher=1)
+        newtabs = [c for c in calls if c.startswith("newtab ")]
+        self.assertEqual(len(newtabs), 3, calls)
+        for newtab, ai in zip(newtabs, ("claude", "gemini", "codex")):
+            with self.subTest(ai=ai):
+                self.assertIn(f"AI_REVIEW_LAUNCH_FILE={run_dir}/launch_{ai}", newtab)
+        ai_runs = [c for c in calls if " _review_run_ai" in c]
+        self.assertEqual(
+            ai_runs,
+            ["pane run p1 _review_run_ai",
+             "pane run p2 _review_run_ai",
+             "pane run p3 _review_run_ai"],
+            calls,
+        )
+        # run_dir・AI名・引数はキーストロークに一切載せない
+        for call in ai_runs:
+            self.assertNotIn(run_dir, call)
+
+    def test_launch_files_written_before_first_tab_create(self):
+        # タブ作成直後に投入するので、3ファイルとも最初のtab create前に揃っていること
+        _, calls, _, _, _ = self.run_launch(create_watcher=1)
+        snapshots = [c for c in calls if c.startswith("newtab_launchfiles ")]
+        self.assertEqual(len(snapshots), 3, calls)
+        for snapshot in snapshots:
+            self.assertEqual(snapshot, "newtab_launchfiles claude,gemini,codex,", calls)
+
+    def test_ai_launch_send_retried_until_marker_appears(self):
+        result, calls, _, _, _ = self.run_launch(
+            create_watcher=1, ai_marker_on_attempt=2)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("rc=0", result.stdout)
+        for pane in ("p1", "p2", "p3"):
+            with self.subTest(pane=pane):
+                runs = [c for c in calls if c == f"pane run {pane} _review_run_ai"]
+                self.assertEqual(len(runs), 2, calls)
+                # 再送前に行バッファをクリアする
+                self.assertIn(f"pane send-keys {pane} ctrl+u", calls)
+
+    def test_ai_launch_fails_loudly_after_max_attempts(self):
+        result, calls, _, run_dir, _ = self.run_launch(
+            create_watcher=1, ai_marker_on_attempt=0)
+        self.assertIn("rc=1", result.stdout)
+        # 最初のAI(claude)で失敗した時点で打ち切る
+        runs = [c for c in calls if c == "pane run p1 _review_run_ai"]
+        self.assertEqual(len(runs), 3, calls)
+        self.assertIn("claudeのレビュー起動を確認できませんでした", result.stderr)
+        self.assertIn(
+            f"AI_REVIEW_LAUNCH_FILE={run_dir}/launch_claude _review_run_ai",
+            result.stderr,
+        )
+        # 失敗したら _review_watch の投入まで進まない
+        self.assertFalse(any("_review_watch" in c for c in calls), calls)
+
+
+class ReviewRunAiTest(unittest.TestCase):
+    """_review_run_ai（3AIタブ側の受信）のenv検証・マーカー・二重起動ガード。"""
+
+    def run_ai(self, ai="codex", write_launch_file=True, set_env=True,
+               pre_marker=False, launch_body=None):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        run_dir = Path(self.tmp.name)
+        launch_file = run_dir / f"launch_{ai}"
+        if write_launch_file:
+            body = launch_body if launch_body is not None else 'print -r -- "LAUNCHED"'
+            # launch_bodyから run_dir を参照できるようにする
+            launch_file.write_text(f"{body.replace('{RUN_DIR}', str(run_dir))}\n")
+        if pre_marker:
+            (run_dir / f"launched_{ai}").write_text("")
+        env_line = (
+            f'export AI_REVIEW_LAUNCH_FILE="{launch_file}"' if set_env else ""
+        )
+        result = run_zsh(f'{env_line}\n_review_run_ai\necho "rc=$?"')
+        return result, run_dir, launch_file
+
+    def test_missing_env_fails_loudly_without_marker(self):
+        result, run_dir, _ = self.run_ai(set_env=False)
+        self.assertIn("rc=1", result.stdout)
+        self.assertIn("AI_REVIEW_LAUNCH_FILEが未設定です", result.stderr)
+        self.assertNotIn("LAUNCHED", result.stdout)
+        self.assertEqual(list(run_dir.glob("launched_*")), [])
+
+    def test_missing_launch_file_reports_path(self):
+        result, run_dir, launch_file = self.run_ai(write_launch_file=False)
+        self.assertIn("rc=1", result.stdout)
+        self.assertIn(str(launch_file), result.stderr)
+        self.assertEqual(list(run_dir.glob("launched_*")), [])
+
+    def test_marker_exists_before_launch_command_runs(self):
+        # 遅延着弾+再送のキュー競合でも二重起動しないよう、マーカーtouchが先
+        result, run_dir, _ = self.run_ai(
+            launch_body='[[ -f "{RUN_DIR}/launched_codex" ]] && print -r -- "MARKER_FIRST"',
+        )
+        self.assertIn("rc=0", result.stdout)
+        self.assertIn("MARKER_FIRST", result.stdout)
+        self.assertTrue((run_dir / "launched_codex").exists())
+
+    def test_existing_marker_skips_relaunch(self):
+        result, _, _ = self.run_ai(pre_marker=True)
+        self.assertIn("rc=0", result.stdout)
+        self.assertNotIn("LAUNCHED", result.stdout)
+        self.assertIn("既に起動済み", result.stdout)
+
+
+class HerdrSendVerifiedTest(unittest.TestCase):
+    """_herdr_send_verified の投入・検証・再送（herdrはstub）。"""
+
+    def run_send(self, marker_on_attempt=1, pane_run_rc=0):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        run_dir = Path(self.tmp.name)
+        log = run_dir / "calls.log"
+        snippet = f'''
+AI_REVIEW_POLL_COUNT=1
+AI_REVIEW_POLL_INTERVAL=0
+LOG="{log}"
+herdr() {{
+    printf '%s\\n' "$*" >> "$LOG"
+    if [[ "$1 $2" == "pane run" ]]; then
+        local n=$(grep -c "^pane run " "$LOG")
+        (( {marker_on_attempt} > 0 && n >= {marker_on_attempt} )) && : > "{run_dir}/m"
+        return {pane_run_rc}
+    fi
+    return 0
+}}
+_herdr_send_verified pX "{run_dir}/m" "tok"
+echo "rc=$?"
+'''
+        result = run_zsh(snippet)
+        calls = log.read_text().splitlines() if log.exists() else []
+        return result, calls
+
+    def test_first_attempt_success_sends_once_without_clear(self):
+        result, calls = self.run_send()
+        self.assertIn("rc=0", result.stdout)
+        self.assertEqual(calls, ["pane run pX tok"])
+
+    def test_pane_run_failure_returns_immediately(self):
+        result, calls = self.run_send(marker_on_attempt=0, pane_run_rc=1)
+        self.assertIn("rc=1", result.stdout)
+        # 送信自体が失敗したらポーリング・再送はしない
+        self.assertEqual(calls, ["pane run pX tok"])
+        self.assertIn("herdr pane runに失敗しました", result.stderr)
+
+
+class HerdrCreateTabTest(unittest.TestCase):
+    """_herdr_create_tab の出力変数・focus・--env透過（pane runはしない）。"""
+
+    JSON = '{"result":{"tab":{"tab_id":"w1:t3"},"root_pane":{"pane_id":"w1:p2"}}}'
+
+    def run_create(self, args):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        log = Path(self.tmp.name) / "calls.log"
+        snippet = f'''
+LOG="{log}"
+herdr() {{
+    printf '%s\\n' "$*" >> "$LOG"
+    [[ "$1 $2" == "tab create" ]] && printf '%s' '{self.JSON}'
+    return 0
+}}
+_herdr_wait_shell_ready() {{ printf 'shell_ready %s\\n' "$1" >> "$LOG"; }}
+caller() {{
+    local out_pane="" out_tab=""
+    _herdr_create_tab {args} || return 1
+    print -r -- "pane=${{out_pane}} tab=${{out_tab}}"
+}}
+caller
+echo "rc=$?"
+'''
+        result = run_zsh(snippet)
+        calls = log.read_text().splitlines() if log.exists() else []
+        return result, calls
+
+    def test_assigns_pane_and_tab_and_waits_without_pane_run(self):
+        result, calls = self.run_create('ws1 /tmp/work label out_pane out_tab 0')
+        self.assertIn("rc=0", result.stdout)
+        self.assertIn("pane=w1:p2 tab=w1:t3", result.stdout)
+        self.assertIn("shell_ready w1:p2", calls)
+        # コマンド投入は呼び出し元の責務なのでここではしない
+        self.assertFalse(any(c.startswith("pane run ") for c in calls), calls)
+        self.assertIn("--no-focus", calls[0])
+        self.assertIn("--workspace ws1", calls[0])
+
+    def test_focus_flag_and_env_pairs_are_passed_through(self):
+        result, calls = self.run_create(
+            '"" /tmp/work label out_pane "" 1 A=1 B=2')
+        self.assertIn("rc=0", result.stdout)
+        self.assertIn("--focus", calls[0])
+        self.assertNotIn("--no-focus", calls[0])
+        self.assertIn("--env A=1", calls[0])
+        self.assertIn("--env B=2", calls[0])
+        self.assertNotIn("--workspace", calls[0])
 
 
 class ReviewWatchTest(unittest.TestCase):

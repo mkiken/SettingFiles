@@ -129,19 +129,23 @@ _ai_multiplexer_kind() {
 # shell/tmux/ の共有ファイルに定義がある
 source "${SET:-$HOME/Desktop/repository/SettingFiles}/shell/tmux/herdr_wait_shell_ready.sh"
 
-# Herdrで新しいtabを作りコマンドを実行する（tmux new-window相当）
-# 引数: workspace_id(空ならカレントworkspace), cwd, label, command,
+# Herdrで新しいtabを作り、対話シェルが入力を受け付ける状態になるまで待つ（コマンド投入はしない）
+# 引数: workspace_id(空ならカレントworkspace), cwd, label,
+#       pane_id_var(作成tabのroot pane_idを呼び出し元localへ代入する),
 #       [tab_id_var(省略可: 作成tabのtab_idを呼び出し元localへ代入する)],
-#       [focus_on_create(省略可: 1なら作成直後にフォーカス)]
-# herdr pane run は既存の対話シェルにコマンドを投入する方式のため、
-# tmux版と違い ";  zsh" のようなシェル残存サフィックスは不要
-_herdr_run_in_new_tab() {
+#       [focus_on_create(省略可: 1なら作成直後にフォーカス)],
+#       [env_kv...(省略可: KEY=VALUE ごとに --env を付与する)]
+# --env はペインの対話シェル環境へ届く（複数指定可・ライブ検証済み）。正確さが要る値は
+# キーストロークではなくこちらで渡す（popups.md「Never carry a value that must be exact」）
+_herdr_create_tab() {
     local workspace_id="$1"
     local cwd="$2"
     local label="$3"
-    local command="$4"
+    local pane_id_var="$4"
     local tab_id_var="${5:-}"
     local focus_on_create="${6:-0}"
+    # 6個未満で呼ばれてもエラーにしないよう、残数の少ない方だけshiftする
+    (( $# > 6 )) && shift 6 || shift $#
 
     local -a create_args=(tab create --cwd "${cwd}" --label "${label}")
     if [[ "${focus_on_create}" == "1" ]]; then
@@ -150,6 +154,11 @@ _herdr_run_in_new_tab() {
         create_args+=(--no-focus)
     fi
     [[ -n "${workspace_id}" ]] && create_args+=(--workspace "${workspace_id}")
+
+    local env_kv
+    for env_kv in "$@"; do
+        [[ -n "${env_kv}" ]] && create_args+=(--env "${env_kv}")
+    done
 
     local json
     json=$(herdr "${create_args[@]}") || {
@@ -172,10 +181,33 @@ _herdr_run_in_new_tab() {
         _ai_pr_review_assign "${tab_id_var}" "${created_tab_id}" || return 1
     fi
 
-    _herdr_wait_shell_ready "${pane_id}" || return 1
+    _ai_pr_review_assign "${pane_id_var}" "${pane_id}" || return 1
 
-    herdr pane run "${pane_id}" "${command}" || {
-        echo "herdr pane runに失敗しました (pane_id=${pane_id})" >&2
+    _herdr_wait_shell_ready "${pane_id}" || return 1
+}
+
+# Herdrで新しいtabを作りコマンドを実行する（tmux new-window相当）
+# 引数: workspace_id(空ならカレントworkspace), cwd, label, command,
+#       [tab_id_var(省略可: 作成tabのtab_idを呼び出し元localへ代入する)],
+#       [focus_on_create(省略可: 1なら作成直後にフォーカス)]
+# herdr pane run は既存の対話シェルにコマンドを投入する方式のため、
+# tmux版と違い ";  zsh" のようなシェル残存サフィックスは不要
+# 注: ここのpane runは着地検証なし（送信の末尾欠落を検出できない）。着地を保証したい
+# 経路は _herdr_create_tab + _herdr_send_verified を使う（_review_launch_herdrが実例）
+_herdr_run_in_new_tab() {
+    local workspace_id="$1"
+    local cwd="$2"
+    local label="$3"
+    local command="$4"
+    local tab_id_var="${5:-}"
+    local focus_on_create="${6:-0}"
+
+    local created_pane_id=""
+    _herdr_create_tab "${workspace_id}" "${cwd}" "${label}" created_pane_id \
+        "${tab_id_var}" "${focus_on_create}" || return 1
+
+    herdr pane run "${created_pane_id}" "${command}" || {
+        echo "herdr pane runに失敗しました (pane_id=${created_pane_id})" >&2
         return 1
     }
 }
@@ -257,6 +289,8 @@ _ai_all_herdr() {
     gemini_command=$(_ai_herdr_command gemini "${prompt}") || return 1
     codex_command=$(_ai_herdr_command codex "${prompt}") || return 1
 
+    # 注: ここは着地検証なしの pane run のまま（_review_launch_herdr のような
+    # マーカー検証は未適用）。2タブ同時起動なのでfreviewほど負荷が高くない
     _herdr_run_in_new_tab "" "${PWD}" "${EMOJI_ID_GEMINI}${base_name}" "${gemini_command}" || return 1
     _herdr_run_in_new_tab "" "${PWD}" "${EMOJI_ID_CODEX}${base_name}" "${codex_command}" || return 1
 
@@ -324,30 +358,30 @@ _herdr_create_review_workspace() {
     print -r -- "${ws_json}"
 }
 
-# orchestratorタブへ _review_watch を投入し、実際に起動したことを確認する。
-# 起動確認は _review_watch 側が run_dir に書くマーカーファイルで行う:
+# コマンドをペインへ投入し、実際に実行されたことをマーカーファイルで確認する。
 # herdr pane run のキーストローク送信は稀に末尾（Enter含む）が欠落し、コマンドが
-# プロンプト行に残ったまま実行されないことがある（watch_specs対策と同じ事故の再発）。
+# プロンプト行に残ったまま実行されないことがある（3AI CLI同時起動の高負荷時に頻発）。
 # ペイン出力の文字列照合は履歴由来のautosuggestionゴーストや累積スナップショットへ
 # 誤マッチするため使えない（herdr_wait_shell_ready.sh の記録を参照）が、
 # run_dirはラン毎の新規ディレクトリなのでマーカーファイルはstale化せず確実に判定できる。
 # 再送前に ctrl+u で行バッファをクリアし、前回の残骸との連結を避ける。
-# 引数: pane_id run_dir
-_herdr_send_watch_verified() {
+# 受信側はマーカーのtouchを最初の行為にし、既存なら二重起動しないこと（遅延着弾+再送の競合対策）
+# 引数: pane_id marker_path command
+_herdr_send_verified() {
     local pane_id="$1"
-    local run_dir="$2"
-    local marker="${run_dir}/watch_started"
+    local marker="$2"
+    local command="$3"
     # テストが待ち時間を潰せるよう環境変数で上書き可能にする（既定は本番値）
-    local max_attempts="${AI_REVIEW_WATCH_SEND_ATTEMPTS:-3}"
-    local poll_count="${AI_REVIEW_WATCH_POLL_COUNT:-10}"
-    local poll_interval="${AI_REVIEW_WATCH_POLL_INTERVAL:-0.5}"
+    local max_attempts="${AI_REVIEW_SEND_ATTEMPTS:-3}"
+    local poll_count="${AI_REVIEW_POLL_COUNT:-10}"
+    local poll_interval="${AI_REVIEW_POLL_INTERVAL:-0.5}"
 
+    # zshのlocalはtypesetなのでループ内で再宣言すると現在値をstdoutへ吐く。ループ外で1回だけ宣言する
     local attempt poll
     for (( attempt = 1; attempt <= max_attempts; attempt++ )); do
         # 再送時は前回送信の残骸を消してから投入する（初回はwait_shell_readyがクリア済み）
         (( attempt > 1 )) && herdr pane send-keys "${pane_id}" ctrl+u >/dev/null 2>&1
-        # run_dirは workspace create の --env で渡してあるため引数なしで投入する
-        herdr pane run "${pane_id}" "_review_watch" || {
+        herdr pane run "${pane_id}" "${command}" || {
             echo "herdr pane runに失敗しました (pane_id=${pane_id})" >&2
             return 1
         }
@@ -357,9 +391,70 @@ _herdr_send_watch_verified() {
         done
     done
 
+    return 1
+}
+
+# orchestratorタブへ _review_watch を投入し、実際に起動したことを確認する。
+# 検証送信の共通実装は _herdr_send_verified。ここではwatch固有の
+# マーカー（${run_dir}/watch_started）と失敗時の手動復旧手順だけを持つ。
+# run_dirは workspace create の --env で渡してあるため引数なしで投入する
+# 引数: pane_id run_dir
+_herdr_send_watch_verified() {
+    local pane_id="$1"
+    local run_dir="$2"
+
+    _herdr_send_verified "${pane_id}" "${run_dir}/watch_started" "_review_watch" && return 0
+
     echo "完了待ち(_review_watch)の起動を確認できませんでした (pane_id=${pane_id})" >&2
     echo "3AIのレビュー自体は進行中です。orchestratorタブで手動実行してください: _review_watch ${run_dir}" >&2
     return 1
+}
+
+# 3AIタブへレビュー起動トークン(_review_run_ai)を投入し、着地をマーカーで検証する。
+# 失敗時は当該AIの手動復旧手順を案内する（起動ファイルとタブは残っているので手で叩ける）
+# 引数: pane_id run_dir ai(claude/gemini/codex)
+_review_send_ai_launch() {
+    local pane_id="$1"
+    local run_dir="$2"
+    local ai="$3"
+
+    _herdr_send_verified "${pane_id}" "${run_dir}/launched_${ai}" "_review_run_ai" && return 0
+
+    echo "${ai}のレビュー起動を確認できませんでした (pane_id=${pane_id})" >&2
+    echo "${ai}タブで手動実行してください: AI_REVIEW_LAUNCH_FILE=${run_dir}/launch_${ai} _review_run_ai" >&2
+    return 1
+}
+
+# 3AIタブ内で実行される: --env で渡った AI_REVIEW_LAUNCH_FILE からレビュー起動コマンドを読み、
+# マーカーをtouchしてから実行する。
+# 引数なしの固定トークンとして投入されるのは、pane run送信の末尾欠落で
+# 壊れた引数のまま実行される事故を構造的に防ぐため（popups.md参照）。
+# マーカーtouchを最初の行為にすることで、遅延着弾と再送が両方実行されるキュー競合でも
+# 2回目は既存マーカーで no-op になり、AI CLIが二重起動しない
+_review_run_ai() {
+    local launch_file="${AI_REVIEW_LAUNCH_FILE:-}"
+
+    if [[ -z "${launch_file}" ]]; then
+        echo "AI_REVIEW_LAUNCH_FILEが未設定です（--env渡しの欠落）: このタブでは起動できません" >&2
+        return 1
+    fi
+    if [[ ! -f "${launch_file}" ]]; then
+        echo "起動コマンドファイルがありません: ${launch_file}" >&2
+        return 1
+    fi
+
+    local run_dir="${launch_file:h}"
+    local ai="${${launch_file:t}#launch_}"
+    local marker="${run_dir}/launched_${ai}"
+
+    if [[ -f "${marker}" ]]; then
+        echo "${ai}のレビューは既に起動済みです（二重起動を回避しました）: ${marker}"
+        return 0
+    fi
+
+    # 起動側の着地検証マーカー。実行前にtouchすることで、再送との競合時も1回だけ起動する
+    : > "${marker}"
+    source "${launch_file}"
 }
 
 # 3AIをレビュー実行ごとの専用workspace（<variant>-<ディレクトリ名>）の新規タブで起動する（herdr）
@@ -401,11 +496,28 @@ _review_launch_herdr() {
     orch_tab_id=$(print -r -- "${ws_json}" | jq -r '.result.tab.tab_id // empty')
     orch_pane_id=$(print -r -- "${ws_json}" | jq -r '.result.root_pane.pane_id // empty')
 
+    # 起動コマンドはキーストロークに載せずファイルへ書き、タブ側は AI_REVIEW_LAUNCH_FILE
+    # （--env）を頼りに固定トークン `_review_run_ai` だけを受け取る。
+    # pane runの末尾欠落で長いコマンドが壊れた引数のまま実行された事故（watch_specs事故）が
+    # 実測済みのため、送信文字列を最小化してから着地をマーカーで検証する
+    print -r -- "${claude_command}" > "${run_dir}/launch_claude" || return 1
+    print -r -- "${gemini_command}" > "${run_dir}/launch_gemini" || return 1
+    print -r -- "${codex_command}" > "${run_dir}/launch_codex" || return 1
+
     # Claudeも新規タブで起動し、tab_idを閉鎖検知(--liveness)用に控える
     local claude_tab="" gemini_tab="" codex_tab=""
-    _herdr_run_in_new_tab "${ws_id}" "${review_cwd}" "${claude_label}" "${claude_command}" claude_tab || return 1
-    _herdr_run_in_new_tab "${ws_id}" "${review_cwd}" "${gemini_label}" "${gemini_command}" gemini_tab || return 1
-    _herdr_run_in_new_tab "${ws_id}" "${review_cwd}" "${codex_label}" "${codex_command}" codex_tab || return 1
+    local claude_pane="" gemini_pane="" codex_pane=""
+    _herdr_create_tab "${ws_id}" "${review_cwd}" "${claude_label}" claude_pane claude_tab 0 \
+        "AI_REVIEW_LAUNCH_FILE=${run_dir}/launch_claude" || return 1
+    _herdr_create_tab "${ws_id}" "${review_cwd}" "${gemini_label}" gemini_pane gemini_tab 0 \
+        "AI_REVIEW_LAUNCH_FILE=${run_dir}/launch_gemini" || return 1
+    _herdr_create_tab "${ws_id}" "${review_cwd}" "${codex_label}" codex_pane codex_tab 0 \
+        "AI_REVIEW_LAUNCH_FILE=${run_dir}/launch_codex" || return 1
+
+    local ai
+    for ai in claude gemini codex; do
+        _review_send_ai_launch "${(P)${:-${ai}_pane}}" "${run_dir}" "${ai}" || return 1
+    done
 
     # spec一覧はコマンド引数ではなくrun_dir内のファイルで受け渡す:
     # herdr pane runの送信は稀に末尾が欠落し、codex分のspecだけ落ちた2/3監視で
