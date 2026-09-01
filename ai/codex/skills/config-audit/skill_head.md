@@ -11,6 +11,8 @@ description: >
 - `SCOPE` = the scope keyword in the user's message (empty → `all`).
 - `ENTRY_SCOPE` = `agents-md`.
 - `GENERATED_ENTRY_FILE` = `~/.codex/AGENTS.md`.
+- `RUN_DIR` = output of `bash ~/.config/ai-pr/bin/ai_audit_run_dir.sh codex` (resolve once in Phase 4; `--latest codex` reuses the newest).
+- `platform_key` = `codex`.
 - `CONFIG_PATHS`:
   - Global: `~/.codex/AGENTS.md`, `~/.codex/config.toml`, `~/.codex/skills/*/SKILL.md`, `~/.codex/agents/*.toml`, `~/.codex/hooks.json`, `~/.codex/hooks/*`, `~/.codex/rules/*`
   - Project: `./AGENTS.md`, `./ai/codex/config.toml`, `./ai/codex/codex_base.md`, `./ai/codex/skills/*/skill_head.md`, `./ai/codex/agents/*.toml`, `./ai/codex/hooks.json`, `./ai/codex/rules/*`

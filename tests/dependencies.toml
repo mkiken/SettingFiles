@@ -7,3 +7,16 @@
   "tests/shell/zsh/alias/ai/test_ai_zsh__herdr_run_in_new_tab.py",
   "tests/shell/tmux/test_herdr_split_snapshot_pane_sh.py",
 ]
+
+# config-audit のアダプタ3種は orchestrator_core.md との契約テストで検証される
+# (RUN_DIR / platform_key / allowed-tools / scratchpad例外の撤去)。
+# アダプタ側の命名では test_..._sh.py 相当が存在せず0件になるため明示する。
+"ai/claude/skills/config-audit/SKILL.md" = [
+  "tests/ai/common/config_audit_subagents/test_orchestrator_core_md__audit_report_contract.py",
+]
+"ai/codex/skills/config-audit/skill_head.md" = [
+  "tests/ai/common/config_audit_subagents/test_orchestrator_core_md__audit_report_contract.py",
+]
+"ai/gemini/commands/config-audit.toml" = [
+  "tests/ai/common/config_audit_subagents/test_orchestrator_core_md__audit_report_contract.py",
+]

@@ -192,7 +192,7 @@ Shared-core skills follow one pattern: the skill body lives in core file(s) unde
 | pr-comment-post | `pr_comment_post_core.md` + `pr_post_mechanics_core.md` | adapter-head bits: `ITEM_NUMBERS`, `{ai_header}`, confirmation primitive |
 | pr-body | `pr_body_core.md` + `pr_body_format.md` | `pr_body_format.md` defines the shared PR body format (section skeleton, drafting rules) — also used by pr-create-by-branch |
 | pr-create-by-branch | `pr_create_by_branch_core.md` + `pr_body_format.md` | Claude and Codex only (no Gemini variant); adapter-head bits: `TITLE_ARG`, `TARGET_BRANCH_ARG`, confirmation primitive |
-| config-audit | `config_audit_subagents/orchestrator_core.md` | auditor agents are separately generated — see below; adapter-head bits: `PLATFORM_NAME`, `SCOPE`, `ENTRY_SCOPE`, `CONFIG_PATHS`, `GENERATED_ENTRY_FILE`, `SOURCE_FILES`, confirmation primitive |
+| config-audit | `config_audit_subagents/orchestrator_core.md` | auditor agents are separately generated — see below; findings are decided in the browser report (see Report Servers), not by item numbers in the conversation; adapter-head bits: `PLATFORM_NAME`, `SCOPE`, `ENTRY_SCOPE`, `CONFIG_PATHS`, `GENERATED_ENTRY_FILE`, `SOURCE_FILES`, `RUN_DIR`, `platform_key`, confirmation primitive |
 | review-merge | `review_merge_core.md` | Claude and Codex only; adapter-head bits: `RUN_DIR` resolution, confirmation primitive |
 | review-post | `review_post_core.md` + `pr_post_mechanics_core.md` | Claude and Codex only; adapter-head bits: `RUN_DIR`/`ITEM_NUMBERS`, confirmation primitive |
 | review-fix | `review_fix_core.md` | Claude and Codex only; designer/implementer role prompts in `ai/common/review_fix_subagents/` (Claude subagents read them at runtime; Codex agents are build-time generated — see below); adapter-head bits: `RUN_DIR`/`ITEM_NUMBERS`, confirmation primitive, subagent launch primitive |
@@ -208,6 +208,14 @@ Beyond their shared cores (table above), three skill families have GENERATED, co
 - **review-fix** — 2 Codex agents (`ai/codex/agents/review_fix_{designer,implementer}.toml`): `generate_review_fix_agents` (arg-less, Codex-only) assembles each from `ai/common/review_fix_subagents/<role>_core.md` plus `ai/codex/agents_src/review_fix/head_<role>.toml`. Claude has no generated counterpart — its ad-hoc Task subagents read the same role cores from `~/.claude/common/review_fix_subagents/` at runtime.
 
 Standalone skills (no shared core, hand-maintained): `web-summary` — Claude `ai/claude/skills/web-summary/SKILL.md` and Gemini `ai/gemini/commands/web-summary.toml` are a manually synchronized pair with no generator (editing one does not update the other); `prompt-self-improvement` — single shared source in `ai/common/skills/`, symlink-deployed to all three platforms; `herdr` — single shared source in `ai/common/skills/`, symlink-deployed to all three platforms, vendored from the official herdr `SKILL.md` (teaches an agent to operate the `herdr` CLI from inside a Herdr-managed pane; guarded by a `HERDR_ENV=1` check so it is a no-op outside Herdr).
+
+### Report Servers
+
+`review-merge` and `config-audit` both present their findings as an HTML report served over loopback, where the user decides each item and the browser POSTs the result to `<RUN_DIR>/state.json`; a follow-up step then reads that file. Scripts live in `shell/common/pr/` (symlinked to `~/.config/ai-pr/bin` by `setup_ai_pr_tools`, which globs `*.sh`/`*.py` — a new script there needs no init/update change).
+
+`serve_review_report.py` is shared by both flows and picks a profile from the run directory's manifest: `merged.json` → review (`schema_version` 2, decisions `fix`/`post`/`dismiss`), `audit.json` → audit (`schema_version` 1, decisions `apply`/`dismiss`). The generators stay separate (`generate_review_report.py`, `generate_audit_report.py`) because the review report is built around PR data — `gh` lookups, GitHub links, per-AI badges — that an audit has no counterpart for. When adding a decision value or a manifest field, update the profile in the server, the generator's tables, and the core md together; the contract tests under `tests/ai/common/*/` pin exactly that agreement.
+
+The agent always starts the server without `--open`, verifies the URL responds, then opens it once; the `review-report` / `audit-report` zsh functions pass `--open` instead, because no agent is there to verify. `state.json` is browser-owned — no skill ever writes it.
 
 ### Claude Hooks
 Notification-hook roles and implementation rules for all three platforms live in `.claude/skills/ai-notification-hooks/SKILL.md` — read it before changing `ai/*/hooks/` or `shell/tmux/ai_notification_*`.

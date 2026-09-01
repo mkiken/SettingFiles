@@ -821,3 +821,18 @@ review-report() {
     nohup python3 "$HOME/.config/ai-pr/bin/serve_review_report.py" --open "${run_dir}" >/dev/null 2>&1 &
     echo "レビュー結果を開いています: ${run_dir}"
 }
+
+# 後日設定監査の結果を見返す/判断を再開する: 最新ランディレクトリのreport.htmlを
+# サーバー経由で開く（review-reportと同じ理由でfile://直開きを避ける）
+audit-report() {
+    local platform="${1:-claude}" run_dir
+    run_dir=$(bash "$HOME/.config/ai-pr/bin/ai_audit_run_dir.sh" --latest "$platform") || return 1
+
+    if [[ ! -f "${run_dir}/report.html" ]]; then
+        echo "report.htmlが見つかりません（config-audit未実行）: ${run_dir}" >&2
+        return 1
+    fi
+
+    nohup python3 "$HOME/.config/ai-pr/bin/serve_review_report.py" --open "${run_dir}" >/dev/null 2>&1 &
+    echo "監査結果を開いています: ${run_dir}"
+}

@@ -20,7 +20,7 @@ Explore `CONFIG_PATHS` (in parallel where possible) and build a file manifest na
 
 Files installed by third-party plugins or tools (e.g. Tsumiki) stay in the manifest marked 対象外 and are excluded from analysis. Identify them by directory or filename prefix, or by symlinks resolving outside the dotfiles repository.
 
-Before dispatching, print the manifest as a `## 監査対象ファイル一覧` table with columns ファイル / 種別 / 備考.
+Record the manifest for `audit.json`'s `manifest[]` (fields `file` / `type` / `note`; 対象外 goes in `note`). Do not print it — the report shows it.
 
 ## Phase 2: Dispatch
 
@@ -38,97 +38,99 @@ Each agent's criterion and output format live in its definition — do not resta
 2. Spot-check that each finding's quoted rule text exists in the cited file; drop mismatches.
 3. Deduplicate findings on the same rule across dimensions, keeping the highest-precedence one: `conflict > patch > default > overlap > ambiguity > concise`. A surviving deletion proposal (patch/default/overlap) absorbs concise and ambiguity findings on the same rule — fold them into its detail.
 4. Number items continuously across all report sections; never reset per section.
-5. Detect same-location collisions: when two items (in any section, including across 1. and 2.) target the same file and section and one item's edit would remove text the other depends on (e.g. a deletion candidate that also serves as a conflict's resolution, or two conflicting edits to the same rule), record each affected item's dependency inline as `依存: 項目N と同時適用` — selective application by item number is the report's primary use, so an undocumented dependency lets a single-item apply silently reintroduce or worsen the other item's problem.
-6. Build section 3's per-file diffs from the surviving deletions, ambiguity rewrites, and shortenings — targeting `SOURCE_FILES` when source-file mode is on, the audited files otherwise.
-7. When the report includes a classification/summary section that regroups items already numbered in sections 1–2 (e.g. a user-specified category mapping), check each item's own verdict (却下 / 現状維持 / 統合 / 保留) before placing it in that section. Never restate an item's proposal at face value if it was rejected or kept-as-is elsewhere in the same report — cite the verdict instead (e.g. 「却下（項目N参照）」), so the summary section cannot re-surface a proposal the report itself already closed.
+5. Detect same-location collisions: when two items target the same file and section and one item's edit would remove text the other depends on (e.g. a deletion candidate that also serves as a conflict's resolution, or two conflicting edits to the same rule), record each item's id in the other's `depends_on`. The report blocks applying one without the other, so an unrecorded dependency lets a single-item apply silently reintroduce or worsen the other item's problem.
+6. Build each item's own `diff` from the surviving deletions, ambiguity rewrites, and shortenings — targeting `SOURCE_FILES` when source-file mode is on, the audited files otherwise. Per item, not per file: the user applies items selectively, and a per-file diff cannot be split.
 
 ## Phase 4: Report
 
-Output the structured report below in Japanese, in the conversation only — do not write any file.
+Resolve `RUN_DIR` (see adapter) and write `<RUN_DIR>/audit.json`. Then render and serve the report.
+Start the server **without** `--open` through a mechanism that survives the current command environment.
+Obtain its URL and independently confirm that `<URL>/report.html` responds successfully before opening
+that URL in a browser exactly once. If the server start fails, retry only the server start and
+verification; never open a browser before verification or repeat the browser-open step. A supported
+fallback is:
 
-````markdown
-# {PLATFORM_NAME} 設定監査レポート
-
-## 監査対象ファイル一覧
-| ファイル | 種別 | 備考 |
-|---------|------|------|
-| ... | ... | ... |
-
----
-
-## 1. 削除・修正推奨項目
-
-### 🔵 デフォルト動作と重複（指示なしでも実行される）
-N. **[ファイル名 > セクション]** ルール要約
-   - 理由: ...
-   - 依存: 項目M と同時適用（該当する場合のみ）
-
-### 🟡 ルール間の重複
-N. **[ファイルA > セクション]** ← **[ファイルB > セクション]**
-   - 重複内容: ...
-   - 推奨: どちらを残すか
-   - 依存: 項目M と同時適用（該当する場合のみ）
-
-### 🟠 一時的な修正（汎用的でない）
-N. **[ファイル名 > セクション]** ルール要約
-   - 理由: ...
-   - 依存: 項目M と同時適用（該当する場合のみ）
-
-### ⚪ 曖昧・解釈が不安定
-N. **[ファイル名 > セクション]** ルール要約
-   - 問題点: ...
-   - 改善案: より具体的な表現の提案
-   - 依存: 項目M と同時適用（該当する場合のみ）
-
-### 🟢 冗長な表現（意味を変えない短縮）
-N. **[ファイル名 > セクション]** 対象要約
-   - 現状: ...
-   - 短縮案: ...
-   - 削減見込み: 約N語
-   - 依存: 項目M と同時適用（該当する場合のみ）
-
----
-
-## 2. コンフリクト一覧
-N. **[ファイルA > セクション]** ↔ **[ファイルB > セクション]**
-   - 内容A: ...
-   - 内容B: ...
-   - 推奨: どちらを優先すべきか / どう統合するか
-   - 依存: 項目M と同時適用（該当する場合のみ）
-
----
-
-## 3. 最適化された設定ファイル案
-
-### 変更サマリー
-- 削除推奨: N件
-- 修正推奨（曖昧 → 具体的）: N件
-- 統合推奨（重複解消）: N件
-- 短縮推奨: N件
-
-### ファイル別の推奨変更
-
-#### <ファイル名>
-```diff
-- 削除推奨の行
-+ 修正推奨の行（該当する場合）
+```bash
+python3 ~/.config/ai-pr/bin/generate_audit_report.py <RUN_DIR>/audit.json <RUN_DIR>/report.html
+nohup python3 ~/.config/ai-pr/bin/serve_review_report.py <RUN_DIR> >/dev/null 2>&1 &
 ```
-````
+
+Do not print the report body, the manifest table, the item list, or the diffs — they are all in the
+report. Print only a Japanese summary: per-category counts, total items, dependency pair count, and
+the follow-up usage — each item is decided as ✅ 適用する / 🚫 対応しない, and the decisions save
+directly to `state.json` in <RUN_DIR>; use the save button or accept the confirmation after all items
+are decided. To reopen the report later (the report server stops after being idle), the user runs the
+**zsh shell function** `audit-report` (or `audit-report <platform>`) instead of opening `report.html`
+directly — not a skill, so it is absent from the skill list; verify with `type audit-report`. It
+reuses a live server for this run or starts a new one, so state saves stay server-backed instead of
+falling back to a file-save dialog. Present it as a shell command, never as a skill.
+
+### audit.json schema
+
+```json
+{
+  "schema_version": 1,
+  "platform": "{PLATFORM_NAME}",
+  "platform_key": "claude",
+  "scope": "all",
+  "source_file_mode": true,
+  "run_dir": "/abs/path/to/run",
+  "generated_at": "2026-09-01T11:30:00+09:00",
+  "manifest": [
+    {"file": "~/.claude/CLAUDE.md", "type": "entry", "note": ""},
+    {"file": "~/.claude/skills/foo/SKILL.md", "type": "skill", "note": "対象外（Tsumikiプラグイン）"}
+  ],
+  "summary": {"default": 3, "overlap": 2, "patch": 1, "ambiguity": 4, "concise": 6, "conflict": 2},
+  "items": [
+    {
+      "id": 1,
+      "category": "default",
+      "file": "ai/common/prompt_base.md",
+      "section": "## Output Rules",
+      "targets": [{"file": "ai/common/prompt_base.md", "section": "## Output Rules"}],
+      "summary": "one-line Japanese summary",
+      "quote": "the rule text verbatim as it appears in the file",
+      "details": [{"label": "理由", "text": "..."}],
+      "depends_on": [4],
+      "diff": "--- a/ai/common/prompt_base.md\n+++ b/ai/common/prompt_base.md\n-removed line\n",
+      "estimated_reduction": null
+    }
+  ]
+}
+```
+
+`category` is one of `default` / `overlap` / `patch` / `ambiguity` / `concise` / `conflict` — the five
+deletion/fix groups plus conflicts, flattened into one key. `targets` holds every cited location: 2
+entries for `overlap` (残す ← 重複) and `conflict` (A ↔ B), 1 otherwise; `file` and `section` mirror
+`targets[0]`. `quote` is load-bearing twice — the report locates the surrounding context by searching
+for it, and Phase 5 re-checks it before editing — so it must match the file byte for byte. `details`
+carries the same labelled bullets as before, in order (理由 / 重複内容 / 推奨 / 問題点 / 改善案 /
+現状 / 短縮案 / 内容A / 内容B). `depends_on` lists item ids that must be applied together and must be
+symmetric. `diff` is that item's own unified diff, or `null` when it has no mechanical edit.
+`estimated_reduction` is the word count saved, `concise` only, `null` otherwise. `platform_key` is the
+`audit-report` argument (`claude` / `codex` / `gemini`).
 
 ## Phase 5: Follow-up
 
-After the report, confirm the next action with the user:
-
-1. **推奨変更の全適用** — apply every proposed change
-2. **番号指定で部分適用** — apply only the items named by their continuous serial numbers (e.g. 「1, 3, 5 を適用」); if a named item carries a `依存` note, surface it and confirm whether to include the dependency before applying
-3. **特定セクションの深掘り** — analyze one area in more depth
-4. **レポートのファイル保存** — save the report to a file
-
-Ending without action or any other request is expressed as a free-form reply (or the auto-provided "Other" choice), not a listed option.
+1. Read `<RUN_DIR>/state.json`. If it is missing, tell the user to decide the items in the browser
+   (reopen with `audit-report`) and stop. Never fall back to asking for item numbers in the conversation.
+2. Reject a `schema_version` other than 1, and reject ids absent from `audit.json`. Each item's
+   `decision` is `"apply"` (✅ 適用する), `"dismiss"` (🚫 対応しない), or `null` (未判断).
+3. Select ids whose `decision` is `"apply"`. For each, every id in its `depends_on` closure must also
+   be `"apply"`; otherwise stop and report the pair. Never widen the selection yourself — the report
+   already enforces this, so a violation here means a hand-edited state file.
+4. Present the selected items grouped by file (`id. [file > section] category | summary`) and confirm
+   once with the user. This is the only confirmation, and it is yes/no — not item numbers.
+5. Apply each item's `diff`. Within one file, apply from the bottom up so earlier edits do not
+   invalidate later anchors. Before editing, verify the item's `quote` still matches the file; on
+   mismatch, skip that item and report it rather than guessing.
+6. Write `<RUN_DIR>/apply_state.json`: `{"schema_version": 1, "run_dir": "...", "selected_ids": [1, 4],
+   "items": {"1": {"status": "applied"|"skipped"|"failed", "reason": null}}}`. Never write
+   `<RUN_DIR>/state.json` — the browser owns it.
+7. Print a Japanese summary: per item 適用済み / スキップ（理由）.
 
 Apply file changes only after explicit user approval.
 
 ## Notes
 
 - Exclude the currently running skill's own instructions — audit persistent configuration files only.
-- If the report is long, print summary tables first and details in later sections.

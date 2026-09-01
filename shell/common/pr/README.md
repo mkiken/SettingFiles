@@ -2,6 +2,11 @@
 
 PR review utilities shared across Claude Code, Gemini CLI, and Codex.
 
+Despite the directory name, the report scripts here also serve the `config-audit` skill:
+`serve_review_report.py` detects which flow a run directory belongs to from its manifest
+(`merged.json` → PR review, `audit.json` → config audit) and enforces that flow's decision set.
+The whole directory is symlinked to `~/.config/ai-pr/bin` by `setup_ai_pr_tools`.
+
 ## format_pr_diff_with_line_numbers.sh
 
 Renders a PR diff with explicit current-side line numbers for AI review prompts.
@@ -93,3 +98,41 @@ Use these cases when validating that the deduplication logic doesn't over-suppre
 | Existing (ai_origin=claude, unresolved): token log exposure / New finding: same | Skipped, logged as `[既コメント済スキップ]` |
 | Existing (Bot `github-actions`): SQL injection / New finding: same location + same issue | Skipped (content match regardless of authorship) |
 | Existing: "test coverage missing" (generic) / New finding: "boundary test for `getCount` missing" (specific) | New finding reported (granularity differs, different fix needed) |
+
+## generate_audit_report.py
+
+Renders `audit.json` (written by the `config-audit` skill) into a self-contained `report.html`
+where each finding is decided as ✅ 適用する / 🚫 対応しない.
+
+### Usage
+
+```bash
+python3 generate_audit_report.py <RUN_DIR>/audit.json <RUN_DIR>/report.html
+```
+
+Findings are grouped by `category` (`default` / `overlap` / `patch` / `ambiguity` / `concise` /
+`conflict`) rather than by priority. Each item anchors to a file plus a named section, so the
+surrounding code context is located by searching for the item's verbatim `quote` — not by line
+number. A quote that no longer matches renders as a "見つかりません" notice, which flags a stale
+finding instead of failing the render.
+
+Items may declare `depends_on`. The report treats those as a symmetric, transitive group: choosing
+適用する on one member prompts to include the rest, and saving stays blocked while any member of an
+applied group is not itself applied.
+
+## ai_audit_run_dir.sh
+
+Run-directory management for config audits, keyed by platform instead of PR number (audits also run
+outside any repository, so this one never touches `git remote`).
+
+```bash
+ai_audit_run_dir.sh <platform>            # create a run directory, print its path
+ai_audit_run_dir.sh --latest <platform>   # print the newest run directory
+```
+
+`<platform>` is `claude` / `codex` / `gemini`. Layout is
+`${AI_AUDIT_CACHE_ROOT:-~/.cache/ai-audit}/<platform>/<run-id>` with a `latest` symlink;
+`AI_AUDIT_KEEP_RUNS` (default 5) older runs are pruned with `trash`.
+
+Reopen a saved report with the zsh function `audit-report [platform]`, which reuses a live server
+for that run so state saves stay server-backed.
