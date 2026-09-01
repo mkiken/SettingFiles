@@ -188,7 +188,7 @@ Stage only the paths this session changed or created — explicit `git add <path
 
 - Unrelated changes in `git status` (e.g. a parallel session's): leave unstaged, mention them to the user.
 - An unrelated path shown as staged: run `git log -1` first — the same "M" marker covers both staged-but-uncommitted and a parallel session's mid-session commit, and one command settles which.
-- Re-check `git diff --cached --name-only`: if it lists paths you did not stage, unstage them (`git restore --staged <paths>` — note this touches a parallel session's staging) and commit with no pathspec; pathspec-scoped commit captures working-tree content and can silently include another session's unstaged edits.
+- Re-check `git diff --cached --name-only`: if it lists paths you did not stage, unstage them (`git restore --staged <paths>` — note this touches a parallel session's staging) and commit with no pathspec; a pathspec-scoped commit captures working-tree content — including another session's unstaged edits and a rebuilt index blob — bypassing the partial index.
 - Skim `git diff --cached` hunk by hunk for any file touched elsewhere this session and confirm this session authored every hunk. A path check alone misses this: a parallel session's commit captures the whole working tree, including this session's unsaved edits to that file.
 
 Perform the selected git action, then run the Opportunistic Improvement Proposals Completion-Time Check.

@@ -1,12 +1,15 @@
 ---
-# GENERATED (SKILL.md): edit skill_head.md / skill_tail.md / ai/common/write_tests_core.md, then regenerate
+# GENERATED (SKILL.md): edit skill_head.md / skill_tail.md / ai/common/skills/write-tests/SKILL.md, then regenerate
 name: write-tests
 description: "Write comprehensive tests for specified code with boundary value analysis and test case review. Use this skill when the user asks to write tests, create test cases, add test coverage, or generate unit/integration tests for any function, class, or module."
 ---
 
 ## Overview
 
+
 Write thorough, meaningful tests for the specified code target. Focus on boundary value analysis, exhaustive test case enumeration, and interactive review with the user before implementation.
+
+If the user supplied notes after the target, treat them as additional context: focus areas, known issues, or constraints. They supplement, not replace, the standard analysis. If the test target is missing or ambiguous, ask the user to clarify before proceeding.
 
 ### Phase 1: Understand the Target
 
@@ -43,13 +46,14 @@ Find the test file(s) corresponding to the target using the detected naming conv
 - All test names (e.g., `it('...')`, `test('...')`, `def test_...`, `func Test...`)
 - describe/suite block names for context
 
-Build a map of what is already covered. You'll use this in Phase 4 to annotate each proposed test case.
+Build a map of what is already covered. Use it in Phase 4 to annotate each proposed test case.
 
 ### Phase 3: Enumerate Test Cases
 
 Generate a comprehensive list of test cases. For each logical branch or behavior, consider:
 
 #### Boundary Value Analysis
+
 For every numeric parameter, string length, array size, or comparable value:
 - **At the boundary**: the exact boundary value
 - **Just below**: boundary - 1 (or minimum increment)
@@ -59,6 +63,7 @@ Example: if a function accepts ages 0-120:
 - Test with: -1, 0, 1, 119, 120, 121
 
 #### Standard Test Categories
+
 - **Normal cases**: typical valid inputs that exercise the happy path
 - **Boundary values**: edges of valid ranges as described above
 - **Equivalence partitioning**: one representative from each equivalence class
@@ -68,9 +73,7 @@ Example: if a function accepts ages 0-120:
 
 ### Phase 4: Review Test Cases with User
 
-Present ALL enumerated test cases as a structured markdown table in the response text, then confirm which to implement with the platform's confirmation primitive (multi-select). Format:
-
-For each test case, include:
+Present ALL enumerated test cases as a structured markdown table in the response text. For each test case, include:
 - **Name**: short descriptive name
 - **Status**: coverage status based on the existing test scan from Phase 2:
   - `NEW` — no existing test covers this case
@@ -84,13 +87,11 @@ Default verdict rules:
 - `PARTIAL` → default NEEDED
 - `NEW` → default NEEDED, except OPTIONAL when the case needs substantial new scaffolding (fixtures, fakes, concurrency control) disproportionate to its risk
 
-Group by category (normal, boundary, error, etc.).
-
-Let the user confirm which tests to implement. Respect their decisions — if they say skip something, skip it.
+Group by category (normal, boundary, error, etc.). Let the user select tests to implement. Use the platform's native multi-select confirmation when available; otherwise present a numbered list of test cases and default verdicts, then accept multiple selections by number or name. Respect skip decisions.
 
 ### Phase 5: Implement Tests
 
-Write the confirmed test cases following these principles:
+Write the selected test cases following these principles:
 
 When writing tests, cover boundary values; when multiple input variations exercise the same code path, structure them as table-driven tests (follow the existing suite's idiom when it differs). Introduce a new test mechanism only when none exists.
 
@@ -125,6 +126,4 @@ After writing the tests, run them to confirm they pass. If any test fails:
 
 ### Scope
 
-If a test target is given, apply this workflow to it directly. If the target is ambiguous or missing, ask the user to clarify using `ask_user` before proceeding.
-
-Where the workflow above says "the platform's confirmation primitive," use `ask_user`; for Phase 4's multi-select review, list the verdict options and let the user pick multiple by number or name.
+Where the workflow above says to ask the user to clarify, or to use the platform's native multi-select confirmation, use `ask_user`.

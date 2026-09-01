@@ -16,8 +16,6 @@ Implementation work may start directly on `main`/`master`; when a workflow or sk
 
 Multiple agent sessions can run against this repository concurrently (e.g. one session renaming a function while another writes new code that calls it). Immediately before committing, refresh the tracking ref with `git fetch origin "+refs/heads/<branch>:refs/remotes/origin/<branch>"` and compare against `origin/<branch>`; if the remote has commits not yet in the local history, inspect them (`git log`/`git show`) for overlap with files this session touched before committing, since a same-file dependency (a rename one session made vs. a call site another session wrote) can integrate correctly by coincidence or silently break.
 
-When a file contains this session's staged hunks plus another session's unrelated unstaged edits (including a rebuilt index blob), never run `git commit -- <paths>`: it commits that path's working-tree content, bypassing the partial index and including those edits. Verify `git diff --cached`, then commit without a pathspec.
-
 ## Structured Configuration Transformations
 
 For structured configuration transformations, stop on failure (`set -e` or explicit error handling), validate the complete temporary output with the relevant parser, and replace the target only after validation succeeds. Never replace a target with output from a failed transformation.
@@ -101,7 +99,7 @@ Before adding an externally-sourced identifier (a plugin ID, marketplace name, p
 
 When comparing or selecting an external tool to adopt here (CLI, plugin, package, editor extension), check each candidate's maintenance activity and recent third-party assessment before recommending one, and report the dates you found:
 
-- Last commit and last release date, open issue count, archived status — from the primary source (the repo's API or release page), not a summary article. A project can be effectively abandoned while still ranking first by popularity.
+- Last commit and last release date, open issue count, archived status — from the primary source (the repo's API or release page), not a summary article.
 - Never treat cumulative popularity (stars, download counts) as evidence of current health; it measures accumulated history, not whether the project still works. State star counts as popularity only.
 - Note when a candidate is very new (repository age, `0.x` version, low commit count) — that is a maintenance risk to surface, not a disqualifier.
 - Prefer secondary sources published within the last 12 months and give their date; for older ones, state the age and discount accordingly. When a source's author also authored a compared candidate, say so and discount accordingly.
@@ -199,7 +197,7 @@ Shared-core skills follow one pattern: the skill body lives in core file(s) unde
 | review-fix | `review_fix_core.md` | Claude and Codex only; designer/implementer role prompts in `ai/common/review_fix_subagents/` (Claude subagents read them at runtime; Codex agents are build-time generated — see below); adapter-head bits: `RUN_DIR`/`ITEM_NUMBERS`, confirmation primitive, subagent launch primitive |
 | audit-fix | `audit_fix_core.md` | applies the items config-audit's browser report marked ✅ 適用する: items with a `diff` mechanically, `diff: null` items (conflict resolutions) through designer/implementer subagents in `ai/common/audit_fix_subagents/` (all three platforms' agents are build-time generated — see below); no worktrees and no commits, because the audited files include un-versioned paths such as `~/.claude/CLAUDE.md`; takes no item numbers — `state.json` is the only selection source; Gemini's adapter is the hand-written command `ai/gemini/commands/audit-fix.toml` (matching config-audit), so it is outside `generate_gemini_skills`; adapter-head bits: `PLATFORM`/`RUN_DIR` resolution, confirmation primitive, subagent launch primitive |
 | fact-based | `fact_based_core.md` | Gemini adapter is generated; Claude and Codex use shared standalone `ai/common/skills/fact-based/SKILL.md` |
-| write-tests | `write_tests_core.md` | Gemini adapter is generated; Claude and Codex use shared standalone `ai/common/skills/write-tests/SKILL.md` |
+| write-tests | `skills/write-tests/SKILL.md` | No dedicated core file: the canonical source is the standalone `ai/common/skills/write-tests/SKILL.md` shared by Claude and Codex, and generation strips its frontmatter before concatenating. Gemini adapter is generated |
 
 When changing a skill's core composition or adapter-head bits, update this table in the same commit.
 

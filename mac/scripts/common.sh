@@ -582,6 +582,8 @@ function generate_review_fix_agents() {
 
 # 共有コアスキルの SKILL.md を skill_head.md + ai/common のコア群 (+ skill_tail.md があれば) の連結で生成する
 # 引数: <skillsディレクトリ> <entries...>  entry形式: <skill名>:<ai/common からのコア相対パス（スペース区切りで複数可、記載順に連結）>
+# コアが正典スキル（例: skills/write-tests/SKILL.md）の場合は先頭の YAML frontmatter を除去して本文だけを連結する。
+# frontmatter を持たない通常のコアファイルに対しては no-op。
 # 生成物: <skillsディレクトリ>/<skill名>/SKILL.md（編集はソースへ、生成物は編集しない）
 function generate_core_skills() {
   local skills_dir="$1"
@@ -594,7 +596,7 @@ function generate_core_skills() {
       /bin/cat "${skill_dir}/skill_head.md"
       for core in ${(s: :)${entry#*:}}; do
         echo
-        /bin/cat "${Repo}ai/common/${core}"
+        /usr/bin/awk 'NR==1 && $0=="---" {fm=1; next} fm==1 && $0=="---" {fm=0; next} fm!=1 {print}' "${Repo}ai/common/${core}"
       done
       if [[ -f "${skill_dir}/skill_tail.md" ]]; then
         echo
@@ -625,7 +627,7 @@ CODEX_CORE_SKILL_ENTRIES=(
 
 GEMINI_CORE_SKILL_ENTRIES=(
   "fact-based:fact_based_core.md"
-  "write-tests:write_tests_core.md"
+  "write-tests:skills/write-tests/SKILL.md"
 )
 
 function generate_codex_skills() {
