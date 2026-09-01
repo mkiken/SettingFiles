@@ -205,8 +205,9 @@ correct. Record the concrete evidence inspected, then set
 - `reject`: the premise is incorrect, conflicts with intended behavior, is out
   of scope, or would make the code worse. Set `NO_CODE_CHANGE=true`.
 - `already-satisfied`: current code already provides the requested behavior.
-  Set `NO_CODE_CHANGE=true`; require a test that observes the claimed behavior
-  when risk warrants it.
+  Set `NO_CODE_CHANGE=true`. If no existing test pins that behavior, add a
+  regression test that observes it; if an existing test already pins it, add
+  none and record which test that is.
 - `needs-user-decision`: evidence is missing or conflicting, or the comment
   requires a product or compatibility tradeoff the repository cannot settle.
   Do not default to implementation or no change.
@@ -393,10 +394,11 @@ below; it does not authorize a GitHub reply yet.
 
 Work only inside `TASK_PATH`. Never edit `ORIGINAL_PATH`.
 
-Implement only the approved scope and update tests when behavior risk
-warrants it. Run the
-narrowest useful verification command; broaden only when the touched surface
-is shared or high risk.
+Implement only the approved scope. When the change alters observable behavior
+that no existing test pins, add or update a test that pins it; when an
+existing test already pins the new behavior, keep it as the proof and add
+none. Run the narrowest useful verification command; broaden only when the
+touched surface is shared or high risk.
 
 When `NO_CODE_CHANGE=true`, do not edit files or create an empty commit.
 Preserve the concrete findings and verification results for the reply body,

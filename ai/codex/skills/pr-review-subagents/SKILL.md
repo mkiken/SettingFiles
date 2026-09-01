@@ -142,7 +142,7 @@ A non-empty value is explicit, workflow-provided authorization to write to that 
 
 Respond entirely in Japanese.
 
-**Priority mapping (影響度 × 信頼度)** — self-assessed per finding. 影響度: High = data loss/outage/vulnerability/broad breakage, Medium = limited malfunction or degradation, Low = minor. 信頼度 = 0–100 certainty that the issue is real. Priority: High = 影響度High & 信頼度>=75; Medium = 影響度Medium & 信頼度>=75, or 影響度High & 信頼度<75 (append 「要検証」 to the detail); Low = 影響度Low & notable, or 影響度Medium & 信頼度<75 (append 「要検証」). The mapping decides priority only, never whether a finding is reported — the calling skill's actionability rules decide that.
+**Priority mapping (影響度 × 信頼度)** — self-assessed per finding. 影響度: High = data loss/outage/vulnerability/broad breakage, Medium = limited malfunction or degradation, Low = minor. 信頼度 = 0–100 certainty that the issue is real. Priority: High = 影響度High & 信頼度>=75; Medium = 影響度Medium & 信頼度>=75, or 影響度High & 信頼度<75 (append 「要検証」 to the detail); Low = 影響度Low (信頼度<75 なら 「要検証」 を付記), or 影響度Medium & 信頼度<75 (append 「要検証」). The mapping is total — every 影響度 × 信頼度 combination has a priority. It decides priority only, never whether a finding is reported — the calling skill's actionability rules decide that.
 
 Each finding MUST use this exact three-part structure:
 

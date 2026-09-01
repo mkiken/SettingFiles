@@ -142,5 +142,5 @@ Rules:
 
 - Describe the final state at HEAD: never reverted changes, overwritten intermediate states, or trial-and-error.
 - Group by logical change; no separate file-by-file section — file details live in 実装内容 as nested bullets. Do not include line counts like +X/-Y.
-- Keep Summary short; 実装内容 carries the structure. If the diff is large (e.g. exceeds 500 lines), summarize by change group rather than line-by-line.
+- Keep Summary short; 実装内容 carries the structure. Describe each change group by its intent and effect; add a nested file bullet only where a reviewer needs that file called out, never one bullet per changed file.
 - Be concise, no filler; produce raw markdown directly usable as the PR body.
