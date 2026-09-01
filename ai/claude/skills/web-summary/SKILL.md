@@ -9,8 +9,6 @@ disable-model-invocation: true
 
 - Use the WebFetch tool to fetch and analyze the web page at $ARGUMENTS
   - If `$ARGUMENTS` is empty, ask for the URL with AskUserQuestion before proceeding
-  - Generate comprehensive summary suitable for understanding the content
-  - Extract key information and main points
   - Respond in Japanese even when the page is in another language
 - Format in markdown with bullet points
 - Include the following sections:

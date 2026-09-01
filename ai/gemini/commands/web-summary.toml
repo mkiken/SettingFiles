@@ -3,8 +3,6 @@ prompt = """Fetch and analyze the web page at {{args}}.
 
 Requirements:
 - Use WebFetch to fetch and analyze the web page content
-- Generate comprehensive summary suitable for understanding the content
-- Extract key information and main points
 - Format in markdown with bullet points
 
 Include these sections:

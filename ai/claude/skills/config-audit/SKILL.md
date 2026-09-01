@@ -18,7 +18,7 @@ allowed-tools: Bash(/bin/cat:*), Bash(readlink:*), Bash(bash:*), Bash(python3:*)
 - `CONFIG_PATHS`:
   - Global: `~/.claude/CLAUDE.md`, `~/.claude/settings.json`, `~/.claude/settings.local.json`, `~/.claude/skills/*/SKILL.md`, `~/.claude/agents/*.md`, `~/.claude/hooks/*`
   - Project: `./CLAUDE.md`, `./.claude/CLAUDE.md`, `./.claude/settings.json`, `./.claude/settings.local.json`, `./.claude/skills/*/SKILL.md`, `./.claude/agents/*.md`
-- `SOURCE_FILES`: `ai/common/prompt_base.md`, the character file `@`-imported by `ai/claude/_CLAUDE.md`, `ai/claude/_CLAUDE.md` (inline extras beyond the @imports)
+- `SOURCE_FILES`: `ai/common/prompt_base.md`, `ai/common/genshijin-file-policy.md`, `ai/claude/_CLAUDE.md` (inline extras beyond the @imports)
 - For every user confirmation, use `AskUserQuestion`.
 
 ### Launch

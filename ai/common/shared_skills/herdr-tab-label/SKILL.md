@@ -1,6 +1,6 @@
 ---
 name: herdr-tab-label
-description: Set the active Herdr tab's initial task label without overwriting a manual name. Use for the first substantive Codex task in a conversation, or when worktree-task needs one shared slug for its branch and Herdr tab.
+description: Set the active Herdr tab's initial task label without overwriting a manual name. Use for the first Codex task in a conversation that runs tools or edits files (not a greeting or pure Q&A), or when worktree-task needs one shared slug for its branch and Herdr tab.
 ---
 
 # Herdr Tab Label

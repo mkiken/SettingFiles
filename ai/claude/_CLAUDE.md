@@ -37,8 +37,6 @@ Then merge the dig/HTML choice with the Plan Review Presentation offer into a si
 
 If "both" is selected, open the browser first, then invoke the dig skill.
 
-If "dig only" is selected, invoke the dig skill without launching mdts.
-
 If the deferred option is selected: open the browser per Plan Review Presentation, then wait for the user to report they've finished reading — do not call `ExitPlanMode` yet; ending the turn on plain text would misfire the Stop hook's completion notification. Once they confirm, ask a second `AskUserQuestion` (dig now vs. proceed to approval). dig reads the plan file fresh from disk regardless of when it runs (it's a forked subagent), so deferring costs nothing functionally.
 
 dig rewrites the plan file, so re-present the updated plan afterward, re-applying these rules. If dig runs as a forked/background subagent (it then has no `AskUserQuestion`), treat its returned output as analysis and conduct the confirmation rounds yourself in the main session via `AskUserQuestion`. In plan mode this dialog (or, for the deferred path, the second-round dialog) precedes `ExitPlanMode`. Stop any ephemeral mdts server you started once the review/approval flow completes — never the persistent port-8600 server.
@@ -68,4 +66,4 @@ A background agent's `task-notification` is its own claim, not proof of work —
 
 # Settings Changes
 
-Before editing `settings.json` / `settings.local.json` — or its `hooks`, `permissions`, or `env` — in the repository source or the live `~/.claude/` files, invoke the `update-config` skill. Skip it only for trivial mechanical edits (e.g. a verbatim revert) where no configuration-domain judgment is needed.
+Before editing `settings.json` / `settings.local.json` — or its `hooks`, `permissions`, or `env` — in the repository source or the live `~/.claude/` files, invoke the `update-config` skill. Skip it only for trivial mechanical edits (e.g. a verbatim revert) where no configuration-domain judgment is needed, or when the `audit-fix` skill is applying an item already decided ✅ 適用する in a config-audit browser report — that item's configuration-domain judgment was made when the report decision was approved. Anything audit-fix touches beyond those approved items still requires `update-config`.

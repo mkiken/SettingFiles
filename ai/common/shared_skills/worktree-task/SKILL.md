@@ -101,7 +101,7 @@ When every condition holds, remove that worktree from the recorded invoking work
 
 ## Perform the task
 
-Work only inside the recorded task worktree. Apply the request, run proportionate verification, and remove only temporary artifacts created during this run. Preserve unrelated changes and obey the repository's instructions.
+Work only inside the recorded task worktree. Apply the request. Verify with the repository's documented test command scoped to the changed paths when one exists; otherwise run the narrowest command that exercises the changed behavior, and state it when the change has no executable behavior to verify. Remove only temporary artifacts created during this run. Preserve unrelated changes and obey the repository's instructions.
 
 Do not commit or push during implementation. Do not modify the invoking worktree.
 
