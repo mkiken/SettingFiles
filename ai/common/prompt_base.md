@@ -91,7 +91,7 @@ After any side-effecting operation (git commit/push, API writes, deletes, deploy
 
 Report a tool call's outcome only from the text that call actually returned — never compose, reconstruct, or pre-fill its output (a commit hash, changed-file count, a push's ref-update line). If you have not yet seen the result, you do not know it; say so instead of supplying a plausible one.
 
-Before `git push`, never hard-code the target branch — run `git branch --show-current` immediately before push, push that branch, and verify its remote ref advanced afterward. A parallel session may re-point the branch mid-task, and a hard-coded target can silently no-op (`Everything up-to-date`) while the current branch's commits stay unpushed.
+Immediately before `git push`, resolve the current branch, push that branch, and verify its remote ref advanced.
 
 # Destructive-Command Verification Safety
 
@@ -114,7 +114,7 @@ When presenting a markdown plan artifact (plan-mode plan file, SDD spec/design/t
 
 Ask via the platform-specific `# User Confirmation` mechanism. If accepted, launch mdts in the background — the launch shape depends on the artifact.
 
-mdts's own `-p auto` scans upward from its default port (8521) and gives up after 10 tries, colliding with the user's own manual `mdts` (which also defaults to 8521) and eventually exhausting the whole default band. Ephemeral AI-launched instances must instead pick a free port starting from 8610, reserving 8521+ for the user's manual use — find one with a shell loop before invoking mdts, e.g.:
+For ephemeral AI-launched `mdts` instances, choose a free port starting from 8610 and pass it explicitly, e.g.:
 
 ```bash
 for p in $(seq 8610 8620); do
@@ -131,7 +131,7 @@ Tell the user which file to review in either case.
 
 # Temp File Cleanup
 
-At task completion — before the Post-Implementation Workflow, and even when that workflow is skipped — clean up temp files newly created by the AI this session: scratch scripts, debug output, sample data, logs, dumps, notes, and other non-deliverables. Deliverables (requested source, test, doc, fixture, or config changes) and existing files edited in place are out of scope.
+At task completion, before the Post-Implementation Workflow even when skipped, clean up this session's AI-created non-deliverable temp files (scratch scripts, debug output, sample data, logs, dumps, notes). Exclude requested source, tests, docs, fixtures, or config changes and existing files edited in place.
 
 - Establish provenance before deleting a temp-looking file: use a pre-task baseline or direct evidence that this session created it. Never infer ownership from its name, contents, or timestamps alone; if provenance is uncertain, leave it in place and report it.
 - Before calling `trash`, resolve and validate each target as a non-empty, existing, explicit path; never pass unset or empty variables or rely on the current working directory. If validation fails, leave the target untouched and report it.
@@ -166,7 +166,7 @@ For one-off preferences (user taste, not a defect), keep an internal note instea
 
 ## Completion-Time Check
 
-At the end of implementation, fix, configuration, review, or investigation-delivery tasks, sweep the whole session against every "When to propose" criterion and collect all qualifying candidates — do not stop at the first match. Run it after Temp File Cleanup and the Post-Implementation Workflow's git action, and place it last in the final completion response, after the task's deliverable output.
+After implementation, fix, configuration, review, or investigation-delivery tasks, check the whole session against every "When to propose" criterion and collect all qualifying candidates, not only the first. Run this after Temp File Cleanup and the Post-Implementation Workflow git action; place it last in the final response, after deliverables.
 
 - Any candidate qualifies (including a `### 自己改善引き継ぎ` record carried in an executed plan): load the `prompt-self-improvement` skill and follow its "Opportunistic Improvement Proposals" section for presentation, ordering, and per-proposal approval.
 - None qualify: include exactly `自己改善チェック: 該当なし` once, do not load the skill, and do not raise a confirmation question.

@@ -242,8 +242,8 @@ class WorktreeTaskSkillContentTest(unittest.TestCase):
             # A dirty invoking worktree now reaches the four-way choice, so the
             # merge options must not be picked believing they will succeed.
             "If the invoking worktree is currently dirty, say so in that summary",
-            "The selection is final; do not ask a second push confirmation",
-            "If the platform's confirmation UI cannot present four authored choices",
+            "record the final selection and do not reconfirm push",
+            "If the UI cannot present four authored choices",
             "use a plain-text ordered list",
             "For `commit_only`",
             "stop before merge",

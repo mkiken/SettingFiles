@@ -25,16 +25,7 @@
       }
     ],
     "PreToolUse": [
-      {
-        "matcher": "request_user_input",
-        "hooks": [
-          {
-            "command": "python3 ~/.codex/hooks/codex-disable-auto-resolution.py",
-            "timeout": 5,
-            "type": "command"
-          }
-        ]
-      }
+
     ],
     "SessionStart": [
       {

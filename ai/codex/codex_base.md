@@ -2,7 +2,7 @@
 
 # Default Response Style
 
-Use the installed `caveman` skill at `full` intensity for every conversational response. Load its current `SKILL.md` instead of duplicating its rules here. `/caveman lite|full|ultra|wenyan-lite|wenyan-full|wenyan-ultra` changes intensity for the current session; `/caveman off` or `normal mode` disables it. Persisted files, code, comments, commits, documentation, and third-party messages follow their existing or repository-required style.
+Use the installed `caveman` skill at `full` intensity for every conversational response. Load its current `SKILL.md` instead of duplicating its rules here. `/caveman lite|full|ultra|wenyan-lite|wenyan-full|wenyan-ultra` changes intensity for the current session; `/caveman off` or `normal mode` disables it. Persisted files, code, comments, commits, documentation, and third-party messages follow their existing or repository-required style. Language selection follows Output Language; caveman controls response phrasing only.
 
 # RTK
 
@@ -22,7 +22,7 @@ Use English only when the user explicitly requests it, when preserving source te
 
 # OpenAI Docs Manual Cache
 
-When the `openai-docs` skill runs `fetch-codex-manual.mjs`, invoke it through the host shell, not `context-mode` or another ephemeral analysis sandbox. The returned manual and outline must remain readable by later tool calls; pass a host-visible `--cache-dir` when command routing would otherwise isolate the filesystem.
+When one tool call produces files for later calls, use host-visible storage and pass an explicit cache directory when needed.
 
 # User Confirmation
 
@@ -32,7 +32,7 @@ If `request_user_input` returns no selected answer (for example, an empty `answe
 
 When a skill defines authored options, pass each label to the tool exactly once and preserve the authored option count. Do not count the client's auto-provided free-form `Other` as an authored option.
 
-Ask in plain text only when `request_user_input` is unavailable for the current question or a meaningful answer requires free-form text that would be unnatural as choices.
+Ask in plain text only when `request_user_input` is unavailable, the answer requires free-form input such as a path, URL, identifier, number, command, or explanation, or the question cannot be expressed as 2–3 mutually exclusive choices.
 
 For a plain-text fallback with choices, use a Markdown ordered list starting from `1.` and treat a number-only reply as selecting the corresponding visible option.
 
@@ -40,7 +40,7 @@ When beginning execution of an accepted plan, load the `plan-model-handoff` skil
 
 # Plan Approval Detail
 
-For a non-trivial `<proposed_plan>`, provide a reviewable implementation explanation, not a generic checklist. For every implementation group, state the target behavior, concrete mechanism, material files or interfaces, failure or edge behavior, and test condition with expected outcome. Preserve accepted user choices in Assumptions. Keep the plan concise, but never omit a material decision merely to shorten it.
+For `<proposed_plan>` work meeting Plan Review Gate 1, explain each implementation group's target behavior, mechanism, implementing or exposed files/interfaces, failure/edge behavior, and test condition with expected outcome. Preserve accepted choices in Assumptions. Material decisions change behavior, APIs, data formats, failure handling, scope, or external effects; never omit them for brevity.
 
 # Plan Review Deep-Dive (dig)
 
@@ -64,4 +64,4 @@ If option 2 is chosen, load the dig skill without launching mdts.
 
 If option 4 is chosen, output the previewed plan unchanged inside the final `<proposed_plan>` block. After any dig round changes the candidate plan, repeat the full terminal preview and review-choice flow with the revised plan before finalizing it.
 
-Codex has no `~/.codex/plans` directory — the plan exists only as this turn's `<proposed_plan>` content, not a file on disk. When the browser is accepted, write the current plan text to a scratchpad file first, then treat it as the SDD case in Plan Review Presentation: find a free port from 8610, launch `mdts -p <found-port> --no-open <scratchpad-dir>`, and stop that instance once the review finishes. Do not reuse the fixed port 8600 / `~/.claude/plans` mount — that path is Claude-only and does not exist here. The written scratchpad file is a session temp; Temp File Cleanup applies.
+Codex has no `~/.codex/plans`; a plan exists only in the turn's `<proposed_plan>`. For accepted browser review, first write it to a scratchpad, then follow Plan Review Presentation's SDD flow: choose a free port from 8610, run `mdts -p <found-port> --no-open <scratchpad-dir>`, and stop it after review. Never use Claude-only port 8600/`~/.claude/plans`. Temp File Cleanup applies to the scratchpad.

@@ -52,7 +52,7 @@ Inline comment body format, with no AI header and no item number:
 
 Never write `\n` inside a normal quoted string in shell and expect it to become a newline. Build multiline bodies with `printf`, pass the resulting variable to `jq`/`gh`, and preflight that the body contains real blank lines and no literal `\n` sequences (the `jq -n ... -e` lines below). If a preflight fails, rebuild the body with `printf` and re-run it; never post a body that failed preflight.
 
-When saving a JSON payload for later verification, always build the file directly with `jq -n --rawfile body "$file" ...` (or `--arg` from a variable) and redirect jq's own output; never write a JSON string assembled in a shell variable to a file, because a multiline body survives the variable as raw control characters and makes the file invalid JSON.
+When persisting a JSON payload for verification, generate the file directly with `jq -n --rawfile body "$file" ...` (or `--arg` from a variable) and redirect jq output. Never write shell-variable-assembled JSON: multiline bodies become raw control characters and invalidate it.
 
 Never chain a verification `jq -e` with `&& echo OK`: the short-circuit swallows the failure and prints success even under `set -e`. Run the verification as its own command and branch on its exit status.
 

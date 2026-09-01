@@ -88,8 +88,8 @@ class PlanReviewCriteriaTest(unittest.TestCase):
 
     def test_codex_has_no_plan_file_and_uses_an_ephemeral_browser_path(self):
         for required in (
-            "Codex has no `~/.codex/plans` directory",
-            "Do not reuse the fixed port 8600 / `~/.claude/plans` mount",
+            "Codex has no `~/.codex/plans`;",
+            "Never use Claude-only port 8600/`~/.claude/plans`.",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.codex_base)
@@ -100,7 +100,7 @@ class PlanReviewCriteriaTest(unittest.TestCase):
     def test_generated_agents_md_carries_the_same_criteria(self):
         for required in (
             "governs both the `dig` skill offer and the Plan Review Presentation browser offer",
-            "Codex has no `~/.codex/plans` directory",
+            "Codex has no `~/.codex/plans`;",
             "first output a terminal review preview",
             "offer both only when two gates both hold",
             "200 lines or more",

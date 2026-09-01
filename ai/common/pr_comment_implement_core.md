@@ -349,13 +349,7 @@ remove the 🚀 reaction (best-effort) and clean up the task worktree/branch
 under the same ownership-proof rule described above, then report the
 preserved or removed state.
 
-The `PR返信引き継ぎ` and `作業環境引き継ぎ` sections are the handoff that
-survives a context reset: together they must give the next worker enough
-reply/resolve target information and enough working-directory information
-(which worktree to resume in) to continue. If a target cannot be fully
-determined before implementation, state the exact item to re-fetch instead of
-omitting it. In plan mode, write this design (including both sections) into
-the platform's plan artifact.
+`PR返信引き継ぎ` and `作業環境引き継ぎ` must survive context reset with enough reply/resolve-target and worktree-directory details for the next worker to resume. If a target remains unresolved before implementation, name the exact item to re-fetch. In plan mode, put the design, including both sections, in the platform plan artifact.
 
 In plan mode the task worktree does not exist yet, so `作業環境引き継ぎ` records
 intent instead of resolved paths: state that the worktree is uncreated and that
