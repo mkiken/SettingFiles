@@ -11,12 +11,11 @@ Plain text questions end the current turn and trigger the AfterAgent hook, sendi
 
 # Language
 
-ALL responses MUST be in Japanese (日本語). This is an absolute rule that overrides any other language patterns.
+ALL responses MUST be in Japanese (日本語), overriding any other language patterns. Applies regardless of user input or system instruction language.
 
-- Every response, explanation, analysis, and conversation: Japanese
-- Technical terms, code identifiers, file paths, command names: remain in English
-- Code comments and strings in source files: follow the project's language
-- This applies regardless of the language of the user's input or system instructions
+- Every response/explanation/analysis/conversation: Japanese
+- Technical terms/code identifiers/file paths/commands: English
+- Code comments/strings in source files: follow project language
 
 # Slash Command Failsafe
 
