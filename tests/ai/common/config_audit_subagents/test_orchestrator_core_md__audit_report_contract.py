@@ -69,6 +69,14 @@ class AuditReportContractTest(unittest.TestCase):
         self.assertIn("symmetric", self.core)
         self.assertIn("depends_on", self.renderer)
 
+    def test_risk_contract_keeps_candidates_and_decisions_unchanged(self):
+        for token in ("`risk`", "reason", "evidence", "suppress a candidate", "Do not add severity"):
+            with self.subTest(token=token):
+                self.assertIn(token, self.core)
+        self.assertIn("risk未評価", self.core)
+        self.assertIn("risk-panel", self.renderer)
+        self.assertIn("focusCard(item.id)", self.renderer)
+
     def test_each_adapter_declares_its_own_run_dir_and_platform_key(self):
         adapters = {
             "claude": CLAUDE_SKILL_PATH,

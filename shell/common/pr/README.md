@@ -120,6 +120,11 @@ Items may declare `depends_on`. The report treats those as a symmetric, transiti
 適用する on one member prompts to include the rest, and saving stays blocked while any member of an
 applied group is not itself applied.
 
+New audit items explicitly carry `risk`: `null`, or an object with a Japanese `reason` and target
+`evidence`. Risk never removes a candidate or changes its decision. The report shows risky items in a
+top panel and on their cards; older runs without the field are shown as risk未評価 rather than safe.
+`audit-fix` repeats selected risky items with their reasons before its existing confirmation.
+
 ## ai_audit_run_dir.sh
 
 Run-directory management for config audits, keyed by platform instead of PR number (audits also run

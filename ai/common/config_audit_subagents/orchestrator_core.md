@@ -1,6 +1,6 @@
 ## Goal
 
-Audit every `PLATFORM_NAME` configuration file with six parallel specialist agents, then report deletion candidates, conflicts, ambiguities, meaning-preserving shortenings, and an optimized configuration proposal.
+Audit every `PLATFORM_NAME` configuration file with six specialist agents, then report deletion candidates, conflicts, ambiguities, meaning-preserving shortenings, and an optimized configuration proposal.
 
 ## Scope
 
@@ -24,13 +24,15 @@ Record the manifest for `audit.json`'s `manifest[]` (fields `file` / `type` / `n
 
 ## Phase 2: Dispatch
 
-Launch all six auditor agents (named in the platform instructions above) in parallel, passing each the same payload:
+Follow the platform adapter's dispatch schedule for all six auditor agents named there, passing each the same payload:
 
 1. `PLATFORM_NAME` and the resolved `SCOPE`
 2. The manifest including 対象外 marks; in source-file mode, the `SOURCE_FILES` list to audit
 3. The instruction: read the listed files yourself, evaluate only your own dimension, respond in Japanese in your configured format
 
 Each agent's criterion and output format live in its definition — do not restate them. Do not pass `CONFIG_PATHS`.
+Do not enter Phase 3 until every dimension has one valid result. If any dimension cannot complete, stop
+without producing an audit or report.
 
 ## Phase 3: Aggregate
 
@@ -40,6 +42,13 @@ Each agent's criterion and output format live in its definition — do not resta
 4. Number items continuously across all report sections; never reset per section.
 5. Detect same-location collisions: when two items target the same file and section and one item's edit would remove text the other depends on (e.g. a deletion candidate that also serves as a conflict's resolution, or two conflicting edits to the same rule), record each item's id in the other's `depends_on`. The report blocks applying one without the other, so an unrecorded dependency lets a single-item apply silently reintroduce or worsen the other item's problem.
 6. Build each item's own `diff` from the surviving deletions, ambiguity rewrites, and shortenings — targeting `SOURCE_FILES` when source-file mode is on, the audited files otherwise. Per item, not per file: the user applies items selectively, and a per-file diff cannot be split.
+7. Evaluate every retained item for risk after deduplication, numbering, dependencies, and diffs. Never
+   suppress a candidate because it is risky. Set `risk` to `null` when no risk is found, otherwise to an
+   object with a one-line Japanese `reason` and one or more `evidence` entries naming the relevant
+   target location and concept. Flag weakening or removal of hooks, registration, fallbacks,
+   confirmations, side-effect verification, safety invariants, active contract tests, scope or permission
+   boundaries, fail-safe defaults, generated-source rules, or an unmeasured threshold, allowlist, or
+   heuristic. Do not add severity or change category, `diff`, `depends_on`, or selection behavior.
 
 ## Phase 4: Report
 
@@ -55,9 +64,11 @@ python3 ~/.config/ai-pr/bin/generate_audit_report.py <RUN_DIR>/audit.json <RUN_D
 nohup python3 ~/.config/ai-pr/bin/serve_review_report.py <RUN_DIR> >/dev/null 2>&1 &
 ```
 
-Do not print the report body, the manifest table, the item list, or the diffs — they are all in the
-report. Print only a Japanese summary: per-category counts, total items, dependency pair count, and
-the follow-up usage — each item is decided as ✅ 適用する / 🚫 対応しない, and the decisions save
+Do not print the report body, the manifest table, the complete item list, or the diffs — they are all in
+the report. Print a Japanese summary: per-category counts, total items, dependency pair count, and the
+follow-up usage. Also print the risk count and only the risky items as `#id summary — reason`; print an
+explicit zero-risk result when none exist. At more than 100 risky items, print the count and a focused
+summary first, then paginate at most 100 rows at a time. Each item is decided as ✅ 適用する / 🚫 対応しない, and the decisions save
 directly to `state.json` in <RUN_DIR>; use the save button or accept the confirmation after all items
 are decided, then run the `audit-fix` skill to apply them. To reopen the report later (the report
 server stops after being idle), the user runs the
@@ -94,6 +105,7 @@ falling back to a file-save dialog. Present it as a shell command, never as a sk
       "details": [{"label": "理由", "text": "..."}],
       "depends_on": [4],
       "diff": "--- a/ai/common/prompt_base.md\n+++ b/ai/common/prompt_base.md\n-removed line\n",
+      "risk": {"reason": "既存の確認手順を弱める", "evidence": ["ai/common/prompt_base.md > confirmation rule"]},
       "estimated_reduction": null
     }
   ]
@@ -110,6 +122,8 @@ carries the same labelled bullets as before, in order (理由 / 重複内容 / �
 symmetric. `diff` is that item's own unified diff, or `null` when it has no mechanical edit.
 `estimated_reduction` is the word count saved, `concise` only, `null` otherwise. `platform_key` is the
 `audit-report` argument (`claude` / `codex` / `gemini`).
+`risk` is `null` or an object with `reason` and `evidence`; new runs set it explicitly on every item.
+Older runs may omit it and are risk未評価, not risk-free.
 
 ## Next: 適用
 

@@ -72,6 +72,13 @@ class AuditFixContractTest(unittest.TestCase):
         self.assertIn("depends_on", self.core)
         self.assertIn("closure", self.core)
 
+    def test_selection_confirmation_warns_about_selected_risks_only(self):
+        for token in ("selected items whose `risk` is an object", "#id summary — reason", "risk未評価"):
+            with self.subTest(token=token):
+                self.assertIn(token, self.core)
+        self.assertIn("warning-only", self.core)
+        self.assertIn("do not dismiss, block, or\nask an additional confirmation", self.core)
+
     def test_core_declares_every_apply_state_status(self):
         for status in GROUP_STATUSES:
             with self.subTest(group_status=status):

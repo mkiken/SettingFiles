@@ -66,6 +66,12 @@ button[aria-pressed="true"]{outline:2px solid var(--text);outline-offset:2px}
 .badge.cat-conflict{background:var(--conflict)}
 .badge.decision-apply{background:var(--apply)}
 .badge.decision-dismiss{background:var(--dismiss)}
+.badge.risk{background:var(--conflict)}
+.risk-panel{margin:0 0 16px;border:1px solid var(--conflict);border-radius:8px;background:var(--card);padding:8px 12px}
+.risk-panel h2{font-size:14px;margin:0 0 6px}
+.risk-list{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.risk-link{border:0;padding:0;background:transparent;color:var(--link);text-align:left}
+.risk-box{margin:8px 0;padding:8px;border:1px solid var(--conflict);border-radius:6px}
 .dep-badge{background:var(--dep);border:0;color:#fff;font-size:11px;font-weight:700;border-radius:10px;padding:1px 8px}
 .locations{display:flex;gap:6px;font-family:ui-monospace,monospace;font-size:12px;flex-wrap:wrap;color:var(--muted)}
 .controls{display:flex;gap:8px;padding:0 12px 8px}
@@ -108,6 +114,7 @@ footer{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:
 <button id="expand-all">すべて展開</button><button id="collapse-all">すべて折りたたむ</button>
 <div class="theme-picker" role="group" aria-label="テーマ"><button data-theme="auto">自動</button><button data-theme="light">ライト</button><button data-theme="dark">ダーク</button></div>
 </div>
+<section class="risk-panel" id="risk-panel" hidden><h2 id="risk-title"></h2><div class="risk-list" id="risk-list"></div></section>
 <div id="report"></div>
 <footer><span id="progress"></span><span id="dep-violations"></span><div class="filter-picker" role="group" aria-label="表示する項目"><button data-filter="pending">未処理</button><button data-filter="apply">適用リスト</button><button data-filter="dismiss">対応しないリスト</button><button data-filter="all">すべて</button></div><span id="params"></span><button id="copy-run-dir" disabled>実行ディレクトリをコピー</button><button id="save-state" disabled>状態ファイルを保存</button><span id="save-status" role="status" aria-live="polite">未保存</span></footer>
 <div id="toast" role="status" aria-live="polite" hidden></div>
@@ -139,14 +146,18 @@ function appendInline(parent,text){const re=/(\*\*[^*\n]+\*\*|`[^`\n]+`)/g;let p
 function markdown(parent,text){let inCode=false,code=[];for(const line of String(text||"").split("\n")){if(line.startsWith("```")){if(inCode){parent.appendChild(el("pre","markdown-block",code.join("\n")));code=[];}inCode=!inCode;continue;}if(inCode){code.push(line);continue;}const p=el("div","markdown-line");appendInline(p,line);parent.appendChild(p);}if(inCode)parent.appendChild(el("pre","markdown-block",code.join("\n")));}
 function buildHeader(){const h=document.getElementById("report-header");const title=(DATA.platform||"")+" 設定監査レポート";h.appendChild(el("h1","",title));const bits=[];if(DATA.scope)bits.push("スコープ: "+DATA.scope);if(DATA.source_file_mode)bits.push("ソースファイルモード");if(DATA.generated_at)bits.push(DATA.generated_at);h.appendChild(el("p","meta",bits.join(" · ")));document.title=title;}
 function buildManifest(){const box=document.getElementById("manifest-body"),rows=DATA.manifest||[];if(!rows.length){document.getElementById("manifest").hidden=true;return;}const table=el("table");const head=el("tr");for(const label of ["ファイル","種別","備考"])head.appendChild(el("th","",label));table.appendChild(head);for(const row of rows){const tr=el("tr");const note=row.note||"";tr.appendChild(el("td",note?"excluded":"",row.file||""));tr.appendChild(el("td","",row.type||""));tr.appendChild(el("td","",note));table.appendChild(tr);}box.appendChild(table);}
-function build(){buildDeps();buildHeader();buildManifest();const root=document.getElementById("report");root.textContent="";for(const [cat,title] of CATS){const items=DATA.items.filter(i=>i.category===cat);if(!items.length)continue;const group=el("section","cat-group");group.dataset.category=cat;group.appendChild(el("h2","cat-title",title));for(const item of items)group.appendChild(card(item));root.appendChild(group);}if(!DATA.items.length)root.appendChild(el("p","","対応が必要な項目はありません。"));refresh();}
+function riskState(item){if(!Object.prototype.hasOwnProperty.call(item,"risk"))return "unknown";return item.risk&&typeof item.risk==="object"?"risk":"none";}
+function buildRiskPanel(){const panel=document.getElementById("risk-panel"),title=document.getElementById("risk-title"),list=document.getElementById("risk-list"),risky=DATA.items.filter(item=>riskState(item)==="risk"),unknown=DATA.items.filter(item=>riskState(item)==="unknown");list.textContent="";panel.hidden=!risky.length&&!unknown.length;if(panel.hidden)return;title.textContent=risky.length?`⚠️ 危険性のある修正 ${risky.length}件`:`risk未評価 ${unknown.length}件`;for(const item of risky){const button=el("button","risk-link",`#${item.id} ${item.summary||""} — ${item.risk.reason||"理由未記載"}`);button.type="button";button.addEventListener("click",()=>focusCard(item.id));list.appendChild(button);}if(unknown.length)list.appendChild(el("div","meta",`risk未評価 ${unknown.length}件。安全とは推定しません。`));}
+function build(){buildDeps();buildHeader();buildManifest();buildRiskPanel();const root=document.getElementById("report");root.textContent="";for(const [cat,title] of CATS){const items=DATA.items.filter(i=>i.category===cat);if(!items.length)continue;const group=el("section","cat-group");group.dataset.category=cat;group.appendChild(el("h2","cat-title",title));for(const item of items)group.appendChild(card(item));root.appendChild(group);}if(!DATA.items.length)root.appendChild(el("p","","対応が必要な項目はありません。"));refresh();}
 function locationText(item){const targets=(item.targets&&item.targets.length)?item.targets:[{file:item.file,section:item.section}];return targets.map(t=>t.section?`${t.file} > ${t.section}`:t.file).join(item.category==="conflict"?" ↔ ":" ← ");}
 function card(item){const c=el("article","card");c.dataset.id=item.id;const bodyId="item-body-"+item.id;const h=el("div","card-header");const toggle=el("button","card-toggle");toggle.type="button";toggle.setAttribute("aria-expanded","false");toggle.setAttribute("aria-controls",bodyId);toggle.appendChild(el("span","disclosure","▸"));toggle.appendChild(el("span","",item.id+"."));toggle.appendChild(el("span","badge cat-"+item.category,CAT_LABEL[item.category]||item.category));toggle.appendChild(el("span","summary",item.summary||""));toggle.addEventListener("click",()=>setOpen(c,!c.classList.contains("open")));h.appendChild(toggle);h.appendChild(el("span","decision-status"));
+if(riskState(item)==="risk")h.appendChild(el("span","badge risk","⚠️ 要注意"));else if(riskState(item)==="unknown")h.appendChild(el("span","meta","risk未評価"));
 const deps=closure(item.id);if(deps.length){const depButton=el("button","dep-badge","🔗 依存: "+deps.map(d=>"#"+d).join(", "));depButton.type="button";depButton.title="依存する項目へ移動";depButton.addEventListener("click",()=>focusCard(deps[0]));h.appendChild(depButton);}
 if(item.estimated_reduction)h.appendChild(el("span","meta","削減見込み 約"+item.estimated_reduction+"語"));
 h.appendChild(el("span","locations",locationText(item)));c.appendChild(h);
 const ctl=el("div","controls");ctl.appendChild(decision(item.id));c.appendChild(ctl);
 const body=el("div","card-body");body.id=bodyId;
+if(riskState(item)==="risk"){const box=el("section","risk-box");box.appendChild(el("div","box-head","⚠️ 危険性の理由"));box.appendChild(el("div","text",item.risk.reason||"理由未記載"));for(const evidence of (item.risk.evidence||[]))box.appendChild(el("div","meta",evidence));body.appendChild(box);}
 for(const d of (item.details||[])){const box=el("section","detail");box.appendChild(el("div","detail-head",d.label||""));const content=el("div","text");markdown(content,d.text||"");box.appendChild(content);body.appendChild(box);}
 if(item.quote){const box=el("section","quote-box");box.appendChild(el("div","box-head","対象ルール(原文)"));box.appendChild(el("pre","code-lines",item.quote));body.appendChild(box);}
 appendContext(body,item.code_context);

@@ -118,8 +118,11 @@ without asking.
 ## Selection Confirmation
 
 Present the selected items grouped by group — `g<N> [files] 機械適用|設計` followed by each
-`id. [file > section] category | summary` — and confirm once with the user. This is yes/no, not item
-numbers. Apply file changes only after this approval.
+`id. [file > section] category | summary`. Before the existing single yes/no confirmation, re-list only
+the selected items whose `risk` is an object as `#id summary — reason`. If a selected item omits `risk`,
+warn that it is risk未評価; never infer that it is safe. This is warning-only: do not dismiss, block, or
+ask an additional confirmation because of risk. This is yes/no, not item numbers. Apply file changes
+only after this approval.
 
 ## Mechanical Application
 

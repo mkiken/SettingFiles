@@ -22,7 +22,19 @@ description: >
 
 ### Spawn
 
-In Phase 2, spawn all six in parallel and wait for all, passing the payload defined there:
+In Phase 2, dispatch the six auditors in waves sized to the child-agent slots available at runtime.
+Do not hard-code a slot count. Wait for each wave before starting the next and retain every valid result.
+
+Treat a capacity error as temporary: wait for an active auditor to finish, then retry the same specialist.
+Treat an unavailable registered role as distinct: finish every available specialist, collect the missing
+dimensions, and ask once whether to stop safely (recommended) or continue only those dimensions with a
+default agent. On approved fallback, read the matching
+`~/.codex/agents/config_auditor_<dimension>.toml`, then spawn `agent_type=default` with
+`fork_turns=none`. Its self-contained payload must name the dimension, target files, and output format,
+and prohibit writes and subagents. If the TOML is missing, the fallback fails, or any result is invalid,
+stop without generating a partial audit or report.
+
+The six specialist roles are:
 
 1. **config_auditor_default** — デフォルト動作との重複
 2. **config_auditor_conflict** — コンフリクト

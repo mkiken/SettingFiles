@@ -70,6 +70,23 @@ class RenderCategoriesTest(unittest.TestCase):
         self.assertIn("<\\/script>", html)
 
 
+class RiskRenderingTest(unittest.TestCase):
+    def test_risky_item_survives_rendering_with_reason_and_evidence(self):
+        risk = {"reason": "確認手順を弱める", "evidence": ["ai/common/prompt_base.md > confirmation"]}
+        payload = json.loads(
+            mod.render(audit([item(1, risk=risk)])).split("const DATA = ")[1].split(";\nconst state")[0].replace("<\\/", "</")
+        )
+        self.assertEqual(payload["items"][0]["risk"], risk)
+        self.assertIn("risk-panel", mod.HTML_TEMPLATE)
+        self.assertIn("focusCard(item.id)", mod.HTML_TEMPLATE)
+
+    def test_missing_risk_is_distinct_from_explicit_null(self):
+        data = audit([item(1, risk=None), item(2)])
+        html = mod.render(data)
+        self.assertIn('hasOwnProperty.call(item,"risk")', html)
+        self.assertIn("risk未評価", html)
+
+
 class DetailsAndReductionTest(unittest.TestCase):
     def test_details_survive_rendering_in_declared_order(self):
         details = [
