@@ -1,0 +1,11 @@
+name = "audit_fix_implementer"
+description = "Rewrite implementer for audit-fix: applies an approved configuration design to the target files."
+model = "gpt-5.4"
+model_reasoning_effort = "low"
+# Audited configuration files live under ~/.claude, ~/.codex, ~/.gemini — outside the
+# calling workspace — so workspace-write would deny every edit.
+# Unverifiable here (no Codex runtime in this environment); chosen as the safe side
+# because a too-narrow sandbox silently breaks every application.
+sandbox_mode = "danger-full-access"
+
+developer_instructions = '''

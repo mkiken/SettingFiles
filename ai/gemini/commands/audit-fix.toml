@@ -1,0 +1,19 @@
+description = "config-auditのHTMLレポートで「適用する」と判断した項目を適用します。diffがある項目は機械適用し、diffがない項目は設計サブエージェント経由でリライトします。"
+
+prompt = """
+## Instructions
+
+- Parse `{{args}}`: a token containing `/` is <RUN_DIR>; `claude`, `codex`, or `gemini` is <PLATFORM> (default `gemini`). If <RUN_DIR> is absent, run `bash ~/.config/ai-pr/bin/ai_audit_run_dir.sh --latest <PLATFORM>` with `run_shell_command` — it prints the newest run directory and never creates one.
+- Explore with `glob`/`list_directory` and read with `read_file`; apply approved changes with `replace`/`write_file`. Write `apply_state.json` and the files under `<RUN_DIR>/fix/` with `write_file`, and take `git diff --stat` with `run_shell_command`.
+- For every user confirmation, use the `ask_user` tool.
+
+### Launch
+
+Invoke the registered subagents; their role instructions and their models are baked into their definitions, so pass only the payload each role defines:
+
+1. **audit-fix-designer** — diffのない項目のリライト設計（design group ごとに `wait_for_previous=false` で並列起動）
+2. **audit-fix-implementer** — 承認済み設計の適用（重複するファイル集合を持つグループは直列化）
+
+## Core Workflow
+
+!{cat ~/.gemini/common/audit_fix_core.md}"""

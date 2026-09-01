@@ -509,6 +509,52 @@ function generate_config_auditor_agents() {
   done
 }
 
+# audit-fix の設計/実装サブエージェント定義を共有フラグメントから生成する（Claude / Codex / Gemini）
+# 生成物: ai/{claude,gemini}/agents/audit-fix-{designer,implementer}.md,
+#         ai/codex/agents/audit_fix_{designer,implementer}.toml
+# review-fix と違い Claude 側も生成する: モデルをロールごとに固定するのが分離の目的で、
+# 実行時にロールコアを読む方式では呼び出し元のモデルを継承してしまう
+# 編集は ai/common/audit_fix_subagents/ と ai/<platform>/agents_src/audit_fix/ へ（生成物は編集しない）
+function generate_audit_fix_agents() {
+  local platform="$1"
+  local common="${Repo}ai/common/audit_fix_subagents"
+  local src="${Repo}ai/${platform}/agents_src/audit_fix"
+  local notice="GENERATED FILE - do not edit. Sources: ai/common/audit_fix_subagents/, ai/${platform}/agents_src/audit_fix/. Regen: mac/updates/${platform}.sh."
+  local role out
+
+  for role in designer implementer; do
+    case "$platform" in
+      claude | gemini)
+        out="${Repo}ai/${platform}/agents/audit-fix-${role}.md"
+        {
+          # 実行時トークンを消費しないよう、注釈は本文ではなく frontmatter 内の YAML コメントに埋め込む
+          awk -v notice="$notice" 'NR > 1 && /^---$/ && !done { print "# " notice; done = 1 } { print }' "${src}/head_${role}.md"
+          echo
+          /bin/cat "${common}/${role}_core.md"
+        } > "$out"
+        ;;
+      codex)
+        out="${Repo}ai/codex/agents/audit_fix_${role}.toml"
+        # 本文は TOML の ''' リテラル文字列に埋め込むため、フラグメントに ''' が混入したら生成を失敗させる
+        if /usr/bin/grep -q "'''" "${common}/${role}_core.md"; then
+          echo "Error: ''' found in audit_fix_${role} fragment; it would break the TOML literal string." >&2
+          return 1
+        fi
+        {
+          printf '# %s\n' "$notice"
+          /bin/cat "${src}/head_${role}.toml"
+          /bin/cat "${common}/${role}_core.md"
+          printf "'''\n"
+        } > "$out"
+        ;;
+      *)
+        echo "Error: unknown platform '${platform}' for generate_audit_fix_agents." >&2
+        return 1
+        ;;
+    esac
+  done
+}
+
 # review-fix の設計/実装サブエージェント定義を共有フラグメントから生成する（Codex のみ; Claude はサブエージェント自身が実行時にロールコアを読む）
 # 生成物: ai/codex/agents/review_fix_{designer,implementer}.toml
 # 編集は ai/common/review_fix_subagents/ と ai/codex/agents_src/review_fix/ へ（生成物は編集しない）
@@ -571,6 +617,7 @@ CODEX_CORE_SKILL_ENTRIES=(
   "pr-create-by-branch:pr_create_by_branch_core.md pr_body_format.md"
   "pr-review-subagents:pr_review_subagents/orchestrator_core.md pr_review_finding_format.md"
   "config-audit:config_audit_subagents/orchestrator_core.md"
+  "audit-fix:audit_fix_core.md"
   "review-merge:review_merge_core.md"
   "review-post:review_post_core.md pr_post_mechanics_core.md"
   "review-fix:review_fix_core.md"
@@ -692,6 +739,24 @@ function verify_review_fix_agent_generation_idempotency() {
   verify_generator_idempotency generate_review_fix_agents \
     "${Repo}ai/codex/agents/review_fix_designer.toml" \
     "${Repo}ai/codex/agents/review_fix_implementer.toml"
+}
+
+# 全プラットフォームの audit-fix サブエージェントを一括生成する（冪等性検証用ラッパー）
+function generate_audit_fix_agents_all() {
+  local platform
+  for platform in claude gemini codex; do
+    generate_audit_fix_agents "$platform" || return 1
+  done
+}
+
+function verify_audit_fix_agent_generation_idempotency() {
+  verify_generator_idempotency generate_audit_fix_agents_all \
+    "${Repo}ai/claude/agents/audit-fix-designer.md" \
+    "${Repo}ai/claude/agents/audit-fix-implementer.md" \
+    "${Repo}ai/gemini/agents/audit-fix-designer.md" \
+    "${Repo}ai/gemini/agents/audit-fix-implementer.md" \
+    "${Repo}ai/codex/agents/audit_fix_designer.toml" \
+    "${Repo}ai/codex/agents/audit_fix_implementer.toml"
 }
 
 # 全プラットフォームの敵対的検証エージェントを一括生成する（冪等性検証用ラッパー）

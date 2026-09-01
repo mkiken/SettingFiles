@@ -94,7 +94,8 @@ Do not print the report body, the manifest table, the item list, or the diffs �
 report. Print only a Japanese summary: per-category counts, total items, dependency pair count, and
 the follow-up usage — each item is decided as ✅ 適用する / 🚫 対応しない, and the decisions save
 directly to `state.json` in <RUN_DIR>; use the save button or accept the confirmation after all items
-are decided. To reopen the report later (the report server stops after being idle), the user runs the
+are decided, then run the `audit-fix` skill to apply them. To reopen the report later (the report
+server stops after being idle), the user runs the
 **zsh shell function** `audit-report` (or `audit-report <platform>`) instead of opening `report.html`
 directly — not a skill, so it is absent from the skill list; verify with `type audit-report`. It
 reuses a live server for this run or starts a new one, so state saves stay server-backed instead of
@@ -138,33 +139,23 @@ falling back to a file-save dialog. Present it as a shell command, never as a sk
 deletion/fix groups plus conflicts, flattened into one key. `targets` holds every cited location: 2
 entries for `overlap` (残す ← 重複) and `conflict` (A ↔ B), 1 otherwise; `file` and `section` mirror
 `targets[0]`. `quote` is load-bearing twice — the report locates the surrounding context by searching
-for it, and Phase 5 re-checks it before editing — so it must match the file byte for byte. `details`
+for it, and audit-fix re-checks it before editing — so it must match the file byte for byte. `details`
 carries the same labelled bullets as before, in order (理由 / 重複内容 / 推奨 / 問題点 / 改善案 /
 現状 / 短縮案 / 内容A / 内容B). `depends_on` lists item ids that must be applied together and must be
 symmetric. `diff` is that item's own unified diff, or `null` when it has no mechanical edit.
 `estimated_reduction` is the word count saved, `concise` only, `null` otherwise. `platform_key` is the
 `audit-report` argument (`claude` / `codex` / `gemini`).
 
-## Phase 5: Follow-up
+## Next: 適用
 
-1. Read `<RUN_DIR>/state.json`. If it is missing, tell the user to decide the items in the browser
-   (reopen with `audit-report`) and stop. Never fall back to asking for item numbers in the conversation.
-2. Reject a `schema_version` other than 1, and reject ids absent from `audit.json`. Each item's
-   `decision` is `"apply"` (✅ 適用する), `"dismiss"` (🚫 対応しない), or `null` (未判断).
-3. Select ids whose `decision` is `"apply"`. For each, every id in its `depends_on` closure must also
-   be `"apply"`; otherwise stop and report the pair. Never widen the selection yourself — the report
-   already enforces this, so a violation here means a hand-edited state file.
-4. Present the selected items grouped by file (`id. [file > section] category | summary`) and confirm
-   once with the user. This is the only confirmation, and it is yes/no — not item numbers.
-5. Apply each item's `diff`. Within one file, apply from the bottom up so earlier edits do not
-   invalidate later anchors. Before editing, verify the item's `quote` still matches the file; on
-   mismatch, skip that item and report it rather than guessing.
-6. Write `<RUN_DIR>/apply_state.json`: `{"schema_version": 1, "run_dir": "...", "selected_ids": [1, 4],
-   "items": {"1": {"status": "applied"|"skipped"|"failed", "reason": null}}}`. Never write
-   `<RUN_DIR>/state.json` — the browser owns it.
-7. Print a Japanese summary: per item 適用済み / スキップ（理由）.
+This skill ends at the report — it never edits a configuration file. Once every item is decided in the
+browser and `state.json` is saved, the user runs the **`audit-fix`** skill (optionally with the run
+directory) to apply the decisions. `audit-fix` selects ids whose `decision` is `"apply"` (✅ 適用する)
+and leaves `"dismiss"` (🚫 対応しない) and `null` (未判断) alone.
+Never fall back to asking for item numbers in the conversation, never read or write
+`<RUN_DIR>/state.json` here — the browser owns it — and never apply an edit from this skill.
 
-Apply file changes only after explicit user approval.
+Name this follow-up in the Phase 4 summary.
 
 ## Notes
 

@@ -20,6 +20,9 @@ generate_pr_review_verifier_agents claude
 # config-audit の監査エージェント定義を共有フラグメントから生成（編集は ai/common/config_audit_subagents/ と ai/claude/agents_src/config_audit/ へ）
 generate_config_auditor_agents claude
 
+# audit-fix の設計/実装サブエージェント定義を共有フラグメントから生成（編集は ai/common/audit_fix_subagents/ と ai/claude/agents_src/audit_fix/ へ）
+generate_audit_fix_agents claude
+
 # agents はファイル単位でシンボリックリンク（生成分の反映）
 mkdir -p ~/.claude/agents
 for file in "${Repo}ai/claude/agents"/*; do

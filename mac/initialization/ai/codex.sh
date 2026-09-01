@@ -52,6 +52,9 @@ generate_config_auditor_agents codex
 # review-fix の設計/実装サブエージェント定義を共有フラグメントから生成（編集は ai/common/review_fix_subagents/ と ai/codex/agents_src/review_fix/ へ）
 generate_review_fix_agents
 
+# audit-fix の設計/実装サブエージェント定義を共有フラグメントから生成（編集は ai/common/audit_fix_subagents/ と ai/codex/agents_src/audit_fix/ へ）
+generate_audit_fix_agents codex
+
 # agents はファイル単位でシンボリックリンク
 agents_dest=~/.codex/agents
 mkdir -p "$agents_dest"

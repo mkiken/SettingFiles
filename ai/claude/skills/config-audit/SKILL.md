@@ -4,7 +4,7 @@ description: >
   and unnecessary rules.
 model: fable
 argument-hint: "[scope: all|claude-md|skills|agents|hooks|settings|global|project]"
-allowed-tools: Bash(/bin/cat:*), Bash(readlink:*), Bash(bash:*), Bash(python3:*), Bash(nohup:*), Bash(curl:*), Bash(open:*), Read, Glob, Grep, Write, Edit
+allowed-tools: Bash(/bin/cat:*), Bash(readlink:*), Bash(bash:*), Bash(python3:*), Bash(nohup:*), Bash(curl:*), Bash(open:*), Read, Glob, Grep, Write
 ---
 
 ## Instructions

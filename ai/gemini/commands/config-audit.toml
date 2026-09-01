@@ -13,7 +13,7 @@ prompt = """
   - Global: `~/.gemini/GEMINI.md`, `~/.gemini/settings.json`, `~/.gemini/skills/*/SKILL.md`, `~/.gemini/commands/*.toml`
   - Project: `./GEMINI.md` or `./ai/gemini/_GEMINI.md`, `./ai/gemini/settings.json`, `./ai/gemini/policies/tools.toml`, `./ai/gemini/commands/*.toml`, `./ai/gemini/skills/*/SKILL.md`, `./ai/gemini/hooks/*`
 - `SOURCE_FILES`: `ai/common/prompt_base.md`, the character file `@`-imported by `ai/gemini/_GEMINI.md`, `ai/gemini/_GEMINI.md` (inline Language rules beyond the @imports)
-- Explore with `glob`/`list_directory` and read with `read_file`; apply approved changes with `replace`/`write_file`. Resolve `RUN_DIR` and run the report generator/server with `run_shell_command`.
+- Explore with `glob`/`list_directory` and read with `read_file`; write `audit.json` and the report with `write_file`. Resolve `RUN_DIR` and run the report generator/server with `run_shell_command`. This command never edits a configuration file — applying the decided items is the `audit-fix` skill's job.
 - For every user confirmation, use the `ask_user` tool.
 
 ### Launch

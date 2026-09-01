@@ -1,0 +1,10 @@
+name = "audit_fix_designer"
+description = "Rewrite designer for audit-fix: reads audit findings and config files, writes a design file into the run directory."
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+# The run directory (~/.cache/ai-audit/...) and the audited config files (~/.claude,
+# ~/.codex, ~/.gemini) are all outside the calling workspace, so workspace-write would
+# deny both the design-file write and the config reads. Matches review_fix_designer.
+sandbox_mode = "danger-full-access"
+
+developer_instructions = '''

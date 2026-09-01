@@ -87,11 +87,27 @@ class AuditReportContractTest(unittest.TestCase):
         self.assertNotIn("scratchpad", claude_skill)
         self.assertNotIn("レポートのファイル保存", claude_skill)
 
-    def test_claude_adapter_can_run_the_pipeline_and_apply_edits(self):
+    def test_claude_adapter_can_run_the_pipeline_without_applying_edits(self):
         claude_skill = CLAUDE_SKILL_PATH.read_text(encoding="utf-8")
-        for tool in ("Bash(python3:*)", "Bash(bash:*)", "Write", "Edit"):
+        for tool in ("Bash(python3:*)", "Bash(bash:*)", "Write"):
             with self.subTest(tool=tool):
                 self.assertIn(tool, claude_skill)
+        # 適用は audit-fix の責務。Edit を戻すと監査モデル(fable)が適用まで走れてしまい、
+        # 監査=賢いモデル / 適用=安いモデルというモデル分離が崩れる
+        self.assertNotIn("Edit", claude_skill)
+
+    def test_gemini_adapter_can_write_the_report_without_applying_edits(self):
+        gemini_command = GEMINI_COMMAND_PATH.read_text(encoding="utf-8")
+        # audit.json と report.html の出力に write_file は必須。replace は編集プリミティブなので外す
+        self.assertIn("write_file", gemini_command)
+        self.assertNotIn("replace", gemini_command)
+
+    def test_core_hands_off_the_apply_step_to_audit_fix(self):
+        # 適用フェーズは audit-fix スキルへ完全に移譲した。core に戻ると
+        # 3プラットフォームすべてで監査モデルが適用まで走ってしまう
+        self.assertIn("audit-fix", self.core)
+        self.assertNotIn("## Phase 5", self.core)
+        self.assertNotIn("apply_state.json", self.core)
 
     def test_claude_runtime_and_generated_codex_skill_receive_the_contract(self):
         claude_skill = CLAUDE_SKILL_PATH.read_text(encoding="utf-8")
