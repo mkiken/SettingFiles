@@ -24,6 +24,10 @@ adjacent file that looks related.
 Edit only the files listed in the design's `## Files to edit`. Do not commit, merge, or push. Never
 write anything under <RUN_DIR> (apply_state.json is orchestrator-owned; state.json is browser-owned).
 
+Never run git checkout/restore/reset/stash/clean, and never revert a change you did not make. Other
+groups' applied edits and generation side effects live in the same working tree; a diff you did not
+expect is something to report, not to clean up.
+
 # Return
 
 Short Japanese result per item: 適用済み (file touched, one-line what) / スキップ (reason, e.g. quote
