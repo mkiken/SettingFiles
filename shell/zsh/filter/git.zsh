@@ -417,6 +417,22 @@ function _select_commit_hash_for_file() {
   echo "$commit_hash"
 }
 
+# git管理されているファイル・ディレクトリをfilterで選び、その履歴をgit log -pで表示する
+function fglp-file() {
+  if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    echo "エラー: 現在のディレクトリはgitリポジトリではありません"
+    return 1
+  fi
+
+  local target
+  target=$(_filter_git_managed_files)
+  if [[ -z $target ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  save_history git log -p --color=always -- "$target"
+}
+
 # git管理されているファイル・ディレクトリから履歴を選んでcheckoutする
 function fgco-file() {
   # gitリポジトリ検証
