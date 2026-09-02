@@ -5,7 +5,7 @@
 
 # File References When Addressing the User
 
-When pointing the user at a file or code location — in questions, confirmation dialogs, or findings — use a repository-root-relative path plus `:line` when known; bare filenames are ambiguous in large repositories and not self-contained. (Line numbers are fine here — unlike code comments, these messages are ephemeral.)
+When referencing a file/location to the user (questions, confirmations, findings), use repository-root-relative path + `:line` when known. Bare filenames are ambiguous. (Line numbers are fine here as messages are ephemeral.)
 
 # Code Fences Around Dynamic Content
 
@@ -30,12 +30,12 @@ Use an absolute path when standard behavior matters; verify non-obvious paths wi
 
 When declaring shell variables, avoid zsh special parameters such as `status` and `path`; use task-specific names such as `test_exit`.
 
-- The `-i` aliases (`cp`, `mv`) prompt before overwriting; in non-interactive runs the prompt auto-declines and the copy/move silently fails — use `/bin/cp` / `/bin/mv` to overwrite.
-- Deletion is the exception to that `/bin/` escape hatch: `rm` and `/bin/rm` are permission-denied in all cases, even non-interactively — always delete via `trash`.
+- `-i` aliases (`cp`, `mv`) silently fail non-interactively when overwriting; use `/bin/cp` or `/bin/mv`.
+- `rm` and `/bin/rm` always fail permission-denied; always use `trash`.
 - `trash` does not accept rm-style flags (`-r`, `-f`, `-rf` fail); pass files and directories without flags.
 - `eza` does not accept GNU/BSD `ls` flags: it hard-errors on flags like `-t` (its `--time <FIELD>` expects a named value) instead of behaving like `ls`. When a flag's meaning must match traditional `ls`, use `/bin/ls`.
 
-To check what a zsh symbol resolves to, prefer `type <name>`; it covers functions, aliases, builtins, and external commands in one shot. `typeset -f` only lists functions and silently misses aliases.
+- Prefer `type <name>` to resolve zsh symbols; `typeset -f` misses aliases.
 
 # Context-Mode Commands
 
@@ -76,6 +76,10 @@ Before designing a performance optimization, measure the baseline and each candi
 # Heuristic Design
 
 Before designing a heuristic that classifies or filters inputs (string patterns, allowlists, thresholds), measure the distribution its assumptions rest on against real data — the full population, or a sample with the sampling policy stated — and include the numbers in the plan. Never generalize from a few convenient examples.
+
+# Assumed Tool Behavior
+
+Before writing into a plan that an existing command, API, or function accepts a particular input form (a revision range, a flag combination, a path syntax), run that one case read-only and confirm it. State verified facts and unverified assumptions separately; never assert an unrun behavior as fact.
 
 # Radical Honesty Protocol
 
