@@ -16,6 +16,80 @@ function fgh_compare_url(){
   gh_compare_url $base $compare
 }
 
+# git logのレンジ指定（A..B）でコミットを絞ってfilterで1つ選び、ハッシュを返す
+# _select_commit_hashはブランチ引数を`git rev-parse --verify`で検証するが、
+# --verifyは単一revision専用でA..B形式が必ず失敗するため、レンジ用にここを分けている
+# 検証は`git log`自体の終了ステータスで兼ねる（不正なレンジならgit logが失敗する）
+# 戻り値: 選択されたコミットハッシュ、キャンセル/候補ゼロ時は $EXIT_CODE_SIGINT
+function _select_commit_hash_in_range() {
+  local header_message="$1"
+  local range="$2"
+  local limit="${3:-200}"
+
+  local commits
+  commits=$(git log --pretty=format:"%C(yellow)%h%C(reset) %C(blue)%an%C(reset) %C(green)%ad%C(reset) %s" \
+    --date=short -"$limit" --color=always "$range" 2>/dev/null)
+  if [[ $? -ne 0 ]] || [[ -z "$commits" ]]; then
+    echo "コミットが見つかりませんでした: ${range}" >&2
+    return $EXIT_CODE_SIGINT
+  fi
+
+  local selected_commit
+  selected_commit=$(echo "$commits" | \
+    filter \
+      --ansi \
+      --layout=reverse \
+      --header "$header_message" \
+      --prompt "commit> " \
+      --preview 'git show --color=always {1}' \
+      --preview-window=right:60%:wrap
+  )
+
+  if [[ -z "$selected_commit" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  _extract_commit_hash "$selected_commit"
+}
+
+# ブランチとコミットをfilterで選び、GitHubのcompare urlをブラウザで開く
+# 選択は3段: ブランチ -> base コミット -> compare コミット
+# compare候補は「同じブランチかつbaseより後」のコミットのみ（git logのA..Bレンジで絞る）
+# 異ブランチ間の比較はfgh_compare_url（ブランチ同士の比較）を使う
+function fgh-compare() {
+  if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    echo "エラー: 現在のディレクトリはgitリポジトリではありません" >&2
+    return 1
+  fi
+
+  local branch
+  branch=$(br_org)
+  if [[ $? -ne 0 ]] || [[ -z "$branch" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  local base_hash
+  base_hash=$(_select_commit_hash "compare元(base)のコミットを選択してください" 200 "$branch")
+  local base_status=$?
+  if [[ $base_status -ne 0 ]] || [[ -z "$base_hash" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  # baseは A..B レンジに含まれないため、compare == base の無意味な比較は候補から自然に外れる
+  local compare_hash
+  compare_hash=$(_select_commit_hash_in_range "compare先のコミットを選択してください" "${base_hash}..${branch}" 200)
+  local compare_status=$?
+  if [[ $compare_status -ne 0 ]] || [[ -z "$compare_hash" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  local url
+  url=$(_gh_compare_url_build "$base_hash" "$compare_hash") || return $?
+
+  save_history open "$url"
+}
+alias fghcmp='fgh-compare'
+
 # マージ先のブランチ名を表示するPR一覧
 # 先頭の --label-prefix <文字列> はここで剥がしてfilterのpromptへ渡し、
 # 残りの引数はghpl_branch（gh pr listのクエリフラグ）へそのまま転送する

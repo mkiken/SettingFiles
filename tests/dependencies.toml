@@ -20,3 +20,10 @@
 "ai/gemini/commands/config-audit.toml" = [
   "tests/ai/common/config_audit_subagents/test_orchestrator_core_md__audit_report_contract.py",
 ]
+
+# _gh_compare_url_build は gh.zsh にあるが、テストはエントリポイントの fgh-compare
+# (github.zsh) 側にまとめている。gh.zsh 単独変更では
+# tests/shell/zsh/alias/test_gh_zsh.py を探して0件になるため明示する。
+"shell/zsh/alias/gh.zsh" = [
+  "tests/shell/zsh/filter/test_github_zsh__compare_url_picker.py",
+]

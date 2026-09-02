@@ -48,6 +48,37 @@ function ghpl_from_commit() {
     ghpl_branch --search "${commit_hash}" --state all
 }
 
+# 引数の2リビジョンを比較するGitHubのcompare urlを組み立てて標準出力へ返す
+# originのremote urlがSSH形式でもHTTPS形式でもhttps://github.com/OWNER/REPO形式へ正規化する
+# SSH形式のホスト部は github-personal のような ~/.ssh/config のホストエイリアスも取りうるため
+# ホスト名を固定パターンで照合せず、OWNER/REPO部分だけを抜き出してgithub.comへ組み替える
+_gh_compare_url_build() {
+  if [ $# -ne 2 ]; then
+    echo "Usage: _gh_compare_url_build BASE COMPARE" >&2
+    return 1
+  fi
+
+  local remote_url
+  remote_url=$(git remote get-url origin) || return $?
+  if [[ -z "$remote_url" ]]; then
+    echo "エラー: originのremote urlを取得できませんでした" >&2
+    return 1
+  fi
+
+  local repo_url
+  repo_url=$(echo "${remote_url}" | sed -E \
+    -e 's#^[^@]+@[^:]+:#https://github.com/#' \
+    -e 's#^ssh://[^/]+/#https://github.com/#' \
+    -e 's#\.git$##')
+
+  if [[ "$repo_url" != https://github.com/*/* ]]; then
+    echo "エラー: originのremote urlをGitHubのURLへ変換できませんでした: ${remote_url}" >&2
+    return 1
+  fi
+
+  echo "${repo_url}/compare/${1}...${2}"
+}
+
 # 引数の2リビジョンを比較するGitHubのcompare urlを開く
 gh_compare_url() {
   if [ $# -ne 2 ]; then
@@ -55,9 +86,8 @@ gh_compare_url() {
     return 1
   fi
 
-  remote_url=$(git remote get-url origin)
+  local url
+  url=$(_gh_compare_url_build "$1" "$2") || return $?
 
-  repo_url=$(echo "${remote_url}" | sed -e 's/git@github.com:/https:\/\/github.com\//' -e 's/\.git$//')
-
-  save_history open "${repo_url}/compare/${1}...${2}"
+  save_history open "$url"
 }
