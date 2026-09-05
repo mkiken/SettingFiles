@@ -6,6 +6,16 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
 # sudo 待ちで気づけるようベルを仕込む（子プロセス=公式インストーラや cask にも継承される）
 source "${SCRIPT_DIR}/../scripts/common.sh"
+
+parse_settingfiles_common_args "mac/initialize" "$@"
+_args_status=$?
+if (( _args_status == 10 )); then
+    exit 0
+elif (( _args_status != 0 )); then
+    exit "$_args_status"
+fi
+unset _args_status
+
 enable_sudo_bell
 
 echo "Starting macOS initialization..."

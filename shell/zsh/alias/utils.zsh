@@ -51,10 +51,14 @@ function make_symlink () {
     if [[ -n "$review_signature" ]]; then
       last_reviewed_at=$(_diff_review_last_reviewed_at "$review_signature" 2>/dev/null || true)
       if [[ -n "$last_reviewed_at" ]]; then
-        repeated_action=$(_diff_review_prompt_repeated_symlink "$review_signature" "$last_reviewed_at" "$src" "$link_path")
+        if _diff_review_reprompt_enabled; then
+          repeated_action=$(_diff_review_prompt_repeated_symlink "$review_signature" "$last_reviewed_at" "$src" "$link_path")
+        else
+          repeated_action="skip"
+        fi
         case "$repeated_action" in
           skip)
-            echo "Skipped: $link_path"
+            echo "Skipped: $link_path (前回確認時と同じ差分です: $last_reviewed_at)"
             return 0
             ;;
           view)
@@ -357,6 +361,22 @@ function _diff_review_record() {
 function _diff_review_smart_merge_auto_enabled() {
     case "${SMART_MERGE_ACTION:-}" in
         overwrite|keep|merge_src|merge_dst)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+# 署名一致（前回確認時と同じ差分）を検出したときに再度プロンプトを出すか。
+# デフォルトは出さない = 自動スキップ。
+# SMART_MERGE_ACTION が設定されている場合、そちらが repeated 機構ごとバイパス
+# するため本フラグは無視される（make_symlink を除く）。
+# 戻り値: 0 = 再プロンプトする / 1 = 自動スキップする
+function _diff_review_reprompt_enabled() {
+    case "${SETTINGFILES_DIFF_REVIEW_REPROMPT:-}" in
+        1|true|TRUE|True|yes|YES|Yes|on|ON)
             return 0
             ;;
         *)
@@ -903,7 +923,11 @@ function smart_copy() {
     if [[ -n "$review_signature" ]] && ! _diff_review_smart_merge_auto_enabled; then
         last_reviewed_at=$(_diff_review_last_reviewed_at "$review_signature" 2>/dev/null || true)
         if [[ -n "$last_reviewed_at" ]]; then
-            repeated_action=$(_diff_review_prompt_repeated_copy "$review_signature" "$last_reviewed_at" "" "$dst")
+            if _diff_review_reprompt_enabled; then
+                repeated_action=$(_diff_review_prompt_repeated_copy "$review_signature" "$last_reviewed_at" "" "$dst")
+            else
+                repeated_action="skip"
+            fi
             case "$repeated_action" in
                 overwrite)
                     echo "cp \"$src\" \"$dst\""
@@ -911,7 +935,7 @@ function smart_copy() {
                     return $?
                     ;;
                 skip)
-                    echo "Skipped: $dst"
+                    echo "Skipped: $dst (前回確認時と同じ差分です: $last_reviewed_at)"
                     return 0
                     ;;
                 view)
@@ -1040,7 +1064,11 @@ function smart_merge_json() {
         if [[ -n "$review_signature" ]] && ! _diff_review_smart_merge_auto_enabled; then
             last_reviewed_at=$(_diff_review_last_reviewed_at "$review_signature" 2>/dev/null || true)
             if [[ -n "$last_reviewed_at" ]]; then
-                repeated_action=$(_diff_review_prompt_repeated_copy "$review_signature" "$last_reviewed_at" "smart_merge_json overwrite/skip required: $src_label -> $dst_label" "$dst_label")
+                if _diff_review_reprompt_enabled; then
+                    repeated_action=$(_diff_review_prompt_repeated_copy "$review_signature" "$last_reviewed_at" "smart_merge_json overwrite/skip required: $src_label -> $dst_label" "$dst_label")
+                else
+                    repeated_action="skip"
+                fi
                 case "$repeated_action" in
                     overwrite)
                         echo "Applying source to destination: $src_label -> $dst_label"
@@ -1049,7 +1077,7 @@ function smart_merge_json() {
                         return $?
                         ;;
                     skip)
-                        echo "Skipped: $dst_label"
+                        echo "Skipped: $dst_label (前回確認時と同じ差分です: $last_reviewed_at)"
                         return 0
                         ;;
                     view)
@@ -1092,7 +1120,14 @@ function smart_merge_json() {
     if [[ -n "$review_signature" ]] && ! _diff_review_smart_merge_auto_enabled; then
         last_reviewed_at=$(_diff_review_last_reviewed_at "$review_signature" 2>/dev/null || true)
         if [[ -n "$last_reviewed_at" ]]; then
-            action=$(_diff_review_prompt_repeated_merge "$review_signature" "$last_reviewed_at" "smart_merge_json merge action required: $src_label -> $dst_label" "$dst_label")
+            if _diff_review_reprompt_enabled; then
+                action=$(_diff_review_prompt_repeated_merge "$review_signature" "$last_reviewed_at" "smart_merge_json merge action required: $src_label -> $dst_label" "$dst_label")
+            else
+                # 下流の case は overwrite|keep|merge_src|merge_dst のみを受けるため
+                # skip ではなく keep を入れる
+                action="keep"
+                echo "前回確認時と同じ差分のため自動スキップしました: $last_reviewed_at ($dst_label)"
+            fi
         fi
     fi
 

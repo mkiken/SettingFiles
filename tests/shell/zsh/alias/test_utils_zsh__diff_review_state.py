@@ -27,6 +27,7 @@ class ZshSession:
         script: str,
         input_text: str = "",
         extra_env: dict[str, str] | None = None,
+        reprompt: bool = False,
     ) -> subprocess.CompletedProcess[str]:
         env = {
             "HOME": str(self.home),
@@ -36,6 +37,10 @@ class ZshSession:
             "SETTINGFILES_DIFF_REVIEW_DIR": str(self.state_dir),
             "LANG": "en_US.UTF-8",
         }
+        # 既定では署名一致時に自動スキップするため、反復プロンプトを検証する
+        # テストは reprompt=True で明示的に有効化する。
+        if reprompt:
+            env["SETTINGFILES_DIFF_REVIEW_REPROMPT"] = "1"
         if extra_env:
             env.update(extra_env)
 
@@ -55,6 +60,180 @@ def combined_output(result: subprocess.CompletedProcess[str]) -> str:
 
 
 class DiffReviewStateTest(unittest.TestCase):
+    def test_diff_review_reprompt_enabled_only_accepts_truthy_values(self):
+        truthy = ["1", "true", "TRUE", "True", "yes", "YES", "Yes", "on", "ON"]
+        falsy = ["", "0", "false", "no", "off", "foo"]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            session = ZshSession(Path(tmpdir))
+            script = (
+                "source shell/zsh/alias/utils.zsh; "
+                "_diff_review_reprompt_enabled"
+            )
+
+            for value in truthy:
+                result = session.run(
+                    script,
+                    extra_env={"SETTINGFILES_DIFF_REVIEW_REPROMPT": value},
+                )
+                self.assertEqual(
+                    result.returncode, 0, f"{value!r}: {combined_output(result)}"
+                )
+
+            for value in falsy:
+                result = session.run(
+                    script,
+                    extra_env={"SETTINGFILES_DIFF_REVIEW_REPROMPT": value},
+                )
+                self.assertEqual(
+                    result.returncode, 1, f"{value!r}: {combined_output(result)}"
+                )
+
+            # 未設定も自動スキップ側（デフォルト）に落ちる
+            result = session.run(script)
+            self.assertEqual(result.returncode, 1, combined_output(result))
+
+    def test_smart_copy_repeated_same_diff_auto_skips_by_default(self):
+        """署名一致時、既定では反復プロンプトを出さず自動スキップする。"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            session = ZshSession(Path(tmpdir))
+            src = Path(tmpdir) / "src.txt"
+            dst = Path(tmpdir) / "dst.txt"
+            src.write_text("new\n", encoding="utf-8")
+            dst.write_text("old\n", encoding="utf-8")
+
+            result = session.run(
+                (
+                    "source shell/zsh/alias/utils.zsh; "
+                    f"smart_copy {quote(src)} {quote(dst)}; "
+                    f"smart_copy {quote(src)} {quote(dst)}"
+                ),
+                "s\n",
+            )
+            output = combined_output(result)
+
+            self.assertEqual(result.returncode, 0, output)
+            self.assertEqual(dst.read_text(encoding="utf-8"), "old\n")
+            self.assertEqual(output.count("=== Differences found ==="), 1, output)
+            self.assertNotIn("前回確認時と同じ差分です: \n", output)
+            self.assertNotIn("[s]kip / [v]iew diff / [o]verwrite", output)
+            # 自動スキップは理由とタイムスタンプを添えて可視化する
+            self.assertIn(f"Skipped: {dst} (前回確認時と同じ差分です:", output)
+            self.assertEqual(len(list(session.state_dir.iterdir())), 1, output)
+
+    def test_smart_copy_reprompt_flag_values_toggle_repeated_prompt(self):
+        """SETTINGFILES_DIFF_REVIEW_REPROMPT の値で反復プロンプトが切り替わる。"""
+        cases = (
+            ("1", True),
+            ("yes", True),
+            ("0", False),
+        )
+        for value, expect_prompt in cases:
+            with self.subTest(value=value):
+                with tempfile.TemporaryDirectory() as tmpdir:
+                    session = ZshSession(Path(tmpdir))
+                    src = Path(tmpdir) / "src.txt"
+                    dst = Path(tmpdir) / "dst.txt"
+                    src.write_text("new\n", encoding="utf-8")
+                    dst.write_text("old\n", encoding="utf-8")
+                    script = (
+                        "source shell/zsh/alias/utils.zsh; "
+                        f"smart_copy {quote(src)} {quote(dst)}"
+                    )
+
+                    seed = session.run(script, "s\n", reprompt=True)
+                    self.assertEqual(seed.returncode, 0, combined_output(seed))
+
+                    result = session.run(
+                        script,
+                        "s\n",
+                        extra_env={"SETTINGFILES_DIFF_REVIEW_REPROMPT": value},
+                    )
+                    output = combined_output(result)
+
+                    self.assertEqual(result.returncode, 0, output)
+                    self.assertEqual(dst.read_text(encoding="utf-8"), "old\n")
+                    if expect_prompt:
+                        self.assertIn("前回確認時と同じ差分です:", output)
+                        self.assertIn(
+                            "[s]kip / [v]iew diff / [o]verwrite (default: s):", output
+                        )
+                    else:
+                        self.assertNotIn("[s]kip / [v]iew diff / [o]verwrite", output)
+
+    def test_smart_merge_json_merge_branch_auto_skips_with_keep_by_default(self):
+        """merge 分岐の自動スキップは keep として扱われ、正常終了する。"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            session = ZshSession(Path(tmpdir))
+            src = Path(tmpdir) / "src.json"
+            dst = Path(tmpdir) / "dst.json"
+            src.write_text(json.dumps({"a": 2, "c": 3}), encoding="utf-8")
+            dst.write_text(json.dumps({"a": 1, "b": 1}), encoding="utf-8")
+            script = (
+                "source shell/zsh/alias/utils.zsh; "
+                f"smart_merge_json {quote(src)} {quote(dst)} src dst"
+            )
+
+            seed = session.run(script, "k\n", reprompt=True)
+            self.assertEqual(seed.returncode, 0, combined_output(seed))
+
+            result = session.run(script)
+            output = combined_output(result)
+
+            self.assertEqual(result.returncode, 0, output)
+            self.assertEqual(json.loads(dst.read_text(encoding="utf-8")), {"a": 1, "b": 1})
+            self.assertNotIn("前回確認時と同じ差分です: 2", output)
+            self.assertNotIn("=== Differences found ===", output)
+            self.assertIn("前回確認時と同じ差分のため自動スキップしました:", output)
+            self.assertIn("Skipped: dst", output)
+
+    def test_smart_merge_json_fallback_branch_auto_skips_by_default(self):
+        """不正 JSON の fallback 分岐も既定で自動スキップする。"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            session = ZshSession(Path(tmpdir))
+            src = Path(tmpdir) / "src.json"
+            dst = Path(tmpdir) / "dst.json"
+            src.write_text(json.dumps({"a": 1}), encoding="utf-8")
+            dst.write_text("not json\n", encoding="utf-8")
+            script = (
+                "source shell/zsh/alias/utils.zsh; "
+                f"smart_merge_json {quote(src)} {quote(dst)} src dst"
+            )
+
+            seed = session.run(script, "s\n", reprompt=True)
+            self.assertEqual(seed.returncode, 0, combined_output(seed))
+
+            result = session.run(script)
+            output = combined_output(result)
+
+            self.assertEqual(result.returncode, 0, output)
+            self.assertEqual(dst.read_text(encoding="utf-8"), "not json\n")
+            self.assertNotIn("[s]kip / [v]iew diff / [o]verwrite", output)
+            self.assertIn("Skipped: dst (前回確認時と同じ差分です:", output)
+
+    def test_make_symlink_repeated_conflict_auto_skips_by_default(self):
+        """make_symlink には SMART_MERGE_ACTION ゲートが無いため個別に pin する。"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            session = ZshSession(Path(tmpdir))
+            src = Path(tmpdir) / "src"
+            dst = Path(tmpdir) / "dst"
+            src.write_text("source\n", encoding="utf-8")
+            dst.write_text("existing\n", encoding="utf-8")
+            script = f"source shell/zsh/alias/utils.zsh; make_symlink {quote(src)} {quote(dst)}"
+
+            seed = session.run(script, "n\n", reprompt=True)
+            self.assertEqual(seed.returncode, 0, combined_output(seed))
+
+            result = session.run(script)
+            output = combined_output(result)
+
+            self.assertEqual(result.returncode, 0, output)
+            self.assertNotIn("シンボリックリンクではない既存パスがあります:", output)
+            self.assertNotIn("[s]kip / [v]iew change / [o]verwrite", output)
+            self.assertIn(f"Skipped: {dst} (前回確認時と同じ差分です:", output)
+            self.assertFalse(dst.is_symlink())
+            self.assertEqual(dst.read_text(encoding="utf-8"), "existing\n")
+
     def test_diff_review_mktemp_json_returns_distinct_files_with_trailing_tmpdir_slash(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             session = ZshSession(Path(tmpdir))
@@ -99,6 +278,7 @@ class DiffReviewStateTest(unittest.TestCase):
                     f"smart_copy {quote(src)} {quote(dst)}"
                 ),
                 "s\ns\n",
+                reprompt=True,
             )
 
             output = combined_output(result)
@@ -118,10 +298,10 @@ class DiffReviewStateTest(unittest.TestCase):
             dst.write_text("old\n", encoding="utf-8")
             script = f"source shell/zsh/alias/utils.zsh; smart_copy {quote(src)} {quote(dst)}"
 
-            seed = session.run(script, "s\n")
+            seed = session.run(script, "s\n", reprompt=True)
             self.assertEqual(seed.returncode, 0, combined_output(seed))
 
-            result = session.run(script, "v\ns\n")
+            result = session.run(script, "v\ns\n", reprompt=True)
             output = combined_output(result)
 
             self.assertEqual(result.returncode, 0, output)
@@ -139,11 +319,11 @@ class DiffReviewStateTest(unittest.TestCase):
             dst.write_bytes(b"\x00old\n")
             script = f"source shell/zsh/alias/utils.zsh; smart_copy {quote(src)} {quote(dst)}"
 
-            seed = session.run(script, "s\n")
+            seed = session.run(script, "s\n", reprompt=True)
             self.assertEqual(seed.returncode, 0, combined_output(seed))
 
             src.write_bytes(b"\x00new-two\n")
-            result = session.run(script, "s\n")
+            result = session.run(script, "s\n", reprompt=True)
             output = combined_output(result)
 
             self.assertEqual(result.returncode, 0, output)
@@ -161,10 +341,10 @@ class DiffReviewStateTest(unittest.TestCase):
             dst.write_text('{"a":1,"c":3}\n', encoding="utf-8")
             script = f"source shell/zsh/alias/utils.zsh; smart_merge_json {quote(src)} {quote(dst)} src dst"
 
-            seed = session.run(script, "k\n")
+            seed = session.run(script, "k\n", reprompt=True)
             self.assertEqual(seed.returncode, 0, combined_output(seed))
 
-            result = session.run(script, extra_env={"SMART_MERGE_ACTION": "keep"})
+            result = session.run(script, extra_env={"SMART_MERGE_ACTION": "keep"}, reprompt=True)
             output = combined_output(result)
 
             self.assertEqual(result.returncode, 0, output)
@@ -182,10 +362,10 @@ class DiffReviewStateTest(unittest.TestCase):
             dst.write_text('{"a":1,"c":3}\n', encoding="utf-8")
             script = f"source shell/zsh/alias/utils.zsh; smart_merge_json {quote(src)} {quote(dst)} src dst"
 
-            seed = session.run(script, "k\n")
+            seed = session.run(script, "k\n", reprompt=True)
             self.assertEqual(seed.returncode, 0, combined_output(seed))
 
-            result = session.run(script, "k\n")
+            result = session.run(script, "k\n", reprompt=True)
             output = combined_output(result)
 
             self.assertEqual(result.returncode, 0, output)
@@ -266,10 +446,10 @@ class DiffReviewStateTest(unittest.TestCase):
             dst.write_text("existing\n", encoding="utf-8")
             script = f"source shell/zsh/alias/utils.zsh; make_symlink {quote(src)} {quote(dst)}"
 
-            seed = session.run(script, "n\n")
+            seed = session.run(script, "n\n", reprompt=True)
             self.assertEqual(seed.returncode, 0, combined_output(seed))
 
-            result = session.run(script, "s\n")
+            result = session.run(script, "s\n", reprompt=True)
             output = combined_output(result)
 
             self.assertEqual(result.returncode, 0, output)
@@ -394,11 +574,11 @@ class DiffReviewStateTest(unittest.TestCase):
             dst.write_text("existing\n", encoding="utf-8")
             script = f"source shell/zsh/alias/utils.zsh; make_symlink {quote(src)} {quote(dst)}"
 
-            seed = session.run(script, "n\n")
+            seed = session.run(script, "n\n", reprompt=True)
             self.assertEqual(seed.returncode, 0, combined_output(seed))
 
             src.write_text("source two\n", encoding="utf-8")
-            result = session.run(script, "n\n")
+            result = session.run(script, "n\n", reprompt=True)
             output = combined_output(result)
 
             self.assertEqual(result.returncode, 0, output)
@@ -415,10 +595,10 @@ class DiffReviewStateTest(unittest.TestCase):
             dst.write_text("existing\n", encoding="utf-8")
             script = f"source shell/zsh/alias/utils.zsh; make_symlink {quote(src)} {quote(dst)}"
 
-            seed = session.run(script, "n\n")
+            seed = session.run(script, "n\n", reprompt=True)
             self.assertEqual(seed.returncode, 0, combined_output(seed))
 
-            result = session.run(script, "v\nn\n")
+            result = session.run(script, "v\nn\n", reprompt=True)
             output = combined_output(result)
 
             self.assertEqual(result.returncode, 0, output)

@@ -27,3 +27,13 @@
 "shell/zsh/alias/gh.zsh" = [
   "tests/shell/zsh/filter/test_github_zsh__compare_url_picker.py",
 ]
+
+# mac/initialize / mac/initialization/initialize / mac/update の共通引数パースは
+# 3ファイル横断の1テストで検証する。テストは mac/update 側に置いているため、
+# 他2ファイル単独の変更では 0 件になる。
+"mac/initialization/initialize" = [
+  "tests/mac/test_update__common_args.py",
+]
+"mac/initialize" = [
+  "tests/mac/test_update__common_args.py",
+]
