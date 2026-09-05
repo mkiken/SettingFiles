@@ -90,6 +90,7 @@ source_and_zcompile_if_needed "${SET}shell/zsh/alias/main.zsh" || echo "Warning:
 path=(/usr/local/bin(N-/) $path)
 path=($BREW_PREFIX/bin(N-/) $path)
 path=($HOME/.local/bin(N-/) $path) # pipxのパス
+path=($HOME/go/bin(N-/) $path) # go installのパス
 
 # 名前で色を付けるようにする
 autoload -U colors
