@@ -92,6 +92,9 @@ path=($BREW_PREFIX/bin(N-/) $path)
 path=($HOME/.local/bin(N-/) $path) # pipxのパス
 path=($HOME/go/bin(N-/) $path) # go installのパス
 
+# mdv（Markdownビューア）の見出し階層色。mountルートに依存せず全インスタンスに効く
+export MDV_CSS="${SET}terminal/mdv/mdv-plans.css"
+
 # 名前で色を付けるようにする
 autoload -U colors
 colors

@@ -89,7 +89,7 @@ class PlanReviewCriteriaTest(unittest.TestCase):
     def test_codex_has_no_plan_file_and_uses_an_ephemeral_browser_path(self):
         for required in (
             "Codex has no `~/.codex/plans`;",
-            "Never use Claude-only port 8600/`~/.claude/plans`.",
+            "Never use Claude-only port 4649/`~/.claude/plans`.",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.codex_base)

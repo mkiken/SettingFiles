@@ -166,7 +166,7 @@
       "Bash(grep:*)",
       "Bash(head:*)",
       "Bash(ls:*)",
-      "Bash(mdts:*)",
+      "Bash(mdv:*)",
       "Bash(pwd:*)",
       "Bash(rg:*)",
       "Bash(tail:*)",

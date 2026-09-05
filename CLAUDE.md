@@ -66,6 +66,8 @@ Fix targeted failures, or report them explicitly at the commit confirmation. Run
 
 Main-suite tests mirror their primary implementation owner: `tests/<normalized source parent>/test_<source name>[__scenario].py`. Python source names omit `.py`; other extensions remain encoded in the test name. A test that exercises several files stays with the entrypoint or canonical source that owns its behavior; do not add ordinary ownership to a map.
 
+A new test directory needs an `__init__.py`. Without one the runner reports `Selected 0 tests from 1 test modules` and still exits successfully, so a new test file silently never runs — confirm the expected test count after adding the first file in a directory.
+
 `tests/dependencies.toml` is for proven exceptional dependencies only. When a wider run reveals a failing test omitted by targeted selection, first confirm that a changed source caused the failure, then propose an exact source-to-test entry. After approval, add it and verify that `--paths <source>` selects the test. Do not record unrelated or pre-existing failures. If a valid changed path has no mapped test, the runner reports it and exits successfully; state that omission in the handoff.
 
 The runner executes deterministic test-ID shards in parallel. Tests must be order-independent, must not write shared tracked state, and must use temporary directories for filesystem mutations. Use `python3 tests/run_tests.py --jobs 1` or `python3 -m unittest discover -s tests` for sequential diagnosis.

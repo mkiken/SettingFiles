@@ -60,8 +60,8 @@ Otherwise, first output a terminal review preview containing the complete decisi
 
 If option 1 is chosen, open the browser first, then load the `dig` skill.
 
-If option 2 is chosen, load the dig skill without launching mdts.
+If option 2 is chosen, load the dig skill without launching mdv.
 
 If option 4 is chosen, output the previewed plan unchanged inside the final `<proposed_plan>` block. After any dig round changes the candidate plan, repeat the full terminal preview and review-choice flow with the revised plan before finalizing it.
 
-Codex has no `~/.codex/plans`; a plan exists only in the turn's `<proposed_plan>`. For accepted browser review, first write it to a scratchpad, then follow Plan Review Presentation's SDD flow: choose a free port from 8610, run `mdts -p <found-port> --no-open <scratchpad-dir>`, and stop it after review. Never use Claude-only port 8600/`~/.claude/plans`. Temp File Cleanup applies to the scratchpad.
+Codex has no `~/.codex/plans`; a plan exists only in the turn's `<proposed_plan>`. For accepted browser review, first write it to a scratchpad, then follow Plan Review Presentation's SDD flow: run `mdv -d -n -q <scratchpad-dir>`, parse the printed port, and stop it after review. Never use Claude-only port 4649/`~/.claude/plans`. Temp File Cleanup applies to the scratchpad.

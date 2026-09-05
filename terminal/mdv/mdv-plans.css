@@ -1,0 +1,40 @@
+/*
+ * mdv の plan 表示用・見出し階層色とインラインコード色。
+ * 冷色相ラダー（h1 navy -> h2 blue -> h3 teal -> h4 purple -> h5/h6 grey）で
+ * 階層の深さを一目で判別する。mdv 組み込み CSS は h1-h6 のサイズ/weight を
+ * すべて定義済みなので、ここで足すのは色だけ。
+ * MDV_CSS 経由で読み込まれ、mount ルートに依存せず全インスタンスに適用される。
+ * mdv は組み込み CSS の後にこれを配信するので !important は不要。
+ */
+
+/* ---------- LIGHT ---------- */
+/* 素セレクタは data-theme 適用前のフレームも兼ねる */
+.markdown-body h1 { color: #0b2e59; }
+.markdown-body h2 { color: #12507f; }
+.markdown-body h3 { color: #0f6f6a; }
+.markdown-body h4 { color: #5b3a9e; }
+.markdown-body h5 { color: #44515e; }
+.markdown-body h6 { color: #5e6b78; }
+
+/* インラインコードを地の文から浮かせる。mdv 組み込みは背景しか与えないので
+   マゼンタ系の文字色を足す。`:not(pre) > code` の限定が要（外すと
+   コードブロックのシンタックスハイライトが単色に潰れる）。 */
+.markdown-body :not(pre) > code {
+  color: #a3117f;
+  background-color: #fbf0f7;
+}
+
+/* ---------- DARK ---------- */
+/* mdv は documentElement（<html>）に data-theme を置き、値は resolveTheme() が
+   必ず light/dark の実値に解決する。よって auto を別扱いする必要はない。 */
+[data-theme="dark"] .markdown-body h1 { color: #9dc4f0; }
+[data-theme="dark"] .markdown-body h2 { color: #7fb2e8; }
+[data-theme="dark"] .markdown-body h3 { color: #4fc3bb; }
+[data-theme="dark"] .markdown-body h4 { color: #c4a7f5; }
+[data-theme="dark"] .markdown-body h5 { color: #aab8c4; }
+[data-theme="dark"] .markdown-body h6 { color: #8d9aa6; }
+
+[data-theme="dark"] .markdown-body :not(pre) > code {
+  color: #f8a5d8;
+  background-color: #2d1b26;
+}

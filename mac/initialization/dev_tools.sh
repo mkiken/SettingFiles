@@ -28,10 +28,7 @@ smart_copy "${Repo}vscode/base_keybindings.json" ~/Library/Application\ Support/
 # commitlint
 npm install -g @commitlint/config-conventional
 
-# mdts: ローカルMarkdownビューア（SDDのspec/planをブラウザでツリー表示する）
-# nvm等のNodeバージョンマネージャに解決されるとPATHが通らないためHomebrewのnpmを明示
-homebrew_npm install -g mdts
-source "${Repo}mac/scripts/mdts.sh"
-setup_mdts || exit 1
+# mdv: ローカルMarkdownビューア（SDDのspec/planをブラウザでツリー表示する）
+go install github.com/gr1m0h/mdv@latest
 
 echo 'Development tools configured.'
