@@ -15,7 +15,7 @@ class PlanReviewCriteriaTest(unittest.TestCase):
 
     def test_skip_criterion_governs_both_offers(self):
         for required in (
-            "governs both the `dig` skill offer and the Plan Review Presentation browser offer",
+            "governs both the deep-dive offer and the Plan Review Presentation browser offer",
             "the shared file's own line-count/format criteria do not apply here",
         ):
             with self.subTest(required=required):
@@ -63,20 +63,45 @@ class PlanReviewCriteriaTest(unittest.TestCase):
                 self.assertIn(required, self.codex_base)
 
     def test_four_option_review_choice_is_always_plain_text(self):
-        plan_review = self.codex_base.split("# Plan Review Deep-Dive (dig)", 1)[1]
+        plan_review = self.codex_base.split("# Plan Review Deep-Dive (grilling → dig)", 1)[1]
 
         for required in (
             "plain-text Markdown ordered list",
             "never call `request_user_input` for it",
             "four authored options exceed the runtime limit",
             "Treat a number-only reply as selecting the corresponding option",
-            "1. Both: open the browser and also run dig.",
-            "2. dig only: run dig without opening the browser.",
-            "3. Open the browser now, decide on dig after reading.",
+            "1. Both: open the browser and also run the deep-dive.",
+            "2. Deep-dive only: run grilling then dig without opening the browser.",
+            "3. Open the browser now, decide on the deep-dive after reading.",
             "4. Neither.",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, plan_review)
+
+    def test_deep_dive_is_offered_as_an_indivisible_pair(self):
+        # Negative-pin rationale: the user chose "both or neither" over a
+        # per-skill menu, because grilling settles decisions and dig stresses
+        # them — either half alone leaves the plan half-reviewed. Listing them
+        # as separate options would silently restore the split the user
+        # rejected, so the prohibition must stay explicit in the prompt.
+        for required in (
+            "never list grilling and dig as separate selectable options",
+            "fixed two-stage pair, never one half alone",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.codex_base)
+
+    def test_grilling_runs_before_dig_and_never_concurrently(self):
+        for required in (
+            "load the `grilling` skill and complete its rounds",
+            "then load the `dig` skill on the plan grilling produced",
+            "Never start dig while grilling still has open questions",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.codex_base)
+
+    def test_preview_repeats_once_after_the_pair_not_between_stages(self):
+        self.assertIn("once, after dig, not between the two stages", self.codex_base)
 
     def test_neither_finalizes_the_preview_and_dig_repeats_the_flow(self):
         for required in (
@@ -99,7 +124,7 @@ class PlanReviewCriteriaTest(unittest.TestCase):
 
     def test_generated_agents_md_carries_the_same_criteria(self):
         for required in (
-            "governs both the `dig` skill offer and the Plan Review Presentation browser offer",
+            "governs both the deep-dive offer and the Plan Review Presentation browser offer",
             "Codex has no `~/.codex/plans`;",
             "first output a terminal review preview",
             "offer both only when two gates both hold",

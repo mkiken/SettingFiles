@@ -79,13 +79,47 @@ class PlanReviewBodyOutputTest(unittest.TestCase):
 
     def test_four_dialog_options_are_intact(self):
         for required in (
-            "Both: open the browser and also run dig.",
-            "dig only: run dig without opening the browser.",
-            "Open the browser now, decide on dig after reading.",
+            "Both: open the browser and also run the deep-dive.",
+            "Deep-dive only: run grilling then dig without opening the browser.",
+            "Open the browser now, decide on the deep-dive after reading.",
             "Neither.",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.claude_md)
+
+    def test_deep_dive_is_offered_as_an_indivisible_pair(self):
+        # Negative-pin rationale: the user chose "both or neither" over a
+        # per-skill menu, because grilling settles decisions and dig stresses
+        # them — either half alone leaves the plan half-reviewed. Listing them
+        # as separate options would silently restore the split the user
+        # rejected, so the prohibition must stay explicit in the prompt.
+        for required in (
+            "never list grilling and dig as separate selectable options",
+            "fixed two-stage pair, never one half alone",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.claude_md)
+
+    def test_grilling_runs_before_dig_and_never_concurrently(self):
+        for required in (
+            "invoke the `grilling` skill and complete its rounds",
+            "then invoke the `dig` skill on the plan grilling produced",
+            "Never start dig while grilling still has open questions",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.claude_md)
+
+    def test_grilling_is_pinned_inline_rather_than_forked(self):
+        # Negative-pin rationale: dig is a forked subagent, so a later edit
+        # aligning the two stages could fork grilling too. A forked agent has
+        # no AskUserQuestion, which would make grilling's interview — its
+        # entire purpose — invisible to the user.
+        self.assertIn(
+            "grilling always runs inline in the main session", self.claude_md
+        )
+
+    def test_plan_is_re_presented_once_after_the_pair_not_between_stages(self):
+        self.assertIn("once, after dig, not between the two stages", self.claude_md)
 
 
 if __name__ == "__main__":
