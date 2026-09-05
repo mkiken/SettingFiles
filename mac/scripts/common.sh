@@ -14,6 +14,56 @@ function enable_sudo_bell() {
   export SUDO_PROMPT=$'\a🔔 [sudo] %p のパスワードを入力してください: '
 }
 
+# mac/initialize と mac/update が共有する CLI オプションの usage。
+# 出力先を引数で受け、--help は stdout、エラー時は stderr に出す。
+function _settingfiles_common_args_usage() {
+  local script_name="$1"
+
+  cat <<EOF
+Usage: ${script_name} [options]
+
+Options:
+  --reprompt-reviewed     前回確認済みと同じ差分でも、毎回確認プロンプトを表示する
+                          (環境変数 SETTINGFILES_DIFF_REVIEW_REPROMPT=1 と等価)
+  --no-reprompt-reviewed  前回確認済みと同じ差分は自動スキップする (デフォルト)
+  -h, --help              このヘルプを表示して終了する
+EOF
+}
+
+# diff-review 再確認フラグなど、エントリスクリプト共通の CLI 引数を解釈する。
+# 使い方: parse_settingfiles_common_args "<script-name>" "$@"
+# 戻り値: 0 = 続行 / 2 = 未知の引数（呼び出し側は中断すべき）
+#         10 = --help を表示したので正常終了すべき
+# 未知の引数でエラー終了するのは、タイポでフラグが効かないまま brew や npm を含む
+# 長時間処理が走り切るのを防ぐため。パーサは最初の実処理より前に呼ばれる。
+function parse_settingfiles_common_args() {
+  local script_name="${1:-SettingFiles}"
+  shift
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --reprompt-reviewed)
+        export SETTINGFILES_DIFF_REVIEW_REPROMPT=1
+        ;;
+      --no-reprompt-reviewed)
+        export SETTINGFILES_DIFF_REVIEW_REPROMPT=0
+        ;;
+      -h|--help)
+        _settingfiles_common_args_usage "$script_name"
+        return 10
+        ;;
+      *)
+        echo "❌ Unknown option: $1" >&2
+        _settingfiles_common_args_usage "$script_name" >&2
+        return 2
+        ;;
+    esac
+    shift
+  done
+
+  return 0
+}
+
 function untap_stale_homebrew_taps() {
   local stale_taps=(
     "aku11i/tap"
