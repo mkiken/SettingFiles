@@ -106,6 +106,10 @@ When comparing or selecting an external tool to adopt here (CLI, plugin, package
 - Note when a candidate is very new (repository age, `0.x` version, low commit count) — that is a maintenance risk to surface, not a disqualifier.
 - Prefer secondary sources published within the last 12 months and give their date; for older ones, state the age and discount accordingly. When a source's author also authored a compared candidate, say so and discount accordingly.
 
+### Removing External Tools
+
+When removing or replacing a tool whose configuration was installed outside this repository (browser extension styles, GUI app preferences, OS-level settings), enumerate those external copies in the plan and state whether each needs manual removal by the user. Deleting the repository source or its setup instructions does not deactivate an already-installed copy. Migrating from mdts to mdv hit exactly this: `mdts-plans.user.css` stayed active in the Stylus extension and, being scoped to `domain("localhost")` rather than a port, kept restyling mdv until it was removed by hand.
+
 ## Architecture
 
 ### Directory Structure
