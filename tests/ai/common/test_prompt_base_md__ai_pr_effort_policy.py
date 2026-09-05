@@ -114,12 +114,18 @@ class PrCommentImplementAliasTest(unittest.TestCase):
                 self.assertEqual(captured[-1], prompt)
                 self.assertEqual(captured.count(prompt), 1)
                 if alias.startswith("cl"):
-                    self.assertEqual(captured[:4], ["claude", "--allow-dangerously-skip-permissions", "--permission-mode", "plan"])
-                    self.assertNotIn("--model", captured)
+                    self.assertEqual(captured[:2], ["claude", "--allow-dangerously-skip-permissions"])
                     if tier == "light":
+                        # cl-pciはclp経由。planモードのみでモデル・effortの上書きは無い。
+                        self.assertNotIn("--model", captured)
                         self.assertNotIn("--effort", captured)
+                        self.assertEqual(captured[2:4], ["--permission-mode", "plan"])
                     else:
-                        self.assertEqual(captured[4:6], ["--effort", "high"])
+                        # clh-pciはclhp経由（clf -> --effort high -> planモード）。
+                        self.assertEqual(
+                            captured[2:8],
+                            ["--model", "fable", "--effort", "high", "--permission-mode", "plan"],
+                        )
                 else:
                     if tier == "light":
                         self.assertNotIn("--model", captured)

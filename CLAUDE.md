@@ -55,6 +55,11 @@ cd mac && brew bundle
 ```
 
 ### Run Tests
+
+Whenever you change anything in this repository, run the tests covering what you changed before reporting the work complete — implementation, prompt sources, generated outputs, and configuration alike. This is not optional, and it applies to changes that look too small or too declarative to break a test: this repository pins prompt text, generated-file composition, and config structure in tests, so edits to a `.md`, `.json`, or `.toml` file break tests as readily as code does.
+
+When a change intentionally alters behavior a test pins, update that test in the same task. Leaving it is what produced the stale expectations found later — an implementation deliberately changed while its test kept asserting the old value, so the suite stayed red and the failure stopped carrying information.
+
 ```bash
 python3 tests/run_tests.py
 ```
@@ -84,7 +89,8 @@ Canonical source-to-command mapping for regenerating committed outputs. The full
 
 | Edited source | Regenerate with |
 | --- | --- |
-| `ai/common/prompt_base.md`, `ai/common/genshijin-activate.md`, `ai/common/genshijin-file-policy.md` (Claude/Gemini load the applicable sources at runtime via `@file`) | Codex only: `zsh -c 'source mac/scripts/common.sh && generate_codex_agents'` |
+| `ai/common/prompt_base.md` (Claude/Gemini load it at runtime via `@file`) | Codex only: `zsh -c 'source mac/scripts/common.sh && generate_codex_agents'` |
+| `ai/common/genshijin-activate.md` (upstream-synced by `sync_genshijin_rule`; keep local edits out of it — put overrides in `genshijin-file-policy.md`), `ai/common/genshijin-file-policy.md` | None — loaded at runtime via `@file` by Claude/Gemini only; Codex does not consume them |
 | `ai/codex/codex_base.md` | `zsh -c 'source mac/scripts/common.sh && generate_codex_agents'` |
 | Shared-core skill sources (`ai/common/*_core.md`, `ai/{codex,gemini}/skills/*/skill_head.md`/`skill_tail.md`; includes pr-review-subagents skill adapters) | `zsh -c 'source mac/scripts/common.sh && verify_ai_skill_generation_idempotency'` |
 | pr-reviewer agent sources (`ai/common/pr_review_subagents/intro_*.md`, `ai/common/pr_review_subagents/format_*.md`, `ai/*/agents_src/`) | `zsh -c 'source mac/scripts/common.sh && generate_pr_reviewer_agents <platform>'` |
@@ -182,7 +188,7 @@ Both `_CLAUDE.md` and `_GEMINI.md` are static files using `@file` import syntax 
 
 Edit these sources directly — no build step. Gemini additionally merges `ai/common/mcp.json` (and `mcp.local.json` if present) into its `settings.json`.
 
-- **Codex** (`ai/codex/_AGENTS.md`): Codex's AGENTS.md does not support `@file` imports, so `mac/initialization/ai/codex.sh` (and `mac/updates/codex.sh`) generates `_AGENTS.md` by `cat`-concatenating `ai/common/prompt_base.md` + `ai/common/genshijin-activate.md` + `ai/common/genshijin-file-policy.md` + `ai/codex/codex_base.md`; the generated file is committed and symlinked to `~/.codex/AGENTS.md`.
+- **Codex** (`ai/codex/_AGENTS.md`): Codex's AGENTS.md does not support `@file` imports, so `mac/initialization/ai/codex.sh` (and `mac/updates/codex.sh`) generates `_AGENTS.md` by `cat`-concatenating `ai/common/prompt_base.md` + `ai/codex/codex_base.md`; the generated file is committed and symlinked to `~/.codex/AGENTS.md`. Codex does not receive the genshijin sources — unlike Claude and Gemini, it has no genshijin persona layer. `tests/mac/scripts/test_common_sh__codex_agents_sync.py` pins this two-file composition.
 
 `ai/common/characters/` is an inactive, swappable persona palette. No platform loads it by default; hestia, mizuki_himeji, nagato_yuki, reimu, rikka_takanashi, and nyaruko remain available for an explicit future swap.
 

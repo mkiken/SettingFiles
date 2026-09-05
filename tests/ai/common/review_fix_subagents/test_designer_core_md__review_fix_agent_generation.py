@@ -58,9 +58,13 @@ Repo="{self.fixture_root}/"
         return self.fixture_root / f"ai/codex/agents/review_fix_{role}.toml"
 
     def test_generates_both_tomls_from_real_fragments(self):
+        # implementer edits a task worktree that is a sibling of the calling
+        # workspace, so workspace-write would deny every edit. Both roles need
+        # out-of-workspace access; see the rationale comments in
+        # ai/codex/agents_src/review_fix/head_implementer.toml.
         expected_sandbox = {
             "designer": 'sandbox_mode = "danger-full-access"',
-            "implementer": 'sandbox_mode = "workspace-write"',
+            "implementer": 'sandbox_mode = "danger-full-access"',
         }
 
         result = self.run_fn("generate_review_fix_agents")

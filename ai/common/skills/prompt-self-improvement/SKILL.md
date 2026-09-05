@@ -18,7 +18,7 @@ All paths below are relative to the SettingFiles repository root. When the curre
 - Shared always-on behavior: `ai/common/prompt_base.md`
 - Claude entrypoint: `ai/claude/_CLAUDE.md`
 - Gemini entrypoint: `ai/gemini/_GEMINI.md`
-- Codex source fragments: `ai/common/prompt_base.md`, `ai/common/genshijin-activate.md`, `ai/common/genshijin-file-policy.md`, `ai/codex/codex_base.md`
+- Codex source fragments: `ai/common/prompt_base.md`, `ai/codex/codex_base.md` (no genshijin sources — Codex has no genshijin layer)
 - Codex generated file: `ai/codex/_AGENTS.md`; do not edit it directly
 - Tool-specific workflows: `ai/*/skills/`, `ai/*/commands/`, `ai/*/agents/`
 - All-platform shared workflow skills: `ai/common/skills/`

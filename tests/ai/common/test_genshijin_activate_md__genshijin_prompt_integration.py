@@ -21,10 +21,18 @@ class GenshijinPromptIntegrationTest(unittest.TestCase):
         rule = read_text("ai/common/genshijin-activate.md")
         policy = read_text("ai/common/genshijin-file-policy.md")
 
+        # genshijin-activate.md is synced verbatim from upstream, so the local
+        # override must not live there: upstream's confirmation prompt stays put.
         self.assertIn("genshijin口調で書くか", rule)
+
+        # The override is owned by the policy file, which survives the sync.
         self.assertIn("Do not ask whether to use genshijin style.", policy)
-        self.assertIn("only when the user explicitly requests it for that file", policy)
         self.assertIn("Keep genshijin active for conversational responses.", policy)
+
+        # The policy must state its own scope rather than leaning on upstream's
+        # file-type list, which the sync can rewrite at any time.
+        self.assertIn("This applies to every file type", policy)
+        self.assertIn("must stay self-contained", policy)
 
     def test_active_entrypoints_use_genshijin_without_character_imports(self):
         claude = read_text("ai/claude/_CLAUDE.md")

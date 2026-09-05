@@ -24,9 +24,6 @@
         ]
       }
     ],
-    "PreToolUse": [
-
-    ],
     "SessionStart": [
       {
         "hooks": [
