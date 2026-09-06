@@ -67,7 +67,9 @@ For ordinary implementation changes, run only the tests owned by the files chang
 ```bash
 python3 tests/run_tests.py --paths <repo-relative changed paths>
 ```
-Fix targeted failures, or report them explicitly at the commit confirmation. Run the full suite only when changing the runner, test layout, `tests/support.py`, `tests/dependencies.toml`, or when explicitly requested. Never leave a suite that was run red.
+Fix targeted failures, or report them explicitly at the commit confirmation. Run the full suite only when changing the runner, test layout, `tests/support.py`, `tests/dependencies.toml`, when moving or renaming files, or when explicitly requested. Never leave a suite that was run red.
+
+Moving or renaming a file needs more than grepping its old path: that finds only references written as one literal string. Also search for the path assembled from parts (a parent directory plus a filename variable, e.g. `REPO_ROOT / "shell/tmux" / name`) and for code resolving siblings relative to itself (`dirname "$0"`, `__file__`, `Path(__file__).parent`) — a file moved away from its neighbours leaves no literal to find. Both kinds hid from a clean grep during the `shell/herdr/` move and surfaced only as 47 failures in the full suite, because the tests that caught them are not selected by the changed paths.
 
 Main-suite tests mirror their primary implementation owner: `tests/<normalized source parent>/test_<source name>[__scenario].py`. Python source names omit `.py`; other extensions remain encoded in the test name. A test that exercises several files stays with the entrypoint or canonical source that owns its behavior; do not add ordinary ownership to a map.
 
@@ -151,6 +153,8 @@ In zsh, `local` is `typeset`: re-declaring an already-declared variable inside a
 In interactive shells, `cd` fires chpwd hooks (their stdout pollutes command substitutions) and is overridden by zoxide's `cd` function which rejects `-q`; shell helpers that cd inside `$(...)` must use `builtin cd -q`.
 
 Files sourced during zshrc init (e.g. `shell/zsh/filter/base.zsh`) must bail out with `return`, never `exit` — `exit` kills the whole shell mid-init with no visible error (a Herdr popup running `zsh -ic` then closes instantly before the `-c` command ever runs).
+
+A symlinked script that reaches outside its own directory must resolve its real path first: `BASH_SOURCE`/`$0` give the link's location, so `$(dirname "$0")/../other` resolves under the link target (`~/.herdr/scripts/../tmux`), not the repository. Use `/bin/realpath` on `BASH_SOURCE[0]` before deriving any sibling directory, and pin the symlinked path in the test — a test that sources the repository file directly passes while the live path is broken. `herdr_status_icon.sh` (in `shell/herdr/`, reading `tmux_emoji.conf` and `tmux_window_name.py` from `shell/tmux/`) is the case this rule comes from.
 
 Key symlinks:
 - `ai/claude/_CLAUDE.md` → `~/.claude/CLAUDE.md`
