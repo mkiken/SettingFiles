@@ -94,10 +94,12 @@ function setup_claude_superpowers() {
 
   claude plugin marketplace update claude-plugins-official || return 1
 
+  # -y は marketplace 宣言コマンドの承認プロンプトをスキップする。
+  # 非 TTY 環境では CLI が -y を必須とするため、対話なしで完走させるのに必要。
   if claude plugin list --json | jq -e '.[] | select(.id == "superpowers@claude-plugins-official")' >/dev/null; then
-    claude plugin update superpowers@claude-plugins-official || return 1
+    claude plugin update -y superpowers@claude-plugins-official || return 1
   else
-    claude plugin install superpowers@claude-plugins-official || return 1
+    claude plugin install -y superpowers@claude-plugins-official || return 1
   fi
 
   if ! claude plugin list --json | jq -e '.[] | select(.id == "superpowers@claude-plugins-official" and .enabled == true)' >/dev/null; then

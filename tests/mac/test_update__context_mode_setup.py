@@ -384,6 +384,48 @@ class ContextModeSetupTest(unittest.TestCase):
         self.assertIn("setup_claude_mem_for_ide gemini-cli", gemini)
         self.assertIn("setup_claude_mem_runtime", gemini)
 
+    def test_superpowers_setup_uses_noninteractive_flags(self):
+        claude = read_text("mac/scripts/ai/claude.sh")
+        gemini = read_text("mac/scripts/ai/gemini.sh")
+
+        # mac/initialize と mac/update を対話なしで完走させるため、
+        # superpowers のインストール/更新は確認プロンプトを抑止する必要がある。
+        self.assertIn(
+            "claude plugin install -y superpowers@claude-plugins-official", claude
+        )
+        self.assertIn(
+            "claude plugin update -y superpowers@claude-plugins-official", claude
+        )
+
+        gemini_install = (
+            "gemini extensions install https://github.com/obra/superpowers"
+            " --auto-update --consent --skip-settings"
+        )
+        self.assertIn(gemini_install, gemini)
+
+        # codex plugin add には確認スキップ用フラグが存在しないため、-y 相当は付けられない。
+        # 誤って追加されると codex が未知フラグで落ちるので、その回帰を明示的に禁止する。
+        codex = read_text("mac/scripts/ai/codex.sh")
+        self.assertNotIn("codex plugin add -y", codex)
+        self.assertIn("codex plugin add superpowers@openai-curated", codex)
+
+    def test_codex_superpowers_guard_falls_back_to_config_toml(self):
+        codex = read_text("mac/scripts/ai/codex.sh")
+
+        # codex plugin list --json はローカル marketplace(openai-curated) の項目を
+        # 返さないため、.installed だけを見る guard は add 成功後も一致せず
+        # plugin add が毎回走る（= 毎回インストール対話が発生しうる）。
+        # config.toml の plugin テーブルを併用することでのみ再実行を防げる。
+        self.assertIn(
+            "/usr/bin/grep -Fq \"[plugins.'superpowers@openai-curated']\" \"$HOME/.codex/config.toml\"",
+            codex,
+        )
+
+        # guard は OR 条件でなければならない。.installed 単独に戻すと上記の回帰が起きる。
+        superpowers_body = codex.split("function setup_codex_superpowers()", 1)[1]
+        superpowers_body = superpowers_body.split("\n}", 1)[0]
+        self.assertIn("||", superpowers_body)
+
 
 if __name__ == "__main__":
     unittest.main()

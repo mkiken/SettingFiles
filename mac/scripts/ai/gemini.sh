@@ -59,7 +59,8 @@ function setup_gemini_superpowers() {
   if gemini extensions list 2>&1 | /usr/bin/grep -Eq '^[^[:space:]]+[[:space:]]+superpowers[[:space:]]+\('; then
     gemini extensions update superpowers || return 1
   else
-    gemini extensions install https://github.com/obra/superpowers --auto-update --consent || return 1
+    # --consent はセキュリティ確認、--skip-settings はインストール時の設定プロセスをそれぞれ抑止する。
+    gemini extensions install https://github.com/obra/superpowers --auto-update --consent --skip-settings || return 1
   fi
 
   gemini extensions enable superpowers || return 1
