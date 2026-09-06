@@ -384,6 +384,31 @@ class ContextModeSetupTest(unittest.TestCase):
         self.assertIn("setup_claude_mem_for_ide gemini-cli", gemini)
         self.assertIn("setup_claude_mem_runtime", gemini)
 
+    def test_superpowers_setup_uses_noninteractive_flags(self):
+        claude = read_text("mac/scripts/ai/claude.sh")
+        gemini = read_text("mac/scripts/ai/gemini.sh")
+
+        # mac/initialize と mac/update を対話なしで完走させるため、
+        # superpowers のインストール/更新は確認プロンプトを抑止する必要がある。
+        self.assertIn(
+            "claude plugin install -y superpowers@claude-plugins-official", claude
+        )
+        self.assertIn(
+            "claude plugin update -y superpowers@claude-plugins-official", claude
+        )
+
+        gemini_install = (
+            "gemini extensions install https://github.com/obra/superpowers"
+            " --auto-update --consent --skip-settings"
+        )
+        self.assertIn(gemini_install, gemini)
+
+        # codex plugin add には確認スキップ用フラグが存在しないため、-y 相当は付けられない。
+        # 誤って追加されると codex が未知フラグで落ちるので、その回帰を明示的に禁止する。
+        codex = read_text("mac/scripts/ai/codex.sh")
+        self.assertNotIn("codex plugin add -y", codex)
+        self.assertIn("codex plugin add superpowers@openai-curated", codex)
+
 
 if __name__ == "__main__":
     unittest.main()

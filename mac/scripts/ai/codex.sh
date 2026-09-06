@@ -77,6 +77,9 @@ function setup_codex_superpowers() {
   # openai-curated may be a bundled local snapshot; refresh only when the CLI supports it.
   codex plugin marketplace upgrade openai-curated >/dev/null 2>&1 || true
 
+  # codex plugin add には確認スキップフラグが無いため、-y 相当は付けられない。
+  # なお下の guard は現状 superpowers に対して一致しない（codex plugin list --json の
+  # .installed に superpowers が現れない）ため、plugin add は毎回実行される。別途調査が必要。
   if codex plugin list --json | jq -e '.installed[]? | select(.pluginId == "superpowers@openai-curated" or (.name == "superpowers" and .marketplaceName == "openai-curated"))' >/dev/null; then
     echo "✓ Codex Superpowers plugin already installed."
   else
