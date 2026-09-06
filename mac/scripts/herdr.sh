@@ -46,6 +46,35 @@ function setup_herdr_config() {
   make_symlink "$source_config" "$live_config"
 }
 
+# Herdr専用スクリプトを ~/.herdr/scripts/ へリンクする。
+# tmux側の setup_tmux_symlinks から分離したのは、mac/update が tmux.sh を呼ばず、
+# 配列にスクリプトを追加してもライブ環境へ反映されなかったため。
+# herdr-popup-run.sh のリンク欠落で全popupが即閉じする事故の再発を防ぐ。
+# setup_herdr 経由なので init と update の双方で走る。
+# make_symlink 自体が冪等（既に正しければスキップ）なので mode による分岐は持たない。
+function setup_herdr_scripts() {
+  local repo_root="${1:-$Repo}"
+  local target_home="${2:-$HOME}"
+  local scripts_dir="$target_home/.herdr/scripts"
+  local -a herdr_scripts=(
+    herdr-create-worktree-tab.sh
+    herdr-open-lazygit.sh
+    herdr-open-zoxide-picker.sh
+    herdr-popup-run.sh
+    herdr-split-snapshot-pane.sh
+    herdr_status_icon.sh
+    herdr_wait_shell_ready.sh
+    herdr_worktree_context.sh
+  )
+
+  mkdir -p "$scripts_dir" || return 1
+
+  local script
+  for script in "${herdr_scripts[@]}"; do
+    make_symlink "${repo_root%/}/shell/herdr/${script}" "${scripts_dir}/${script}" || return 1
+  done
+}
+
 function _herdr_remove_managed_hook_commands() {
   local source_json="$1"
   local output_json="$2"
@@ -744,10 +773,12 @@ function setup_herdr() {
       ;;
   esac
 
-  # config と plugins は自前でスキップガードを持つ（それぞれ symlink 一致判定 /
-  # plugin list 照会）ので mode を渡さない。service も稼働中なら常に起動しないため
-  # mode に関わらず同じ動作でよく、mode 不要。
+  # config と scripts と plugins は自前でスキップガードを持つ（それぞれ symlink 一致判定 /
+  # make_symlink の冪等性 / plugin list 照会）ので mode を渡さない。service も稼働中なら
+  # 常に起動しないため mode に関わらず同じ動作でよく、mode 不要。
+  # scripts は popup 動作の前提なので plugins/service のような best-effort ではなく必須扱い。
   setup_herdr_config "$repo_root" "$target_home" || return 1
+  setup_herdr_scripts "$repo_root" "$target_home" || return 1
   setup_herdr_integrations "$repo_root" "$target_home" "$mode" || return 1
   # プラグイン登録とservice常駐化は best-effort。失敗しても config/hook 登録という
   # 本体処理は成立済みなので initialize/update 全体を止めない。

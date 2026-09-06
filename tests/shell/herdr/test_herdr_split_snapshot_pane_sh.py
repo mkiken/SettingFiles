@@ -6,8 +6,8 @@ from pathlib import Path
 
 
 from support import REPO_ROOT
-SNAPSHOT_SCRIPT = REPO_ROOT / "shell/tmux/herdr-split-snapshot-pane.sh"
-WAIT_HELPER = REPO_ROOT / "shell/tmux/herdr_wait_shell_ready.sh"
+SNAPSHOT_SCRIPT = REPO_ROOT / "shell/herdr/herdr-split-snapshot-pane.sh"
+WAIT_HELPER = REPO_ROOT / "shell/herdr/herdr_wait_shell_ready.sh"
 
 # _herdr_wait_shell_ready の1attemptあたりのwaitタイムアウト（共有ヘルパーと一致させる）
 ATTEMPT_TIMEOUT_MS = 800

@@ -17,13 +17,22 @@
 # 失敗はすべてfail-safe（no set -e）: 通知/アイコン付与に失敗しても呼び出し元の
 # 処理を止めない（notify-on-agent-status.shと同じポリシー）。
 
+# このファイルは ~/.herdr/scripts/ へのsymlink越しにもsourceされる。dirnameだけでは
+# リンク側のディレクトリを指してしまうため、realpathで実体（shell/herdr/）へ解決する。
+# 隣接ファイルではなく別ディレクトリの共有モジュールを引くので、ここがずれると
+# tmux_emoji.conf の読み込みが失敗し、アイコン更新が丸ごと無言で死ぬ。
+_HERDR_STATUS_ICON_SELF="$(/bin/realpath "${BASH_SOURCE[0]:-$0}" 2>/dev/null)"
 if [[ -n "${ZSH_VERSION:-}" ]]; then
-    _HERDR_STATUS_ICON_DIR="$(builtin cd -q -- "$(/usr/bin/dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+    _HERDR_STATUS_ICON_DIR="$(builtin cd -q -- "$(/usr/bin/dirname "${_HERDR_STATUS_ICON_SELF:-${BASH_SOURCE[0]:-$0}}")" && pwd)"
 else
-    _HERDR_STATUS_ICON_DIR="$(builtin cd -- "$(/usr/bin/dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+    _HERDR_STATUS_ICON_DIR="$(builtin cd -- "$(/usr/bin/dirname "${_HERDR_STATUS_ICON_SELF:-${BASH_SOURCE[0]:-$0}}")" && pwd)"
 fi
+# tmux_emoji.conf と tmux_window_name.py は tmux 経路と共有するため shell/tmux/ に
+# 置かれたまま。このスクリプトは shell/herdr/ にあるので、自身のディレクトリでは
+# 解決できない。
+_HERDR_STATUS_ICON_SHARED_DIR="$(/usr/bin/dirname "${_HERDR_STATUS_ICON_DIR}")/tmux"
 if [[ -z "${EMOJI_STATUS_NOTIFICATION:-}" ]]; then
-    source "${_HERDR_STATUS_ICON_DIR}/tmux_emoji.conf"
+    source "${_HERDR_STATUS_ICON_SHARED_DIR}/tmux_emoji.conf"
 fi
 
 # シェル所有の入力待ち✋マーカーのTTL（秒）。プロンプト放置は正当なので長め(24h)に
@@ -88,7 +97,7 @@ set_herdr_task_tab_label() {
     [[ -z "${current_label}" ]] && return 1
 
     local new_label
-    new_label="$(python3 "${_HERDR_STATUS_ICON_DIR}/tmux_window_name.py" compute-initial-task-label "${current_label}" "${base_label}" 2>/dev/null)"
+    new_label="$(python3 "${_HERDR_STATUS_ICON_SHARED_DIR}/tmux_window_name.py" compute-initial-task-label "${current_label}" "${base_label}" 2>/dev/null)"
     [[ -z "${new_label}" ]] && return 1
     [[ "${new_label}" == "${current_label}" ]] && return 0
 
@@ -260,7 +269,7 @@ update_herdr_status_icon() {
     current_label="$(herdr tab get "${tab_id}" 2>/dev/null | jq -r '.result.tab.label // empty' 2>/dev/null)"
 
     local new_label
-    new_label="$(python3 "${_HERDR_STATUS_ICON_DIR}/tmux_window_name.py" compute-updated-label "${current_label}" "${status_emoji}" 2>/dev/null)"
+    new_label="$(python3 "${_HERDR_STATUS_ICON_SHARED_DIR}/tmux_window_name.py" compute-updated-label "${current_label}" "${status_emoji}" 2>/dev/null)"
     [[ -z "${new_label}" ]] && return 0
 
     if [[ "${new_label}" != "${current_label}" ]]; then
@@ -303,7 +312,7 @@ clear_herdr_shell_status_state() {
     if [[ -z "${marker_glyph}" ]]; then
         local current_label new_label
         current_label="$(_herdr_cli tab get "${tab_id}" 2>/dev/null | jq -r '.result.tab.label // empty' 2>/dev/null)"
-        new_label="$(python3 "${_HERDR_STATUS_ICON_DIR}/tmux_window_name.py" compute-cleaned-label "${current_label}" 2>/dev/null)"
+        new_label="$(python3 "${_HERDR_STATUS_ICON_SHARED_DIR}/tmux_window_name.py" compute-cleaned-label "${current_label}" 2>/dev/null)"
         if [[ -n "${new_label}" && "${new_label}" != "${current_label}" ]]; then
             _herdr_cli tab rename "${tab_id}" "${new_label}" >/dev/null 2>&1 || true
         fi
@@ -334,7 +343,7 @@ remove_herdr_status_icon() {
     current_label="$(herdr tab get "${tab_id}" 2>/dev/null | jq -r '.result.tab.label // empty' 2>/dev/null)"
 
     local new_label
-    new_label="$(python3 "${_HERDR_STATUS_ICON_DIR}/tmux_window_name.py" compute-cleaned-label "${current_label}" 2>/dev/null)"
+    new_label="$(python3 "${_HERDR_STATUS_ICON_SHARED_DIR}/tmux_window_name.py" compute-cleaned-label "${current_label}" 2>/dev/null)"
 
     if [[ -n "${new_label}" && "${new_label}" != "${current_label}" ]]; then
         herdr tab rename "${tab_id}" "${new_label}" >/dev/null 2>&1 || true

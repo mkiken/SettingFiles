@@ -89,7 +89,7 @@ tab_id="$(print -r -- "$pane_json" | jq -r '.result.pane.tab_id // empty' 2>/dev
 # シェル所有✋マーカーのread（_herdr_shell_status_marker_read）と、focusクリアの
 # clear_herdr_shell_status_stateを読み込む。
 # fail-safe: 読み込めなくてもピン留めとfocusクリアが無効になるだけで処理は続行する。
-source "${REPO_ROOT}/shell/tmux/herdr_status_icon.sh" 2>/dev/null || true
+source "${REPO_ROOT}/shell/herdr/herdr_status_icon.sh" 2>/dev/null || true
 case "$event_kind" in
   pane.focused|pane_focused)
     if [[ -n "$tab_id" ]] && (( ${+functions[clear_herdr_shell_status_state]} )); then

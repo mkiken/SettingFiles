@@ -262,7 +262,7 @@ all state and report it.
 When `HERDR_ENV=1`:
 
 ```bash
-herdr_context_helper="${SET:-$HOME/Desktop/repository/SettingFiles}/shell/tmux/herdr_worktree_context.sh"
+herdr_context_helper="${SET:-$HOME/Desktop/repository/SettingFiles}/shell/herdr/herdr_worktree_context.sh"
 zsh -ic 'builtin cd -q -- "$1" && source "$2" && set_herdr_task_worktree_context "$3"' zsh "$ORIGINAL_PATH" "$herdr_context_helper" "$TASK_PATH"
 ```
 
@@ -660,7 +660,7 @@ Once cleanup is verified, clear the Herdr task-worktree context (fail-safe,
 warn and continue on failure):
 
 ```bash
-herdr_context_helper="${SET:-$HOME/Desktop/repository/SettingFiles}/shell/tmux/herdr_worktree_context.sh"
+herdr_context_helper="${SET:-$HOME/Desktop/repository/SettingFiles}/shell/herdr/herdr_worktree_context.sh"
 zsh -ic 'builtin cd -q -- "$1" && source "$2" && clear_herdr_task_worktree_context' zsh "$ORIGINAL_PATH" "$herdr_context_helper"
 ```
 

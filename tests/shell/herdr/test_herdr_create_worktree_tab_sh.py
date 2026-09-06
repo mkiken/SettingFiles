@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 from support import REPO_ROOT
-SCRIPT = REPO_ROOT / "shell/tmux/herdr-create-worktree-tab.sh"
+SCRIPT = REPO_ROOT / "shell/herdr/herdr-create-worktree-tab.sh"
 ZSH = shutil.which("zsh")
 
 

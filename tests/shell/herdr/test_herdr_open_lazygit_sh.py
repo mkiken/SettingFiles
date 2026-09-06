@@ -8,8 +8,8 @@ from pathlib import Path
 
 from support import REPO_ROOT
 
-CONTEXT_SCRIPT = REPO_ROOT / "shell/tmux/herdr_worktree_context.sh"
-LAUNCHER_SCRIPT = REPO_ROOT / "shell/tmux/herdr-open-lazygit.sh"
+CONTEXT_SCRIPT = REPO_ROOT / "shell/herdr/herdr_worktree_context.sh"
+LAUNCHER_SCRIPT = REPO_ROOT / "shell/herdr/herdr-open-lazygit.sh"
 
 
 def context_relpath(tab_id: str, socket_path: str = "default") -> Path:

@@ -1,4 +1,4 @@
-"""shell/tmux/herdr_status_icon.sh の単体テスト。
+"""shell/herdr/herdr_status_icon.sh の単体テスト。
 
 実herdr CLIには依存せず、fake_bin/herdrで tab get/tab rename/tab list/
 workspace report-metadata の呼び出しを記録し、状態アイコンの付与・除去・
@@ -14,7 +14,7 @@ import unittest
 from pathlib import Path
 
 from support import REPO_ROOT
-SCRIPT = REPO_ROOT / "shell/tmux/herdr_status_icon.sh"
+SCRIPT = REPO_ROOT / "shell/herdr/herdr_status_icon.sh"
 
 
 def marker_relpath(tab_id: str) -> Path:
@@ -46,7 +46,7 @@ class HerdrStatusIconSourceTest(unittest.TestCase):
                 "zsh",
                 "-fc",
                 'function chpwd() { print -r -- polluted; }; '
-                'source "shell/tmux/herdr_status_icon.sh"; '
+                'source "shell/herdr/herdr_status_icon.sh"; '
                 'print -r -- "${_HERDR_STATUS_ICON_DIR}"',
             ],
             cwd=REPO_ROOT,
@@ -885,6 +885,55 @@ class ClearHerdrShellStatusStateTest(unittest.TestCase):
         out = self.run_clear('_herdr_cli tab get "w1:t1" >/dev/null')
         self.assertEqual(out["result"].returncode, 0, out["result"].stderr)
         self.assertEqual(out["get"], ["w1:t1"])
+
+
+class SharedModuleResolutionTest(unittest.TestCase):
+    """このスクリプトは shell/herdr/ にあるが、tmux_emoji.conf と
+    tmux_window_name.py は tmux 経路と共有するため shell/tmux/ に残っている。
+    実行時は ~/.herdr/scripts/ へのsymlink越しにsourceされるので、BASH_SOURCE を
+    realpath で実体へ解決しないと共有モジュールを見失う。失敗はfail-safeに
+    握り潰されアイコン更新が無言で止まるため、経路ごと固定する。"""
+
+    SHARED_MODULES = ("tmux_emoji.conf", "tmux_window_name.py")
+
+    def test_shared_modules_resolve_through_symlink(self):
+        for shell in ("/bin/bash", "/bin/zsh"):
+            with tempfile.TemporaryDirectory() as tmp:
+                link = Path(tmp) / "herdr_status_icon.sh"
+                link.symlink_to(SCRIPT)
+                for path, label in ((link, "symlink"), (SCRIPT, "real")):
+                    with self.subTest(shell=shell, source=label):
+                        result = subprocess.run(
+                            [
+                                shell,
+                                "-c",
+                                f'source "{path}" 2>/dev/null; '
+                                'printf "%s\\n%s\\n" '
+                                '"$EMOJI_STATUS_COMPLETED" "$_HERDR_STATUS_ICON_SHARED_DIR"',
+                            ],
+                            capture_output=True,
+                            text=True,
+                            check=False,
+                        )
+                        emoji, shared_dir = result.stdout.splitlines()[:2]
+                        self.assertTrue(
+                            emoji,
+                            f"tmux_emoji.conf を読めていない (stderr={result.stderr})",
+                        )
+                        self.assertEqual(
+                            Path(shared_dir), REPO_ROOT / "shell/tmux"
+                        )
+
+    def test_shared_modules_live_outside_the_script_directory(self):
+        # 共有モジュールを shell/herdr/ に複製すると tmux 経路と二重管理になり、
+        # symlink解決が不要だという誤解も生む。実体は shell/tmux/ の1つだけ。
+        for name in self.SHARED_MODULES:
+            with self.subTest(module=name):
+                self.assertFalse(
+                    (REPO_ROOT / "shell/herdr" / name).exists(),
+                    f"shell/herdr/{name} は置かない（shell/tmux/ と共有する）",
+                )
+                self.assertTrue((REPO_ROOT / "shell/tmux" / name).is_file())
 
 
 if __name__ == "__main__":

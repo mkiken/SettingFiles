@@ -24,7 +24,7 @@ If the active collaboration mode forbids side effects, do not rename the tab. De
 Record the task's absolute invoking working directory as `task_path`; callers such as `worktree-task` reuse their already-recorded invoking path. Then run:
 
 ```bash
-herdr_label_helper="${SET:-$HOME/Desktop/repository/SettingFiles}/shell/tmux/herdr_status_icon.sh"
+herdr_label_helper="${SET:-$HOME/Desktop/repository/SettingFiles}/shell/herdr/herdr_status_icon.sh"
 zsh -fc 'builtin cd -q -- "$1" && source "$2" && set_herdr_task_tab_label "$3"' zsh "$task_path" "$herdr_label_helper" "$slug"
 ```
 

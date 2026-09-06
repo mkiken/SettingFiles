@@ -136,13 +136,21 @@ class HerdrPluginNotifyTest(unittest.TestCase):
             for name in (
                 "tmux_emoji.py",
                 "tmux_window_name.py",
-                "herdr_status_icon.sh",
                 "ai_notification_sound.sh",
             ):
                 real_file = REPO_ROOT / "shell/tmux" / name
                 (fake_tmux_dir / name).write_text(
                     real_file.read_text(encoding="utf-8"), encoding="utf-8"
                 )
+            # herdr_status_icon.sh は Herdr 専用なので shell/herdr/ 側にある。
+            # 自身の隣ではなく ../tmux/ から共有モジュールを解決するため、
+            # フィクスチャでも同じ配置を再現する。
+            fake_herdr_dir = fake_repo / "shell/herdr"
+            fake_herdr_dir.mkdir(parents=True, exist_ok=True)
+            (fake_herdr_dir / "herdr_status_icon.sh").write_text(
+                (REPO_ROOT / "shell/herdr/herdr_status_icon.sh").read_text(encoding="utf-8"),
+                encoding="utf-8",
+            )
             if break_label_analyzer:
                 (fake_tmux_dir / "tmux_window_name.py").write_text(
                     "import sys\n"
@@ -1006,17 +1014,23 @@ class HerdrPluginTabIconTest(unittest.TestCase):
                 "tmux_emoji.conf",
                 "tmux_emoji.py",
                 "tmux_window_name.py",
-                "herdr_status_icon.sh",
             ):
                 real_file = REPO_ROOT / "shell/tmux" / name
                 (fake_tmux_dir / name).write_text(
                     real_file.read_text(encoding="utf-8"), encoding="utf-8"
                 )
+            # herdr_status_icon.sh は shell/herdr/ 側（run_plugin と同じ理由）。
+            fake_herdr_dir = fake_repo / "shell/herdr"
+            fake_herdr_dir.mkdir(parents=True, exist_ok=True)
+            (fake_herdr_dir / "herdr_status_icon.sh").write_text(
+                (REPO_ROOT / "shell/herdr/herdr_status_icon.sh").read_text(encoding="utf-8"),
+                encoding="utf-8",
+            )
 
             # source失敗時もプラグインが落ちないこと（focusクリアと✋ピンが
             # 無効になるだけ）を検証するためのスタブ。
             if break_status_icon_source:
-                (fake_tmux_dir / "herdr_status_icon.sh").write_text(
+                (fake_herdr_dir / "herdr_status_icon.sh").write_text(
                     "return 1\n", encoding="utf-8"
                 )
 

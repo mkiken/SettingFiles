@@ -5,7 +5,7 @@ from pathlib import Path
 
 from support import REPO_ROOT
 
-WRAPPER = REPO_ROOT / "shell/tmux/herdr-popup-run.sh"
+WRAPPER = REPO_ROOT / "shell/herdr/herdr-popup-run.sh"
 
 # 子プロセスが自身の見た環境や引数を記録するためのstub。
 # 第1引数として指定した終了コードでexitし、任意でHERDR_POPUP_PAUSE_MARKへ書き込む。

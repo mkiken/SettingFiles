@@ -8,7 +8,7 @@ Personal dotfiles for Mac and Windows development environments, synchronized via
 
 ## User Environment Scope
 
-For environment-specific work, unless explicitly requested, target only macOS, Herdr (not tmux), zsh, Ghostty, Homebrew, and Worktrunk. Do not add, run targeted validation for, or manually verify support outside this environment. Retain existing Windows and tmux assets; change or test them only when explicitly targeted. Treat shared modules under `shell/tmux/` by their active consumer; the directory name alone does not make them tmux assets.
+For environment-specific work, unless explicitly requested, target only macOS, Herdr (not tmux), zsh, Ghostty, Homebrew, and Worktrunk. Do not add, run targeted validation for, or manually verify support outside this environment. Retain existing Windows and tmux assets; change or test them only when explicitly targeted. Herdr-only scripts live in `shell/herdr/` (symlinked to `~/.herdr/scripts/` by `setup_herdr_scripts`); `shell/tmux/` holds tmux assets plus modules shared by both consumers (`tmux-file-picker.sh`, `open-pr-web.sh`, the `ai_notification_*` family, the Python helpers). Treat a shared module by its active consumer; the directory name alone does not make it a tmux asset.
 
 ## Repository Branch Policy
 
@@ -77,7 +77,7 @@ A new test directory needs an `__init__.py`. Without one the runner reports `Sel
 
 The runner executes deterministic test-ID shards in parallel. Tests must be order-independent, must not write shared tracked state, and must use temporary directories for filesystem mutations. Use `python3 tests/run_tests.py --jobs 1` or `python3 -m unittest discover -s tests` for sequential diagnosis.
 
-`tests/shell/tmux/test_<name>_sh.py` tests shell functions by sourcing the `.sh`, invoking functions via `bash -c`, and asserting stdout/status; follow `tests/shell/tmux/test_ai_notification_summary_sh.py`'s `run_fn` pattern. Use this style so `unittest discover` collects new shell-function tests; standalone `.sh` tests are ignored.
+`tests/shell/{tmux,herdr}/test_<name>_sh.py` tests shell functions by sourcing the `.sh`, invoking functions via `bash -c`, and asserting stdout/status; follow `tests/shell/tmux/test_ai_notification_summary_sh.py`'s `run_fn` pattern. Use this style so `unittest discover` collects new shell-function tests; standalone `.sh` tests are ignored.
 
 When a test pins an exclusion (e.g. `assertNotIn`, a must-not-subscribe list), state the reason in an adjacent comment — an unexplained negative pin forces a later session to rediscover the rejection through history archaeology, or to re-attempt the rejected approach.
 

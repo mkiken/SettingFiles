@@ -572,7 +572,7 @@ function _finish_prompt_wait_notification() {
     # Herdr環境ではtab/workspaceからも✋を外す（tmuxとHerdrは排他的に動作するため
     # 双方を無条件に呼んでも問題ない）
     if ! (( ${+functions[remove_herdr_status_icon]} )); then
-        source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/tmux/herdr_status_icon.sh" 2>/dev/null || true
+        source "${SET:-$HOME/Desktop/repository/SettingFiles/}shell/herdr/herdr_status_icon.sh" 2>/dev/null || true
     fi
     if (( ${+functions[remove_herdr_status_icon]} )); then
         remove_herdr_status_icon || true

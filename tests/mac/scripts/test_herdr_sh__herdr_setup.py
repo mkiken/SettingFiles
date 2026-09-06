@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import subprocess
 import tempfile
 import unittest
@@ -124,12 +125,12 @@ class HerdrConfigurationTest(unittest.TestCase):
         self.assertEqual(lazygit["type"], "popup")
         self.assertEqual(
             lazygit["command"],
-            "$HOME/.tmux/scripts/herdr-popup-run.sh zsh -ilc 'exec bash \"$HOME/.tmux/scripts/herdr-open-lazygit.sh\"'",
+            "$HOME/.herdr/scripts/herdr-popup-run.sh zsh -ilc 'exec bash \"$HOME/.herdr/scripts/herdr-open-lazygit.sh\"'",
         )
-        tmux_scripts = read_text("mac/initialization/tmux.sh")
-        self.assertIn("herdr-open-lazygit.sh", tmux_scripts)
-        self.assertIn("herdr_worktree_context.sh", tmux_scripts)
-        self.assertIn("herdr-popup-run.sh", tmux_scripts)
+        herdr_script_setup = read_text("mac/scripts/herdr.sh")
+        self.assertIn("herdr-open-lazygit.sh", herdr_script_setup)
+        self.assertIn("herdr_worktree_context.sh", herdr_script_setup)
+        self.assertIn("herdr-popup-run.sh", herdr_script_setup)
         # plugin_action直呼びだとHerdrがPATHを剥ぎ取りzoxide/fzfを解決できないため、
         # popup経由でherdr-open-zoxide-picker.shを叩く方式になっている。
         zoxide = next(c for c in keys["command"] if c["key"] == "prefix+shift+o")
@@ -152,7 +153,7 @@ class HerdrConfigurationTest(unittest.TestCase):
                 else:
                     self.assertTrue(
                         entry["command"].startswith(
-                            "$HOME/.tmux/scripts/herdr-popup-run.sh "
+                            "$HOME/.herdr/scripts/herdr-popup-run.sh "
                         ),
                         entry["command"],
                     )
@@ -203,9 +204,9 @@ class HerdrConfigurationTest(unittest.TestCase):
         self.assertEqual(popup["type"], "popup")
         self.assertEqual(
             popup["command"],
-            "$HOME/.tmux/scripts/herdr-popup-run.sh zsh -ilc 'source \"$HOME/.tmux/scripts/herdr-create-worktree-tab.sh\"'",
+            "$HOME/.herdr/scripts/herdr-popup-run.sh zsh -ilc 'source \"$HOME/.herdr/scripts/herdr-create-worktree-tab.sh\"'",
         )
-        self.assertIn("herdr-create-worktree-tab.sh", read_text("mac/initialization/tmux.sh"))
+        self.assertIn("herdr-create-worktree-tab.sh", read_text("mac/scripts/herdr.sh"))
 
     @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
     def test_worktree_popup_skips_prompt_theme_initialization(self):
@@ -214,7 +215,7 @@ class HerdrConfigurationTest(unittest.TestCase):
 
         self.assertEqual(
             popup["command"],
-            '$HOME/.tmux/scripts/herdr-popup-run.sh zsh -ilc "_herdr_pick_worktree_target"',
+            '$HOME/.herdr/scripts/herdr-popup-run.sh zsh -ilc "_herdr_pick_worktree_target"',
         )
         self.assertIn("Enter workspace", popup["description"])
         self.assertIn("Ctrl-O tab", popup["description"])
@@ -233,7 +234,7 @@ class HerdrConfigurationTest(unittest.TestCase):
         self.assertEqual(popup["type"], "popup")
         self.assertEqual(
             popup["command"],
-            '$HOME/.tmux/scripts/herdr-popup-run.sh zsh -ilc "_herdr_pick_worktree_target --current-repo"',
+            '$HOME/.herdr/scripts/herdr-popup-run.sh zsh -ilc "_herdr_pick_worktree_target --current-repo"',
         )
         self.assertIn("current repo worktree picker", popup["description"])
         self.assertIn("Enter workspace", popup["description"])
@@ -251,7 +252,7 @@ class HerdrConfigurationTest(unittest.TestCase):
 
         self.assertEqual(review["type"], "popup")
         self.assertEqual(
-            review["command"], '$HOME/.tmux/scripts/herdr-popup-run.sh zsh -ilc "freview"'
+            review["command"], '$HOME/.herdr/scripts/herdr-popup-run.sh zsh -ilc "freview"'
         )
         self.assertIn("AI review", review["description"])
         self.assertEqual(review["width"], "90%")
@@ -260,7 +261,7 @@ class HerdrConfigurationTest(unittest.TestCase):
         self.assertEqual(review_subagents["type"], "popup")
         self.assertEqual(
             review_subagents["command"],
-            '$HOME/.tmux/scripts/herdr-popup-run.sh zsh -ilc "freview-subagents"',
+            '$HOME/.herdr/scripts/herdr-popup-run.sh zsh -ilc "freview-subagents"',
         )
         self.assertIn("AI review", review_subagents["description"])
         self.assertEqual(review_subagents["width"], "90%")
@@ -539,6 +540,7 @@ class HerdrServiceSetupTest(unittest.TestCase):
             (
                 "source mac/scripts/herdr.sh",
                 "function setup_herdr_config() { return 0; }",
+                "function setup_herdr_scripts() { return 0; }",
                 "function setup_herdr_integrations() { return 0; }",
                 "function setup_herdr_plugins() { return 0; }",
                 "function setup_herdr_service() { return 1; }",
@@ -557,6 +559,7 @@ class HerdrServiceSetupTest(unittest.TestCase):
             (
                 "source mac/scripts/herdr.sh",
                 "function setup_herdr_config() { return 0; }",
+                "function setup_herdr_scripts() { return 0; }",
                 "function setup_herdr_integrations() { return 0; }",
                 "function setup_herdr_plugins() { return 1; }",
                 "function setup_herdr_service() { return 0; }",
@@ -575,6 +578,7 @@ class HerdrServiceSetupTest(unittest.TestCase):
             (
                 "source mac/scripts/herdr.sh",
                 "function setup_herdr_config() { return 0; }",
+                "function setup_herdr_scripts() { return 0; }",
                 "function setup_herdr_integrations() { return 0; }",
                 "function setup_herdr_plugins() { return 0; }",
                 "function setup_herdr_service() { return 0; }",
@@ -738,6 +742,7 @@ class SetupHerdrOrchestrationTest(unittest.TestCase):
             (
                 "source mac/scripts/herdr.sh",
                 "function setup_herdr_config() { print -r -- \"config $*\"; return 0; }",
+                "function setup_herdr_scripts() { print -r -- \"scripts $*\"; return 0; }",
                 "function setup_herdr_integrations() { print -r -- \"integrations $*\"; return 0; }",
                 "function setup_herdr_plugins() { print -r -- \"plugins $*\"; return 0; }",
                 "function setup_herdr_service() { print -r -- \"service $*\"; return 0; }",
@@ -747,6 +752,14 @@ class SetupHerdrOrchestrationTest(unittest.TestCase):
             )
         )
         return run_zsh(script)
+
+    def test_setup_herdr_links_scripts(self):
+        # スクリプトのsymlink作成をsetup_herdrに含めるのは、mac/updateがtmux.shを
+        # 呼ばず、旧構成ではリンク追加がライブ環境へ反映されなかったため。
+        # ここが外れると herdr-popup-run.sh 欠落による全popup即閉じが再発する。
+        result = self.run_setup_herdr(mode_arg="install")
+
+        self.assertIn("scripts repo home", result.stdout.splitlines())
 
     def test_install_mode_forwarded_only_to_integrations(self):
         result = self.run_setup_herdr(mode_arg="install")
@@ -769,6 +782,50 @@ class SetupHerdrOrchestrationTest(unittest.TestCase):
 
         self.assertEqual(result.stdout.splitlines(), ["rc=1"])
         self.assertIn("expected Herdr setup mode to be install or update", result.stderr)
+
+
+class HerdrScriptLinkCoverageTest(unittest.TestCase):
+    """config.tomlが起動するスクリプトと、setup_herdr_scriptsがリンクする配列が
+    食い違わないことを固定する。旧構成ではconfig.tomlにスクリプトを書いても
+    リンク配列への追加が漏れ、popupが起動時に即閉じする事故が実際に起きた。"""
+
+    @staticmethod
+    def linked_script_names() -> list[str]:
+        body = read_text("mac/scripts/herdr.sh")
+        block = re.search(
+            r"local -a herdr_scripts=\((.*?)\)", body, re.DOTALL
+        )
+        assert block is not None, "setup_herdr_scripts の herdr_scripts 配列が見つからない"
+        return block.group(1).split()
+
+    def test_config_referenced_scripts_are_all_linked(self):
+        referenced = set(
+            re.findall(
+                r"\$HOME/\.herdr/scripts/([A-Za-z0-9_.-]+)",
+                read_text("terminal/herdr/config.toml"),
+            )
+        )
+        self.assertTrue(referenced, "config.tomlが ~/.herdr/scripts/ を1つも参照していない")
+
+        missing = sorted(referenced - set(self.linked_script_names()))
+        self.assertEqual(
+            missing,
+            [],
+            f"config.tomlが参照するがsetup_herdr_scriptsがリンクしないスクリプト: {missing}",
+        )
+
+    def test_linked_scripts_exist_in_repository(self):
+        for name in self.linked_script_names():
+            with self.subTest(script=name):
+                self.assertTrue(
+                    (REPO_ROOT / "shell/herdr" / name).is_file(),
+                    f"shell/herdr/{name} が存在しない（リンクがdanglingになる）",
+                )
+
+    def test_tmux_symlinks_no_longer_carry_herdr_scripts(self):
+        # Herdr専用スクリプトはshell/herdr/へ移設済み。tmux側の配列に戻すと
+        # ~/.tmux/scripts/ と ~/.herdr/scripts/ の二重管理になる。
+        self.assertNotIn("herdr", read_text("mac/initialization/tmux.sh"))
 
 
 class HerdrSetupCallSiteModeTest(unittest.TestCase):

@@ -1,6 +1,6 @@
 ---
 name: herdr-dev
-description: Use when developing or configuring Herdr integration in this repository — terminal/herdr/config.toml keybindings, [[keys.command]] popups, mac/scripts/herdr.sh installer flow, Herdr plugins (notify-rich), Gemini's Herdr notification split, or shell status icon mirroring (shell/tmux/herdr_status_icon.sh). Not for merely operating the herdr CLI from inside a pane (that is the separate herdr skill).
+description: Use when developing or configuring Herdr integration in this repository — terminal/herdr/config.toml keybindings, [[keys.command]] popups, mac/scripts/herdr.sh installer flow, Herdr plugins (notify-rich), Gemini's Herdr notification split, or shell status icon mirroring (shell/herdr/herdr_status_icon.sh). Not for merely operating the herdr CLI from inside a pane (that is the separate herdr skill).
 ---
 
 # Herdr Integration Development
@@ -17,11 +17,11 @@ Detail lives in `references/` next to this file. Read the matching reference fil
 | `[[keys.command]]` popups, sending text to panes, new-pane startup races | `references/popups.md` + `references/plugin-env.md` |
 | `mac/scripts/herdr.sh` installer flow, `herdr integration install`, `sync_herdr_skill` | `references/installer.md` |
 | Herdr plugins / notify-rich: `[[events]]` hookability, notification gating, tab labels, Gemini's opt-out, codex summary bodies | `references/notify-rich.md` + `references/plugin-env.md` |
-| Shell status icon mirroring (`shell/tmux/herdr_status_icon.sh`), workspace aggregation, sticky ✋ | `references/status-icon.md` |
+| Shell status icon mirroring (`shell/herdr/herdr_status_icon.sh`), workspace aggregation, sticky ✋ | `references/status-icon.md` |
 | Anything running as a child of the herdr server (popup command, `[[events]]` hook) | `references/plugin-env.md` |
 
 ## Always true
 
 Never run `herdr integration install` against live Claude or Codex configuration — always use the repository helper (`mac/scripts/herdr.sh`).
 
-Some changes span two sides and must be edited and tested together: the Gemini split (`notify-on-agent-status.sh` + `ai/gemini/hooks/notification.sh` → `tests/terminal/herdr/plugins/notify_rich/test_herdr_plugin_toml__herdr_plugin_notify.py` + `tests/ai/gemini/hooks/test_notification_sh__gemini_herdr_notification.py`), and tab labels (the plugin's label rebuild + the shell icon functions → `tests/terminal/herdr/plugins/notify_rich/test_herdr_plugin_toml__herdr_plugin_notify.py` + `tests/shell/tmux/test_herdr_status_icon_sh.py`). Each reference file names its own required tests.
+Some changes span two sides and must be edited and tested together: the Gemini split (`notify-on-agent-status.sh` + `ai/gemini/hooks/notification.sh` → `tests/terminal/herdr/plugins/notify_rich/test_herdr_plugin_toml__herdr_plugin_notify.py` + `tests/ai/gemini/hooks/test_notification_sh__gemini_herdr_notification.py`), and tab labels (the plugin's label rebuild + the shell icon functions → `tests/terminal/herdr/plugins/notify_rich/test_herdr_plugin_toml__herdr_plugin_notify.py` + `tests/shell/herdr/test_herdr_status_icon_sh.py`). Each reference file names its own required tests.

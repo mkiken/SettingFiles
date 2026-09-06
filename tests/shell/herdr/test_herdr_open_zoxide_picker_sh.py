@@ -9,7 +9,7 @@ from pathlib import Path
 
 from support import REPO_ROOT
 
-LAUNCHER_SCRIPT = REPO_ROOT / "shell/tmux/herdr-open-zoxide-picker.sh"
+LAUNCHER_SCRIPT = REPO_ROOT / "shell/herdr/herdr-open-zoxide-picker.sh"
 HERDR_CONFIG = REPO_ROOT / "terminal/herdr/config.toml"
 
 PLUGIN_ID = "herdr-zoxide"
@@ -191,7 +191,7 @@ class HerdrZoxideKeyBindingTest(unittest.TestCase):
         # この前置きは herdr-popup-run.sh がexportして吸収するため、config.toml側
         # には残らず、代わりにラッパー経由であることを確認する。
         self.assertIn("herdr-popup-run.sh", self.binding["command"])
-        wrapper_body = (REPO_ROOT / "shell/tmux/herdr-popup-run.sh").read_text()
+        wrapper_body = (REPO_ROOT / "shell/herdr/herdr-popup-run.sh").read_text()
         self.assertIn("export HERDR_POPUP_COMMAND=1", wrapper_body)
 
     def test_binding_invokes_the_managed_launcher(self):

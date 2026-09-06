@@ -73,7 +73,7 @@ Use this executable boundary for every configured Zsh function: keep the `-c` sc
 7. When `HERDR_ENV=1`, record the validated task worktree for the invoking tab. Herdr popups use this context to open lazygit in the task worktree while the AI pane remains in the invoking worktree. Keep the script literal and values positional; report a warning and continue if recording fails:
 
    ```bash
-   herdr_context_helper="${SET:-$HOME/Desktop/repository/SettingFiles}/shell/tmux/herdr_worktree_context.sh"
+   herdr_context_helper="${SET:-$HOME/Desktop/repository/SettingFiles}/shell/herdr/herdr_worktree_context.sh"
    zsh -ic 'builtin cd -q -- "$1" && source "$2" && set_herdr_task_worktree_context "$3"' zsh "$original_path" "$herdr_context_helper" "$task_path"
    ```
 
@@ -82,7 +82,7 @@ Use this executable boundary for every configured Zsh function: keep the `-c` sc
 After confirming that the task worktree entry is absent, clear its invoking-tab context. Keep the script literal and values positional; report a warning if clearing fails:
 
 ```bash
-herdr_context_helper="${SET:-$HOME/Desktop/repository/SettingFiles}/shell/tmux/herdr_worktree_context.sh"
+herdr_context_helper="${SET:-$HOME/Desktop/repository/SettingFiles}/shell/herdr/herdr_worktree_context.sh"
 zsh -ic 'builtin cd -q -- "$1" && source "$2" && clear_herdr_task_worktree_context' zsh "$original_path" "$herdr_context_helper"
 ```
 

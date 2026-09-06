@@ -127,7 +127,7 @@ _ai_multiplexer_kind() {
 
 # _herdr_wait_shell_ready はherdr-split-snapshot-pane.sh（bash）と共有するため
 # shell/tmux/ の共有ファイルに定義がある
-source "${SET:-$HOME/Desktop/repository/SettingFiles}/shell/tmux/herdr_wait_shell_ready.sh"
+source "${SET:-$HOME/Desktop/repository/SettingFiles}/shell/herdr/herdr_wait_shell_ready.sh"
 
 # Herdrで新しいtabを作り、対話シェルが入力を受け付ける状態になるまで待つ（コマンド投入はしない）
 # 引数: workspace_id(空ならカレントworkspace), cwd, label,
