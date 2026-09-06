@@ -409,6 +409,23 @@ class ContextModeSetupTest(unittest.TestCase):
         self.assertNotIn("codex plugin add -y", codex)
         self.assertIn("codex plugin add superpowers@openai-curated", codex)
 
+    def test_codex_superpowers_guard_falls_back_to_config_toml(self):
+        codex = read_text("mac/scripts/ai/codex.sh")
+
+        # codex plugin list --json はローカル marketplace(openai-curated) の項目を
+        # 返さないため、.installed だけを見る guard は add 成功後も一致せず
+        # plugin add が毎回走る（= 毎回インストール対話が発生しうる）。
+        # config.toml の plugin テーブルを併用することでのみ再実行を防げる。
+        self.assertIn(
+            "/usr/bin/grep -Fq \"[plugins.'superpowers@openai-curated']\" \"$HOME/.codex/config.toml\"",
+            codex,
+        )
+
+        # guard は OR 条件でなければならない。.installed 単独に戻すと上記の回帰が起きる。
+        superpowers_body = codex.split("function setup_codex_superpowers()", 1)[1]
+        superpowers_body = superpowers_body.split("\n}", 1)[0]
+        self.assertIn("||", superpowers_body)
+
 
 if __name__ == "__main__":
     unittest.main()
