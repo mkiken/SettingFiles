@@ -13,6 +13,7 @@ gh pr view <PR_NUMBER> --json number,url,title,author,headRefName,baseRefName,is
 git branch --show-current
 bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <PR_NUMBER>
 bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh <PR_NUMBER>
+printenv AI_REVIEW_OUTPUT_FILE || true
 ```
 
 `fetch_existing_comments.sh` above outputs existing PR comments as NDJSON — use it for duplicate detection per the Existing Comment Deduplication rules in the core rules below. `format_pr_diff_with_line_numbers.sh` is the authoritative source for review line numbers (see Line Number Source in the core rules).
@@ -45,6 +46,8 @@ Review ALL changed files individually, checking ALL 7 quality perspectives defin
 !{cat ~/.gemini/common/pr_review_finding_format.md}
 
 ### Post-Review
+
+CRITICAL: If the `printenv AI_REVIEW_OUTPUT_FILE` command from the initialization step returned a non-empty path, you MUST write the exact review markdown output to that path. Ensure the parent directory exists (`mkdir -p`) and use a write tool or `cat << 'EOF' > /path/to/file` to save the output. This must be done even if there are no actionable findings.
 
 After completing the review, delete with `trash` (never `rm`) any temporary file that ended up inside the reviewed repository (e.g. `diff.txt`); per the Temp Files rules above, such files belong in the session scratchpad directory, not the repository.
 

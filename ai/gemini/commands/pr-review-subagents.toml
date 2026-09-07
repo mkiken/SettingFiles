@@ -19,6 +19,7 @@ gh repo view --json nameWithOwner
 git branch --show-current
 git rev-parse HEAD
 bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <PR_NUMBER>
+printenv AI_REVIEW_OUTPUT_FILE || true
 ```
 
 Local mode requires the current branch to match `headRefName`, local HEAD to match `headRefOid`, and `git cat-file -e <baseRefOid>^{commit}` to succeed. Otherwise use remote mode and inspect `headRefOid`, never local files.
@@ -46,6 +47,8 @@ For the adversarial verification stage in the core below, the verifier agent is 
 !{cat ~/.gemini/common/pr_review_subagents/orchestrator_core.md}
 
 !{cat ~/.gemini/common/pr_review_finding_format.md}
+
+CRITICAL: If the `printenv AI_REVIEW_OUTPUT_FILE` command from the initialization step returned a non-empty path, you MUST write the exact review markdown output to that path. Ensure the parent directory exists (`mkdir -p`) and use a write tool or `cat << 'EOF' > /path/to/file` to save the output. This must be done even if there are no actionable findings.
 
 If at least one actionable finding remains, append:
 
