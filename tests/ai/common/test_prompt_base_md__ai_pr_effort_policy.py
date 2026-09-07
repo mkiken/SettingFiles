@@ -134,7 +134,7 @@ class PrCommentImplementAliasTest(unittest.TestCase):
                         self.assertEqual(captured[:2], ["--model", "gpt-5.6-terra"])
                         self.assertEqual(captured[2:4], ["-c", 'model_reasoning_effort="high"'])
                     else:
-                        self.assertEqual(captured[:2], ["--model", "gpt-5.6-sol"])
+                        self.assertEqual(captured[:2], ["--model", "gpt-6-astra"])
                         self.assertEqual(captured[2:4], ["-c", 'model_reasoning_effort="high"'])
 
 
@@ -145,9 +145,11 @@ class CodexModelSelectionTest(unittest.TestCase):
             ("cx --model custom-model task", ["--model", "custom-model", "task"]),
             ("cx --model=custom-model task", ["--model=custom-model", "task"]),
             ("cx -m custom-model task", ["-m", "custom-model", "task"]),
+            ("cxs task", ["--model", "gpt-5.6-sol", "task"]),
+            ("cxa task", ["--model", "gpt-6-astra", "task"]),
             (
                 "cxh task",
-                ["--model", "gpt-5.6-sol", "-c", 'model_reasoning_effort="high"', "task"],
+                ["--model", "gpt-6-astra", "-c", 'model_reasoning_effort="high"', "task"],
             ),
         )
 
@@ -183,7 +185,7 @@ class ReviewEntrypointEffortPolicyTest(unittest.TestCase):
         for command, effort, prompt in cases:
             with self.subTest(command=command):
                 captured = run_codex_alias(command)
-                self.assertEqual(captured[:2], ["--model", "gpt-5.6-sol"])
+                self.assertEqual(captured[:2], ["--model", "gpt-6-astra"])
                 self.assertEqual(captured[2:4], ["-c", f'model_reasoning_effort="{effort}"'])
                 self.assertIn("--dangerously-bypass-approvals-and-sandbox", captured)
                 self.assertEqual(captured[-1], prompt)

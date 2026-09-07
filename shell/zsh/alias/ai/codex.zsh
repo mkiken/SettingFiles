@@ -29,6 +29,10 @@ cxs() {
     cx --model gpt-5.6-sol "$@"
 }
 
+cxa() {
+    cx --model gpt-6-astra "$@"
+}
+
 cxt() {
     cx --model gpt-5.6-terra "$@"
 }
@@ -42,7 +46,7 @@ cxl() {
 }
 
 cxh() {
-    cxs -c 'model_reasoning_effort="high"' "$@"
+    cxa -c 'model_reasoning_effort="high"' "$@"
 }
 
 cxr() { cx resume "$@" }
