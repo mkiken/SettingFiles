@@ -25,14 +25,17 @@ cx() {
     return $codex_status
 }
 
+# `s` selects Sol.
 cxs() {
     cx --model gpt-5.6-sol "$@"
 }
 
+# `a` selects Astra.
 cxa() {
     cx --model gpt-6-astra "$@"
 }
 
+# `t` selects Terra.
 cxt() {
     cx --model gpt-5.6-terra "$@"
 }
@@ -41,6 +44,7 @@ cxth() {
     cxt -c 'model_reasoning_effort="high"'  "$@"
 }
 
+# `l` selects Luna.
 cxl() {
     cx --model gpt-5.6-luna "$@"
 }

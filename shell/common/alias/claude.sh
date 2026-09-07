@@ -5,10 +5,12 @@ cl() {
     no_notify claude --allow-dangerously-skip-permissions "$@"
 }
 
+# `o` selects Opus.
 clo() {
     cl --model 'opus' "$@"
 }
 
+# `s` selects Sonnet.
 cls() {
     cl --model 'sonnet' "$@"
 }
@@ -21,6 +23,7 @@ cloh() {
     clo --effort high "$@"
 }
 
+# `f` selects Fable.
 clf() {
     cl --model 'fable' "$@"
 }

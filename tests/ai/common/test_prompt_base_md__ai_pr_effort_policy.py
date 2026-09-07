@@ -8,6 +8,7 @@ from support import REPO_ROOT
 CLAUDE_ALIASES = REPO_ROOT / "shell/zsh/alias/ai/claude.zsh"
 CODEX_ALIASES = REPO_ROOT / "shell/zsh/alias/ai/codex.zsh"
 CLAUDE_COMMON = REPO_ROOT / "shell/common/alias/claude.sh"
+GEMINI_ALIASES = REPO_ROOT / "shell/zsh/alias/ai/gemini.zsh"
 
 
 def run_zsh(script: str, command: str) -> list[str]:
@@ -52,6 +53,15 @@ def run_codex_command(command: str) -> list[str]:
         f'''source "{CODEX_ALIASES}"
 no_notify() {{ printf '<%s>\\n' "$@"; }}
 remove_tmux_window_icon() {{ :; }}
+eval "$TEST_COMMAND"''',
+        command,
+    )
+
+
+def run_gemini_command(command: str) -> list[str]:
+    return run_zsh(
+        f'''source "{GEMINI_ALIASES}"
+no_notify() {{ printf '<%s>\\n' "$@"; }}
 eval "$TEST_COMMAND"''',
         command,
     )
@@ -147,6 +157,8 @@ class CodexModelSelectionTest(unittest.TestCase):
             ("cx -m custom-model task", ["-m", "custom-model", "task"]),
             ("cxs task", ["--model", "gpt-5.6-sol", "task"]),
             ("cxa task", ["--model", "gpt-6-astra", "task"]),
+            ("cxt task", ["--model", "gpt-5.6-terra", "task"]),
+            ("cxl task", ["--model", "gpt-5.6-luna", "task"]),
             (
                 "cxh task",
                 ["--model", "gpt-6-astra", "-c", 'model_reasoning_effort="high"', "task"],
@@ -158,6 +170,36 @@ class CodexModelSelectionTest(unittest.TestCase):
                 captured = run_codex_command(command)
                 self.assertEqual(captured[:2], ["homebrew_run", "codex"])
                 self.assertEqual(captured[2:], expected)
+
+
+class ClaudeModelSelectionTest(unittest.TestCase):
+    def test_commands_select_the_expected_model(self):
+        cases = (
+            ("clo task", "opus"),
+            ("cls task", "sonnet"),
+            ("clf task", "fable"),
+        )
+
+        for command, model in cases:
+            with self.subTest(command=command):
+                captured = run_claude_alias(command)
+                self.assertEqual(
+                    captured,
+                    ["claude", "--allow-dangerously-skip-permissions", "--model", model, "task"],
+                )
+
+
+class GeminiModelSelectionTest(unittest.TestCase):
+    def test_commands_select_the_expected_model(self):
+        cases = (
+            ("gmf task", "flash"),
+            ("gmp task", "pro"),
+        )
+
+        for command, model in cases:
+            with self.subTest(command=command):
+                captured = run_gemini_command(command)
+                self.assertEqual(captured, ["homebrew_run", "gemini", "--model", model, "task"])
 
 
 class ReviewEntrypointEffortPolicyTest(unittest.TestCase):

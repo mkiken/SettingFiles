@@ -12,10 +12,12 @@ gmr() { gm "/resume" "$@" }
 
 gmpr() { gmp "/resume" "$@" }
 
+# `f` selects Flash.
 gmf() {
     gm --model flash "$@"
 }
 
+# `p` selects Pro.
 gmp() {
     gm --model pro "$@"
 }
