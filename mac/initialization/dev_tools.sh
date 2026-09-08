@@ -3,8 +3,8 @@
 source "$(dirname "$0")/../scripts/common.sh"
 
 # Shell
-make_symlink "${Repo_shell}bash/.bash_profile" ~/
-ensure_settingfiles_zsh_loader ~/.zshrc "${Repo_shell}zsh/managed.zsh"
+ensure_settingfiles_shell_loader ~/.zshrc        "${Repo_shell}zsh/managed.zsh"   zsh
+ensure_settingfiles_shell_loader ~/.bash_profile "${Repo_shell}bash/managed.bash" bash
 
 # Ghostty
 make_symlink "${Repo}terminal/ghostty/config" ~/.config/ghostty/config

@@ -162,7 +162,7 @@ Key symlinks:
 - `ai/claude/_CLAUDE.md` → `~/.claude/CLAUDE.md`
 - `ai/gemini/_GEMINI.md` → `~/.gemini/GEMINI.md`
 - `ai/codex/_AGENTS.md` → `~/.codex/AGENTS.md`
-- `~/.zshrc` loads `shell/zsh/managed.zsh` through a managed loader block
+- `~/.zshrc` loads `shell/zsh/managed.zsh`, and `~/.bash_profile` loads `shell/bash/managed.bash`, each through a managed loader block injected by `ensure_settingfiles_shell_loader` (`shell/zsh/alias/utils.zsh`) — neither rc file is itself a symlink, so external tools can append to them safely
 - `vimfiles/nvim` → `~/.config/nvim`
 - `gitfiles/.gitconfig` → `~/.gitconfig`
 

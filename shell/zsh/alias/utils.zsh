@@ -95,11 +95,12 @@ function make_symlink () {
   ln -si "$src" "$dst"
 }
 
-function ensure_settingfiles_zsh_loader() {
+function ensure_settingfiles_shell_loader() {
   local zshrc="${1:-$HOME/.zshrc}"
   local managed_rc="${2:-${SET:-$HOME/Desktop/repository/SettingFiles/}shell/zsh/managed.zsh}"
-  local start_marker="# >>> SettingFiles managed zsh >>>"
-  local end_marker="# <<< SettingFiles managed zsh <<<"
+  local label="${3:-zsh}"
+  local start_marker="# >>> SettingFiles managed ${label} >>>"
+  local end_marker="# <<< SettingFiles managed ${label} <<<"
   local existing_content=""
   local target_dir
 
