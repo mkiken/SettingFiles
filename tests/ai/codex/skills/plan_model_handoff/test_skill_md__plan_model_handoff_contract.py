@@ -27,6 +27,7 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
             '.type == "world_state"',
             ".payload.model // .payload.state.model // empty",
             "tail -1",
+            "is `gpt-6-astra`",
             'match `*-sol`',
         ):
             with self.subTest(required=required):
@@ -65,9 +66,11 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
 
     def test_choice_flow_preserves_all_execution_routes(self):
         for required in (
-            "`Continue with Sol (Recommended)`",
+            "`Continue with current model (Recommended)`",
+            "parent session with the detected model",
             "`Use Terra subagent`",
             "`Use Luna subagent`",
+            "parent session remains on the detected model",
             "exactly one Terra `worker` subagent owns the entire accepted-plan execution.",
             "exactly one Luna `worker` subagent owns the entire accepted-plan execution.",
             "Resolve Terra and Luna only from callable runtime metadata",
@@ -77,7 +80,11 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
                 self.assertIn(required, self.skill)
 
         # Excluding the old labels prevents readers from mistaking delegation for a parent-model switch.
-        for excluded in ("`Delegate to Terra`", "`Delegate to Luna`"):
+        for excluded in (
+            "`Continue with Sol (Recommended)`",
+            "`Delegate to Terra`",
+            "`Delegate to Luna`",
+        ):
             with self.subTest(excluded=excluded):
                 self.assertNotIn(excluded, self.skill)
 
@@ -102,7 +109,7 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
             "makes no decision on the worker's behalf",
             "must not independently inspect or change the repository",
             "run verification, integrate changes, commit, push",
-            "must not retry, spawn a replacement, or continue with Sol",
+            "must not retry, spawn a replacement, or continue with the detected parent model",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.normalized_skill)

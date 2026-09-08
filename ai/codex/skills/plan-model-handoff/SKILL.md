@@ -1,6 +1,6 @@
 ---
 name: plan-model-handoff
-description: Detect whether the active Codex model is Sol and choose how to execute an accepted plan. Use only when beginning accepted-plan execution, before any task-specific workflow or repository operation.
+description: Detect whether the active Codex model is Astra or Sol and choose how to execute an accepted plan. Use only when beginning accepted-plan execution, before any task-specific workflow or repository operation.
 ---
 
 # Plan Model Handoff
@@ -30,15 +30,15 @@ fi
 print -r -- "$codex_active_model"
 ```
 
-If the result is empty, report `Implementation-model check skipped: active model detection failed.` and continue without asking. If the result does not match `*-sol`, continue silently without asking.
+If the result is empty, report `Implementation-model check skipped: active model detection failed.` and continue without asking. If the result is not `gpt-6-astra` and does not match `*-sol`, continue silently without asking.
 
 ## Choose the implementation route
 
-When the detected model matches `*-sol`, use `request_user_input` when available, otherwise the always-on confirmation fallback, with these choices in this order:
+When the detected model is `gpt-6-astra` or matches `*-sol`, use `request_user_input` when available, otherwise the always-on confirmation fallback, with these choices in this order:
 
-1. `Continue with Sol (Recommended)` — keep the entire accepted-plan execution in the parent session.
-2. `Use Terra subagent` — the parent session remains on Sol; exactly one Terra `worker` subagent owns the entire accepted-plan execution.
-3. `Use Luna subagent` — the parent session remains on Sol; exactly one Luna `worker` subagent owns the entire accepted-plan execution.
+1. `Continue with current model (Recommended)` — keep the entire accepted-plan execution in the parent session with the detected model.
+2. `Use Terra subagent` — the parent session remains on the detected model; exactly one Terra `worker` subagent owns the entire accepted-plan execution.
+3. `Use Luna subagent` — the parent session remains on the detected model; exactly one Luna `worker` subagent owns the entire accepted-plan execution.
 
 Resolve Terra and Luna only from callable runtime metadata, never local configuration. If the selected tier is unavailable, make no implementation change, report the unavailable tier, and offer the choice again.
 
@@ -75,4 +75,5 @@ resolve PR or issue content, or take over any unfinished task work.
 
 If the worker fails, stops, or reports a blocker, the parent relays its failure
 and preserved-state report, then stops. It must not retry, spawn a replacement,
-or continue with Sol unless the user gives a new explicit instruction.
+or continue with the detected parent model unless the user gives a new explicit
+instruction.
