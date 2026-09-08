@@ -19,7 +19,15 @@ ALL responses MUST be in Japanese (日本語), overriding any other language pat
 
 # Slash Command Failsafe
 
-If a user message consists solely of a raw slash command (e.g. `/pr-review 3244`), command expansion failed (known CLI race: custom commands load asynchronously and an initial `-i` prompt can be processed first). Do not infer intent, activate skills, or execute an alternative — reply that command expansion failed and ask the user to re-run the command in the interactive UI, then stop.
+If a user message arrives with a literal `/command` string as its opening token (e.g. `/pr-review 3409 (...)`), command expansion failed — a known CLI race where custom commands load asynchronously and an initial `-i` prompt can be processed first.
+
+Recover once, and only once:
+
+1. Read `~/.gemini/commands/<command>.toml` and follow its `prompt` as if it had expanded, substituting the text after the command name for `{{args}}`.
+2. Resolve every `!{cat <path>}` in that prompt by reading `<path>` yourself; `@{...}` likewise. These runtime includes do not fire on this path.
+3. If the toml is missing, unreadable, or steps 1-2 fail, stop. Report that command expansion failed and that recovery also failed. Do not attempt a second recovery, do not infer intent, and do not activate a skill as a substitute.
+
+If `AI_REVIEW_OUTPUT_FILE` is set and recovery failed, write the failure to that path before stopping, so the waiting merge side is unblocked rather than left polling.
 
 # Planning & Approval
 

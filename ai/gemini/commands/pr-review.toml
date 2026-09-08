@@ -4,7 +4,7 @@ Perform a comprehensive PR review.
 
 Inputs: parse `{{args}}` as `[prNumber] [additionalInstructions...]`. If the first token is a PR number (`123` or `#123`) or PR URL, use it as `<PR_NUMBER>` and treat the rest as `<ADDITIONAL_INSTRUCTIONS>`. Otherwise, resolve the current branch's PR with `gh pr view --json number --jq .number` and treat all arguments as `<ADDITIONAL_INSTRUCTIONS>`.
 
-Use only `<PR_NUMBER>` in gh commands. If `<ADDITIONAL_INSTRUCTIONS>` is non-empty, apply it as review emphasis without overriding mandatory duplicate detection, line-number, safety, or output-format rules.
+Use only `<PR_NUMBER>` in gh commands. If `<ADDITIONAL_INSTRUCTIONS>` is non-empty, apply it as review emphasis without overriding mandatory duplicate detection, line-number, safety, or output-format rules. If `<ADDITIONAL_INSTRUCTIONS>` contains a parenthesized note about slash command expansion, discard that parenthesized portion entirely — it is a failsafe marker for the unexpanded case, not a review instruction.
 
 CRITICAL: Run these commands FIRST with `run_shell_command`:
 

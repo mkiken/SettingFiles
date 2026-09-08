@@ -37,6 +37,32 @@ class GeminiEntrypointSkeletonTest(unittest.TestCase):
     def test_language_rule_forces_japanese_responses(self):
         self.assertIn("ALL responses MUST be in Japanese", self.gemini_md)
 
+    def test_slash_command_failsafe_recovers_exactly_once(self):
+        # gemini-cliの既知のレース（カスタムコマンドの非同期ロード中に初期プロンプトが
+        # 処理されうる）でスラッシュコマンド展開が失敗した際、Failsafeは「停止するだけ」
+        # から「1回だけ自力復旧する」へ変わった。無限リトライ化しないことをピン留めする。
+        self.assertIn("once, and only once", self.gemini_md)
+        self.assertIn("Do not attempt a second recovery", self.gemini_md)
+
+    def test_slash_command_failsafe_reads_command_toml_directly(self):
+        self.assertIn("~/.gemini/commands/<command>.toml", self.gemini_md)
+
+    def test_slash_command_failsafe_warns_runtime_includes_do_not_fire(self):
+        self.assertIn("!{cat <path>}", self.gemini_md)
+        self.assertIn("do not fire on this path", self.gemini_md)
+
+    def test_slash_command_failsafe_writes_failure_to_output_file(self):
+        # 第3層（マージ側の側面防御）はこの書き出し指示に依存する。ここが消えると
+        # 復旧失敗時にgemini.mdが生成されず、review-merge待ちが最大7200秒ブロックされる
+        self.assertIn("AI_REVIEW_OUTPUT_FILE", self.gemini_md)
+        self.assertIn("write the failure to that path", self.gemini_md)
+
+    def test_slash_command_failsafe_condition_is_not_limited_to_bare_command(self):
+        # 否定ピン: 旧文言「consists solely of a raw slash command」は自然文埋め込み
+        # （Codex方式）採用後は成立しない発動条件。この文言が復活すると、pr-review系の
+        # 起動文字列（PR番号を含む自然文が後続する形）でFailsafeが発動しなくなる
+        self.assertNotIn("consists solely of a raw slash command", self.gemini_md)
+
     def test_plan_approval_requires_full_plan_content_in_the_same_message(self):
         # Negative-pin rationale: this is the Gemini analogue of the body-output
         # fix just added to Claude's _CLAUDE.md (plan text must be shown before
