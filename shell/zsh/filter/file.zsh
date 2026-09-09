@@ -12,6 +12,14 @@ function fcat(){
   cat -n $@ | filter
 }
 
+# Markdownを選択してmdvで開く
+function fmdv(){
+  local file
+  file=$(fd -HI -e md | filter --preview "bat --color=always --style=header,grid {}")
+  [[ -z "$file" ]] && return 1
+  mdv -- "$file"
+}
+
 # findの結果をfilter toolで絞ってコマンドを実行する
 function filter_find_command(){
   local cmd="$(ffind)"
