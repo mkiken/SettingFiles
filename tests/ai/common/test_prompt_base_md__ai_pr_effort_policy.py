@@ -205,17 +205,27 @@ class GeminiModelSelectionTest(unittest.TestCase):
 class ReviewEntrypointEffortPolicyTest(unittest.TestCase):
     def test_claude_review_roles_use_the_expected_effort(self):
         cases = (
-            ("cl-pr-review 123 focus on errors", "high", "/pr-review 123 focus on errors ultrathink"),
-            ("cl-pr-review-subagents 123 focus on errors", "high", "/pr-review-subagents 123 focus on errors ultrathink"),
-            ("cl-pcr https://github.com/acme/widget/pull/42#discussion_r123 focus", "high", "/pr-comment-review https://github.com/acme/widget/pull/42#discussion_r123 focus ultrathink"),
+            ("cl-pr-review 123 focus on errors", "fable", "high", "/pr-review 123 focus on errors ultrathink"),
+            # pr-review-subagentsはオーケストレーター専用（diff取得・並列起動・結果マージのみ）で
+            # 実レビューはfable固定のサブエージェントが担うため、エイリアス側でsonnetを指定する。
+            ("cl-pr-review-subagents 123 focus on errors", "sonnet", "high", "/pr-review-subagents 123 focus on errors ultrathink"),
+            ("cl-pcr https://github.com/acme/widget/pull/42#discussion_r123 focus", "opus", "high", "/pr-comment-review https://github.com/acme/widget/pull/42#discussion_r123 focus ultrathink"),
         )
 
-        for command, effort, prompt in cases:
+        for command, model, effort, prompt in cases:
             with self.subTest(command=command):
                 captured = run_claude_alias(command)
+                model_index = captured.index("--model")
+                self.assertEqual(captured[model_index + 1], model)
                 effort_index = captured.index("--effort")
                 self.assertEqual(captured[effort_index + 1], effort)
                 self.assertEqual(captured[-1], prompt)
+
+    def test_pr_review_subagents_skill_has_no_model_frontmatter(self):
+        # オーケストレーターのモデルは呼び出し元セッションに委ねる方針のため、
+        # SKILL.mdでmodelを固定しないことをピンする（固定するとどのモデルから呼んでも上書きされる）。
+        skill = REPO_ROOT / "ai/claude/skills/pr-review-subagents/SKILL.md"
+        self.assertNotRegex(skill.read_text(encoding="utf-8"), r"(?m)^model: ?")
 
     def test_codex_review_roles_use_the_expected_effort(self):
         cases = (
