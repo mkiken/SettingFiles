@@ -1,6 +1,6 @@
 ---
 description: "Comprehensive PR review using 7 parallel specialist sub-agents for bugs and error handling, security, design quality, history, tests, performance, and claim verification"
-model: opus
+model: sonnet
 allowed-tools: Bash(gh:*), Bash(git:*), Bash(python:*), Bash(/bin/cat:*)
 argument-hint: "[prNumber] [additionalInstructions...]"
 disable-model-invocation: true
