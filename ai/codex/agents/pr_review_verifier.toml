@@ -1,6 +1,8 @@
 # GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/verifier_core.md, ai/codex/agents_src/pr_review_verify/. Regen: mac/updates/codex.sh.
 name = "pr_review_verifier"
 description = "Read-only adversarial verifier for High-priority review findings."
+model = "gpt-6-astra"
+model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 
 developer_instructions = '''
