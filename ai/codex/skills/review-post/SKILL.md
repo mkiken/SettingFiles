@@ -164,20 +164,25 @@ comments='[
   {"path":"path/to/file2.ext","start_line":15,"start_side":"RIGHT","line":20,"side":"RIGHT","body":"🟡 **Medium** / **Architecture**: Description"}
 ]'
 
-api_response=$(jq -n \
+jq -n \
   --arg body "$review_body" \
   --arg event "COMMENT" \
   --arg commit_id "{head_sha}" \
   --argjson comments "$comments" \
   '{body:$body,event:$event,commit_id:$commit_id,comments:$comments}' \
-| gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --input - 2>&1)
+> review_payload.json
+
+gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --input review_payload.json \
+  > api_response.json 2> api_response.err
 api_exit_code=$?
-review_id=$(printf '%s' "$api_response" | jq -r '.id')
+review_id=$(jq -r '.id' api_response.json)
 ```
+
+Never capture the API call's stdout in a shell variable via command substitution — a multiline JSON body inside the response can break the variable and any `jq` parse that follows. Redirect to files as above and read them with `jq`/`cat` instead.
 
 Every Review API comment must pair `line` with `side`. For a range, also pair `start_line` with `start_side`. Use `RIGHT` for lines in the PR head. Never send line-only objects: GitHub can interpret an unqualified location as a legacy diff position instead of a file line.
 
-If `api_exit_code == 0`, continue to post-verification before reporting success. If it fails and `$api_response` contains `one pending review` or `pending review per pull request`, handle PENDING. Otherwise use individual-comment fallback.
+If `api_exit_code == 0`, continue to post-verification before reporting success. If it fails and `api_response.err`/`api_response.json` contains `one pending review` or `pending review per pull request`, handle PENDING. Otherwise use individual-comment fallback.
 
 After a successful Review API call, re-fetch the created review and verify the top-level body contains real newlines, not escaped text:
 
@@ -218,6 +223,8 @@ jq -n \
     )
   ' >/dev/null
 ```
+
+A failure to `jq`-parse `api_response.json` is not itself proof that posting failed — the API call can still have exit-code 0 and have created the review. Before repeating the call, check whether the review already exists (e.g. `gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate` filtered by body/commit) rather than reposting the same payload.
 
 Treat a null `line`, a legacy-only `position`, a count mismatch, or any anchor/body/commit mismatch as verification failure. Do not retry or repost, because that can create duplicate review comments. Report the review URL or ID and the exact mismatch for manual correction. Report success only after both the review-body and inline-comment verifications pass.
 
