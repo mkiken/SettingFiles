@@ -122,16 +122,6 @@ When removing or replacing a tool whose configuration was installed outside this
 
 ## Architecture
 
-### Directory Structure
-- `/ai/` - AI assistant configurations (Claude, Gemini, Serena)
-- `/mac/` - macOS configurations, initialization, and update scripts
-- `/windows/` - Windows configurations and scripts
-- `/vimfiles/nvim/` - Neovim configuration (lazy.nvim)
-- `/shell/zsh/` - Zsh configuration with znap plugin manager
-- `/submodules/` - znap plugin manager (git submodule); other Zsh plugins are downloaded by znap at runtime
-- `/gitfiles/` - Git configurations (gitui, lazygit, gh-dash)
-- `/terminal/` - Terminal emulator configs (ghostty, etc.)
-
 ### Symlink Strategy
 Initialize scripts symlink repository files to system locations; core utility functions live in `shell/zsh/alias/utils.zsh`:
 - `make_symlink` - Idempotent symlink creation (skips if already correct)
@@ -183,69 +173,21 @@ Skills (`ai/common/skills/`, `ai/{claude,gemini,codex}/skills/`) are symlinked p
 
 External skills installed for Codex through `npx skills add --agent codex --global` are managed separately in `~/.agents/skills/`, not `~/.codex/skills/`. Verify that destination after installation and update only the intended skill with `npx skills update <skill> --global --yes`.
 
-Repository-local domain-knowledge skills live in `.claude/skills/<name>/SKILL.md` (currently `herdr-dev`, `ai-notification-hooks`, `claude-plugin-management`); each `.agents/skills/<name>` is a committed relative symlink to the **directory**, so Codex discovers them too and any new subdirectory is visible without touching the symlink. No build step — edit the `.claude/skills/` source directly (frontmatter must stay in the cross-platform subset: `name` + `description` only, no runtime includes). A skill body over 8,192 bytes may split sections with distinct activation conditions into a router `SKILL.md` and `references/*.md`; keep the router at or below 8,192 bytes. Because repo-local skills have no runtime include directive, state each reference path in both forms (`.claude/skills/<name>/references/…` and `.agents/skills/<name>/references/…`). `herdr-dev` is the only skill using this today; the others stay single-file.
+Repository-local domain-knowledge skills live in `.claude/skills/<name>/SKILL.md` (currently `herdr-dev`, `ai-notification-hooks`, `claude-plugin-management`, `ai-prompt-generation`); each `.agents/skills/<name>` is a committed relative symlink to the **directory**, so Codex discovers them too and any new subdirectory is visible without touching the symlink. No build step — edit the `.claude/skills/` source directly (frontmatter must stay in the cross-platform subset: `name` + `description` only, no runtime includes). A skill body over 8,192 bytes may split sections with distinct activation conditions into a router `SKILL.md` and `references/*.md`; keep the router at or below 8,192 bytes. Because repo-local skills have no runtime include directive, state each reference path in both forms (`.claude/skills/<name>/references/…` and `.agents/skills/<name>/references/…`). `herdr-dev` and `ai-prompt-generation` use this today; the others stay single-file.
 
 `ai/{claude,gemini}/settings.json` are deep-merged, not symlinked, via `smart_merge_json`; live files retain machine-local keys and diverge. Repository edits take effect only via `mac/initialization/ai/{claude,gemini}.sh`, `mac/update`, or manual merge. Merge only adds/updates keys, so repository deletions (e.g. hook registrations) must also be removed manually from live settings.
 
 `ai/codex/config.toml` is also not symlinked: full Codex initialization and update merge it into `~/.codex/config.toml` via `smart_merge_toml`. Editing only the repository source does not update the live file. For a targeted immediate update, run the interactive merge directly: `zsh -c 'source mac/scripts/common.sh && smart_merge_toml "${Repo}ai/codex/config.toml" "$HOME/.codex/config.toml"'`. Do not run this interactive command non-interactively: its safe default keeps the destination unchanged. In that context, inspect the target key, apply only the verified change, and parse the live TOML afterward.
 
 ### AI Configuration Generation
-Throughout this section: edit the sources, never the generated committed outputs — regenerate via the "Regenerate AI Prompts" table under Key Commands.
-
-Both `_CLAUDE.md` and `_GEMINI.md` are static files using `@file` import syntax to compose prompts from shared source files at runtime:
-- **Claude** (`ai/claude/_CLAUDE.md`): `@../common/prompt_base.md` + `@../common/genshijin-file-policy.md`; the plugin supplies the upstream genshijin rule
-- **Gemini** (`ai/gemini/_GEMINI.md`): `@common/prompt_base.md` + `@common/genshijin-activate.md` + `@common/genshijin-file-policy.md` + inline Language rules
-
-Edit these sources directly — no build step. Gemini additionally merges `ai/common/mcp.json` (and `mcp.local.json` if present) into its `settings.json`.
-
-- **Codex** (`ai/codex/_AGENTS.md`): Codex's AGENTS.md does not support `@file` imports, so `mac/initialization/ai/codex.sh` (and `mac/updates/codex.sh`) generates `_AGENTS.md` by `cat`-concatenating `ai/common/prompt_base.md` + `ai/codex/codex_base.md`; the generated file is committed and symlinked to `~/.codex/AGENTS.md`. Codex does not receive the genshijin sources — unlike Claude and Gemini, it has no genshijin persona layer. `tests/mac/scripts/test_common_sh__codex_agents_sync.py` pins this two-file composition.
-
-`ai/common/characters/` is an inactive, swappable persona palette. No platform loads it by default; hestia, mizuki_himeji, nagato_yuki, reimu, rikka_takanashi, and nyaruko remain available for an explicit future swap.
-
-Shared-core skills follow one pattern: the skill body lives in core file(s) under `ai/common/`, loaded at runtime by Claude (`` !`/bin/cat ~/.claude/common/<core>.md` `` in the skill) and Gemini (`!{cat ~/.gemini/common/<core>.md}` in the command), and concatenated at build time by `generate_codex_skills` into the committed `ai/codex/skills/<name>/SKILL.md` (`skill_head.md` + core file(s) in listed order + `skill_tail.md` if present). When a Gemini adapter must stay a *skill* rather than a command (for keyword auto-activation), its `SKILL.md` is likewise build-time generated by `generate_gemini_skills` — Gemini skill files support no runtime inclusion (`!{...}` works only in commands). Platform-specific bits (placeholders, confirmation primitive) live in each platform's adapter (Claude `SKILL.md` / Gemini `.toml` or `skill_head.md` / Codex `skill_head.md`).
-
-| Skill | Core file(s) in `ai/common/` | Notes |
-| --- | --- | --- |
-| pr-review | `pr_review_core.md` + `pr_review_finding_format.md` | `pr_review_finding_format.md` defines the shared final output format (priority matrix, finding structure, section skeleton, 総合評価) |
-| pr-review-subagents | `pr_review_subagents/orchestrator_core.md` + `pr_review_finding_format.md` | reviewer agents are separately generated — see below |
-| pr-comment-review | `pr_comment_review_core.md` | |
-| pr-comment-implement | `pr_comment_implement_core.md` | |
-| pr-comment-post | `pr_comment_post_core.md` + `pr_post_mechanics_core.md` | adapter-head bits: `ITEM_NUMBERS`, `{ai_header}`, confirmation primitive |
-| pr-body | `pr_body_core.md` + `pr_body_format.md` | `pr_body_format.md` defines the shared PR body format (section skeleton, drafting rules) — also used by pr-create-by-branch |
-| pr-create-by-branch | `pr_create_by_branch_core.md` + `pr_body_format.md` | Claude and Codex only (no Gemini variant); adapter-head bits: `TITLE_ARG`, `TARGET_BRANCH_ARG`, confirmation primitive |
-| config-audit | `config_audit_subagents/orchestrator_core.md` | auditor agents are separately generated — see below; findings are decided in the browser report (see Report Servers), not by item numbers in the conversation; the skill audits and reports only — applying the decisions is the separate `audit-fix` skill, so it carries no edit tool (Claude keeps `Write` for `audit.json`/`report.html` but drops `Edit`; Gemini drops `replace`, keeps `write_file`); adapter-head bits: `PLATFORM_NAME`, `SCOPE`, `ENTRY_SCOPE`, `CONFIG_PATHS`, `GENERATED_ENTRY_FILE`, `SOURCE_FILES`, `RUN_DIR`, `platform_key`, confirmation primitive |
-| review-merge | `review_merge_core.md` | Claude and Codex only; adapter-head bits: `RUN_DIR` resolution, confirmation primitive |
-| review-post | `review_post_core.md` + `pr_post_mechanics_core.md` | Claude and Codex only; adapter-head bits: `RUN_DIR`/`ITEM_NUMBERS`, confirmation primitive |
-| review-fix | `review_fix_core.md` | Claude and Codex only; designer/implementer role prompts in `ai/common/review_fix_subagents/` (Claude subagents read them at runtime; Codex agents are build-time generated — see below); adapter-head bits: `RUN_DIR`/`ITEM_NUMBERS`, confirmation primitive, subagent launch primitive |
-| audit-fix | `audit_fix_core.md` | applies the items config-audit's browser report marked ✅ 適用する: items with a `diff` mechanically, `diff: null` items (conflict resolutions) through designer/implementer subagents in `ai/common/audit_fix_subagents/` (all three platforms' agents are build-time generated — see below); no worktrees and no commits, because the audited files include un-versioned paths such as `~/.claude/CLAUDE.md`; takes no item numbers — `state.json` is the only selection source; Gemini's adapter is the hand-written command `ai/gemini/commands/audit-fix.toml` (matching config-audit), so it is outside `generate_gemini_skills`; adapter-head bits: `PLATFORM`/`RUN_DIR` resolution, confirmation primitive, subagent launch primitive |
-| fact-based | `fact_based_core.md` | Gemini adapter is generated; Claude and Codex use shared standalone `ai/common/skills/fact-based/SKILL.md` |
-| write-tests | `skills/write-tests/SKILL.md` | No dedicated core file: the canonical source is the standalone `ai/common/skills/write-tests/SKILL.md` shared by Claude and Codex, and generation strips its frontmatter before concatenating. Gemini adapter is generated |
-
-When changing a skill's core composition or adapter-head bits, update this table in the same commit.
-
-Beyond their shared cores (table above), four skill families have GENERATED, committed subagent definitions, assembled by functions in `mac/scripts/common.sh` (called by the init/update scripts). Subagent definition files support no runtime file inclusion on any platform, hence build-time generation.
-
-- **pr-review-subagents** — 21 reviewer agents (7 dimensions × 3 platforms: `ai/claude/agents/pr-reviewer-*.md`, `ai/gemini/agents/pr-reviewer-*.md`, `ai/codex/agents/pr_reviewer_*.toml`): `generate_pr_reviewer_agents` assembles each from shared dimension fragments (`intro_<dim>.md`, `format_<dim>.md`) plus per-platform `ai/<platform>/agents_src/` files (`head_<dim>`, `rules_<dim>`, `rules_common`). Plus 3 adversarial-verification agents (`pr-review-verifier.md` ×2, `pr_review_verifier.toml`): `generate_pr_review_verifier_agents` assembles each from `ai/common/pr_review_subagents/verifier_core.md` plus `ai/<platform>/agents_src/pr_review_verify/head_verifier`.
-- **config-audit** — 18 auditor agents (6 dimensions × 3 platforms: `config-auditor-*.md` / `config_auditor_*.toml` in the same `agents` dirs): `generate_config_auditor_agents` assembles each from `ai/common/config_audit_subagents/` fragments (`intro_<dim>.md`, shared `rules_common.md`, `format_<dim>.md`) plus per-platform `ai/<platform>/agents_src/config_audit/head_<dim>` files.
-- **review-fix** — 2 Codex agents (`ai/codex/agents/review_fix_{designer,implementer}.toml`): `generate_review_fix_agents` (arg-less, Codex-only) assembles each from `ai/common/review_fix_subagents/<role>_core.md` plus `ai/codex/agents_src/review_fix/head_<role>.toml`. Claude has no generated counterpart — its ad-hoc Task subagents read the same role cores from `~/.claude/common/review_fix_subagents/` at runtime.
-- **audit-fix** — 6 agents (2 roles × 3 platforms: `ai/{claude,gemini}/agents/audit-fix-{designer,implementer}.md`, `ai/codex/agents/audit_fix_{designer,implementer}.toml`): `generate_audit_fix_agents <platform>` assembles each from `ai/common/audit_fix_subagents/<role>_core.md` plus `ai/<platform>/agents_src/audit_fix/head_<role>`. Unlike review-fix, **Claude agents are generated too** rather than reading the role cores at runtime, because the frontmatter is what pins each role's model — designer on the strong model (Claude `opus` / Gemini `gemini-2.5-pro` / Codex `model_reasoning_effort = "high"`), implementer on the cheap one (Claude `sonnet` / Gemini `gemini-2.5-flash` / Codex `"low"`). The orchestrator skill runs on `sonnet` while `config-audit` runs on `fable`; that split is the whole reason audit-fix exists as a separate skill, and an ad-hoc `general-purpose` Task subagent would inherit the caller's model and erase it.
-
-Standalone skills (no shared core, hand-maintained): `web-summary` — Claude `ai/claude/skills/web-summary/SKILL.md` and Gemini `ai/gemini/commands/web-summary.toml` are a manually synchronized pair with no generator (editing one does not update the other); `prompt-self-improvement` — single shared source in `ai/common/skills/`, symlink-deployed to all three platforms; `herdr` — single shared source in `ai/common/skills/`, symlink-deployed to all three platforms, vendored from the official herdr `SKILL.md` (teaches an agent to operate the `herdr` CLI from inside a Herdr-managed pane; guarded by a `HERDR_ENV=1` check so it is a no-op outside Herdr); `grilling` — Claude `ai/claude/skills/grilling/SKILL.md` and Codex `ai/codex/skills/grilling/SKILL.md` are a manually synchronized pair with no generator, adapted from Matt Pocock's MIT-licensed upstream; the two differ only in confirmation primitive (`AskUserQuestion` vs `request_user_input`) and persistence target (plan file vs `<proposed_plan>` text). Paired with `dig` as the fixed two-stage Plan Review Deep-Dive — never offer one without the other.
-
-### Report Servers
-
-`review-merge` and `config-audit` both present their findings as an HTML report served over loopback, where the user decides each item and the browser POSTs the result to `<RUN_DIR>/state.json`; a follow-up step then reads that file — `review-fix`/`review-post` for the review flow, the separate `audit-fix` skill for the audit flow. Scripts live in `shell/common/pr/` (symlinked to `~/.config/ai-pr/bin` by `setup_ai_pr_tools`, which globs `*.sh`/`*.py` — a new script there needs no init/update change).
-
-`serve_review_report.py` is shared by both flows and picks a profile from the run directory's manifest: `merged.json` → review (`schema_version` 2, decisions `fix`/`post`/`dismiss`), `audit.json` → audit (`schema_version` 1, decisions `apply`/`dismiss`). The generators stay separate (`generate_review_report.py`, `generate_audit_report.py`) because the review report is built around PR data — `gh` lookups, GitHub links, per-AI badges — that an audit has no counterpart for. When adding a decision value or a manifest field, update the profile in the server, the generator's tables, and the core md together; the contract tests under `tests/ai/common/*/` pin exactly that agreement.
-
-The agent always starts the server without `--open`, verifies the URL responds, then opens it once; the `review-report` / `audit-report` zsh functions pass `--open` instead, because no agent is there to verify. `state.json` is browser-owned — no skill ever writes it.
+Prompt composition (`_CLAUDE.md` / `_GEMINI.md` / `_AGENTS.md`), the shared-core skill table, the generated subagent families, and the review-merge / config-audit report servers are documented in `.claude/skills/ai-prompt-generation/SKILL.md` (`.agents/skills/ai-prompt-generation/SKILL.md`) — read it before editing anything under `ai/` or `shell/common/pr/`. Edit the sources, never the generated committed outputs; regenerate via the "Regenerate AI Prompts" table above.
 
 ### Claude Hooks
 Notification-hook roles and implementation rules for all three platforms live in `.claude/skills/ai-notification-hooks/SKILL.md` — read it before changing `ai/*/hooks/` or `shell/tmux/ai_notification_*`.
 
 ### Plugin Management
 
-**Zsh (znap)**: Config in `shell/zsh/plugin.zsh`. Plugins updated via `znap pull` in `mac/update` (submodule/runtime split: see Directory Structure).
+**Zsh (znap)**: Config in `shell/zsh/plugin.zsh`. Plugins updated via `znap pull` in `mac/update`. Only znap itself is a git submodule under `/submodules/`; every other Zsh plugin is downloaded by znap at runtime and is not tracked here.
 
 **Neovim (lazy.nvim)**: Plugins in `vimfiles/nvim/lua/plugins/`. VSCode Neovim uses separate `plugins_vscode/`. Updated via `nvim --headless "+Lazy! sync | TSUpdate" +qa` in `mac/update`.
 

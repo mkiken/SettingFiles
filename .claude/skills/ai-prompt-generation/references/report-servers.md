@@ -1,0 +1,7 @@
+# Report Servers
+
+`review-merge` and `config-audit` both present their findings as an HTML report served over loopback, where the user decides each item and the browser POSTs the result to `<RUN_DIR>/state.json`; a follow-up step then reads that file — `review-fix`/`review-post` for the review flow, the separate `audit-fix` skill for the audit flow. Scripts live in `shell/common/pr/` (symlinked to `~/.config/ai-pr/bin` by `setup_ai_pr_tools`, which globs `*.sh`/`*.py` — a new script there needs no init/update change).
+
+`serve_review_report.py` is shared by both flows and picks a profile from the run directory's manifest: `merged.json` → review (`schema_version` 2, decisions `fix`/`post`/`dismiss`), `audit.json` → audit (`schema_version` 1, decisions `apply`/`dismiss`). The generators stay separate (`generate_review_report.py`, `generate_audit_report.py`) because the review report is built around PR data — `gh` lookups, GitHub links, per-AI badges — that an audit has no counterpart for. When adding a decision value or a manifest field, update the profile in the server, the generator's tables, and the core md together; the contract tests under `tests/ai/common/*/` pin exactly that agreement.
+
+The agent always starts the server without `--open`, verifies the URL responds, then opens it once; the `review-report` / `audit-report` zsh functions pass `--open` instead, because no agent is there to verify. `state.json` is browser-owned — no skill ever writes it.
