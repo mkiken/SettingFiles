@@ -5,7 +5,8 @@ gh config set editor "nvim"
 
 alias ghb='gh browse'
 function ghpc() {
-  gh pr create --web --body="" "$@"
+  gh pr create --web --body="" "$@" || return $?
+  pr_reviewer_reminder
 }
 alias -g ghpv='gh pr view --web'
 alias ghpu='gh pr view --json url --jq .url'

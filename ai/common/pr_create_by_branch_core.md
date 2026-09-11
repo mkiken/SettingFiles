@@ -85,6 +85,7 @@ On success:
 
 - Display the PR URL.
 - Display 「必要に応じて **Review Focus Points** を編集してください」.
+- Always display 「リマインド: PRのレビュワー設定を忘れないでください。」 — do not check whether reviewers are already assigned, and do not offer to set them.
 
 On failure:
 

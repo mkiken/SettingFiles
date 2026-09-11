@@ -122,6 +122,14 @@ cl-pr-body() {
     clo --dangerously-skip-permissions "/pr-body $pr_number $*"
 }
 
+# PR作成系のalias/skillから呼ぶレビュワー設定のリマインダ。
+# レビュワーが設定済みかは判定せず常に出力する。本リポジトリのPR作成経路は
+# いずれもレビュワーを設定しないため、判定しても常に未設定になる。
+# 出力先はstderr。将来コマンド置換で呼ばれてもstdoutを汚さないため。
+pr_reviewer_reminder() {
+    echo "リマインド: PRのレビュワー設定を忘れないでください。" >&2
+}
+
 cl-pr-create() {
     local title="$*"
     if [[ -z "$title" ]]; then
@@ -139,7 +147,11 @@ cl-pr-create() {
         echo "作成したPR番号を取得できませんでした。" >&2
         return 1
     }
+    local ai_exit
     clo --dangerously-skip-permissions "/pr-body $pr_number"
+    ai_exit=$?
+    pr_reviewer_reminder
+    return $ai_exit
 }
 
 cclog() {

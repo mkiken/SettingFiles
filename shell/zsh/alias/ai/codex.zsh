@@ -83,7 +83,11 @@ cx-pr-create() {
         echo "作成したPR番号を取得できませんでした。" >&2
         return 1
     }
+    local ai_exit
     cxh --dangerously-bypass-approvals-and-sandbox "\$pr-body PR #$pr_number のbodyを生成して"
+    ai_exit=$?
+    pr_reviewer_reminder
+    return $ai_exit
 }
 
 cx-pr-review() {

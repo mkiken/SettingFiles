@@ -176,7 +176,8 @@ function fghpc() {
   if [[ -z $branch ]]; then
     return $EXIT_CODE_SIGINT
   fi
-  gh pr create --web --body="" --base "$branch" "$@"
+  gh pr create --web --body="" --base "$branch" "$@" || return $?
+  pr_reviewer_reminder
 }
 
 function fghpch() {
@@ -184,7 +185,8 @@ function fghpch() {
   if [[ -z $branch ]]; then
     return $EXIT_CODE_SIGINT
   fi
-  gh pr create --web --body="" --base "$branch" "$@"
+  gh pr create --web --body="" --base "$branch" "$@" || return $?
+  pr_reviewer_reminder
 }
 
 # PR一覧からブラウザで開く
