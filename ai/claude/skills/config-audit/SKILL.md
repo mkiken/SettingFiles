@@ -32,6 +32,16 @@ In Phase 2, start all six simultaneously with the payload defined there:
 5. **config-auditor-ambiguity** — 曖昧なルール
 6. **config-auditor-concise** — 意味を変えないトークン削減
 
+## Related: operational health
+
+This skill audits configuration *content* only. Installation duplicates, unused
+skills/MCP servers/plugins, slow hooks, version currency, and permission posture belong to
+the built-in `doctor` skill. The two use incompatible decision models — `doctor` decides in
+the conversation, this skill decides in the browser report — so never run them in the same
+pass. Apply this skill's decisions with `audit-fix` first, then run `doctor` separately if
+the user wants the operational side checked. Name it in the Phase 4 summary as an optional
+follow-up, not as part of this run.
+
 ## Core Workflow
 
 !`/bin/cat ~/.claude/common/config_audit_subagents/orchestrator_core.md`
