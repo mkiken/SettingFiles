@@ -5,6 +5,7 @@
     "commit": "",
     "pr": ""
   },
+  "autoCompactWindow": 200000,
   "awaySummaryEnabled": false,
   "effortLevel": "medium",
   "enabledPlugins": {
