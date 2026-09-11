@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 
 
-from support import REPO_ROOT
+from support import REPO_ROOT, sanitized_env
 GIT_FILTER = REPO_ROOT / "shell/zsh/filter/git.zsh"
 AI_ALIASES = REPO_ROOT / "shell/zsh/alias/ai/ai.zsh"
 ZSH = shutil.which("zsh")
@@ -61,14 +61,13 @@ class FgwtFixture:
         )
 
     def run_fgwt(self, command="fgwt", extra_env=None):
-        env = {
-            **os.environ,
+        env = sanitized_env({
             "PATH": f"{self.bin_dir}:{os.environ['PATH']}",
             "EXIT_CODE_SIGINT": "130",
             "FGWT_REPO": str(self.repo),
             "FGWT_WORKTREE": str(self.worktree),
             **(extra_env or {}),
-        }
+        })
         script = f'''
             source "{GIT_FILTER}"
             save_history() {{ "$@"; }}
@@ -226,8 +225,7 @@ class FgwtcTest(unittest.TestCase):
         # （テスト実行環境にjqがある前提。CI/開発機とも通常同梱）。
 
     def run_fgwtc(self, command="fgwtc", extra_env=None):
-        env = {
-            **os.environ,
+        env = sanitized_env({
             "PATH": f"{self.bin_dir}:{os.environ['PATH']}",
             "EXIT_CODE_SIGINT": "130",
             "FGWT_REPO": str(self.repo),
@@ -236,7 +234,7 @@ class FgwtcTest(unittest.TestCase):
             "HERDR_ENV": "",
             "TMUX": "",
             **(extra_env or {}),
-        }
+        })
         script = f'''
             source "{AI_ALIASES}"
             source "{GIT_FILTER}"

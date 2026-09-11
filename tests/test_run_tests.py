@@ -222,6 +222,48 @@ class RunTestsTest(unittest.TestCase):
 
         killpg.assert_called_once_with(456, signal.SIGTERM)
 
+    def test_multiplexer_env_is_purged_before_any_shard_starts(self):
+        # Herdr pane 内でスイートを起動すると HERDR_*/TMUX が全 shard に継承され、
+        # テストの PATH スタブが HERDR_BIN_PATH 優先の実装に迂回されて実在の
+        # multiplexer インスタンスを操作してしまう（実害として観測済み）。
+        # main() が shard 起動前に一度だけ環境を落とすことを固定する。
+        polluted = {
+            "HERDR_BIN_PATH": "/opt/homebrew/opt/herdr/bin/herdr",
+            "HERDR_SOCKET_PATH": "/tmp/herdr.sock",
+            "HERDR_ENV": "1",
+            "HERDR_WORKSPACE_ID": "wC7",
+            "TMUX": "/tmp/tmux-501/default,1,0",
+        }
+        seen = {}
+
+        def capture_discover(*args, **kwargs):
+            seen["at_discover"] = dict(os.environ)
+            return ["fake.Test.test_example"]
+
+        def capture_run_shards(shards, **kwargs):
+            seen["at_run_shards"] = dict(os.environ)
+            return []
+
+        with mock.patch.dict(os.environ, polluted, clear=False):
+            with mock.patch.object(run_tests, "discover_test_ids", side_effect=capture_discover):
+                with mock.patch.object(run_tests, "run_shards", side_effect=capture_run_shards):
+                    run_tests.main([])
+
+        for stage in ("at_discover", "at_run_shards"):
+            with self.subTest(stage=stage):
+                leaked = [
+                    key
+                    for key in seen[stage]
+                    if key.startswith("HERDR_") or key == "TMUX"
+                ]
+                self.assertEqual(leaked, [], seen[stage])
+
+    def test_main_return_code_unaffected_when_environment_is_clean(self):
+        with mock.patch.object(run_tests, "discover_test_ids", return_value=[]):
+            status = run_tests.main([])
+
+        self.assertEqual(status, 1)
+
 
 if __name__ == "__main__":
     unittest.main()

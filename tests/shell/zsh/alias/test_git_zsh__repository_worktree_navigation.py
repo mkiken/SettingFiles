@@ -5,9 +5,10 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
-from support import REPO_ROOT
+from support import REPO_ROOT, sanitized_env
 GIT_FILTER = REPO_ROOT / "shell/zsh/filter/git.zsh"
 TMUX_ALIASES = REPO_ROOT / "shell/zsh/alias/tmux.zsh"
 AI_ALIASES = REPO_ROOT / "shell/zsh/alias/ai/ai.zsh"
@@ -120,14 +121,31 @@ class RepositoryWorktreeTest(unittest.TestCase):
             "exit 0\n",
         )
 
+    def _write_trap_herdr(self):
+        """PATH外に置く『呼ばれたら痕跡を残して失敗する』herdr。
+
+        `_herdr_open_worktree_tab`/`_herdr_open_worktree_workspace`
+        (shell/zsh/filter/ai.zsh) は `${HERDR_BIN_PATH:-herdr}` でPATH解決より
+        環境変数を優先する。親プロセス（Herdr pane）からその変数を継承すると
+        PATH上のfakeを迂回して実CLIを叩きうるため、その経路が塞がれたことを
+        実行痕跡で証明する。
+        """
+        trap = self.root / "herdr-trap"
+        trap.write_text(
+            "#!/bin/sh\n"
+            "printf 'called\\n' >> \"$FWT_HERDR_TRAP\"\n"
+            "exit 1\n"
+        )
+        trap.chmod(trap.stat().st_mode | stat.S_IXUSR)
+        return trap
+
     def run_repository_worktree(
         self, command="repository-worktree", *args, tmux=False, herdr=False, extra_env=None
     ):
         for path in (self.root / "filter-count", self.filter_args_log, self.tmux_log, self.herdr_log):
             if path.exists():
                 path.unlink()
-        env = {
-            **os.environ,
+        env = sanitized_env({
             "PATH": f"{self.bin_dir}:{os.environ['PATH']}",
             "EXIT_CODE_SIGINT": "130",
             "FWT_ZOXIDE_LIST": str(self.repo),
@@ -142,7 +160,7 @@ class RepositoryWorktreeTest(unittest.TestCase):
             **({"TMUX": "test-client"} if tmux else {}),
             **({"HERDR_ENV": "1"} if herdr else {}),
             **(extra_env or {}),
-        }
+        })
         command_line = " ".join([command, *args])
         script = f'''
             source "{TMUX_ALIASES}"
@@ -282,6 +300,60 @@ class RepositoryWorktreeTest(unittest.TestCase):
                 self.assertIn(f"--cwd {self.worktree}", calls[0])
                 self.assertIn("--focus", calls[0])
                 self.assertNotIn("--no-focus", calls[0])
+
+    def test_inherited_herdr_bin_path_does_not_reach_the_real_cli_for_tab(self):
+        # Herdr pane 内で走らせた親プロセスの HERDR_BIN_PATH/HERDR_SOCKET_PATH
+        # 等の汚染を模した状態で、herdr呼び出し関連のextra_envを一切指定せず
+        # 呼び出す。sanitized_env が継承を断ち切っていれば trap は呼ばれず、
+        # PATH上のfakeだけが使われる。
+        trap = self._write_trap_herdr()
+        trap_log = self.root / "herdr-trap.log"
+        polluted = {
+            "HERDR_BIN_PATH": str(trap),
+            "HERDR_SOCKET_PATH": "/tmp/should-not-be-used.sock",
+            "HERDR_WORKSPACE_ID": "wC7",
+            "HERDR_ENV": "1",
+            "FWT_HERDR_TRAP": str(trap_log),
+        }
+        with mock.patch.dict(os.environ, polluted):
+            result, values = self.run_repository_worktree(
+                "repository-worktree -w", herdr=True
+            )
+
+        self.assertFalse(
+            trap_log.exists(),
+            trap_log.read_text() if trap_log.exists() else "",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        calls = self.herdr_calls()
+        self.assertEqual(len(calls), 1, calls)
+        self.assertIn("tab create", calls[0])
+
+    def test_inherited_herdr_bin_path_does_not_reach_the_real_cli_for_workspace(self):
+        trap = self._write_trap_herdr()
+        trap_log = self.root / "herdr-trap.log"
+        polluted = {
+            "HERDR_BIN_PATH": str(trap),
+            "HERDR_SOCKET_PATH": "/tmp/should-not-be-used.sock",
+            "HERDR_WORKSPACE_ID": "wC7",
+            "HERDR_ENV": "1",
+            "FWT_HERDR_TRAP": str(trap_log),
+        }
+        with mock.patch.dict(os.environ, polluted):
+            result, values = self.run_repository_worktree(
+                "repository-worktree -s", herdr=True
+            )
+
+        self.assertFalse(
+            trap_log.exists(),
+            trap_log.read_text() if trap_log.exists() else "",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        calls = self.herdr_calls()
+        self.assertEqual(len(calls), 1, calls)
+        self.assertIn("workspace create", calls[0])
 
     def test_popup_picker_routes_selected_worktree_by_accept_key(self):
         cases = (

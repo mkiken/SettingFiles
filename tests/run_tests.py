@@ -19,6 +19,9 @@ REPO_ROOT = TEST_DIR.parent
 DEPENDENCY_MAP_PATH = TEST_DIR / "dependencies.toml"
 MAX_DEFAULT_JOBS = 8
 
+sys.path.insert(0, str(TEST_DIR))
+from support import purge_multiplexer_env  # noqa: E402
+
 
 @dataclass
 class ShardRun:
@@ -311,6 +314,10 @@ def print_results(results, total_duration):
 
 def main(argv=None):
     args = parse_args(argv)
+    # Herdr/tmux pane 内でスイートを起動すると注入変数を全 shard が継承する。
+    # テストの PATH スタブは HERDR_BIN_PATH 優先の実装を迂回できないため
+    # ここで一度だけ落とす。
+    purge_multiplexer_env()
     test_ids = discover_test_ids()
     if args.paths:
         try:
