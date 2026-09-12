@@ -60,6 +60,7 @@
       }
     }
   },
+  "feedbackSurveyRate": 0,
   "fileSuggestion": {
     "command": "~/.claude/scripts/file-suggestion.sh",
     "type": "command"
