@@ -34,21 +34,45 @@ If the result is empty, report `Implementation-model check skipped: active model
 
 ## Choose the implementation route
 
-When the detected model is `gpt-6-astra` or matches `*-sol`, use `request_user_input` when available, otherwise the always-on confirmation fallback, with these choices in this order:
+When the detected model is `gpt-6-astra` or matches `*-sol`, use
+`request_user_input` when available with these authored choices in this order:
 
-1. `Continue with current model (Recommended)` — keep the entire accepted-plan execution in the parent session with the detected model.
+1. `Use Sol subagent (Recommended)` — the parent session remains on the detected model; exactly one Sol `worker` subagent owns the entire accepted-plan execution.
 2. `Use Terra subagent` — the parent session remains on the detected model; exactly one Terra `worker` subagent owns the entire accepted-plan execution.
-3. `Use Luna subagent` — the parent session remains on the detected model; exactly one Luna `worker` subagent owns the entire accepted-plan execution.
 
-Resolve Terra and Luna only from callable runtime metadata, never local configuration. If the selected tier is unavailable, make no implementation change, report the unavailable tier, and offer the choice again.
+Pass each label exactly once and do not count the client's auto-provided free-form
+`Other` as an authored option. In the question text, say that `Other` can specify
+"continue with the current model", "delegate to Luna", or "switch the parent
+model manually". If `request_user_input` is unavailable, ask one plain-text
+free-form question that includes the same routes and examples.
 
-Free-form `Other` means a manual parent-session model switch, not Terra/Luna worker delegation. Make no implementation change. Ask the user to switch the parent session model manually, wait until the user confirms the switch, then rerun detection on the next implementation attempt.
+Resolve Sol, Terra, and Luna only from callable runtime metadata, never local
+configuration. If the selected tier is unavailable, make no implementation
+change, report the unavailable tier, and offer the choice again.
+
+Interpret a free-form answer by its stated route:
+
+- A supported model name without an explicit parent-switch request delegates to
+  that model's `worker`, including free-form answers such as `I want to use Sol`.
+- A request to continue with the current model keeps execution in the parent
+  session.
+- A Luna request delegates the full lifecycle to exactly one Luna `worker`
+  subagent.
+- Only an explicit request to switch the parent-session model starts the
+  manual-switch flow. Make no implementation change while waiting for that
+  switch. Ask the user to switch the parent session model manually, wait until
+  the user confirms the switch, then rerun detection on the next implementation
+  attempt.
+
+Do not interpret free-form `Other` as a manual parent-model switch by default.
+If the route is unclear, ask the user to clarify before making any implementation
+change.
 
 Apply the selected execution route to the current task without rewriting the accepted plan.
 
 ## Delegate the full execution lifecycle
 
-For Terra or Luna, spawn exactly one `worker` with the selected runtime model
+For Sol, Terra, or Luna, spawn exactly one `worker` with the selected runtime model
 override and `fork_turns="none"`. Give it a self-contained prompt containing:
 
 - The accepted plan verbatim, the original task request, and every accepted user decision.

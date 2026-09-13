@@ -64,29 +64,53 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
             with self.subTest(excluded=excluded):
                 self.assertNotIn(excluded, self.skill)
 
-    def test_choice_flow_preserves_all_execution_routes(self):
+    def test_choice_flow_offers_sol_and_terra_delegation(self):
         for required in (
-            "`Continue with current model (Recommended)`",
-            "parent session with the detected model",
+            "`Use Sol subagent (Recommended)`",
             "`Use Terra subagent`",
-            "`Use Luna subagent`",
             "parent session remains on the detected model",
+            "exactly one Sol `worker` subagent owns the entire accepted-plan execution.",
             "exactly one Terra `worker` subagent owns the entire accepted-plan execution.",
-            "exactly one Luna `worker` subagent owns the entire accepted-plan execution.",
-            "Resolve Terra and Luna only from callable runtime metadata",
+            "Resolve Sol, Terra, and Luna only from callable runtime metadata",
             "If the selected tier is unavailable, make no implementation change",
+            "do not count the client's auto-provided free-form `Other` as an authored option",
         ):
             with self.subTest(required=required):
-                self.assertIn(required, self.skill)
+                self.assertIn(required, self.normalized_skill)
 
-        # Excluding the old labels prevents readers from mistaking delegation for a parent-model switch.
+        # Excluding old labels keeps the authored choices limited to the two preferred worker tiers.
         for excluded in (
             "`Continue with Sol (Recommended)`",
             "`Delegate to Terra`",
             "`Delegate to Luna`",
+            "`Continue with current model (Recommended)`",
+            "`Use Luna subagent`",
         ):
             with self.subTest(excluded=excluded):
                 self.assertNotIn(excluded, self.skill)
+
+    def test_other_routes_model_names_without_assuming_a_parent_switch(self):
+        for required in (
+            'In the question text, say that `Other` can specify "continue with the current model", "delegate to Luna", or "switch the parent model manually".',
+            "A supported model name without an explicit parent-switch request delegates to that model's `worker`",
+            "including free-form answers such as `I want to use Sol`",
+            "Do not interpret free-form `Other` as a manual parent-model switch by default.",
+            "If the route is unclear, ask the user to clarify before making any implementation change.",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.normalized_skill)
+
+    def test_other_preserves_current_luna_and_explicit_parent_switch_routes(self):
+        for required in (
+            "A request to continue with the current model keeps execution in the parent session.",
+            "A Luna request delegates the full lifecycle to exactly one Luna `worker` subagent.",
+            "Only an explicit request to switch the parent-session model starts the manual-switch flow.",
+            "Make no implementation change while waiting for that switch.",
+            "wait until the user confirms the switch",
+            "rerun detection on the next implementation attempt.",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.normalized_skill)
 
     def test_worker_owns_the_full_execution_lifecycle(self):
         for required in (
@@ -124,18 +148,6 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.skill)
-
-    def test_manual_parent_model_switch_waits_without_side_effects(self):
-        for required in (
-            "Free-form `Other` means a manual parent-session model switch",
-            "not Terra/Luna worker delegation",
-            "Make no implementation change.",
-            "wait until the user confirms the switch",
-            "rerun detection on the next implementation attempt.",
-        ):
-            with self.subTest(required=required):
-                self.assertIn(required, self.skill)
-
 
 if __name__ == "__main__":
     unittest.main()
