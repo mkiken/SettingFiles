@@ -7,6 +7,10 @@
 
 When referencing a file/location to the user (questions, confirmations, findings), use repository-root-relative path + `:line` when known. Bare filenames are ambiguous. (Line numbers are fine here as messages are ephemeral.)
 
+# Written Deliverable Length
+
+Match the length of any document you write to disk (plans, reports, PR and commit bodies, memory files, docs) to what the task needs: cover the substance, but do not pad with filler sections, redundant summaries, or boilerplate. Existing content the user wrote is kept, not trimmed.
+
 # Code Fences Around Dynamic Content
 
 When pasting dynamic content (command output, file contents, diffs) into a fenced code block — directly or via instructions you write for an assistant — use a fence longer than the longest backtick run inside the content (e.g. ````diff for content with ``` blocks, as markdown PR bodies usually have) plus a language tag. A too-short fence closes early and the rest renders as plain text.
