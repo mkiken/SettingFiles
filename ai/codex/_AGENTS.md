@@ -121,26 +121,14 @@ When showing the user something to visually confirm (e.g. a tmux popup), state w
 
 # Plan Review Presentation
 
-When presenting a markdown plan artifact (plan-mode plan file, SDD spec/design/tasks document) for user review or approval, offer to render it in the browser when any of the following holds; otherwise skip the offer:
+When presenting a markdown plan artifact for review or approval, offer browser
+rendering when it is an SDD spec/design/tasks document, is 100 lines or longer,
+contains mermaid diagrams, tables, or images, or spans multiple files. Otherwise
+skip the offer.
 
-- It is an SDD spec/design/tasks document (always offer).
-- It is 100 lines or longer.
-- It contains mermaid diagrams, tables, or images.
-- The plan spans multiple files.
-
-Ask via the platform-specific `# User Confirmation` mechanism. If accepted, launch mdv in the background — the launch shape depends on the artifact.
-
-mdv auto-avoids port collisions (it walks upward from the requested port), so never search for a free port first. It prints its real URL to stdout on startup — parse that line rather than assuming the port:
-
-```bash
-mdv -d -n -q <path> 2>&1 | grep -o 'http://127\.0\.0\.1:[0-9]*'
-```
-
-- **Plan-mode plan file** (a single file among many in `~/.claude/plans/`): reuse a persistent server on the fixed port 4649, mounting `~/.claude/plans`. Probe first with `curl -s -o /dev/null http://127.0.0.1:4649/__mdv/assets/mdv.css` (path-independent); only start it if the probe fails, via `mdv -d -n -q -p 4649 ~/.claude/plans`. **Never stop this server** — a fixed port keeps the browser origin (and therefore its `localStorage`-backed theme preference) stable across reviews, and killing it drops any tab the user still has open on it. Open the target directly via `http://127.0.0.1:4649/<filename>`. If something else holds 4649, mdv lands on a higher port; parse its stdout and treat that instance as ephemeral like the SDD case below.
-- **Small self-contained directory** (e.g. an SDD feature directory): run `mdv -d -n -q <that directory>` per review, parse the printed port, and stop it with `mdv stop --port <parsed-port>` once the user finishes — never on a timer.
-
-Tell the user which file to review in either case.
-
+When these criteria apply, load the `plan-review` skill and follow its
+platform workflow. A platform-specific prompt may replace these criteria with
+stricter gates.
 # Temp File Cleanup
 
 At task completion, before the Post-Implementation Workflow even when skipped, clean up this session's AI-created non-deliverable temp files (scratch scripts, debug output, sample data, logs, dumps, notes). Exclude requested source, tests, docs, fixtures, or config changes and existing files edited in place.
@@ -251,30 +239,18 @@ For `<proposed_plan>` work meeting Plan Review Gate 1, explain each implementati
 
 # Plan Review Deep-Dive (grilling → dig)
 
-The deep-dive is a fixed two-stage pair, never one half alone: `grilling` walks the design tree in dependency order and settles the open decisions with a recommended answer for each, then `dig` attacks the surviving risk assumptions and folds them into the plan. Running dig alone leaves decisions the plan never made; running grilling alone leaves its decisions unstressed. Offer them together, run them in that order.
+This review combines browser rendering with the fixed grilling-then-dig pair.
+When finalizing a plan in Plan Mode, load the `plan-review` skill only when
+both gates hold; otherwise output the final `<proposed_plan>` with no review
+dialog.
 
-This section's skip criterion governs both the deep-dive offer and the Plan Review Presentation browser offer — the shared file's own line-count/format criteria do not apply here; use this criterion for both instead. Its port-selection and launch mechanics still apply when the browser is actually opened.
+- **Gate 1 — content:** the plan has an undecided design decision or trade-off,
+  spans 3+ files or subsystem/module boundaries, or includes an irreversible or
+  externally visible action such as deletion, push, external API writes,
+  deployment, or a breaking live-configuration change. Treat ambiguity as
+  unmet.
+- **Gate 2 — size:** the complete decision-ready plan body that would appear
+  inside `<proposed_plan>` is at least 200 lines, counted rather than
+  estimated.
 
-When finalizing a plan in Plan Mode, offer both only when two gates both hold; if either is unmet, skip straight to the final `<proposed_plan>` with no dialog.
-
-- **Gate 1 — content** (at least one of): the plan contains an undecided design decision or trade-off; it spans 3+ files or crosses subsystem/module boundaries; it includes an irreversible or externally-visible action (deletion, push, external API writes, deployment, breaking a live configuration). When it is unclear whether gate 1 holds, treat it as unmet.
-- **Gate 2 — size**: the decision-complete plan body that would go inside `<proposed_plan>` is 200 lines or more, counted directly rather than estimated. This supersedes the shared file's 100-line threshold for this decision.
-
-Otherwise, first output a terminal review preview containing the complete decision-complete plan exactly as it would appear inside `<proposed_plan>`, but without the protocol tags. Do not replace it with a summary or partial update. Only after the full preview is visible, present this question as a plain-text Markdown ordered list; never call `request_user_input` for it because its four authored options exceed the runtime limit. Treat a number-only reply as selecting the corresponding option. Preserve exactly this order:
-
-1. Both: open the browser and also run the deep-dive.
-2. Deep-dive only: run grilling then dig without opening the browser.
-3. Open the browser now, decide on the deep-dive after reading.
-4. Neither.
-
-The deep-dive is offered only as the whole pair — never list grilling and dig as separate selectable options.
-
-If option 1 is chosen, open the browser first, then run the deep-dive.
-
-If option 2 is chosen, run the deep-dive without launching mdv.
-
-Running the deep-dive means: load the `grilling` skill and complete its rounds until the frontier is empty and the user confirms shared understanding, then load the `dig` skill on the plan grilling produced. Never start dig while grilling still has open questions — dig's assumption map is only meaningful against a decision-complete plan.
-
-If option 4 is chosen, output the previewed plan unchanged inside the final `<proposed_plan>` block. After the deep-dive pair changes the candidate plan, repeat the full terminal preview and review-choice flow with the revised plan before finalizing it — once, after dig, not between the two stages.
-
-Codex has no `~/.codex/plans`; a plan exists only in the turn's `<proposed_plan>`. For accepted browser review, first write it to a scratchpad, then follow Plan Review Presentation's SDD flow: run `mdv -d -n -q <scratchpad-dir>`, parse the printed port, and stop it after review. Never use Claude-only port 4649/`~/.claude/plans`. Temp File Cleanup applies to the scratchpad.
+These gates supersede the shared Plan Review Presentation criteria for Codex.

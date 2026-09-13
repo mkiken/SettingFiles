@@ -1,10 +1,6 @@
 ---
 name: pr-body
-description: >
-  Generate and optionally update a GitHub Pull Request body using gh.
-  Use this skill when the user asks Codex to create, regenerate, rewrite,
-  or apply a PR description/body, says "PR body", "PR本文", "PR説明を作って",
-  or invokes `$pr-body`.
+description: Draft or update a GitHub Pull Request body. Use when the user asks for a PR description, including `$pr-body`.
 ---
 
 ## Inputs

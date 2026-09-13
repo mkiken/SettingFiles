@@ -1,6 +1,6 @@
 ---
 name: grilling
-description: Relentless design-tree interview that resolves a plan's decisions in dependency order, asking each round's answerable questions together with a recommended answer for every one. Use when the user asks to grill a plan, stress-test thinking before building, or work through a design's open decisions — including Japanese phrasing such as "詰めて", "尋問して", "設計を固めて".
+description: Resolve a plan's open design decisions in dependency order. Use when the user asks to grill or fully settle a plan before implementation.
 ---
 
 # Grilling

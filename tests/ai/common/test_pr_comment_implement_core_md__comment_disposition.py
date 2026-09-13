@@ -3,13 +3,20 @@ import unittest
 from support import REPO_ROOT
 
 
-CORE = REPO_ROOT / "ai/common/pr_comment_implement_core.md"
+WORKFLOW_FILES = (
+    REPO_ROOT / "ai/common/pr_comment_implement_core.md",
+    REPO_ROOT / "ai/common/pr_comment_implement/analysis-design.md",
+    REPO_ROOT / "ai/common/pr_comment_implement/implementation.md",
+    REPO_ROOT / "ai/common/pr_comment_implement/finalization.md",
+)
 
 
 class PrCommentImplementCommentDispositionTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.content = CORE.read_text(encoding="utf-8")
+        cls.content = "\\n".join(
+            path.read_text(encoding="utf-8") for path in WORKFLOW_FILES
+        )
 
     def test_mandatory_disposition_precedes_design_review(self):
         disposition = self.content.index(
@@ -72,16 +79,16 @@ class PrCommentImplementCommentDispositionTest(unittest.TestCase):
             with self.subTest(field=field):
                 self.assertIn(field, template)
 
-    def test_codex_generated_skill_receives_disposition_contract(self):
-        codex_skill = (
-            REPO_ROOT / "ai/codex/skills/pr-comment-implement/SKILL.md"
+    def test_codex_reference_receives_disposition_contract(self):
+        codex_reference = (
+            REPO_ROOT / "ai/codex/skills/pr-comment-implement/references/analysis-design.md"
         ).read_text(encoding="utf-8")
 
         self.assertIn(
             "### Decide whether the comment should be acted on (MANDATORY)",
-            codex_skill,
+            codex_reference,
         )
-        self.assertIn("### 採否判断", codex_skill)
+        self.assertIn("### 採否判断", codex_reference)
 
 
 if __name__ == "__main__":

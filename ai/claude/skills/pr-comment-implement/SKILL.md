@@ -15,6 +15,8 @@ effort: high
   action selection. Treat Other or cancel on the final action question as
   "no action" (equivalent to `コミットしない`).
 - In plan mode, the plan artifact is the plan file.
+- `WORKFLOW_REFERENCE_DIR` is
+  `~/.claude/common/pr_comment_implement`.
 
 ## Core Workflow
 

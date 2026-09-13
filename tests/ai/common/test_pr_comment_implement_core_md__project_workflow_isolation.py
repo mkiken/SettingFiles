@@ -3,13 +3,20 @@ import unittest
 from support import REPO_ROOT
 
 
-CORE = REPO_ROOT / "ai/common/pr_comment_implement_core.md"
+WORKFLOW_FILES = (
+    REPO_ROOT / "ai/common/pr_comment_implement_core.md",
+    REPO_ROOT / "ai/common/pr_comment_implement/analysis-design.md",
+    REPO_ROOT / "ai/common/pr_comment_implement/implementation.md",
+    REPO_ROOT / "ai/common/pr_comment_implement/finalization.md",
+)
 
 
 class PrCommentImplementProjectWorkflowIsolationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.content = CORE.read_text(encoding="utf-8")
+        cls.content = "\\n".join(
+            path.read_text(encoding="utf-8") for path in WORKFLOW_FILES
+        )
 
     def test_project_workflow_writes_stay_inside_task_worktree(self):
         contract = self.content.index(
@@ -50,11 +57,11 @@ class PrCommentImplementProjectWorkflowIsolationTest(unittest.TestCase):
             self.content,
         )
 
-    def test_codex_generated_skill_carries_isolation_contract(self):
-        codex_skill = (
-            REPO_ROOT / "ai/codex/skills/pr-comment-implement/SKILL.md"
+    def test_codex_reference_carries_isolation_contract(self):
+        codex_reference = (
+            REPO_ROOT / "ai/codex/skills/pr-comment-implement/references/analysis-design.md"
         ).read_text(encoding="utf-8")
-        codex_normalized = " ".join(codex_skill.split())
+        codex_normalized = " ".join(codex_reference.split())
 
         self.assertIn(
             "#### Constrain project-mandated workflows to the task worktree",

@@ -10,6 +10,8 @@ prompt = """Implement code changes based on PR review comments for {{args}}.
   execution (Gemini CLI limitation).
 - Ask approvals, target selections, retries, and the final action selection as
   plain-text questions and wait for the user's reply.
+- `WORKFLOW_REFERENCE_DIR` is
+  `~/.gemini/common/pr_comment_implement`.
 
 ## Core Workflow
 

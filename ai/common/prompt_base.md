@@ -121,26 +121,14 @@ When showing the user something to visually confirm (e.g. a tmux popup), state w
 
 # Plan Review Presentation
 
-When presenting a markdown plan artifact (plan-mode plan file, SDD spec/design/tasks document) for user review or approval, offer to render it in the browser when any of the following holds; otherwise skip the offer:
+When presenting a markdown plan artifact for review or approval, offer browser
+rendering when it is an SDD spec/design/tasks document, is 100 lines or longer,
+contains mermaid diagrams, tables, or images, or spans multiple files. Otherwise
+skip the offer.
 
-- It is an SDD spec/design/tasks document (always offer).
-- It is 100 lines or longer.
-- It contains mermaid diagrams, tables, or images.
-- The plan spans multiple files.
-
-Ask via the platform-specific `# User Confirmation` mechanism. If accepted, launch mdv in the background — the launch shape depends on the artifact.
-
-mdv auto-avoids port collisions (it walks upward from the requested port), so never search for a free port first. It prints its real URL to stdout on startup — parse that line rather than assuming the port:
-
-```bash
-mdv -d -n -q <path> 2>&1 | grep -o 'http://127\.0\.0\.1:[0-9]*'
-```
-
-- **Plan-mode plan file** (a single file among many in `~/.claude/plans/`): reuse a persistent server on the fixed port 4649, mounting `~/.claude/plans`. Probe first with `curl -s -o /dev/null http://127.0.0.1:4649/__mdv/assets/mdv.css` (path-independent); only start it if the probe fails, via `mdv -d -n -q -p 4649 ~/.claude/plans`. **Never stop this server** — a fixed port keeps the browser origin (and therefore its `localStorage`-backed theme preference) stable across reviews, and killing it drops any tab the user still has open on it. Open the target directly via `http://127.0.0.1:4649/<filename>`. If something else holds 4649, mdv lands on a higher port; parse its stdout and treat that instance as ephemeral like the SDD case below.
-- **Small self-contained directory** (e.g. an SDD feature directory): run `mdv -d -n -q <that directory>` per review, parse the printed port, and stop it with `mdv stop --port <parsed-port>` once the user finishes — never on a timer.
-
-Tell the user which file to review in either case.
-
+When these criteria apply, load the `plan-review` skill and follow its
+platform workflow. A platform-specific prompt may replace these criteria with
+stricter gates.
 # Temp File Cleanup
 
 At task completion, before the Post-Implementation Workflow even when skipped, clean up this session's AI-created non-deliverable temp files (scratch scripts, debug output, sample data, logs, dumps, notes). Exclude requested source, tests, docs, fixtures, or config changes and existing files edited in place.

@@ -19,31 +19,21 @@ When the decision context exceeds what the `question` field and option previews 
 
 # Plan Review Deep-Dive (grilling → dig)
 
-The deep-dive is a fixed two-stage pair, never one half alone: `grilling` walks the design tree in dependency order and settles the open decisions with a recommended answer for each, then `dig` attacks the surviving risk assumptions and folds them into the plan. Running dig alone leaves decisions the plan never made; running grilling alone leaves its decisions unstressed. Offer them together, run them in that order.
+This review combines browser rendering with the fixed grilling-then-dig pair.
+When presenting a plan for approval, load the `plan-review` skill only when
+both gates hold; otherwise proceed directly to `ExitPlanMode` with no review
+dialog.
 
-This section's skip criterion governs both the deep-dive offer and the Plan Review Presentation browser offer — on Claude, that shared file's own line-count/format criteria do not apply; use this criterion for both instead. Its port-selection and launch mechanics still apply when the browser is actually opened.
+- **Gate 1 — content:** the plan has an undecided design decision or trade-off,
+  spans 3+ files or subsystem/module boundaries, or includes an irreversible or
+  externally visible action such as deletion, push, external API writes,
+  deployment, or a breaking live-configuration change. Treat ambiguity as
+  unmet.
+- **Gate 2 — size:** the plan file is at least 200 lines by `wc -l`, not an
+  estimate.
 
-When presenting a plan artifact for review, offer both only when two gates both hold; if either is unmet, skip straight to `ExitPlanMode` with no dialog.
+These gates supersede the shared Plan Review Presentation criteria for Claude.
 
-- **Gate 1 — content** (at least one of): the plan contains an undecided design decision or trade-off; it spans 3+ files or crosses subsystem/module boundaries; it includes an irreversible or externally-visible action (deletion, push, external API writes, deployment, breaking a live configuration). When it is unclear whether gate 1 holds, treat it as unmet.
-- **Gate 2 — size**: the plan file (`wc -l` on the file at the path shown in the plan-mode system message) is 200 lines or more. This supersedes the shared file's 100-line threshold for this decision — measure, don't estimate.
-
-Otherwise, before the dialog, output the plan file's current full content as ordinary assistant text in this same turn — not a summary or excerpt, the whole thing, and not wrapped in a code fence (the plan body itself may contain fences). Do this so the choice below is made after reading the plan, not before. `ExitPlanMode` will show the same file again once approved; that second appearance is intentional, not redundant — it is the platform's own approval surface, not a rendering this workflow controls, so do not collapse the two into one by skipping this output.
-
-Then merge the deep-dive/HTML choice with the Plan Review Presentation offer into a single `AskUserQuestion` dialog (single-select, no multiSelect) with exactly four fixed options. The deep-dive is offered only as the whole pair — never list grilling and dig as separate selectable options:
-
-- Both: open the browser and also run the deep-dive.
-- Deep-dive only: run grilling then dig without opening the browser.
-- Open the browser now, decide on the deep-dive after reading.
-- Neither.
-
-If "both" is selected, open the browser first, then run the deep-dive.
-
-Running the deep-dive means: invoke the `grilling` skill and complete its rounds until the frontier is empty and the user confirms shared understanding, then invoke the `dig` skill on the plan grilling produced. Never start dig while grilling still has open questions — dig's assumption map is only meaningful against a decision-complete plan.
-
-If the deferred option is selected: open the browser per Plan Review Presentation, then wait for the user to report they've finished reading — do not call `ExitPlanMode` yet; ending the turn on plain text would misfire the Stop hook's completion notification. Once they confirm, ask a second `AskUserQuestion` (deep-dive now vs. proceed to approval). Both skills read the plan file fresh from disk regardless of when they run, so deferring costs nothing functionally.
-
-Both stages rewrite the plan file, so re-present the updated plan after the pair completes, re-applying these rules — once, after dig, not between the two stages. If dig runs as a forked/background subagent (it then has no `AskUserQuestion`), treat its returned output as analysis and conduct the confirmation rounds yourself in the main session via `AskUserQuestion`; grilling always runs inline in the main session, because its questions must reach the user. In plan mode this dialog (or, for the deferred path, the second-round dialog) precedes `ExitPlanMode`. Stop any ephemeral mdv server you started once the review/approval flow completes — never the persistent port-4649 server.
 
 # Fable Model Check After Plan Approval
 

@@ -1,10 +1,6 @@
 ---
 name: pr-comment-review
-description: >
-  Analyze a GitHub PR comment/review comment URL. Use when the user asks Codex
-  to investigate, explain, summarize, assess, or review a PR comment, including
-  "PRコメントを確認して", "レビューコメントを分析して",
-  "このコメントの意図を調べて", "analyze this PR comment", or `$pr-comment-review`.
+description: Analyze a specific GitHub PR comment URL. Use for explanation or assessment without implementing the requested change.
 ---
 
 ## Inputs

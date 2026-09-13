@@ -27,6 +27,17 @@ class ApprovedOipIsolationTest(unittest.TestCase):
             with self.subTest(required=required):
                 self.assertIn(required, self.content)
 
+    def test_workflow_designs_discovery_and_progressive_disclosure(self):
+        for required in (
+            "Design skill discovery deliberately",
+            "one intended request and one plausibly confusable request",
+            "Use progressive disclosure",
+            "completion criteria, authorization boundaries, failure behavior, and cross-phase state",
+            "Do not split a short, cohesive skill merely to reduce its line count",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.content)
+
 
 if __name__ == "__main__":
     unittest.main()

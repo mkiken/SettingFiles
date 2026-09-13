@@ -1,6 +1,6 @@
 ---
 name: worktree-task
-description: Run an implementation task in an isolated Git worktree, then control commit, merge, cleanup, and optional push with explicit checkpoints. Use when the user invokes `$worktree-task` with a task prompt or asks to complete work through the repository's managed worktree workflow.
+description: Run implementation in an isolated Git worktree with controlled commit, merge, cleanup, and push. Use for `$worktree-task` or an explicitly requested managed-worktree workflow.
 ---
 
 # Worktree Task

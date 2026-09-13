@@ -3,13 +3,20 @@ import unittest
 from support import REPO_ROOT
 
 
-CORE = REPO_ROOT / "ai/common/pr_comment_implement_core.md"
+WORKFLOW_FILES = (
+    REPO_ROOT / "ai/common/pr_comment_implement_core.md",
+    REPO_ROOT / "ai/common/pr_comment_implement/analysis-design.md",
+    REPO_ROOT / "ai/common/pr_comment_implement/implementation.md",
+    REPO_ROOT / "ai/common/pr_comment_implement/finalization.md",
+)
 
 
 class PrCommentImplementStandaloneReplyHeaderTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.content = CORE.read_text(encoding="utf-8")
+        cls.content = "\\n".join(
+            path.read_text(encoding="utf-8") for path in WORKFLOW_FILES
+        )
 
     def test_reference_variables_are_defined(self):
         for variable in ("REPLY_REF_URL", "REPLY_REF_SUMMARY", "REPLY_REF_LOCATION"):
@@ -73,15 +80,15 @@ class PrCommentImplementStandaloneReplyHeaderTest(unittest.TestCase):
         self.assertIn("never paste the raw text verbatim", self.content)
         self.assertIn("compress its point to one line", self.content)
 
-    def test_codex_generated_skill_carries_the_same_header_contract(self):
-        codex_skill = (
-            REPO_ROOT / "ai/codex/skills/pr-comment-implement/SKILL.md"
+    def test_codex_reference_carries_the_same_header_contract(self):
+        codex_reference = (
+            REPO_ROOT / "ai/codex/skills/pr-comment-implement/references/finalization.md"
         ).read_text(encoding="utf-8")
 
         self.assertIn(
-            "> 返信対象: [{one-line paraphrase}]({REPLY_REF_URL})", codex_skill
+            "> 返信対象: [{one-line paraphrase}]({REPLY_REF_URL})", codex_reference
         )
-        self.assertIn("Never emit a placeholder for a value that wasn't captured", codex_skill)
+        self.assertIn("Never emit a placeholder for a value that wasn't captured", codex_reference)
 
     def test_claude_and_gemini_adapters_reference_core_without_duplicating_header(self):
         claude_skill = (

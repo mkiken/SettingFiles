@@ -3,14 +3,20 @@ import unittest
 from support import REPO_ROOT
 
 
-CORE = REPO_ROOT / "ai/common/pr_comment_implement_core.md"
+WORKFLOW_FILES = (
+    REPO_ROOT / "ai/common/pr_comment_implement_core.md",
+    REPO_ROOT / "ai/common/pr_comment_implement/analysis-design.md",
+    REPO_ROOT / "ai/common/pr_comment_implement/implementation.md",
+    REPO_ROOT / "ai/common/pr_comment_implement/finalization.md",
+)
 
 
 class PrCommentImplementReactionStateVerificationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.content = CORE.read_text(encoding="utf-8")
-
+        cls.content = "\\n".join(
+            path.read_text(encoding="utf-8") for path in WORKFLOW_FILES
+        )
         section_start = cls.content.index("### Verify the final reaction state")
         summary_start = cls.content.index("Final execution summary:")
         cls.section = cls.content[section_start:summary_start]
@@ -67,12 +73,12 @@ class PrCommentImplementReactionStateVerificationTest(unittest.TestCase):
 
         self.assertLess(derivation, verify)
 
-    def test_codex_skill_receives_the_verification_step(self):
-        codex_skill = (
-            REPO_ROOT / "ai/codex/skills/pr-comment-implement/SKILL.md"
+    def test_codex_reference_receives_the_verification_step(self):
+        codex_reference = (
+            REPO_ROOT / "ai/codex/skills/pr-comment-implement/references/finalization.md"
         ).read_text(encoding="utf-8")
 
-        self.assertIn("### Verify the final reaction state", codex_skill)
+        self.assertIn("### Verify the final reaction state", codex_reference)
 
 
 if __name__ == "__main__":

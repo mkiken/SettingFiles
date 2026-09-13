@@ -3,13 +3,20 @@ import unittest
 from support import REPO_ROOT
 
 
-CORE = REPO_ROOT / "ai/common/pr_comment_implement_core.md"
+WORKFLOW_FILES = (
+    REPO_ROOT / "ai/common/pr_comment_implement_core.md",
+    REPO_ROOT / "ai/common/pr_comment_implement/analysis-design.md",
+    REPO_ROOT / "ai/common/pr_comment_implement/implementation.md",
+    REPO_ROOT / "ai/common/pr_comment_implement/finalization.md",
+)
 
 
 class PrCommentImplementFinalActionSelectionTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.content = CORE.read_text(encoding="utf-8")
+        cls.content = "\\n".join(
+            path.read_text(encoding="utf-8") for path in WORKFLOW_FILES
+        )
 
     def test_code_change_options_expose_all_four_final_states(self):
         for option in (
@@ -77,10 +84,10 @@ class PrCommentImplementFinalActionSelectionTest(unittest.TestCase):
 
         self.assertEqual(self.content.count(fetch_command), 2)
 
-        codex_skill = (
-            REPO_ROOT / "ai/codex/skills/pr-comment-implement/SKILL.md"
+        codex_finalization = (
+            REPO_ROOT / "ai/codex/skills/pr-comment-implement/references/finalization.md"
         ).read_text(encoding="utf-8")
-        self.assertEqual(codex_skill.count(fetch_command), 2)
+        self.assertEqual(codex_finalization.count(fetch_command), 2)
 
     def test_platform_adapters_receive_the_shared_contract(self):
         claude_skill = (
@@ -92,11 +99,15 @@ class PrCommentImplementFinalActionSelectionTest(unittest.TestCase):
         codex_skill = (
             REPO_ROOT / "ai/codex/skills/pr-comment-implement/SKILL.md"
         ).read_text(encoding="utf-8")
+        codex_finalization = (
+            REPO_ROOT / "ai/codex/skills/pr-comment-implement/references/finalization.md"
+        ).read_text(encoding="utf-8")
 
         self.assertIn("~/.claude/common/pr_comment_implement_core.md", claude_skill)
         self.assertIn("~/.gemini/common/pr_comment_implement_core.md", gemini_command)
-        self.assertIn('add "コミット & 親ブランチにマージ"', codex_skill)
-        self.assertIn("plain-text ordered list of every option", codex_skill)
+        self.assertIn("~/.codex/skills/pr-comment-implement/references", codex_skill)
+        self.assertIn('add "コミット & 親ブランチにマージ"', codex_finalization)
+        self.assertIn("plain-text ordered list of every option", codex_finalization)
 
 
 if __name__ == "__main__":

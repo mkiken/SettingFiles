@@ -1,6 +1,6 @@
 ---
 name: dig
-description: Deep exploratory interview that surfaces hidden assumptions and unconsidered risks in a plan, then folds the decisions back into the plan text. Use when the user asks to dig into a plan, challenge assumptions, stress-test a plan, or find risks in a plan — including Japanese phrasing such as "前提を疑って", "計画を深掘り", "プランに穴が無いか".
+description: Challenge a plan's hidden assumptions and risks, then revise it. Use when the user asks to dig into or stress-test a plan.
 ---
 
 # Dig

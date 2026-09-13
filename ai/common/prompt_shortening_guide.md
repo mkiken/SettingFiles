@@ -2,6 +2,10 @@
 
 Procedure for "shorten a prompt without changing meaning or behavior" tasks.
 
+This procedure preserves discovery behavior. Redesigning a skill description or
+its activation boundary is a separate prompt-improvement task that requires
+explicit scope and intended/confusable-request validation.
+
 ## Must keep verbatim (behavior-defining content)
 
 - Trigger surfaces: skill/command `description`, trigger keywords, argument hints
