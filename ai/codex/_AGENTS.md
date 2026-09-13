@@ -182,7 +182,7 @@ When writing a plan for approval, do not propose — load the `prompt-self-impro
 
 Skip this workflow when no commit is needed: read-only work, planning, investigation, review-only work, no repository deliverable changes, only deleted temp files, or explicit "do not commit/use git".
 
-When implementation is complete and a commit is needed, inspect the working tree, then ask via the platform-specific `# User Confirmation` mechanism. Present exactly:
+When implementation is complete and a commit is needed, inspect the working tree, then ask whether to commit and push, commit only, or leave changes uncommitted via the platform-specific `# User Confirmation` mechanism. For Claude and Gemini, present exactly:
 
 1. **コミットしてプッシュ** — コミットを作成し、リモートへプッシュする
 2. **コミットのみ** — コミットを作成するがプッシュはしない
@@ -225,15 +225,9 @@ When one tool call produces files for later calls, use host-visible storage and 
 
 # User Confirmation
 
-When `request_user_input` is available, use it for confirmation, clarification, cleanup, commit, and PR workflow questions that can be expressed as two or three meaningful choices. Put the recommended choice first.
+When using `request_user_input` for a skill's authored options, pass each label exactly once and preserve the authored option count. Do not count the client's auto-provided free-form `Other` as an authored option.
 
-If `request_user_input` returns no selected answer (for example, an empty `answers` object), treat the UI as unavailable for that question: present the same authored options once as a plain-text ordered list and wait. Do not call `request_user_input` again for that question.
-
-When a skill defines authored options, pass each label to the tool exactly once and preserve the authored option count. Do not count the client's auto-provided free-form `Other` as an authored option.
-
-Ask in plain text only when `request_user_input` is unavailable, the answer requires free-form input such as a path, URL, identifier, number, command, or explanation, or the question cannot be expressed as 2–3 mutually exclusive choices.
-
-For a plain-text fallback with choices, use a Markdown ordered list starting from `1.` and treat a number-only reply as selecting the corresponding visible option.
+# Plan Model Handoff
 
 When beginning execution of an accepted plan, load the `plan-model-handoff` skill and follow it before starting any task-specific workflow or repository operation for that plan.
 

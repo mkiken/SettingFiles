@@ -182,7 +182,7 @@ When writing a plan for approval, do not propose — load the `prompt-self-impro
 
 Skip this workflow when no commit is needed: read-only work, planning, investigation, review-only work, no repository deliverable changes, only deleted temp files, or explicit "do not commit/use git".
 
-When implementation is complete and a commit is needed, inspect the working tree, then ask via the platform-specific `# User Confirmation` mechanism. Present exactly:
+When implementation is complete and a commit is needed, inspect the working tree, then ask whether to commit and push, commit only, or leave changes uncommitted via the platform-specific `# User Confirmation` mechanism. For Claude and Gemini, present exactly:
 
 1. **コミットしてプッシュ** — コミットを作成し、リモートへプッシュする
 2. **コミットのみ** — コミットを作成するがプッシュはしない
