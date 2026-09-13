@@ -59,6 +59,10 @@ For narrow fixes, prefer the smallest owned integration point. Do not disable br
 
 When introducing a flag or parameter that gates a destructive or billable operation (dry-run, force, auto-approve, etc.), propose the fail-safe default (e.g. dry-run enabled, force disabled). If existing codebase convention points the other way, do not silently follow it — surface the default-value choice as an explicit confirmation item.
 
+# Reversibility Boundary
+
+Decide reversible, in-scope implementation choices (structure, naming, approach) yourself, matching the codebase's existing conventions. Reserve explicit boundaries and confirmation for irreversible or externally visible actions — delete, send, publish, billing, deploy, personal data.
+
 # Test Design
 
 When a plan includes test work, list the planned test cases (target, condition, expected outcome) before implementing, so scope and coverage can be reviewed first.
