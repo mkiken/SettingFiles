@@ -54,9 +54,9 @@ jq -r 'select(.type=="assistant" and (.isSidechain//false)==false) | .message.mo
   ~/.claude/projects/<project-slug>/<session-id>.jsonl | tail -1
 ```
 
-If the command fails or the result is anything other than `claude-fable-5`, proceed straight to implementation — do not block on a detection failure. This check runs separately from the Plan Review Deep-Dive dialog (that one happens before `ExitPlanMode`; this one happens after), so there is no shared option-count constraint between them.
+If the command fails or the result does not start with `claude-fable-`, proceed straight to implementation — do not block on a detection failure. This check runs separately from the Plan Review Deep-Dive dialog (that one happens before `ExitPlanMode`; this one happens after), so there is no shared option-count constraint between them.
 
-If the result is `claude-fable-5`, ask an `AskUserQuestion` with these options before writing or running anything:
+If the result starts with `claude-fable-` (e.g. `claude-fable-5-1`), ask an `AskUserQuestion` with these options before writing or running anything:
 
 - Implement with Fable as-is.
 - Delegate implementation to the Agent tool with `model: "opus"`, passing the full plan content in the prompt.
