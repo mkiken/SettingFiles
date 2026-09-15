@@ -76,6 +76,8 @@ Inline comment body format, with no AI header and no item number:
 {priority_emoji} **{Priority}** / **{Category}**: {Description}
 ```
 
+`{Description}` is a placeholder for whatever body content the calling skill defines — this file does not decide its content or length. A calling skill whose own instructions define a longer or multi-line body (detail text, evidence, attribution lines, etc.) must use that full definition here, never collapse it down to fit this one-line shape.
+
 ### Newline Safety
 
 Never write `\n` inside a normal quoted string in shell and expect it to become a newline. Build multiline bodies with `printf`, pass the resulting variable to `jq`/`gh`, and preflight that the body contains real blank lines and no literal `\n` sequences (the `jq -n ... -e` lines below). If a preflight fails, rebuild the body with `printf` and re-run it; never post a body that failed preflight.
