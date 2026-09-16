@@ -50,7 +50,7 @@ class FghsiTest(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             with open(gh_log) as f:
-                self.assertEqual(f.read().strip(), "stack init feat/x")
+                self.assertEqual(f.read().strip(), "stack init --base feat/x")
 
     def test_cancel_skips_gh_invocation(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -65,17 +65,17 @@ class FghsiTest(unittest.TestCase):
             with open(gh_log) as f:
                 self.assertEqual(f.read(), "")
 
-    def test_extra_options_are_forwarded_before_branch(self):
+    def test_extra_options_are_forwarded_after_base(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             gh_log = f"{tmpdir}/gh.log"
             result = run_zsh(
-                f"{FAKE_PICKERS}\nfghsi -b main",
+                f"{FAKE_PICKERS}\nfghsi new-feature",
                 cwd=tmpdir,
                 extra_env={"GH_LOG": gh_log, "FAKE_BRANCH": "feat/x"},
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             with open(gh_log) as f:
-                self.assertEqual(f.read().strip(), "stack init -b main feat/x")
+                self.assertEqual(f.read().strip(), "stack init --base feat/x new-feature")
 
     def test_gh_exit_code_is_propagated(self):
         with tempfile.TemporaryDirectory() as tmpdir:

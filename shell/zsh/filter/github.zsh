@@ -263,11 +263,11 @@ function fghpc2(){
   ghpc --base $base --head $compare
 }
 
-# ローカルブランチを1つ選んでスタックの起点にする
+# ローカルブランチを1つ選んでスタックのルート（trunk）にする
 # 複数ブランチの一括採用はしない（fzfの--multiは選択順を保持せず出力が入力リスト順になるため、
-# bottom->topの積み順を選択操作から復元できない）。起点だけをここで作り、
+# bottom->topの積み順を選択操作から復元できない）。ルートだけをここで指定し、
 # 以降は fghsa を1回ずつ呼んで積むことで、呼んだ順がそのまま積み順になる
-# 引数: gh stack init へ透過する追加オプション（例: -b main）
+# 引数: gh stack init へ透過する追加オプション（例: 新規に積む先頭ブランチ名）
 # 戻り値: gh stack init の終了ステータス、キャンセル時は $EXIT_CODE_SIGINT
 function fghsi() {
   local branch
@@ -276,7 +276,7 @@ function fghsi() {
     return $EXIT_CODE_SIGINT
   fi
 
-  save_history gh stack init "$@" "$branch"
+  save_history gh stack init --base "$branch" "$@"
 }
 
 # 既存ローカルブランチを1つ選んでスタックの上へ積む
