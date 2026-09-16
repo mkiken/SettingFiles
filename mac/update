@@ -67,5 +67,7 @@ source ${SUBMODULE_DIR}/zsh-snap/znap.zsh  # Start Znap
 znap pull
 
 gh extension upgrade --all
+# 管理外のuser scope skill（caveman, kiro-*, harness-rating-report）を巻き込まないよう対象を限定する
+gh skill update gh-stack
 
 zcompile "${SET}shell/zsh/managed.zsh"

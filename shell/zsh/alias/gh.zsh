@@ -92,3 +92,12 @@ gh_compare_url() {
 
   save_history open "$url"
 }
+
+# gh stack (github/gh-stack) aliases
+alias ghs='gh stack'
+# viewのデフォルトは対話TUIなので gh-dash と同様に no_notify を通す
+alias ghsv='no_notify gh stack view'
+alias ghsvs='gh stack view --short'
+alias ghsy='gh stack sync --prune'
+alias ghssub='gh stack submit'
+alias ghsco='no_notify gh stack checkout'
