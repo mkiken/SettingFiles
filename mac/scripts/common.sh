@@ -270,7 +270,7 @@ NODE
     _diff_review_record "$review_signature"
   fi
 
-  if confirm "VSCodeの有効拡張同期候補で ${brewfile} を上書きしますか？" --default-no --no-cancel-msg; then
+  if confirm "VSCodeの有効拡張同期候補で ${brewfile} を上書きしますか？" --no-cancel-msg; then
     echo "/bin/cp \"$candidate\" \"$brewfile\""
     /bin/cp "$candidate" "$brewfile"
   else

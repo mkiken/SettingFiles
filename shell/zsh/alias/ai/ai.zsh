@@ -757,7 +757,7 @@ _review_handle_wait_status() {
                 return 1
             fi
             local arrived_names="${(j:, :)${(@)arrived%.md}}"
-            if confirm "揃った ${#arrived[@]}/3 件（${arrived_names}）のみでマージしますか？" --default-no --no-cancel-msg; then
+            if confirm "揃った ${#arrived[@]}/3 件（${arrived_names}）のみでマージしますか？" --no-cancel-msg; then
                 return 0
             fi
             echo "マージを保留しました。揃った分でマージするには review-merge を実行してください: ${run_dir}"

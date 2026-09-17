@@ -76,7 +76,7 @@ function make_symlink () {
 
     if [[ "$repeated_action" == "overwrite" ]] || {
       [[ -n "$review_signature" && -z "$last_reviewed_at" ]] && _diff_review_record "$review_signature"
-      confirm "シンボリックリンクではない既存パスがあります: $link_path。$src へのsymlinkで上書きしますか？" --default-no --no-cancel-msg
+      confirm "シンボリックリンクではない既存パスがあります: $link_path。$src へのsymlinkで上書きしますか？" --no-cancel-msg
     }; then
       if [[ -d "$link_path" ]]; then
         echo "rm -rf $link_path"
@@ -775,19 +775,20 @@ function _diff_review_prompt_repeated_symlink() {
 }
 
 # Unified confirmation prompt with optional notification.
-# Usage: confirm "メッセージ" [--default-no] [--no-notify] [--single-key] [--no-cancel-msg] [--smart-merge-gated]
-# Returns: 0 = yes, 1 = no/cancel
-#   --default-no         Default answer is No (requires explicit y/Y)
+# Usage: confirm [--yes] [--no-notify] [--single-key] [--no-cancel-msg] [--smart-merge-gated] "メッセージ"
+# メッセージとフラグは任意の順序で渡せる（"--" で始まらない唯一の引数がメッセージになる）。
+# Returns: 0 = yes, 1 = no/cancel, 2 = 呼び出し側の引数エラー（未知フラグ / メッセージ引数が複数 or 0）
+# Default answer is No (requires explicit y/Y); pass --yes to opt into a Yes default.
+#   --yes                Default answer is Yes (empty input also accepts)
 #   --no-notify          Suppress the macOS notification
-#   --single-key         Use read -k 1 (no Enter needed), implies --default-no
+#   --single-key         Use read -k 1 (no Enter needed)
 #   --no-cancel-msg      Suppress the "❌ キャンセルされました" message on rejection
 #   --smart-merge-gated  Opt in to SMART_MERGE_ACTION auto-answering (smart_merge_json
 #                        internal use only; plain confirm() calls never read that env var)
 function confirm() {
-    local message="$1"
-    shift
-
-    local default_yes=true
+    local message=""
+    local message_set=false
+    local default_yes=false
     local send_notify=true
     local single_key=false
     local cancel_msg=true
@@ -795,14 +796,31 @@ function confirm() {
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --default-no)        default_yes=false ;;
-            --no-notify)         send_notify=false ;;
-            --single-key)        single_key=true; default_yes=false ;;
-            --no-cancel-msg)     cancel_msg=false ;;
-            --smart-merge-gated) smart_merge_gated=true ;;
+            --yes)                default_yes=true ;;
+            --no-notify)          send_notify=false ;;
+            --single-key)         single_key=true ;;
+            --no-cancel-msg)      cancel_msg=false ;;
+            --smart-merge-gated)  smart_merge_gated=true ;;
+            --*)
+                echo "confirm: 未知のフラグです: $1" >&2
+                return 2
+                ;;
+            *)
+                if $message_set; then
+                    echo "confirm: メッセージ引数が複数渡されました: 既存=\"$message\" 追加=\"$1\"" >&2
+                    return 2
+                fi
+                message="$1"
+                message_set=true
+                ;;
         esac
         shift
     done
+
+    if ! $message_set; then
+        echo "confirm: メッセージ引数がありません" >&2
+        return 2
+    fi
 
     if $smart_merge_gated; then
         local _auto
@@ -1223,7 +1241,7 @@ def deepmerge(a; b; path):
 
             # Final confirmation
             echo ""
-            if confirm "Apply merge?" --default-no --no-cancel-msg --smart-merge-gated; then
+            if confirm "Apply merge?" --no-cancel-msg --smart-merge-gated; then
                 echo "Applying merge result to destination: $dst_label"
                 echo "cp \"$tmp_file\" \"$dst\""
                 cp "$tmp_file" "$dst"
