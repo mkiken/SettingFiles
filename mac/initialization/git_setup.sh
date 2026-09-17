@@ -13,14 +13,6 @@ make_symlink "${Repo}gitfiles/lazygit/config.yml" "$HOME/.config/lazygit/config.
 # Git extensions
 gh extension install dlvhdr/gh-dash
 gh extension install gennaro-tedesco/gh-f
-gh extension install github/gh-stack
-
-# gh stack のAIエージェント向けskill（ClaudeとCodexの両方で使うためagentごとに導入）
-# --scope の既定は project でリポジトリ直下へ入ってしまうため user を明示する
-# skill名を省略すると一覧表示になりインストールされないため必ず名前を渡す
-# -f は再実行時に無対話で上書きするため
-gh skill install github/gh-stack gh-stack --agent claude-code --scope user -f
-gh skill install github/gh-stack gh-stack --agent codex --scope user -f
 
 # Git submodules
 git submodule update --init

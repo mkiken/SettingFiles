@@ -94,8 +94,6 @@ function _update_step_znap() {
 
 function _update_step_gh_extensions() {
   gh extension upgrade --all || return 1
-  # 管理外のuser scope skill（caveman, kiro-*, harness-rating-report）を巻き込まないよう対象を限定する
-  gh skill update gh-stack
 }
 
 function _update_step_zcompile() {
