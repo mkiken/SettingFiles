@@ -64,6 +64,103 @@ function parse_settingfiles_common_args() {
   return 0
 }
 
+# mac/update / mac/initialize が各更新ステップの成否を記録し、失敗しても後続ステップを
+# 続行しつつ最後に集約表示するためのヘルパー。一時的な戻り値や呼び出し間の状態を
+# グローバル変数に置かず、呼び出し側が渡す results ファイルパスへ書き出す。
+#
+# 使い方:
+#   local results_file; results_file="$(mktemp ...)"
+#   _settingfiles_step_init "$results_file"
+#   _settingfiles_run_step "$results_file" "ステップ名" some_function arg1 arg2
+#   _settingfiles_run_step "$results_file" "別のステップ" another_function
+#   _settingfiles_step_summary "$results_file"; local summary_status=$?
+
+# results ファイルを空にする（呼び出し側が mktemp 等で用意したパスを渡す）。
+function _settingfiles_step_init() {
+  local results_file="$1"
+  : >| "$results_file"
+}
+
+# 名前付きステップを実行し、成否を results ファイルへ1行追記する。
+# コマンドが失敗しても return せず、常に呼び出し元へ制御を返す
+# （sourced された子スクリプトの `exit` がここまで来ないよう、ステップ本体側で
+# `exit` を使わない前提。子スクリプトの都合で `exit` する場合、sourced 元である
+# mac/update / mac/initialize ごと終了してしまう点に注意）。
+#
+# 記録形式（results ファイル1行）: "PASS<TAB>ステップ名" または
+# "FAIL<TAB>ステップ名<TAB>要約"。ステップ名・要約はタブ・改行を含まない前提
+# （呼び出し側のステップ名に含めない）。
+function _settingfiles_run_step() {
+  local results_file="$1"
+  local step_name="$2"
+  shift 2
+
+  local stderr_file
+  stderr_file="$(mktemp "${TMPDIR:-/tmp}/settingfiles-step-stderr.XXXXXX")" || {
+    print -r -- "FAIL	${step_name}	stderr 一時ファイル作成に失敗" >> "$results_file"
+    return 0
+  }
+
+  "$@" 2> >(tee "$stderr_file" >&2)
+  local step_status=$?
+
+  if (( step_status == 0 )); then
+    print -r -- "PASS	${step_name}" >> "$results_file"
+  else
+    # 既存ステップの多くは "Error: ..." 形式で失敗理由を stderr に出す
+    # （例: _herdr_validate_staged_json）ため、その1行を要約として拾う。
+    # 無ければ終了コードだけを要約にする。
+    local error_line
+    error_line="$(grep -m1 '^Error:' "$stderr_file" 2>/dev/null || true)"
+    if [[ -z "$error_line" ]]; then
+      error_line="(終了コード ${step_status})"
+    fi
+    print -r -- "FAIL	${step_name}	${error_line}" >> "$results_file"
+  fi
+
+  trash "$stderr_file" 2>/dev/null || /bin/rm -f "$stderr_file" 2>/dev/null || true
+
+  return 0
+}
+
+# results ファイルを集計してサマリを表示する。失敗が1件以上あれば非ゼロを返す。
+function _settingfiles_step_summary() {
+  local results_file="$1"
+
+  if [[ ! -f "$results_file" ]]; then
+    echo "Warning: step results file not found: $results_file" >&2
+    return 0
+  fi
+
+  local pass_count=0
+  local -a fail_lines=()
+  local line line_status line_name line_reason
+
+  while IFS=$'\t' read -r line_status line_name line_reason; do
+    [[ -z "$line_status" ]] && continue
+    if [[ "$line_status" == "PASS" ]]; then
+      (( pass_count++ ))
+    else
+      fail_lines+=("${line_name}: ${line_reason}")
+    fi
+  done < "$results_file"
+
+  local fail_count=${#fail_lines[@]}
+
+  echo "=================================================="
+  echo " mac/update 完了: ${pass_count} 成功 / ${fail_count} 失敗"
+  if (( fail_count > 0 )); then
+    echo "--------------------------------------------------"
+    local fail_line
+    for fail_line in "${fail_lines[@]}"; do
+      echo " ✗ ${fail_line}"
+    done
+  fi
+  echo "=================================================="
+
+  (( fail_count == 0 ))
+}
+
 function untap_stale_homebrew_taps() {
   local stale_taps=(
     "aku11i/tap"

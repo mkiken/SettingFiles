@@ -148,6 +148,8 @@ In interactive shells, `cd` fires chpwd hooks (their stdout pollutes command sub
 
 Files sourced during zshrc init (e.g. `shell/zsh/filter/base.zsh`) must bail out with `return`, never `exit` — `exit` kills the whole shell mid-init with no visible error (a Herdr popup running `zsh -ic` then closes instantly before the `-c` command ever runs).
 
+Same rule applies to `mac/update`'s per-step scripts (`mac/updates/*.sh`): `mac/update` sources each one, so an `exit` inside terminates `mac/update` itself, silently skipping every remaining step with no indication of what ran. Use `return` there too, and record failures via `_settingfiles_run_step` (`mac/scripts/common.sh`) so the run continues and the final summary reports what failed.
+
 A symlinked script that reaches outside its own directory must resolve its real path first: `BASH_SOURCE`/`$0` give the link's location, so `$(dirname "$0")/../other` resolves under the link target (`~/.herdr/scripts/../tmux`), not the repository. Use `/bin/realpath` on `BASH_SOURCE[0]` before deriving any sibling directory, and pin the symlinked path in the test — a test that sources the repository file directly passes while the live path is broken. `herdr_status_icon.sh` (in `shell/herdr/`, reading `tmux_emoji.conf` and `tmux_window_name.py` from `shell/tmux/`) is the case this rule comes from.
 
 Key symlinks:

@@ -22,7 +22,7 @@ def write_executable(file_path: Path, content: str) -> None:
 def herdr_entry(runtime: str) -> dict:
     if runtime == "claude":
         return {
-            "matcher": "*",
+            "matcher": "^(startup|resume|clear|compact|fork)$",
             "hooks": [
                 {
                     "type": "command",
@@ -129,7 +129,7 @@ chmod +x "$hook"
 tmp_file="${config}.tmp"
 if [[ "$runtime" == "claude" ]]; then
   /usr/bin/jq --arg command "$command" \
-    '.hooks.SessionStart = ((.hooks.SessionStart // []) + [{"matcher":"*","hooks":[{"type":"command","command":$command,"timeout":10}]}])' \
+    '.hooks.SessionStart = ((.hooks.SessionStart // []) + [{"matcher":"^(startup|resume|clear|compact|fork)$","hooks":[{"type":"command","command":$command,"timeout":10}]}])' \
     "$config" > "$tmp_file"
 else
   /usr/bin/jq --arg command "$command" \
@@ -321,6 +321,8 @@ fi
             "matcher": "startup",
             "hooks": [{"type": "command", "command": "keep-session-hook"}],
         }
+        # matcher は herdr 追従前の "*" のままでよい: 除去判定はコマンド文字列一致
+        # (herdr-agent-state.sh の呼び出しかどうか) で行われ、matcher 値には依存しない。
         old_mixed_entry = {
             "matcher": "*",
             "hooks": [

@@ -17,57 +17,106 @@ unset _args_status
 
 enable_sudo_bell
 
-smart_merge_json ~/.config/karabiner/karabiner.json "${SET}mac/karabiner.json"
-smart_copy ~/Library/Application\ Support/Code/User/settings.json "${SET}vscode/base_setting.jsonc"
-smart_copy ~/Library/Application\ Support/Code/User/keybindings.json "${SET}vscode/base_keybindings.json"
-sync_enabled_vscode_extensions_to_brewfile "${SET}mac/Brewfile"
+# 各ステップは _settingfiles_run_step 経由で実行する。失敗しても後続ステップを
+# 続行し、末尾で成否を集約表示する（詳細は _settingfiles_run_step 定義を参照）。
+_update_results_file="$(mktemp "${TMPDIR:-/tmp}/settingfiles-update-results.XXXXXX")" || exit 1
+_settingfiles_step_init "$_update_results_file"
 
-echo "start git submodule setting."
-git submodule sync
-git submodule update --recursive --remote
-echo "end git submodule setting."
+function _update_step_editor_configs() {
+  smart_merge_json ~/.config/karabiner/karabiner.json "${SET}mac/karabiner.json"
+  smart_copy ~/Library/Application\ Support/Code/User/settings.json "${SET}vscode/base_setting.jsonc"
+  smart_copy ~/Library/Application\ Support/Code/User/keybindings.json "${SET}vscode/base_keybindings.json"
+  sync_enabled_vscode_extensions_to_brewfile "${SET}mac/Brewfile"
+}
 
-echo "start brew update."
-untap_stale_homebrew_taps
-brew update -v
-brew upgrade -v
-brew cleanup -s
-brew bundle --file="${SET}mac/Brewfile" -v
-echo "end brew update."
+function _update_step_git_submodules() {
+  echo "start git submodule setting."
+  git submodule sync || return 1
+  git submodule update --recursive --remote || return 1
+  echo "end git submodule setting."
+}
 
-echo "start tmux plugin update."
-~/.tmux/plugins/tpm/bin/update_plugins all
-echo "end tmux plugin update."
+function _update_step_brew() {
+  echo "start brew update."
+  untap_stale_homebrew_taps
+  brew update -v || return 1
+  brew upgrade -v || return 1
+  brew cleanup -s || return 1
+  brew bundle --file="${SET}mac/Brewfile" -v || return 1
+  echo "end brew update."
+}
 
-npm install -g npm@latest
-# semver範囲外を含む全アウトデートパッケージを最新版に更新
-npm outdated -g --parseable 2>/dev/null | cut -d: -f4 | while read -r pkg; do npm install -g "$pkg"; done
+function _update_step_tmux_plugins() {
+  echo "start tmux plugin update."
+  ~/.tmux/plugins/tpm/bin/update_plugins all || return 1
+  echo "end tmux plugin update."
+}
 
-pipx upgrade-all -v
+function _update_step_npm_global() {
+  npm install -g npm@latest || return 1
+  # semver範囲外を含む全アウトデートパッケージを最新版に更新
+  npm outdated -g --parseable 2>/dev/null | cut -d: -f4 | while read -r pkg; do npm install -g "$pkg"; done
+}
 
-# AI tools更新
-echo "start AI tools update."
-source "$(dirname "$0")/updates/claude.sh"
-source "$(dirname "$0")/updates/gemini.sh"
-source "$(dirname "$0")/updates/codex.sh"
-echo "end AI tools update."
+function _update_step_pipx() {
+  pipx upgrade-all -v
+}
 
-echo "start Herdr integration update."
-source "$(dirname "$0")/updates/herdr.sh"
-echo "end Herdr integration update."
+function _update_step_ai_tools() {
+  echo "start AI tools update."
+  source "$(dirname "$0")/updates/claude.sh" || return 1
+  source "$(dirname "$0")/updates/gemini.sh" || return 1
+  source "$(dirname "$0")/updates/codex.sh" || return 1
+  echo "end AI tools update."
+}
 
-echo "start mdv update."
-go install github.com/gr1m0h/mdv@latest
-echo "end mdv update."
+function _update_step_herdr() {
+  echo "start Herdr integration update."
+  source "$(dirname "$0")/updates/herdr.sh" || return 1
+  echo "end Herdr integration update."
+}
 
-# Lazy + tree-sitterのアップデート
-nvim --headless "+Lazy! sync | TSUpdate" +qa
+function _update_step_mdv() {
+  echo "start mdv update."
+  go install github.com/gr1m0h/mdv@latest || return 1
+  echo "end mdv update."
+}
 
-source ${SUBMODULE_DIR}/zsh-snap/znap.zsh  # Start Znap
-znap pull
+function _update_step_nvim_plugins() {
+  # Lazy + tree-sitterのアップデート
+  nvim --headless "+Lazy! sync | TSUpdate" +qa
+}
 
-gh extension upgrade --all
-# 管理外のuser scope skill（caveman, kiro-*, harness-rating-report）を巻き込まないよう対象を限定する
-gh skill update gh-stack
+function _update_step_znap() {
+  source ${SUBMODULE_DIR}/zsh-snap/znap.zsh || return 1  # Start Znap
+  znap pull
+}
 
-zcompile "${SET}shell/zsh/managed.zsh"
+function _update_step_gh_extensions() {
+  gh extension upgrade --all || return 1
+  # 管理外のuser scope skill（caveman, kiro-*, harness-rating-report）を巻き込まないよう対象を限定する
+  gh skill update gh-stack
+}
+
+function _update_step_zcompile() {
+  zcompile "${SET}shell/zsh/managed.zsh"
+}
+
+_settingfiles_run_step "$_update_results_file" "エディタ設定同期" _update_step_editor_configs
+_settingfiles_run_step "$_update_results_file" "git submodule 更新" _update_step_git_submodules
+_settingfiles_run_step "$_update_results_file" "Homebrew 更新" _update_step_brew
+_settingfiles_run_step "$_update_results_file" "tmux プラグイン更新" _update_step_tmux_plugins
+_settingfiles_run_step "$_update_results_file" "npm グローバルパッケージ更新" _update_step_npm_global
+_settingfiles_run_step "$_update_results_file" "pipx 更新" _update_step_pipx
+_settingfiles_run_step "$_update_results_file" "AI tools 更新" _update_step_ai_tools
+_settingfiles_run_step "$_update_results_file" "Herdr integration 更新" _update_step_herdr
+_settingfiles_run_step "$_update_results_file" "mdv 更新" _update_step_mdv
+_settingfiles_run_step "$_update_results_file" "nvim プラグイン更新" _update_step_nvim_plugins
+_settingfiles_run_step "$_update_results_file" "znap pull" _update_step_znap
+_settingfiles_run_step "$_update_results_file" "gh extension/skill 更新" _update_step_gh_extensions
+_settingfiles_run_step "$_update_results_file" "managed.zsh zcompile" _update_step_zcompile
+
+_settingfiles_step_summary "$_update_results_file"
+_update_summary_status=$?
+trash "$_update_results_file" 2>/dev/null || /bin/rm -f "$_update_results_file" 2>/dev/null || true
+exit "$_update_summary_status"
