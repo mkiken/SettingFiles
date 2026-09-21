@@ -109,3 +109,33 @@ function setup_codex_claude_mem() {
 
   setup_claude_mem_runtime || return 1
 }
+
+function setup_codex_ponytail() {
+  echo "Ensuring Codex ponytail plugin..."
+
+  require_ai_setup_command codex || return 1
+  require_ai_setup_command jq || return 1
+
+  if ! codex plugin marketplace list | /usr/bin/grep -Fq "ponytail"; then
+    codex plugin marketplace add DietrichGebert/ponytail || return 1
+  fi
+
+  codex plugin marketplace upgrade ponytail >/dev/null 2>&1 || true
+
+  # ponytail は git 解決される marketplace（openai-curated のような bundled
+  # スナップショットではない）なので、context-mode と同様 .installed[] に現れる。
+  # codex plugin add には確認スキップフラグが無く、guard を外すと
+  # 対話プロンプトで停止するため、この判定を確実にする必要がある。
+  if codex plugin list --json | jq -e '.installed[]? | select(.pluginId == "ponytail@ponytail" or (.name == "ponytail" and .marketplaceName == "ponytail"))' >/dev/null; then
+    echo "✓ Codex ponytail plugin already installed."
+  else
+    codex plugin add ponytail@ponytail || return 1
+  fi
+
+  # モードは upstream 既定の full に依存する。~/.config/ponytail/config.json は
+  # ponytail 自身が書き戻すため、リポジトリからの宣言管理はしない。
+  #
+  # ponytail の hook は ~/.codex/config.toml の [hooks.state] に trust 済みで
+  # ないと動作しない。trust は `codex` 起動後 `/hooks` での対話操作が必要で、
+  # 既存の context-mode・claude-mem 同様ここでは自動化しない。
+}

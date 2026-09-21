@@ -144,3 +144,29 @@ function setup_claude_mem() {
     claude plugin enable claude-mem@thedotmack || return 1
   fi
 }
+
+function setup_claude_ponytail() {
+  echo "Ensuring Claude ponytail plugin..."
+
+  require_ai_setup_command claude || return 1
+  require_ai_setup_command jq || return 1
+
+  if ! claude plugin marketplace list | /usr/bin/grep -Fq "ponytail"; then
+    claude plugin marketplace add DietrichGebert/ponytail || return 1
+  fi
+
+  claude plugin marketplace update ponytail || return 1
+
+  if claude plugin list --json | jq -e '.[] | select(.id == "ponytail@ponytail")' >/dev/null; then
+    claude plugin update ponytail@ponytail || return 1
+  else
+    claude plugin install ponytail@ponytail || return 1
+  fi
+
+  if ! claude plugin list --json | jq -e '.[] | select(.id == "ponytail@ponytail" and .enabled == true)' >/dev/null; then
+    claude plugin enable ponytail@ponytail || return 1
+  fi
+
+  # モードは upstream 既定の full に依存する。~/.config/ponytail/config.json は
+  # ponytail 自身が書き戻すため、リポジトリからの宣言管理はしない。
+}

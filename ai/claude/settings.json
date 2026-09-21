@@ -14,6 +14,7 @@
     "dig@kuu-marketplace": true,
     "example-skills@anthropic-agent-skills": true,
     "genshijin@genshijin": true,
+    "ponytail@ponytail": true,
     "superpowers@claude-plugins-official": true,
     "tsumiki@tsumiki": true
   },
@@ -44,6 +45,12 @@
     "kuu-marketplace": {
       "source": {
         "repo": "fumiya-kume/claude-code",
+        "source": "github"
+      }
+    },
+    "ponytail": {
+      "source": {
+        "repo": "DietrichGebert/ponytail",
         "source": "github"
       }
     },
