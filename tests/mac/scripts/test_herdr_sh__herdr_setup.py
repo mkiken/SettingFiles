@@ -862,11 +862,17 @@ class HerdrPluginSetupTest(unittest.TestCase):
         automatic_config_symlink_conflict: bool = False,
         statusline_conflict: bool = False,
         statusline_symlink_conflict: bool = False,
+        statusline_already_linked: bool = False,
+        statusline_stale_plugin_dir: bool = False,
     ) -> subprocess.CompletedProcess[str]:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             home = root / "home"
-            plugin_root = root / "usagebar"
+            # 実際のHerdrはリモートプラグインを plugins/github/<plugin_id>-<hash>/
+            # に展開する。plugin_idベースの命名(usagebar-<hash>)をフィクスチャでも
+            # 再現し、パス構造に依存する_setup_herdr_usagebarのガードを検証できる
+            # ようにする。
+            plugin_root = home / ".config" / "herdr" / "plugins" / "github" / "usagebar-33803b79d616"
             source_script = plugin_root / "bin" / "run-statusline.sh"
             source_script.parent.mkdir(parents=True)
             source_script.write_text("#!/bin/bash\nexit 0\n", encoding="utf-8")
@@ -896,6 +902,22 @@ class HerdrPluginSetupTest(unittest.TestCase):
                 unexpected = root / "unexpected-statusline.sh"
                 unexpected.write_text("#!/bin/bash\nexit 0\n", encoding="utf-8")
                 conflict.symlink_to(unexpected)
+            if statusline_already_linked:
+                # 前回実行で正しくリンクされた状態からの再実行(冪等性)を再現する。
+                existing = home / ".claude" / "herdr-agent-usage-statusline.sh"
+                existing.parent.mkdir(parents=True, exist_ok=True)
+                existing.symlink_to(source_script)
+            if statusline_stale_plugin_dir:
+                # プラグイン更新でハッシュ部分が変わり、旧ディレクトリを指す
+                # 残骸リンクが残っている状態を再現する。
+                stale_root = home / ".config" / "herdr" / "plugins" / "github" / "usagebar-oldhash0000"
+                stale_script = stale_root / "bin" / "run-statusline.sh"
+                stale_script.parent.mkdir(parents=True)
+                stale_script.write_text("#!/bin/bash\nexit 0\n", encoding="utf-8")
+                stale_script.chmod(0o755)
+                existing = home / ".claude" / "herdr-agent-usage-statusline.sh"
+                existing.parent.mkdir(parents=True, exist_ok=True)
+                existing.symlink_to(stale_script)
 
             definitions = []
             if herdr_present:
@@ -1106,7 +1128,7 @@ class HerdrPluginSetupTest(unittest.TestCase):
 
         self.assertIn("✓ Linked usagebar statusLine:", result.stdout)
         self.assertIn("statusline=", result.stdout)
-        self.assertIn("/usagebar/bin/run-statusline.sh", result.stdout)
+        self.assertIn("/usagebar-33803b79d616/bin/run-statusline.sh", result.stdout)
 
     def test_usagebar_setup_failure_propagates_as_nonzero(self):
         result = self.run_setup_herdr_plugins(
@@ -1139,6 +1161,37 @@ class HerdrPluginSetupTest(unittest.TestCase):
 
         self.assertEqual(result.stdout.splitlines()[-1], "rc=1")
         self.assertIn("usagebar statusLine uses an unexpected symlink target", result.stderr)
+
+    def test_existing_correct_statusline_link_is_idempotent(self):
+        # 前回実行で張られた正しいリンクが既に存在する状態での再実行(mac/update
+        # の通常運用)が成功することを確認する。plugin_idベースの
+        # usagebar-<hash>ディレクトリ名がリポジトリ名herdr-agent-usageと
+        # 一致しないため、以前はここで誤検知エラーになっていた。
+        result = self.run_setup_herdr_plugins(
+            already_linked=True,
+            remote_already_installed=True,
+            usagebar_already_installed=True,
+            statusline_already_linked=True,
+        )
+
+        self.assertEqual(result.stdout.splitlines()[-1], "rc=0")
+        self.assertIn("✓ Already linked:", result.stdout)
+        self.assertIn("/usagebar-33803b79d616/bin/run-statusline.sh", result.stdout)
+
+    def test_stale_plugin_dir_statusline_link_is_replaced(self):
+        # プラグイン更新でハッシュ部分が変わり、旧ディレクトリを指す残骸リンク
+        # が残っている場合は現在のplugin_rootへ張り替える。
+        result = self.run_setup_herdr_plugins(
+            already_linked=True,
+            remote_already_installed=True,
+            usagebar_already_installed=True,
+            statusline_stale_plugin_dir=True,
+        )
+
+        self.assertEqual(result.stdout.splitlines()[-1], "rc=0")
+        self.assertIn("✓ Linked usagebar statusLine:", result.stdout)
+        self.assertIn("/usagebar-33803b79d616/bin/run-statusline.sh", result.stdout)
+        self.assertNotIn("usagebar-oldhash0000", result.stdout.splitlines()[-2])
 
     def test_link_failure_propagates_as_nonzero(self):
         result = self.run_setup_herdr_plugins(already_linked=False, link_rc=1)

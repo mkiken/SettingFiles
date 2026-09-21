@@ -688,6 +688,7 @@ function _setup_herdr_usagebar() {
   local plugin_root=""
   local source_script=""
   local target_script="$target_home/.claude/herdr-agent-usage-statusline.sh"
+  local plugins_dir="$target_home/.config/herdr/plugins"
   local existing_target=""
 
   herdr plugin action invoke usagebar.setup || return 1
@@ -702,7 +703,15 @@ function _setup_herdr_usagebar() {
 
   if [[ -L "$target_script" ]]; then
     existing_target="$(readlink "$target_script")"
-    if [[ "$existing_target" != */herdr-agent-usage-*/bin/run-statusline.sh ]]; then
+    if [[ "$existing_target" == "$source_script" ]]; then
+      echo "✓ Already linked: $target_script -> $source_script"
+      return 0
+    fi
+    # Herdrのプラグイン配置先は plugin_id ベースの usagebar-<hash> で、
+    # リポジトリ名(herdr-agent-usage)ではなく、更新のたびにハッシュが変わる。
+    # プラグインディレクトリ配下を指しているなら旧バージョンの残骸とみなし、
+    # 張り替えを許可する。
+    if [[ "$existing_target" != "$plugins_dir"/* ]]; then
       echo "Error: usagebar statusLine uses an unexpected symlink target: $existing_target" >&2
       return 1
     fi
