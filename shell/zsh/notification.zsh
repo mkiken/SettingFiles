@@ -11,6 +11,8 @@ export NOTIFY_COMMAND_EXCLUDE=(
   claude
   g-delete-branch-not-in-remote-interactive
   gemini
+  h
+  herdr
   less
   nvim
   ssh
