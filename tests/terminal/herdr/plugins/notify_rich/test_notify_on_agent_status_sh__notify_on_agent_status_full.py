@@ -62,7 +62,18 @@ class NotifyOnAgentStatusFullTest(unittest.TestCase):
         session_id: str = "s1",
         agent_status: str = "done",
         notification_shown: str = "true",
+        toast_delivery: str | None = None,
     ) -> subprocess.CompletedProcess:
+        # toast_delivery指定時だけ $HOME/.config/herdr/config.toml を用意する。
+        # 未指定（既定）ではconfigを置かないので、実装のfail-safe（config不在→API試行）
+        # のまま既存テストの挙動が変わらない。
+        if toast_delivery is not None:
+            cfg = self.root / ".config" / "herdr" / "config.toml"
+            cfg.parent.mkdir(parents=True, exist_ok=True)
+            cfg.write_text(
+                f'[ui.toast]\ndelivery = "{toast_delivery}"\n', encoding="utf-8"
+            )
+
         projects_dir = self.root / "projects" / "proj"
         projects_dir.mkdir(parents=True, exist_ok=True)
         (projects_dir / f"{session_id}.jsonl").write_text(
@@ -295,10 +306,56 @@ class NotifyOnAgentStatusFullTest(unittest.TestCase):
         log = self.notifier_log.read_text(encoding="utf-8")
         self.assertIn("request", log)
 
+    def _done_transcript(self):
+        return [
+            json.dumps(
+                {
+                    "timestamp": "2026-07-11T12:00:00.000Z",
+                    "message": {"role": "user", "content": "テストして"},
+                }
+            ),
+            json.dumps(
+                {
+                    "timestamp": "2026-07-11T12:01:00.000Z",
+                    "message": {
+                        "role": "assistant",
+                        "content": [{"type": "text", "text": "完了しました"}],
+                    },
+                }
+            ),
+        ]
+
+    def test_toast_delivery_off_in_config_bypasses_herdr_api(self):
+        # herdr 0.9.1 は delivery="off" でも notification show が shown:true を返す
+        # （応答では配信有無を判別できない）。スタブもshown:trueのままで、config.tomlの
+        # delivery="off" を読んでAPI呼び出し自体をスキップし、terminal-notifierへ
+        # フォールバックすることを固定する。
+        result = self.run_hook(self._done_transcript(), toast_delivery="off")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        log_lines = self.notifier_log.read_text(encoding="utf-8").splitlines()
+        # terminal-notifierは全引数を1行ずつ記録するので "-title" が現れる。
+        # herdrスタブは title/body/sound の3値しか書かないため、"-title" の有無が
+        # 「どちらの経路を通ったか」を一意に判別する（絵文字や"done"は両経路に
+        # 現れるので判別に使えない）。
+        self.assertIn("-title", log_lines)
+        self.assertTrue(any("✅" in line for line in log_lines))
+
+    def test_toast_delivery_system_in_config_uses_herdr_api(self):
+        # configが存在し delivery が "off" 以外なら従来どおりAPI経路を使う。
+        # herdrスタブが shown:true を返すので terminal-notifier は呼ばれない
+        # （"-title" 行が無い = フォールバックしていない）。
+        result = self.run_hook(self._done_transcript(), toast_delivery="system")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        log_lines = self.notifier_log.read_text(encoding="utf-8").splitlines()
+        self.assertNotIn("-title", log_lines)
+        self.assertIn("done", log_lines)
+
     def test_toast_disabled_falls_back_to_terminal_notifier(self):
-        # [ui.toast] delivery="off" のように herdr notification show が
-        # exit 0 で shown:false を返すケース: exit codeだけの判定だと
+        # herdr notification show が exit 0 で shown:false を返すケース
+        # （0.7.x時代の delivery="off" 応答／API失敗の保険）: exit codeだけの判定だと
         # terminal-notifierフォールバックへ到達せず完全無通知になっていたバグの回帰。
+        # 0.9.1 の delivery="off" は shown:true を返すため、そちらは
+        # test_toast_delivery_off_in_config_bypasses_herdr_api が担当する。
         result = self.run_hook(
             [
                 json.dumps(
