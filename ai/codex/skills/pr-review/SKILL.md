@@ -82,7 +82,7 @@ Within every section, group findings by priority in descending order. Omit `## �
 
 ### Code Quality Perspectives
 
-Review thoroughly from all of these perspectives, using the Japanese label as the finding header's 領域: **バグリスク** (potential bugs, error handling), **コーディング規約** (general rules, best practices), **アーキテクチャ** (separation of concerns, class/function design), **可読性** (intent clarity, naming, comments), **パフォーマンス** (issues, optimization opportunities), **セキュリティ** (vulnerabilities, sensitive data handling), **保守性** (change flexibility, technical debt). Findings in `## テストに関する指摘` use 領域 **テスト品質**.
+Review thoroughly from all of these perspectives, using the Japanese label as the finding header's 領域: **バグリスク** (potential bugs, error handling), **コーディング規約** (general rules, best practices), **アーキテクチャ** (separation of concerns, class/function design), **可読性** (intent clarity, naming, comments), **パフォーマンス** (issues, optimization opportunities), **セキュリティ** (vulnerabilities, sensitive data handling), **保守性** (change flexibility, technical debt, hand-rolled stdlib/platform equivalents, unnecessary new dependencies, speculative abstractions). Findings in `## テストに関する指摘` use 領域 **テスト品質**.
 
 ### Actionable Findings Only
 
