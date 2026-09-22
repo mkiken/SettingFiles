@@ -17,6 +17,12 @@ When the decision context exceeds what the `question` field and option previews 
 
 **Note:** "I do not have access to the tool" is NOT a valid reason to skip — `AskUserQuestion` is deferred; load its schema via ToolSearch and use it.
 
+# Slash Command Body Already Expanded
+
+When a message carries `<command-name>` tags, check whether the skill's body is already present in that same message (its `SKILL.md` content, including any embedded `!`command`` output) — the harness expands it inline before the tags reach you. When it is, treat it as instructions already in effect, not a pending request: follow them directly, never call the `Skill` tool for that skill again. This matters most for `disable-model-invocation: true` skills, which reject a `Skill`-tool call outright and can only run this way.
+
+Only call `Skill` when the tags arrive with no expanded body alongside them.
+
 # Plan Review Deep-Dive (grilling → dig)
 
 This review combines browser rendering with the fixed grilling-then-dig pair.
