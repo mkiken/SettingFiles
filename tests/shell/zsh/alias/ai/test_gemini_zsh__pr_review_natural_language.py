@@ -8,7 +8,7 @@ GEMINI_ZSH = REPO_ROOT / "shell/zsh/alias/ai/gemini.zsh"
 
 
 def run_gm_pr_review(fn_and_args: str) -> subprocess.CompletedProcess:
-    """gm-pr-review系はgmh(=gmp=gm)を最終的に呼ぶ。実起動を避けるため、gemini.zsh
+    """gm-pr-review系はgmh(=gmf=gm)を最終的に呼ぶ。実起動を避けるため、gemini.zsh
     ソース後に末端の gm を差し替えて `-i` の最終引数だけをstdoutへ出す
     （先にスタブすると gemini.zsh 自身の gm 再定義で上書きされる）。"""
     script = f'''
