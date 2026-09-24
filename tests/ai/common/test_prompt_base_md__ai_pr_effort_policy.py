@@ -194,6 +194,7 @@ class GeminiModelSelectionTest(unittest.TestCase):
         cases = (
             ("gmf task", "flash"),
             ("gmp task", "pro"),
+            ("gmh task", "flash"),
         )
 
         for command, model in cases:
