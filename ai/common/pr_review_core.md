@@ -66,6 +66,8 @@ Never calculate final review line numbers from `@@` hunk headers by memory. If a
 
 Never create temp files inside the reviewed repository's working tree. When a diff, comment dump, or other payload must be redirected to a file, write it under the session scratchpad directory instead. A file left in the repository stays untracked and makes later tooling treat the repository as dirty.
 
+Run Python scripts in the reviewed repository (self-checks, test files) with `python3 -B` or `PYTHONDONTWRITEBYTECODE=1` so no `__pycache__/` is written there.
+
 If a temp file does end up in the repository, delete it with `trash` (never `rm`) before finishing the review.
 
 ## Result File Output
