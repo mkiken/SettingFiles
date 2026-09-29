@@ -1,7 +1,7 @@
 # GENERATED FILE - do not edit. Sources: ai/common/config_audit_subagents/, ai/codex/agents_src/config_audit/. Regen: mac/updates/codex.sh.
 name = "config_auditor_overlap"
 description = "Read-only config auditor for rule-to-rule duplication."
-model = "gpt-5.4"
+model = "gpt-6-astra"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 

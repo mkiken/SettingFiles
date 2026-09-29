@@ -1,6 +1,6 @@
 name = "config_auditor_ambiguity"
 description = "Read-only config auditor for ambiguous rules."
-model = "gpt-5.4"
+model = "gpt-6-astra"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 

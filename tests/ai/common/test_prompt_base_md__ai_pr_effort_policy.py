@@ -151,14 +151,14 @@ class PrCommentImplementAliasTest(unittest.TestCase):
 class CodexModelSelectionTest(unittest.TestCase):
     def test_commands_select_the_expected_model(self):
         cases = (
-            ("cx task", ["--model", "gpt-5.6-terra", "task"]),
+            ("cx task", ["--model", "gpt-6-sol", "task"]),
             ("cx --model custom-model task", ["--model", "custom-model", "task"]),
             ("cx --model=custom-model task", ["--model=custom-model", "task"]),
             ("cx -m custom-model task", ["-m", "custom-model", "task"]),
-            ("cxs task", ["--model", "gpt-5.6-sol", "task"]),
+            ("cxs task", ["--model", "gpt-6-sol", "task"]),
             ("cxa task", ["--model", "gpt-6-astra", "task"]),
             ("cxt task", ["--model", "gpt-5.6-terra", "task"]),
-            ("cxl task", ["--model", "gpt-5.6-luna", "task"]),
+            ("cxl task", ["--model", "gpt-6-luna", "task"]),
             (
                 "cxh task",
                 ["--model", "gpt-6-astra", "-c", 'model_reasoning_effort="high"', "task"],
@@ -288,6 +288,19 @@ class ReviewerAgentEffortPolicyTest(unittest.TestCase):
         self.assertEqual(toml_header_value(generated, "model"), "gpt-6-astra")
         self.assertEqual(toml_header_value(source, "model_reasoning_effort"), "high")
         self.assertEqual(toml_header_value(generated, "model_reasoning_effort"), "high")
+
+    def test_codex_config_audit_and_audit_fix_agents_use_astra(self):
+        for directory, roles in (
+            ("config_audit", ("ambiguity", "concise", "conflict", "default", "overlap", "patch")),
+            ("audit_fix", ("designer", "implementer")),
+        ):
+            for role in roles:
+                with self.subTest(directory=directory, role=role):
+                    source = REPO_ROOT / f"ai/codex/agents_src/{directory}/head_{role}.toml"
+                    generated_prefix = "config_auditor" if directory == "config_audit" else "audit_fix"
+                    generated = REPO_ROOT / f"ai/codex/agents/{generated_prefix}_{role}.toml"
+                    self.assertEqual(toml_header_value(source, "model"), "gpt-6-astra")
+                    self.assertEqual(toml_header_value(generated, "model"), "gpt-6-astra")
 
     def test_codex_review_fix_agents_inherit_caller_model_and_effort(self):
         for role in ("designer", "implementer"):

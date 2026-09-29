@@ -16,7 +16,7 @@ cx() {
     if (( ${argv[(I)--model]} || ${argv[(I)--model=*]} || ${argv[(I)-m]} )); then
         codex_args=("$@")
     else
-        codex_args=(--model gpt-5.6-terra "$@")
+        codex_args=(--model gpt-6-sol "$@")
     fi
 
     no_notify homebrew_run codex "${codex_args[@]}"
@@ -27,7 +27,7 @@ cx() {
 
 # `s` selects Sol.
 cxs() {
-    cx --model gpt-5.6-sol "$@"
+    cx --model gpt-6-sol "$@"
 }
 
 # `a` selects Astra.
@@ -46,7 +46,7 @@ cxth() {
 
 # `l` selects Luna.
 cxl() {
-    cx --model gpt-5.6-luna "$@"
+    cx --model gpt-6-luna "$@"
 }
 
 cxh() {

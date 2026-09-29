@@ -1,6 +1,6 @@
 name = "config_auditor_conflict"
 description = "Read-only config auditor for rule conflicts."
-model = "gpt-5.4"
+model = "gpt-6-astra"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 
