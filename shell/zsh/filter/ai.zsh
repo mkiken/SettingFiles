@@ -337,8 +337,7 @@ _fwmon_review_tmux() {
     fi
 }
 
-# リポジトリ→worktreeの2段階選択後、新規Herdr workspaceを作りその中でAIレビューを実行する（Herdr版）
-# tmuxのnamed session "review" のような名前指定はHerdrにはできないため、都度新規workspaceを作る
+# リポジトリ→worktreeの2段階選択後、review workspaceでAIレビューを実行する（Herdr版）
 # 引数: 元関数名, [元関数に渡す追加引数...]
 _fwmon_review_herdr() {
     local func_name="$1"; shift
@@ -357,7 +356,8 @@ _fwmon_review_herdr() {
     review_command=$(_ai_review_command "$func_name" "$@") || return 1
 
     local ws_json
-    ws_json=$(herdr workspace create --label review --cwd "$worktree_path" --no-focus) || {
+    ws_json=$("${SET:-$HOME/Desktop/repository/SettingFiles}/shell/herdr/herdr-workspace-reuse.sh" \
+        workspace create --label review --cwd "$worktree_path" --no-focus) || {
         echo "herdr workspace createに失敗しました" >&2
         return 1
     }
@@ -369,21 +369,28 @@ _fwmon_review_herdr() {
         return 1
     fi
 
-    # 新規workspaceの初期tabのpaneでレビューを実行する
     local pane_id
-    pane_id=$(print -r -- "$ws_json" | jq -r '.result.root_pane.pane_id')
+    if [[ "$(print -r -- "$ws_json" | jq -r '.result.reused')" == "true" ]]; then
+        local tab_json
+        tab_json=$(herdr tab create --workspace "$ws_id" --cwd "$worktree_path" \
+            --label "$window_name" --no-focus) || return 1
+        pane_id=$(print -r -- "$tab_json" | jq -r '.result.root_pane.pane_id // empty')
+    else
+        pane_id=$(print -r -- "$ws_json" | jq -r '.result.root_pane.pane_id // empty')
+    fi
     if [[ -z "$pane_id" || "$pane_id" == "null" ]]; then
         echo "herdr workspace createの結果からpane_idを取得できませんでした" >&2
         return 1
     fi
 
+    _herdr_wait_shell_ready "$pane_id" || return 1
     herdr pane run "$pane_id" "$review_command" || {
         echo "herdr pane runに失敗しました (pane_id=${pane_id})" >&2
         return 1
     }
 }
 
-# 指定worktreeで新規Herdr workspaceを作り、そこへフォーカス移動する（frw -s のHerdr版）
+# 指定worktreeのHerdr workspaceを作成または再利用し、そこへフォーカス移動する（frw -s のHerdr版）
 # tmuxのswitch-clientで新セッションへ連れて行く挙動を尊重し--focusを明示する
 # コマンド実行は不要（--cwdで新paneが目的ディレクトリで開くため、pane runは省略）
 # 引数: cwd（作成するworkspaceの初期ディレクトリ）
@@ -392,7 +399,9 @@ _herdr_open_worktree_workspace() {
     local herdr_bin="${HERDR_BIN_PATH:-herdr}"
 
     local ws_json
-    ws_json=$("$herdr_bin" workspace create --label "${cwd:t}" --cwd "$cwd" --focus) || {
+    ws_json=$(HERDR_REAL_BIN_PATH="$herdr_bin" \
+        "${SET:-$HOME/Desktop/repository/SettingFiles}/shell/herdr/herdr-workspace-reuse.sh" \
+        workspace create --label "${cwd:t}" --cwd "$cwd" --focus) || {
         echo "herdr workspace createに失敗しました" >&2
         return 1
     }

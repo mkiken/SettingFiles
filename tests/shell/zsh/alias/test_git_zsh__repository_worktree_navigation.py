@@ -113,7 +113,13 @@ class RepositoryWorktreeTest(unittest.TestCase):
             "#!/bin/sh\n"
             "printf '%s\\n' \"$@\" | tr '\\n' ' ' >> \"$FWT_HERDR_LOG\"\n"
             "printf '\\n' >> \"$FWT_HERDR_LOG\"\n"
-            "if [ \"$1\" = workspace ] && [ \"$2\" = create ]; then\n"
+            "if [ \"$1\" = workspace ] && [ \"$2\" = list ]; then\n"
+            "  if [ \"${FWT_EXISTING_WORKSPACE:-}\" = 1 ]; then\n"
+            "    printf '{\"result\":{\"workspaces\":[{\"workspace_id\":\"ws-existing\",\"label\":\"[1] feature worktree\",\"number\":1,\"focused\":false}]}}\\n'\n"
+            "  else\n"
+            "    printf '{\"result\":{\"workspaces\":[]}}\\n'\n"
+            "  fi\n"
+            "elif [ \"$1\" = workspace ] && [ \"$2\" = create ]; then\n"
             "  printf '{\"result\":{\"workspace\":{\"workspace_id\":\"ws-1\"},\"root_pane\":{\"pane_id\":\"p-1\"}}}\\n'\n"
             "elif [ \"$1\" = tab ] && [ \"$2\" = create ]; then\n"
             "  printf '{\"result\":{\"root_pane\":{\"pane_id\":\"p-1\"}}}\\n'\n"
@@ -295,11 +301,25 @@ class RepositoryWorktreeTest(unittest.TestCase):
                 self.assertEqual(values["__STATUS"], "0", result.stderr)
                 self.assertEqual(self.tmux_calls(), [])
                 calls = self.herdr_calls()
-                self.assertEqual(len(calls), 1, calls)
-                self.assertIn("workspace create", calls[0])
-                self.assertIn(f"--cwd {self.worktree}", calls[0])
-                self.assertIn("--focus", calls[0])
-                self.assertNotIn("--no-focus", calls[0])
+                self.assertEqual(len(calls), 2, calls)
+                self.assertIn("workspace list", calls[0])
+                self.assertIn("workspace create", calls[1])
+                self.assertIn(f"--cwd {self.worktree}", calls[1])
+                self.assertIn("--focus", calls[1])
+                self.assertNotIn("--no-focus", calls[1])
+
+    def test_named_worktree_workspace_is_reused_across_session_and_popup_routes(self):
+        for command in (
+            "repository-worktree -s", "frws", "_herdr_pick_worktree_target",
+            "_herdr_pick_worktree_target --current-repo",
+        ):
+            with self.subTest(command=command):
+                result, values = self.run_repository_worktree(
+                    command, herdr=True,
+                    extra_env={"FWT_EXISTING_WORKSPACE": "1", "FWT_FILTER_EXPECT_KEY": ""},
+                )
+                self.assertEqual(values["__STATUS"], "0", result.stderr)
+                self.assertEqual(self.herdr_calls(), ["workspace list ", "workspace focus ws-existing "])
 
     def test_inherited_herdr_bin_path_does_not_reach_the_real_cli_for_tab(self):
         # Herdr pane 内で走らせた親プロセスの HERDR_BIN_PATH/HERDR_SOCKET_PATH
@@ -352,8 +372,9 @@ class RepositoryWorktreeTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(values["__STATUS"], "0", result.stderr)
         calls = self.herdr_calls()
-        self.assertEqual(len(calls), 1, calls)
-        self.assertIn("workspace create", calls[0])
+        self.assertEqual(len(calls), 2, calls)
+        self.assertIn("workspace list", calls[0])
+        self.assertIn("workspace create", calls[1])
 
     def test_popup_picker_routes_selected_worktree_by_accept_key(self):
         cases = (
@@ -374,10 +395,16 @@ class RepositoryWorktreeTest(unittest.TestCase):
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(values["__STATUS"], "0", result.stderr)
                 calls = self.herdr_calls()
-                self.assertEqual(len(calls), 1, calls)
-                self.assertIn(command, calls[0])
-                self.assertIn(f"--cwd {self.worktree}", calls[0])
-                self.assertIn("--focus", calls[0])
+                if key:
+                    self.assertEqual(len(calls), 1, calls)
+                    target = calls[0]
+                else:
+                    self.assertEqual(len(calls), 2, calls)
+                    self.assertIn("workspace list", calls[0])
+                    target = calls[1]
+                self.assertIn(command, target)
+                self.assertIn(f"--cwd {self.worktree}", target)
+                self.assertIn("--focus", target)
 
     def test_popup_picker_shows_single_worktree_for_target_selection(self):
         result, values = self.run_repository_worktree(

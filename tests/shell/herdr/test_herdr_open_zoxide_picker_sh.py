@@ -7,7 +7,7 @@ import tomllib
 import unittest
 from pathlib import Path
 
-from support import REPO_ROOT
+from support import REPO_ROOT, sanitized_env
 
 LAUNCHER_SCRIPT = REPO_ROOT / "shell/herdr/herdr-open-zoxide-picker.sh"
 HERDR_CONFIG = REPO_ROOT / "terminal/herdr/config.toml"
@@ -45,6 +45,8 @@ set -euo pipefail
 {
   printf 'config_dir=%s\\n' "$HERDR_PLUGIN_CONFIG_DIR"
   printf 'lang=%s\\n' "${LANG:-<unset>}"
+  printf 'herdr_bin=%s\\n' "$HERDR_BIN_PATH"
+  printf 'real_bin=%s\\n' "$HERDR_REAL_BIN_PATH"
   printf 'args=%s\\n' "$*"
 } > "$HERDR_TEST_PICKER_LOG"
 """,
@@ -81,7 +83,7 @@ esac
         path.chmod(0o755)
 
     def _env(self, **extra):
-        env = os.environ.copy()
+        env = sanitized_env()
         env.update(
             {
                 "PATH": f"{self.fake_bin}{os.pathsep}{env['PATH']}",
@@ -117,6 +119,15 @@ esac
         self._run()
 
         self.assertEqual(self._picker_fields()["config_dir"], str(self.config_dir))
+
+    def test_picker_routes_herdr_commands_through_workspace_proxy(self):
+        self._run()
+
+        self.assertEqual(
+            self._picker_fields()["herdr_bin"],
+            str(self.home / ".herdr/scripts/herdr-workspace-reuse.sh"),
+        )
+        self.assertEqual(self._picker_fields()["real_bin"], str(self.fake_bin / "herdr"))
 
     def test_config_dir_failure_falls_back_to_home(self):
         self._write_fake_herdr(plugin_root=str(self.plugin_root), config_dir_ok=False)

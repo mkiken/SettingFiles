@@ -61,6 +61,7 @@ function setup_herdr_scripts() {
     herdr-open-lazygit.sh
     herdr-open-zoxide-picker.sh
     herdr-popup-run.sh
+    herdr-workspace-reuse.sh
     herdr-split-snapshot-pane.sh
     herdr_status_icon.sh
     herdr_wait_shell_ready.sh

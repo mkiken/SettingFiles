@@ -33,6 +33,9 @@ export HERDR_PLUGIN_CONFIG_DIR="${config_dir:-${HOME}/.config/herdr/plugins/conf
 # 剥ぎ取られた環境は LANG を欠くことがあり、多バイトのディレクトリ名表示が壊れる。
 export LANG="${LANG:-en_US.UTF-8}"
 
+export HERDR_REAL_BIN_PATH="$herdr_bin"
+export HERDR_BIN_PATH="${HOME}/.herdr/scripts/herdr-workspace-reuse.sh"
+
 # 既知の upstream 制限: --no-preview を渡すと picker の fzf_args が空配列のまま
 # "${fzf_args[@]}" に展開され、macOS 標準の bash 3.2 では set -u が unbound variable で
 # 落ちる (bash 4.4 で緩和された挙動)。引数なしの既定経路はプレビューが自動検出されるため

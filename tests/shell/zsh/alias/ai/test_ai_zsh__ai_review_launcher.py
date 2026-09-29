@@ -3,14 +3,14 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from support import REPO_ROOT
+from support import REPO_ROOT, sanitized_env
 AI_ZSH = REPO_ROOT / "shell" / "zsh" / "alias" / "ai" / "ai.zsh"
 
 
 def run_zsh(snippet):
     return subprocess.run(
         ["zsh", "-c", f'SET="{REPO_ROOT}"; source "{AI_ZSH}"; {snippet}'],
-        capture_output=True, text=True,
+        capture_output=True, text=True, env=sanitized_env(),
     )
 
 
@@ -125,7 +125,7 @@ class ReviewLaunchHerdrTest(unittest.TestCase):
     )
 
     def run_launch(self, create_watcher, variant="review", extra_env="",
-                   marker_on_attempt=1, ai_marker_on_attempt=1):
+                   marker_on_attempt=1, ai_marker_on_attempt=1, reused=False):
         """marker_on_attempt: pane runの第何回目でwatch_startedマーカーを作るか。
 
         0を渡すとマーカーを一度も作らない（投入が届かない事故の再現）。
@@ -135,6 +135,10 @@ class ReviewLaunchHerdrTest(unittest.TestCase):
             log = Path(temp_dir) / "calls.log"
             run_dir = Path(temp_dir) / "run"
             run_dir.mkdir()
+            workspace_json = (
+                '{"result":{"workspace":{"workspace_id":"ws1"},"reused":true}}'
+                if reused else self.WS_JSON
+            )
             snippet = f'''
 {extra_env}
 # 実時間のsleepでテストが遅くならないよう、投入検証のポーリングを最小化する
@@ -143,8 +147,14 @@ AI_REVIEW_POLL_INTERVAL=0
 LOG="{log}"
 MARKER_ON_ATTEMPT={marker_on_attempt}
 AI_MARKER_ON_ATTEMPT={ai_marker_on_attempt}
+_herdr_create_review_workspace() {{
+    printf 'workspace create --label %s-%s --cwd %s --env AI_REVIEW_RUN_DIR=%s --no-focus\\n' \\
+        "$1" "${{2:t}}" "$2" "$3" >> "$LOG"
+    printf '%s' '{workspace_json}'
+}}
 herdr() {{
     printf '%s\\n' "$*" >> "$LOG"
+    [[ "$1 $2" == "workspace focus" && "${{FAIL_WORKSPACE_FOCUS:-0}}" == "1" ]] && return 1
     if [[ "$1 $2 $4" == "pane run _review_watch" ]]; then
         local n=$(grep -c "^pane run .* _review_watch$" "$LOG")
         (( MARKER_ON_ATTEMPT > 0 && n >= MARKER_ON_ATTEMPT )) && : > "{run_dir}/watch_started"
@@ -156,7 +166,6 @@ herdr() {{
         (( AI_MARKER_ON_ATTEMPT > 0 && n >= AI_MARKER_ON_ATTEMPT )) \\
             && [[ -n "$ai" ]] && : > "{run_dir}/launched_${{ai}}"
     fi
-    [[ "$1 $2" == "workspace create" ]] && printf '%s' '{self.WS_JSON}'
     return 0
 }}
 _review_window_git_name() {{ printf 'git_name_arg %s\\n' "$1" >> "$LOG"; echo "my-branch"; }}
@@ -280,6 +289,34 @@ print -r -- "rc=$?"
         self.assertEqual(
             specs, ["claude.md=t1", "gemini.md=t2", "codex.md=t3"],
         )
+
+    def test_reused_workspace_adds_new_orchestrator_and_three_ai_tabs(self):
+        result, calls, specs, run_dir, _ = self.run_launch(create_watcher=1, reused=True)
+        self.assertIn("rc=0", result.stdout, result.stderr)
+        self.assertEqual(result.stdout, "rc=0\n")
+        newtabs = [c for c in calls if c.startswith("newtab ")]
+        self.assertEqual(len(newtabs), 4, calls)
+        self.assertIn("orchestrator:my-branch", newtabs[0])
+        self.assertIn(f"AI_REVIEW_RUN_DIR={run_dir}", newtabs[0])
+        self.assertIn("pane run p1 _review_watch", calls)
+        self.assertIn("tab focus t1", calls)
+        self.assertEqual(specs, ["claude.md=t2", "gemini.md=t3", "codex.md=t4"])
+
+    def test_reused_no_merge_adds_only_ai_tabs_without_changing_active_tab(self):
+        result, calls, _, _, _ = self.run_launch(create_watcher=0, reused=True)
+        self.assertIn("rc=0", result.stdout, result.stderr)
+        self.assertEqual(len([c for c in calls if c.startswith("newtab ")]), 3, calls)
+        self.assertFalse(any("_review_watch" in c for c in calls), calls)
+        self.assertFalse(any(c.startswith("tab focus ") for c in calls), calls)
+        self.assertIn("workspace focus ws1", calls)
+
+    def test_reused_no_merge_reports_workspace_focus_failure(self):
+        result, calls, _, _, _ = self.run_launch(
+            create_watcher=0, reused=True, extra_env="FAIL_WORKSPACE_FOCUS=1",
+        )
+        self.assertIn("rc=1", result.stdout)
+        self.assertIn("フォーカスに失敗", result.stderr)
+        self.assertIn("workspace focus ws1", calls)
 
     def test_ai_review_cwd_overrides_pwd_for_workspace_and_tabs(self):
         # AI_REVIEW_CWDが設定されていれば、workspace cwd・3AIタブcwd・ラベル計算対象は

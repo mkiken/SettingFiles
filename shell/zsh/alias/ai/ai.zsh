@@ -337,9 +337,9 @@ _ai_review_herdr_label() {
     echo "${ai_emoji}${EMOJI_STATUS_REVIEW}${git_name}"
 }
 
-# レビュー実行ごとに専用のHerdr workspace（label: <variant>-<ディレクトリ名>）を新規作成し、
-# 作成応答のJSONをそのまま出力する（workspace_id/初期タブ/root paneを呼び出し元が使う）
-# run_dirはherdrのAPI経由（--env）で初期タブのシェル環境へ渡す: orchestratorタブへの
+# レビュー用Herdr workspace（label: <variant>-<ディレクトリ名>）を作成または再利用し、
+# 応答JSONをそのまま出力する（新規作成時は初期タブ/root paneも含む）
+# run_dirはherdrのAPI経由（--env）でorchestratorタブのシェル環境へ渡す:
 # 投入コマンドからパス文字列を消すためで、pane runのキーストローク送信が末尾欠落しても
 # 別ランのパスが成立してしまう事故を構造的に防ぐ
 # 引数: variant（review / review-subagents。ラベルの前置に使い、fzf側の--label-prefixと
@@ -350,7 +350,8 @@ _herdr_create_review_workspace() {
     local run_dir="$3"
 
     local ws_json
-    ws_json=$(herdr workspace create --label "${variant}-${cwd:t}" --cwd "${cwd}" \
+    ws_json=$("${SET:-$HOME/Desktop/repository/SettingFiles}/shell/herdr/herdr-workspace-reuse.sh" \
+        workspace create --label "${variant}-${cwd:t}" --cwd "${cwd}" \
         --env "AI_REVIEW_RUN_DIR=${run_dir}" --no-focus) || {
         echo "herdr workspace createに失敗しました" >&2
         return 1
@@ -397,7 +398,7 @@ _herdr_send_verified() {
 # orchestratorタブへ _review_watch を投入し、実際に起動したことを確認する。
 # 検証送信の共通実装は _herdr_send_verified。ここではwatch固有の
 # マーカー（${run_dir}/watch_started）と失敗時の手動復旧手順だけを持つ。
-# run_dirは workspace create の --env で渡してあるため引数なしで投入する
+# run_dirは workspace/tab create の --env で渡してあるため引数なしで投入する
 # 引数: pane_id run_dir
 _herdr_send_watch_verified() {
     local pane_id="$1"
@@ -457,12 +458,12 @@ _review_run_ai() {
     source "${launch_file}"
 }
 
-# 3AIをレビュー実行ごとの専用workspace（<variant>-<ディレクトリ名>）の新規タブで起動する（herdr）
-# 引数: create_watcher(1なら完了待ち〜マージをworkspaceの初期タブ=orchestratorタブで実行) variant(review/review-subagents) run_dir claude_fn gemini_fn codex_fn review_args...
+# 3AIをレビュー用workspace（<variant>-<ディレクトリ名>）の新規タブで起動する（herdr）
+# 引数: create_watcher(1なら完了待ち〜マージをorchestratorタブで実行) variant(review/review-subagents) run_dir claude_fn gemini_fn codex_fn review_args...
 # variantはworkspaceラベルにのみ反映する。タブ名（3AI/orchestrator）はworkspace内に
 # 居れば区別が自明なため、バリアント間で意図的に同一のままにする
-# 呼び出し元タブは拘束しない: 完了待ち〜マージはworkspace作成時にできる初期タブを
-# orchestratorタブ（_review_watch実行）として使い、そちらへ委譲する
+# 呼び出し元タブは拘束しない: 新規spaceでは初期タブ、再利用時は新規タブへ
+# orchestrator（_review_watch実行）を委譲する
 _review_launch_herdr() {
     local create_watcher="$1" variant="$2" run_dir="$3" claude_fn="$4" gemini_fn="$5" codex_fn="$6"
     shift 6
@@ -495,6 +496,16 @@ _review_launch_herdr() {
     fi
     orch_tab_id=$(print -r -- "${ws_json}" | jq -r '.result.tab.tab_id // empty')
     orch_pane_id=$(print -r -- "${ws_json}" | jq -r '.result.root_pane.pane_id // empty')
+
+    local orchestrator_git_name=""
+    if [[ "${create_watcher}" == "1" ]]; then
+        orchestrator_git_name=$(_review_window_git_name "${review_cwd}")
+        if [[ "$(print -r -- "${ws_json}" | jq -r '.result.reused')" == "true" ]]; then
+            _herdr_create_tab "${ws_id}" "${review_cwd}" \
+                "${EMOJI_STATUS_REVIEW}orchestrator:${orchestrator_git_name}" \
+                orch_pane_id orch_tab_id 0 "AI_REVIEW_RUN_DIR=${run_dir}" || return 1
+        fi
+    fi
 
     # 起動コマンドはキーストロークに載せずファイルへ書き、タブ側は AI_REVIEW_LAUNCH_FILE
     # （--env）を頼りに固定トークン `_review_run_ai` だけを受け取る。
@@ -538,15 +549,16 @@ _review_launch_herdr() {
         # 初期タブをorchestratorタブとして使う: ラベル付けして完了待ち〜マージを投入する
         # 注: renameした手動ラベルはauto_managed=falseのため、マージでclaudeが動いても
         # 本文は自動置換されず "orchestrator:<git名>" が残り続ける（専用タブなので意図どおり）
-        local orchestrator_git_name
-        orchestrator_git_name=$(_review_window_git_name "${review_cwd}")
         [[ -n "${orch_tab_id}" ]] && herdr tab rename "${orch_tab_id}" \
             "${EMOJI_STATUS_REVIEW}orchestrator:${orchestrator_git_name}" >/dev/null 2>&1
         _herdr_wait_shell_ready "${orch_pane_id}" || return 1
         _herdr_send_watch_verified "${orch_pane_id}" "${run_dir}" || return 1
     fi
 
-    herdr workspace focus "${ws_id}" >/dev/null 2>&1
+    herdr workspace focus "${ws_id}" >/dev/null || {
+        echo "review workspaceのフォーカスに失敗しました (workspace_id=${ws_id})" >&2
+        return 1
+    }
     # 完了待ちダッシュボードがすぐ見えるようorchestratorタブへフォーカスする（ベストエフォート）
     [[ "${create_watcher}" == "1" && -n "${orch_tab_id}" ]] && herdr tab focus "${orch_tab_id}" >/dev/null 2>&1
     return 0
@@ -554,7 +566,7 @@ _review_launch_herdr() {
 
 # orchestratorタブ内で実行される: 完了待ち→(出揃い時)3AIタブを閉じる→マージ可否判断→cl-review-merge
 # 引数: [run_dir] [<file>[=<tab_id>]...]
-# run_dir省略時は起動側が workspace create の --env で渡した AI_REVIEW_RUN_DIR を使う。
+# run_dir省略時は起動側が workspace/tab create の --env で渡した AI_REVIEW_RUN_DIR を使う。
 # 通常経路が環境変数なのは、pane run送信の末尾欠落でパスが別ランのものとして成立する
 # 事故を防ぐため。明示引数は手動再実行用に残し、そちらを優先する。
 # spec省略時は起動側（_review_launch_herdr）が書いた ${run_dir}/watch_specs から読み戻す。
