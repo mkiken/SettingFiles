@@ -35,13 +35,13 @@ _ai_tmux_command() {
 
     case "${ai}" in
         claude)
-            print -r -- "clh --permission-mode plan ${prompt_quoted}; zsh"
+            print -r -- "clmx --permission-mode plan ${prompt_quoted}; zsh"
             ;;
         gemini)
-            print -r -- "gmh --approval-mode plan -i ${prompt_quoted}; zsh"
+            print -r -- "gmmx --approval-mode plan -i ${prompt_quoted}; zsh"
             ;;
         codex)
-            print -r -- "cxh ${prompt_quoted}; zsh"
+            print -r -- "cxmx ${prompt_quoted}; zsh"
             ;;
         *)
             return 1
@@ -234,7 +234,7 @@ _ai_all_tmux() {
     # カレントウィンドウは Claude 識別絵文字のみ付与（_ai_window_base_name が git 名へ改名済み）
     _ai_ensure_window_name_helper
     update_tmux_window_name "" "${EMOJI_ID_CLAUDE}"
-    clh --permission-mode plan "${prompt}"
+    clmx --permission-mode plan "${prompt}"
 }
 
 # tmux非依存・副作用なしでai-all系のベース名(git名、絵文字なし)を計算する
@@ -256,10 +256,10 @@ _ai_herdr_command() {
     # tmux版と違い "; zsh" のようなシェル残存サフィックスは不要
     case "${ai}" in
         gemini)
-            print -r -- "gmh --approval-mode plan -i ${prompt_quoted}"
+            print -r -- "gmmx --approval-mode plan -i ${prompt_quoted}"
             ;;
         codex)
-            print -r -- "cxh ${prompt_quoted}"
+            print -r -- "cxmx ${prompt_quoted}"
             ;;
         *)
             return 1
@@ -299,7 +299,7 @@ _ai_all_herdr() {
     local tab_id
     tab_id=$(_ai_herdr_current_tab_id)
     [[ -n "${tab_id}" ]] && herdr tab rename "${tab_id}" "${EMOJI_ID_CLAUDE}${base_name}" >/dev/null 2>&1
-    clh --permission-mode plan "${prompt}"
+    clmx --permission-mode plan "${prompt}"
 }
 
 ai-all() {

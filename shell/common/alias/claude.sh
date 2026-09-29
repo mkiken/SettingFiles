@@ -15,11 +15,11 @@ cls() {
     cl --model 'sonnet' "$@"
 }
 
-clsh() {
+clseh() {
     cls --effort high "$@"
 }
 
-cloh() {
+cloeh() {
     clo --effort high "$@"
 }
 
@@ -28,12 +28,12 @@ clf() {
     cl --model 'fable' "$@"
 }
 
-clh() {
+clmx() {
     clf --effort high "$@"
 }
 
-clhp() {
-    clh --permission-mode plan "$@"
+clmxp() {
+    clmx --permission-mode plan "$@"
 }
 
 clp() {
@@ -41,8 +41,6 @@ clp() {
 }
 
 clr() { cl --resume "$@"; }
-
-cloh() { clo --effort high "$@"; }
 
 clor() { clo --resume "$@"; }
 
@@ -65,7 +63,7 @@ cl-pr-review() {
     fi
 
     review_prompt="$*"
-    cloh --dangerously-skip-permissions "/pr-review $pr_number${review_prompt:+ $review_prompt} ultrathink"
+    cloeh --dangerously-skip-permissions "/pr-review $pr_number${review_prompt:+ $review_prompt} ultrathink"
 }
 
 cl-pr-review-subagents() {
@@ -81,7 +79,7 @@ cl-pr-review-subagents() {
     fi
 
     review_prompt="$*"
-    clsh --dangerously-skip-permissions "/pr-review-subagents $pr_number${review_prompt:+ $review_prompt} ultrathink"
+    clseh --dangerously-skip-permissions "/pr-review-subagents $pr_number${review_prompt:+ $review_prompt} ultrathink"
 }
 
 cl-review-merge() {
@@ -90,7 +88,7 @@ cl-review-merge() {
         echo "Usage: cl-review-merge <run_dir>" >&2
         return 1
     fi
-    cloh --dangerously-skip-permissions "/review-merge $run_dir"
+    cloeh --dangerously-skip-permissions "/review-merge $run_dir"
 }
 
 cl-review-post() {
@@ -98,7 +96,7 @@ cl-review-post() {
 }
 
 cl-review-fix() {
-    clh "/review-fix $*"
+    clmx "/review-fix $*"
 }
 
 _cl-pr-comment-review() {
@@ -109,8 +107,8 @@ _cl-pr-comment-implement() {
     clp "/pr-comment-implement $*"
 }
 
-_clh-pr-comment-implement() {
-    clhp "/pr-comment-implement $*"
+_clmx-pr-comment-implement() {
+    clmxp "/pr-comment-implement $*"
 }
 
 cl-pr-body() {

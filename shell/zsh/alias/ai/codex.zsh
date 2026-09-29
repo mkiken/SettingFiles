@@ -40,7 +40,7 @@ cxt() {
     cx --model gpt-5.6-terra "$@"
 }
 
-cxth() {
+cxteh() {
     cxt -c 'model_reasoning_effort="high"'  "$@"
 }
 
@@ -49,13 +49,13 @@ cxl() {
     cx --model gpt-6-luna "$@"
 }
 
-cxh() {
+cxmx() {
     cxa -c 'model_reasoning_effort="high"' "$@"
 }
 
 cxr() { cx resume "$@" }
 
-cxhr() { cxh resume "$@" }
+cxmxr() { cxmx resume "$@" }
 
 cx-pr-body() {
     local pr_number
@@ -63,7 +63,7 @@ cx-pr-body() {
         echo "現在のブランチに対応するPRが見つかりません。" >&2
         return 1
     }
-    cxth --dangerously-bypass-approvals-and-sandbox "\$pr-body PR #$pr_number のbodyを生成して $*"
+    cxteh --dangerously-bypass-approvals-and-sandbox "\$pr-body PR #$pr_number のbodyを生成して $*"
 }
 
 cx-pr-create() {
@@ -84,7 +84,7 @@ cx-pr-create() {
         return 1
     }
     local ai_exit
-    cxh --dangerously-bypass-approvals-and-sandbox "\$pr-body PR #$pr_number のbodyを生成して"
+    cxmx --dangerously-bypass-approvals-and-sandbox "\$pr-body PR #$pr_number のbodyを生成して"
     ai_exit=$?
     pr_reviewer_reminder
     return $ai_exit
@@ -93,13 +93,13 @@ cx-pr-create() {
 cx-pr-review() {
     local pr_number review_prompt
     _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
-    cxh --dangerously-bypass-approvals-and-sandbox "\$pr-review PR #$pr_number をレビューして${review_prompt:+ $review_prompt}"
+    cxmx --dangerously-bypass-approvals-and-sandbox "\$pr-review PR #$pr_number をレビューして${review_prompt:+ $review_prompt}"
 }
 
 cx-pr-review-subagent() {
     local pr_number review_prompt
     _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
-    cxh --dangerously-bypass-approvals-and-sandbox "\$pr-review-subagents PR #$pr_number をレビューして${review_prompt:+ $review_prompt}"
+    cxmx --dangerously-bypass-approvals-and-sandbox "\$pr-review-subagents PR #$pr_number をレビューして${review_prompt:+ $review_prompt}"
 }
 
 cx-review-merge() {
@@ -108,31 +108,31 @@ cx-review-merge() {
         echo "Usage: cx-review-merge <run_dir>" >&2
         return 1
     fi
-    cxh --dangerously-bypass-approvals-and-sandbox "\$review-merge $run_dir"
+    cxmx --dangerously-bypass-approvals-and-sandbox "\$review-merge $run_dir"
 }
 
 cx-review-post() {
-    cxh --dangerously-bypass-approvals-and-sandbox "\$review-post $*"
+    cxmx --dangerously-bypass-approvals-and-sandbox "\$review-post $*"
 }
 
 cx-review-fix() {
-    cxh "\$review-fix $*"
+    cxmx "\$review-fix $*"
 }
 
 alias cx-pr-comment-review='noglob _cx-pr-comment-review'
 alias cx-pcr='noglob _cx-pr-comment-review'
 _cx-pr-comment-review() {
-    cxh --dangerously-bypass-approvals-and-sandbox "\$pr-comment-review $*"
+    cxmx --dangerously-bypass-approvals-and-sandbox "\$pr-comment-review $*"
 }
 
 alias cx-pr-comment-implement='noglob _cx-pr-comment-implement'
 alias cx-pci='noglob _cx-pr-comment-implement'
 _cx-pr-comment-implement() {
-    cxth "\$pr-comment-implement $*"
+    cxteh "\$pr-comment-implement $*"
 }
 
-alias cxh-pr-comment-implement='noglob _cxh-pr-comment-implement'
-alias cxh-pci='noglob _cxh-pr-comment-implement'
-_cxh-pr-comment-implement() {
-    cxh "\$pr-comment-implement $*"
+alias cxmx-pr-comment-implement='noglob _cxmx-pr-comment-implement'
+alias cxmx-pci='noglob _cxmx-pr-comment-implement'
+_cxmx-pr-comment-implement() {
+    cxmx "\$pr-comment-implement $*"
 }

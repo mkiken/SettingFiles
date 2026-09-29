@@ -22,7 +22,7 @@ gmp() {
     gm --model pro "$@"
 }
 
-gmh() {
+gmmx() {
     gmf "$@"
 }
 
@@ -38,8 +38,8 @@ gmpp() {
     gmp --approval-mode plan "$@"
 }
 
-gmhp() {
-    gmh --approval-mode plan "$@"
+gmmxp() {
+    gmmx --approval-mode plan "$@"
 }
 
 gmlp() {
@@ -59,32 +59,32 @@ _ai_gemini_failsafe_note() {
 gm-pr-review() {
     local pr_number review_prompt
     _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
-    gmh --approval-mode yolo -i "/pr-review $pr_number${review_prompt:+ $review_prompt} $(_ai_gemini_failsafe_note "$pr_number")"
+    gmmx --approval-mode yolo -i "/pr-review $pr_number${review_prompt:+ $review_prompt} $(_ai_gemini_failsafe_note "$pr_number")"
 }
 
 gm-pr-review-subagent() {
     local pr_number review_prompt
     _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
-    gmh --approval-mode yolo -i "/pr-review-subagents $pr_number${review_prompt:+ $review_prompt} $(_ai_gemini_failsafe_note "$pr_number")"
+    gmmx --approval-mode yolo -i "/pr-review-subagents $pr_number${review_prompt:+ $review_prompt} $(_ai_gemini_failsafe_note "$pr_number")"
 }
 alias gm-pr-review-subagents='gm-pr-review-subagent'
 
 gm-pr-body() {
-    gmh -i "/pr-body $*"
+    gmmx -i "/pr-body $*"
 }
 
 alias gm-pr-comment-review='noglob _gm-pr-comment-review'
 alias gm-pcr='noglob _gm-pr-comment-review'
 _gm-pr-comment-review() {
-    gmh --approval-mode yolo -i "/pr-comment-review $*"
+    gmmx --approval-mode yolo -i "/pr-comment-review $*"
 }
 
 alias gm-pr-comment-implement='noglob _gm-pr-comment-implement'
 alias gm-pci='noglob _gm-pr-comment-implement'
 _gm-pr-comment-implement() {
-    gmh -i "/pr-comment-implement $*"
+    gmmx -i "/pr-comment-implement $*"
 }
 
 gm-web-summary() {
-    gmh --allowed-tools "WebFetchTool" -i "/web-summary $*"
+    gmmx --allowed-tools "WebFetchTool" -i "/web-summary $*"
 }

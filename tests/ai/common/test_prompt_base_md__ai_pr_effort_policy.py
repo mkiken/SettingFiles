@@ -92,16 +92,16 @@ class PrCommentImplementAliasTest(unittest.TestCase):
     EXTRA = "fix only the failing path"
 
     # tier "terra-high": cx-pciは日常運用の既定として低コストのterraを維持しつつ
-    # effortだけhighに上げている（cxh-pciはsolへ切り替える上位版）。
+    # effortだけhighに上げている（cxmx-pciはAstraへ切り替える上位版）。
     ALIASES = (
         ("cl-pr-comment-implement", "_cl-pr-comment-implement", "light"),
         ("cl-pci", "_cl-pr-comment-implement", "light"),
-        ("clh-pr-comment-implement", "_clh-pr-comment-implement", "high"),
-        ("clh-pci", "_clh-pr-comment-implement", "high"),
+        ("clmx-pr-comment-implement", "_clmx-pr-comment-implement", "high"),
+        ("clmx-pci", "_clmx-pr-comment-implement", "high"),
         ("cx-pr-comment-implement", "_cx-pr-comment-implement", "terra-high"),
         ("cx-pci", "_cx-pr-comment-implement", "terra-high"),
-        ("cxh-pr-comment-implement", "_cxh-pr-comment-implement", "high"),
-        ("cxh-pci", "_cxh-pr-comment-implement", "high"),
+        ("cxmx-pr-comment-implement", "_cxmx-pr-comment-implement", "high"),
+        ("cxmx-pci", "_cxmx-pr-comment-implement", "high"),
     )
 
     def test_all_public_aliases_retain_noglob_and_dispatch_policy(self):
@@ -131,7 +131,7 @@ class PrCommentImplementAliasTest(unittest.TestCase):
                         self.assertNotIn("--effort", captured)
                         self.assertEqual(captured[2:4], ["--permission-mode", "plan"])
                     else:
-                        # clh-pciはclhp経由（clf -> --effort high -> planモード）。
+                        # clmx-pciはclmxp経由（clf -> --effort high -> planモード）。
                         self.assertEqual(
                             captured[2:8],
                             ["--model", "fable", "--effort", "high", "--permission-mode", "plan"],
@@ -160,7 +160,7 @@ class CodexModelSelectionTest(unittest.TestCase):
             ("cxt task", ["--model", "gpt-5.6-terra", "task"]),
             ("cxl task", ["--model", "gpt-6-luna", "task"]),
             (
-                "cxh task",
+                "cxmx task",
                 ["--model", "gpt-6-astra", "-c", 'model_reasoning_effort="high"', "task"],
             ),
         )
@@ -188,19 +188,58 @@ class ClaudeModelSelectionTest(unittest.TestCase):
                     ["claude", "--allow-dangerously-skip-permissions", "--model", model, "task"],
                 )
 
+    def test_high_effort_aliases_remain_explicit(self):
+        cases = (
+            ("cloeh task", "opus"),
+            ("clseh task", "sonnet"),
+            ("clmx task", "fable"),
+        )
+
+        for command, model in cases:
+            with self.subTest(command=command):
+                captured = run_claude_alias(command)
+                self.assertEqual(
+                    captured,
+                    [
+                        "claude",
+                        "--allow-dangerously-skip-permissions",
+                        "--model",
+                        model,
+                        "--effort",
+                        "high",
+                        "task",
+                    ],
+                )
+
 
 class GeminiModelSelectionTest(unittest.TestCase):
     def test_commands_select_the_expected_model(self):
         cases = (
             ("gmf task", "flash"),
             ("gmp task", "pro"),
-            ("gmh task", "flash"),
+            ("gmmx task", "flash"),
         )
 
         for command, model in cases:
             with self.subTest(command=command):
                 captured = run_gemini_command(command)
                 self.assertEqual(captured, ["homebrew_run", "gemini", "--model", model, "task"])
+
+
+class AliasNamingTest(unittest.TestCase):
+    def test_legacy_h_aliases_are_undefined(self):
+        sources = (
+            (CLAUDE_COMMON, r"(clh|clhp|cloh|clsh)"),
+            (CODEX_ALIASES, r"(cxh|cxhr|cxth)"),
+            (GEMINI_ALIASES, r"(gmh|gmhp)"),
+        )
+
+        for path, aliases in sources:
+            with self.subTest(path=path):
+                self.assertNotRegex(
+                    path.read_text(encoding="utf-8"),
+                    rf"(?m)^({aliases})\\(\\)",
+                )
 
 
 class ReviewEntrypointEffortPolicyTest(unittest.TestCase):
