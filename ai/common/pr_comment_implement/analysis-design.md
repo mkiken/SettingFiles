@@ -269,6 +269,17 @@ Then apply `herdr-tab-label` from `ORIGINAL_PATH` using the slug alone (not
 the `task/` namespace or timestamp). Both steps are fail-safe: report a
 warning and continue on failure rather than blocking the task.
 
+#### Refresh a changed PR head before implementation
+
+Record `TASK_BASE_HEAD=$(git -C "$TASK_PATH" rev-parse HEAD)` after creating
+the task worktree. After approval and before the first write, compare it with
+`CURRENT_HEAD_BRANCH=$(git -C "$ORIGINAL_PATH" rev-parse "$HEAD_BRANCH")`.
+If they differ, run `git merge --ff-only "$HEAD_BRANCH"` from `TASK_PATH`.
+On failure, preserve both worktrees and branches, then report the changed
+heads and failed merge. On success, re-read affected files and tests. If the
+new head changes the design scope, re-present Phase 2 and wait for approval;
+otherwise record the refreshed base and continue.
+
 From this point on, run every Phase 1–6 command (read, edit, build, test, git
 add/commit) from `TASK_PATH`, not `ORIGINAL_PATH`. `ORIGINAL_PATH` is only
 touched again for the merge-back in Phase 6.
