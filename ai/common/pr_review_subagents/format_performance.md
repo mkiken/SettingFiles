@@ -10,4 +10,4 @@ Respond in **Japanese**. For each finding:
 ```
 
 If none qualify, output:
-`パフォーマンス: 信頼度75以上のパフォーマンス問題は見つかりませんでした。`
+`パフォーマンス: 該当する問題は見つかりませんでした。`

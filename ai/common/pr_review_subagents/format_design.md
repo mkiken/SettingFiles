@@ -10,4 +10,4 @@ Respond in **Japanese**. For each finding:
 ```
 
 If none qualify, output:
-`設計品質: 信頼度75以上の問題は見つかりませんでした。`
+`設計品質: 該当する問題は見つかりませんでした。`

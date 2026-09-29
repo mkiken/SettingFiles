@@ -53,10 +53,12 @@ Use this skeleton, omitting empty sections and empty priority levels. The callin
 総合コメント。
 ```
 
-Place `## [既コメント済] スキップした指摘` immediately before `## 総合評価`, one line per skipped finding as shown; omit the section when nothing was skipped. `## 総合評価` states the merge verdict line plus a short overall comment.
+When `## 総合評価` is present, place `## [既コメント済] スキップした指摘` immediately before it, one line per skipped finding as shown; omit the section when nothing was skipped. `## 総合評価` states the merge verdict line plus a short overall comment.
 
-If no actionable findings remain after deduplication, output only (no skeleton, no 総合評価):
+If no actionable findings and no duplicates remain, output only (no skeleton, no 総合評価):
 
 ```markdown
 対応が必要な指摘はありません。
 ```
+
+If no actionable findings but duplicates were skipped, output only the `[既コメント済]` section with one line per skipped finding as above, followed by `対応が必要な新規指摘はありません。` Omit the priority sections and 総合評価.

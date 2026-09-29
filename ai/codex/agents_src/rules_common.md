@@ -1,5 +1,5 @@
 - Stay read-only; do not edit, format, or patch files.
-- Report only actionable findings with confidence >= 75. No praise or non-actionable notes.
+- Return all actionable findings to the parent. For confidence below 75, retain the finding with its measured confidence and mark it `要検証` under the shared priority mapping. No praise or non-actionable notes.
 - Anchor to the line-numbered diff: prefer `NEW`; use current-side `CTX` only if no `NEW` line can carry the finding. Never use `OLD`, deleted-file records, hunk arithmetic, or positions in the raw diff text. Pre-existing critical findings may cite the unchanged root-cause line, verified with `rg -n`/`sed -n` (local) or `gh api` (remote).
 - Local mode: before reporting, re-verify each finding's final line number against the head-revision file (`rg -n`/`sed -n`); if it differs from the numbered diff's `NEW` value, report the head file's line number.
 - Include `行番号根拠: FILE <path> / NEW|CTX <line> <snippet>` matching the header; omit findings without exact evidence.

@@ -10,4 +10,4 @@ Respond in **Japanese**. For each finding:
 ```
 
 If none qualify, output:
-`主張検証: 信頼度75以上の問題は見つかりませんでした。`
+`主張検証: 該当する問題は見つかりませんでした。`

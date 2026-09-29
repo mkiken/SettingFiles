@@ -41,4 +41,4 @@ Respond in **Japanese**. For each finding:
 ```
 
 If none qualify, output:
-`テスト品質: 信頼度75以上の問題は見つかりませんでした。`
+`テスト品質: 該当する問題は見つかりませんでした。`

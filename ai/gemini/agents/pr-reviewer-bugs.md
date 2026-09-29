@@ -40,4 +40,4 @@ Respond in **Japanese**. For each finding:
 ```
 
 If none qualify, output:
-`バグ検出: 信頼度75以上の問題は見つかりませんでした。`
+`バグ検出: 該当する問題は見つかりませんでした。`

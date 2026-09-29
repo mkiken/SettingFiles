@@ -39,4 +39,4 @@ Respond in **Japanese**. For each finding:
 ```
 
 If none qualify, output:
-`Git履歴: 信頼度75以上のリグレッションリスクは見つかりませんでした。`
+`Git履歴: 該当する問題は見つかりませんでした。`

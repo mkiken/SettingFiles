@@ -39,4 +39,4 @@ Respond in **Japanese**. For each finding:
 ```
 
 If none qualify, output:
-`セキュリティ: 信頼度75以上の脆弱性は見つかりませんでした。`
+`セキュリティ: 該当する問題は見つかりませんでした。`
