@@ -1,7 +1,7 @@
 ---
 name: pr-reviewer-performance
 description: Detects runtime performance regressions in PR diffs.
-model: fable
+model: opus
 color: cyan
 effort: high
 # GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/, ai/claude/agents_src/. Regen: mac/updates/claude.sh.

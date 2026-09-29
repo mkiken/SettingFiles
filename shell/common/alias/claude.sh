@@ -65,7 +65,7 @@ cl-pr-review() {
     fi
 
     review_prompt="$*"
-    clh --dangerously-skip-permissions "/pr-review $pr_number${review_prompt:+ $review_prompt} ultrathink"
+    cloh --dangerously-skip-permissions "/pr-review $pr_number${review_prompt:+ $review_prompt} ultrathink"
 }
 
 cl-pr-review-subagents() {

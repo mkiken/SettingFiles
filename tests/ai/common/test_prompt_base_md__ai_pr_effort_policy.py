@@ -206,9 +206,9 @@ class GeminiModelSelectionTest(unittest.TestCase):
 class ReviewEntrypointEffortPolicyTest(unittest.TestCase):
     def test_claude_review_roles_use_the_expected_effort(self):
         cases = (
-            ("cl-pr-review 123 focus on errors", "fable", "high", "/pr-review 123 focus on errors ultrathink"),
+            ("cl-pr-review 123 focus on errors", "opus", "high", "/pr-review 123 focus on errors ultrathink"),
             # pr-review-subagentsはオーケストレーター専用（diff取得・並列起動・結果マージのみ）で
-            # 実レビューはfable固定のサブエージェントが担うため、エイリアス側でsonnetを指定する。
+            # 実レビューはopus固定のサブエージェントが担うため、エイリアス側でsonnetを指定する。
             ("cl-pr-review-subagents 123 focus on errors", "sonnet", "high", "/pr-review-subagents 123 focus on errors ultrathink"),
             ("cl-pcr https://github.com/acme/widget/pull/42#discussion_r123 focus", "opus", "high", "/pr-comment-review https://github.com/acme/widget/pull/42#discussion_r123 focus ultrathink"),
         )

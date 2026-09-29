@@ -1,7 +1,7 @@
 ---
 name: pr-reviewer-security
 description: Finds security vulnerabilities in PR diffs.
-model: fable
+model: opus
 color: orange
 effort: high
 ---

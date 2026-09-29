@@ -1,7 +1,7 @@
 ---
 name: pr-reviewer-tests
 description: Reviews test coverage and quality in PR diffs.
-model: fable
+model: opus
 color: green
 effort: high
 ---

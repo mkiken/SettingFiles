@@ -1,7 +1,7 @@
 ---
 name: pr-reviewer-claims
 description: Adversarially verifies PR claims (description, commits) against the actual diff.
-model: fable
+model: opus
 color: yellow
 effort: high
 # GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/, ai/claude/agents_src/. Regen: mac/updates/claude.sh.

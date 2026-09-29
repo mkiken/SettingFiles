@@ -1,7 +1,7 @@
 ---
 name: pr-review-verifier
 description: Adversarially re-verifies High-priority review findings in a fresh context.
-model: fable
+model: opus
 color: pink
 effort: high
 # GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/verifier_core.md, ai/claude/agents_src/pr_review_verify/. Regen: mac/updates/claude.sh.

@@ -1,7 +1,7 @@
 ---
 name: pr-reviewer-design
 description: Reviews design quality — architecture, consistency with existing code, and simplification — in PR diffs.
-model: fable
+model: opus
 color: blue
 effort: high
 # GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/, ai/claude/agents_src/. Regen: mac/updates/claude.sh.
