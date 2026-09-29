@@ -15,6 +15,9 @@ class AnalysisDesignWorkflowContractTest(unittest.TestCase):
         self.assertIn("### Executable boundary in plan mode", content)
         self.assertIn("skip the\n🚀 reaction POST and worktree creation", content)
         self.assertIn("After approval, the implementer posts the deferred reaction", content)
+        self.assertIn("#### Refresh a changed PR head before implementation", content)
+        self.assertIn("git merge --ff-only \"$HEAD_BRANCH\"", content)
+        self.assertIn("re-present Phase 2 and wait for approval", content)
         self.assertNotIn("### Phase 3: Implementation", content)
 
 
