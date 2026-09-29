@@ -252,6 +252,12 @@ independently verify — never trust `wtm`'s own cleanup:
 - Cleanup: require the task worktree entry to be absent and
   `refs/heads/<task-branch>` to not exist.
 
+Record the verified merge head before entering the push phase:
+
+```bash
+EXPECTED_PUSH_HEAD=$(git -C "$ORIGINAL_PATH" rev-parse HEAD)
+```
+
 If merge succeeded but cleanup didn't, do not push — report the remaining
 worktree/branch and the failed check.
 
@@ -276,30 +282,39 @@ Parallel `cl-pci` / `cx-pci` runs against the same PR merge back into the
 same `HEAD_BRANCH` and can race here. Run from `ORIGINAL_PATH`:
 
 ```bash
+CURRENT_PUSH_HEAD=$(git rev-parse HEAD)
+if [ "$CURRENT_PUSH_HEAD" != "$EXPECTED_PUSH_HEAD" ]; then
+  git log "${EXPECTED_PUSH_HEAD}..${CURRENT_PUSH_HEAD}" --oneline
+  # Stop and ask whether to re-verify the new HEAD or abort.
+fi
 git fetch origin "+refs/heads/${HEAD_BRANCH}:refs/remotes/origin/${HEAD_BRANCH}"
-git rev-list --left-right --count "HEAD...origin/${HEAD_BRANCH}"
+git rev-list --left-right --count "${EXPECTED_PUSH_HEAD}...origin/${HEAD_BRANCH}"
 ```
+
+When the local HEAD changed, do not push. Show the listed commits and ask
+whether to re-verify the new HEAD or abort. Only after re-verification may
+the workflow replace `EXPECTED_PUSH_HEAD` and restart this push section.
 
 If `origin/${HEAD_BRANCH}` is ahead or history diverged, show the ahead
 commits (`git log HEAD..origin/${HEAD_BRANCH} --oneline`) and ask exactly
 `pull して再push` or `中断`:
 
 - `pull して再push`: `git pull --ff-only origin "$HEAD_BRANCH"`; if that's not
-  possible, merge (never rebase, never force) and re-run this check before
-  pushing.
+  possible, merge (never rebase, never force). Re-verify the resulting HEAD,
+  set it as `EXPECTED_PUSH_HEAD`, and re-run this check before pushing.
 - `中断`: do not push. Report the local merged branch and commit as
   preserved; skip reply and resolve.
 
 Never force-push.
 
 ```bash
-git push origin HEAD
+git push origin "${EXPECTED_PUSH_HEAD}:refs/heads/${HEAD_BRANCH}"
 ```
 
 If push fails for a reason other than the race just handled, ask retry/abort;
 skip reply and resolve on abort. After a successful push, refresh the tracking
-ref and require its object ID to equal the pushed commit before reporting the
-push as successful:
+ref and require its object ID to equal `EXPECTED_PUSH_HEAD` before reporting
+the push as successful:
 
 ```bash
 git fetch origin "+refs/heads/${HEAD_BRANCH}:refs/remotes/origin/${HEAD_BRANCH}"
@@ -308,7 +323,7 @@ git fetch origin "+refs/heads/${HEAD_BRANCH}:refs/remotes/origin/${HEAD_BRANCH}"
 Commit list for the reply body:
 
 ```bash
-git log "${PRE_COMMIT_HEAD}..HEAD" --format='%H %s'
+git log "${PRE_COMMIT_HEAD}..${EXPECTED_PUSH_HEAD}" --format='%H %s'
 ```
 
 Fill the previewed reply body's `Commit` section with this output; do not

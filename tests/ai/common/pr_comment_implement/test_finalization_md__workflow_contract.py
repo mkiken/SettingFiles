@@ -20,6 +20,17 @@ class FinalizationWorkflowContractTest(unittest.TestCase):
             with self.subTest(required=required):
                 self.assertIn(required, content)
 
+    def test_push_uses_verified_merge_head(self):
+        content = PATH.read_text(encoding="utf-8")
+        for required in (
+            'EXPECTED_PUSH_HEAD=$(git -C "$ORIGINAL_PATH" rev-parse HEAD)',
+            'if [ "$CURRENT_PUSH_HEAD" != "$EXPECTED_PUSH_HEAD" ]; then',
+            'git push origin "${EXPECTED_PUSH_HEAD}:refs/heads/${HEAD_BRANCH}"',
+            'git log "${PRE_COMMIT_HEAD}..${EXPECTED_PUSH_HEAD}"',
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, content)
+
 
 if __name__ == "__main__":
     unittest.main()
