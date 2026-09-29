@@ -102,13 +102,25 @@ comments='[
   {"path":"path/to/file2.ext","start_line":15,"start_side":"RIGHT","line":20,"side":"RIGHT","body":"🟡 **Medium** / **Architecture**: Description"}
 ]'
 
+# A failed `jq` transformation can still leave a partial JSON file. Generate and
+# validate the complete payload before the API request; do not post when either
+# command fails.
+payload_tmp=$(mktemp)
 jq -n \
   --arg body "$review_body" \
   --arg event "COMMENT" \
   --arg commit_id "{head_sha}" \
   --argjson comments "$comments" \
   '{body:$body,event:$event,commit_id:$commit_id,comments:$comments}' \
-> review_payload.json
+> "$payload_tmp" || exit 1
+jq -e '
+  (.body | type == "string") and
+  (.event == "COMMENT") and
+  (.commit_id | type == "string") and
+  (.comments | type == "array" and length > 0) and
+  all(.comments[]; (.path | type == "string") and (.line | type == "number") and .side == "RIGHT" and (.body | type == "string"))
+' "$payload_tmp" >/dev/null || exit 1
+mv "$payload_tmp" review_payload.json
 
 gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --input review_payload.json \
   > api_response.json 2> api_response.err
