@@ -25,7 +25,7 @@ For structured configuration transformations, stop on failure (`set -e` or expli
 At implementation completion, before the commit confirmation in the post-implementation flow — so an approved change lands in the same commit — check whether the work surfaced repository knowledge that materially changes how future work should be performed.
 
 - Qualifies: architecture or workflow changes, durable conventions or pitfalls, operational commands, statements the work proved stale or contradicted. Excluded: isolated interactive aliases, implementation details discoverable from source.
-- If something qualifies, draft the addition or correction, present it to the user for approval, and edit this file only once approved — never silently.
+- If something qualifies, draft the addition or correction, present it to the user for approval, and edit this file only once approved — never silently. A specific correction already included in a user-approved plan is approved; request approval only for additional knowledge or scope.
 - Put knowledge needed only when changing one named tool or integration and its owned files in a matching project skill. Put knowledge used across multiple independent integrations or repository-wide lifecycle work in this file. When working in a skill-covered domain, read its `SKILL.md` first.
 - If nothing qualifies, propose nothing.
 
