@@ -8,8 +8,7 @@ prompt = """Implement code changes based on PR review comments for {{args}}.
   resolves the PR from the comment URL.
 - Note: Dynamic `gh` / `git` calls will require user confirmation during
   execution (Gemini CLI limitation).
-- Ask approvals, target selections, retries, and the final action selection as
-  plain-text questions and wait for the user's reply.
+- For every user confirmation, use the `ask_user` tool.
 - `WORKFLOW_REFERENCE_DIR` is
   `~/.gemini/common/pr_comment_implement`.
 
