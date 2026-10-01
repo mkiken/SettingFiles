@@ -39,10 +39,11 @@ When the detected model is `gpt-6-astra` or matches `*-sol`, use
 
 1. `Use Sol subagent (Recommended)` — the parent session remains on the detected model; exactly one Sol `worker` subagent owns the entire accepted-plan execution.
 2. `Use Terra subagent` — the parent session remains on the detected model; exactly one Terra `worker` subagent owns the entire accepted-plan execution.
+3. `Use Luna subagent` — the parent session remains on the detected model; exactly one Luna `worker` subagent owns the entire accepted-plan execution.
 
 Pass each label exactly once and do not count the client's auto-provided free-form
 `Other` as an authored option. In the question text, say that `Other` can specify
-"continue with the current model", "delegate to Luna", or "switch the parent
+"continue with the current model" or "switch the parent
 model manually". If `request_user_input` is unavailable, ask one plain-text
 free-form question that includes the same routes and examples.
 

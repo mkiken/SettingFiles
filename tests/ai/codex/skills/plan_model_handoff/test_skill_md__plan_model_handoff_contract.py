@@ -64,13 +64,15 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
             with self.subTest(excluded=excluded):
                 self.assertNotIn(excluded, self.skill)
 
-    def test_choice_flow_offers_sol_and_terra_delegation(self):
+    def test_choice_flow_offers_sol_terra_and_luna_delegation(self):
         for required in (
             "`Use Sol subagent (Recommended)`",
             "`Use Terra subagent`",
+            "`Use Luna subagent`",
             "parent session remains on the detected model",
             "exactly one Sol `worker` subagent owns the entire accepted-plan execution.",
             "exactly one Terra `worker` subagent owns the entire accepted-plan execution.",
+            "exactly one Luna `worker` subagent owns the entire accepted-plan execution.",
             "Resolve Sol, Terra, and Luna only from callable runtime metadata",
             "If the selected tier is unavailable, make no implementation change",
             "do not count the client's auto-provided free-form `Other` as an authored option",
@@ -78,20 +80,24 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
             with self.subTest(required=required):
                 self.assertIn(required, self.normalized_skill)
 
-        # Excluding old labels keeps the authored choices limited to the two preferred worker tiers.
+        choices = [line for line in self.skill.splitlines() if "subagent` —" in line or "subagent (Recommended)` —" in line]
+        self.assertEqual(len(choices), 3)
+        for choice, tier in zip(choices, ("Sol", "Terra", "Luna")):
+            self.assertIn(f"Use {tier} subagent", choice)
+
+        # Excluding old labels preserves delegation wording and the Sol recommendation.
         for excluded in (
             "`Continue with Sol (Recommended)`",
             "`Delegate to Terra`",
             "`Delegate to Luna`",
             "`Continue with current model (Recommended)`",
-            "`Use Luna subagent`",
         ):
             with self.subTest(excluded=excluded):
                 self.assertNotIn(excluded, self.skill)
 
     def test_other_routes_model_names_without_assuming_a_parent_switch(self):
         for required in (
-            'In the question text, say that `Other` can specify "continue with the current model", "delegate to Luna", or "switch the parent model manually".',
+            'In the question text, say that `Other` can specify "continue with the current model" or "switch the parent model manually".',
             "A supported model name without an explicit parent-switch request delegates to that model's `worker`",
             "including free-form answers such as `I want to use Sol`",
             "Do not interpret free-form `Other` as a manual parent-model switch by default.",
