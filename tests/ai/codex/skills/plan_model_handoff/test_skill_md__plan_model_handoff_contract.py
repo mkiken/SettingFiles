@@ -1,3 +1,4 @@
+import tomllib
 import unittest
 
 from support import REPO_ROOT
@@ -154,6 +155,40 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.skill)
+
+    def test_lifecycle_worker_can_orchestrate_one_specialist_level(self):
+        config = tomllib.loads(
+            (REPO_ROOT / "ai/codex/config.toml").read_text(encoding="utf-8")
+        )
+        self.assertEqual(config["agents"]["max_depth"], 2)
+        self.assertEqual(config["agents"]["max_threads"], 6)
+        for required in (
+            "the parent is depth 0 and the lifecycle worker is depth 1",
+            "specialists required by the applicable workflow at depth 2",
+            "those specialists must not spawn further agents",
+            "Do not delegate the lifecycle again",
+            "The worker owns specialist scheduling, overlap checks, workflow state, and user confirmations",
+            "using the parent relay below when needed",
+            "Use only the child-agent slots available at runtime",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.normalized_skill)
+        for name in ("audit-fix", "review-fix"):
+            root = REPO_ROOT / "ai/codex/skills" / name
+            for filename in ("skill_head.md", "SKILL.md"):
+                with self.subTest(skill=name, filename=filename):
+                    text = " ".join((root / filename).read_text(encoding="utf-8").split())
+                    for required in (
+                        "The session running this skill owns orchestration, overlap checks, workflow state, and user confirmations",
+                        "depth-1 lifecycle worker under `agents.max_depth = 2`",
+                        "designers and implementers must not spawn further agents",
+                        "relay the exact question and authored choices through the parent",
+                        "resume only with that answer",
+                    ):
+                        self.assertIn(required, text)
+                    # The former blanket ban prevents a lifecycle worker from
+                    # running the specialist workflow it was assigned.
+                    self.assertNotIn("Subagents cannot spawn subagents", text)
 
 if __name__ == "__main__":
     unittest.main()

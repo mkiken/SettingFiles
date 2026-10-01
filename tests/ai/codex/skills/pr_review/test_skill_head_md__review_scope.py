@@ -29,7 +29,9 @@ class PrReviewHeadScopeTest(unittest.TestCase):
     def test_uses_available_tools_and_scoped_scratchpad(self):
         self.assertNotIn("`Read`", self.head)
         self.assertNotIn("`Glob`", self.head)
-        self.assertIn("session scratchpad", self.head)
+        skill = (HEAD.parent / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("session scratchpad", skill)
+        self.assertIn("Never create temp files inside the reviewed repository's working tree", skill)
         self.assertNotIn("or elsewhere", self.head)
 
 

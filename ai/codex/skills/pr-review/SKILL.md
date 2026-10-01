@@ -9,14 +9,14 @@ description: >
 
 Perform a comprehensive code review for the specified PR (or the PR associated with the current branch if no number is given), then report findings in the structured format defined in the core rules below.
 
-Keep the review read-only. Never create scratch files in the reviewed repository; if a payload needs a file, use the session scratchpad.
+Keep the review read-only.
 
 Inputs: parse the user's message as `[prNumber] [additionalInstructions...]`. If the first PR-like token is a PR number (`123` or `#123`) or PR URL, use it as `<PR_NUMBER>` and treat the rest as `<ADDITIONAL_INSTRUCTIONS>`. Otherwise, resolve the current branch's PR and treat any remaining request text as `<ADDITIONAL_INSTRUCTIONS>`:
 ```bash
 gh pr view --json number --jq .number
 ```
 
-Use only `<PR_NUMBER>` in gh commands. If `<ADDITIONAL_INSTRUCTIONS>` is non-empty, apply it as review emphasis without overriding mandatory duplicate detection, line-number, safety, or output-format rules.
+Use only `<PR_NUMBER>` in gh commands.
 
 ### Local vs Remote File Access
 

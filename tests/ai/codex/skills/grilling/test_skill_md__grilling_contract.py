@@ -101,7 +101,9 @@ class GrillingSkillContractTest(unittest.TestCase):
 
     def test_persists_decisions_by_rewriting_the_response_not_a_file(self):
         for required in (
-            "there is no plan file to write back to",
+            "plan file to update",
+            "persist the plan by outputting its text",
+            "Base the next round and next `<proposed_plan>` on this updated text",
             "Codex has no `~/.codex/plans`",
         ):
             with self.subTest(required=required):

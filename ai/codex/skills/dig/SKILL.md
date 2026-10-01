@@ -88,7 +88,7 @@ Check honestly:
 - [ ] Failure modes for critical paths have been discussed
 - [ ] The plan text output in Phase 4 reflects every decision made
 
-If any box is unchecked, return to Phase 3 for the remaining items. Stop the loop regardless — even with boxes unchecked — once the user says to wrap up, or after a round that surfaced no new assumptions and no new questions (two consecutive dry rounds). Do not loop indefinitely.
+If any box is unchecked, return to Phase 3 for the remaining items. Stop the loop regardless — even with boxes unchecked — once the user says to wrap up, or after two consecutive rounds that each surfaced no new assumptions and no new questions (two consecutive dry rounds). Do not loop indefinitely.
 
 ## Final Summary
 
@@ -122,7 +122,5 @@ When the investigation ends, output:
 
 - Must use `request_user_input` (or its plain-text fallback) — never fold a decision into conversational prose without putting it to the user first.
 - Challenge, don't just clarify — question an assumption even when it looks reasonable.
-- Depth first: go 2+ levels deep on a topic before switching.
 - Don't ask obvious questions — focus on what the user likely hasn't considered.
-- Every decision must land in the plan text output in Phase 4, not just in the round summary.
 - Know when to stop: evaluate the Phase 5 checklist honestly, and respect the dry-round and user-wrap-up exits.

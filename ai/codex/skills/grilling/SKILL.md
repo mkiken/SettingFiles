@@ -44,7 +44,7 @@ Prefer `request_user_input` when the round's option count fits the tool's limit,
 
 ## Recording Decisions
 
-After each round, output the plan text with the round's decisions folded in — this response is the persistence mechanism; there is no plan file to write back to (Codex has no `~/.codex/plans`, and the plan lives only as `<proposed_plan>` content). The next round, and the next `<proposed_plan>`, must build on this updated text, not the original.
+After each round, persist the plan by outputting its text with the round's decisions incorporated. Codex has no `~/.codex/plans` or plan file to update; the plan exists only as `<proposed_plan>` content. Base the next round and next `<proposed_plan>` on this updated text, not the original.
 
 Include a `## Decisions` table in that text:
 

@@ -160,10 +160,7 @@ On approval, compare the group's `files` against the `files` of every group that
 - No overlap → launch the implementer and set `implementing`.
 - Overlap → set `waiting`; start it only after every overlapping predecessor reaches a terminal state.
 
-A shared regeneration command counts as an overlap even when the file sets are disjoint: a generator
-rewrites every output it owns, not just this group's, so two groups whose designs name the same
-command collide through it. Treat the command named in each design as part of that group's `files`
-when comparing.
+A shared regeneration command counts as an overlap even when the file sets are disjoint: generators rewrite all owned outputs, so groups naming the same command collide. Include each design's regeneration command in its group's `files` for overlap comparison.
 
 Without worktrees this overlap rule is the only thing preventing two implementers from editing one
 file, so never launch an overlapping pair concurrently. Implementer payload: <RUN_DIR>, group id,

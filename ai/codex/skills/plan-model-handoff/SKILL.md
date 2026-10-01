@@ -88,6 +88,14 @@ side-effect verification, and the final report. The worker must follow every
 applicable workflow and confirmation boundary; delegation grants no new
 authority.
 
+With `agents.max_depth = 2`, the parent is depth 0 and the lifecycle worker is
+depth 1. The worker may launch the specialists required by the applicable
+workflow at depth 2; those specialists must not spawn further agents. Do not
+delegate the lifecycle again. The worker owns specialist scheduling, overlap
+checks, workflow state, and user confirmations, using the parent relay below
+when needed. Use only the child-agent slots available at runtime; use waves
+when the workflow needs more slots.
+
 The worker should surface required user confirmations itself. If its thread
 cannot surface a confirmation, it must send the exact question and authored
 choices to the parent. The parent relays them unchanged, sends the user's

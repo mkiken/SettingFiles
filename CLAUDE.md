@@ -56,9 +56,9 @@ cd mac && brew bundle
 
 ### Run Tests
 
-Whenever you change anything in this repository, run the tests covering what you changed before reporting the work complete — implementation, prompt sources, generated outputs, and configuration alike. This is not optional, and it applies to changes that look too small or too declarative to break a test: this repository pins prompt text, generated-file composition, and config structure in tests, so edits to a `.md`, `.json`, or `.toml` file break tests as readily as code does.
+Whenever you change anything in this repository, run tests covering the change before reporting completion — implementation, prompt sources, generated outputs, and configuration, however small or declarative. Tests pin prompt text, generated-file composition, and config structure; `.md`, `.json`, and `.toml` edits can break tests as readily as code.
 
-When a change intentionally alters behavior a test pins, update that test in the same task. Leaving it is what produced the stale expectations found later — an implementation deliberately changed while its test kept asserting the old value, so the suite stayed red and the failure stopped carrying information.
+When a change intentionally alters behavior a test pins, update that test in the same task. Past omissions left stale expectations asserting old behavior, keeping the suite red and its failures uninformative.
 
 ```bash
 python3 tests/run_tests.py
@@ -183,9 +183,6 @@ Repository-local domain-knowledge skills live in `.claude/skills/<name>/SKILL.md
 
 ### AI Configuration Generation
 Prompt composition (`_CLAUDE.md` / `_GEMINI.md` / `_AGENTS.md`), the shared-core skill table, the generated subagent families, and the review-merge / config-audit report servers are documented in `.claude/skills/ai-prompt-generation/SKILL.md` (`.agents/skills/ai-prompt-generation/SKILL.md`) — read it before editing anything under `ai/` or `shell/common/pr/`. Edit the sources, never the generated committed outputs; regenerate via the "Regenerate AI Prompts" table above.
-
-### Claude Hooks
-Notification-hook roles and implementation rules for all three platforms live in `.claude/skills/ai-notification-hooks/SKILL.md` — read it before changing `ai/*/hooks/` or `shell/tmux/ai_notification_*`.
 
 ### Plugin Management
 

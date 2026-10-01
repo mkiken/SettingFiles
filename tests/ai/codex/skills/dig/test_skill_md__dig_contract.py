@@ -39,6 +39,7 @@ class DigSkillContractTest(unittest.TestCase):
             "return to Phase 3",
             "Do not loop indefinitely",
             "two consecutive dry rounds",
+            "after two consecutive rounds that each surfaced no new assumptions and no new questions",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.skill)

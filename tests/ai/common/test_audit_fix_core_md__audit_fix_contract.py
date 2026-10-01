@@ -123,7 +123,8 @@ class AuditFixContractTest(unittest.TestCase):
         codex_head = CODEX_HEAD_PATH.read_text(encoding="utf-8")
         self.assertIn("audit_fix_designer", codex_head)
         self.assertIn("audit_fix_implementer", codex_head)
-        self.assertIn("max_depth 1", codex_head)
+        self.assertIn("`agents.max_depth = 2`", codex_head)
+        self.assertIn("designers and implementers must not spawn further agents", codex_head)
 
     def test_gemini_adapter_declares_its_edit_and_confirmation_primitives(self):
         gemini_command = GEMINI_COMMAND_PATH.read_text(encoding="utf-8")

@@ -10,7 +10,7 @@ Parse the arguments after the skill name: a token containing `/` is <RUN_DIR>; `
 
 For every user confirmation, ask the user directly and wait for the reply: resume-or-discard, the single selection confirmation, and each rolling design confirmation (承認 / 修正依頼 / スキップ). Present multi-choice sets as numbered lists and treat a number-only reply as that option.
 
-Subagent launch: use the registered subagents `audit_fix_designer` and `audit_fix_implementer` — their role instructions and their reasoning effort are baked into their definitions, so pass only the payload each role defines. Designers and implementers alike parallelize up to the child-agent slots available at runtime; if they exceed the slots, use waves. Process each completed design as it returns; if the runtime surfaces results only per wave, degrade to wave-batch order. Subagents cannot spawn subagents (max_depth 1) — all orchestration stays in this session.
+Subagent launch: use the registered subagents `audit_fix_designer` and `audit_fix_implementer` — their role instructions and their reasoning effort are baked into their definitions, so pass only the payload each role defines. Designers and implementers alike parallelize up to the child-agent slots available at runtime; if they exceed the slots, use waves. Process each completed design as it returns; if the runtime surfaces results only per wave, degrade to wave-batch order. The session running this skill owns orchestration, overlap checks, workflow state, and user confirmations. It may be the depth-1 lifecycle worker under `agents.max_depth = 2`; its designers and implementers must not spawn further agents. If that worker cannot surface a confirmation, relay the exact question and authored choices through the parent, wait for the user's answer, and resume only with that answer.
 
 Apply the audit items decided ✅ 適用する in an audit run directory. Respond in Japanese.
 
@@ -174,10 +174,7 @@ On approval, compare the group's `files` against the `files` of every group that
 - No overlap → launch the implementer and set `implementing`.
 - Overlap → set `waiting`; start it only after every overlapping predecessor reaches a terminal state.
 
-A shared regeneration command counts as an overlap even when the file sets are disjoint: a generator
-rewrites every output it owns, not just this group's, so two groups whose designs name the same
-command collide through it. Treat the command named in each design as part of that group's `files`
-when comparing.
+A shared regeneration command counts as an overlap even when the file sets are disjoint: generators rewrite all owned outputs, so groups naming the same command collide. Include each design's regeneration command in its group's `files` for overlap comparison.
 
 Without worktrees this overlap rule is the only thing preventing two implementers from editing one
 file, so never launch an overlapping pair concurrently. Implementer payload: <RUN_DIR>, group id,

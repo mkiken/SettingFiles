@@ -15,7 +15,7 @@ Inputs: parse the user's message as `[prNumber] [additionalInstructions...]`. If
 gh pr view --json number --jq .number
 ```
 
-Use only `<PR_NUMBER>` in gh commands. If `<ADDITIONAL_INSTRUCTIONS>` is non-empty, pass it to every subagent and apply it as review emphasis without overriding mandatory duplicate detection, line-number, safety, or output-format rules.
+Use only `<PR_NUMBER>` in gh commands.
 
 ### Gather Once
 
