@@ -1,6 +1,10 @@
+import re
+import subprocess
+import tempfile
 import unittest
+from pathlib import Path
 
-from support import REPO_ROOT
+from support import REPO_ROOT, sanitized_env
 
 
 MECHANICS_PATH = REPO_ROOT / "ai/common/pr_post_mechanics_core.md"
@@ -18,6 +22,66 @@ class OutOfRangeAlwaysIndividualTest(unittest.TestCase):
         cls.codex_pr_comment_post = CODEX_PR_COMMENT_POST_PATH.read_text(
             encoding="utf-8"
         )
+
+    def test_anchor_check_uses_combined_pr_diff(self):
+        for text in (
+            self.mechanics, self.codex_review_post, self.codex_pr_comment_post
+        ):
+            with self.subTest():
+                self.assertIn("fetch `gh pr diff {pr_number}`", text)
+                # Commit patches carry intermediate coordinates, not PR head lines.
+                self.assertNotIn("gh pr diff {pr_number} --patch", text)
+
+    def test_head_line_coverage_for_single_and_multiple_commits(self):
+        tests = (
+            ("正常系: 単一コミットの追加行", False, 15, True),
+            ("正常系: 複数コミットで移動した追加行", True, 35, True),
+            ("異常系: hunk間の差分外行", True, 70, False),
+        )
+        for name, move_line, target, expected in tests:
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as tmp:
+                def git(*args):
+                    return subprocess.check_output(
+                        ["git", "-c", "core.hooksPath=/dev/null", *args],
+                        cwd=tmp, text=True, stderr=subprocess.PIPE,
+                        env=sanitized_env({
+                            "GIT_CONFIG_GLOBAL": "/dev/null",
+                            "GIT_CONFIG_NOSYSTEM": "1",
+                            "GIT_AUTHOR_NAME": "test", "GIT_COMMITTER_NAME": "test",
+                            "GIT_AUTHOR_EMAIL": "test@example.com",
+                            "GIT_COMMITTER_EMAIL": "test@example.com",
+                        }),
+                    )
+
+                git("init", "-q")
+                source = Path(tmp) / "sample.txt"
+                lines = [f"line {i}\n" for i in range(1, 101)]
+                source.write_text("".join(lines), encoding="utf-8")
+                git("add", "sample.txt")
+                git("commit", "-qm", "base")
+                base = git("rev-parse", "HEAD").strip()
+                lines[14] = "finding subject\n"
+                lines[94] = "another changed subject\n"
+                source.write_text("".join(lines), encoding="utf-8")
+                git("commit", "-qam", "change subject")
+                if move_line:
+                    source.write_text("prefix\n" * 20 + "".join(lines), encoding="utf-8")
+                    git("commit", "-qam", "move subject")
+
+                # Apply the shared instruction's head-side hunk walk to a PR diff.
+                covered = set()
+                head_line = None
+                for line in git("diff", "--no-ext-diff", base, "HEAD").splitlines():
+                    match = re.match(r"@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@", line)
+                    if match:
+                        head_line = int(match.group(1))
+                    elif head_line is not None and line.startswith(("+", " ")):
+                        covered.add(head_line)
+                        head_line += 1
+                self.assertEqual(target in covered, expected)
+                if expected:
+                    self.assertEqual(source.read_text().splitlines()[target - 1],
+                                     "finding subject")
 
     def test_three_way_confirmation_wording_is_removed(self):
         # diff範囲外項目の扱いをユーザーに確認する3択（畳み込み/個別投稿/破棄）は
