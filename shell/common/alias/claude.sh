@@ -36,6 +36,10 @@ clmxp() {
     clmx --permission-mode plan "$@"
 }
 
+cleh() {
+    cl --effort high "$@"
+}
+
 clp() {
     cl --permission-mode plan "$@"
 }

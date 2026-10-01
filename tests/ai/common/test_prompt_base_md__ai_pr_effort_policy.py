@@ -160,6 +160,10 @@ class CodexModelSelectionTest(unittest.TestCase):
             ("cxt task", ["--model", "gpt-5.6-terra", "task"]),
             ("cxl task", ["--model", "gpt-6-luna", "task"]),
             (
+                "cxeh task",
+                ["--model", "gpt-6-sol", "-c", 'model_reasoning_effort="high"', "task"],
+            ),
+            (
                 "cxmx task",
                 ["--model", "gpt-6-astra", "-c", 'model_reasoning_effort="high"', "task"],
             ),
@@ -187,6 +191,13 @@ class ClaudeModelSelectionTest(unittest.TestCase):
                     captured,
                     ["claude", "--allow-dangerously-skip-permissions", "--model", model, "task"],
                 )
+
+    def test_cleh_sets_high_effort_without_model(self):
+        # モデルは settings の既定 (opusplan) に任せるため --model を渡さない
+        self.assertEqual(
+            run_claude_alias("cleh task"),
+            ["claude", "--allow-dangerously-skip-permissions", "--effort", "high", "task"],
+        )
 
     def test_high_effort_aliases_remain_explicit(self):
         cases = (

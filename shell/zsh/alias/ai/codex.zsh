@@ -25,6 +25,10 @@ cx() {
     return $codex_status
 }
 
+cxeh() {
+    cx -c 'model_reasoning_effort="high"' "$@"
+}
+
 # `s` selects Sol.
 cxs() {
     cx --model gpt-6-sol "$@"
