@@ -139,3 +139,54 @@ function setup_codex_ponytail() {
   # ないと動作しない。trust は `codex` 起動後 `/hooks` での対話操作が必要で、
   # 既存の context-mode・claude-mem 同様ここでは自動化しない。
 }
+
+function setup_codex_config_auditor_agents() {
+  # These six symlinked roles failed with "Too many levels of symbolic links";
+  # regular TOML files allowed role startup. Keep other agent families symlinked.
+  python3 - "${Repo}ai/codex/agents" "$HOME/.codex/agents" <<'PYTHON'
+import os
+from pathlib import Path
+import sys
+import tempfile
+import tomllib
+
+source_dir, dest_dir = map(Path, sys.argv[1:])
+notice = ("# GENERATED FILE - do not edit. Sources: ai/common/config_audit_subagents/, "
+          "ai/codex/agents_src/config_audit/. Regen: mac/updates/codex.sh.")
+pending = []
+try:
+    # Validate every source and destination before replacing any role.
+    for dimension in ("default", "conflict", "overlap", "patch", "ambiguity", "concise"):
+        source = source_dir / f"config_auditor_{dimension}.toml"
+        destination = dest_dir / source.name
+        content = source.read_bytes()
+        tomllib.loads(content.decode("utf-8"))
+        if destination.is_symlink():
+            if destination.resolve() != source.resolve():
+                raise ValueError(f"Unexpected agent symlink: {destination}")
+        elif destination.exists():
+            if not destination.is_file():
+                raise ValueError(f"Unexpected agent destination: {destination}")
+            existing = destination.read_bytes()
+            if existing == content:
+                continue
+            if not existing.decode("utf-8").startswith(notice + "\n"):
+                raise ValueError(f"Unexpected agent file: {destination}")
+            tomllib.loads(existing.decode("utf-8"))
+        pending.append((destination, content))
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    for destination, content in pending:
+        temporary = None
+        try:
+            with tempfile.NamedTemporaryFile(dir=dest_dir, delete=False) as output:
+                temporary = Path(output.name)
+                output.write(content)
+            os.replace(temporary, destination)
+        finally:
+            if temporary is not None and temporary.exists():
+                temporary.unlink()
+except (OSError, UnicodeError, ValueError) as error:
+    print(f"Error: cannot install Codex config auditors: {error}", file=sys.stderr)
+    sys.exit(1)
+PYTHON
+}
