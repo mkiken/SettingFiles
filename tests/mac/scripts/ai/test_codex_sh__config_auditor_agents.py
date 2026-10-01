@@ -9,9 +9,12 @@ from support import REPO_ROOT, sanitized_env
 
 SCRIPT = REPO_ROOT / "mac/scripts/ai/codex.sh"
 DIMENSIONS = ("default", "conflict", "overlap", "patch", "ambiguity", "concise")
+ROLES = tuple(f"config_auditor_{dimension}" for dimension in DIMENSIONS) + (
+    "audit_fix_designer", "audit_fix_implementer",
+)
 
 
-class CodexConfigAuditorAgentsTest(unittest.TestCase):
+class CodexRegularFileAgentsTest(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
@@ -20,13 +23,13 @@ class CodexConfigAuditorAgentsTest(unittest.TestCase):
         self.source.mkdir(parents=True)
         self.destination = self.root / "home/.codex/agents"
         self.destination.mkdir(parents=True)
-        for dimension in DIMENSIONS:
-            name = f"config_auditor_{dimension}.toml"
+        for role in ROLES:
+            name = f"{role}.toml"
             (self.source / name).write_bytes((REPO_ROOT / "ai/codex/agents" / name).read_bytes())
 
     def install(self):
         return subprocess.run(
-            ["zsh", "-c", 'Repo="$4/"; source "$3"; Repo="$1/"; HOME="$2"; setup_codex_config_auditor_agents',
+            ["zsh", "-c", 'Repo="$4/"; source "$3"; Repo="$1/"; HOME="$2"; setup_codex_regular_file_agents',
              "test", str(self.root / "repo"), str(self.root / "home"), str(SCRIPT), str(REPO_ROOT)],
             env=sanitized_env(), text=True, capture_output=True,
         )
@@ -43,26 +46,28 @@ class CodexConfigAuditorAgentsTest(unittest.TestCase):
 
     def test_unchanged_file_stays_and_changed_source_syncs(self):
         self.assertEqual(self.install().returncode, 0)
-        source = self.source / "config_auditor_default.toml"
-        destination = self.destination / source.name
-        before = destination.stat()
-        self.assertEqual(self.install().returncode, 0)
-        self.assertEqual(destination.stat().st_mtime_ns, before.st_mtime_ns)
-        self.assertEqual(destination.stat().st_ino, before.st_ino)
-        source.write_text(source.read_text() + "\n# changed generation\n")
-        self.assertEqual(self.install().returncode, 0)
-        self.assertEqual(destination.read_bytes(), source.read_bytes())
+        for role in ROLES:
+            with self.subTest(role=role):
+                source = self.source / f"{role}.toml"
+                destination = self.destination / source.name
+                before = destination.stat()
+                self.assertEqual(self.install().returncode, 0)
+                self.assertEqual(destination.stat().st_mtime_ns, before.st_mtime_ns)
+                self.assertEqual(destination.stat().st_ino, before.st_ino)
+                source.write_text(source.read_text() + "\n# changed generation\n")
+                self.assertEqual(self.install().returncode, 0)
+                self.assertEqual(destination.read_bytes(), source.read_bytes())
 
     def test_invalid_source_preserves_all_destinations(self):
         self.assertEqual(self.install().returncode, 0)
         before = {p.name: p.read_bytes() for p in self.destination.iterdir()}
         (self.source / "config_auditor_default.toml").write_text("name = 'changed'\n")
-        (self.source / "config_auditor_concise.toml").write_text("invalid = [")
+        (self.source / "audit_fix_implementer.toml").write_text("invalid = [")
         self.assertNotEqual(self.install().returncode, 0)
         self.assertEqual({p.name: p.read_bytes() for p in self.destination.iterdir()}, before)
 
     def test_unexpected_destinations_are_preserved(self):
-        destination = self.destination / "config_auditor_concise.toml"
+        destination = self.destination / "audit_fix_implementer.toml"
         for kind in ("file", "link", "directory"):
             with self.subTest(kind=kind):
                 if kind == "file":
@@ -103,5 +108,5 @@ class CodexConfigAuditorAgentsTest(unittest.TestCase):
                 self.assertEqual(result.returncode, 0, result.stderr)
                 for source in self.source.glob("*.toml"):
                     self.assertEqual((self.destination / source.name).is_symlink(),
-                                     not source.name.startswith("config_auditor_"))
+                                     source.stem not in ROLES)
                 self.assertEqual(custom.read_text(), "name = 'custom'\n")

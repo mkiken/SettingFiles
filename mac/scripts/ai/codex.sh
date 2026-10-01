@@ -140,9 +140,9 @@ function setup_codex_ponytail() {
   # 既存の context-mode・claude-mem 同様ここでは自動化しない。
 }
 
-function setup_codex_config_auditor_agents() {
-  # These six symlinked roles failed with "Too many levels of symbolic links";
-  # regular TOML files allowed role startup. Keep other agent families symlinked.
+function setup_codex_regular_file_agents() {
+  # Symlinked config-audit and audit-fix designer startup failed with
+  # "Too many levels of symbolic links". Keep these families as regular TOML files.
   python3 - "${Repo}ai/codex/agents" "$HOME/.codex/agents" <<'PYTHON'
 import os
 from pathlib import Path
@@ -151,13 +151,16 @@ import tempfile
 import tomllib
 
 source_dir, dest_dir = map(Path, sys.argv[1:])
-notice = ("# GENERATED FILE - do not edit. Sources: ai/common/config_audit_subagents/, "
-          "ai/codex/agents_src/config_audit/. Regen: mac/updates/codex.sh.")
+roles = {f"config_auditor_{dimension}": "config_audit"
+         for dimension in ("default", "conflict", "overlap", "patch", "ambiguity", "concise")}
+roles.update({f"audit_fix_{role}": "audit_fix" for role in ("designer", "implementer")})
 pending = []
 try:
     # Validate every source and destination before replacing any role.
-    for dimension in ("default", "conflict", "overlap", "patch", "ambiguity", "concise"):
-        source = source_dir / f"config_auditor_{dimension}.toml"
+    for role, family in roles.items():
+        notice = (f"# GENERATED FILE - do not edit. Sources: ai/common/{family}_subagents/, "
+                  f"ai/codex/agents_src/{family}/. Regen: mac/updates/codex.sh.")
+        source = source_dir / f"{role}.toml"
         destination = dest_dir / source.name
         content = source.read_bytes()
         tomllib.loads(content.decode("utf-8"))
@@ -186,7 +189,7 @@ try:
             if temporary is not None and temporary.exists():
                 temporary.unlink()
 except (OSError, UnicodeError, ValueError) as error:
-    print(f"Error: cannot install Codex config auditors: {error}", file=sys.stderr)
+    print(f"Error: cannot install Codex regular-file agents: {error}", file=sys.stderr)
     sys.exit(1)
 PYTHON
 }

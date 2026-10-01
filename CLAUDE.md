@@ -132,7 +132,7 @@ A diff you reviewed once is auto-skipped on later runs (diff-review state, `${XD
 
 When adding a managed symlink, apply it to the live environment and verify it with `readlink`; if the target exists unexpectedly, stop and report it instead of overwriting it.
 
-Generated agents are symlinked per file into `~/.claude/agents/`, `~/.gemini/agents/`, and `~/.codex/agents/`, except the six Codex `config_auditor_*.toml` agents, which `setup_codex_config_auditor_agents` installs as regular files and synchronizes when generated content changes. Their symlinked role startup failed with `Too many levels of symbolic links`; regular files worked. Link-managed agents still require manually removing stale live links or creating new ones when repository agents are removed or added.
+Generated agents are symlinked per file into `~/.claude/agents/`, `~/.gemini/agents/`, and `~/.codex/agents/`, except the six Codex `config_auditor_*.toml` and two `audit_fix_{designer,implementer}.toml` agents, which `setup_codex_regular_file_agents` installs as regular files and synchronizes when generated content changes. Symlinked config-audit and audit-fix designer startup failed with `Too many levels of symbolic links`; regular files worked. Link-managed agents still require manually removing stale live links or creating new ones when repository agents are removed or added.
 
 When adding a new initialization step to `mac/initialization/`, `mac/updates/`, or `mac/scripts/ai/` setup functions, ask the user whether re-running it on an already-initialized environment should skip the step (an idempotency guard) before implementing it — a step that re-runs unconditionally can corrupt state it already wrote (e.g. duplicate plugin registrations) on a repeated `mac/initialize`.
 

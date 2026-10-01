@@ -55,13 +55,13 @@ generate_review_fix_agents
 # audit-fix の設計/実装サブエージェント定義を共有フラグメントから生成（編集は ai/common/audit_fix_subagents/ と ai/codex/agents_src/audit_fix/ へ）
 generate_audit_fix_agents codex
 
-# config-audit の6ロールは実ファイル、ほかの agents はシンボリックリンク
+# config-audit の6ロールと audit-fix の2ロールは実ファイル、ほかの agents はシンボリックリンク
 agents_dest=~/.codex/agents
 mkdir -p "$agents_dest"
-setup_codex_config_auditor_agents || exit 1
+setup_codex_regular_file_agents || exit 1
 for file in "${Repo}ai/codex/agents"/*; do
   case "${file:t}" in
-    config_auditor_(default|conflict|overlap|patch|ambiguity|concise).toml) continue ;;
+    config_auditor_(default|conflict|overlap|patch|ambiguity|concise).toml|audit_fix_(designer|implementer).toml) continue ;;
   esac
   if [[ -f "$file" ]]; then
     make_symlink "$file" "${agents_dest}/$(basename "$file")"
