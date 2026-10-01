@@ -6,7 +6,6 @@ description: >
 model: opus
 allowed-tools: Bash(gh:*), Bash(git:*), Bash(/bin/cat:*), AskUserQuestion
 argument-hint: '["<title>"] [targetBranch]'
-disable-model-invocation: true
 ---
 
 ## Instructions
