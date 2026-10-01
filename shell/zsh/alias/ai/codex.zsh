@@ -12,14 +12,8 @@ cx() {
     # always block still runs, and ignoring INT keeps further Ctrl-C from
     # killing the cleanup itself.
     local codex_status=130
-    local -a codex_args
-    if (( ${argv[(I)--model]} || ${argv[(I)--model=*]} || ${argv[(I)-m]} )); then
-        codex_args=("$@")
-    else
-        codex_args=(--model gpt-6-sol "$@")
-    fi
 
-    no_notify homebrew_run codex "${codex_args[@]}"
+    no_notify homebrew_run codex "$@"
     codex_status=$?
 
     return $codex_status
@@ -31,7 +25,7 @@ cxeh() {
 
 # `s` selects Sol.
 cxs() {
-    cx --model gpt-6-sol "$@"
+    cx --model gpt-6.1-sol "$@"
 }
 
 # `a` selects Astra.

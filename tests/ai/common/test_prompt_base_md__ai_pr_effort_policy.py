@@ -151,17 +151,20 @@ class PrCommentImplementAliasTest(unittest.TestCase):
 class CodexModelSelectionTest(unittest.TestCase):
     def test_commands_select_the_expected_model(self):
         cases = (
-            ("cx task", ["--model", "gpt-6-sol", "task"]),
+            ("cx task", ["task"]),
             ("cx --model custom-model task", ["--model", "custom-model", "task"]),
             ("cx --model=custom-model task", ["--model=custom-model", "task"]),
             ("cx -m custom-model task", ["-m", "custom-model", "task"]),
-            ("cxs task", ["--model", "gpt-6-sol", "task"]),
+            ("cx", []),
+            ("cx 'two words'", ["two words"]),
+            ("cxr --last", ["resume", "--last"]),
+            ("cxs task", ["--model", "gpt-6.1-sol", "task"]),
             ("cxa task", ["--model", "gpt-6-astra", "task"]),
             ("cxt task", ["--model", "gpt-5.6-terra", "task"]),
             ("cxl task", ["--model", "gpt-6-luna", "task"]),
             (
                 "cxeh task",
-                ["--model", "gpt-6-sol", "-c", 'model_reasoning_effort="high"', "task"],
+                ["-c", 'model_reasoning_effort="high"', "task"],
             ),
             (
                 "cxmx task",
