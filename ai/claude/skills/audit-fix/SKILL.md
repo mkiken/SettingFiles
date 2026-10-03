@@ -12,4 +12,6 @@ For every user confirmation, use the AskUserQuestion tool: resume-or-discard, th
 
 Subagent launch: use the Task tool with subagent_type `audit-fix-designer` / `audit-fix-implementer` — their role instructions and their models are baked into their definitions, so pass only the payload each role defines and never substitute `general-purpose`. Launch all design tasks simultaneously and handle each completion as it returns; implementers run one per group, serialized wherever the overlap rule applies.
 
+After the core's Finish summary, ask via AskUserQuestion whether to run the built-in `doctor` skill now (operational health: installation duplicates, unused skills/MCP servers/plugins, slow hooks, version currency, permission posture). Run it only on yes; otherwise stop. It runs here, after the applied edits, because `doctor` and the config-audit report use incompatible decision models and must never share a pass.
+
 !`/bin/cat ~/.claude/common/audit_fix_core.md`
