@@ -180,7 +180,7 @@ When implementation is complete and a commit is needed, inspect the working tree
 2. **コミットのみ** — コミットを作成するがプッシュはしない
 3. **コミットしない** — 変更をコミットせずそのまま残す
 
-Stage only the paths this session changed or created — explicit `git add <paths>`, never `git add -A`/`git add .`. Before committing:
+Stage only the paths this session changed or created — explicit `git add <paths>` with literal paths as a standalone command (no pipelines, `xargs`, or `&&` chains, which bypass permission allow rules), never `git add -A`/`git add .`. Before committing:
 
 - Unrelated changes in `git status` (e.g. a parallel session's): leave unstaged, mention them to the user.
 - An unrelated path shown as staged: run `git log -1` first — the same "M" marker covers both staged-but-uncommitted and a parallel session's mid-session commit, and one command settles which.
