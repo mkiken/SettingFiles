@@ -31,29 +31,6 @@ At implementation completion, before the commit confirmation in the post-impleme
 
 ## Key Commands
 
-### Initial Setup
-```bash
-# Mac
-cd mac && ./initialize
-
-# Windows (PowerShell)
-cd windows && ./initialize.ps1
-```
-
-### Update Environment
-```bash
-# Mac
-cd mac && ./update
-
-# Windows (PowerShell)
-cd windows && ./update.ps1
-```
-
-### Homebrew Package Management
-```bash
-cd mac && brew bundle
-```
-
 ### Run Tests
 
 Whenever you change anything in this repository, run tests covering the change before reporting completion — implementation, prompt sources, generated outputs, and configuration, however small or declarative. Tests pin prompt text, generated-file composition, and config structure; `.md`, `.json`, and `.toml` edits can break tests as readily as code.
@@ -71,58 +48,25 @@ Fix targeted failures, or report them explicitly at the commit confirmation. Run
 
 Moving or renaming a file needs more than grepping its old path: that finds only references written as one literal string. Also search for the path assembled from parts (a parent directory plus a filename variable, e.g. `REPO_ROOT / "shell/tmux" / name`) and for code resolving siblings relative to itself (`dirname "$0"`, `__file__`, `Path(__file__).parent`) — a file moved away from its neighbours leaves no literal to find. Both kinds hid from a clean grep during the `shell/herdr/` move and surfaced only as 47 failures in the full suite, because the tests that caught them are not selected by the changed paths.
 
-Main-suite tests mirror their primary implementation owner: `tests/<normalized source parent>/test_<source name>[__scenario].py`. Python source names omit `.py`; other extensions remain encoded in the test name. A test that exercises several files stays with the entrypoint or canonical source that owns its behavior; do not add ordinary ownership to a map.
-
-A new test directory needs an `__init__.py`. Without one the runner reports `Selected 0 tests from 1 test modules` and still exits successfully, so a new test file silently never runs — confirm the expected test count after adding the first file in a directory.
-
-`tests/dependencies.toml` is for proven exceptional dependencies only. When a wider run reveals a failing test omitted by targeted selection, first confirm that a changed source caused the failure, then propose an exact source-to-test entry. After approval, add it and verify that `--paths <source>` selects the test. Do not record unrelated or pre-existing failures. If a valid changed path has no mapped test, the runner reports it and exits successfully; state that omission in the handoff.
+Before adding, moving, or restructuring tests (ownership and naming, new test directories, `tests/dependencies.toml`, shell-function tests, pinned exclusions), read `.claude/skills/repo-tests/SKILL.md` (`.agents/skills/repo-tests/SKILL.md`).
 
 The runner executes deterministic test-ID shards in parallel. Tests must be order-independent, must not write shared tracked state, and must use temporary directories for filesystem mutations. Use `python3 tests/run_tests.py --jobs 1` or `python3 -m unittest discover -s tests` for sequential diagnosis.
 
 Tests must not pass `os.environ` through to a subprocess unchanged. Running from inside a Herdr pane inherits `HERDR_BIN_PATH` / `HERDR_SOCKET_PATH` and similar injected variables into every shard, and because implementations such as `${HERDR_BIN_PATH:-herdr}` in `shell/zsh/filter/ai.zsh` prefer that variable over PATH resolution, a fake stub prepended to PATH in a temp `bin` dir gets bypassed and the real running instance gets mutated. This was observed as real damage — tabs named after the fixture strings `feature worktree` / `repo with space` from `tests/shell/zsh/{alias,filter}/test_git_zsh__*worktree*.py` were created in an actual Herdr workspace. Tests that spawn a subprocess must use `sanitized_env()` from `tests/support.py`, passing any needed `HERDR_*` / `TMUX` explicitly as overrides. `tests/run_tests.py` also purges the same variables at startup, but that alone doesn't cover `python3 -m unittest discover -s tests`, which the sequential-diagnosis guidance above sends you to directly, so the runner can't be relied on by itself. Tests that stub an external CLI should pin the isolation by proving "a trap binary placed outside PATH, that leaves a trace if invoked, was never invoked" — asserting individual environment variable names alone lets a future implementation bypass the stub through some other variable and pass unnoticed.
 
-`tests/shell/{tmux,herdr}/test_<name>_sh.py` tests shell functions by sourcing the `.sh`, invoking functions via `bash -c`, and asserting stdout/status; follow `tests/shell/tmux/test_ai_notification_summary_sh.py`'s `run_fn` pattern. Use this style so `unittest discover` collects new shell-function tests; standalone `.sh` tests are ignored.
-
-When a test pins an exclusion (e.g. `assertNotIn`, a must-not-subscribe list), state the reason in an adjacent comment — an unexplained negative pin forces a later session to rediscover the rejection through history archaeology, or to re-attempt the rejected approach.
-
 Before changing notification hooks or their tests (`ai/*/hooks/`, `shell/tmux/ai_notification_*`), read `.claude/skills/ai-notification-hooks/SKILL.md` — it defines required domain tests beyond the main suite.
 
 ### Regenerate AI Prompts
 
-Canonical source-to-command mapping for regenerating committed outputs. The full init scripts (`mac/initialization/ai/{claude,gemini,codex}.sh`) cover everything; the targeted commands below are faster.
-
-| Edited source | Regenerate with |
-| --- | --- |
-| `ai/common/prompt_base.md` (Claude/Gemini load it at runtime via `@file`) | Codex only: `zsh -c 'source mac/scripts/common.sh && generate_codex_agents'` |
-| `ai/common/genshijin-activate.md` (upstream-synced by `sync_genshijin_rule`; keep local edits out of it — put overrides in `genshijin-file-policy.md`), `ai/common/genshijin-file-policy.md` | None — loaded at runtime via `@file` by Claude/Gemini only; Codex does not consume them |
-| `ai/codex/codex_base.md` | `zsh -c 'source mac/scripts/common.sh && generate_codex_agents'` |
-| Shared-core skill sources (`ai/common/*_core.md`, `ai/{codex,gemini}/skills/*/skill_head.md`/`skill_tail.md`; includes pr-review-subagents skill adapters) | `zsh -c 'source mac/scripts/common.sh && verify_ai_skill_generation_idempotency'` |
-| pr-reviewer agent sources (`ai/common/pr_review_subagents/intro_*.md`, `ai/common/pr_review_subagents/format_*.md`, `ai/*/agents_src/`) | `zsh -c 'source mac/scripts/common.sh && generate_pr_reviewer_agents <platform>'` |
-| pr-review verifier sources (`ai/common/pr_review_subagents/verifier_core.md`, `ai/*/agents_src/pr_review_verify/`) | `zsh -c 'source mac/scripts/common.sh && verify_pr_review_verifier_agent_generation_idempotency'` (regenerates and verifies) |
-| config-audit auditor sources (`ai/common/config_audit_subagents/`, `ai/*/agents_src/config_audit/`) | `generate_config_auditor_agents <platform>` from `mac/scripts/common.sh` |
-| review-fix subagent sources (`ai/common/review_fix_subagents/`, `ai/codex/agents_src/review_fix/`) | `zsh -c 'source mac/scripts/common.sh && verify_review_fix_agent_generation_idempotency'` (regenerates and verifies) |
-| audit-fix subagent sources (`ai/common/audit_fix_subagents/`, `ai/*/agents_src/audit_fix/`) | `zsh -c 'source mac/scripts/common.sh && verify_audit_fix_agent_generation_idempotency'` (regenerates and verifies all three platforms) |
+Edit the sources, never the generated committed outputs. The canonical source-to-command regeneration table lives in `.claude/skills/ai-prompt-generation/references/regeneration.md` (`.agents/skills/ai-prompt-generation/references/regeneration.md`); read it before regenerating anything under `ai/`.
 
 ### External Identifiers
 
 Before adding an externally-sourced identifier (a plugin ID, marketplace name, package name, repo slug) to a declarative config from a blog post, README, or other secondary source, verify it against the primary source (e.g. the target repo's `marketplace.json`/`package.json`) rather than copying the secondary source's command verbatim — a marketplace's registered `name` frequently differs from its repo slug, and a wrong ID installs silently disabled rather than failing loudly.
 
-### Evaluating External Tools
+### External Tools
 
-When comparing or selecting an external tool to adopt here (CLI, plugin, package, editor extension), check each candidate's maintenance activity and recent third-party assessment before recommending one, and report the dates you found:
-
-- Last commit and last release date, open issue count, archived status — from the primary source (the repo's API or release page), not a summary article.
-- Never treat cumulative popularity (stars, download counts) as evidence of current health; it measures accumulated history, not whether the project still works. State star counts as popularity only.
-- Note when a candidate is young — repository age under 12 months, a `0.x` version, or fewer than roughly 100 commits — as a maintenance risk to surface, not a disqualifier.
-- Prefer secondary sources published within the last 12 months and give their date; for older ones, state the age and discount accordingly. When a source's author also authored a compared candidate, say so and discount accordingly.
-
-### Removing External Tools
-
-When removing or replacing a tool whose configuration was installed outside this repository (browser extension styles, GUI app preferences, OS-level settings), enumerate those external copies in the plan and state whether each needs manual removal by the user. Deleting the repository source or its setup instructions does not deactivate an already-installed copy. Migrating from mdts to mdv hit exactly this: `mdts-plans.user.css` stayed active in the Stylus extension and, being scoped to `domain("localhost")` rather than a port, kept restyling mdv until it was removed by hand.
-
-### Running External Installers
-
-Before running an external installer (e.g. `herdr integration install`, `npx skills add`) in a disposable target, identify and baseline its known shared or global state roots; a temporary destination alone does not prove isolation. Compare those roots afterward and clean up only artifacts attributable to the run.
+Before evaluating, adopting, replacing, or removing an external tool, or running an external installer in a disposable target, read `.claude/skills/external-tools/SKILL.md` (`.agents/skills/external-tools/SKILL.md`).
 
 ### Visual Verification
 
@@ -175,24 +119,20 @@ Before working on Herdr keybindings or popups (`terminal/herdr/config.toml`, `[[
 
 Claude-specific files (agents, hooks, scripts) are individually symlinked into `~/.claude/`. Claude has no custom slash commands — former commands live as skills under `ai/claude/skills/`.
 
-Skills (`ai/common/skills/`, `ai/{claude,gemini,codex}/skills/`) are symlinked per directory into `~/.<platform>/skills/` via `setup_ai_skills`. Editing an already-linked skill takes effect immediately; **adding** one does not — init/update only add links, so a new skill directory stays invisible to the live assistant until `setup_ai_skills` runs (`dig` and `plan-model-handoff` sat unlinked for a month this way). Create the link in the same session and verify it with `readlink`: `zsh -c 'source mac/scripts/common.sh && setup_ai_skills ~/.<platform>/skills "${Repo}ai/common/skills" "${Repo}ai/<platform>/skills"'`. Generated `SKILL.md` files must additionally be regenerated from their sources (see "Regenerate AI Prompts" under Key Commands). `ai/common/skills/` is the canonical source for skills shared by all three platforms. For selective sharing, keep the canonical skill in `ai/common/shared_skills/<name>/` and add relative directory symlinks only under the intended `ai/<platform>/skills/` directories; `setup_ai_skills` follows those directory symlinks. Keep adapters and generation only for platform-specific tools, inputs, confirmations, or agents. Claude and Codex use selectively shared `worktree-task` and `herdr-tab-label`. Claude and Codex load the standalone `fact-based` and `write-tests` skills from `ai/common/skills/`; Gemini uses generated variants under `ai/gemini/skills/`, built from their platform heads and shared sources. The whole `ai/common` directory is also symlinked to `~/.gemini/common` and `~/.claude/common` for runtime file references — Claude and Gemini only; Codex has no `~/.codex/common`. Python modules shared by the platform hooks therefore live in `shell/tmux/` (e.g. `tmux_emoji.py`, `tmux_window_name.py`); hooks reach them because `Path(__file__).resolve()` dereferences the hook symlink back into the repo.
+Skills (`ai/common/skills/`, `ai/{claude,gemini,codex}/skills/`) are symlinked per directory into `~/.<platform>/skills/` via `setup_ai_skills`. Editing an already-linked skill takes effect immediately; **adding** one does not — init/update only add links, so a new skill directory stays invisible to the live assistant until `setup_ai_skills` runs (`dig` and `plan-model-handoff` sat unlinked for a month this way). Create the link in the same session and verify it with `readlink`: `zsh -c 'source mac/scripts/common.sh && setup_ai_skills ~/.<platform>/skills "${Repo}ai/common/skills" "${Repo}ai/<platform>/skills"'`. Generated `SKILL.md` files must additionally be regenerated from their sources (see "Regenerate AI Prompts" under Key Commands for the reference location). `ai/common/skills/` is the canonical source for skills shared by all three platforms. For selective sharing, keep the canonical skill in `ai/common/shared_skills/<name>/` and add relative directory symlinks only under the intended `ai/<platform>/skills/` directories; `setup_ai_skills` follows those directory symlinks. Keep adapters and generation only for platform-specific tools, inputs, confirmations, or agents. Claude and Codex use selectively shared `worktree-task` and `herdr-tab-label`. Claude and Codex load the standalone `fact-based` and `write-tests` skills from `ai/common/skills/`; Gemini uses generated variants under `ai/gemini/skills/`, built from their platform heads and shared sources. The whole `ai/common` directory is also symlinked to `~/.gemini/common` and `~/.claude/common` for runtime file references — Claude and Gemini only; Codex has no `~/.codex/common`. Python modules shared by the platform hooks therefore live in `shell/tmux/` (e.g. `tmux_emoji.py`, `tmux_window_name.py`); hooks reach them because `Path(__file__).resolve()` dereferences the hook symlink back into the repo.
 
 External skills installed for Codex through `npx skills add --agent codex --global` are managed separately in `~/.agents/skills/`, not `~/.codex/skills/`. Verify that destination after installation and update only the intended skill with `npx skills update <skill> --global --yes`.
 
-Repository-local domain-knowledge skills live in `.claude/skills/<name>/SKILL.md` (currently `herdr-dev`, `ai-notification-hooks`, `claude-plugin-management`, `ai-prompt-generation`); each `.agents/skills/<name>` is a committed relative symlink to the **directory**, so Codex discovers them too and any new subdirectory is visible without touching the symlink. No build step — edit the `.claude/skills/` source directly (frontmatter must stay in the cross-platform subset: `name` + `description` only, no runtime includes). A skill body over 8,192 bytes may split sections with distinct activation conditions into a router `SKILL.md` and `references/*.md`; keep the router at or below 8,192 bytes. Because repo-local skills have no runtime include directive, state each reference path in both forms (`.claude/skills/<name>/references/…` and `.agents/skills/<name>/references/…`). `herdr-dev` and `ai-prompt-generation` use this today; the others stay single-file.
+Repository-local domain-knowledge skills live in `.claude/skills/<name>/SKILL.md` (currently `herdr-dev`, `ai-notification-hooks`, `claude-plugin-management`, `ai-prompt-generation`, `repo-tests`, `external-tools`); each `.agents/skills/<name>` is a committed relative symlink to the **directory**, so Codex discovers them too and any new subdirectory is visible without touching the symlink. No build step — edit the `.claude/skills/` source directly (frontmatter must stay in the cross-platform subset: `name` + `description` only, no runtime includes). A skill body over 8,192 bytes may split sections with distinct activation conditions into a router `SKILL.md` and `references/*.md`; keep the router at or below 8,192 bytes. Because repo-local skills have no runtime include directive, state each reference path in both forms (`.claude/skills/<name>/references/…` and `.agents/skills/<name>/references/…`). `herdr-dev` and `ai-prompt-generation` use this today; the others stay single-file.
 
 `ai/{claude,gemini}/settings.json` are deep-merged, not symlinked, via `smart_merge_json`; live files retain machine-local keys and diverge. Repository edits take effect only via `mac/initialization/ai/{claude,gemini}.sh`, `mac/update`, or manual merge. Merge only adds/updates keys, so repository deletions (e.g. hook registrations) must also be removed manually from live settings.
 
 `ai/codex/config.toml` is also not symlinked: full Codex initialization and update merge it into `~/.codex/config.toml` via `smart_merge_toml`. Editing only the repository source does not update the live file. For a targeted immediate update, run the interactive merge directly: `zsh -c 'source mac/scripts/common.sh && smart_merge_toml "${Repo}ai/codex/config.toml" "$HOME/.codex/config.toml"'`. Do not run this interactive command non-interactively: its safe default keeps the destination unchanged. In that context, inspect the target key, apply only the verified change, and parse the live TOML afterward.
 
 ### AI Configuration Generation
-Prompt composition (`_CLAUDE.md` / `_GEMINI.md` / `_AGENTS.md`), the shared-core skill table, the generated subagent families, and the review-merge / config-audit report servers are documented in `.claude/skills/ai-prompt-generation/SKILL.md` (`.agents/skills/ai-prompt-generation/SKILL.md`) — read it before editing anything under `ai/` or `shell/common/pr/`. Edit the sources, never the generated committed outputs; regenerate via the "Regenerate AI Prompts" table above.
+Prompt composition (`_CLAUDE.md` / `_GEMINI.md` / `_AGENTS.md`), the shared-core skill table, the generated subagent families, and the review-merge / config-audit report servers are documented in `.claude/skills/ai-prompt-generation/SKILL.md` (`.agents/skills/ai-prompt-generation/SKILL.md`) — read it before editing anything under `ai/` or `shell/common/pr/`. Edit the sources, never the generated committed outputs; regenerate via the table in `.claude/skills/ai-prompt-generation/references/regeneration.md`.
 
 ### Plugin Management
-
-**Zsh (znap)**: Config in `shell/zsh/plugin.zsh`. Plugins updated via `znap pull` in `mac/update`. Only znap itself is a git submodule under `/submodules/`; every other Zsh plugin is downloaded by znap at runtime and is not tracked here.
-
-**Neovim (lazy.nvim)**: Plugins in `vimfiles/nvim/lua/plugins/`. VSCode Neovim uses separate `plugins_vscode/`. Updated via `nvim --headless "+Lazy! sync | TSUpdate" +qa` in `mac/update`.
 
 **Herdr integrations**: before changing Herdr integration (`mac/scripts/herdr.sh`, Herdr plugins such as notify-rich, Gemini's Herdr notification split, shell status icon mirroring), read `.claude/skills/herdr-dev/SKILL.md`.
 

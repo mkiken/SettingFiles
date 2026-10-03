@@ -1,6 +1,6 @@
 # AI Prompt and Agent Generation
 
-Throughout: edit the sources, never the generated committed outputs — regenerate via the "Regenerate AI Prompts" table in the repository root `CLAUDE.md` (Key Commands).
+Throughout: edit the sources, never the generated committed outputs — regenerate via the table in `.claude/skills/ai-prompt-generation/references/regeneration.md` (`.agents/skills/ai-prompt-generation/references/regeneration.md`).
 
 Both `_CLAUDE.md` and `_GEMINI.md` are static files using `@file` import syntax to compose prompts from shared source files at runtime:
 - **Claude** (`ai/claude/_CLAUDE.md`): `@../common/prompt_base.md` + `@../common/genshijin-file-policy.md`; the plugin supplies the upstream genshijin rule

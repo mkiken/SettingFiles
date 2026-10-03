@@ -12,6 +12,10 @@ Read the reference that matches what you are touching.
   families (pr-review-subagents, config-audit, review-fix, audit-fix):
   `.claude/skills/ai-prompt-generation/references/generation.md`
   (`.agents/skills/ai-prompt-generation/references/generation.md`)
+- **Regeneration commands** — the source-to-command table for regenerating committed outputs
+  (`generate_codex_agents`, `verify_ai_skill_generation_idempotency`, the agent generators):
+  `.claude/skills/ai-prompt-generation/references/regeneration.md`
+  (`.agents/skills/ai-prompt-generation/references/regeneration.md`)
 - **Report servers** — the `review-merge` / `config-audit` loopback HTML report flow, the shared
   `serve_review_report.py` profiles, and `state.json` ownership:
   `.claude/skills/ai-prompt-generation/references/report-servers.md`
