@@ -11,8 +11,8 @@ effort: high
 - First `$ARGUMENTS` token is `PR_URL`; the rest is `PROMPT`.
 - Fetch context with `gh pr view "$PR_URL" --comments`; it resolves the PR from
   the comment URL.
-- Use `AskUserQuestion` for approvals, target selection, retries, and the final
-  action selection. Treat Other or cancel on the final action question as
+- Confirm approvals, target selection, retries, and the final action
+  selection. Treat Other or cancel on the final action question as
   "no action" (equivalent to `コミットしない`).
 - In plan mode, the plan artifact is the plan file.
 - `WORKFLOW_REFERENCE_DIR` is

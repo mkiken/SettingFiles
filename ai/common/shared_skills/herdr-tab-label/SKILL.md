@@ -19,7 +19,7 @@ Derive a short English slug from the task prompt:
 
 ## Apply the label
 
-If the active collaboration mode forbids side effects, do not rename the tab. Derive the slug again and apply it at the first implementation turn.
+In plan mode or a read-only sandbox (any mode that forbids side effects), do not rename the tab. Derive the slug again and apply it at the first implementation turn.
 
 Record the task's absolute invoking working directory as `task_path`; callers such as `worktree-task` reuse their already-recorded invoking path. Then run:
 

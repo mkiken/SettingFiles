@@ -100,7 +100,7 @@ When writing tests, cover boundary values; when multiple input variations exerci
 
 #### Boundary Value Implementation Pattern
 
-When implementing boundary tests, group related boundaries. When the existing suite's idiom is table-driven, express the group as one table-driven test with a case per boundary rather than one declaration per case:
+Group related boundaries. With a table-driven idiom, express the group as one table-driven test with a case per boundary:
 
 ```
 describe('age validation') {
@@ -115,13 +115,11 @@ describe('age validation') {
 }
 ```
 
-If the existing suite instead declares one test per case, follow that idiom and keep the boundaries grouped together for readability.
+With a one-test-per-case idiom, keep the boundaries grouped together for readability.
 
 ### Phase 6: Verify
 
 After writing the tests, run them to confirm they pass. If any test fails:
-- Read the failure message
-- Determine if it's a test bug or a code bug
 - Fix test bugs silently; report code bugs to the user
 
 ### Scope

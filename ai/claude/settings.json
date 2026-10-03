@@ -187,10 +187,6 @@
     ],
     "defaultMode": "auto",
     "deny": [
-      "Bash(rm -rf /)",
-      "Bash(rm -rf /*)",
-      "Bash(rm -rf ~)",
-      "Bash(rm -rf ~/*)",
       "Bash(rm:*)",
       "Bash(/bin/rm:*)",
       "Bash(sudo :*)",

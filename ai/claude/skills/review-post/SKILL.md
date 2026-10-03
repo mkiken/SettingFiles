@@ -9,7 +9,6 @@ Parse `$ARGUMENTS`: a token containing `/` is <RUN_DIR>; numeric tokens (space/c
 
 `{ai_header}` = `🤖 **AI コードレビュー**` — this run merges findings from several AIs, so the header never names the posting AI.
 
-For the final posting confirmation, use the AskUserQuestion tool.
 
 !`/bin/cat ~/.claude/common/review_post_core.md`
 

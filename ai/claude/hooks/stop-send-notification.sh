@@ -230,7 +230,7 @@ if [[ "${PENDING_BACKGROUND_WORK}" == "1" ]]; then
 fi
 
 # ✅アイコンは解析後のここで設定する（先行設定すると作業継続中でも✅になる）。
-# 直後にnotifyを呼ぶため、tmux更新は同期で完了させる（CLAUDE.mdのフック規約）。
+# 直後にnotifyを呼ぶため、tmux更新は同期で完了させる（ai-notification-hooks スキルのフック規約）。
 update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}"
 
 notification_title=$(build_ai_title "✅" "終了")

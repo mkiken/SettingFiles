@@ -1,6 +1,5 @@
 # Code Comments
 
-- Reference symbols, file paths, or concepts — never mutable line numbers or positions.
 - Do not number comments; instead describe what the code does or why it exists.
 
 # File References When Addressing the User
@@ -17,7 +16,7 @@ When pasting dynamic content (command output, file contents, diffs) into a fence
 
 # Dynamic Result Output
 
-Before emitting dynamically selected result rows, count them and branch on the count. At more than 100 lines—or when few lines carry a large payload (minified JSON, base64, long single lines)—do not print the rows in the same call; print only the count and a focused summary, then narrow or paginate in a follow-up.
+Before emitting dynamically selected result rows, count them and branch on the count. At more than 100 lines, or when the output exceeds roughly 8 KB or any single line exceeds roughly 1,000 characters (minified JSON, base64, long single lines), do not print the rows in the same call; print only the count and a focused summary, then narrow or paginate in a follow-up.
 
 # Command Usage
 
@@ -99,7 +98,7 @@ For feedback, review, or critical analysis, be direct and unsparing. Challenge w
 
 # Alternative Proposals
 
-Before executing an instructed approach, check it against the stated goal and confirmed intent. When a materially better alternative exists on effect, cost, safety, or feasibility, present it with rationale and trade-offs before acting. Never alter stated constraints or permissions based on an inferred "real intent"; changes to goal, scope, or key constraints need confirmation. Minor reversible improvements inside the requested scope proceed without asking.
+Before executing an instructed approach, check it against the stated goal and confirmed intent. When a materially better alternative exists on effect, cost, safety, or feasibility, present it with rationale and trade-offs before acting. Never alter stated constraints or permissions based on an inferred "real intent"; changes to goal, scope, or key constraints need confirmation.
 
 # Foreign-Context Debugging
 
@@ -109,19 +108,13 @@ When a bug lives in an execution context you cannot run directly (another proces
 
 After any side-effecting operation (git commit/push, API writes, deletes, deploys), confirm it took effect via an independent check issued as a real tool call (e.g. `git log -1`, re-fetch the record) before reporting done — never narrate a command in prose and assume it ran. If verification fails or output is garbled, re-issue and re-verify; don't claim completion.
 
-Report a tool call's outcome only from the text that call actually returned — never compose, reconstruct, or pre-fill its output (a commit hash, changed-file count, a push's ref-update line). If you have not yet seen the result, you do not know it; say so instead of supplying a plausible one.
+Report a tool call's outcome only from the text that call actually returned — never compose, reconstruct, or pre-fill its output (a commit hash, changed-file count, a push's ref-update line); if you have not yet seen the result, say so.
 
 Immediately before `git push`, resolve the current branch, push that branch, and verify its remote ref advanced.
 
 # Destructive-Command Verification Safety
 
 When verifying newly written code or shell functions that invoke destructive commands (`git restore`, `git clean`, `rm`, force-overwrite, etc.), never run that verification against a real project repository — set up a disposable throwaway repo/directory (e.g. `mktemp -d` + `git init`) and exercise the code there instead. When mocking a confirmation gate (e.g. a `confirm` function) to test the flow, also mock or stub out the destructive commands gated behind it — mocking only the gate while leaving real destructive commands live is not a safe test.
-
-Before running an external installer in a disposable target, identify and baseline its known shared or global state roots; a temporary destination alone does not prove isolation. Compare those roots afterward and clean up only artifacts attributable to the run.
-
-# Visual Verification
-
-When showing the user something to visually confirm (e.g. a tmux popup), state what to check before opening it, keep it open until the user dismisses it (never close on a timer), and use a dedicated unambiguous fixture as the test subject — not whatever file happens to be newest.
 
 # Plan Review Presentation
 
@@ -139,8 +132,7 @@ At task completion, before the Post-Implementation Workflow even when skipped, c
 
 - Establish provenance before deleting a temp-looking file: use a pre-task baseline or direct evidence that this session created it. Never infer ownership from its name, contents, or timestamps alone; if provenance is uncertain, leave it in place and report it.
 - Before calling `trash`, resolve and validate each target as a non-empty, existing, explicit path; never pass unset or empty variables or rely on the current working directory. If validation fails, leave the target untouched and report it.
-- If no temp files were created, continue to the Post-Implementation Workflow.
-- Otherwise delete them all without asking — invoke `trash` directly, never `rm`/`/bin/rm` (non-interactive shells skip the `rm` -> `trash` alias) — briefly report what was deleted in the completion response, then continue to the Post-Implementation Workflow.
+- Delete them all without asking — invoke `trash` directly, never `rm`/`/bin/rm` (non-interactive shells skip the `rm` -> `trash` alias) — and briefly report what was deleted in the completion response. Whether or not any temp files existed, then continue to the Post-Implementation Workflow.
 
 # Opportunistic Improvement Proposals
 

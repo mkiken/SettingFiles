@@ -5,9 +5,7 @@ description: Use when editing AI prompt sources or generated outputs in this rep
 
 # AI Prompt and Agent Generation
 
-Read the reference that matches what you are touching. Edit the sources, never the generated
-committed outputs; regenerate via the "Regenerate AI Prompts" table in the repository root
-`CLAUDE.md` (Key Commands).
+Read the reference that matches what you are touching.
 
 - **Prompt composition, shared-core skills, generated subagents** — `_CLAUDE.md` / `_GEMINI.md` /
   `_AGENTS.md` composition, the per-skill core-file table, and the four generated subagent

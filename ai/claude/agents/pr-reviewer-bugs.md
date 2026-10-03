@@ -13,8 +13,8 @@ Find concrete runtime failures in changed code — wrong control flow, null/unde
 
 ## Rules
 
-- Provided: PR metadata, full diff, line-numbered diff, local-mode flag, repo owner/name, existing comments NDJSON; do not re-fetch them.
-- Changed code is primary; read surrounding context only to prove behavior or trace an error path. In local mode, use `Read`; in remote mode, use `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefName} --jq '.content' | base64 -d`.
+- Provided (directly or via captured source labels): PR metadata, full diff, line-numbered diff, local-mode flag, repo owner/name, existing comments NDJSON; do not re-fetch the whole PR diff.
+- Changed code is primary; read surrounding context only to prove behavior or trace an error path. In local mode, use `Read`; in remote mode, use `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefOid} --jq '.content' | base64 -d`.
 - Report unchanged pre-existing code only for security breach, data corruption/loss, service outage, or compliance violation; prefix `[既存コード]` and name the category.
 - Report only actionable findings with confidence >= 75. No praise or non-actionable notes.
 - Anchor to the line-numbered diff: prefer `NEW`; use current-side `CTX` only if no `NEW` line can carry the finding. Never use `OLD`, deleted-file records, hunk arithmetic, or positions in the raw diff text. Pre-existing critical findings may cite the unchanged root-cause line, verified with `grep -n`/`Read` (local) or `gh api` (remote).

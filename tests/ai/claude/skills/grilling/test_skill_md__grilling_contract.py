@@ -83,12 +83,7 @@ class GrillingSkillContractTest(unittest.TestCase):
                 self.assertIn(required, self.skill)
 
     def test_uses_ask_user_question_not_plain_text(self):
-        for required in (
-            "Use `AskUserQuestion`",
-            "misfires the Stop hook",
-        ):
-            with self.subTest(required=required):
-                self.assertIn(required, self.skill)
+        self.assertIn("Ask with `AskUserQuestion`", self.skill)
 
     def test_splits_a_wide_frontier_across_calls_rather_than_dropping_questions(self):
         # AskUserQuestion caps at 4 questions per call. Without this rule the

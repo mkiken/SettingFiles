@@ -7,7 +7,7 @@ disable-model-invocation: true
 
 Parse `$ARGUMENTS`: a token containing `/` is <RUN_DIR>; numeric tokens (space/comma separated) are <ITEM_NUMBERS>. If <RUN_DIR> is absent, resolve the current branch's PR via `gh pr view --json number --jq .number` and run `bash ~/.config/ai-pr/bin/ai_review_run_dir.sh --latest <PR_NUMBER>`.
 
-For every user confirmation, use the AskUserQuestion tool: initial selection, resume-or-discard, each rolling design confirmation (承認 / 修正依頼 / スキップ, with 修正依頼 feedback collected as free text), each group's four-choice commit/merge confirmation, and the two-choice merge-conflict confirmation.
+Confirmations: initial selection, resume-or-discard, each rolling design confirmation (承認 / 修正依頼 / スキップ, with 修正依頼 feedback collected as free text), each group's four-choice commit/merge confirmation, and the two-choice merge-conflict confirmation.
 
 <WORKTREE_TASK_DOC> = `~/.claude/skills/worktree-task/SKILL.md`.
 

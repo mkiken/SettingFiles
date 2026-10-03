@@ -27,12 +27,11 @@ basis: `改善案` and `短縮案` are the auditor's proposed direction (a start
 clashing rules; `推奨` names which side an overlap keeps.
 
 Read each target file around the item's `section`, plus enough of the rest of the file to keep the
-rewrite consistent with neighbouring rules and free of duplication — these are prompt and
-configuration files, where a rule's meaning depends on what surrounds it. For a `conflict` item,
-resolve the clash in exactly one direction and say which; never leave both readings live. Preserve
-every behavioural requirement the original rule carried unless the item's details say to drop it: a
-shortening that silently drops a requirement is worse than no change. If a finding looks wrong,
-already fixed, or genuinely ambiguous, recommend skipping it with the reason — never guess.
+rewrite consistent with neighbouring rules and free of duplication. For a `conflict` item, resolve
+the clash in exactly one direction and say which; never leave both readings live. Preserve every
+behavioural requirement the original rule carried unless the item's details say to drop it. If a
+finding looks wrong, already fixed, or genuinely ambiguous, recommend skipping it with the reason —
+never guess.
 
 # Design file
 

@@ -17,11 +17,11 @@ The **frontier** is every decision whose prerequisites are already settled: the 
 
 Ask the whole frontier in one round. Each answer reshapes the tree — settled decisions push the frontier outward and unblock questions that depended on them. Recompute the frontier and ask the next round.
 
-A question whose answer depends on another question still open in this round belongs to a *later* round, not this one. This ordering is the whole point: it is what keeps you from asking the user to decide something they cannot yet decide.
+A question whose answer depends on another question still open in this round belongs to a *later* round, not this one.
 
 ## Recommended Answers
 
-Every question carries your recommended answer. Not a neutral menu — your actual pick, with the reason it beats the alternatives. A user who is unsure can start from your recommendation instead of stalling; that is what moves a design forward.
+Every question carries your recommended answer. Not a neutral menu — your actual pick, with the reason it beats the alternatives.
 
 Base recommendations on the codebase and on `CLAUDE.md` / `AGENTS.md` conventions, not on generic best practice.
 
@@ -35,13 +35,12 @@ The **decisions** are the user's. Put each to them and wait.
 
 ## Asking a Round
 
-Use `AskUserQuestion` — this environment's confirmation primitive. A plain-text question ends the turn and misfires the Stop hook's completion notification.
+Ask with `AskUserQuestion`.
 
 - The tool takes at most 4 questions per call and 2-4 options each. When a round's frontier is wider than that, split it across consecutive `AskUserQuestion` calls in the same turn rather than dropping questions or collapsing distinct decisions into one.
-- Put the question's substance in the `question` field itself — the mechanism, the trade-off, the consequence of each branch. Option labels are too short to carry it, and text preceding a tool call may never reach the user.
 - Mark the recommended option's label with `(推奨)` and lead with it.
 - Give every option concrete pros/cons in its `description`.
-- Never ask open-ended questions. The auto-provided free-form `Other` covers the answer you did not anticipate — do not author your own.
+- Never ask open-ended questions; do not author your own free-form option.
 
 ## Recording Decisions
 

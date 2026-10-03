@@ -1,6 +1,6 @@
 ---
 description: "Comprehensive PR review using 7 parallel specialist sub-agents for bugs and error handling, security, design quality, history, tests, performance, and claim verification"
-allowed-tools: Bash(gh:*), Bash(git:*), Bash(python:*), Bash(/bin/cat:*)
+allowed-tools: Bash(gh:*), Bash(git:*), Bash(/bin/cat:*), Bash(bash ~/.config/ai-pr/bin/fetch_existing_comments.sh:*), Bash(bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh:*), Task
 argument-hint: "[prNumber] [additionalInstructions...]"
 disable-model-invocation: true
 effort: high
@@ -28,7 +28,7 @@ bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <PR_NUMBER>
 
 Local mode = current branch matches `headRefName`, local HEAD matches `headRefOid`, **and** `git cat-file -e '<baseRefOid>^{commit}'` succeeds. Otherwise use remote mode and inspect `headRefOid`, never local files.
 
-Capture the full and line-numbered diffs through the configured large-output path, using source labels unique to the PR and `headRefOid`. Count the line-numbered diff before expanding it in the parent context.
+Capture the full and line-numbered diffs with context-mode (`ctx_batch_execute`, one command per gather target) — this is the large-output path — using source labels unique to the PR and `headRefOid`. If context-mode is unavailable, redirect each output to a file under the session scratchpad and read bounded slices (`wc -l`, `sed -n`). Count the line-numbered diff before expanding it in the parent context.
 
 Derive a compact manifest for every top-level inline thread (`kind=inline` and `in_reply_to_id=null`) with `id`, `path`, `line`, `start_line`, `is_resolved`, `is_outdated`, `thread_id`, `ai_origin`, and a concise root-cause/fix excerpt. Keep the full NDJSON in the parent for final aggregation.
 

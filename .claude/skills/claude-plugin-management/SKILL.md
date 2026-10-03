@@ -39,7 +39,7 @@ Reference implementation: `setup_claude_superpowers` in `mac/scripts/ai/claude.s
 
 ## `smart_merge_json` never propagates deletions
 
-`ai/claude/settings.json` is merged into the live `~/.claude/settings.json` via `smart_merge_json` (additive, key-wise recursive union — see `jq_deepmerge` in `shell/zsh/alias/utils.zsh`). Editing the repo file alone changes nothing live until `mac/initialization/ai/claude.sh` or `mac/updates/claude.sh` runs, and **removing** an entry from the repo file does not remove it live. To fully remove a plugin:
+`ai/claude/settings.json` reaches the live `~/.claude/settings.json` only through `smart_merge_json` (`jq_deepmerge` in `shell/zsh/alias/utils.zsh`; merge rules in the repository `CLAUDE.md`), and **removing** an entry from the repo file does not remove it live. To fully remove a plugin:
 
 1. Delete its `enabledPlugins`/`extraKnownMarketplaces` entries from `ai/claude/settings.json` and its setup-function call sites from both init and update scripts.
 2. On the live machine: `claude plugin uninstall <plugin>@<marketplace>` then `claude plugin marketplace remove <marketplace>` — these clean up `~/.claude/settings.json` automatically, so no manual JSON editing is normally needed.

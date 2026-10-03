@@ -14,7 +14,7 @@ For environment-specific work, unless explicitly requested, target only macOS, H
 
 Implementation work may start directly on `main`/`master`; when a workflow or skill requires explicit consent for that, treat this section as standing consent. It covers only starting implementation in place — never skip separately required confirmation flows for destructive or side-effecting operations (commits, pushes, pull requests, deletes, deployments, external API writes).
 
-Multiple agent sessions can run against this repository concurrently (e.g. one session renaming a function while another writes new code that calls it). Immediately before committing, refresh the tracking ref with `git fetch origin "+refs/heads/<branch>:refs/remotes/origin/<branch>"` and compare against `origin/<branch>`; if the remote has commits not yet in the local history, inspect them (`git log`/`git show`) for overlap with files this session touched before committing, since a same-file dependency (a rename one session made vs. a call site another session wrote) can integrate correctly by coincidence or silently break.
+Multiple agent sessions can run against this repository concurrently (e.g. one session renaming a function while another writes new code that calls it). Immediately before committing, refresh the tracking ref with `git fetch origin "+refs/heads/<branch>:refs/remotes/origin/<branch>"` and compare against `origin/<branch>`; if the remote has commits not yet in the local history, inspect them (`git log`/`git show`) for overlap with files this session touched before committing, since a same-file dependency (a rename one session made vs. a call site another session wrote) can integrate correctly by coincidence or silently break. If any such commit touches a file this session changed, stop and report the overlapping paths and commit hashes to the user before committing; if none overlap, proceed.
 
 ## Structured Configuration Transformations
 
@@ -113,12 +113,20 @@ When comparing or selecting an external tool to adopt here (CLI, plugin, package
 
 - Last commit and last release date, open issue count, archived status — from the primary source (the repo's API or release page), not a summary article.
 - Never treat cumulative popularity (stars, download counts) as evidence of current health; it measures accumulated history, not whether the project still works. State star counts as popularity only.
-- Note when a candidate is very new (repository age, `0.x` version, low commit count) — that is a maintenance risk to surface, not a disqualifier.
+- Note when a candidate is young — repository age under 12 months, a `0.x` version, or fewer than roughly 100 commits — as a maintenance risk to surface, not a disqualifier.
 - Prefer secondary sources published within the last 12 months and give their date; for older ones, state the age and discount accordingly. When a source's author also authored a compared candidate, say so and discount accordingly.
 
 ### Removing External Tools
 
 When removing or replacing a tool whose configuration was installed outside this repository (browser extension styles, GUI app preferences, OS-level settings), enumerate those external copies in the plan and state whether each needs manual removal by the user. Deleting the repository source or its setup instructions does not deactivate an already-installed copy. Migrating from mdts to mdv hit exactly this: `mdts-plans.user.css` stayed active in the Stylus extension and, being scoped to `domain("localhost")` rather than a port, kept restyling mdv until it was removed by hand.
+
+### Running External Installers
+
+Before running an external installer (e.g. `herdr integration install`, `npx skills add`) in a disposable target, identify and baseline its known shared or global state roots; a temporary destination alone does not prove isolation. Compare those roots afterward and clean up only artifacts attributable to the run.
+
+### Visual Verification
+
+When showing the user something to visually confirm (e.g. a Herdr popup), state what to check before opening it, keep it open until the user dismisses it (never close on a timer), and use a dedicated unambiguous fixture as the test subject.
 
 ## Architecture
 
@@ -140,15 +148,11 @@ When editing shell helpers, do not use global variables for temporary return val
 
 Model-selector aliases encode their model in the final letter: Codex `cxs`/`cxa`/`cxt`/`cxl` select Sol/Astra/Terra/Luna; Claude `clo`/`cls`/`clf` select Opus/Sonnet/Fable; Gemini `gmf`/`gmp` select Flash/Pro. When migrating a workflow, preserve selector meanings; add a selector and reroute callers unless explicitly asked to retarget an existing selector.
 
-In zsh, `path` is a special array tied to `PATH`; never use it as a local or temporary variable name in shell helpers.
-
 In zsh, `local` is `typeset`: re-declaring an already-declared variable inside a loop prints its current value to stdout (bash is silent). In a function whose stdout is read via command substitution, declare every local once outside the loop.
 
 In interactive shells, `cd` fires chpwd hooks (their stdout pollutes command substitutions) and is overridden by zoxide's `cd` function which rejects `-q`; shell helpers that cd inside `$(...)` must use `builtin cd -q`.
 
-Files sourced during zshrc init (e.g. `shell/zsh/filter/base.zsh`) must bail out with `return`, never `exit` — `exit` kills the whole shell mid-init with no visible error (a Herdr popup running `zsh -ic` then closes instantly before the `-c` command ever runs).
-
-Same rule applies to `mac/update`'s per-step scripts (`mac/updates/*.sh`): `mac/update` sources each one, so an `exit` inside terminates `mac/update` itself, silently skipping every remaining step with no indication of what ran. Use `return` there too, and record failures via `_settingfiles_run_step` (`mac/scripts/common.sh`) so the run continues and the final summary reports what failed.
+Sourced files — zshrc init files (e.g. `shell/zsh/filter/base.zsh`) and `mac/update`'s per-step scripts (`mac/updates/*.sh`) — must bail out with `return`, never `exit`: `exit` kills the sourcing process with no visible error (zsh dies mid-init, so a Herdr popup running `zsh -ic` closes instantly before the `-c` command ever runs; `mac/update` terminates, silently skipping every remaining step with no indication of what ran). In `mac/updates/*.sh`, record failures via `_settingfiles_run_step` (`mac/scripts/common.sh`) so the run continues and the final summary reports what failed.
 
 A symlinked script that reaches outside its own directory must resolve its real path first: `BASH_SOURCE`/`$0` give the link's location, so `$(dirname "$0")/../other` resolves under the link target (`~/.herdr/scripts/../tmux`), not the repository. Use `/bin/realpath` on `BASH_SOURCE[0]` before deriving any sibling directory, and pin the symlinked path in the test — a test that sources the repository file directly passes while the live path is broken. `herdr_status_icon.sh` (in `shell/herdr/`, reading `tmux_emoji.conf` and `tmux_window_name.py` from `shell/tmux/`) is the case this rule comes from.
 
@@ -190,7 +194,7 @@ Prompt composition (`_CLAUDE.md` / `_GEMINI.md` / `_AGENTS.md`), the shared-core
 
 **Neovim (lazy.nvim)**: Plugins in `vimfiles/nvim/lua/plugins/`. VSCode Neovim uses separate `plugins_vscode/`. Updated via `nvim --headless "+Lazy! sync | TSUpdate" +qa` in `mac/update`.
 
-**Herdr integrations**: before changing Herdr integration (`mac/scripts/herdr.sh`, Herdr plugins such as notify-rich, Gemini's Herdr notification split, shell status icon mirroring), read `.claude/skills/herdr-dev/SKILL.md`. Never run `herdr integration install` against live Claude or Codex configuration; always use the repository helper.
+**Herdr integrations**: before changing Herdr integration (`mac/scripts/herdr.sh`, Herdr plugins such as notify-rich, Gemini's Herdr notification split, shell status icon mirroring), read `.claude/skills/herdr-dev/SKILL.md`.
 
 **Claude Code plugins**: before adding, updating, or removing a Claude Code plugin (`mac/scripts/ai/claude.sh` setup functions, `ai/claude/settings.json` `enabledPlugins`/`extraKnownMarketplaces`, or their call sites in `mac/initialization/ai/claude.sh` and `mac/updates/claude.sh`), read `.claude/skills/claude-plugin-management/SKILL.md`.
 
@@ -199,11 +203,10 @@ Prompt composition (`_CLAUDE.md` / `_GEMINI.md` / `_AGENTS.md`), the shared-core
 When editing AI prompt files in this repository:
 
 - **Default to English** for new or modified content (reduces token consumption); if the original file uses a different language, follow it (e.g. Japanese character dialogue examples)
-- **Keep skill prose non-genshijin**: skill sources and generated skill outputs always follow their existing normal prose style. Do not ask whether to use genshijin when editing a skill, even though `SKILL.md` is a text file.
 - **Write concisely**: as concise as meaning and intent allow — every loaded prompt consumes context. When condensing existing files, follow `ai/common/prompt_shortening_guide.md`.
 - **Runtime loading differs per platform**: Claude Code and Gemini CLI load only the markdown body of agent/skill files as the prompt — frontmatter (including YAML `#` comments) costs zero runtime tokens. Codex instead injects the whole SKILL.md raw at invocation, so every Codex skill frontmatter line counts as prompt cost. Codex agent TOML files are parsed; `#` comments there cost nothing.
 - **GENERATED-file notices** are placed where they cost no runtime tokens: YAML frontmatter comments for Claude/Gemini `pr-reviewer-*.md`, a `#` comment for Codex `pr_reviewer_*.toml`. Codex `SKILL.md` files intentionally carry no notice (raw injection would bill it) — the adjacent `skill_head.md` sources and this file are the edit guard. Do not add visible-body notices to generated files.
-- **Verify regeneration before committing generated outputs**: for shared-core skills, use `verify_ai_skill_generation_idempotency` from the regeneration table; it generates twice and fails if any SHA-256 changes. For other generators, after updating sources and running the generator once, record each generated output's hash, re-run the generator, and confirm the hash is unchanged. The output may legitimately differ from `HEAD`; review that diff separately. A changed hash on the second run means the first output was stale or generation is not idempotent.
+- **Verify regeneration before committing generated outputs**: for shared-core skills, use `verify_ai_skill_generation_idempotency` from the regeneration table; it generates twice and fails if any SHA-256 changes. For other generators, after updating sources and running the generator once, record each generated output's hash, re-run the generator, and confirm the hash is unchanged. The output may legitimately differ from `HEAD`; review that diff separately.
 - **`opusplan` vs. manual `/model` override**: `ai/claude/settings.json` sets `"model": "opusplan"`, which auto-switches Opus during plan mode and Sonnet during implementation. A manual `/model fable` (or any other explicit model) overrides `opusplan` for the rest of the session — plan and implementation both stay on that model with no auto-switch. `ai/claude/_CLAUDE.md`'s "Fable Model Check After Plan Approval" section detects this specific case (session left on Fable) and offers a model choice, right after plan approval, before implementation starts.
 
 ## Commit Message Convention

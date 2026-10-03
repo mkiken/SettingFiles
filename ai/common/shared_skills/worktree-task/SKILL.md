@@ -70,7 +70,7 @@ Use this executable boundary for every configured Zsh function: keep the `-c` sc
 4. Do not infer the new path from command output or naming conventions. Re-read `git worktree list --porcelain`, match the unique `branch refs/heads/<task-branch>` entry, and record its `worktree` path. If the match is missing or not unique, use the failure handling below.
 5. Confirm the task worktree is on the task branch at the recorded original `HEAD`. On failure, use the same failure handling.
 6. After validation succeeds, apply `herdr-tab-label` from the invoking path with the existing slug. Use the slug alone—not the `task/` namespace or timestamp. The shared procedure is fail-safe and preserves any non-default tab label; continue the implementation after a reported warning.
-7. When `HERDR_ENV=1`, record the validated task worktree for the invoking tab. Herdr popups use this context to open lazygit in the task worktree while the AI pane remains in the invoking worktree. Keep the script literal and values positional; report a warning and continue if recording fails:
+7. When `HERDR_ENV=1`, record the validated task worktree for the invoking tab. Herdr popups use this context to open lazygit in the task worktree while the AI pane remains in the invoking worktree. Report a warning and continue if recording fails:
 
    ```bash
    herdr_context_helper="${SET:-$HOME/Desktop/repository/SettingFiles}/shell/herdr/herdr_worktree_context.sh"
@@ -79,7 +79,7 @@ Use this executable boundary for every configured Zsh function: keep the `-c` sc
 
 ### Clear Herdr task-worktree context
 
-After confirming that the task worktree entry is absent, clear its invoking-tab context. Keep the script literal and values positional; report a warning if clearing fails:
+After confirming that the task worktree entry is absent, clear its invoking-tab context. Report a warning if clearing fails:
 
 ```bash
 herdr_context_helper="${SET:-$HOME/Desktop/repository/SettingFiles}/shell/herdr/herdr_worktree_context.sh"
@@ -147,8 +147,6 @@ then stop before merge.
 - It is attached to the recorded original branch.
 - Its `HEAD` still equals the recorded original `HEAD`, or has advanced on that same branch without diverging from it.
 - `git status --porcelain` is empty, including untracked files.
-
-Merging into a dirty invoking worktree can fold unrelated uncommitted work into the merge result, and a failed merge leaves conflict state in a worktree another session may be using.
 
 If any requirement fails, do not invoke `wtm`. Downgrade to `commit_only` semantics: preserve the task worktree, branch, and commit, then report the failed requirement, the paths still dirty, and that merging can be retried once the invoking worktree is clean. Do not stash, clean, reset, or commit the invoking worktree's changes to satisfy this gate, and do not merge from a different branch than the recorded original.
 

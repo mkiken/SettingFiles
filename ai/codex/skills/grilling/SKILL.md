@@ -17,11 +17,11 @@ The **frontier** is every decision whose prerequisites are already settled: the 
 
 Ask the whole frontier in one round. Each answer reshapes the tree — settled decisions push the frontier outward and unblock questions that depended on them. Recompute the frontier and ask the next round.
 
-A question whose answer depends on another question still open in this round belongs to a *later* round, not this one. This ordering is the whole point: it is what keeps you from asking the user to decide something they cannot yet decide.
+A question whose answer depends on another question still open in this round belongs to a *later* round, not this one.
 
 ## Recommended Answers
 
-Every question carries your recommended answer. Not a neutral menu — your actual pick, with the reason it beats the alternatives. A user who is unsure can start from your recommendation instead of stalling; that is what moves a design forward.
+Every question carries your recommended answer. Not a neutral menu — your actual pick, with the reason it beats the alternatives.
 
 Base recommendations on the codebase and on `AGENTS.md` / `CLAUDE.md` conventions, not on generic best practice.
 

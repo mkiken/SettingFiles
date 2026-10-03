@@ -28,12 +28,12 @@ invalidate later anchors. Do not read audit.json or state.json — the design fi
 of intent.
 
 Target files are live configuration outside any repository (`~/.claude/`, `~/.codex/`, `~/.gemini/`) or
-repository sources under `ai/`. Edit only the paths the design's `## Files to edit` names, never an
-adjacent file that looks related.
+repository sources under `ai/`.
 
 # Constraints
 
-Edit only the files listed in the design's `## Files to edit`. Do not commit, merge, or push. Never
+Edit only the files listed in the design's `## Files to edit`, never an adjacent file that looks
+related. Do not commit, merge, or push. Never
 write anything under <RUN_DIR> (apply_state.json is orchestrator-owned; state.json is browser-owned).
 
 Never run git checkout/restore/reset/stash/clean, and never revert a change you did not make. Other

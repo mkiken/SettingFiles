@@ -15,7 +15,6 @@ argument-hint: '["<title>"] [targetBranch]'
   - Unquoted single token that is an existing branch on origin: `TARGET_BRANCH_ARG`.
   - Any other non-empty text: the whole text is `TITLE_ARG`.
   - Empty: both unset.
-- For every user confirmation, use `AskUserQuestion`.
 
 ## Core Workflow
 

@@ -3,15 +3,13 @@
 
 # User Confirmation
 
-When asking for confirmation, clarification, or any question requiring a user response, you MUST use the `AskUserQuestion` tool instead of plain text output. Plain text fallbacks are forbidden except when the tool truly cannot be invoked in the current mode, or when a loaded skill requires presenting more options than the tool can display, in which case you must state explicitly why the fallback is needed.
+When asking for confirmation, clarification, or any question requiring a user response, you MUST use the `AskUserQuestion` tool instead of plain text output. Plain text fallbacks are forbidden except when running as a subagent whose tool list lacks `AskUserQuestion` and `ToolSearch` cannot load it, or when a loaded skill requires presenting more options than the tool can display; in either case state explicitly why the fallback is needed.
 
 Plain text questions end the turn and trigger the Stop hook, sending a "finished" notification indistinguishable from task completion; `AskUserQuestion` keeps the turn active and triggers the correct "awaiting input" notification.
 
 `AskUserQuestion` supports 2–4 options per question; design confirmation menus within 4 options and route overflow choices (e.g. "do nothing") through the auto-provided free-form "Other". When a loaded skill requires every executable option to be displayed individually, that requirement wins: use the plain-text fallback above instead of dropping or grouping options.
 
-When a question depends on explanatory context (proposals, trade-offs, anything not self-evident), make it self-contained: put the essential context in the `question` field itself, with options' `description`/`preview` as supplements. Response text that precedes a tool call in the same turn may not be displayed to the user, or may not appear adjacent to the dialog — never leave the explanation only in earlier text.
-
-For design or implementation trade-off choices, the first dialog must already explain each option's mechanism and concrete consequences (why it wins or loses) in the `question` field, using `preview` for code or flow comparisons; conclusion-only labels with brief descriptions force a second explanatory round.
+When a question depends on explanatory context (proposals, trade-offs, anything not self-evident), make it self-contained: put the essential context in the `question` field itself — for design or implementation trade-off choices, each option's mechanism and concrete consequences (why it wins or loses) already in the first dialog, using `preview` for code or flow comparisons — with options' `description`/`preview` as supplements. Response text that precedes a tool call in the same turn may not be displayed to the user, or may not appear adjacent to the dialog — never leave the explanation only in earlier text.
 
 When the decision context exceeds what the `question` field and option previews can legibly carry (multi-step timelines, side-by-side scenario comparisons), write a self-contained HTML figure (inline CSS only) to the scratchpad, `open` it in the browser, and reference it from the `question`. The file is a session temp — Temp File Cleanup applies.
 
@@ -20,8 +18,6 @@ When the decision context exceeds what the `question` field and option previews 
 # Slash Command Body Already Expanded
 
 When a message carries `<command-name>` tags, check whether the skill's body is already present in that same message (its `SKILL.md` content, including any embedded `!`command`` output) — the harness expands it inline before the tags reach you. When it is, treat it as instructions already in effect, not a pending request: follow them directly, never call the `Skill` tool for that skill again. This matters most for `disable-model-invocation: true` skills, which reject a `Skill`-tool call outright and can only run this way.
-
-Only call `Skill` when the tags arrive with no expanded body alongside them.
 
 # Plan Review Deep-Dive (grilling → dig)
 
@@ -43,14 +39,14 @@ These gates supersede the shared Plan Review Presentation criteria for Claude.
 
 # Fable Model Check After Plan Approval
 
-Immediately after `ExitPlanMode` is approved — before any other tool call, ahead of starting implementation — determine the current session's active model by extracting the session ID from the scratchpad path present in every system prompt (`/private/tmp/claude-<uid>/<project-slug>/<session-id>/scratchpad`) and running:
+Immediately after `ExitPlanMode` is approved — before any other tool call — determine the current session's active model by extracting the session ID from the scratchpad path present in every system prompt (`/private/tmp/claude-<uid>/<project-slug>/<session-id>/scratchpad`) and running:
 
 ```bash
 jq -r 'select(.type=="assistant" and (.isSidechain//false)==false) | .message.model' \
   ~/.claude/projects/<project-slug>/<session-id>.jsonl | tail -1
 ```
 
-If the command fails or the result does not start with `claude-fable-`, proceed straight to implementation — do not block on a detection failure. This check runs separately from the Plan Review Deep-Dive dialog (that one happens before `ExitPlanMode`; this one happens after), so there is no shared option-count constraint between them.
+If the command fails or the result does not start with `claude-fable-`, proceed straight to implementation — do not block on a detection failure. This check runs separately from the Plan Review Deep-Dive dialog (that one happens before `ExitPlanMode`; this one happens after).
 
 If the result starts with `claude-fable-` (e.g. `claude-fable-5-1`), ask an `AskUserQuestion` with these options before writing or running anything:
 

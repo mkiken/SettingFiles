@@ -124,7 +124,6 @@ class WorktreeTaskSkillContentTest(unittest.TestCase):
             "re-read the invoking worktree immediately before invoking `wtm`",
             "It is attached to the recorded original branch",
             "`git status --porcelain` is empty, including untracked files",
-            "can fold unrelated uncommitted work into the merge result",
             "If any requirement fails, do not invoke `wtm`",
             "Downgrade to `commit_only` semantics",
             "merging can be retried once the invoking worktree is clean",

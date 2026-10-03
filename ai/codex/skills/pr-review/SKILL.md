@@ -194,8 +194,6 @@ If no actionable findings but duplicates were skipped, output only the `[既コ�
 
 ### Post-Review: Clean Up & Post to GitHub
 
-After completing the review, delete any temporary files created during the process.
-
 If at least one actionable finding remains, display the following message after outputting the review results:
 
 > To post any findings as GitHub PR comments, use the `pr-comment-post` skill:

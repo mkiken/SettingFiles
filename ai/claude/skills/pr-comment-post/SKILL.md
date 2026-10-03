@@ -14,7 +14,6 @@ disable-model-invocation: true
 - `ITEM_NUMBERS` = `$ARGUMENTS`.
 - `pr-review` in the core workflow refers to the `/pr-review` or `/pr-review-subagents` skill output.
 - `{ai_header}` = `🤖 **Claude Code Review**`.
-- For every user confirmation, use `AskUserQuestion`.
 
 ## Core Workflow
 
