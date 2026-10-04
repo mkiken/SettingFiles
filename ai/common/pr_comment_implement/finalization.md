@@ -307,8 +307,15 @@ commits (`git log HEAD..origin/${HEAD_BRANCH} --oneline`) and ask exactly
 
 Never force-push.
 
+Push by branch name, not by object ID: a SHA refspec was rejected by the
+environment's push check (`You are trying to push branch ''`). Require the
+checked-out branch and `HEAD` to match first, and write variables as
+`${VAR}` — zsh reads `$B:refs` as a `:r` modifier.
+
 ```bash
-git push origin "${EXPECTED_PUSH_HEAD}:refs/heads/${HEAD_BRANCH}"
+[ "$(git branch --show-current)" = "${HEAD_BRANCH}" ] \
+  && [ "$(git rev-parse HEAD)" = "${EXPECTED_PUSH_HEAD}" ] \
+  && git push origin "${HEAD_BRANCH}:${HEAD_BRANCH}"
 ```
 
 If push fails for a reason other than the race just handled, ask retry/abort;
