@@ -29,7 +29,10 @@ After generating the PR body content:
    - The first (colored) run is for on-screen readability in the tool output panel — deletions render red, additions green. Never paste its output into the fenced block below; it carries ANSI escapes
    - Paste the second (`--no-color`) command's output **verbatim** — never construct it from memory, and never omit, summarize, or annotate it — inside a fenced code block with the `diff` language tag:
    - The fence must be longer than any backtick run inside the output: at least four backticks (````diff), since PR bodies usually contain ``` blocks; five if the output contains a four-backtick run
-   - If existing body is empty/template-only: display "(既存bodyは空またはテンプレートのみのため、全て新規追加)" instead of the diff
+   - If existing body is empty/template-only: display "(既存bodyは空またはテンプレートのみのため、全て新規追加)" instead of the diff, and skip the change summary below
+   - Below the diff block, show "### 変更点の概要" followed by a bullet list that makes the raw diff easy to grasp:
+     - Start each bullet with 追加 / 削除 / 変更 / 移動, then name the section and the change in content (never a contentless label like "文言修正")
+     - Derive it from the pasted `--no-color` diff, not from memory. Every hunk must map to at least one bullet — omit nothing; whitespace/line-break-only changes may share one bullet but are still listed
    - Before asking for confirmation, check in the actual diff output that no manually written TODOs, notes, incomplete checklist items, HTML comments, review requests, or background context were removed; if any were, edit `pr_body_new.md` and redo this step
 
 4. Ask the user: "このPR bodyをPR #<PR_NUMBER> に反映しますか？"
