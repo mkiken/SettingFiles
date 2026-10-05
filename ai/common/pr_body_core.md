@@ -23,9 +23,10 @@ After generating the PR body content:
    - Show section header: "### 既存body → 新bodyの変更差分"
    - Run two diff commands on separate lines against the same two files (`diff` exits 1 when a difference exists — that is normal, not a failure; without `|| true` the tool output panel treats it as an error and paints the entire output a single error color, making `-`/`+` indistinguishable — keep `|| true` even though the block "succeeds"):
      ```bash
-     git --no-pager diff --no-index --color=always <tmpdir>/pr_body_old.md <tmpdir>/pr_body_new.md || true
-     git --no-pager diff --no-index --no-color <tmpdir>/pr_body_old.md <tmpdir>/pr_body_new.md || true
+     git --no-pager diff --no-index --color=always <tmpdir>/pr_body_old.md <tmpdir>/pr_body_new.md | /bin/cat || true
+     git --no-pager diff --no-index --no-color <tmpdir>/pr_body_old.md <tmpdir>/pr_body_new.md | /bin/cat || true
      ```
+   - Keep `| /bin/cat`: without it the rtk PreToolUse hook rewrites the command to `rtk git diff`, which drops all output when git exits 1 (a difference exists)
    - The first (colored) run is for on-screen readability in the tool output panel — deletions render red, additions green. Never paste its output into the fenced block below; it carries ANSI escapes
    - Paste the second (`--no-color`) command's output **verbatim** — never construct it from memory, and never omit, summarize, or annotate it — inside a fenced code block with the `diff` language tag:
    - The fence must be longer than any backtick run inside the output: at least four backticks (````diff), since PR bodies usually contain ``` blocks; five if the output contains a four-backtick run
