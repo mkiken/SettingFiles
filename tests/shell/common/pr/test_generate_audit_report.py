@@ -154,6 +154,34 @@ class ContextExtractionTest(unittest.TestCase):
             self.assertIn("UTF-8", mod.read_config_file(target)["error"])
 
 
+    def test_lead_lines_precede_the_excerpt_for_highlight_state(self):
+        content = "\n".join(f"line {n}" for n in range(1, 61))
+        context = mod.extract_context(content, "line 40")
+        self.assertEqual(context["lines"][0]["number"], 37)
+        self.assertEqual(context["lead"], [f"line {n}" for n in range(7, 37)])
+
+    def test_lead_is_empty_near_the_file_start(self):
+        context = mod.extract_context("alpha\nbravo\ncharlie\ndelta", "charlie")
+        self.assertEqual(context["lead"], [])
+
+
+class ModernLayoutTest(unittest.TestCase):
+    def test_syntax_highlighter_is_loaded_with_sri_and_wired_to_context(self):
+        html = mod.HTML_TEMPLATE
+        self.assertIn("cdnjs.cloudflare.com/ajax/libs/highlight.js/", html)
+        self.assertIn('integrity="sha512-', html)
+        self.assertIn("appendContext(body,item.code_context,item.file)", html)
+
+    def test_build_waits_for_deferred_highlighter(self):
+        self.assertIn('document.addEventListener("DOMContentLoaded",build)', mod.HTML_TEMPLATE)
+
+    def test_card_header_uses_meta_column_and_category_labels_have_no_emoji(self):
+        html = mod.HTML_TEMPLATE
+        self.assertIn("card-meta", html)
+        for emoji in ["🔵", "🟡", "🟠", "⚪", "🟢"]:
+            self.assertNotIn(emoji, html)
+
+
 class PathHandlingTest(unittest.TestCase):
     def test_home_relative_path_is_expanded_for_reading(self):
         resolved = mod.resolve_path("~/example.md")
