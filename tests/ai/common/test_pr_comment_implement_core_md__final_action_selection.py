@@ -74,7 +74,7 @@ class PrCommentImplementFinalActionSelectionTest(unittest.TestCase):
             push_contract,
         )
         self.assertIn("Never force-push", push_contract)
-        self.assertIn("require its object ID to equal the pushed commit", push_contract)
+        self.assertIn("require its object ID to equal `EXPECTED_PUSH_HEAD`", push_contract)
 
     def test_push_race_refreshes_the_tracking_ref(self):
         fetch_command = (

@@ -11,6 +11,8 @@ prompt = """Implement code changes based on PR review comments for {{args}}.
 - For every user confirmation, use the `ask_user` tool.
 - `WORKFLOW_REFERENCE_DIR` is
   `~/.gemini/common/pr_comment_implement`.
+- `<PR_BODY_DOCS>` is `~/.gemini/common/pr_body_core.md` and
+  `~/.gemini/common/pr_body_format.md`.
 
 ## Core Workflow
 

@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(gh:*), Bash(git:*), Bash(jq:*), Bash(zsh:*), Bash(/bin/cat:*), Read, Edit, Write
+allowed-tools: Bash(gh:*), Bash(git:*), Bash(jq:*), Bash(zsh:*), Bash(diff:*), Bash(tr:*), Bash(trash:*), Bash(mktemp:*), Bash(/bin/cat:*), Read, Edit, Write
 description: "Implement code changes based on PR review comments, with design review and explicit commit, merge, and push finalization."
 argument-hint: [prCommentUrl] [instructions...]
 disable-model-invocation: true
@@ -17,6 +17,8 @@ effort: high
 - In plan mode, the plan artifact is the plan file.
 - `WORKFLOW_REFERENCE_DIR` is
   `~/.claude/common/pr_comment_implement`.
+- `<PR_BODY_DOCS>` is `~/.claude/common/pr_body_core.md` and
+  `~/.claude/common/pr_body_format.md`.
 
 ## Core Workflow
 

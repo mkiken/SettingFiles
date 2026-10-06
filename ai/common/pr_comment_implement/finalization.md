@@ -395,6 +395,29 @@ worktree with no forward progress shouldn't keep showing as claimed on
 GitHub. Leave `TASK_PATH` and `TASK_BRANCH` intact for manual continuation
 unless a merge already completed.
 
+### Offer a PR body update
+
+Run only when `NO_CODE_CHANGE=false`, the selected action contains `& push`,
+and the push was verified above — regardless of reply or resolve results.
+Otherwise record the PR body as skipped.
+
+Ask `今回の変更に合わせてPR bodyを更新しますか？` with exactly
+`PR bodyを更新する` / `更新しない`. On `更新しない`, record it as skipped.
+
+On `PR bodyを更新する`, gather context for `PULL_NUMBER`:
+`gh pr view "${PULL_NUMBER}" -R "${OWNER}/${REPO}" --json body,url`,
+`gh pr diff "${PULL_NUMBER}" -R "${OWNER}/${REPO}"`, and whether
+`.github/PULL_REQUEST_TEMPLATE.md` exists in `ORIGINAL_PATH`. Then read
+`<PR_BODY_DOCS>` (adapter-defined) and follow its Drafting Rules and its
+Confirmation Flow in full, with `<PR_NUMBER>` = `PULL_NUMBER`. Never shorten
+the flow: show the `--color=always` colored diff, paste the `--no-color` diff
+verbatim in a ````diff block, list `### 変更点の概要`, check for removed manual
+content, re-show the diff after any revision, and verify the applied body.
+Never ask to apply a body from a summary alone.
+
+A failure here does not undo the push or reply; report it as `⚠️` in the
+summary.
+
 ### Verify the final reaction state
 
 Before printing the summary, confirm the reaction on GitHub matches what the
@@ -439,9 +462,11 @@ Final execution summary:
 - ✅ Reply: {url} （thread reply）
 - ✅ Reaction: 🚀 → 🎉
 - ✅ Resolve: thread {PRRT_...} を resolved に変更
+- ✅ PR body: 更新済み {pr_url}
 ```
 
 Use `⚠️` for errors and `⏭️` for skipped steps. Final summary must include
 modified files, verification, commit hash/message or an explicit no-change
 result, merge result, push, reply URL/result, reaction result (the verified
-state, not the intended one), resolve result, and remaining manual action.
+state, not the intended one), resolve result, PR body result, and remaining
+manual action.

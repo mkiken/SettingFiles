@@ -16,6 +16,7 @@ $pr-comment-implement <PR_COMMENT_URL> [implementation instructions...]
 - In Plan Mode, the plan artifact is the `<proposed_plan>` block.
 - `WORKFLOW_REFERENCE_DIR` is
   `~/.codex/skills/pr-comment-implement/references`.
+- `<PR_BODY_DOCS>` is `~/.codex/skills/pr-body/SKILL.md`.
 
 ## Core Workflow
 

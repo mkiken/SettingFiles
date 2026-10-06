@@ -7,9 +7,11 @@ description: >
 
 Parse the arguments after the skill name: a token containing `/` is <RUN_DIR>; numeric tokens (space/comma separated) are <ITEM_NUMBERS>. If <RUN_DIR> is absent, resolve the current branch's PR via `gh pr view --json number --jq .number` and run `bash ~/.config/ai-pr/bin/ai_review_run_dir.sh --latest <PR_NUMBER>`.
 
-For every user confirmation, ask the user directly and wait for the reply: initial selection, resume-or-discard, each rolling design confirmation (承認 / 修正依頼 / スキップ), each group's four-choice commit/merge confirmation, and the two-choice merge-conflict confirmation. Present the four- and two-choice sets as numbered lists and treat a number-only reply as that option.
+For every user confirmation, ask the user directly and wait for the reply: initial selection, resume-or-discard, each rolling design confirmation (承認 / 修正依頼 / スキップ), each group's four-choice commit/merge confirmation, the two-choice merge-conflict confirmation, and the PR body update confirmation. Present the four- and two-choice sets as numbered lists and treat a number-only reply as that option.
 
 <WORKTREE_TASK_DOC> = `~/.codex/skills/worktree-task/SKILL.md`.
+
+<PR_BODY_DOCS> = `~/.codex/skills/pr-body/SKILL.md`.
 
 Subagent launch: use the registered subagents `review_fix_designer` and `review_fix_implementer` — their role instructions are baked into their definitions, so pass only the payload each role defines; the implementer payload includes <WORKTREE_PATH>. Designers and implementers alike parallelize up to the child-agent slots available at runtime; if they exceed the slots, use waves. Process each completed design as it returns; if the runtime surfaces results only per wave, degrade to wave-batch order. Confirm & Merge stays strictly serial regardless. The session running this skill owns orchestration, overlap checks, workflow state, and user confirmations. It may be the depth-1 lifecycle worker under `agents.max_depth = 2`; its designers and implementers must not spawn further agents. If that worker cannot surface a confirmation, relay the exact question and authored choices through the parent, wait for the user's answer, and resume only with that answer.
 
@@ -137,3 +139,9 @@ Update fix_state.json at every transition and re-read it before each one — nev
 ### Finish
 
 When every group is terminal (`fixed`/`committed`/`skipped`/`rejected`), run the repository's relevant tests once in the calling worktree. Final summary in Japanese: per item — 修正済み (what changed, files touched) or スキップ/却下 (why); per group — the merge outcome (マージ済み / コミットのみ + preserved branch and worktree path / 未コミット); then `git diff --stat` from the calling worktree.
+
+#### PR body update
+
+After the summary, if at least one group's `merge_action` is `commit_merge_push` and its push succeeded, ask once `今回の変更に合わせてPR bodyを更新しますか？` with exactly `PR bodyを更新する` / `更新しない`; otherwise skip silently. Inline Flow never pushes, so it never asks.
+
+On `PR bodyを更新する`, resolve <PR_NUMBER> from the adapter's PR resolution or `gh pr view --json number --jq .number` in the calling worktree, gather `gh pr view <PR_NUMBER> --json body,url`, `gh pr diff <PR_NUMBER>`, and whether `.github/PULL_REQUEST_TEMPLATE.md` exists. Then read <PR_BODY_DOCS> (adapter-defined) and follow its Drafting Rules and Confirmation Flow in full. Never shorten the flow: show the `--color=always` colored diff, paste the `--no-color` diff verbatim in a ````diff block, list `### 変更点の概要`, check for removed manual content, re-show the diff after any revision, and verify the applied body. Never ask to apply a body from a summary alone. Report the result (更新済み / スキップ / ⚠️ failure) as the last summary line.

@@ -122,3 +122,9 @@ Update fix_state.json at every transition and re-read it before each one — nev
 ### Finish
 
 When every group is terminal (`fixed`/`committed`/`skipped`/`rejected`), run the repository's relevant tests once in the calling worktree. Final summary in Japanese: per item — 修正済み (what changed, files touched) or スキップ/却下 (why); per group — the merge outcome (マージ済み / コミットのみ + preserved branch and worktree path / 未コミット); then `git diff --stat` from the calling worktree.
+
+#### PR body update
+
+After the summary, if at least one group's `merge_action` is `commit_merge_push` and its push succeeded, ask once `今回の変更に合わせてPR bodyを更新しますか？` with exactly `PR bodyを更新する` / `更新しない`; otherwise skip silently. Inline Flow never pushes, so it never asks.
+
+On `PR bodyを更新する`, resolve <PR_NUMBER> from the adapter's PR resolution or `gh pr view --json number --jq .number` in the calling worktree, gather `gh pr view <PR_NUMBER> --json body,url`, `gh pr diff <PR_NUMBER>`, and whether `.github/PULL_REQUEST_TEMPLATE.md` exists. Then read <PR_BODY_DOCS> (adapter-defined) and follow its Drafting Rules and Confirmation Flow in full. Never shorten the flow: show the `--color=always` colored diff, paste the `--no-color` diff verbatim in a ````diff block, list `### 変更点の概要`, check for removed manual content, re-show the diff after any revision, and verify the applied body. Never ask to apply a body from a summary alone. Report the result (更新済み / スキップ / ⚠️ failure) as the last summary line.
