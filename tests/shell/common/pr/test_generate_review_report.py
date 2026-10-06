@@ -113,7 +113,7 @@ class RenderTest(unittest.TestCase):
 
     def test_carryover_fixed_before_has_dedicated_style(self):
         html = mod.render(merged([item(1, carryover="fixed_before")]))
-        self.assertIn(".badge.carry.carry-fixed{background:#bf3989}", html)
+        self.assertIn(".badge.carry.carry-fixed{--c:var(--carry-fixed)}", html)
         self.assertIn("CARRY_STYLE", html)
 
     def test_carryover_badge_class_keeps_empty_string_fallback(self):
@@ -143,7 +143,7 @@ class RenderTest(unittest.TestCase):
         self.assertIn("#expand-all", html)
         self.assertIn("#save-state", html)
         self.assertIn('id="copy-run-dir"', html)
-        self.assertIn(".card-toggle{color:var(--link)}", html)
+        self.assertIn(".card-toggle:hover{background:transparent;text-decoration:none;color:var(--link)}", html)
         for mode in ("pending", "fix", "post", "dismiss", "all"):
             self.assertIn(f'data-filter="{mode}"', html)
         self.assertIn("修正リスト", html)
@@ -152,6 +152,48 @@ class RenderTest(unittest.TestCase):
         # v1の2択語彙はUIから消えていること（review-fix/postの選択はdecisionに一本化された）
         self.assertNotIn("対応するリスト", html)
         self.assertNotIn("toggle-completed", html)
+
+    def test_syntax_highlight_script_is_pinned_with_sri(self):
+        html = mod.render(merged([item(1)]))
+        self.assertIn("cdnjs.cloudflare.com/ajax/libs/highlight.js/", html)
+        self.assertIn('integrity="sha512-', html)
+        self.assertIn('crossorigin="anonymous"', html)
+        self.assertIn("defer", html.split("highlight.min.js", 1)[0].rsplit("<script", 1)[1])
+
+    def test_highlight_falls_back_to_plain_text_when_hljs_missing(self):
+        html = mod.render(merged([item(1)]))
+        self.assertIn('typeof hljs==="undefined")return null', html)
+        self.assertIn("else text.textContent=line.text", html)
+        # hljs は defer 読込のため、本体は DOMContentLoaded 後に build する
+        self.assertIn('document.addEventListener("DOMContentLoaded",build)', html)
+
+    def test_highlight_token_colors_defined_for_light_and_dark(self):
+        html = mod.render(merged([item(1)]))
+        self.assertIn(".hljs-keyword", html)
+        self.assertEqual(html.count("--hl-keyword:"), 3)  # light / dark / auto-dark
+
+    def test_card_header_groups_meta_and_keeps_full_path_in_title(self):
+        html = mod.render(merged([item(1)]))
+        self.assertIn('el("div","card-meta")', html)
+        self.assertIn("node.title=text", html)
+        self.assertIn('el("bdi","",text)', html)
+
+    def test_source_boxes_and_inline_code_use_semantic_colors(self):
+        html = mod.render(merged([item(1)]))
+        # AIバッジと同じクラス規則（未知AIでundefinedを混入させない）
+        self.assertIn('"source ai-"+(AI[s.ai]?s.ai:"unknown")', html)
+        self.assertIn(".source.ai-claude{--c:var(--claude)}", html)
+        self.assertIn("color:var(--inline-code)", html)
+        self.assertEqual(html.count("--inline-code:"), 3)  # light / dark / auto-dark
+
+    def test_every_button_group_has_semantic_tone(self):
+        html = mod.render(merged([item(1)]))
+        for mode in ("pending", "fix", "post", "dismiss", "all"):
+            self.assertIn(f'.filter-picker button[data-filter="{mode}"]{{--c:', html)
+        for theme in ("auto", "light", "dark"):
+            self.assertIn(f'.theme-picker button[data-theme="{theme}"]{{--c:', html)
+        self.assertIn("#expand-all{--c:", html)
+        self.assertIn("#copy-run-dir{--c:", html)
 
     def test_decision_controls_are_mutually_exclusive_and_clearable(self):
         html = mod.render(merged([item(1)]))
@@ -265,6 +307,14 @@ class ContextTest(unittest.TestCase):
         context = mod.extract_context(content, "5-6")
         self.assertEqual([line["number"] for line in context["lines"]], list(range(2, 10)))
         self.assertEqual([line["number"] for line in context["lines"] if line["target"]], [5, 6])
+
+    def test_extract_context_includes_hidden_lead_lines_for_highlighting(self):
+        content = "\n".join(f"line {number}" for number in range(1, 101))
+        context = mod.extract_context(content, "60")
+        self.assertEqual(len(context["lead"]), mod.LEAD_LINES)
+        self.assertEqual(context["lead"][-1], "line 56")
+        self.assertEqual(context["lines"][0]["number"], 57)
+        self.assertEqual(mod.extract_context("a\nb\nc", "2")["lead"], [])
 
     def test_prepare_report_data_adds_links_and_context(self):
         source = merged([item(1, line_spec="4-5")])
