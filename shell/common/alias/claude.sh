@@ -121,7 +121,7 @@ cl-pr-body() {
         echo "現在のブランチに対応するPRが見つかりません。" >&2
         return 1
     }
-    clo --dangerously-skip-permissions "/pr-body $pr_number $*"
+    clp "/pr-body $pr_number $*"
 }
 
 # PR作成系のalias/skillから呼ぶレビュワー設定のリマインダ。

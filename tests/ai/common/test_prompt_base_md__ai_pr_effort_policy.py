@@ -87,6 +87,19 @@ def toml_header_has_field(path: Path, field: str) -> bool:
     return re.search(rf"^{re.escape(field)} = ", path.read_text(encoding="utf-8"), re.MULTILINE) is not None
 
 
+class ClPrBodyPlanModeTest(unittest.TestCase):
+    def test_cl_pr_body_starts_in_plan_mode_without_model_or_bypass_override(self):
+        captured = run_claude_alias("gh() { echo 123; }; cl-pr-body extra")
+
+        self.assertEqual(
+            captured[:4],
+            ["claude", "--allow-dangerously-skip-permissions", "--permission-mode", "plan"],
+        )
+        self.assertNotIn("--model", captured)
+        self.assertNotIn("--dangerously-skip-permissions", captured)
+        self.assertEqual(captured[-1], "/pr-body 123 extra")
+
+
 class PrCommentImplementAliasTest(unittest.TestCase):
     URL = "https://github.com/acme/widget/pull/42#discussion_r123"
     EXTRA = "fix only the failing path"
