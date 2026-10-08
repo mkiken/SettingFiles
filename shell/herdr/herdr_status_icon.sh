@@ -197,13 +197,59 @@ _herdr_shell_status_marker_read() {
     echo "${glyph}"
 }
 
+# workspaceに属する状態キャッシュ（✅/❌のstateと✋のmarker）のパスを1行ずつ返す。
+# globはプロセスを起動しないので、頻発するfocusイベントのホットパスからも呼べる。
+# zshは不一致globがエラーになるためnull_globを局所的に有効化し、bashは不一致時に
+# リテラルが残るので[[ -e ]]で弾く。
+_herdr_workspace_cache_files() {
+    local workspace_id="$1"
+    [[ -z "${workspace_id}" ]] && return 0
+    if [[ -n "${ZSH_VERSION:-}" ]]; then
+        setopt local_options null_glob
+    fi
+    local ws_key="${workspace_id//[^A-Za-z0-9._-]/_}"
+    local state_probe marker_probe cache_dir cache_file
+    state_probe="$(_herdr_shell_status_state_path "${workspace_id}:x")" || return 0
+    marker_probe="$(_herdr_shell_status_marker_path "${workspace_id}:x")" || return 0
+    for cache_dir in "${state_probe%/*}" "${marker_probe%/*}"; do
+        for cache_file in "${cache_dir}/${ws_key}_"*; do
+            [[ -e "${cache_file}" ]] && printf '%s\n' "${cache_file}"
+        done
+    done
+    return 0
+}
+
+# 閉じたタブの状態キャッシュを削除する。タブのcloseには再集約の契機が無く、
+# 孤児が残るとworkspaceトークン（Spacesの❌/✅）がfocusしても消えなくなる。
+# tab_idsは生存タブの一覧（改行区切り）。呼び出し元が一覧取得に成功した場合のみ
+# 呼ぶこと（空一覧で全削除しないため）。
+_herdr_prune_orphan_status_cache() {
+    local workspace_id="$1"
+    local tab_ids="$2"
+    local live_keys=$'\n'
+    local tab_id cache_file cache_list
+    while IFS= read -r tab_id; do
+        [[ -z "${tab_id}" ]] && continue
+        live_keys+="${tab_id//[^A-Za-z0-9._-]/_}"$'\n'
+    done <<< "${tab_ids}"
+    cache_list="$(_herdr_workspace_cache_files "${workspace_id}")"
+    while IFS= read -r cache_file; do
+        [[ -z "${cache_file}" ]] && continue
+        [[ "${live_keys}" == *$'\n'"${cache_file##*/}"$'\n'* ]] \
+            || _herdr_delete_cache_file "${cache_file}"
+    done <<< "${cache_list}"
+    return 0
+}
+
 # workspace内の全tabのシェル所有状態を ✋>❌>✅ の優先度でOR集約し、集約結果を返す。
 # AIプラグインが書くtabラベルは読まない。該当なしは空文字。
+# 集約の前に、閉じたタブの孤児キャッシュを掃除する。
 _herdr_aggregate_workspace_status() {
     local workspace_id="$1"
     local tab_ids
     tab_ids="$(_herdr_cli tab list --workspace "${workspace_id}" 2>/dev/null | jq -r '.result.tabs[]?.tab_id // empty' 2>/dev/null)"
     [[ -z "${tab_ids}" ]] && return 0
+    _herdr_prune_orphan_status_cache "${workspace_id}" "${tab_ids}"
     # ループ本体でlocalを宣言しない: zshのlocalはtypesetと同一で、既に宣言済みの
     # 変数を再宣言すると現在値をstdoutへ出力する（bashは無音）。この関数の出力は
     # コマンド置換で集約結果として読まれるため、宣言はループ外に置く。
@@ -303,7 +349,16 @@ clear_herdr_shell_status_state() {
     # focusイベントは頻繁に飛ぶ。状態キャッシュを作るのは
     # _herdr_shell_status_state_writeだけなので、不在＝シェルは✅/❌を持たない。
     # ここでstat 1回だけ払い、herdr/jq/python3の起動をすべて回避する。
-    [[ -f "${state_path}" ]] || return 0
+    # 自タブにstateが無くても、同workspaceに別タブ/閉じたタブのキャッシュが残って
+    # いればトークンを再集約する。閉じたタブの❌が孤児のまま残ると、生存タブを
+    # いくらfocusしてもSpacesのアイコンが消えないため（再集約が孤児掃除も行う）。
+    # キャッシュが1つも無ければglobだけで終わり、herdr/jq/python3は起動しない。
+    if [[ ! -f "${state_path}" ]]; then
+        if [[ -n "${workspace_id}" && -n "$(_herdr_workspace_cache_files "${workspace_id}")" ]]; then
+            _herdr_refresh_workspace_token "${workspace_id}"
+        fi
+        return 0
+    fi
 
     _herdr_delete_cache_file "${state_path}"
 

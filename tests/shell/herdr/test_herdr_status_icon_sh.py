@@ -589,6 +589,7 @@ class ClearHerdrShellStatusStateTest(unittest.TestCase):
         state_contents: dict[str, str] | None = None,
         state_age_seconds: int = 0,
         marker_content: str | None = None,
+        extra_marker_contents: dict[str, str] | None = None,
         rename_exit_code: int = 0,
         herdr_on_path: bool = True,
         use_bin_path_env: bool = False,
@@ -607,6 +608,10 @@ class ClearHerdrShellStatusStateTest(unittest.TestCase):
             if marker_content is not None:
                 marker_file.parent.mkdir(parents=True, exist_ok=True)
                 marker_file.write_text(marker_content + "\n", encoding="utf-8")
+            for marker_tab_id, content in (extra_marker_contents or {}).items():
+                path = cache_dir / marker_relpath(marker_tab_id)
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(content + "\n", encoding="utf-8")
             state_file = cache_dir / state_relpath(tab_id)
             for state_tab_id, state_content in (state_contents or {}).items():
                 path = cache_dir / state_relpath(state_tab_id)
@@ -699,6 +704,10 @@ class ClearHerdrShellStatusStateTest(unittest.TestCase):
             read_lines = lambda p: (
                 p.read_text(encoding="utf-8").splitlines() if p.exists() else []
             )
+            # 一時ディレクトリはwith終了で消えるため、キャッシュの残存はここで確定する
+            remaining = {
+                p.relative_to(cache_dir) for p in cache_dir.rglob("*") if p.is_file()
+            }
             return {
                 "result": result,
                 "get": read_lines(get_calls),
@@ -706,6 +715,10 @@ class ClearHerdrShellStatusStateTest(unittest.TestCase):
                 "metadata": read_lines(metadata_calls),
                 "state_exists": state_file.exists(),
                 "marker_exists": marker_file.exists(),
+                "cache_exists": lambda tid, kind="state": (
+                    state_relpath(tid) if kind == "state" else marker_relpath(tid)
+                )
+                in remaining,
             }
 
     def test_missing_state_returns_without_calling_herdr(self):
@@ -754,7 +767,8 @@ class ClearHerdrShellStatusStateTest(unittest.TestCase):
             out["metadata"],
         )
 
-    def test_wait_marker_without_state_returns_early(self):
+    def test_wait_marker_without_state_keeps_marker_and_label(self):
+        """自タブのstate無しでも✋は消さずラベルも触らない（トークンは✋のまま再集約）。"""
         out = self.run_clear(
             'clear_herdr_shell_status_state "w1:t1" "w1"',
             tab_label=f"{ID_CLAUDE}{WAIT}work",
@@ -764,7 +778,110 @@ class ClearHerdrShellStatusStateTest(unittest.TestCase):
         self.assertTrue(out["marker_exists"])
         self.assertEqual(out["get"], [])
         self.assertEqual(out["rename"], [])
+        self.assertTrue(
+            any(f"--token shell_status={WAIT}" in line for line in out["metadata"]),
+            out["metadata"],
+        )
+        self.assertFalse(
+            any("--clear-token" in line for line in out["metadata"]), out["metadata"]
+        )
+
+    def test_focus_without_own_state_clears_token_of_closed_tab(self):
+        """閉じたタブの❌が孤児で残っても、生存タブのfocusでSpacesから消える。
+
+        close契機の再集約は無く、自タブにstateが無いとfocusも再集約しなかったため、
+        孤児の❌が永久に残った回帰テスト。
+        """
+        out = self.run_clear(
+            'clear_herdr_shell_status_state "w1:t1" "w1"',
+            tab_label="work",
+            state_contents={"w1:t3": ERROR},
+        )
+        self.assertEqual(out["result"].returncode, 0, out["result"].stderr)
+        self.assertFalse(out["cache_exists"]("w1:t3"))
+        self.assertEqual(out["rename"], [])
+        self.assertTrue(
+            any("--clear-token shell_status" in line for line in out["metadata"]),
+            out["metadata"],
+        )
+
+    def test_focus_without_own_state_reports_live_sibling_state(self):
+        out = self.run_clear(
+            'clear_herdr_shell_status_state "w1:t1" "w1"',
+            tab_label="work",
+            tab_list_labels=["work", "other"],
+            state_contents={"w1:t2": DONE},
+        )
+        self.assertEqual(out["result"].returncode, 0, out["result"].stderr)
+        self.assertTrue(out["cache_exists"]("w1:t2"))
+        self.assertTrue(
+            any(f"--token shell_status={DONE}" in line for line in out["metadata"]),
+            out["metadata"],
+        )
+
+    def test_orphan_wait_marker_is_pruned(self):
+        out = self.run_clear(
+            'clear_herdr_shell_status_state "w1:t1" "w1"',
+            tab_label="work",
+            extra_marker_contents={"w1:t3": WAIT},
+        )
+        self.assertEqual(out["result"].returncode, 0, out["result"].stderr)
+        self.assertFalse(out["cache_exists"]("w1:t3", "marker"))
+        self.assertTrue(
+            any("--clear-token shell_status" in line for line in out["metadata"]),
+            out["metadata"],
+        )
+
+    def test_orphan_prune_does_not_touch_other_workspace(self):
+        """w10のキャッシュはw1の掃除対象外（prefixはworkspace_id + `_`で比較する）。"""
+        out = self.run_clear(
+            'clear_herdr_shell_status_state "w1:t1" "w1"',
+            tab_label="work",
+            state_contents={"w1:t3": ERROR, "w10:t3": ERROR},
+        )
+        self.assertEqual(out["result"].returncode, 0, out["result"].stderr)
+        self.assertFalse(out["cache_exists"]("w1:t3"))
+        self.assertTrue(out["cache_exists"]("w10:t3"))
+
+    def test_focus_prune_works_in_both_shells(self):
+        for shell in ("bash", "zsh"):
+            with self.subTest(shell=shell):
+                out = self.run_clear(
+                    'clear_herdr_shell_status_state "w1:t1" "w1"',
+                    tab_label="work",
+                    state_contents={"w1:t3": ERROR},
+                    shell=shell,
+                )
+                self.assertEqual(out["result"].returncode, 0, out["result"].stderr)
+                self.assertEqual(out["result"].stdout, "")
+                self.assertFalse(out["cache_exists"]("w1:t3"))
+                self.assertTrue(
+                    any("--clear-token shell_status" in l for l in out["metadata"]),
+                    out["metadata"],
+                )
+
+    def test_no_cache_in_workspace_still_skips_herdr(self):
+        """他workspaceのキャッシュしか無ければ、focusはherdrを一切起動しない。"""
+        out = self.run_clear(
+            'clear_herdr_shell_status_state "w1:t1" "w1"',
+            tab_label="work",
+            state_contents={"w10:t3": ERROR},
+        )
+        self.assertEqual(out["result"].returncode, 0, out["result"].stderr)
+        self.assertEqual(out["get"], [])
         self.assertEqual(out["metadata"], [])
+        self.assertTrue(out["cache_exists"]("w10:t3"))
+
+    def test_empty_tab_list_does_not_prune_cache(self):
+        """tab list失敗（空）で全キャッシュを消さない（fail-safe）。"""
+        out = self.run_clear(
+            'clear_herdr_shell_status_state "w1:t1" "w1"',
+            tab_label="work",
+            tab_list_labels=[],
+            state_contents={"w1:t3": ERROR},
+        )
+        self.assertEqual(out["result"].returncode, 0, out["result"].stderr)
+        self.assertTrue(out["cache_exists"]("w1:t3"))
 
     def test_empty_tab_id_is_no_op(self):
         out = self.run_clear('clear_herdr_shell_status_state "" "w1"')
