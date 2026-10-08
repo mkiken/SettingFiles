@@ -72,6 +72,8 @@ When a plan includes test work, list the planned test cases (target, condition, 
 
 When a code comment declares a defensive invariant ("X is never adopted", "Y cannot happen"), add a test pinning that invariant in the same commit — an unenforced comment reads as already-handled and hides the missing guard.
 
+When temporarily mutating code to prove a test catches a regression, undo the mutation with an inverse edit (or commit the real change first) — never `git checkout -- <file>` / `git restore <file>`, which also discards the file's uncommitted task edits.
+
 # Diagnostic Check Results
 
 When a relevant diagnostic or check command exits non-zero due to pre-existing findings, distinguish baseline findings from findings introduced by the current task. Report the non-zero result accurately; do not call the command successful solely because no new findings were introduced.
