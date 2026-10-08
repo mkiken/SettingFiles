@@ -9,7 +9,10 @@ function auto_start_terminal_multiplexer() {
   local is_warp="${2:-false}"
   local exit_code=0
 
+  # Orca ADE manages its own panes/tabs, so a nested multiplexer is unnecessary.
   if [[ "${HERDR_ENV:-}" == "1" ]] \
+     || [[ "${TERM_PROGRAM:-}" == "Orca" ]] \
+     || [[ -n "${ORCA_PANE_KEY:-}" ]] \
      || [[ "$is_tmux" == "true" ]] \
      || [[ "$is_warp" == "true" ]]; then
     return 0

@@ -338,6 +338,8 @@ class HerdrShellStartupTest(unittest.TestCase):
             ("herdr", False, False, {"HERDR_ENV": "1"}),
             ("tmux", True, False, {"TMUX": "/tmp/tmux.sock"}),
             ("warp", False, True, {}),
+            ("orca term program", False, False, {"TERM_PROGRAM": "Orca"}),
+            ("orca pane", False, False, {"ORCA_PANE_KEY": "pane-1"}),
         )
 
         for name, is_tmux, is_warp, env_overrides in cases:
