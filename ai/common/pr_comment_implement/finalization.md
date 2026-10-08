@@ -279,7 +279,10 @@ GitHub yet.
 Run this section only when the selected action contains `& push`.
 
 Parallel `cl-pci` / `cx-pci` runs against the same PR merge back into the
-same `HEAD_BRANCH` and can race here. Run from `ORIGINAL_PATH`:
+same `HEAD_BRANCH` and can race here. Run from `ORIGINAL_PATH`, unless
+`git worktree list --porcelain` shows `HEAD_BRANCH` checked out in another
+worktree (`wtm` merges there) — then take `EXPECTED_PUSH_HEAD`, the `HEAD` and
+branch checks, and the push from that worktree instead:
 
 ```bash
 CURRENT_PUSH_HEAD=$(git rev-parse HEAD)
