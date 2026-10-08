@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 
 
-from support import REPO_ROOT
+from support import REPO_ROOT, sanitized_env
 PLUGIN_SCRIPT = REPO_ROOT / "terminal/herdr/plugins/notify-rich/notify-on-agent-status.sh"
 PLUGIN_MANIFEST = REPO_ROOT / "terminal/herdr/plugins/notify-rich/herdr-plugin.toml"
 
@@ -255,7 +255,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                 )
                 fake_herdr.chmod(0o755)
 
-            env = os.environ.copy()
+            env = sanitized_env()
             # 実herdrの[[events]]フック環境にはLANGが無い。プラグイン冒頭の
             # export LANGフォールバックが無いとzshの${#x}/スライスがバイト単位に
             # なり日本語が壊れるため、テストでも剥がして実環境相当で検証する。
@@ -293,6 +293,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                     "CODEX_HOME": str(codex_home),
                     "HERDR_PLUGIN_STATE_DIR": str(state_root),
                     "HERDR_SOCKET_PATH": socket_path,
+                    "XDG_CONFIG_HOME": str(root / "xdg"),
                     "SET": str(fake_repo) + "/",
                     "HERDR_PLUGIN_EVENT_JSON": json.dumps(
                         {
@@ -1093,7 +1094,7 @@ class HerdrPluginTabIconTest(unittest.TestCase):
             )
             fake_herdr.chmod(0o755)
 
-            env = os.environ.copy()
+            env = sanitized_env()
             # NotifyTest側と同じく、LANG無しの実herdrフック環境を再現する
             # （日本語ラベルのtruncate ${title_text[1,20]} が文字単位で切れることの保証）。
             for key in ("LANG", "LC_ALL", "LC_CTYPE"):
@@ -1136,6 +1137,7 @@ class HerdrPluginTabIconTest(unittest.TestCase):
                     ),
                     "HERDR_PLUGIN_STATE_DIR": str(state_root),
                     "HERDR_SOCKET_PATH": socket_path,
+                    "XDG_CONFIG_HOME": str(root / "xdg"),
                     "HERDR_PANE_ID": pane_id,
                     "HERDR_WORKSPACE_ID": workspace_id,
                     "PATH": ":".join(path_entries),
