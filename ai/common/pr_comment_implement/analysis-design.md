@@ -31,7 +31,7 @@ in later phases:
 
 | Fragment pattern | Action |
 |---|---|
-| `#discussion_r(\d+)` | Extract `COMMENT_ID` → `REPLY_PATH=thread`, `REACTION_TARGET=repos/${OWNER}/${REPO}/pulls/comments/${COMMENT_ID}` |
+| `#discussion_r(\d+)` or `#r(\d+)` (the `/changes` view's review-comment form) | Extract `COMMENT_ID` → `REPLY_PATH=thread`, `REACTION_TARGET=repos/${OWNER}/${REPO}/pulls/comments/${COMMENT_ID}` |
 | `#pullrequestreview-(\d+)` | Fetch inline comments (below) and resolve concrete target |
 | `#issuecomment-(\d+)` | Extract `ISSUE_COMMENT_ID` → `REPLY_PATH=standalone`, `REACTION_TARGET=repos/${OWNER}/${REPO}/issues/comments/${ISSUE_COMMENT_ID}` |
 

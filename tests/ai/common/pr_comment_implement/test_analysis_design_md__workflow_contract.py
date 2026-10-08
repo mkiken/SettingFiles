@@ -20,6 +20,12 @@ class AnalysisDesignWorkflowContractTest(unittest.TestCase):
         self.assertIn("re-present Phase 2 and wait for approval", content)
         self.assertNotIn("### Phase 3: Implementation", content)
 
+    def test_changes_view_review_comment_fragment_is_classified_as_thread(self):
+        content = PATH.read_text(encoding="utf-8")
+        row = next(line for line in content.splitlines() if line.startswith("| `#discussion_r(\\d+)`"))
+        self.assertIn("`#r(\\d+)`", row)
+        self.assertIn("REPLY_PATH=thread", row)
+
 
 if __name__ == "__main__":
     unittest.main()
