@@ -28,8 +28,8 @@ for file in "${Repo}ai/codex/hooks"/*; do
   fi
 done
 
-# hooks.json をシンボリックリンク
-make_symlink "${Repo}ai/codex/hooks.json" ~/.codex/hooks.json
+# hooks.json は実ファイルへマージ（Orca 等の外部追記をリポジトリへ漏らさない）
+setup_codex_hooks_json || return 1
 
 chmod +x ~/.codex/hooks/codex-stop-notification.sh
 

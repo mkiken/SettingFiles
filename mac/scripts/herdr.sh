@@ -251,8 +251,6 @@ function _herdr_live_config_ready() {
   local repo_root="$3"
   local managed_command=""
   local live_json=""
-  local expected_target=""
-  local existing_target=""
 
   case "$runtime" in
     claude)
@@ -262,16 +260,6 @@ function _herdr_live_config_ready() {
     codex)
       managed_command="$HERDR_CODEX_COMMAND"
       live_json="$target_home/.codex/hooks.json"
-      expected_target="${repo_root%/}/ai/codex/hooks.json"
-      if [[ ! -L "$live_json" ]]; then
-        echo "Error: managed Codex hooks symlink is unavailable: $live_json" >&2
-        return 1
-      fi
-      existing_target="$(readlink "$live_json")"
-      if [[ "$existing_target" != "$expected_target" ]]; then
-        echo "Error: Codex hooks use an unexpected symlink target: $existing_target" >&2
-        return 1
-      fi
       ;;
   esac
 
@@ -555,8 +543,6 @@ function _herdr_integrations_already_deployed() {
   # _herdr_live_config_ready (:211) は使わない。理由:
   #   - 未配備時に Error: を stderr に出す(:245) — ここでは新規マシンで
   #     インストーラを回すのが正しい結果なので、誤解を招くエラー表示になる
-  #   - codex 分岐が ~/.codex/hooks.json symlink で hard-fail する(:229-237)。
-  #     これはインストールの前提条件であって「配備済みの証拠」ではない
   #   - hook スクリプトファイル自体の存在は見ていない
   local target_home="$1"
   local live_settings="$target_home/.claude/settings.json"

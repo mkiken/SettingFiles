@@ -1,6 +1,7 @@
 import hashlib
 import json
 import os
+import shutil
 import stat
 import subprocess
 import tempfile
@@ -90,7 +91,7 @@ class HerdrIntegrationTest(unittest.TestCase):
         (self.home / ".claude" / "settings.json").write_text(
             self.claude_source.read_text(encoding="utf-8"), encoding="utf-8"
         )
-        (self.home / ".codex" / "hooks.json").symlink_to(self.codex_hooks_source)
+        shutil.copyfile(self.codex_hooks_source, self.home / ".codex" / "hooks.json")
         (self.home / ".codex" / "config.toml").write_text(
             self.codex_config_source.read_text(encoding="utf-8"), encoding="utf-8"
         )
@@ -250,8 +251,8 @@ fi
         self.assertIn("staged codex hook", (self.home / ".codex/herdr-agent-state.sh").read_text())
         self.assertEqual(self.claude_source.read_bytes(), claude_before)
         self.assertEqual(self.codex_hooks_source.read_bytes(), codex_before)
-        self.assertTrue((self.home / ".codex/hooks.json").is_symlink())
-        self.assertEqual((self.home / ".codex/hooks.json").resolve(), self.codex_hooks_source.resolve())
+        self.assertFalse((self.home / ".codex/hooks.json").is_symlink())
+        self.assertEqual((self.home / ".codex/hooks.json").read_bytes(), codex_before)
         self.assertEqual(self.live_deployment_artifacts(), [])
 
         invocations = self.invocation_log.read_text(encoding="utf-8").splitlines()
@@ -557,17 +558,14 @@ fi
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(live_config.read_text(encoding="utf-8"), "user-owned = true\n")
 
-    def test_unexpected_codex_hooks_link_fails_before_installer(self) -> None:
+    def test_live_codex_hooks_without_herdr_registration_fails_before_installer(self) -> None:
         live_hooks = self.home / ".codex" / "hooks.json"
-        live_hooks.unlink()
-        unexpected_hooks = self.root / "unexpected-hooks.json"
-        unexpected_hooks.write_text(self.codex_hooks_source.read_text(encoding="utf-8"), encoding="utf-8")
-        live_hooks.symlink_to(unexpected_hooks)
+        live_hooks.write_text('{"hooks": {}}\n', encoding="utf-8")
 
         result = self.run_zsh(f'setup_herdr_integrations "{self.repo}" "{self.home}"')
 
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("unexpected symlink target", result.stderr)
+        self.assertIn("registration is not deployed", result.stderr)
         self.assertFalse(self.invocation_log.exists())
         self.assertFalse((self.home / ".claude/hooks/herdr-agent-state.sh").exists())
         self.assertFalse((self.home / ".codex/herdr-agent-state.sh").exists())

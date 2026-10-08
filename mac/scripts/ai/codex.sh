@@ -140,6 +140,25 @@ function setup_codex_ponytail() {
   # 既存の context-mode・claude-mem 同様ここでは自動化しない。
 }
 
+function setup_codex_hooks_json() {
+  # Orca 等の外部ツールが live の hooks.json へ追記するため、リポジトリへ
+  # 書き戻る symlink ではなく実ファイルにして smart_merge_json で取り込む。
+  local live="$HOME/.codex/hooks.json"
+  local tmp_file=""
+
+  mkdir -p "${live:h}" || return 1
+  if [[ -L "$live" ]]; then
+    # 旧 symlink 方式からの移行: merge がリンク先(リポジトリ)へ書かないよう実体化
+    tmp_file="$(mktemp "${live}.XXXXXX")" || return 1
+    if ! /bin/cp "$live" "$tmp_file" || ! /bin/mv -f "$tmp_file" "$live"; then
+      [[ -e "$tmp_file" ]] && trash "$tmp_file"
+      echo "Error: failed to convert $live from symlink to a regular file" >&2
+      return 1
+    fi
+  fi
+  smart_merge_json "${Repo}ai/codex/hooks.json" "$live"
+}
+
 function setup_codex_regular_file_agents() {
   # Symlinked config-audit and audit-fix designer startup failed with
   # "Too many levels of symbolic links". Keep these families as regular TOML files.
