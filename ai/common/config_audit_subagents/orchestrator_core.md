@@ -54,7 +54,8 @@ without producing an audit or report.
 
 Resolve `RUN_DIR` (see adapter) and write `<RUN_DIR>/audit.json`. Then render and serve the report.
 Start the server **without** `--open` through a mechanism that survives the current command environment.
-Obtain its URL and independently confirm that `<URL>/report.html` responds successfully before opening
+Obtain its URL (`url` in `<RUN_DIR>/.server.json`, which already ends in `/report.html`; do not append
+it again) and independently confirm that it responds successfully before opening
 that URL in a browser exactly once. If the server start fails, retry only the server start and
 verification; never open a browser before verification or repeat the browser-open step. A supported
 fallback is:
