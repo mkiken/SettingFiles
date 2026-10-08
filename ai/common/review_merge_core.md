@@ -18,7 +18,7 @@ Merge the per-AI PR review result files in <RUN_DIR> into `merged.json` and gene
    - Post outcome lookup: find the previous item's id in post_state.json `items` and use its `status`: `posted` → `"posted_before"`, `skipped` → `"post_skipped_before"`. If post_state.json is missing or unreadable, its `run_dir` is not the previous run, or the id is absent → `"should_be_posted"`.
    No previous run, no state, or no match → `"carryover": null`.
 6. Fetch report metadata before writing JSON: `gh pr view <PR_NUMBER> --json url,title,author,headRefName,headRefOid` and `gh repo view --json nameWithOwner,url`. Store the PR URL/title/author login/head branch/head SHA and repository name/URL in the schema below. The report uses these values for its header, GitHub links, and code-context fallback.
-7. Write `<RUN_DIR>/merged.json`, then render/serve the report. Start a server that survives the command environment, without `--open`; obtain its URL, independently verify `<URL>/report.html`, then open it exactly once. On start failure, retry only startup and verification; never open before verification or more than once. Supported fallback:
+7. Write `<RUN_DIR>/merged.json`, then render/serve the report. Start a server that survives the command environment, without `--open`; obtain its URL (`url` in `<RUN_DIR>/.server.json`, which already ends in `/report.html`; do not append it again), independently verify that URL, then open it exactly once. On start failure, retry only startup and verification; never open before verification or more than once. Supported fallback:
 
 ```bash
 python3 ~/.config/ai-pr/bin/generate_review_report.py <RUN_DIR>/merged.json <RUN_DIR>/report.html
