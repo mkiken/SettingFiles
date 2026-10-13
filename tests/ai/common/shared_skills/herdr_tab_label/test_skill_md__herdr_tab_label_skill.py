@@ -35,13 +35,17 @@ class HerdrTabLabelSkillContentTest(unittest.TestCase):
             "Do not use a generic name made only of words",
             "If the active collaboration mode forbids side effects",
             "absolute invoking working directory as `task_path`",
-            "zsh -fc 'builtin cd -q -- \"$1\" && source \"$2\" && set_herdr_task_tab_label \"$3\"'",
-            "set_herdr_task_tab_label \"$3\"",
+            "zsh -fc 'builtin cd -q -- \"${1}\" && source \"${2}\" && set_herdr_task_tab_label \"${3}\"'",
+            "set_herdr_task_tab_label \"${3}\"",
             "preserves any non-default label",
             "Do not retry during later ordinary tasks",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.content)
+
+    def test_positional_parameters_survive_skill_argument_substitution(self):
+        # Claude Code rewrites bare $N in a skill body when the skill is invoked with args.
+        self.assertNotRegex(self.content, r"\$[0-9]")
 
     def test_integrations_reference_the_skill_without_copying_its_procedure(self):
         codex_base = (REPO_ROOT / "ai/codex/codex_base.md").read_text(encoding="utf-8")

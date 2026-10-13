@@ -46,14 +46,14 @@ Before creating a branch or changing files:
 5. Confirm `wtc` and `wtm` are available in the configured interactive Zsh from the original worktree:
 
    ```bash
-   zsh -ic 'builtin cd -q -- "$1" && type wtc >/dev/null && type wtm >/dev/null' zsh "$original_path"
+   zsh -ic 'builtin cd -q -- "${1}" && type wtc >/dev/null && type wtm >/dev/null' zsh "$original_path"
    ```
 
    Stop with a clear setup error if either function is unavailable.
 
 Do not stash, clean, reset, or otherwise alter the invoking worktree to bypass these checks or the later merge gate.
 
-Use this executable boundary for every configured Zsh function: keep the `-c` script literal, pass paths and branches only as positional arguments, and select the worktree with `builtin cd -q -- "$1"`. Never interpolate task-derived values into the script string.
+Use this executable boundary for every configured Zsh function: keep the `-c` script literal, pass paths and branches only as positional arguments, and select the worktree with `builtin cd -q -- "${1}"`. Keep positional parameters braced; skill-argument substitution rewrites bare `$` + digit. Never interpolate task-derived values into the script string.
 
 ## Create the task worktree
 
@@ -62,7 +62,7 @@ Use this executable boundary for every configured Zsh function: keep the `-c` sc
 3. Run the following from the invoking worktree. It executes exactly `wtc <task-branch> --base <original-branch> --no-cd` semantics through the configured interactive Zsh:
 
    ```bash
-   zsh -ic 'builtin cd -q -- "$1" && wtc "$2" --base "$3" --no-cd' zsh "$original_path" "$task_branch" "$original_branch"
+   zsh -ic 'builtin cd -q -- "${1}" && wtc "${2}" --base "${3}" --no-cd' zsh "$original_path" "$task_branch" "$original_branch"
    ```
 
    Capture its exit status. If it is nonzero, use the failure handling below; never assume a failed `wtc` created nothing.
@@ -74,7 +74,7 @@ Use this executable boundary for every configured Zsh function: keep the `-c` sc
 
    ```bash
    herdr_context_helper="${SET:-$HOME/Desktop/repository/SettingFiles}/shell/herdr/herdr_worktree_context.sh"
-   zsh -ic 'builtin cd -q -- "$1" && source "$2" && set_herdr_task_worktree_context "$3"' zsh "$original_path" "$herdr_context_helper" "$task_path"
+   zsh -ic 'builtin cd -q -- "${1}" && source "${2}" && set_herdr_task_worktree_context "${3}"' zsh "$original_path" "$herdr_context_helper" "$task_path"
    ```
 
 ### Clear Herdr task-worktree context
@@ -83,7 +83,7 @@ After confirming that the task worktree entry is absent, clear its invoking-tab 
 
 ```bash
 herdr_context_helper="${SET:-$HOME/Desktop/repository/SettingFiles}/shell/herdr/herdr_worktree_context.sh"
-zsh -ic 'builtin cd -q -- "$1" && source "$2" && clear_herdr_task_worktree_context' zsh "$original_path" "$herdr_context_helper"
+zsh -ic 'builtin cd -q -- "${1}" && source "${2}" && clear_herdr_task_worktree_context' zsh "$original_path" "$herdr_context_helper"
 ```
 
 ### Handle any post-invocation failure
@@ -155,7 +155,7 @@ If any requirement fails, do not invoke `wtm`. Downgrade to `commit_only` semant
 Run from the task worktree through the same configured interactive Zsh boundary. This executes exactly `wtm <original-branch>` semantics:
 
 ```bash
-zsh -ic 'builtin cd -q -- "$1" && wtm "$2"' zsh "$task_path" "$original_branch"
+zsh -ic 'builtin cd -q -- "${1}" && wtm "${2}"' zsh "$task_path" "$original_branch"
 ```
 
 Allow normal `git merge` semantics: fast-forward when possible, otherwise a merge commit. Never squash or rebase.

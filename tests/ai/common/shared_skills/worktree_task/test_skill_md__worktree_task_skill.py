@@ -170,9 +170,9 @@ class WorktreeTaskSkillContentTest(unittest.TestCase):
 
     def test_configured_zsh_functions_use_safe_positional_boundaries(self):
         for required in (
-            "zsh -ic 'builtin cd -q -- \"$1\" && type wtc >/dev/null && type wtm >/dev/null' zsh \"$original_path\"",
-            "zsh -ic 'builtin cd -q -- \"$1\" && wtc \"$2\" --base \"$3\" --no-cd' zsh \"$original_path\" \"$task_branch\" \"$original_branch\"",
-            "zsh -ic 'builtin cd -q -- \"$1\" && wtm \"$2\"' zsh \"$task_path\" \"$original_branch\"",
+            "zsh -ic 'builtin cd -q -- \"${1}\" && type wtc >/dev/null && type wtm >/dev/null' zsh \"$original_path\"",
+            "zsh -ic 'builtin cd -q -- \"${1}\" && wtc \"${2}\" --base \"${3}\" --no-cd' zsh \"$original_path\" \"$task_branch\" \"$original_branch\"",
+            "zsh -ic 'builtin cd -q -- \"${1}\" && wtm \"${2}\"' zsh \"$task_path\" \"$original_branch\"",
             "keep the `-c` script literal",
             "pass paths and branches only as positional arguments",
             "Never interpolate task-derived values into the script string",
@@ -181,6 +181,8 @@ class WorktreeTaskSkillContentTest(unittest.TestCase):
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.content)
+        # Claude Code rewrites bare $N in a skill body when the skill is invoked with args.
+        self.assertNotRegex(self.content, r"\$[0-9]")
 
     def test_slug_drives_shared_herdr_tab_label(self):
         normalized_content = " ".join(self.content.split())
