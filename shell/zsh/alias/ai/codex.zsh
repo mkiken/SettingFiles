@@ -110,11 +110,11 @@ cx-review-merge() {
 }
 
 cx-review-post() {
-    cxmx --dangerously-bypass-approvals-and-sandbox "\$review-post $*"
+    cxteh --dangerously-bypass-approvals-and-sandbox "\$review-post $*"
 }
 
 cx-review-fix() {
-    cxmx "\$review-fix $*"
+    cxs "\$review-fix $*"
 }
 
 alias cx-pr-comment-review='noglob _cx-pr-comment-review'
