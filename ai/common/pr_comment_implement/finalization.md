@@ -168,8 +168,15 @@ Execute a selected reply via the same thread or standalone API below, then
 resolve only when that option was offered and selected. A reply failure still
 requires the same retry, standalone-downgrade, or abort decision. On success,
 react (below), then remove the task worktree/branch directly from
-`ORIGINAL_PATH` (`git worktree remove` then `git branch -d`, verifying both
-are gone) and clear the Herdr task-worktree context.
+`ORIGINAL_PATH` (`git worktree remove`, then delete the branch as below,
+verifying both are gone) and clear the Herdr task-worktree context.
+
+Delete `TASK_BRANCH` with `git branch -D` only after
+`git merge-base --is-ancestor "$TASK_BRANCH" "$HEAD_BRANCH"` succeeds: plain
+`-d` judges merged-ness against the current branch of `ORIGINAL_PATH`, which
+need not be `HEAD_BRANCH`, and fails with "not fully merged" even when the
+task branch holds no unique commits. If the check fails, keep the branch and
+report it.
 
 When `NO_CODE_CHANGE=false`, commit (run from `TASK_PATH`):
 
@@ -234,8 +241,9 @@ Otherwise check for real conflicts
    (preserve merge state, task worktree, and task branch; stop).
 3. After a successful agent-applied continuation, `wtm` cannot run its own
    cleanup — manually run `git worktree remove` for `TASK_PATH` from
-   `ORIGINAL_PATH`, then `git branch -d` for `TASK_BRANCH`, then verify both
-   are gone.
+   `ORIGINAL_PATH`, then delete `TASK_BRANCH` using the ancestor check and
+   `git branch -D` described under `NO_CODE_CHANGE=true` above, then verify
+   both are gone.
 
 When `wtm` failed without conflicts, check whether the task commit is already
 an ancestor of `HEAD_BRANCH` — if so, do not retry; just run the independent
