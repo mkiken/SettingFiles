@@ -96,11 +96,11 @@ cl-review-merge() {
 }
 
 cl-review-post() {
-    clo --dangerously-skip-permissions "/review-post $*"
+    cls --dangerously-skip-permissions "/review-post $*"
 }
 
 cl-review-fix() {
-    clmx "/review-fix $*"
+    clmxp "/review-fix $*"
 }
 
 _cl-pr-comment-review() {

@@ -100,6 +100,24 @@ class ClPrBodyPlanModeTest(unittest.TestCase):
         self.assertEqual(captured[-1], "/pr-body 123 extra")
 
 
+class ClReviewPostFixAliasTest(unittest.TestCase):
+    def test_cl_review_post_uses_sonnet(self):
+        captured = run_claude_alias("cl-review-post RUN")
+
+        self.assertEqual(captured[captured.index("--model") + 1], "sonnet")
+        self.assertIn("--dangerously-skip-permissions", captured)
+        self.assertEqual(captured[-1], "/review-post RUN")
+
+    def test_cl_review_fix_starts_in_plan_mode(self):
+        captured = run_claude_alias("cl-review-fix RUN")
+
+        self.assertEqual(captured[captured.index("--model") + 1], "opus")
+        self.assertEqual(captured[captured.index("--effort") + 1], "high")
+        self.assertEqual(captured[captured.index("--permission-mode") + 1], "plan")
+        self.assertNotIn("--dangerously-skip-permissions", captured)
+        self.assertEqual(captured[-1], "/review-fix RUN")
+
+
 class PrCommentImplementAliasTest(unittest.TestCase):
     URL = "https://github.com/acme/widget/pull/42#discussion_r123"
     EXTRA = "fix only the failing path"
