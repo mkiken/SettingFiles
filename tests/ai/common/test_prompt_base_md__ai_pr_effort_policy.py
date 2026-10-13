@@ -144,10 +144,10 @@ class PrCommentImplementAliasTest(unittest.TestCase):
                         self.assertNotIn("--effort", captured)
                         self.assertEqual(captured[2:4], ["--permission-mode", "plan"])
                     else:
-                        # clmx-pciはclmxp経由（clf -> --effort high -> planモード）。
+                        # clmx-pciはclmxp経由（cloeh -> planモード）。
                         self.assertEqual(
                             captured[2:8],
-                            ["--model", "fable", "--effort", "high", "--permission-mode", "plan"],
+                            ["--model", "opus", "--effort", "high", "--permission-mode", "plan"],
                         )
                 else:
                     if tier == "light":
@@ -219,7 +219,7 @@ class ClaudeModelSelectionTest(unittest.TestCase):
         cases = (
             ("cloeh task", "opus"),
             ("clseh task", "sonnet"),
-            ("clmx task", "fable"),
+            ("clmx task", "opus"),
         )
 
         for command, model in cases:

@@ -29,7 +29,7 @@ clf() {
 }
 
 clmx() {
-    clf --effort high "$@"
+    cloeh "$@"
 }
 
 clmxp() {
