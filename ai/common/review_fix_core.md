@@ -8,7 +8,7 @@ Fix selected review items from a merge run directory in the current working tree
 ## Item Selection
 
 1. Read `<RUN_DIR>/merged.json`. `items[].id` are the serial numbers — never renumber.
-2. If <ITEM_NUMBERS> is non-empty, select those ids. Otherwise read `<RUN_DIR>/state.json` and select by its `schema_version`: `2` → `items` is keyed by id string with `{"decision": "fix"|"post"|"dismiss"|null}`; select ids whose `decision` is `"fix"`. `1` (legacy) → `items` values are `{"reviewed": bool, "adopt": bool}`; select ids with `adopt: true`. Any other `schema_version` → stop and report it. If state.json is missing and no numbers were given, list the available items and ask the user which ids to fix.
+2. If <ITEM_NUMBERS> is non-empty, select those ids. Otherwise read `<RUN_DIR>/state.json` and select by its `schema_version`: `2` → `items` is keyed by id string with `{"decision": "fix"|"post"|"dismiss"|null}`; select ids whose `decision` is `"fix"`. `1` (legacy) → `items` values are `{"reviewed": bool, "adopt": bool}`; select ids with `adopt: true`. Any other `schema_version` → stop and report it. If state.json is missing and no numbers were given, list the available items and ask the user which ids to fix. If state.json exists but selects no ids, report that no item is marked fix and stop, so the user re-selects in the browser and reruns.
 3. If a selected id has no matching item, stop and report the mismatch instead of guessing.
 
 ## Grouping and Mode Selection
