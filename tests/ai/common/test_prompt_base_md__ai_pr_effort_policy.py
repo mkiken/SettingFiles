@@ -108,11 +108,19 @@ class ClReviewPostFixAliasTest(unittest.TestCase):
         self.assertIn("--dangerously-skip-permissions", captured)
         self.assertEqual(captured[-1], "/review-post RUN")
 
+    def test_cl_review_merge_uses_opus_at_default_effort(self):
+        captured = run_claude_alias("cl-review-merge RUN")
+
+        self.assertEqual(captured[captured.index("--model") + 1], "opus")
+        self.assertNotIn("--effort", captured)
+        self.assertIn("--dangerously-skip-permissions", captured)
+        self.assertEqual(captured[-1], "/review-merge RUN")
+
     def test_cl_review_fix_starts_in_plan_mode(self):
         captured = run_claude_alias("cl-review-fix RUN")
 
         self.assertEqual(captured[captured.index("--model") + 1], "opus")
-        self.assertEqual(captured[captured.index("--effort") + 1], "high")
+        self.assertNotIn("--effort", captured)
         self.assertEqual(captured[captured.index("--permission-mode") + 1], "plan")
         self.assertNotIn("--dangerously-skip-permissions", captured)
         self.assertEqual(captured[-1], "/review-fix RUN")
@@ -305,6 +313,14 @@ class ReviewEntrypointEffortPolicyTest(unittest.TestCase):
                 effort_index = captured.index("--effort")
                 self.assertEqual(captured[effort_index + 1], effort)
                 self.assertEqual(captured[-1], prompt)
+
+    def test_launcher_owned_effort_skills_have_no_effort_frontmatter(self):
+        # effortは起動alias側が持つ。skill側にも書くと二重指定になる。
+        for name in ("pr-review", "pr-comment-review"):
+            with self.subTest(skill=name):
+                text = (REPO_ROOT / f"ai/claude/skills/{name}/SKILL.md").read_text(encoding="utf-8")
+                frontmatter = text.split("---", 2)[1]
+                self.assertNotRegex(frontmatter, r"(?m)^effort:")
 
     def test_pr_review_subagents_skill_has_no_model_frontmatter(self):
         # オーケストレーターのモデルは呼び出し元セッションに委ねる方針のため、

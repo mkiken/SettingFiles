@@ -4,7 +4,6 @@ description: "Comprehensive PR review using gh command; detects the current bran
 model: opus
 argument-hint: "[prNumber] [additionalInstructions...]"
 disable-model-invocation: true
-effort: high
 ---
 
 ## Instructions

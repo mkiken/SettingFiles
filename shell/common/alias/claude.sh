@@ -92,7 +92,7 @@ cl-review-merge() {
         echo "Usage: cl-review-merge <run_dir>" >&2
         return 1
     fi
-    cloeh --dangerously-skip-permissions "/review-merge $run_dir"
+    clo --dangerously-skip-permissions "/review-merge $run_dir"
 }
 
 cl-review-post() {
@@ -100,7 +100,7 @@ cl-review-post() {
 }
 
 cl-review-fix() {
-    clmxp "/review-fix $*"
+    clo --permission-mode plan "/review-fix $*"
 }
 
 _cl-pr-comment-review() {
