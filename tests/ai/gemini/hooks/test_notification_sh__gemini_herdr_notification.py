@@ -1,5 +1,4 @@
 import json
-import os
 import shutil
 import subprocess
 import tempfile
@@ -7,7 +6,7 @@ import unittest
 from pathlib import Path
 
 
-from support import REPO_ROOT
+from support import REPO_ROOT, sanitized_env
 HOOK_SCRIPT = REPO_ROOT / "ai/gemini/hooks/notification.sh"
 
 
@@ -26,6 +25,7 @@ class GeminiHerdrNotificationTest(unittest.TestCase):
         event: str,
         hook_input: dict,
         in_herdr: bool,
+        review_output: str | None = None,
     ) -> tuple[subprocess.CompletedProcess[str], list[str]]:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -67,8 +67,7 @@ class GeminiHerdrNotificationTest(unittest.TestCase):
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy(REPO_ROOT / relative_path, destination)
 
-            env = os.environ.copy()
-            env.update(
+            env = sanitized_env(
                 {
                     "HERDR_TEST_EVENTS": str(events),
                     "SET": str(fake_repo) + "/",
@@ -77,6 +76,9 @@ class GeminiHerdrNotificationTest(unittest.TestCase):
                     "TMUX_PANE": "",
                 }
             )
+            env.pop("AI_REVIEW_OUTPUT_FILE", None)
+            if review_output is not None:
+                env["AI_REVIEW_OUTPUT_FILE"] = review_output
             if in_herdr:
                 env["HERDR_ENV"] = "1"
             else:
@@ -95,16 +97,33 @@ class GeminiHerdrNotificationTest(unittest.TestCase):
             return result, event_lines
 
     def test_after_agent_notifies_under_herdr(self):
-        result, events = self.run_hook(
-            event="after_agent",
-            hook_input={"session_id": "abcdefgh-session"},
-            in_herdr=True,
-        )
+        for review_output in (None, ""):
+            with self.subTest(review_output=review_output):
+                result, events = self.run_hook(
+                    event="after_agent",
+                    hook_input={"session_id": "abcdefgh-session"},
+                    in_herdr=True,
+                    review_output=review_output,
+                )
 
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("notify", events)
-        # tmux icon is meaningless under Herdr (no tmux window) and must be skipped.
-        self.assertFalse(any(line.startswith("icon:") for line in events))
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn("notify", events)
+                # tmux icon is meaningless under Herdr (no tmux window) and must be skipped.
+                self.assertFalse(any(line.startswith("icon:") for line in events))
+
+    def test_review_after_agent_skips_notification_under_herdr(self):
+        for review_output in ("/tmp/review.json", "/tmp/review output/result.json"):
+            with self.subTest(review_output=review_output):
+                result, events = self.run_hook(
+                    event="after_agent",
+                    hook_input={"session_id": "abcdefgh-session"},
+                    in_herdr=True,
+                    review_output=review_output,
+                )
+
+                self.assertEqual(result.returncode, 0, result.stderr)
+                # Review completion belongs to the caller, so no title or notification is built.
+                self.assertEqual(events, [])
 
     def test_after_agent_notifies_and_sets_icon_outside_herdr(self):
         result, events = self.run_hook(
@@ -122,6 +141,18 @@ class GeminiHerdrNotificationTest(unittest.TestCase):
             event="notification",
             hook_input={"notification_type": "ToolPermission", "session_id": "abcdefgh-session"},
             in_herdr=True,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("notify", events)
+        self.assertFalse(any(line.startswith("icon:") for line in events))
+
+    def test_review_toolpermission_notifies_under_herdr(self):
+        result, events = self.run_hook(
+            event="notification",
+            hook_input={"notification_type": "ToolPermission", "session_id": "abcdefgh-session"},
+            in_herdr=True,
+            review_output="/tmp/review.json",
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)

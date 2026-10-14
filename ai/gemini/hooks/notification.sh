@@ -33,6 +33,11 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
+# Review completion is collected by the caller; permission requests still notify.
+if [[ "${EVENT_TYPE}" == "after_agent" && -n "${AI_REVIEW_OUTPUT_FILE:-}" ]]; then
+    exit 0
+fi
+
 debug_log "Event Type: ${EVENT_TYPE}"
 
 # hookからJSONを読み取り
