@@ -28,6 +28,11 @@ clf() {
     cl --model 'fable' "$@"
 }
 
+# `h` selects Haiku.
+clh() {
+    cl --model 'haiku' "$@"
+}
+
 clmx() {
     cloeh "$@"
 }

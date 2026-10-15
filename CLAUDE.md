@@ -90,7 +90,7 @@ When adding a new initialization step to `mac/initialization/`, `mac/updates/`, 
 
 When editing shell helpers, do not use global variables for temporary return values or cross-call state. Prefer stdout, explicit arguments, or safe assignment into caller-owned `local` variables so parallel shells and nested calls cannot observe stale state.
 
-Model-selector aliases encode their model in the final letter: Codex `cxs`/`cxa`/`cxt`/`cxl` select Sol/Astra/Terra/Luna; Claude `clo`/`cls`/`clf` select Opus/Sonnet/Fable; Gemini `gmf`/`gmp` select Flash/Pro. When migrating a workflow, preserve selector meanings; add a selector and reroute callers unless explicitly asked to retarget an existing selector.
+Model-selector aliases encode their model in the final letter: Codex `cxs`/`cxa`/`cxt`/`cxl` select Sol/Astra/Terra/Luna; Claude `clo`/`cls`/`clf`/`clh` select Opus/Sonnet/Fable/Haiku; Gemini `gmf`/`gmp` select Flash/Pro. When migrating a workflow, preserve selector meanings; add a selector and reroute callers unless explicitly asked to retarget an existing selector.
 
 In zsh, `local` is `typeset`: re-declaring an already-declared variable inside a loop prints its current value to stdout (bash is silent). In a function whose stdout is read via command substitution, declare every local once outside the loop.
 

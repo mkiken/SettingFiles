@@ -224,6 +224,7 @@ class ClaudeModelSelectionTest(unittest.TestCase):
             ("clo task", "opus"),
             ("cls task", "sonnet"),
             ("clf task", "fable"),
+            ("clh task", "haiku"),
         )
 
         for command, model in cases:
@@ -282,7 +283,7 @@ class GeminiModelSelectionTest(unittest.TestCase):
 class AliasNamingTest(unittest.TestCase):
     def test_legacy_h_aliases_are_undefined(self):
         sources = (
-            (CLAUDE_COMMON, r"(clh|clhp|cloh|clsh)"),
+            (CLAUDE_COMMON, r"(clhp|cloh|clsh)"),
             (CODEX_ALIASES, r"(cxh|cxhr|cxth)"),
             (GEMINI_ALIASES, r"(gmh|gmhp)"),
         )
