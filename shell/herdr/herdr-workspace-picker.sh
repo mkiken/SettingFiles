@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Herdr の workspace をブランチ付きで一覧し、fzf で選んだ workspace へ移動する。
-# --list は fzf を通さず候補行 (workspace_id<TAB>表示文字列) を出力する。
+# Herdr の workspace と配下の tab をブランチ付きのツリーで一覧し、fzf で選んだ先へ移動する。
+# --list は fzf を通さず候補行 (ws:<id> または tab:<id>, TAB, 表示文字列) を出力する。
 # 現在の workspace は末尾に置くため、開いて Enter で直前に使っていた側へ戻れる。
 
 set -euo pipefail
@@ -32,25 +32,35 @@ function _picker_branch() {
 }
 
 function _picker_list() {
-    local workspaces panes rows
+    local workspaces tabs panes rows
     workspaces=$(_picker_json workspace list) || return 1
+    tabs=$(_picker_json tab list) || return 1
     panes=$(_picker_json pane list) || return 1
 
-    # 各 workspace の active tab で focused な pane、無ければ先頭 pane の cwd を採る。
+    # workspace ごとにツリー (workspace 行 → 配下の tab 行) を作る。現在の workspace は末尾へ置く。
+    # cwd は対象 tab で focused な pane、無ければ先頭 pane のものを採る。
     # foreground_cwd は実行中プロセス (例: Claude の plugin cache) を指すことがあるので使わない。
-    rows=$(jq -rn --argjson ws "$workspaces" --argjson ps "$panes" '
-        ($ps.result.panes // []) as $panes
+    rows=$(jq -rn --argjson ws "$workspaces" --argjson ts "$tabs" --argjson ps "$panes" '
+        def strip: sub("^\\[[0-9]+\\] "; "");
+        def cwd_of($tab_id):
+            [($ps.result.panes // [])[] | select(.tab_id == $tab_id)]
+            | (map(select(.focused)) + .) | first | .cwd // "";
+        ($ts.result.tabs // []) as $tabs
         | ($ws.result.workspaces // [])
         | (map(select(.focused | not)) + map(select(.focused)))[]
         | . as $w
-        | ([$panes[] | select(.tab_id == $w.active_tab_id)]
-           | (map(select(.focused)) + .) | first | .cwd // "") as $cwd
-        | [$w.workspace_id, (if $w.focused then "1" else "0" end), ($w.label // $w.workspace_id), $cwd]
-        | @tsv
-    ') || { echo "failed to build workspace rows" >&2; return 1; }
+        | ["ws", $w.workspace_id, (if $w.focused then "1" else "0" end),
+           ($w.label // $w.workspace_id), cwd_of($w.active_tab_id), ""],
+          ($tabs | map(select(.workspace_id == $w.workspace_id)) | sort_by(.number)[]
+           | ["tab", .tab_id, (if .focused then "1" else "0" end),
+              (.label // .tab_id), cwd_of(.tab_id), ($w.label // "" | strip)])
+        | join("\u001f")
+    ') || { echo "failed to build picker rows" >&2; return 1; }
 
-    local id focused label cwd branch shown_cwd marker
-    while IFS=$'\t' read -r id focused label cwd; do
+    local kind id focused label cwd parent branch shown_cwd marker
+    # TAB は空白扱いで連続すると空フィールドが潰れ、cwd が空の行で後続の値がずれるため、
+    # 空白でない区切り文字 (US) を使う。
+    while IFS=$'\x1f' read -r kind id focused label cwd parent; do
         [[ -n "$id" ]] || continue
         branch=$(_picker_branch "$cwd")
         shown_cwd="$cwd"
@@ -59,9 +69,16 @@ function _picker_list() {
         fi
         marker="  "
         [[ "$focused" == 1 ]] && marker="* "
-        printf '%s\t%s%s' "$id" "$marker" "$label"
+        printf '%s:%s\t' "$kind" "$id"
+        if [[ "$kind" == tab ]]; then
+            printf '%s  └ %s' "$marker" "$label"
+        else
+            printf '%s%s' "$marker" "$label"
+        fi
         [[ -n "$branch" ]] && printf '  \033[32m%s\033[0m' "$branch"
         [[ -n "$shown_cwd" ]] && printf '  \033[2m%s\033[0m' "$shown_cwd"
+        # fzf は隠しフィールドを検索できないため、tab 行にも親 workspace 名を見える形で残す。
+        [[ -n "$parent" ]] && printf '  \033[2m@%s\033[0m' "$parent"
         printf '\n'
     done <<< "$rows"
 }
@@ -74,7 +91,17 @@ fi
 rows=$(_picker_list)
 [[ -n "$rows" ]] || { echo "no herdr workspaces found" >&2; exit 1; }
 
-selected=$(fzf --ansi --delimiter $'\t' --with-nth 2.. --no-sort \
-    --prompt 'workspace> ' <<< "$rows") || exit 130
+selected=$(fzf --ansi --delimiter $'\t' --with-nth 2.. --no-sort --layout=reverse \
+    --prompt 'workspace/tab> ' <<< "$rows") || exit 130
 
-"$herdr_bin" workspace focus "${selected%%$'\t'*}" >/dev/null
+target="${selected%%$'\t'*}"
+case "$target" in
+    ws:*) "$herdr_bin" workspace focus "${target#ws:}" >/dev/null ;;
+    tab:*)
+        tab_id="${target#tab:}"
+        # tab focus だけで別 workspace の tab へ移れるかは未検証なので、先に workspace へ移る。
+        "$herdr_bin" workspace focus "${tab_id%%:*}" >/dev/null
+        "$herdr_bin" tab focus "$tab_id" >/dev/null
+        ;;
+    *) echo "unexpected selection: $target" >&2; exit 1 ;;
+esac
