@@ -240,6 +240,13 @@ class RenderTest(unittest.TestCase):
         self.assertIn("すべての指摘を判断しました。state.json に保存しますか？", html)
         self.assertIn("showSaveFilePicker", html)
 
+    def test_auto_save_prompt_skipped_when_every_item_dismissed(self):
+        html = mod.render(merged([item(1)]))
+        # 全件「対応しない」は後続処理に渡す対象が無いため保存確認を出さない
+        offer_body = html.split("function maybeOfferAutoSave", 1)[1].split("\n", 1)[0]
+        self.assertIn('const allDismissed=DATA.items.every(item=>itemState(item.id).decision==="dismiss")', offer_body)
+        self.assertLess(offer_body.index("!allDismissed"), offer_body.index("window.confirm"))
+
     def test_file_save_requires_explicit_confirmation_when_not_server_backed(self):
         html = mod.render(merged([item(1)]))
         # showSaveFilePicker はCAN_SERVER_SAVEがfalseのときの明示確認の後段でのみ呼ばれる
