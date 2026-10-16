@@ -157,9 +157,11 @@ height = "90%"
 
 [[keys.command]]
 key = "prefix+g"
-type = "plugin_action"
-command = "herdr-bar.open"
-description = "command bar"
+type = "popup"
+command = "$HOME/.herdr/scripts/herdr-popup-run.sh zsh -ilc '$HOME/.herdr/scripts/herdr-workspace-picker.sh'"
+description = "switch workspace (with git branch)"
+width = "70%"
+height = "60%"
 
 [ui]
 mouse_capture = true

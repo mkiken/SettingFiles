@@ -5,7 +5,6 @@ HERDR_CODEX_COMMAND="bash ~/.codex/herdr-agent-state.sh session"
 typeset -a HERDR_REMOTE_PLUGINS=(
   "herdr-automatic-rename:qu8n/herdr-automatic-rename"
   "termscope:iurysza/termscope"
-  "herdr-bar:jeffarese/herdr-bar"
   "herdr-zoxide:den-tanui/herdr-zoxide"
   "usagebar:senna-lang/herdr-agent-usage"
 )
@@ -61,6 +60,7 @@ function setup_herdr_scripts() {
     herdr-open-lazygit.sh
     herdr-open-zoxide-picker.sh
     herdr-popup-run.sh
+    herdr-workspace-picker.sh
     herdr-workspace-reuse.sh
     herdr-split-snapshot-pane.sh
     herdr_status_icon.sh
