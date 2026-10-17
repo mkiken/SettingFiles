@@ -163,6 +163,14 @@ description = "switch tab (with git branch)"
 width = "70%"
 height = "60%"
 
+[[keys.command]]
+key = "prefix+d"
+type = "popup"
+command = "$HOME/.herdr/scripts/herdr-popup-run.sh zsh -ilc '$HOME/.herdr/scripts/herdr-workspace-close-picker.sh'"
+description = "close workspaces (multi-select)"
+width = "70%"
+height = "60%"
+
 [ui]
 mouse_capture = true
 copy_on_select = true
