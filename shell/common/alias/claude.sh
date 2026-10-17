@@ -105,7 +105,7 @@ cl-review-post() {
 }
 
 cl-review-fix() {
-    clo --permission-mode plan "/review-fix $*"
+    clp "/review-fix $*"
 }
 
 _cl-pr-comment-review() {
