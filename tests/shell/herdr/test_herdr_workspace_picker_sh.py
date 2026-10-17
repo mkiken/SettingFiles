@@ -1,4 +1,4 @@
-"""Herdr workspace/tab picker listing with git branches."""
+"""Herdr tab picker listing with workspace names and git branches."""
 
 import json
 import re
@@ -92,7 +92,7 @@ class HerdrWorkspacePickerTest(unittest.TestCase):
         return {"pane_id": pane_id, "tab_id": tab, "cwd": cwd,
                 "foreground_cwd": "/somewhere/else", "focused": focused}
 
-    def test_rows_show_branch_and_home_relative_cwd_with_focused_last(self):
+    def test_rows_show_workspace_branch_and_home_relative_cwd_with_focused_last(self):
         repo_a = make_repo(self.home / "src/a", "feature-a")
         repo_b = make_repo(self.root / "b", "main")
         result, rows = self.run_list(
@@ -100,16 +100,18 @@ class HerdrWorkspacePickerTest(unittest.TestCase):
              self.workspace("w2", "[2] b", "w2:t1")],
             [self.pane("w1:p1", "w1:t1", str(repo_a)),
              self.pane("w2:p1", "w2:t1", str(repo_b))],
+            tabs=[self.tab("w1:t1", "w1", "[1] x", 1, focused=True),
+                  self.tab("w2:t1", "w2", "[1] y", 1)],
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(rows, [
-            ["ws:w2", f"  [2] b  main  {repo_b}"],
-            ["ws:w1", "* [1] a  feature-a  ~/src/a"],
+            ["w2:t1", f"  b › [1] y  main  {repo_b}"],
+            ["w1:t1", "* a › [1] x  feature-a  ~/src/a"],
         ])
         self.assertEqual(self.log.read_text().splitlines(),
                          ["workspace list", "tab list", "pane list"])
 
-    def test_focused_pane_of_active_tab_wins_over_first_pane(self):
+    def test_focused_pane_wins_over_first_pane_within_the_tab(self):
         first = make_repo(self.root / "first", "first-branch")
         chosen = make_repo(self.root / "chosen", "chosen-branch")
         other_tab = make_repo(self.root / "other", "other-branch")
@@ -118,9 +120,10 @@ class HerdrWorkspacePickerTest(unittest.TestCase):
             [self.pane("w1:p0", "w1:t1", str(other_tab), focused=True),
              self.pane("w1:p1", "w1:t2", str(first)),
              self.pane("w1:p2", "w1:t2", str(chosen), focused=True)],
+            tabs=[self.tab("w1:t2", "w1", "[2] t", 2)],
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(rows, [["ws:w1", f"  [1] x  chosen-branch  {chosen}"]])
+        self.assertEqual(rows, [["w1:t2", f"  x › [2] t  chosen-branch  {chosen}"]])
 
     def test_detached_head_shows_short_sha(self):
         repo = make_repo(self.root / "r", "main")
@@ -131,22 +134,23 @@ class HerdrWorkspacePickerTest(unittest.TestCase):
         result, rows = self.run_list(
             [self.workspace("w1", "[1] r", "w1:t1")],
             [self.pane("w1:p1", "w1:t1", str(repo))],
+            tabs=[self.tab("w1:t1", "w1", "[1] t", 1)],
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(rows, [["ws:w1", f"  [1] r  {sha}  {repo}"]])
+        self.assertEqual(rows, [["w1:t1", f"  r › [1] t  {sha}  {repo}"]])
 
-    def test_non_git_or_missing_cwd_lists_without_branch(self):
+    def test_non_git_tab_lists_without_branch(self):
         plain = self.root / "plain"
         plain.mkdir()
         result, rows = self.run_list(
-            [self.workspace("w1", "[1] plain", "w1:t1"),
-             self.workspace("w2", "[2] nopane", "w2:t1")],
+            [self.workspace("w1", "[1] plain", "w1:t1")],
             [self.pane("w1:p1", "w1:t1", str(plain))],
+            tabs=[self.tab("w1:t1", "w1", "[1] t", 1)],
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(rows, [["ws:w1", f"  [1] plain  {plain}"], ["ws:w2", "  [2] nopane"]])
+        self.assertEqual(rows, [["w1:t1", f"  plain › [1] t  {plain}"]])
 
-    def test_tabs_are_listed_under_their_workspace_in_number_order(self):
+    def test_tabs_are_flat_in_number_order_and_workspace_rows_are_absent(self):
         repo_a = make_repo(self.root / "a", "branch-a")
         repo_b = make_repo(self.root / "b", "branch-b")
         repo_c = make_repo(self.root / "c", "branch-c")
@@ -161,13 +165,11 @@ class HerdrWorkspacePickerTest(unittest.TestCase):
                   self.tab("w1:t1", "w1", "[1] only", 1, focused=True)],
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        # 現在の workspace は tab ごと末尾。tab 行は親 workspace 名を @ 付きで持つ。
+        # 現在の workspace の tab は末尾。workspace 行は出さない。
         self.assertEqual(rows, [
-            ["ws:w2", f"  [2] beta  branch-b  {repo_b}"],
-            ["tab:w2:t1", f"    └ [1] first  branch-b  {repo_b}  @beta"],
-            ["tab:w2:t2", f"    └ [2] second  branch-c  {repo_c}  @beta"],
-            ["ws:w1", f"* [1] alpha  branch-a  {repo_a}"],
-            ["tab:w1:t1", f"*   └ [1] only  branch-a  {repo_a}  @alpha"],
+            ["w2:t1", f"  beta › [1] first  branch-b  {repo_b}"],
+            ["w2:t2", f"  beta › [2] second  branch-c  {repo_c}"],
+            ["w1:t1", f"* alpha › [1] only  branch-a  {repo_a}"],
         ])
 
     def test_tab_without_panes_lists_without_branch(self):
@@ -177,7 +179,12 @@ class HerdrWorkspacePickerTest(unittest.TestCase):
             tabs=[self.tab("w1:t1", "w1", "[1] t", 1)],
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(rows, [["ws:w1", "  [1] a"], ["tab:w1:t1", "    └ [1] t  @a"]])
+        self.assertEqual(rows, [["w1:t1", "  a › [1] t"]])
+
+    def test_workspace_without_tabs_is_omitted(self):
+        result, rows = self.run_list([self.workspace("w1", "[1] a", "w1:t1")], [])
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(rows, [])
 
     def test_tab_list_failure_fails_loudly(self):
         result, _ = self.run_list(

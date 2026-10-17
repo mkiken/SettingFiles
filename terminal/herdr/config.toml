@@ -159,7 +159,7 @@ height = "90%"
 key = "prefix+g"
 type = "popup"
 command = "$HOME/.herdr/scripts/herdr-popup-run.sh zsh -ilc '$HOME/.herdr/scripts/herdr-workspace-picker.sh'"
-description = "switch workspace/tab (with git branch)"
+description = "switch tab (with git branch)"
 width = "70%"
 height = "60%"
 
