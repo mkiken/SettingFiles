@@ -15,7 +15,7 @@ Fix selected review items from a merge run directory in the current working tree
 
 Group the selected items by their `file` field; items whose `area`/`summary` clearly share one root cause may be merged into one group. Number groups `g1..gN` in first-appearance order.
 
-Present the selected items (`id. [file:line_spec] priority | area: summary`) with their grouping and confirm with the user before editing anything. Then: 1 group → Inline Flow; 2+ groups → Subagent Flow.
+Present the selected items (`id. [file:line_spec] priority | area: summary`) with their grouping and confirm with the user before editing anything. Then: 1 group → Inline Flow; 2+ groups → Subagent Flow. Exception: when every item is a small, local fix with no open design decision, offer Inline Flow as the recommended choice in that confirmation and let the user pick.
 
 ## fix_state.json
 
