@@ -142,6 +142,6 @@ When every group is terminal (`fixed`/`committed`/`skipped`/`rejected`), run the
 
 #### PR body update
 
-After the summary, if at least one group's `merge_action` is `commit_merge_push` and its push succeeded, ask once `今回の変更に合わせてPR bodyを更新しますか？` with exactly `PR bodyを更新する` / `更新しない`; otherwise skip silently. Inline Flow never pushes, so it never asks.
+After the summary, if at least one group's `merge_action` is `commit_merge_push` and its push succeeded, ask once `今回の変更に合わせてPR bodyを更新しますか？` with exactly `PR bodyを更新する` / `更新しない`. In Inline Flow, ask it once only if the session's post-implementation workflow then pushes successfully. Otherwise skip silently.
 
 On `PR bodyを更新する`, resolve <PR_NUMBER> from the adapter's PR resolution or `gh pr view --json number --jq .number` in the calling worktree, gather `gh pr view <PR_NUMBER> --json body,url`, `gh pr diff <PR_NUMBER>`, and whether `.github/PULL_REQUEST_TEMPLATE.md` exists. Then read <PR_BODY_DOCS> (adapter-defined) and follow its Drafting Rules and Confirmation Flow in full. Never shorten the flow: show the `--color=always` colored diff, paste the `--no-color` diff verbatim in a ````diff block, list `### 変更点の概要`, check for removed manual content, re-show the diff after any revision, and verify the applied body. Never ask to apply a body from a summary alone. Report the result (更新済み / スキップ / ⚠️ failure) as the last summary line.
