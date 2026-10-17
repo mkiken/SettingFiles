@@ -83,7 +83,7 @@ fi
 rows=$(_picker_list)
 [[ -n "$rows" ]] || { echo "no herdr tabs found" >&2; exit 1; }
 
-selected=$(fzf --ansi --delimiter $'\t' --with-nth 2.. --no-sort --layout=reverse \
+selected=$(fzf --ansi --exact --delimiter $'\t' --with-nth 2.. --no-sort --layout=reverse \
     --prompt 'tab> ' <<< "$rows") || exit 130
 
 tab_id="${selected%%$'\t'*}"
