@@ -123,14 +123,14 @@ _cx-pr-comment-review() {
     cxmx --dangerously-bypass-approvals-and-sandbox "\$pr-comment-review $*"
 }
 
-alias cx-pr-comment-implement='noglob _cx-pr-comment-implement'
-alias cx-pci='noglob _cx-pr-comment-implement'
+alias cx-pr-comment-implement='noglob _ai_pci_route _cx-pr-comment-implement'
+alias cx-pci='noglob _ai_pci_route _cx-pr-comment-implement'
 _cx-pr-comment-implement() {
     cxteh "\$pr-comment-implement $*"
 }
 
-alias cxmx-pr-comment-implement='noglob _cxmx-pr-comment-implement'
-alias cxmx-pci='noglob _cxmx-pr-comment-implement'
+alias cxmx-pr-comment-implement='noglob _ai_pci_route _cxmx-pr-comment-implement'
+alias cxmx-pci='noglob _ai_pci_route _cxmx-pr-comment-implement'
 _cxmx-pr-comment-implement() {
     cxmx "\$pr-comment-implement $*"
 }

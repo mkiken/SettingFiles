@@ -79,8 +79,8 @@ _gm-pr-comment-review() {
     gmmx --approval-mode yolo -i "/pr-comment-review $*"
 }
 
-alias gm-pr-comment-implement='noglob _gm-pr-comment-implement'
-alias gm-pci='noglob _gm-pr-comment-implement'
+alias gm-pr-comment-implement='noglob _ai_pci_route _gm-pr-comment-implement'
+alias gm-pci='noglob _ai_pci_route _gm-pr-comment-implement'
 _gm-pr-comment-implement() {
     gmmx -i "/pr-comment-implement $*"
 }

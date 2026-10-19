@@ -476,3 +476,133 @@ _fwmon-review() {
 
 fwmon-review()           { _fwmon-review review "$@" }
 fwmon-review-subagents() { _fwmon-review review-subagents "$@" }
+
+# originのURLから小文字の "owner/repo" を出力する。ホストは無視する
+# （github.com以外のSSHエイリアス、例: github-personal: でも照合できるようにするため）
+# 引数: リポジトリパス
+_ai_pci_remote_slug() {
+    local url
+    url=$(git -C "$1" remote get-url origin 2>/dev/null) || return 1
+    url="${url%.git}"
+    url="${url//:/\/}"
+    local -a parts=("${(@s:/:)url}")
+    (( ${#parts} >= 2 )) || return 1
+    print -r -- "${(L)parts[-2]}/${(L)parts[-1]}"
+}
+
+# cl-pci系の実行場所を対象PRのworktreeへ自動で切り替える（Herdr専用）
+# - headブランチがcheckout済みのworktreeにHerdrペインがあれば、そのworkspaceへ移動し新tabで実行する。
+#   既存ペインはエージェント稼働中の可能性があり、pane runで打つと入力として誤送信されるため触らない
+# - 未checkoutならworktreeを選ばせてgh pr checkoutし、worktree名のworkspaceで実行する
+# 先頭引数がPR URLでない、またはHerdr外ならそのまま実行する（従来動作）
+# 引数: 実装関数名, [PRコメントURL] [指示...]
+_ai_pci_route() {
+    local impl_func="$1"; shift
+
+    local re='^https?://[^/]+/([^/]+)/([^/]+)/pull/([0-9]+)'
+    if [[ "$(_ai_multiplexer_kind)" != "herdr" ]] || [[ ! "${1:-}" =~ $re ]]; then
+        "$impl_func" "$@"
+        return $?
+    fi
+    local slug="${(L)match[1]}/${(L)match[2]}"
+    local pr_number="${match[3]}"
+
+    local head_branch
+    head_branch=$(gh pr view "$1" --json headRefName -q .headRefName) || {
+        echo "PRのheadブランチを取得できませんでした: $1" >&2
+        return 1
+    }
+    [[ -n "$head_branch" ]] || return 1
+
+    local -a quoted=("${(@q)@}")
+    local command="${impl_func} ${(j: :)quoted}"
+
+    # zoxide配下で同じGitHubリポジトリを指すcloneを集め、head_branchを持つworktreeを探す
+    local -a clones=()
+    local dir worktree_path="" line cur_wt
+    while IFS= read -r dir; do
+        [[ -d "$dir/.git" ]] || continue
+        [[ "$(_ai_pci_remote_slug "$dir")" == "$slug" ]] && clones+=("$dir")
+    done < <(zoxide query --list 2>/dev/null)
+
+    if (( ${#clones} == 0 )); then
+        echo "${slug} のローカルcloneが見つかりません（zoxideに登録されたリポジトリ内）" >&2
+        return 1
+    fi
+
+    for dir in "${clones[@]}"; do
+        while IFS= read -r line; do
+            case "$line" in
+                "worktree "*) cur_wt="${line#worktree }" ;;
+                "branch refs/heads/${head_branch}") worktree_path="$cur_wt"; break 2 ;;
+            esac
+        done < <(git -C "$dir" worktree list --porcelain 2>/dev/null)
+    done
+
+    if [[ -n "$worktree_path" ]]; then
+        if [[ "${PWD:A}" == "${worktree_path:A}" || "${PWD:A}" == "${worktree_path:A}"/* ]]; then
+            "$impl_func" "$@"
+            return $?
+        fi
+    else
+        local clone="${clones[1]}"
+        if (( ${#clones} > 1 )); then
+            clone=$(print -rl -- "${clones[@]}" | filter \
+                --header "${slug} のcloneを選択" --prompt "pci repo> " \
+                --preview 'git -C {} log --oneline --color=always -10 2>/dev/null')
+            [[ -n "$clone" ]] || return $EXIT_CODE_SIGINT
+        fi
+
+        worktree_path=$(cdq "$clone" && _filter_git_worktree_path --label-prefix pci)
+        if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
+            return $EXIT_CODE_SIGINT
+        fi
+
+        _freview_resolve_dirty_state "$worktree_path" || return $?
+
+        ( cdq "$worktree_path" && gh pr checkout "$pr_number" ) || {
+            echo "gh pr checkout ${pr_number} に失敗しました: ${worktree_path}" >&2
+            return 1
+        }
+    fi
+
+    local label
+    label=$(_review_window_git_name "$worktree_path")
+    [[ -n "$label" ]] || label="${worktree_path:t}"
+
+    local herdr_bin="${HERDR_BIN_PATH:-herdr}"
+
+    # 対象worktreeで既にペインが開いているworkspaceがあれば再利用する
+    local ws_id
+    ws_id=$("$herdr_bin" pane list 2>/dev/null | jq -r --arg w "$worktree_path" \
+        '[.result.panes[]? | select(.cwd == $w or (.cwd | startswith($w + "/")))][0].workspace_id // empty')
+    if [[ -n "$ws_id" ]]; then
+        "$herdr_bin" workspace focus "$ws_id" >/dev/null || return 1
+        _herdr_run_in_new_tab "$ws_id" "$worktree_path" "$label" "$command" "" 1
+        return $?
+    fi
+
+    local ws_json
+    ws_json=$(HERDR_REAL_BIN_PATH="$herdr_bin" \
+        "${SET:-$HOME/Desktop/repository/SettingFiles}/shell/herdr/herdr-workspace-reuse.sh" \
+        workspace create --label "${worktree_path:t}" --cwd "$worktree_path" --focus) || {
+        echo "herdr workspace createに失敗しました" >&2
+        return 1
+    }
+    ws_id=$(print -r -- "$ws_json" | jq -r '.result.workspace.workspace_id // empty')
+    [[ -n "$ws_id" ]] || { echo "workspace_idを取得できませんでした" >&2; return 1; }
+
+    if [[ "$(print -r -- "$ws_json" | jq -r '.result.reused')" == "true" ]]; then
+        _herdr_run_in_new_tab "$ws_id" "$worktree_path" "$label" "$command" "" 1
+        return $?
+    fi
+
+    local pane_id
+    pane_id=$(print -r -- "$ws_json" | jq -r '.result.root_pane.pane_id // empty')
+    [[ -n "$pane_id" ]] || { echo "pane_idを取得できませんでした" >&2; return 1; }
+    _herdr_wait_shell_ready "$pane_id" || return 1
+    "$herdr_bin" pane run "$pane_id" "$command" || {
+        echo "herdr pane runに失敗しました (pane_id=${pane_id})" >&2
+        return 1
+    }
+}
