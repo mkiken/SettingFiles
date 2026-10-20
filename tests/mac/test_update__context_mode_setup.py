@@ -66,6 +66,7 @@ class ContextModeSetupTest(unittest.TestCase):
                 "setup_claude_dig",
                 "setup_claude_example_skills",
                 "setup_claude_ponytail",
+                "setup_claude_cache_tools",
             ),
             "mac/scripts/ai/gemini.sh": (
                 "setup_gemini_context_mode",
@@ -103,6 +104,7 @@ class ContextModeSetupTest(unittest.TestCase):
                     "setup_claude_example_skills",
                     "setup_claude_mem",
                     "setup_claude_ponytail",
+                    "setup_claude_cache_tools",
                 ),
             ),
             "mac/updates/claude.sh": (
@@ -116,6 +118,7 @@ class ContextModeSetupTest(unittest.TestCase):
                     "setup_claude_example_skills",
                     "setup_claude_mem",
                     "setup_claude_ponytail",
+                    "setup_claude_cache_tools",
                 ),
             ),
             "mac/initialization/ai/gemini.sh": (
@@ -348,6 +351,33 @@ class ContextModeSetupTest(unittest.TestCase):
         # marketplace名(ponytail)がrepo owner(DietrichGebert)と混同され、
         # repo slugをplugin ID/参照に誤用していないことを確認する
         self.assertNotIn("ponytail@DietrichGebert/ponytail", script)
+
+    def test_claude_settings_register_cache_tools_plugin(self):
+        settings = json.loads(read_text("ai/claude/settings.json"))
+
+        self.assertTrue(settings["enabledPlugins"]["cache-tools@claude-code-cache-tools"])
+        self.assertEqual(
+            settings["extraKnownMarketplaces"]["claude-code-cache-tools"],
+            {
+                "source": {
+                    "repo": "Sigsiguma/claude-code-cache-tools",
+                    "source": "github",
+                }
+            },
+        )
+
+    def test_claude_cache_tools_setup_uses_upstream_marketplace(self):
+        script = read_text("mac/scripts/ai/claude.sh")
+
+        self.assertIn("function setup_claude_cache_tools()", script)
+        self.assertIn("claude plugin marketplace add Sigsiguma/claude-code-cache-tools", script)
+        self.assertIn("claude plugin marketplace update claude-code-cache-tools", script)
+        self.assertIn("cache-tools@claude-code-cache-tools", script)
+
+        # marketplace名(claude-code-cache-tools)とrepo slug(Sigsiguma/...)を取り違え、
+        # plugin ID/updateにrepo slugを誤用していないことを確認する
+        self.assertNotIn("cache-tools@Sigsiguma/claude-code-cache-tools", script)
+        self.assertNotIn("marketplace update Sigsiguma", script)
 
     def test_codex_ponytail_setup_uses_installed_guard_not_config_toml_fallback(self):
         codex = read_text("mac/scripts/ai/codex.sh")

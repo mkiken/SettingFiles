@@ -76,5 +76,6 @@ setup_claude_dig
 setup_claude_example_skills
 setup_claude_mem
 setup_claude_ponytail
+setup_claude_cache_tools
 
 echo 'Claude setup and tools installation completed.'

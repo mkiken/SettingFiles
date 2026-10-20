@@ -9,6 +9,7 @@
   "awaySummaryEnabled": false,
   "effortLevel": "medium",
   "enabledPlugins": {
+    "cache-tools@claude-code-cache-tools": true,
     "claude-mem@thedotmack": true,
     "context-mode@context-mode": true,
     "dig@kuu-marketplace": true,
@@ -27,6 +28,12 @@
     "anthropic-agent-skills": {
       "source": {
         "repo": "anthropics/skills",
+        "source": "github"
+      }
+    },
+    "claude-code-cache-tools": {
+      "source": {
+        "repo": "Sigsiguma/claude-code-cache-tools",
         "source": "github"
       }
     },

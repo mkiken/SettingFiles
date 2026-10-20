@@ -170,3 +170,29 @@ function setup_claude_ponytail() {
   # モードは upstream 既定の full に依存する。~/.config/ponytail/config.json は
   # ponytail 自身が書き戻すため、リポジトリからの宣言管理はしない。
 }
+
+function setup_claude_cache_tools() {
+  echo "Ensuring Claude cache-tools plugin..."
+
+  require_ai_setup_command claude || return 1
+  require_ai_setup_command jq || return 1
+
+  # addはrepo指定、以後のupdate/参照はmarketplace名(claude-code-cache-tools)で行う。
+  if ! claude plugin marketplace list | /usr/bin/grep -Fq "claude-code-cache-tools"; then
+    claude plugin marketplace add Sigsiguma/claude-code-cache-tools || return 1
+  fi
+
+  claude plugin marketplace update claude-code-cache-tools || return 1
+
+  if claude plugin list --json | jq -e '.[] | select(.id == "cache-tools@claude-code-cache-tools")' >/dev/null; then
+    claude plugin update cache-tools@claude-code-cache-tools || return 1
+  else
+    claude plugin install cache-tools@claude-code-cache-tools || return 1
+  fi
+
+  if ! claude plugin list --json | jq -e '.[] | select(.id == "cache-tools@claude-code-cache-tools" and .enabled == true)' >/dev/null; then
+    claude plugin enable cache-tools@claude-code-cache-tools || return 1
+  fi
+
+  # cacheGuardMode 等の userConfig は upstream 既定に依存し、リポジトリからの宣言管理はしない。
+}
