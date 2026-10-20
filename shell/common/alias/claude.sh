@@ -97,7 +97,7 @@ cl-review-merge() {
         echo "Usage: cl-review-merge <run_dir>" >&2
         return 1
     fi
-    clo --dangerously-skip-permissions "/review-merge $run_dir"
+    clseh --dangerously-skip-permissions "/review-merge $run_dir"
 }
 
 cl-review-post() {

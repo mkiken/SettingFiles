@@ -108,11 +108,11 @@ class ClReviewPostFixAliasTest(unittest.TestCase):
         self.assertIn("--dangerously-skip-permissions", captured)
         self.assertEqual(captured[-1], "/review-post RUN")
 
-    def test_cl_review_merge_uses_opus_at_default_effort(self):
+    def test_cl_review_merge_uses_sonnet_at_high_effort(self):
         captured = run_claude_alias("cl-review-merge RUN")
 
-        self.assertEqual(captured[captured.index("--model") + 1], "opus")
-        self.assertNotIn("--effort", captured)
+        self.assertEqual(captured[captured.index("--model") + 1], "sonnet")
+        self.assertEqual(captured[captured.index("--effort") + 1], "high")
         self.assertIn("--dangerously-skip-permissions", captured)
         self.assertEqual(captured[-1], "/review-merge RUN")
 
