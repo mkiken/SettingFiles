@@ -29,10 +29,16 @@ def run_zsh(script: str, command: str) -> list[str]:
     return [match.group(1) for match in re.finditer(r"^<(.*)>$", result.stdout, re.MULTILINE)]
 
 
+# _ai_pci_route（shell/zsh/filter/ai.zsh）はHerdr外では実装関数をそのまま呼ぶ。
+# ルーティング自体はtest_ai_zsh__pci_route.pyが検証するため、ここでは素通しにする。
+PCI_ROUTE_PASSTHROUGH = '_ai_pci_route() { local impl_func="$1"; shift; "$impl_func" "$@"; }'
+
+
 def run_claude_alias(command: str) -> list[str]:
     return run_zsh(
         f'''source "{CLAUDE_ALIASES}"
 no_notify() {{ printf '<%s>\\n' "$@"; }}
+{PCI_ROUTE_PASSTHROUGH}
 eval "$TEST_COMMAND"''',
         command,
     )
@@ -43,6 +49,7 @@ def run_codex_alias(command: str) -> list[str]:
         f'''source "{CODEX_ALIASES}"
 cx() {{ printf '<%s>\\n' "$@"; }}
 source "{REPO_ROOT / 'shell/zsh/alias/ai/ai.zsh'}"
+{PCI_ROUTE_PASSTHROUGH}
 eval "$TEST_COMMAND"''',
         command,
     )
@@ -119,7 +126,8 @@ class ClReviewPostFixAliasTest(unittest.TestCase):
     def test_cl_review_fix_starts_in_plan_mode(self):
         captured = run_claude_alias("cl-review-fix RUN")
 
-        self.assertEqual(captured[captured.index("--model") + 1], "opus")
+        # review-fixはclp経由。planモードのみでモデル・effortの上書きは無い。
+        self.assertNotIn("--model", captured)
         self.assertNotIn("--effort", captured)
         self.assertEqual(captured[captured.index("--permission-mode") + 1], "plan")
         self.assertNotIn("--dangerously-skip-permissions", captured)
@@ -150,7 +158,7 @@ class PrCommentImplementAliasTest(unittest.TestCase):
         for alias, helper, tier in self.ALIASES:
             with self.subTest(alias=alias):
                 aliases = claude_aliases if alias.startswith("cl") else codex_aliases
-                self.assertIn(f"alias {alias}='noglob {helper}'", aliases)
+                self.assertIn(f"alias {alias}='noglob _ai_pci_route {helper}'", aliases)
 
                 captured = (
                     run_claude_alias(f'{alias} "{self.URL}" "{self.EXTRA}"')

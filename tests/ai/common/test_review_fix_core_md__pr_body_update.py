@@ -12,7 +12,7 @@ class ReviewFixPrBodyUpdateTest(unittest.TestCase):
         for required in (
             "#### PR body update",
             "at least one group's `merge_action` is `commit_merge_push` and its push succeeded",
-            "Inline Flow never pushes, so it never asks.",
+            "In Inline Flow, ask it once only if the session's post-implementation workflow then pushes successfully.",
             "`PR bodyを更新する` / `更新しない`",
             "read <PR_BODY_DOCS> (adapter-defined)",
             "Confirmation Flow in full",
