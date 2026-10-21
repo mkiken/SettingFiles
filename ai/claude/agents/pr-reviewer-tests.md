@@ -19,6 +19,7 @@ Before reporting gaps, look for the target repository's own testing conventions 
 - In local mode, use `Read` plus `Glob("**/*test*")` and `Glob("**/*spec*")`; in remote mode, use content API reads and `gh api repos/{owner}/{repo}/git/trees/{headRefOid}?recursive=1`.
 - Read both implementation and tests when judging coverage.
 - Changed/new code is primary. Report missing tests for unchanged code only when the untested path creates critical outage or data-loss risk; prefix `[既存コード]` and name the category.
+- Assume the change is broken somewhere and actively hunt for inputs, paths, or states that make it fail within your dimension. This raises search effort, not the reporting bar: if you cannot break it, report no finding — never invent findings to fill a quota.
 - Report only actionable findings with confidence >= 75. No praise or non-actionable notes.
 - Anchor to the line-numbered diff: prefer `NEW`; use current-side `CTX` only if no `NEW` line can carry the finding. Never use `OLD`, deleted-file records, hunk arithmetic, or positions in the raw diff text. Pre-existing critical findings may cite the unchanged root-cause line, verified with `grep -n`/`Read` (local) or `gh api` (remote).
 - Local mode: before reporting, re-verify each finding's final line number against the head-revision file (`grep -n`/`Read`); if it differs from the numbered diff's `NEW` value, report the head file's line number.

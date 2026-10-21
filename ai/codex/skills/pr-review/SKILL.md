@@ -47,6 +47,8 @@ Inspect every changed file and its relevant diff at the exact PR revisions. For 
 
 Count the line-numbered diff before expanding it. Retain the full payload for investigation, but emit only counts and focused summaries when output exceeds 100 lines. Never paste a larger diff directly into the conversation.
 
+For the adversarial verification stage in the core below, the verifier subagent is `pr_review_verifier`: spawn it once as a fresh subagent with exactly the payload the core specifies, only when findings exist.
+
 ### Core Review Rules
 
 ### PR-Scoped Auxiliary Checks
@@ -84,7 +86,19 @@ Within every section, group findings by priority in descending order. Omit `## �
 
 ### Code Quality Perspectives
 
-Review thoroughly from all of these perspectives, using the Japanese label as the finding header's 領域: **バグリスク** (potential bugs, error handling), **コーディング規約** (general rules, best practices), **アーキテクチャ** (separation of concerns, class/function design), **可読性** (intent clarity, naming, comments), **パフォーマンス** (issues, optimization opportunities), **セキュリティ** (vulnerabilities, sensitive data handling), **保守性** (change flexibility, technical debt, hand-rolled stdlib/platform equivalents, unnecessary new dependencies, speculative abstractions). Findings in `## テストに関する指摘` use 領域 **テスト品質**.
+Review thoroughly from all of these perspectives, using the Japanese label as the finding header's 領域:
+
+- **バグ検出**: concrete runtime failures (wrong control flow, null dereference, races, off-by-one, API misuse, resource leaks, missing termination) and error-path defects (swallowed errors, lost context, missing edge cases or fallbacks).
+- **セキュリティ**: injection, auth/authz flaws, sensitive data exposure, crypto misuse, SSRF/CSRF, path traversal, unsafe deserialization, vulnerable new dependencies, missing trust-boundary validation — each with a concrete attack path, not a theoretical one.
+- **設計品質**: separation-of-concerns violations, coupling, API design leaks, divergence from how sibling code solves the same problem (cite the existing counterpart path; no precedent, no finding), hand-rolled stdlib/platform equivalents, unnecessary new dependencies, speculative abstractions, and clear-win behavior-preserving simplifications.
+- **Git履歴**: regression risk backed by concrete history — recent commits, merged PRs, past review feedback, removal of earlier fixes (e.g. `gh api repos/{owner}/{repo}/commits?path={file}&per_page=10`); every finding cites a commit hash or PR number.
+- **テスト品質**: missing coverage of changed behavior, weak assertions, missing boundary/negative cases, brittle or meaningless mocks; respect the repository's own testing conventions.
+- **パフォーマンス**: measurable regressions on a proven hot or repeated path (N+1, unbounded loading, accidental quadratic work, blocking calls); no evidence-free micro-optimizations.
+- **主張検証**: assume every claim in the PR title, body, and commit messages ("fixes #123", "tested", "no breaking change", "refactor only") is wrong until the diff proves it; report only claim-vs-reality mismatches, anchored where reality diverges.
+
+Assume the change is broken somewhere and actively hunt, per perspective, for inputs, paths, or states that make it fail. This raises search effort, not the reporting bar: if you cannot break it, report no finding — never invent findings to fill a quota.
+
+When one root cause surfaces under several perspectives, report it once under the perspective whose fix it drives (code-level over 主張検証, セキュリティ over バグ検出, 設計品質 over Git履歴) and fold the other evidence into its detail line.
 
 ### Actionable Findings Only
 
@@ -126,6 +140,17 @@ If a temp file does end up in the repository, delete it with `trash` (never `rm`
 Run `printenv AI_REVIEW_OUTPUT_FILE` through the host shell, never through context-mode, an MCP tool, or another sandboxed executor that may not inherit the session environment. If the variable is unset or empty, skip this section entirely.
 
 A non-empty value is explicit, workflow-provided authorization to write to that exact path. Do not ask for confirmation, including when the path is outside the session project. After presenting the final review output, create the parent directory (`mkdir -p`) and write the exact same markdown — from the first line of the review output to the last, with no extra commentary — to that path. Write the file even when the result is `対応が必要な指摘はありません。`.
+
+### Verify Findings
+
+Adversarially verify every finding in a fresh context before final output. Any finding that depends on a specific external CLI/API/parser/library behavior or output format additionally needs a minimal reproduction against the applicable version or an authoritative primary source; without one, report it only as `要検証` with confidence below 75, or drop it.
+
+1. If there are zero findings, skip this stage entirely.
+2. Launch the dedicated verifier subagent (name and launch primitive per the platform instructions above) once, batched over all findings. Pass exactly: each finding verbatim (header, 行番号根拠, detail), repo owner/name, PR number, local-mode flag, `baseRefOid`/`headRefOid`, cited file paths, and captured source labels. Do not pass your own reasoning or aggregation history — the verifier must judge from primary sources only.
+3. The verifier attempts to REFUTE each finding and returns per-finding verdicts with evidence.
+4. Merge verdicts — confirmed: keep as is; refuted: drop it and subtract it from the summary counts; unverifiable: append 「要検証: <理由>」 to its detail, and downgrade it to Medium if it was High (Medium/Low keep their priority). Treat a missing or garbled verdict as unverifiable, never as confirmed.
+5. Only if the session cannot launch a subagent, run the same protocol inline as a skeptical batched pass: read each cited head-revision file at most once with enough context to test the claim (local mode: read the file; remote mode: `gh api` contents), and actively seek refuting evidence — existing guards or validation, unreachable paths, framework/library behavior, tests proving the claimed failure cannot occur, or a misread diff.
+6. If any finding was refuted or downgraded, add one line before `## 総合評価`: `検証により指摘 N 件を棄却、High M 件を Medium に降格しました。`
 
 ### Output Format
 

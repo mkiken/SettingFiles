@@ -11,26 +11,45 @@ from support import REPO_ROOT
 COMMON_SCRIPT = REPO_ROOT / "mac/scripts/common.sh"
 ORCHESTRATOR_CORE = REPO_ROOT / "ai/common/pr_review_subagents/orchestrator_core.md"
 VERIFIER_CORE = REPO_ROOT / "ai/common/pr_review_subagents/verifier_core.md"
+VERIFY_STAGE = REPO_ROOT / "ai/common/pr_review_verify.md"
 
 PLATFORMS = ("claude", "gemini", "codex")
+
+
+class VerifyStageContractTest(unittest.TestCase):
+    """The verification stage is shared by pr-review and pr-review-subagents."""
+
+    def setUp(self):
+        self.stage = VERIFY_STAGE.read_text(encoding="utf-8")
+
+    def test_verdict_merge_contract_is_present(self):
+        # The downgrade/drop semantics and the summary line are load-bearing for
+        # every platform adapter; losing any of them silently changes review output.
+        self.assertIn("検証により指摘 N 件を棄却、High M 件を Medium に降格しました。", self.stage)
+        for verdict in ("confirmed", "unverifiable", "refuted"):
+            self.assertIn(verdict, self.stage)
+
+    def test_every_finding_is_verified_not_only_high(self):
+        self.assertIn("Adversarially verify every finding in a fresh context", self.stage)
+        self.assertIn("batched over all findings", self.stage)
+        self.assertIn("Medium/Low keep their priority", self.stage)
+
+    def test_zero_findings_skip_is_declared(self):
+        self.assertIn("If there are zero findings, skip this stage entirely", self.stage)
+
+    def test_missing_verdict_never_counts_as_confirmed(self):
+        self.assertIn("Treat a missing or garbled verdict as unverifiable, never as confirmed", self.stage)
+
+    def test_orchestrator_core_no_longer_defines_its_own_stage(self):
+        # A second copy in the orchestrator would let the two skills' verification drift apart.
+        core = ORCHESTRATOR_CORE.read_text(encoding="utf-8")
+        self.assertNotIn("### Verify", core)
+        self.assertNotIn("検証により", core)
 
 
 class OrchestratorCoreAdversarialVerificationTest(unittest.TestCase):
     def setUp(self):
         self.core = ORCHESTRATOR_CORE.read_text(encoding="utf-8")
-
-    def test_verdict_merge_contract_is_present(self):
-        # The downgrade/drop semantics and the summary line are load-bearing for
-        # every platform adapter; losing any of them silently changes review output.
-        self.assertIn("検証により High 指摘", self.core)
-        for verdict in ("confirmed", "unverifiable", "refuted"):
-            self.assertIn(verdict, self.core)
-
-    def test_zero_high_findings_skip_is_declared(self):
-        self.assertIn("If there are zero High findings, skip this stage entirely", self.core)
-
-    def test_missing_verdict_never_counts_as_confirmed(self):
-        self.assertIn("Treat a missing or garbled verdict as unverifiable, never as confirmed", self.core)
 
     def test_claims_label_in_label_list_and_summary_table(self):
         label_line = next(

@@ -33,7 +33,19 @@ Within every section, group findings by priority in descending order. Omit `## �
 
 ### Code Quality Perspectives
 
-Review thoroughly from all of these perspectives, using the Japanese label as the finding header's 領域: **バグリスク** (potential bugs, error handling), **コーディング規約** (general rules, best practices), **アーキテクチャ** (separation of concerns, class/function design), **可読性** (intent clarity, naming, comments), **パフォーマンス** (issues, optimization opportunities), **セキュリティ** (vulnerabilities, sensitive data handling), **保守性** (change flexibility, technical debt, hand-rolled stdlib/platform equivalents, unnecessary new dependencies, speculative abstractions). Findings in `## テストに関する指摘` use 領域 **テスト品質**.
+Review thoroughly from all of these perspectives, using the Japanese label as the finding header's 領域:
+
+- **バグ検出**: concrete runtime failures (wrong control flow, null dereference, races, off-by-one, API misuse, resource leaks, missing termination) and error-path defects (swallowed errors, lost context, missing edge cases or fallbacks).
+- **セキュリティ**: injection, auth/authz flaws, sensitive data exposure, crypto misuse, SSRF/CSRF, path traversal, unsafe deserialization, vulnerable new dependencies, missing trust-boundary validation — each with a concrete attack path, not a theoretical one.
+- **設計品質**: separation-of-concerns violations, coupling, API design leaks, divergence from how sibling code solves the same problem (cite the existing counterpart path; no precedent, no finding), hand-rolled stdlib/platform equivalents, unnecessary new dependencies, speculative abstractions, and clear-win behavior-preserving simplifications.
+- **Git履歴**: regression risk backed by concrete history — recent commits, merged PRs, past review feedback, removal of earlier fixes (e.g. `gh api repos/{owner}/{repo}/commits?path={file}&per_page=10`); every finding cites a commit hash or PR number.
+- **テスト品質**: missing coverage of changed behavior, weak assertions, missing boundary/negative cases, brittle or meaningless mocks; respect the repository's own testing conventions.
+- **パフォーマンス**: measurable regressions on a proven hot or repeated path (N+1, unbounded loading, accidental quadratic work, blocking calls); no evidence-free micro-optimizations.
+- **主張検証**: assume every claim in the PR title, body, and commit messages ("fixes #123", "tested", "no breaking change", "refactor only") is wrong until the diff proves it; report only claim-vs-reality mismatches, anchored where reality diverges.
+
+Assume the change is broken somewhere and actively hunt, per perspective, for inputs, paths, or states that make it fail. This raises search effort, not the reporting bar: if you cannot break it, report no finding — never invent findings to fill a quota.
+
+When one root cause surfaces under several perspectives, report it once under the perspective whose fix it drives (code-level over 主張検証, セキュリティ over バグ検出, 設計品質 over Git履歴) and fold the other evidence into its detail line.
 
 ### Actionable Findings Only
 

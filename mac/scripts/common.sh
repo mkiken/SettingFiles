@@ -758,13 +758,13 @@ function generate_core_skills() {
 # 全てここから読む。新規スキルを shared-core 化するときはこの2配列に追記するだけでよく、
 # 生成物パスの列挙（旧 verify_ai_skill_generation_idempotency のハードコード配列）は不要。
 CODEX_CORE_SKILL_ENTRIES=(
-  "pr-review:pr_review_core.md pr_review_finding_format.md"
+  "pr-review:pr_review_core.md pr_review_verify.md pr_review_finding_format.md"
   "pr-comment-review:pr_comment_review_core.md"
   "pr-comment-implement:pr_comment_implement_core.md"
   "pr-body:pr_body_core.md pr_body_format.md"
   "pr-comment-post:pr_comment_post_core.md pr_post_mechanics_core.md"
   "pr-create-by-branch:pr_create_by_branch_core.md pr_body_format.md"
-  "pr-review-subagents:pr_review_subagents/orchestrator_core.md pr_review_finding_format.md"
+  "pr-review-subagents:pr_review_subagents/orchestrator_core.md pr_review_verify.md pr_review_finding_format.md"
   "config-audit:config_audit_subagents/orchestrator_core.md"
   "audit-fix:audit_fix_core.md"
   "review-merge:review_merge_core.md"

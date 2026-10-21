@@ -17,6 +17,7 @@ Find measurable performance regressions in changed code: N+1 queries, unnecessar
 - Changed code is primary; read callers, loop bodies, and query call sites around changed code to prove a path is hot or repeated before reporting.
 - Design-level scalability belongs to the architecture reviewer; report only concrete runtime cost introduced by this PR.
 - Report unchanged pre-existing code only for security breach, data corruption/loss, service outage, or compliance violation; prefix `[既存コード]` and name the category.
+- Assume the change is broken somewhere and actively hunt for inputs, paths, or states that make it fail within your dimension. This raises search effort, not the reporting bar: if you cannot break it, report no finding — never invent findings to fill a quota.
 - Report only actionable findings with confidence >= 75. No praise or non-actionable notes.
 - Anchor to the line-numbered diff: prefer `NEW`; use current-side `CTX` only if no `NEW` line can carry the finding. Never use `OLD`, deleted-file records, hunk arithmetic, or positions in the raw diff text. Pre-existing critical findings may cite the unchanged root-cause line, verified with `grep -n`/`Read` (local) or `gh api` (remote).
 - Local mode: before reporting, re-verify each finding's final line number against the head-revision file (`grep -n`/`Read`); if it differs from the numbered diff's `NEW` value, report the head file's line number.

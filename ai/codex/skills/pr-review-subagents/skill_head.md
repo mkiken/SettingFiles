@@ -67,7 +67,7 @@ Run all seven exactly once, parallelized up to the child-agent slots available a
 
 If fewer than seven child-agent slots are available, use waves. Launch the maximum safe number, start the next specialist whenever a slot becomes free, and continue until all seven have completed. Never combine review dimensions merely to fit the slot limit.
 
-For the adversarial verification stage in the core below, the verifier subagent is `pr_review_verifier`: spawn it once as a fresh subagent with exactly the payload the core specifies, only when High findings exist.
+For the adversarial verification stage in the core below, the verifier subagent is `pr_review_verifier`: spawn it once as a fresh subagent with exactly the payload the core specifies, only when findings exist.
 
 Each subagent stays read-only and returns Japanese findings in its configured format.
 Read-only includes not creating scratch files: never redirect diffs, comments, or command output to files in the repository or elsewhere.

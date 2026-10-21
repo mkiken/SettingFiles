@@ -1,3 +1,4 @@
+- Assume the change is broken somewhere and actively hunt for inputs, paths, or states that make it fail within your dimension. This raises search effort, not the reporting bar: if you cannot break it, report no finding — never invent findings to fill a quota.
 - Stay read-only; do not edit, format, or patch files.
 - Return all actionable findings to the parent. For confidence below 75, retain the finding with its measured confidence and mark it `要検証` under the shared priority mapping. No praise or non-actionable notes.
 - Anchor to the line-numbered diff: prefer `NEW`; use current-side `CTX` only if no `NEW` line can carry the finding. Never use `OLD`, deleted-file records, hunk arithmetic, or positions in the raw diff text. Pre-existing critical findings may cite the unchanged root-cause line, verified with `rg -n`/`sed -n` (local) or `gh api` (remote).

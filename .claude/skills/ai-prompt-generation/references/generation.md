@@ -16,8 +16,8 @@ Shared-core skills follow one pattern: the skill body lives in core file(s) unde
 
 | Skill | Core file(s) in `ai/common/` | Notes |
 | --- | --- | --- |
-| pr-review | `pr_review_core.md` + `pr_review_finding_format.md` | `pr_review_finding_format.md` defines the shared final output format (priority matrix, finding structure, section skeleton, 総合評価) |
-| pr-review-subagents | `pr_review_subagents/orchestrator_core.md` + `pr_review_finding_format.md` | reviewer agents are separately generated — see below |
+| pr-review | `pr_review_core.md` + `pr_review_verify.md` + `pr_review_finding_format.md` | `pr_review_finding_format.md` defines the shared final output format (priority matrix, finding structure, section skeleton, 総合評価); `pr_review_verify.md` is the adversarial verification stage shared with pr-review-subagents (adapter-head bit: verifier launch primitive) |
+| pr-review-subagents | `pr_review_subagents/orchestrator_core.md` + `pr_review_verify.md` + `pr_review_finding_format.md` | reviewer agents are separately generated — see below |
 | pr-comment-review | `pr_comment_review_core.md` | |
 | pr-comment-implement | `pr_comment_implement_core.md` | The core routes phases into `ai/common/pr_comment_implement/`; Claude/Gemini read that common directory, while Codex exposes it as the skill's `references` symlink. |
 | pr-comment-post | `pr_comment_post_core.md` + `pr_post_mechanics_core.md` | adapter-head bits: `ITEM_NUMBERS`, `{ai_header}`, confirmation primitive |

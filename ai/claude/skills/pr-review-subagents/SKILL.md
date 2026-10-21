@@ -48,9 +48,11 @@ Start all simultaneously:
 
 If a launched sub-agent fails mid-run on a transient API error (e.g. session limit), do not respawn it: resume the same agent with SendMessage so it continues with its context intact. For a session-limit failure, check the current time against the reported reset time first and resume only after it has passed.
 
-For the adversarial verification stage in the core below, the verifier sub-agent is **pr-review-verifier**: launch it once as a fresh Task sub-agent with exactly the payload the core specifies, only when High findings exist.
+For the adversarial verification stage in the core below, the verifier sub-agent is **pr-review-verifier**: launch it once as a fresh Task sub-agent with exactly the payload the core specifies, only when findings exist.
 
 !`/bin/cat ~/.claude/common/pr_review_subagents/orchestrator_core.md`
+
+!`/bin/cat ~/.claude/common/pr_review_verify.md`
 
 !`/bin/cat ~/.claude/common/pr_review_finding_format.md`
 

@@ -26,17 +26,6 @@ If `<ADDITIONAL_INSTRUCTIONS>` is non-empty, ensure every specialist received it
 10. For any finding that depends on a specific external CLI/API/parser/library behavior or output format, require a minimal reproduction against the applicable version or an authoritative primary source. If neither is available, report it only as `要検証` with confidence below 75, or drop it. This applies at every priority level; code-only claims do not need this extra verification.
 11. If any finding was skipped as an existing-comment duplicate, report it in the `[既コメント済]` section per the Output Format section below.
 
-### Verify High Findings
-
-Adversarially verify every High-priority finding in a fresh context before final output. Findings that depend on external CLI/API/parser/library behavior or output formats must also satisfy Aggregate item 10 regardless of priority; do not otherwise re-verify Medium/Low findings.
-
-1. If there are zero High findings, skip this stage entirely.
-2. Launch the dedicated verifier subagent (name and launch primitive per the platform instructions above) once, batched over all High findings. Pass exactly: each High finding verbatim (header, 行番号根拠, detail), repo owner/name, PR number, local-mode flag, `baseRefOid`/`headRefOid`, cited file paths, and captured source labels. Do not pass your own reasoning, non-High findings, or aggregation history — the verifier must judge from primary sources only.
-3. The verifier attempts to REFUTE each finding and returns per-finding verdicts with evidence.
-4. Merge verdicts — confirmed: keep as High; unverifiable: downgrade to Medium and append 「要検証: <理由>」 to its detail; refuted: drop it and subtract it from the summary counts. Treat a missing or garbled verdict as unverifiable, never as confirmed.
-5. Only if the session cannot launch a subagent, run the same protocol inline as a skeptical batched pass: read each cited head-revision file at most once with enough context to test the claim (local mode: read the file; remote mode: `gh api` contents), and actively seek refuting evidence — existing guards or validation, unreachable paths, framework/library behavior, tests proving the claimed failure cannot occur, or a misread diff.
-6. If any finding was refuted or downgraded, add one line before `## 総合評価`: `検証により High 指摘 N 件を棄却、M 件を Medium に降格しました。`
-
 ### Final Format
 
 Finding-header 領域 labels: バグ検出, セキュリティ, 設計品質, Git履歴, テスト品質, パフォーマンス, 主張検証.

@@ -42,9 +42,11 @@ Invoke all seven with `wait_for_previous=false`:
 6. **pr-reviewer-performance** — パフォーマンス
 7. **pr-reviewer-claims** — 主張検証（PR説明・コミットメッセージと実装の乖離）
 
-For the adversarial verification stage in the core below, the verifier agent is **pr-review-verifier**: invoke it once with `wait_for_previous=true` and exactly the payload the core specifies, only when High findings exist.
+For the adversarial verification stage in the core below, the verifier agent is **pr-review-verifier**: invoke it once with `wait_for_previous=true` and exactly the payload the core specifies, only when findings exist.
 
 !{cat ~/.gemini/common/pr_review_subagents/orchestrator_core.md}
+
+!{cat ~/.gemini/common/pr_review_verify.md}
 
 !{cat ~/.gemini/common/pr_review_finding_format.md}
 

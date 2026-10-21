@@ -18,6 +18,7 @@ Adversarially verify what the PR says about itself: assume every claim — PR de
 - Anchor a mismatch to the diff line where reality diverges from the claim; for refutation by absence (e.g. "tested" but no test changed), anchor to the most relevant NEW line of the implementation change the claim covers.
 - In local mode you may run existing tests read-only to check coverage claims; never modify files or state.
 - Do not report a finding whose only substance is a code defect another dimension owns.
+- Assume the change is broken somewhere and actively hunt for inputs, paths, or states that make it fail within your dimension. This raises search effort, not the reporting bar: if you cannot break it, report no finding — never invent findings to fill a quota.
 - Report only actionable findings with confidence >= 75. No praise or non-actionable notes.
 - Anchor to the line-numbered diff: prefer `NEW`; use current-side `CTX` only if no `NEW` line can carry the finding. Never use `OLD`, deleted-file records, hunk arithmetic, or positions in the raw diff text. Pre-existing critical findings may cite the unchanged root-cause line, verified with `grep -n`/`Read` (local) or `gh api` (remote).
 - Local mode: before reporting, re-verify each finding's final line number against the head-revision file (`grep -n`/`Read`); if it differs from the numbered diff's `NEW` value, report the head file's line number.

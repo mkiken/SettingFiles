@@ -1,5 +1,5 @@
 name = "pr_review_verifier"
-description = "Read-only adversarial verifier for High-priority review findings."
+description = "Read-only adversarial verifier for PR review findings."
 model = "gpt-6-astra"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"

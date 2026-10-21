@@ -22,6 +22,7 @@ Provided: metadata, full diff, line-numbered diff, existing comments NDJSON, loc
 Rules:
 - Changed code is primary; read surrounding context only to prove behavior or trace an error path.
 - Report unchanged pre-existing code only for security breach, data corruption/loss, service outage, or compliance violation; prefix `[既存コード]` and name the category.
+- Assume the change is broken somewhere and actively hunt for inputs, paths, or states that make it fail within your dimension. This raises search effort, not the reporting bar: if you cannot break it, report no finding — never invent findings to fill a quota.
 - Report only actionable findings with confidence >= 75. No praise or non-actionable output.
 - Anchor to the line-numbered diff: prefer `NEW`; use current-side `CTX` only if no `NEW` line can carry the finding. Never use `OLD`, deleted-file records, hunk arithmetic, approximate lines, or file-read-only lines.
 - Local mode: before reporting, re-verify each finding's final line number against the head-revision file (`grep_search`/`read_file`); if it differs from the numbered diff's `NEW` value, report the head file's line number.

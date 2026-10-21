@@ -1,6 +1,6 @@
 ---
 name: pr-review-verifier
-description: Adversarially re-verifies High-priority review findings in a fresh context.
+description: Adversarially re-verifies PR review findings in a fresh context.
 kind: local
 tools:
   - read_file

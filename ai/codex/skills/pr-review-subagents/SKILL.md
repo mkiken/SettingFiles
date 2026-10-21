@@ -67,7 +67,7 @@ Run all seven exactly once, parallelized up to the child-agent slots available a
 
 If fewer than seven child-agent slots are available, use waves. Launch the maximum safe number, start the next specialist whenever a slot becomes free, and continue until all seven have completed. Never combine review dimensions merely to fit the slot limit.
 
-For the adversarial verification stage in the core below, the verifier subagent is `pr_review_verifier`: spawn it once as a fresh subagent with exactly the payload the core specifies, only when High findings exist.
+For the adversarial verification stage in the core below, the verifier subagent is `pr_review_verifier`: spawn it once as a fresh subagent with exactly the payload the core specifies, only when findings exist.
 
 Each subagent stays read-only and returns Japanese findings in its configured format.
 Read-only includes not creating scratch files: never redirect diffs, comments, or command output to files in the repository or elsewhere.
@@ -101,17 +101,6 @@ If `<ADDITIONAL_INSTRUCTIONS>` is non-empty, ensure every specialist received it
 10. For any finding that depends on a specific external CLI/API/parser/library behavior or output format, require a minimal reproduction against the applicable version or an authoritative primary source. If neither is available, report it only as `要検証` with confidence below 75, or drop it. This applies at every priority level; code-only claims do not need this extra verification.
 11. If any finding was skipped as an existing-comment duplicate, report it in the `[既コメント済]` section per the Output Format section below.
 
-### Verify High Findings
-
-Adversarially verify every High-priority finding in a fresh context before final output. Findings that depend on external CLI/API/parser/library behavior or output formats must also satisfy Aggregate item 10 regardless of priority; do not otherwise re-verify Medium/Low findings.
-
-1. If there are zero High findings, skip this stage entirely.
-2. Launch the dedicated verifier subagent (name and launch primitive per the platform instructions above) once, batched over all High findings. Pass exactly: each High finding verbatim (header, 行番号根拠, detail), repo owner/name, PR number, local-mode flag, `baseRefOid`/`headRefOid`, cited file paths, and captured source labels. Do not pass your own reasoning, non-High findings, or aggregation history — the verifier must judge from primary sources only.
-3. The verifier attempts to REFUTE each finding and returns per-finding verdicts with evidence.
-4. Merge verdicts — confirmed: keep as High; unverifiable: downgrade to Medium and append 「要検証: <理由>」 to its detail; refuted: drop it and subtract it from the summary counts. Treat a missing or garbled verdict as unverifiable, never as confirmed.
-5. Only if the session cannot launch a subagent, run the same protocol inline as a skeptical batched pass: read each cited head-revision file at most once with enough context to test the claim (local mode: read the file; remote mode: `gh api` contents), and actively seek refuting evidence — existing guards or validation, unreachable paths, framework/library behavior, tests proving the claimed failure cannot occur, or a misread diff.
-6. If any finding was refuted or downgraded, add one line before `## 総合評価`: `検証により High 指摘 N 件を棄却、M 件を Medium に降格しました。`
-
 ### Final Format
 
 Finding-header 領域 labels: バグ検出, セキュリティ, 設計品質, Git履歴, テスト品質, パフォーマンス, 主張検証.
@@ -137,6 +126,17 @@ Prepend this summary table before the first priority section of the Output Forma
 Run `printenv AI_REVIEW_OUTPUT_FILE` through the host shell, never through context-mode, an MCP tool, or another sandboxed executor that may not inherit the session environment. If the variable is unset or empty, skip this section entirely.
 
 A non-empty value is explicit, workflow-provided authorization to write to that exact path. Do not ask for confirmation, including when the path is outside the session project. After presenting the final review output, create the parent directory (`mkdir -p`) and write the exact same markdown — from the first line of the review output to the last, with no extra commentary — to that path. Write the file even when the result is `対応が必要な指摘はありません。`.
+
+### Verify Findings
+
+Adversarially verify every finding in a fresh context before final output. Any finding that depends on a specific external CLI/API/parser/library behavior or output format additionally needs a minimal reproduction against the applicable version or an authoritative primary source; without one, report it only as `要検証` with confidence below 75, or drop it.
+
+1. If there are zero findings, skip this stage entirely.
+2. Launch the dedicated verifier subagent (name and launch primitive per the platform instructions above) once, batched over all findings. Pass exactly: each finding verbatim (header, 行番号根拠, detail), repo owner/name, PR number, local-mode flag, `baseRefOid`/`headRefOid`, cited file paths, and captured source labels. Do not pass your own reasoning or aggregation history — the verifier must judge from primary sources only.
+3. The verifier attempts to REFUTE each finding and returns per-finding verdicts with evidence.
+4. Merge verdicts — confirmed: keep as is; refuted: drop it and subtract it from the summary counts; unverifiable: append 「要検証: <理由>」 to its detail, and downgrade it to Medium if it was High (Medium/Low keep their priority). Treat a missing or garbled verdict as unverifiable, never as confirmed.
+5. Only if the session cannot launch a subagent, run the same protocol inline as a skeptical batched pass: read each cited head-revision file at most once with enough context to test the claim (local mode: read the file; remote mode: `gh api` contents), and actively seek refuting evidence — existing guards or validation, unreachable paths, framework/library behavior, tests proving the claimed failure cannot occur, or a misread diff.
+6. If any finding was refuted or downgraded, add one line before `## 総合評価`: `検証により指摘 N 件を棄却、High M 件を Medium に降格しました。`
 
 ### Output Format
 

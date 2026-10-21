@@ -47,4 +47,6 @@ Inspect every changed file and its relevant diff at the exact PR revisions. For 
 
 Count the line-numbered diff before expanding it. Retain the full payload for investigation, but emit only counts and focused summaries when output exceeds 100 lines. Never paste a larger diff directly into the conversation.
 
+For the adversarial verification stage in the core below, the verifier subagent is `pr_review_verifier`: spawn it once as a fresh subagent with exactly the payload the core specifies, only when findings exist.
+
 ### Core Review Rules

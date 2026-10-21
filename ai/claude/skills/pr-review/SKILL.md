@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(gh:*), Bash(git:*), Bash(/bin/cat:*), Bash(bash ~/.config/ai-pr/bin/fetch_existing_comments.sh:*), Bash(bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh:*), Read, Glob
+allowed-tools: Bash(gh:*), Bash(git:*), Bash(/bin/cat:*), Bash(bash ~/.config/ai-pr/bin/fetch_existing_comments.sh:*), Bash(bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh:*), Read, Glob, Task
 description: "Comprehensive PR review using gh command; detects the current branch's PR when no number is given"
 model: opus
 argument-hint: "[prNumber] [additionalInstructions...]"
@@ -23,7 +23,7 @@ Use only `<PR_NUMBER>` in gh commands. If `<ADDITIONAL_INSTRUCTIONS>` is non-emp
 Determine the file access mode before starting:
 
 1. `git branch --show-current` — current local branch
-2. `gh pr view <PR_NUMBER> --json title,body,files,commits,baseRefName,headRefName --jq '{title,body,baseRefName,headRefName,files:[.files[]|{path,additions,deletions,changeType}],commits:[.commits[]|{oid,messageHeadline}]}'` — bounded PR metadata
+2. `gh pr view <PR_NUMBER> --json title,body,files,commits,baseRefName,baseRefOid,headRefName,headRefOid --jq '{title,body,baseRefName,baseRefOid,headRefName,headRefOid,files:[.files[]|{path,additions,deletions,changeType}],commits:[.commits[]|{oid,messageHeadline}]}'` — bounded PR metadata
 3. Compare the current branch with `headRefName`.
 
 Commit bodies, authors, and dates are intentionally omitted. If a headline needs investigation, fetch that commit on demand with `git show <oid> --no-patch` (local mode) or `gh api repos/{owner}/{repo}/commits/{oid}` (remote mode).
@@ -45,9 +45,13 @@ Fetch primary review materials (PR metadata is already fetched above):
 
 For deeper investigation (files outside the diff, surrounding context), use the access mode determined above.
 
+For the adversarial verification stage in the core below, the verifier sub-agent is **pr-review-verifier**: launch it once as a fresh Task sub-agent with exactly the payload the core specifies, only when findings exist.
+
 ### Core Review Rules
 
 !`/bin/cat ~/.claude/common/pr_review_core.md`
+
+!`/bin/cat ~/.claude/common/pr_review_verify.md`
 
 !`/bin/cat ~/.claude/common/pr_review_finding_format.md`
 
