@@ -13,6 +13,7 @@ DESCRIPTION_SOURCES = (
     REPO_ROOT / "ai/common/skills/fact-based/SKILL.md",
     REPO_ROOT / "ai/gemini/skills/fact-based/skill_head.md",
     REPO_ROOT / "ai/common/shared_skills/worktree-task/SKILL.md",
+    REPO_ROOT / "ai/common/shared_skills/branch-pr-task/SKILL.md",
 )
 
 

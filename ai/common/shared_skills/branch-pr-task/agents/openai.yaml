@@ -1,0 +1,4 @@
+interface:
+  display_name: "Branch PR Task"
+  short_description: "Implement on a new branch and open a PR to its parent"
+  default_prompt: "Use $branch-pr-task to implement this on a new branch and open a pull request."
