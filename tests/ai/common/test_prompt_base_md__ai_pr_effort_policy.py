@@ -138,15 +138,13 @@ class PrCommentImplementAliasTest(unittest.TestCase):
     URL = "https://github.com/acme/widget/pull/42#discussion_r123"
     EXTRA = "fix only the failing path"
 
-    # tier "terra-high": cx-pciは日常運用の既定として低コストのterraを維持しつつ
-    # effortだけhighに上げている（cxmx-pciはAstraへ切り替える上位版）。
     ALIASES = (
         ("cl-pr-comment-implement", "_cl-pr-comment-implement", "light"),
         ("cl-pci", "_cl-pr-comment-implement", "light"),
         ("clmx-pr-comment-implement", "_clmx-pr-comment-implement", "high"),
         ("clmx-pci", "_clmx-pr-comment-implement", "high"),
-        ("cx-pr-comment-implement", "_cx-pr-comment-implement", "terra-high"),
-        ("cx-pci", "_cx-pr-comment-implement", "terra-high"),
+        ("cx-pr-comment-implement", "_cx-pr-comment-implement", "sol"),
+        ("cx-pci", "_cx-pr-comment-implement", "sol"),
         ("cxmx-pr-comment-implement", "_cxmx-pr-comment-implement", "high"),
         ("cxmx-pci", "_cxmx-pr-comment-implement", "high"),
     )
@@ -187,9 +185,10 @@ class PrCommentImplementAliasTest(unittest.TestCase):
                     if tier == "light":
                         self.assertNotIn("--model", captured)
                         self.assertNotIn("-c", captured)
-                    elif tier == "terra-high":
-                        self.assertEqual(captured[:2], ["--model", "gpt-5.6-terra"])
-                        self.assertEqual(captured[2:4], ["-c", 'model_reasoning_effort="high"'])
+                    elif tier == "sol":
+                        self.assertEqual(captured[:2], ["--model", "gpt-6.1-sol"])
+                        # Sol workflows inherit the user's reasoning setting.
+                        self.assertNotIn("-c", captured)
                     else:
                         self.assertEqual(captured[:2], ["--model", "gpt-6-astra"])
                         self.assertEqual(captured[2:4], ["-c", 'model_reasoning_effort="high"'])
@@ -208,6 +207,10 @@ class CodexModelSelectionTest(unittest.TestCase):
             ("cxs task", ["--model", "gpt-6.1-sol", "task"]),
             ("cxa task", ["--model", "gpt-6-astra", "task"]),
             ("cxt task", ["--model", "gpt-5.6-terra", "task"]),
+            (
+                "cxteh task",
+                ["--model", "gpt-5.6-terra", "-c", 'model_reasoning_effort="high"', "task"],
+            ),
             ("cxl task", ["--model", "gpt-6-luna", "task"]),
             (
                 "cxeh task",

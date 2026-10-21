@@ -61,7 +61,7 @@ cx-pr-body() {
         echo "現在のブランチに対応するPRが見つかりません。" >&2
         return 1
     }
-    cxteh --dangerously-bypass-approvals-and-sandbox "\$pr-body PR #$pr_number のbodyを生成して $*"
+    cxs --dangerously-bypass-approvals-and-sandbox "\$pr-body PR #$pr_number のbodyを生成して $*"
 }
 
 cx-pr-create() {
@@ -118,7 +118,7 @@ cx-review-merge() {
 }
 
 cx-review-post() {
-    cxteh --dangerously-bypass-approvals-and-sandbox "\$review-post $*"
+    cxs --dangerously-bypass-approvals-and-sandbox "\$review-post $*"
 }
 
 cx-review-fix() {
@@ -134,7 +134,7 @@ _cx-pr-comment-review() {
 alias cx-pr-comment-implement='noglob _ai_pci_route _cx-pr-comment-implement'
 alias cx-pci='noglob _ai_pci_route _cx-pr-comment-implement'
 _cx-pr-comment-implement() {
-    cxteh "\$pr-comment-implement $*"
+    cxs "\$pr-comment-implement $*"
 }
 
 alias cxmx-pr-comment-implement='noglob _ai_pci_route _cxmx-pr-comment-implement'
