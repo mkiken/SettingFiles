@@ -104,16 +104,65 @@ echo "rc=$?"
         self.assertNotIn("LAUNCHED", result.stdout)
         self.assertIn("移動できません", result.stderr)
 
-    def test_review_herdr_label_uses_given_cwd_not_pwd(self):
-        # _ai_review_herdr_labelはcwd引数を受け取り、$PWDに依存しない
-        snippet = '''
-_review_window_git_name() { printf 'git_name_arg %s\\n' "$1" >&2; echo "my-branch"; }
-_ai_review_herdr_label "🤖" /path/to/wt
-'''
-        result = run_zsh(snippet)
+    def test_review_herdr_label_prefixes_emoji_and_tab_name(self):
+        result = run_zsh('_ai_review_herdr_label "🤖" "my-repo#1"')
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("git_name_arg /path/to/wt", result.stderr)
-        self.assertIn("my-branch", result.stdout)
+        self.assertTrue(result.stdout.strip().startswith("🤖"), result.stdout)
+        self.assertTrue(result.stdout.strip().endswith("my-repo#1"), result.stdout)
+
+
+class ReviewHerdrTabNameTest(unittest.TestCase):
+    """_review_herdr_tab_name: <repo本体名>#<PR番号>、取れなければ従来名へフォールバック。"""
+
+    def run_name(self, args, gh_body, with_repo=True):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            main = Path(temp_dir) / "mainrepo"
+            wt = Path(temp_dir) / "wt-ws5"
+            log = Path(temp_dir) / "gh.log"
+            cwd = main
+            if with_repo:
+                env = sanitized_env()
+                git = ["git", "-C", str(main)]
+                subprocess.run(["git", "init", "-q", "-b", "main", str(main)], check=True, env=env)
+                subprocess.run(
+                    git + ["-c", "user.name=t", "-c", "user.email=t@example.com",
+                           "commit", "-q", "--allow-empty", "-m", "i"], check=True, env=env)
+                subprocess.run(git + ["worktree", "add", "-q", "-b", "feat", str(wt)],
+                               check=True, env=env)
+                cwd = wt
+            else:
+                cwd.mkdir()
+            snippet = f'''
+gh() {{ echo called >> "{log}"; {gh_body}; }}
+_review_window_git_name() {{ echo "fallback-name"; }}
+_review_herdr_tab_name "{cwd}" {args}
+'''
+            result = run_zsh(snippet)
+            calls = len(log.read_text().splitlines()) if log.exists() else 0
+        return result.stdout.strip(), calls
+
+    def test_pr_from_current_branch_uses_main_repo_name_not_worktree(self):
+        name, calls = self.run_name("", "echo 1234")
+        self.assertEqual(name, "mainrepo#1234")
+        self.assertEqual(calls, 1)
+
+    def test_hash_arg_skips_gh(self):
+        name, calls = self.run_name("'#77'", "echo 1")
+        self.assertEqual(name, "mainrepo#77")
+        self.assertEqual(calls, 0)
+
+    def test_pr_url_arg_skips_gh(self):
+        name, calls = self.run_name("https://github.com/o/r/pull/88/files", "echo 1")
+        self.assertEqual(name, "mainrepo#88")
+        self.assertEqual(calls, 0)
+
+    def test_gh_failure_falls_back_to_git_name(self):
+        name, _ = self.run_name("", "return 1")
+        self.assertEqual(name, "fallback-name")
+
+    def test_non_git_directory_falls_back_to_git_name(self):
+        name, _ = self.run_name("42", "echo 1", with_repo=False)
+        self.assertEqual(name, "fallback-name")
 
 
 class ReviewLaunchHerdrTest(unittest.TestCase):
@@ -168,7 +217,7 @@ herdr() {{
     fi
     return 0
 }}
-_review_window_git_name() {{ printf 'git_name_arg %s\\n' "$1" >> "$LOG"; echo "my-branch"; }}
+_review_herdr_tab_name() {{ printf 'git_name_arg %s\\n' "$1" >> "$LOG"; echo "my-repo#123"; }}
 _herdr_wait_shell_ready() {{ printf 'shell_ready %s\\n' "$1" >> "$LOG"; }}
 # 実体は test_ai_zsh__herdr_run_in_new_tab.py で検証済みなので、
 # ここでは連番のpane_id/tab_idを代入するstubにする
@@ -218,7 +267,7 @@ print -r -- "rc=$?"
         newtabs = [c for c in calls if c.startswith("newtab ")]
         self.assertEqual(len(newtabs), 3, calls)
         # 初期タブ(t0)をorchestratorにラベル付けし、shell-ready後にroot pane(p0)へ_review_watchを投入
-        self.assertIn("tab rename t0 🔍orchestrator:my-branch", calls)
+        self.assertIn("tab rename t0 🔍orchestrator:my-repo#123", calls)
         self.assertIn("shell_ready p0", calls)
         # 投入コマンドは引数なしの最短形にする（pane run送信の末尾欠落で
         # spec漏れ・別ランのパス成立が起きた事故があったため、
@@ -296,7 +345,7 @@ print -r -- "rc=$?"
         self.assertEqual(result.stdout, "rc=0\n")
         newtabs = [c for c in calls if c.startswith("newtab ")]
         self.assertEqual(len(newtabs), 4, calls)
-        self.assertIn("orchestrator:my-branch", newtabs[0])
+        self.assertIn("orchestrator:my-repo#123", newtabs[0])
         self.assertIn(f"AI_REVIEW_RUN_DIR={run_dir}", newtabs[0])
         self.assertIn("pane run p1 _review_watch", calls)
         self.assertIn("tab focus t1", calls)

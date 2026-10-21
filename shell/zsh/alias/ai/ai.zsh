@@ -318,23 +318,47 @@ ai-all() {
     esac
 }
 
-# worktree非依存・tmux非依存でreview系のラベル(AI識別絵文字+🔍+git名)を計算する
-# filter/ai.zsh の _review_window_git_name（純git実装）を流用する
-# 引数: ai_emoji（省略可。ai-all同様、AI種別を視覚的に区別するための識別絵文字を前置） cwd（レビュー対象ディレクトリ）
+# review系Herdrタブ名の本体（<repo本体名>#<PR番号>）を返す
+# repo本体名はworktreeではなくgit common dirの親ディレクトリ名。PR番号は先頭のreview引数
+# （#N / N / PR URL）、無ければcwdの現在ブランチのPR。どちらか取れなければ
+# filter/ai.zsh の _review_window_git_name（<repo>/<ブランチ末尾>）へ戻す
+# 引数: cwd（レビュー対象ディレクトリ） [review_args...]
+_review_herdr_tab_name() {
+    local cwd="$1"
+    shift
+
+    local pr_number=""
+    if [[ $# -gt 0 ]] && _ai_pr_review_arg_is_pr_ref "$1"; then
+        if [[ "$1" =~ '/pull/([0-9]+)' ]]; then
+            pr_number="${match[1]}"
+        else
+            pr_number="${1#\#}"
+        fi
+    else
+        # cdはchpwdフック/zoxideの影響を避けるためbuiltin cd -q（サブシェル内）
+        pr_number=$(builtin cd -q "${cwd}" 2>/dev/null && gh pr view --json number --jq .number 2>/dev/null)
+    fi
+
+    local common_dir repo_name=""
+    common_dir=$(git -C "${cwd}" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)
+    [[ "${common_dir:t}" == ".git" ]] && repo_name="${common_dir:h:t}"
+
+    if [[ -n "${pr_number}" && -n "${repo_name}" ]]; then
+        print -r -- "${repo_name}#${pr_number}"
+    else
+        _review_window_git_name "${cwd}"
+    fi
+}
+
+# worktree非依存・tmux非依存でreview系のラベル(AI識別絵文字+🔍+タブ名)を組み立てる
+# 引数: ai_emoji（省略可。ai-all同様、AI種別を視覚的に区別するための識別絵文字を前置） tab_name（_review_herdr_tab_name の結果）
 _ai_review_herdr_label() {
     local ai_emoji="$1"
-    local cwd="$2"
+    local tab_name="$2"
     local set_dir="${SET:-$HOME/Desktop/repository/SettingFiles}"
     source "${set_dir}/shell/tmux/tmux_emoji.conf"
 
-    if ! command -v _review_window_git_name >/dev/null 2>&1; then
-        echo "_review_window_git_name が見つかりません（filter/ai.zsh が未ロード）" >&2
-        return 1
-    fi
-
-    local git_name
-    git_name=$(_review_window_git_name "${cwd}")
-    echo "${ai_emoji}${EMOJI_STATUS_REVIEW}${git_name}"
+    echo "${ai_emoji}${EMOJI_STATUS_REVIEW}${tab_name}"
 }
 
 # レビュー用Herdr workspace（label: <variant>-<ディレクトリ名>）を作成または再利用し、
@@ -479,10 +503,13 @@ _review_launch_herdr() {
 
     local claude_label gemini_label codex_label
     local claude_command gemini_command codex_command
-    # ラベル計算（git名依存）を先に行い、失敗時は無駄なworkspace作成を避ける
-    claude_label=$(_ai_review_herdr_label "${EMOJI_ID_CLAUDE}" "${review_cwd}") || return 1
-    gemini_label=$(_ai_review_herdr_label "${EMOJI_ID_GEMINI}" "${review_cwd}") || return 1
-    codex_label=$(_ai_review_herdr_label "${EMOJI_ID_CODEX}" "${review_cwd}") || return 1
+    # タブ名はgh呼出を含むため1回だけ計算し、4タブで使い回す
+    local tab_name
+    tab_name=$(_review_herdr_tab_name "${review_cwd}" "${review_args[@]}") || return 1
+    # ラベル計算を先に行い、失敗時は無駄なworkspace作成を避ける
+    claude_label=$(_ai_review_herdr_label "${EMOJI_ID_CLAUDE}" "${tab_name}") || return 1
+    gemini_label=$(_ai_review_herdr_label "${EMOJI_ID_GEMINI}" "${tab_name}") || return 1
+    codex_label=$(_ai_review_herdr_label "${EMOJI_ID_CODEX}" "${tab_name}") || return 1
     claude_command=$(_ai_review_env_command "${run_dir}/claude.md" "${claude_fn}" "${review_args[@]}") || return 1
     gemini_command=$(_ai_review_env_command "${run_dir}/gemini.md" "${gemini_fn}" "${review_args[@]}") || return 1
     codex_command=$(_ai_review_env_command "${run_dir}/codex.md" "${codex_fn}" "${review_args[@]}") || return 1
@@ -497,12 +524,10 @@ _review_launch_herdr() {
     orch_tab_id=$(print -r -- "${ws_json}" | jq -r '.result.tab.tab_id // empty')
     orch_pane_id=$(print -r -- "${ws_json}" | jq -r '.result.root_pane.pane_id // empty')
 
-    local orchestrator_git_name=""
     if [[ "${create_watcher}" == "1" ]]; then
-        orchestrator_git_name=$(_review_window_git_name "${review_cwd}")
         if [[ "$(print -r -- "${ws_json}" | jq -r '.result.reused')" == "true" ]]; then
             _herdr_create_tab "${ws_id}" "${review_cwd}" \
-                "${EMOJI_STATUS_REVIEW}orchestrator:${orchestrator_git_name}" \
+                "${EMOJI_STATUS_REVIEW}orchestrator:${tab_name}" \
                 orch_pane_id orch_tab_id 0 "AI_REVIEW_RUN_DIR=${run_dir}" || return 1
         fi
     fi
@@ -550,7 +575,7 @@ _review_launch_herdr() {
         # 注: renameした手動ラベルはauto_managed=falseのため、マージでclaudeが動いても
         # 本文は自動置換されず "orchestrator:<git名>" が残り続ける（専用タブなので意図どおり）
         [[ -n "${orch_tab_id}" ]] && herdr tab rename "${orch_tab_id}" \
-            "${EMOJI_STATUS_REVIEW}orchestrator:${orchestrator_git_name}" >/dev/null 2>&1
+            "${EMOJI_STATUS_REVIEW}orchestrator:${tab_name}" >/dev/null 2>&1
         _herdr_wait_shell_ready "${orch_pane_id}" || return 1
         _herdr_send_watch_verified "${orch_pane_id}" "${run_dir}" || return 1
     fi
