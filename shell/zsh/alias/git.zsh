@@ -232,7 +232,7 @@ wts() {
 
 wtr() {
   if (( $# == 0 )); then
-    wt switch
+    fwtr
   else
     wt remove "$@"
   fi

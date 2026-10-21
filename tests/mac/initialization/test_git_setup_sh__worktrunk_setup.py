@@ -87,7 +87,7 @@ class WorktrunkSetupTest(unittest.TestCase):
             [
                 "zsh",
                 "-fc",
-                'source shell/zsh/alias/git.zsh; wt() { print -r -- "$@"; }; wtc topic --base main; wtl --all; wts topic; wtr; wtr --force topic',
+                'source shell/zsh/alias/git.zsh; wt() { print -r -- "$@"; }; fwtr() { print -r -- fwtr; }; wtc topic --base main; wtl --all; wts topic; wtr; wtr --force topic',
             ],
             cwd=REPO_ROOT,
             text=True,
@@ -102,7 +102,7 @@ class WorktrunkSetupTest(unittest.TestCase):
                 "switch --create topic --base main",
                 "list --all",
                 "switch topic",
-                "switch",
+                "fwtr",
                 "remove --force topic",
             ],
         )
