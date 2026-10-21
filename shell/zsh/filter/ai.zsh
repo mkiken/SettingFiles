@@ -268,6 +268,7 @@ _freview_dispatch() {
 }
 
 freview()           { _freview_dispatch review "$@" }
+freview-mx()        { _freview_dispatch review-mx "$@" }
 freview-subagents() { _freview_dispatch review-subagents "$@" }
 
 # 現在リポジトリのworktreeをfilterで選択し、cdしてからAIレビュー関数を実行する共通ヘルパー
@@ -279,6 +280,7 @@ _fwmo-review() {
 }
 
 fwmo-review()           { _fwmo-review review "$@" }
+fwmo-review-mx()        { _fwmo-review review-mx "$@" }
 fwmo-review-subagents() { _fwmo-review review-subagents "$@" }
 
 # worktreeパスから "リポジトリ名/ブランチ末尾"（デフォルトブランチならリポジトリ名のみ）を計算して出力
@@ -475,6 +477,7 @@ _fwmon-review() {
 }
 
 fwmon-review()           { _fwmon-review review "$@" }
+fwmon-review-mx()        { _fwmon-review review-mx "$@" }
 fwmon-review-subagents() { _fwmon-review review-subagents "$@" }
 
 # originのURLから小文字の "owner/repo" を出力する。ホストは無視する

@@ -299,11 +299,13 @@ class AliasNamingTest(unittest.TestCase):
 class ReviewEntrypointEffortPolicyTest(unittest.TestCase):
     def test_claude_review_roles_use_the_expected_effort(self):
         cases = (
-            ("cl-pr-review 123 focus on errors", "opus", "high", "/pr-review 123 focus on errors ultrathink"),
+            # cl-pr-reviewは軽量版: effortは渡さず、settings.jsonのeffortLevel（medium）に任せる。
+            ("cl-pr-review 123 focus on errors", "opus", None, "/pr-review 123 focus on errors"),
+            ("clmx-pr-review 123 focus on errors", "opus", "high", "/pr-review 123 focus on errors"),
             # pr-review-subagentsはオーケストレーター専用（diff取得・並列起動・結果マージのみ）で
             # 実レビューはopus固定のサブエージェントが担うため、エイリアス側でsonnetを指定する。
-            ("cl-pr-review-subagents 123 focus on errors", "sonnet", "high", "/pr-review-subagents 123 focus on errors ultrathink"),
-            ("cl-pcr https://github.com/acme/widget/pull/42#discussion_r123 focus", "opus", "high", "/pr-comment-review https://github.com/acme/widget/pull/42#discussion_r123 focus ultrathink"),
+            ("cl-pr-review-subagents 123 focus on errors", "sonnet", "high", "/pr-review-subagents 123 focus on errors"),
+            ("cl-pcr https://github.com/acme/widget/pull/42#discussion_r123 focus", "opus", "high", "/pr-comment-review https://github.com/acme/widget/pull/42#discussion_r123 focus"),
         )
 
         for command, model, effort, prompt in cases:
@@ -311,9 +313,13 @@ class ReviewEntrypointEffortPolicyTest(unittest.TestCase):
                 captured = run_claude_alias(command)
                 model_index = captured.index("--model")
                 self.assertEqual(captured[model_index + 1], model)
-                effort_index = captured.index("--effort")
-                self.assertEqual(captured[effort_index + 1], effort)
+                if effort is None:
+                    self.assertNotIn("--effort", captured)
+                else:
+                    effort_index = captured.index("--effort")
+                    self.assertEqual(captured[effort_index + 1], effort)
                 self.assertEqual(captured[-1], prompt)
+                self.assertNotIn("ultrathink", prompt)
 
     def test_launcher_owned_effort_skills_have_no_effort_frontmatter(self):
         # effortは起動alias側が持つ。skill側にも書くと二重指定になる。
@@ -331,15 +337,17 @@ class ReviewEntrypointEffortPolicyTest(unittest.TestCase):
 
     def test_codex_review_roles_use_the_expected_effort(self):
         cases = (
-            ("cx-pr-review 123 focus on errors", "high", "$pr-review PR #123 をレビューして focus on errors"),
-            ("cx-pr-review-subagent 123 focus on errors", "high", "$pr-review-subagents PR #123 をレビューして focus on errors"),
-            ("cx-pcr https://github.com/acme/widget/pull/42#discussion_r123 focus", "high", "$pr-comment-review https://github.com/acme/widget/pull/42#discussion_r123 focus"),
+            # cx-pr-reviewは軽量版（Sol・medium）、cxmx-pr-reviewは従来のAstra・high。
+            ("cx-pr-review 123 focus on errors", "gpt-6.1-sol", "medium", "$pr-review PR #123 をレビューして focus on errors"),
+            ("cxmx-pr-review 123 focus on errors", "gpt-6-astra", "high", "$pr-review PR #123 をレビューして focus on errors"),
+            ("cx-pr-review-subagent 123 focus on errors", "gpt-6-astra", "high", "$pr-review-subagents PR #123 をレビューして focus on errors"),
+            ("cx-pcr https://github.com/acme/widget/pull/42#discussion_r123 focus", "gpt-6-astra", "high", "$pr-comment-review https://github.com/acme/widget/pull/42#discussion_r123 focus"),
         )
 
-        for command, effort, prompt in cases:
+        for command, model, effort, prompt in cases:
             with self.subTest(command=command):
                 captured = run_codex_alias(command)
-                self.assertEqual(captured[:2], ["--model", "gpt-6-astra"])
+                self.assertEqual(captured[:2], ["--model", model])
                 self.assertEqual(captured[2:4], ["-c", f'model_reasoning_effort="{effort}"'])
                 self.assertIn("--dangerously-bypass-approvals-and-sandbox", captured)
                 self.assertEqual(captured[-1], prompt)

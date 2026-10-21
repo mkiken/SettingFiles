@@ -117,8 +117,9 @@ Repo="{self.fixture_root}/"
         self.assertEqual(result.returncode, 0, result.stderr)
         designer = self.frontmatter(self.markdown_path("gemini", "designer"))
         implementer = self.frontmatter(self.markdown_path("gemini", "implementer"))
-        self.assertIn("model: gemini-2.5-pro", designer)
-        self.assertIn("model: gemini-2.5-flash", implementer)
+        # バージョン固定は更新追従が大変なため、CLIが最新へ解決するaliasで指定する
+        self.assertIn("model: flash", designer)
+        self.assertIn("model: flash", implementer)
         # designer は設計ファイルを書くだけ、implementer は設定ファイルを編集する
         self.assertIn("write_file", designer)
         self.assertNotIn("replace", designer)

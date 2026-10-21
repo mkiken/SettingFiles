@@ -8,7 +8,7 @@ tools:
   - glob
   - list_directory
   - write_file
-model: gemini-2.5-pro
+model: flash
 temperature: 0.2
 max_turns: 20
 ---

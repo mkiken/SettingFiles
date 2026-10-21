@@ -246,9 +246,21 @@ class HerdrConfigurationTest(unittest.TestCase):
     def test_freview_popups_launch_the_review_pickers(self):
         keys = tomllib.loads(read_text("terminal/herdr/config.toml"))["keys"]
         review = next(c for c in keys["command"] if c["key"] == "prefix+ctrl+r")
-        review_subagents = next(
+        review_mx = next(
             c for c in keys["command"] if c["key"] == "prefix+ctrl+shift+r"
         )
+        review_subagents = next(
+            c for c in keys["command"] if c["key"] == "prefix+ctrl+alt+r"
+        )
+
+        self.assertEqual(review_mx["type"], "popup")
+        self.assertEqual(
+            review_mx["command"],
+            '$HOME/.herdr/scripts/herdr-popup-run.sh zsh -ilc "freview-mx"',
+        )
+        self.assertIn("AI review", review_mx["description"])
+        self.assertEqual(review_mx["width"], "90%")
+        self.assertEqual(review_mx["height"], "90%")
 
         self.assertEqual(review["type"], "popup")
         self.assertEqual(

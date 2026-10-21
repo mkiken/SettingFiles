@@ -9,7 +9,7 @@ tools:
   - list_directory
   - replace
   - write_file
-model: gemini-2.5-flash
+model: flash
 temperature: 0.1
 max_turns: 20
 ---

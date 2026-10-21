@@ -88,7 +88,15 @@ cx-pr-create() {
     return $ai_exit
 }
 
+# 軽量版: Sol・effort medium
 cx-pr-review() {
+    local pr_number review_prompt
+    _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
+    cxs -c 'model_reasoning_effort="medium"' --dangerously-bypass-approvals-and-sandbox "\$pr-review PR #$pr_number をレビューして${review_prompt:+ $review_prompt}"
+}
+
+# 高effort版: Astra・effort high
+cxmx-pr-review() {
     local pr_number review_prompt
     _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
     cxmx --dangerously-bypass-approvals-and-sandbox "\$pr-review PR #$pr_number をレビューして${review_prompt:+ $review_prompt}"

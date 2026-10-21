@@ -59,7 +59,12 @@ cl-web-summary() {
     clo "/web-summary $*"
 }
 
-cl-pr-review() {
+# PR番号（または省略時は現在ブランチのPR）を解決して、起動関数でレビュースキルを実行する共通処理
+# 引数: 起動関数 スキル名 [PR番号|URL] [追加指示...]
+_cl-pr-review-run() {
+    local launcher="$1" skill="$2"
+    shift 2
+
     local pr_number review_prompt
     if [[ $# -gt 0 && "$1" =~ ^(#?[0-9]+|https?://[^[:space:]]+/pull/[0-9]+([/?#].*)?)$ ]]; then
         pr_number="${1#\#}"
@@ -72,23 +77,21 @@ cl-pr-review() {
     fi
 
     review_prompt="$*"
-    cloeh --dangerously-skip-permissions "/pr-review $pr_number${review_prompt:+ $review_prompt} ultrathink"
+    "$launcher" --dangerously-skip-permissions "/$skill $pr_number${review_prompt:+ $review_prompt}"
+}
+
+# 軽量版: Opus・effortは既定（settings.jsonのeffortLevel）
+cl-pr-review() {
+    _cl-pr-review-run clo pr-review "$@"
+}
+
+# 高effort版: Opus effort high
+clmx-pr-review() {
+    _cl-pr-review-run clmx pr-review "$@"
 }
 
 cl-pr-review-subagents() {
-    local pr_number review_prompt
-    if [[ $# -gt 0 && "$1" =~ ^(#?[0-9]+|https?://[^[:space:]]+/pull/[0-9]+([/?#].*)?)$ ]]; then
-        pr_number="${1#\#}"
-        shift
-    else
-        pr_number=$(gh pr view --json number --jq .number) || {
-            echo "現在のブランチに対応するPRが見つかりません。" >&2
-            return 1
-        }
-    fi
-
-    review_prompt="$*"
-    clseh --dangerously-skip-permissions "/pr-review-subagents $pr_number${review_prompt:+ $review_prompt} ultrathink"
+    _cl-pr-review-run clseh pr-review-subagents "$@"
 }
 
 cl-review-merge() {
@@ -109,7 +112,7 @@ cl-review-fix() {
 }
 
 _cl-pr-comment-review() {
-    clo --effort high --dangerously-skip-permissions "/pr-comment-review $* ultrathink"
+    clo --effort high --dangerously-skip-permissions "/pr-comment-review $*"
 }
 
 _cl-pr-comment-implement() {

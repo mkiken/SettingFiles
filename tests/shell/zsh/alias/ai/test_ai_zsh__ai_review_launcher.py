@@ -38,10 +38,24 @@ class AiReviewLauncherTest(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0)
 
     def test_review_functions_exist(self):
-        for name in ("review", "review-subagents", "review-merge", "review-report", "_review_run"):
+        for name in ("review", "review-mx", "review-subagents", "review-merge", "review-report", "_review_run"):
             with self.subTest(name=name):
                 result = run_zsh(f"typeset -f -- {name} >/dev/null")
                 self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_review_variants_dispatch_to_their_ai_functions(self):
+        # review=軽量(cl/cx-pr-review)、review-mx=高effort(clmx/cxmx-pr-review)。
+        # Geminiは両方で共通。取り違えるとレビューの重さが黙って入れ替わる
+        cases = (
+            ("review", "review cl-pr-review gm-pr-review cx-pr-review"),
+            ("review-mx", "review-mx clmx-pr-review gm-pr-review cxmx-pr-review"),
+        )
+        for name, expected in cases:
+            with self.subTest(name=name):
+                snippet = f"_review_run() {{ print -r -- \"$*\"; }}; {name} 123"
+                result = run_zsh(snippet)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout.strip(), f"{expected} 123")
 
     def test_review_run_message_label_matches_workspace_label(self):
         # _review_run起動メッセージ内のラベル（ai.zsh内の再計算）が

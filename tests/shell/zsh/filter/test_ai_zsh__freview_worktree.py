@@ -207,6 +207,7 @@ class FreviewWorktreeFixture:
                 zoxide query --list | filter --height 40% --prompt "${{label_prefix:+$label_prefix }}repo> "
             }}
             review() {{ printf 'REVIEW review %s (AI_REVIEW_CWD=%s)\\n' "$*" "$AI_REVIEW_CWD" >> "$FREVIEW_LOG"; }}
+            review-mx() {{ printf 'REVIEW review-mx %s (AI_REVIEW_CWD=%s)\\n' "$*" "$AI_REVIEW_CWD" >> "$FREVIEW_LOG"; }}
             review-subagents() {{ printf 'REVIEW review-subagents %s (AI_REVIEW_CWD=%s)\\n' "$*" "$AI_REVIEW_CWD" >> "$FREVIEW_LOG"; }}
             # confirmはutils.zshに実装があるが対話待ちになるため差し替える。
             # 呼び出し引数を記録し、FREVIEW_CONFIRM_ANSWERで応答を切り替える。
@@ -264,6 +265,20 @@ class FreviewWorktreeModeTest(FreviewWorktreeFixture, unittest.TestCase):
         self.assertEqual(len(review_calls), 1, calls)
         self.assertIn("42", review_calls[0])
         self.assertIn(f"AI_REVIEW_CWD={self.worktree}", review_calls[0])
+
+    def test_freview_mx_launches_review_mx_and_labels_the_pickers(self):
+        result, values = self.run_freview(command="freview-mx")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        calls = self.calls()
+        self.assertEqual(len([c for c in calls if c.startswith("REVIEW review-mx ")]), 1, calls)
+        self.assertEqual(len([c for c in calls if c.startswith("REVIEW review ")]), 0, calls)
+        # 軽量版との押し間違いに気づけるよう、3ピッカーすべてのpromptに"review-mx"が付く
+        filter_args = [c for c in calls if c.startswith("FILTER_ARGS ")]
+        self.assertEqual(len(filter_args), 3, calls)
+        for args in filter_args:
+            self.assertIn("--prompt review-mx ", args, calls)
 
     def test_freview_subagents_launches_review_subagents(self):
         result, values = self.run_freview(command="freview-subagents")

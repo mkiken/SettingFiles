@@ -808,6 +808,10 @@ review() {
     _review_run review cl-pr-review gm-pr-review cx-pr-review "$@"
 }
 
+review-mx() {
+    _review_run review-mx clmx-pr-review gm-pr-review cxmx-pr-review "$@"
+}
+
 review-subagents() {
     _review_run review-subagents cl-pr-review-subagents gm-pr-review-subagent cx-pr-review-subagent "$@"
 }
