@@ -1,6 +1,7 @@
 """shell/tmux/tmux_window_name.py の単体テスト（FakeTmuxランナー注入、実tmux不要）"""
 import contextlib
 import io
+import json
 import os
 import shlex
 import stat
@@ -372,6 +373,79 @@ class TestIsEditorSetTitle(unittest.TestCase):
         for desc, title, expected in cases:
             with self.subTest(desc):
                 self.assertEqual(twn.is_editor_set_title(title), expected)
+
+
+class FakeHerdr:
+    """herdr CLI呼び出しを記録し、`pane get`/`tab get`/`tab rename`を模倣する。"""
+
+    def __init__(self, label="", fail=False):
+        self.label = label
+        self.fail = fail
+        self.calls = []
+
+    def __call__(self, cmd, **_kwargs):
+        self.calls.append(cmd)
+        if self.fail:
+            raise subprocess.CalledProcessError(1, cmd)
+        if cmd[1:3] == ["pane", "get"]:
+            return SimpleNamespace(stdout='{"result":{"pane":{"tab_id":"w1:t2"}}}')
+        if cmd[1:3] == ["tab", "get"]:
+            return SimpleNamespace(stdout=json.dumps({"result": {"tab": {"label": self.label}}}))
+        return SimpleNamespace(stdout="")
+
+    @property
+    def renames(self):
+        return [c for c in self.calls if c[1:3] == ["tab", "rename"]]
+
+
+HERDR_ENV = {"HERDR_ENV": "1", "HERDR_TAB_ID": "w1:t2"}
+
+
+class TestHerdrTabIcon(unittest.TestCase):
+    def test_update_replaces_status_and_keeps_index_prefix(self):
+        fake = FakeHerdr(label="[2] w1")
+        twn.update_herdr_tab_icon(WAIT, ID_GEMINI, run=fake, env=HERDR_ENV)
+        self.assertEqual(fake.renames, [["herdr", "tab", "rename", "w1:t2", f"[2] {ID_GEMINI}{WAIT}w1"]])
+
+    def test_update_swaps_existing_status_without_duplicating_identifier(self):
+        fake = FakeHerdr(label=f"[2] {ID_GEMINI}{BUSY}w1")
+        twn.update_herdr_tab_icon(WAIT, ID_GEMINI, run=fake, env=HERDR_ENV)
+        self.assertEqual(fake.renames[0][-1], f"[2] {ID_GEMINI}{WAIT}w1")
+
+    def test_update_resolves_tab_id_via_pane_get(self):
+        fake = FakeHerdr(label="w1")
+        env = {"HERDR_ENV": "1", "HERDR_PANE_ID": "p9"}
+        twn.update_herdr_tab_icon(DONE, ID_GEMINI, run=fake, env=env)
+        self.assertEqual(fake.calls[0][1:], ["pane", "get", "p9"])
+        self.assertEqual(fake.renames[0][3], "w1:t2")
+
+    def test_update_skips_rename_when_label_unchanged(self):
+        fake = FakeHerdr(label=f"{ID_GEMINI}{WAIT}w1")
+        twn.update_herdr_tab_icon(WAIT, ID_GEMINI, run=fake, env=HERDR_ENV)
+        self.assertEqual(fake.renames, [])
+
+    def test_update_prefers_herdr_bin_path(self):
+        fake = FakeHerdr(label="w1")
+        env = {**HERDR_ENV, "HERDR_BIN_PATH": "/opt/herdr"}
+        twn.update_herdr_tab_icon(WAIT, ID_GEMINI, run=fake, env=env)
+        self.assertTrue(all(c[0] == "/opt/herdr" for c in fake.calls))
+
+    def test_update_outside_herdr_does_nothing(self):
+        fake = FakeHerdr(label="w1")
+        self.assertEqual(twn.update_herdr_tab_icon(WAIT, ID_GEMINI, run=fake, env={}), twn.UPDATE_OK)
+        self.assertEqual(fake.calls, [])
+
+    def test_update_swallows_herdr_failure(self):
+        fake = FakeHerdr(label="w1", fail=True)
+        self.assertEqual(
+            twn.update_herdr_tab_icon(WAIT, ID_GEMINI, run=fake, env=HERDR_ENV), twn.UPDATE_OK
+        )
+        self.assertEqual(fake.renames, [])
+
+    def test_remove_strips_status_keeps_identifier(self):
+        fake = FakeHerdr(label=f"{ID_GEMINI}{DONE}w1")
+        twn.remove_herdr_tab_icon(run=fake, env=HERDR_ENV)
+        self.assertEqual(fake.renames[0][-1], f"{ID_GEMINI}w1")
 
 
 class TestRemoveTmuxWindowIcon(unittest.TestCase):

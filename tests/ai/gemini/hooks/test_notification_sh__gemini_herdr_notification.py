@@ -16,7 +16,8 @@ class GeminiHerdrNotificationTest(unittest.TestCase):
     Geminiはnotify-richプラグイン(terminal/herdr/plugins/notify-rich)から完全に
     opt-outし、Herdr環境でもこのフックのAfterAgent/Notificationイベントで通知する
     (see terminal/herdr/plugins/notify-rich/notify-on-agent-status.sh の
-    agent=="gemini" ガード)。tmuxアイコンだけはHerdr下では無意味なので抑止される。
+    agent=="gemini" ガード)。タブ名のアイコンもnotify-richが書かないため、Herdr下では
+    tmux版の代わりにupdate_herdr_tab_icon（Herdrタブ名）をこのフックが呼ぶ。
     """
 
     def run_hook(
@@ -48,6 +49,7 @@ class GeminiHerdrNotificationTest(unittest.TestCase):
                 ),
                 "shell/tmux/tmux_window_name.sh": (
                     'update_tmux_window_name() { echo "icon:$1" >> "$HERDR_TEST_EVENTS"; }\n'
+                    'update_herdr_tab_icon() { echo "herdr-icon:$1:$2" >> "$HERDR_TEST_EVENTS"; }\n'
                 ),
             }
             for relative_path, content in dependencies.items():
@@ -108,8 +110,9 @@ class GeminiHerdrNotificationTest(unittest.TestCase):
 
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertIn("notify", events)
-                # tmux icon is meaningless under Herdr (no tmux window) and must be skipped.
+                # tmux icon is meaningless under Herdr; the Herdr tab icon is set instead.
                 self.assertFalse(any(line.startswith("icon:") for line in events))
+                self.assertIn("herdr-icon:done:gemini", events)
 
     def test_review_after_agent_skips_notification_under_herdr(self):
         for review_output in ("/tmp/review.json", "/tmp/review output/result.json"):
@@ -135,6 +138,7 @@ class GeminiHerdrNotificationTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("notify", events)
         self.assertIn("icon:done", events)
+        self.assertFalse(any(line.startswith("herdr-icon:") for line in events))
 
     def test_notification_toolpermission_notifies_under_herdr(self):
         result, events = self.run_hook(
@@ -146,6 +150,7 @@ class GeminiHerdrNotificationTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("notify", events)
         self.assertFalse(any(line.startswith("icon:") for line in events))
+        self.assertIn("herdr-icon:wait:gemini", events)
 
     def test_review_toolpermission_notifies_under_herdr(self):
         result, events = self.run_hook(
@@ -170,6 +175,17 @@ class GeminiHerdrNotificationTest(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(events, [])
+
+    def test_toolpermission_sets_tmux_icon_not_herdr_icon_outside_herdr(self):
+        result, events = self.run_hook(
+            event="notification",
+            hook_input={"notification_type": "ToolPermission", "session_id": "abcdefgh-session"},
+            in_herdr=False,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("icon:wait", events)
+        self.assertFalse(any(line.startswith("herdr-icon:") for line in events))
 
 
 if __name__ == "__main__":

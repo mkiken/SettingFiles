@@ -33,6 +33,15 @@ update_tmux_window_name() {
     fi
 }
 
+# Herdrタブ名の状態アイコンを差し替える（Herdr外では何もしない）。tmux版と対で、
+# notify-richから外れているAI（Gemini）のhookがHerdr下でも同じ状態遷移を反映するために使う
+# Usage: update_herdr_tab_icon "✋" "💎"
+update_herdr_tab_icon() {
+    [[ -n "${NOTIFY_SILENT:-}" ]] && return 0
+    [[ "${HERDR_ENV:-}" == "1" ]] || return 0
+    python3 "${_TMUX_WINDOW_NAME_DIR}/tmux_window_name.py" herdr-update "$1" "${2:-}" 2>/dev/null || true
+}
+
 # context逼迫バッジを状態アイコンとは独立して追加する
 add_tmux_context_alert_badge() {
     [[ -n "${NOTIFY_SILENT:-}" ]] && return 0

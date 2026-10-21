@@ -4,6 +4,7 @@
 AIフック（claude/gemini/codex）からはimportで、
 シェル（tmux_window_name.sh）からはCLIサブコマンドで利用する。
 """
+import json
 import os
 import shlex
 import subprocess
@@ -305,6 +306,78 @@ def update_tmux_window_name(
     return UPDATE_OK
 
 
+def _herdr_env(env):
+    # 空dictを明示注入した場合は実環境へ落とさない（`env or`だと空dictが偽になる）
+    return os.environ if env is None else env
+
+
+def _herdr_cli_path(env) -> str:
+    return _herdr_env(env).get("HERDR_BIN_PATH") or "herdr"
+
+
+def _resolve_herdr_tab_id(env, run) -> str:
+    """HERDR_TAB_ID優先、無ければHERDR_PANE_IDから`pane get`で解決する。解決不能は空文字。"""
+    source = _herdr_env(env)
+    tab_id = source.get("HERDR_TAB_ID", "")
+    if tab_id:
+        return tab_id
+    pane_id = source.get("HERDR_PANE_ID", "")
+    if not pane_id:
+        return ""
+    result = run(
+        [_herdr_cli_path(env), "pane", "get", pane_id],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return (json.loads(result.stdout).get("result", {}).get("pane", {}).get("tab_id") or "")
+
+
+def _rewrite_herdr_tab_label(compute, env, run) -> int:
+    """現タブラベルをcomputeで書き換え、変化した時だけ`tab rename`する。
+    AIフックを止めないため、Herdr外・解決失敗・CLI失敗はすべて成功扱いにする。
+    """
+    if _herdr_env(env).get("HERDR_ENV") != "1":
+        return UPDATE_OK
+    try:
+        tab_id = _resolve_herdr_tab_id(env, run)
+        if not tab_id:
+            return UPDATE_OK
+        herdr = _herdr_cli_path(env)
+        result = run([herdr, "tab", "get", tab_id], capture_output=True, text=True, check=True)
+        current = json.loads(result.stdout).get("result", {}).get("tab", {}).get("label") or ""
+        new_label = compute(current)
+        if new_label and new_label != current:
+            run([herdr, "tab", "rename", tab_id, new_label], capture_output=True, check=True)
+    except Exception:
+        pass
+    return UPDATE_OK
+
+
+def update_herdr_tab_icon(
+    status: Union[HookStatus, str],
+    identifier: Optional[str] = None,
+    *,
+    run=subprocess.run,
+    env=None,
+) -> int:
+    """Herdrタブラベルの状態アイコンを差し替える（AI識別子・`[N] `接頭辞は保持）。
+
+    notify-richから外れているAI（Gemini）のhookが、tmuxと同じ状態遷移をHerdrの
+    タブ名へ直接書くために使う。シェル所有の✋マーカーやSpacesのshell_status集約
+    （herdr_status_icon.sh）は意図的に経由しない: AI状態がSpacesへ漏れるため。
+    """
+    emoji = status.value if isinstance(status, HookStatus) else status
+    return _rewrite_herdr_tab_label(
+        lambda current: compute_updated_label(current, emoji, identifier), env, run
+    )
+
+
+def remove_herdr_tab_icon(*, run=subprocess.run, env=None) -> int:
+    """Herdrタブラベルから状態アイコンだけを除去する（AI識別子は残す）。"""
+    return _rewrite_herdr_tab_label(compute_cleaned_label, env, run)
+
+
 def remove_tmux_window_icon(report_error: bool = False, *, run=subprocess.run, env=None) -> int:
     """tmuxウィンドウ名から絵文字プレフィックスを除去して元の名前に戻す。
     戻り値はCLEANUP_*。report_error時はコード2以上でCLEANUP_MESSAGESをstderrに出力する。
@@ -380,6 +453,7 @@ _USAGE = (
     "usage: tmux_window_name.py"
     " {update <emoji-prefix> [identifier] [--report-error]"
     " | remove [--report-error] | add-badge | remove-badge"
+    " | herdr-update <status-emoji> [identifier] | herdr-remove"
     " | compute-updated-label <current> <status-emoji> [identifier]"
     " | compute-rebased-label <current> <base-label>"
     " | compute-initial-task-label <current> <base-label>"
@@ -460,6 +534,10 @@ def main(argv: list[str]) -> int:
                 report_error=report_error,
             )
             return code if report_error else UPDATE_OK
+    if command == "herdr-update" and len(args) in (1, 2):
+        return update_herdr_tab_icon(args[0], (args[1] if len(args) == 2 else "") or None)
+    if command == "herdr-remove" and not args:
+        return remove_herdr_tab_icon()
     if command == "remove" and args in ([], ["--report-error"]):
         return remove_tmux_window_icon(report_error=bool(args))
     if command == "add-badge" and not args:

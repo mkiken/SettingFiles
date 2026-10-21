@@ -99,12 +99,20 @@ if [[ "${EVENT_TYPE}" == "notification" ]]; then
         debug_log "Ignoring notification type: ${NOTIFICATION_TYPE}"
         exit 0
     fi
-    # tmux icon is meaningless under Herdr (no tmux window); skip it there but keep
-    # the ToolPermission filter above active so notifications are gated identically
-    # (Gemini opts out of notify-rich and relies on this hook even under Herdr).
-    [[ "${IN_HERDR}" != "true" ]] && update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}" &
+    # Gemini opts out of notify-rich, so under Herdr this hook writes the tab icon itself
+    # (tmux window icon is meaningless there). The ToolPermission filter above stays active
+    # so notifications are gated identically in both environments.
+    if [[ "${IN_HERDR}" == "true" ]]; then
+        update_herdr_tab_icon "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}" &
+    else
+        update_tmux_window_name "${EMOJI_STATUS_NOTIFICATION}" "${AI_HOOK_EMOJI_ID}" &
+    fi
 elif [[ "${EVENT_TYPE}" == "after_agent" ]]; then
-    [[ "${IN_HERDR}" != "true" ]] && update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}" &
+    if [[ "${IN_HERDR}" == "true" ]]; then
+        update_herdr_tab_icon "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}" &
+    else
+        update_tmux_window_name "${EMOJI_STATUS_COMPLETED}" "${AI_HOOK_EMOJI_ID}" &
+    fi
 fi
 
 # ------------------------------------------------------------------
