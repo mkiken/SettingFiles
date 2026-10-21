@@ -1285,10 +1285,16 @@ function fwtr() {
   [[ $wtl_status -ne 0 ]] && return $wtl_status
 
   local candidates
+  # worktree名を最大幅に空白でそろえ、2列目(branch)の縦位置を揃える
   candidates=$(jq -r '
-    .items[]
-    | select(.worktree != null and (.worktree.current | not) and (.branch | type == "string") and (.worktree.path | type == "string"))
-    | [.branch, .worktree.path]
+    [
+      .items[]
+      | select(.worktree != null and (.worktree.current | not) and (.branch | type == "string") and (.worktree.path | type == "string"))
+      | {branch, path: .worktree.path, name: (.worktree.path | split("/") | last)}
+    ]
+    | (map(.name | length) | max // 0) as $width
+    | .[]
+    | [.name + (" " * ($width - (.name | length))), .branch, .path]
     | @tsv
   ' <<< "$raw_list") || return $?
 
@@ -1303,22 +1309,23 @@ function fwtr() {
     --header "削除するworktreeを選択" \
     --prompt "remove> " \
     --delimiter $'\t' \
-    --with-nth 1 \
-    --preview 'git -C {2} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"')
+    --with-nth 1,2 \
+    --preview 'git -C {3} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"')
 
   if [[ -z "$selected" ]]; then
     return $EXIT_CODE_SIGINT
   fi
 
   local -a branches
-  local selected_line branch worktree_path
+  local selected_line rest branch worktree_path
   while IFS= read -r selected_line; do
-    if [[ "$selected_line" != *$'\t'* ]]; then
+    rest="${selected_line#*$'\t'}"
+    if [[ "$selected_line" != *$'\t'* ]] || [[ "$rest" != *$'\t'* ]]; then
       return $EXIT_CODE_SIGINT
     fi
 
-    branch="${selected_line%%$'\t'*}"
-    worktree_path="${selected_line#*$'\t'}"
+    branch="${rest%%$'\t'*}"
+    worktree_path="${rest#*$'\t'}"
     if [[ -z "$branch" ]] || [[ -z "$worktree_path" ]]; then
       return $EXIT_CODE_SIGINT
     fi

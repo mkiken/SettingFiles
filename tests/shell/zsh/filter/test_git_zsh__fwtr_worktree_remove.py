@@ -92,7 +92,7 @@ class FwtrTest(unittest.TestCase):
             "FWTR_LIST_JSON": self.list_json(),
             "FWTR_FILTER_INPUT": str(self.filter_input),
             "FWTR_FILTER_ARGS": str(self.filter_args),
-            "FWTR_FILTER_SELECTION": "main\t/tmp/main\nfeature/old\t/tmp/old",
+            "FWTR_FILTER_SELECTION": "main\tmain\t/tmp/main\nold \tfeature/old\t/tmp/old",
             "FWTR_WTR_ARGS": str(self.wtr_args),
             "FWTR_WTL_ARGS": str(self.wtl_args),
             **(extra_env or {}),
@@ -122,7 +122,7 @@ class FwtrTest(unittest.TestCase):
         self.assertEqual(status, "0", result.stderr)
         self.assertEqual(
             self.filter_input.read_text(encoding="utf-8").splitlines(),
-            ["main\t/tmp/main", "feature/old\t/tmp/old"],
+            ["main\tmain\t/tmp/main", "old \tfeature/old\t/tmp/old"],
         )
         self.assertEqual(
             self.wtr_args.read_text(encoding="utf-8").splitlines(),
@@ -132,7 +132,9 @@ class FwtrTest(unittest.TestCase):
             self.wtl_args.read_text(encoding="utf-8").splitlines(),
             ["--format=json", "--config-set", "list.json-schema=2"],
         )
-        self.assertIn("--multi", self.filter_args.read_text(encoding="utf-8"))
+        filter_args = self.filter_args.read_text(encoding="utf-8").splitlines()
+        self.assertIn("--multi", filter_args)
+        self.assertEqual(filter_args[filter_args.index("--with-nth") + 1], "1,2")
 
     def test_propagates_wtr_failure_status(self):
         result, status = self.run_fwtr(extra_env={"FWTR_WTR_STATUS": "17"})
@@ -172,6 +174,15 @@ class FwtrTest(unittest.TestCase):
     def test_returns_sigint_without_delegating_for_malformed_selection(self):
         result, status = self.run_fwtr(
             extra_env={"FWTR_FILTER_SELECTION": "feature/old"}
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(status, "130", result.stderr)
+        self.assertFalse(self.wtr_args.exists())
+
+    def test_returns_sigint_without_delegating_for_selection_missing_path(self):
+        result, status = self.run_fwtr(
+            extra_env={"FWTR_FILTER_SELECTION": "old \tfeature/old"}
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
