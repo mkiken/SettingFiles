@@ -8,9 +8,9 @@ gm() {
     no_notify homebrew_run gemini "$@"
 }
 
-gmr() { gm "/resume" "$@" }
+gmr() { gm --resume "$@" }
 
-gmpr() { gmp "/resume" "$@" }
+gmpr() { gmp --resume "$@" }
 
 # `f` selects Flash.
 gmf() {
