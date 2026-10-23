@@ -13,9 +13,31 @@ gm() {
     no_notify homebrew_run gemini "$@"
 }
 
-gmr() { gm --resume "$@" }
+_gm_resume_with_picker() {
+    local runner="$1"
+    shift
+    if [[ $# -eq 0 ]]; then
+        if ! command -v fzf >/dev/null 2>&1; then
+            echo "fzf が見つかりません。最新セッションを再開します。" >&2
+            "$runner" --resume
+            return
+        fi
+        local session_line session_index rest
+        session_line=$("$runner" --list-sessions 2>/dev/null | grep -E '^[[:space:]]*[0-9]+\.' | fzf --tac --no-sort --reverse --prompt="Select Gemini session: ")
+        [[ -z "$session_line" ]] && return 0
+        read -r session_index rest <<< "$session_line"
+        session_index="${session_index%.}"
+        if [[ "$session_index" =~ ^[0-9]+$ ]]; then
+            "$runner" --resume "$session_index"
+        fi
+    else
+        "$runner" --resume "$@"
+    fi
+}
 
-gmpr() { gmp --resume "$@" }
+gmr() { _gm_resume_with_picker gm "$@" }
+
+gmpr() { _gm_resume_with_picker gmp "$@" }
 
 # `f` selects Flash.
 gmf() {
