@@ -15,6 +15,7 @@
     },
     "enableNotifications": true,
     "enablePromptCompletion": true,
+    "enableAutoUpdate": false,
     "plan": {
       "enabled": true
     },

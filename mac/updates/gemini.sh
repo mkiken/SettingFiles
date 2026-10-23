@@ -2,10 +2,12 @@
 
 source "$(dirname "$0")/../scripts/common.sh"
 source "${Repo}mac/scripts/ai/gemini.sh"
+source "${Repo}shell/zsh/alias/ai/gemini.zsh"
 
 echo "Updating Gemini settings..."
 
-homebrew_npm install -g @google/gemini-cli@latest
+# バージョン固定は gm-update 側で一元管理する。
+gm-update
 
 setup_ai_mcp update
 setup_ai_pr_tools
