@@ -2,10 +2,12 @@
 
 # Gemini CLI のバージョン固定の唯一の定義場所（mac/initialization・mac/updates もここを経由する）。
 # 0.61.0 以降で shell 出力由来のトークンを「信頼できないフラグ」と誤検知し、確認ダイアログが
-# 会話中に何度も出る（上流 issue #29579 / #29676）。0.64.0 でも改善が不十分だったため 0.60.0 に固定。
+# 会話中に何度も出る（上流 issue #29579 / #29676）。YOLO モードでも止まるのは 0.63.0 以降（#29682）。
+# 0.64.0 / 0.65.0 でも未解消の報告があるため、新モデル（3.8 Flash は 0.62.0 で追加）が使える
+# YOLO で止まらない最終版の 0.62.0 に固定。
 # 解除: 上流で誤検知の解消を確認できたら latest に戻す。
 gm-update() {
-    local pinned_version="0.60.0"
+    local pinned_version="0.62.0"
     homebrew_npm install -g "@google/gemini-cli@${pinned_version}"
 }
 

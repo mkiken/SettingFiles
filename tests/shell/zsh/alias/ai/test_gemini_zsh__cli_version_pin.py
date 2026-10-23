@@ -6,7 +6,7 @@ import unittest
 from support import REPO_ROOT, sanitized_env
 
 GEMINI_ZSH = REPO_ROOT / "shell/zsh/alias/ai/gemini.zsh"
-PINNED_VERSION = "0.60.0"
+PINNED_VERSION = "0.62.0"
 INSTALL_SCRIPTS = [
     REPO_ROOT / "mac/initialization/ai/gemini.sh",
     REPO_ROOT / "mac/updates/gemini.sh",
@@ -42,7 +42,7 @@ gm-update
                 text = path.read_text(encoding="utf-8")
                 self.assertIn("gm-update", text)
                 # 固定が外れる @latest の直書きを各スクリプトに再導入させない
-                # （0.61.0 以降の Untrusted Command Flags 誤検知を避けるため gm-update で一元管理）。
+                # （0.63.0 以降の Untrusted Command Flags 誤検知を避けるため gm-update で一元管理）。
                 self.assertNotIn("gemini-cli@", text)
 
     def test_repo_settings_disable_gemini_auto_update(self):
