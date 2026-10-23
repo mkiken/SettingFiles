@@ -1,12 +1,13 @@
 #!/bin/bash
-# シェル状態アイコン（AI以外: 入力待ち✋・完了✅・失敗❌）をHerdrのtab/workspaceに
-# 反映するヘルパー。tmux_window_name.sh の Herdr 版で、notify() から source される。
+# シェル状態アイコン（AI以外: 入力待ち✋・画面停止⏸️・完了✅・失敗❌）をHerdrの
+# tab/workspaceに反映するヘルパー。tmux_window_name.sh の Herdr 版で、notify() から
+# source される。⏸️は画面停止監視（shell/zsh/notification.zsh）が立てる推測の状態。
 #
 # tab（tmux windowに相当）: 後勝ちでラベルの状態アイコン部分を差し替える。
 #   AI識別子（✴️/💎/🪷）は現ラベルから継承して保持する（tmux_window_name.pyの
 #   compute-updated-label/compute-cleaned-labelサブコマンドを再利用）。
 # workspace（tmux sessionに相当・spaces表示）: 同workspace内のシェル所有状態を
-#   ✋>❌>✅の優先度でOR集約し、`herdr workspace report-metadata`の
+#   ✋>❌>⏸️>✅の優先度でOR集約し、`herdr workspace report-metadata`の
 #   shell_statusトークンに書く。AIが書くtabラベルの状態とは分離する。
 #
 # クリア契機は3つ: プロンプト応答（✋: _finish_prompt_wait_notification）、
@@ -31,7 +32,9 @@ fi
 # 置かれたまま。このスクリプトは shell/herdr/ にあるので、自身のディレクトリでは
 # 解決できない。
 _HERDR_STATUS_ICON_SHARED_DIR="$(/usr/bin/dirname "${_HERDR_STATUS_ICON_DIR}")/tmux"
-if [[ -z "${EMOJI_STATUS_NOTIFICATION:-}" ]]; then
+# EMOJI_STATUS_IDLEも判定に含める: ⏸️追加前のconfを読み込み済みの稼働中シェルでも
+# 再sourceして⏸️を解決できるようにする。
+if [[ -z "${EMOJI_STATUS_NOTIFICATION:-}" || -z "${EMOJI_STATUS_IDLE:-}" ]]; then
     source "${_HERDR_STATUS_ICON_SHARED_DIR}/tmux_emoji.conf"
 fi
 
@@ -175,7 +178,7 @@ _herdr_shell_status_state_write() {
     esac
 }
 
-# 有効なマーカー（TTL内・内容が✋）ならグリフをechoする。stale/不正内容は
+# 有効なマーカー（TTL内・内容が✋か⏸️）ならグリフをechoする。stale/不正内容は
 # 削除して空を返す。全てfail-safe（呼び出し元を止めない）。
 _herdr_shell_status_marker_read() {
     local marker_path
@@ -190,7 +193,7 @@ _herdr_shell_status_marker_read() {
     fi
     local glyph=""
     IFS= read -r glyph < "${marker_path}" 2>/dev/null
-    if [[ "${glyph}" != "${EMOJI_STATUS_NOTIFICATION}" ]]; then
+    if [[ "${glyph}" != "${EMOJI_STATUS_NOTIFICATION}" && "${glyph}" != "${EMOJI_STATUS_IDLE}" ]]; then
         _herdr_delete_cache_file "${marker_path}"
         return 0
     fi
@@ -241,7 +244,8 @@ _herdr_prune_orphan_status_cache() {
     return 0
 }
 
-# workspace内の全tabのシェル所有状態を ✋>❌>✅ の優先度でOR集約し、集約結果を返す。
+# workspace内の全tabのシェル所有状態を ✋>❌>⏸️>✅ の優先度でOR集約し、集約結果を返す。
+# ⏸️は画面停止からの推測なので、確実な✋/❌より下に置く。
 # AIプラグインが書くtabラベルは読まない。該当なしは空文字。
 # 集約の前に、閉じたタブの孤児キャッシュを掃除する。
 _herdr_aggregate_workspace_status() {
@@ -254,7 +258,7 @@ _herdr_aggregate_workspace_status() {
     # 変数を再宣言すると現在値をstdoutへ出力する（bashは無音）。この関数の出力は
     # コマンド置換で集約結果として読まれるため、宣言はループ外に置く。
     local emoji tab_id glyph
-    for emoji in "${EMOJI_STATUS_NOTIFICATION}" "${EMOJI_STATUS_ERROR}" "${EMOJI_STATUS_COMPLETED}"; do
+    for emoji in "${EMOJI_STATUS_NOTIFICATION}" "${EMOJI_STATUS_ERROR}" "${EMOJI_STATUS_IDLE}" "${EMOJI_STATUS_COMPLETED}"; do
         while IFS= read -r tab_id; do
             [[ -z "${tab_id}" ]] && continue
             glyph="$(_herdr_shell_status_marker_read "${tab_id}")"
@@ -276,7 +280,7 @@ _herdr_refresh_workspace_token() {
     local aggregated
     aggregated="$(_herdr_aggregate_workspace_status "${workspace_id}")"
     case "${aggregated}" in
-        "${EMOJI_STATUS_NOTIFICATION}"|"${EMOJI_STATUS_ERROR}"|"${EMOJI_STATUS_COMPLETED}") ;;
+        "${EMOJI_STATUS_NOTIFICATION}"|"${EMOJI_STATUS_ERROR}"|"${EMOJI_STATUS_IDLE}"|"${EMOJI_STATUS_COMPLETED}") ;;
         *) aggregated="" ;;
     esac
     if [[ -n "${aggregated}" ]]; then
@@ -297,12 +301,12 @@ update_herdr_status_icon() {
     tab_id="$(_herdr_resolve_tab_id)"
     [[ -z "${tab_id}" ]] && return 0
 
-    # ✋はrename前にmarkerを書く。✅/❌は状態キャッシュへ保存する。
+    # ✋/⏸️はrename前にmarkerを書く。✅/❌は状態キャッシュへ保存する。
     # どちらも後段のworkspace集約はtabラベルでなくこの状態を読む。
     local marker_path
     marker_path="$(_herdr_shell_status_marker_path "${tab_id}")"
     if [[ -n "${marker_path}" ]]; then
-        if [[ "${status_emoji}" == "${EMOJI_STATUS_NOTIFICATION}" ]]; then
+        if [[ "${status_emoji}" == "${EMOJI_STATUS_NOTIFICATION}" || "${status_emoji}" == "${EMOJI_STATUS_IDLE}" ]]; then
             mkdir -p "${marker_path%/*}" 2>/dev/null
             printf '%s\n' "${status_emoji}" > "${marker_path}" 2>/dev/null
         else
@@ -375,6 +379,20 @@ clear_herdr_shell_status_state() {
 
     [[ -n "${workspace_id}" ]] && _herdr_refresh_workspace_token "${workspace_id}"
     return 0
+}
+
+# 現tabのマーカーが⏸️のときだけ状態アイコンを除去する。画面停止監視
+# （shell/zsh/notification.zsh）専用: 同tabで✋が立っていれば（別ペインの
+# 入力待ちプロンプトなど）確実な状態を消さないために何もしない。
+remove_herdr_idle_status_icon() {
+    _herdr_status_available || return 0
+
+    local tab_id
+    tab_id="$(_herdr_resolve_tab_id)"
+    [[ -z "${tab_id}" ]] && return 0
+    [[ "$(_herdr_shell_status_marker_read "${tab_id}")" == "${EMOJI_STATUS_IDLE}" ]] || return 0
+
+    remove_herdr_status_icon
 }
 
 # Herdrのtabラベルから状態アイコンだけを除去する（AI識別子・バッジは残す）。

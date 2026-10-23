@@ -26,6 +26,7 @@ DONE = tmux_emoji.EMOJI_STATUS_COMPLETED  # ✅
 ERROR = tmux_emoji.EMOJI_STATUS_ERROR  # ❌
 WAIT = tmux_emoji.EMOJI_STATUS_NOTIFICATION  # ✋
 BUSY = tmux_emoji.EMOJI_STATUS_ONGOING  # 🤖
+IDLE = tmux_emoji.EMOJI_STATUS_IDLE  # ⏸️
 ALERT = tmux_emoji.EMOJI_CONTEXT_ALERT  # ⚠️
 
 TMUX_ENV = {"TMUX_PANE": "%1", "TERM_PROGRAM": "tmux"}
@@ -75,6 +76,8 @@ class TestBuildUpdatedName(unittest.TestCase):
             ("identifierなしのshell形式", f"{ALERT}main", WAIT, "", f"{WAIT}{ALERT}main"),
             ("絵文字のみの名前", f"{ID}{BUSY}", DONE, ID, f"{ID}{DONE}"),
             ("空文字境界", "", DONE, ID, f"{ID}{DONE}"),
+            ("⏸️を✋で置換", f"{IDLE}main", WAIT, "", f"{WAIT}main"),
+            ("⏸️を重複させない", f"{ID}{IDLE}main", IDLE, ID, f"{ID}{IDLE}main"),
         ]
         for desc, current, emoji, identifier, expected in cases:
             with self.subTest(desc):
@@ -89,6 +92,7 @@ class TestBuildCleanedName(unittest.TestCase):
             ("バッジのみでも除去", f"{ALERT}main", "main"),
             ("絵文字なしは不変", "main", "main"),
             ("空文字境界", "", ""),
+            ("⏸️を除去", f"{IDLE}main", "main"),
         ]
         for desc, current, expected in cases:
             with self.subTest(desc):
@@ -228,6 +232,8 @@ class TestComputeUpdatedLabel(unittest.TestCase):
             ("バッジ保持", f"{ID}{BUSY}{ALERT}main", DONE, None, f"{ID}{DONE}{ALERT}main"),
             ("Herdr番号prefix保持", f"[2] {ID}{BUSY}main", DONE, None, f"[2] {ID}{DONE}main"),
             ("二桁は番号prefix扱いしない", f"[10] {ID}{BUSY}main", DONE, None, f"{DONE}[10] {ID}{BUSY}main"),
+            ("⏸️を✋で置換(番号・識別子保持)", f"[2] {ID}{IDLE}foo", WAIT, None, f"[2] {ID}{WAIT}foo"),
+            ("✋を⏸️で置換", f"[2] {ID}{WAIT}foo", IDLE, None, f"[2] {ID}{IDLE}foo"),
         ]
         for desc, current, status_emoji, identifier, expected in cases:
             with self.subTest(desc):
@@ -266,6 +272,7 @@ class TestComputeCleanedLabel(unittest.TestCase):
             ("バッジは保持", f"{ID}{DONE}{ALERT}main", f"{ID}{ALERT}main"),
             ("状態アイコンなしは不変", f"{ID}main", f"{ID}main"),
             ("Herdr番号prefix保持", f"[9] {ID}{DONE}main", f"[9] {ID}main"),
+            ("⏸️を除去し識別子は残す", f"[2] {ID}{IDLE}main", f"[2] {ID}main"),
         ]
         for desc, current, expected in cases:
             with self.subTest(desc):

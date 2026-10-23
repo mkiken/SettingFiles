@@ -251,14 +251,18 @@ if [[ -n "$tab_id" ]]; then
       new_label="${base_label}"
     fi
 
-    # シェルが入力待ち✋を所有している間（マーカー存在中）は状態グリフを✋に
-    # ピン留めする（優先度はworkspace集約と同じ ✋>❌>🤖>✅）。ベース名の会話概要
+    # シェルが入力待ち✋/画面停止⏸️を所有している間（マーカー存在中）は状態グリフを
+    # そのグリフにピン留めする（優先度は ✋>❌>⏸️>🤖>✅）。ベース名の会話概要
     # 追従はそのまま活きる（compute-updated-labelは識別子と本文を保持する）。
     # 空代入ガード必須: python3失敗時に空ラベルへrenameしないため。
+    # ⏸️は画面停止からの推測なので、AIが確実にblocked（✋）なら✋を残す
+    # （分割タブで別ペインの⏸️がAIの入力待ちを隠さないように）。
     if [[ "$label_analysis_ok" == true ]] \
        && (( ${+functions[_herdr_shell_status_marker_read]} )); then
       marker_glyph="$(_herdr_shell_status_marker_read "$tab_id" 2>/dev/null)"
-      if [[ -n "$marker_glyph" ]]; then
+      if [[ -n "$marker_glyph" \
+            && ! ( "$marker_glyph" == "${EMOJI_STATUS_IDLE:-}" \
+                   && "$status_emoji" == "$EMOJI_STATUS_NOTIFICATION" ) ]]; then
         pinned_label="$(python3 "${REPO_ROOT}/shell/tmux/tmux_window_name.py" \
           compute-updated-label "$new_label" "$marker_glyph" 2>/dev/null)"
         [[ -n "$pinned_label" ]] && new_label="$pinned_label"

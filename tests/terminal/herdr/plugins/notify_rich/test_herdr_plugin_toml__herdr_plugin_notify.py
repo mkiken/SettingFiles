@@ -116,6 +116,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                     # 呼ぶため、未使用でも_load_conf()がKeyErrorしないよう全キーを埋める。
                     "EMOJI_STATUS_ONGOING=ONGOING\n"
                     "EMOJI_STATUS_ERROR=ERROR\n"
+                    "EMOJI_STATUS_IDLE=IDLE\n"
                     "EMOJI_CONTEXT_ALERT=ALERT\n"
                 ),
             }
@@ -1933,6 +1934,34 @@ class HerdrPluginTabIconTest(unittest.TestCase):
             current_label="✴️🤖1",
             title_text="",
             input_wait_marker="✋",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️✋1"])
+
+    def test_idle_marker_pins_idle_over_working_icon(self):
+        # ⏸️マーカー中にAIが作業中なら、✋同様に⏸️へピン留めする
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="working",
+            tab_status="working",
+            current_label="✴️🤖1",
+            title_text="",
+            input_wait_marker="⏸️",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["w1:t1 ✴️⏸️1"])
+
+    def test_idle_marker_does_not_hide_ai_blocked_wait(self):
+        # 優先度 ✋>⏸️。分割タブで別ペインの推測⏸️が、AIの確実な入力待ち✋を隠さない
+        result, calls = self.run_plugin(
+            agent="claude",
+            agent_status="blocked",
+            tab_status="blocked",
+            current_label="✴️🤖1",
+            title_text="",
+            input_wait_marker="⏸️",
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)

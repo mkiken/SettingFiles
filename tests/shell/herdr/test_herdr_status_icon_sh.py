@@ -34,6 +34,7 @@ def state_relpath(tab_id: str) -> Path:
 DONE = "✅"
 ERROR = "❌"
 WAIT = "✋"
+IDLE = "⏸️"
 BUSY = "🤖"
 ID_CLAUDE = "✴️"
 ID_CODEX = "🪷"
@@ -324,6 +325,92 @@ class WorkspaceAggregationPurityTest(HerdrStatusIconTestBase):
                 self.assertIn(f"--token shell_status={DONE}", token_calls[0])
 
 
+class IdleAggregationPriorityTest(HerdrStatusIconTestBase):
+    """集約優先度は ✋ > ❌ > ⏸️ > ✅。推測の⏸️が確実な✋/❌を隠さない。"""
+
+    @staticmethod
+    def _marker_prelude(tab_id: str, glyph: str) -> str:
+        path = marker_relpath(tab_id)
+        return (
+            f'mkdir -p "$XDG_CACHE_HOME/{path.parent}" && '
+            f'printf "%s\\n" "{glyph}" > "$XDG_CACHE_HOME/{path}"'
+        )
+
+    def test_priority_table(self):
+        cases = [
+            # (説明, t1マーカー, t2状態, t2マーカー(prelude), 期待)
+            ("⏸️と❌は❌", IDLE, ERROR, None, ERROR),
+            ("⏸️と✅は⏸️", IDLE, DONE, None, IDLE),
+            ("✋と⏸️は✋", IDLE, None, WAIT, WAIT),
+            ("⏸️のみは⏸️", IDLE, None, None, IDLE),
+        ]
+        for desc, t1_marker, t2_state, t2_marker, expected in cases:
+            for shell in ("bash", "zsh"):
+                with self.subTest(desc, shell=shell):
+                    result, _, _, _ = self.run_shell(
+                        '_herdr_aggregate_workspace_status "w1"',
+                        shell=shell,
+                        tab_list_labels=["a", "b"],
+                        marker_content=t1_marker,
+                        state_contents={"w1:t2": t2_state} if t2_state else None,
+                        prelude=self._marker_prelude("w1:t2", t2_marker) if t2_marker else "",
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(result.stdout, expected + "\n")
+
+    def test_workspace_token_reports_idle(self):
+        result, _, metadata, _ = self.run_shell(
+            f'update_herdr_status_icon "{IDLE}"',
+            tab_label="main",
+            tab_list_labels=["main"],
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(any("shell_status=" + IDLE in line for line in metadata), metadata)
+
+
+class RemoveHerdrIdleStatusIconTest(HerdrStatusIconTestBase):
+    """監視側が⏸️だけを外す入口。✋は別所有者（プロンプト待機）なので触らない。"""
+
+    def test_removes_idle_marker_and_label_glyph(self):
+        result, rename, _, marker = self.run_shell(
+            "remove_herdr_idle_status_icon",
+            tab_label=f"[2] {ID_CLAUDE}{IDLE}main",
+            marker_content=IDLE,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(rename, [f"w1:t1|[2] {ID_CLAUDE}main"])
+        self.assertIsNone(marker)
+
+    def test_wait_marker_is_left_untouched(self):
+        result, rename, _, marker = self.run_shell(
+            "remove_herdr_idle_status_icon",
+            tab_label=f"{WAIT}main",
+            marker_content=WAIT,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(rename, [])
+        self.assertEqual(marker, WAIT)
+
+    def test_no_marker_is_no_op(self):
+        result, rename, metadata, _ = self.run_shell(
+            "remove_herdr_idle_status_icon", tab_label=f"{DONE}main"
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(rename, [])
+        self.assertEqual(metadata, [])
+
+    def test_no_op_outside_herdr(self):
+        result, rename, _, marker = self.run_shell(
+            "remove_herdr_idle_status_icon",
+            tab_label=f"{IDLE}main",
+            marker_content=IDLE,
+            herdr_env=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(rename, [])
+        self.assertEqual(marker, IDLE)
+
+
 class WorkspaceTokenFailsafeTest(HerdrStatusIconTestBase):
     """集約結果が想定グリフ1文字でなければトークンを書かずclearする。
 
@@ -444,6 +531,14 @@ class ShellStatusMarkerTest(HerdrStatusIconTestBase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(marker, WAIT)
 
+    def test_idle_update_writes_marker(self):
+        # ⏸️も✋と同じ「生きた状態」としてマーカーに残し、プラグインのラベル再構築から守る
+        result, _, _, marker = self.run_shell(
+            f'update_herdr_status_icon "{IDLE}"', tab_label="main"
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(marker, IDLE)
+
     def test_non_wait_update_removes_marker(self):
         # ✅/❌での更新は入力待ちの終了を意味し、既存マーカーを消す
         for emoji in (DONE, ERROR):
@@ -496,6 +591,8 @@ class ShellStatusMarkerTest(HerdrStatusIconTestBase):
         # TTL=86400秒ちょうどは境界のレース（now取得までの経過秒）があるため±60秒で判定
         cases = [
             ("fresh", WAIT, 0, WAIT, WAIT),
+            ("idle_fresh", IDLE, 0, IDLE, IDLE),
+            ("idle_stale", IDLE, 86400 + 60, "", None),
             ("near_ttl", WAIT, 86400 - 60, WAIT, WAIT),
             ("stale", WAIT, 86400 + 60, "", None),
             ("garbage", "not-an-emoji", 0, "", None),
