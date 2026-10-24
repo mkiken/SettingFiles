@@ -10,3 +10,5 @@ vimfiles/nvim/.swp
 vimfiles/nvim/.undo
 vimfiles/nvim/lazy-lock.json
 ai/common/mcp.local.json
+ai/claude/mods/*/tsconfig.json
+ai/claude/mods/*/.claude-plugin/types/

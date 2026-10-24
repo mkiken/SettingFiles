@@ -20,6 +20,7 @@
     "tsumiki@tsumiki": true
   },
   "env": {
+    "CLAUDE_CODE_PLUGIN_DIRS": "~/Desktop/repository/SettingFiles/ai/claude/mods/slash-anywhere",
     "DISABLE_NOTIFY": "1",
     "ENABLE_EXPERIMENTAL_MCP_CLI": "false",
     "ENABLE_TOOL_SEARCH": "true"

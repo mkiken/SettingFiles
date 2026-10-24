@@ -1,0 +1,5 @@
+{
+  "name": "slash-anywhere",
+  "version": "0.1.0",
+  "description": "Offers slash command and skill completion for a leading /word even when text already follows the cursor."
+}
