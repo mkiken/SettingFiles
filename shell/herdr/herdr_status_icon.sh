@@ -145,12 +145,15 @@ _herdr_delete_cache_file() {
     /bin/unlink "${cache_file}" 2>/dev/null || true
 }
 
+# mtimeは絶対パスの/usr/bin/statで取る: 対話zshはzsh/statを読み込んでいることがあり、
+# bare `stat -f %m` が組み込みに解決されて失敗する（mtimeが空になり、書いた直後の
+# マーカー/状態をstaleと誤判定して消してしまう）。
 _herdr_shell_status_state_read() {
     local state_path
     state_path="$(_herdr_shell_status_state_path "$1")" || return 0
     [[ -f "${state_path}" ]] || return 0
     local mtime now
-    mtime="$(stat -f %m "${state_path}" 2>/dev/null)"
+    mtime="$(/usr/bin/stat -f %m "${state_path}" 2>/dev/null)"
     now="$(date +%s)"
     if [[ -z "${mtime}" ]] || (( now - mtime > _HERDR_SHELL_STATUS_STATE_TTL )); then
         _herdr_delete_cache_file "${state_path}"
@@ -185,7 +188,7 @@ _herdr_shell_status_marker_read() {
     marker_path="$(_herdr_shell_status_marker_path "$1")" || return 0
     [[ -f "${marker_path}" ]] || return 0
     local mtime now
-    mtime="$(stat -f %m "${marker_path}" 2>/dev/null)"
+    mtime="$(/usr/bin/stat -f %m "${marker_path}" 2>/dev/null)"
     now="$(date +%s)"
     if [[ -z "${mtime}" ]] || (( now - mtime > _HERDR_SHELL_STATUS_TTL )); then
         _herdr_delete_cache_file "${marker_path}"

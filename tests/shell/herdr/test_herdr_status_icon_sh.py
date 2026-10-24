@@ -608,6 +608,46 @@ class ShellStatusMarkerTest(HerdrStatusIconTestBase):
                 self.assertEqual(result.stdout.strip(), expected_stdout)
                 self.assertEqual(marker, expected_marker)
 
+    def test_marker_survives_zsh_stat_builtin_shadowing(self):
+        # 対話zshはzsh/statを読み込んでおり、bare `stat -f %m` が組み込みに解決されて
+        # "bad file descriptor" で失敗する。mtimeが空になり書いた直後のマーカーを
+        # staleと誤判定して消し、Spacesトークンが立たなかった実バグの回帰。
+        for glyph in (WAIT, IDLE):
+            with self.subTest(glyph=glyph):
+                result, _, _, marker = self.run_shell(
+                    '_herdr_shell_status_marker_read "w1:t1"',
+                    shell="zsh",
+                    before_source="zmodload zsh/stat",
+                    marker_content=glyph,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout.strip(), glyph)
+                self.assertEqual(marker, glyph)
+
+    def test_state_survives_zsh_stat_builtin_shadowing(self):
+        for glyph in (DONE, ERROR):
+            with self.subTest(glyph=glyph):
+                result, _, _, _ = self.run_shell(
+                    '_herdr_shell_status_state_read "w1:t1"',
+                    shell="zsh",
+                    before_source="zmodload zsh/stat",
+                    state_contents={"w1:t1": glyph},
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout.strip(), glyph)
+
+    def test_idle_update_reaches_workspace_token_with_zsh_stat_builtin(self):
+        result, _, metadata, marker = self.run_shell(
+            f'update_herdr_status_icon "{IDLE}"',
+            shell="zsh",
+            before_source="zmodload zsh/stat",
+            tab_label="main",
+            tab_list_labels=["main"],
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(marker, IDLE)
+        self.assertTrue(any("--token shell_status=" + IDLE in line for line in metadata), metadata)
+
     def test_marker_read_missing_file_is_empty(self):
         result, _, _, marker = self.run_shell('_herdr_shell_status_marker_read "w1:t1"')
         self.assertEqual(result.returncode, 0, result.stderr)
