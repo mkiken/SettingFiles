@@ -19,13 +19,11 @@ class SlashAnywhereModTest(unittest.TestCase):
     def test_settings_load_the_mod_folder_through_plugin_dirs(self):
         value = self.settings["env"]["CLAUDE_CODE_PLUGIN_DIRS"]
 
-        self.assertEqual(value, HOME_PREFIX + "ai/claude/mods/slash-anywhere")
+        self.assertIn(HOME_PREFIX + "ai/claude/mods/slash-anywhere", value.split(":"))
         self.assertNotIn("/Users/", value)
 
     def test_plugin_dirs_target_is_a_mod_with_its_hooks_module(self):
-        target = REPO_ROOT / self.settings["env"]["CLAUDE_CODE_PLUGIN_DIRS"].removeprefix(
-            HOME_PREFIX
-        )
+        target = MOD_DIR
         manifest = json.loads(
             (target / ".claude-plugin/plugin.json").read_text(encoding="utf-8")
         )

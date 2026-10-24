@@ -1,0 +1,5 @@
+{
+  "name": "rich-output",
+  "version": "0.1.0",
+  "description": "Colors assistant markdown (headings, bold, inline code, paths, links, list markers) and Bash rows in the transcript."
+}
