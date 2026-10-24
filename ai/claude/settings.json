@@ -223,5 +223,5 @@
     "type": "command"
   },
   "tui": "default",
-  "verbose": true
+  "verbose": false
 }
