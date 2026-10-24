@@ -1,18 +1,28 @@
 import type { Register } from 'claude-code'
 
+import { commandSpans } from './bash'
 import { classifyLine, inlineSpans, splitBlocks } from './markdown'
 import type { Span } from './markdown'
 
-// ANSI color names follow the terminal palette.
+// Mariana palette as hex: color names are drawn as the engine's own vivid colors.
 const COLOR = {
-  heading: 'magenta',
-  code: 'cyan',
-  path: 'cyan',
-  link: 'blue',
-  marker: 'yellow',
-  ok: 'green',
-  error: 'red',
-  command: 'cyan',
+  heading: '#d8b6d8',
+  code: '#c695c6',
+  path: '#5fb4b4',
+  link: '#85add6',
+  bold: '#f9ae58',
+  marker: '#8fa1b3',
+  ok: '#99c794',
+  error: '#ec5f66',
+} as const
+
+// Shell words of the Bash row, by role.
+const COMMAND_COLOR = {
+  program: '#85add6',
+  option: '#f9ae58',
+  string: '#99c794',
+  path: '#5fb4b4',
+  var: '#c695c6',
 } as const
 
 export const register: Register = on => {
@@ -25,7 +35,11 @@ export const register: Register = on => {
       items.map(s => {
         switch (s.kind) {
           case 'bold':
-            return <Text bold>{s.text}</Text>
+            return (
+              <Text bold color={COLOR.bold}>
+                {s.text}
+              </Text>
+            )
           case 'code':
             return <Text color={COLOR.code}>{s.text}</Text>
           case 'path':
@@ -96,7 +110,17 @@ export const register: Register = on => {
         </Text>
         <Text bold>Bash</Text>
         <Text> </Text>
-        <Text color={COLOR.command}>{first}</Text>
+        <Text>
+          {commandSpans(first).map(s =>
+            s.kind === 'text' ? (
+              s.text
+            ) : s.kind === 'operator' ? (
+              <Text dimColor>{s.text}</Text>
+            ) : (
+              <Text color={COMMAND_COLOR[s.kind]}>{s.text}</Text>
+            ),
+          )}
+        </Text>
         {rest.length > 0 ? <Text dimColor> (+{rest.length} lines)</Text> : null}
       </Box>
     )

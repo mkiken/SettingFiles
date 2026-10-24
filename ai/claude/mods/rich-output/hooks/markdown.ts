@@ -46,7 +46,11 @@ export function splitBlocks(text: string): Block[] {
 // Alternatives are tried left to right at each position, so a code span or a
 // link wins over the bold or path pattern that sits inside it.
 const INLINE =
-  /`([^`\n]+)`|\*\*([^*\n]+)\*\*|\[[^\]\n]+\]\([^)\s]+\)|https?:\/\/[^\s)]+|(?:\.{0,2}\/)?(?:[\w.-]+\/)+[\w.-]+\.\w+(?::\d+)?|\b[\w-]+\.(?:ts|tsx|js|json|py|sh|zsh|md|toml|ya?ml|lua|rs|go)(?::\d+)?\b/g
+  /`([^`\n]+)`|\*\*([^*\n]+)\*\*|\[[^\]\n]+\]\([^)\s]+\)|https?:\/\/[^\s)]+|(?:\.{0,2}\/)?(?:[\w.-]+\/)+[\w.-]+\.\w+(?::\d+)?|\b[\w-]+(?:\.[\w-]+)*\.(?:ts|tsx|js|json|py|sh|zsh|md|toml|ya?ml|lua|rs|go)(?::\d+)?\b/g
+
+// A backticked span that is only a file path is drawn as a path, not as code.
+const PATH_ONLY =
+  /^(?:(?:\.{0,2}\/)?(?:[\w.-]+\/)+[\w.-]+\.\w+|[\w-]+(?:\.[\w-]+)*\.(?:ts|tsx|js|json|py|sh|zsh|md|toml|ya?ml|lua|rs|go))(?::\d+)?$/
 
 export function inlineSpans(line: string): Span[] {
   const spans: Span[] = []
@@ -56,8 +60,9 @@ export function inlineSpans(line: string): Span[] {
     const start = m.index ?? 0
     if (start > at) spans.push({ kind: 'text', text: line.slice(at, start) })
 
-    if (m[1] !== undefined) spans.push({ kind: 'code', text: m[1] })
-    else if (m[2] !== undefined) spans.push({ kind: 'bold', text: m[2] })
+    if (m[1] !== undefined) {
+      spans.push({ kind: PATH_ONLY.test(m[1]) ? 'path' : 'code', text: m[1] })
+    } else if (m[2] !== undefined) spans.push({ kind: 'bold', text: m[2] })
     else if (m[0].startsWith('[')) {
       spans.push({ kind: 'link', text: m[0].slice(1, m[0].indexOf(']')) })
     } else if (m[0].startsWith('http')) spans.push({ kind: 'link', text: m[0] })

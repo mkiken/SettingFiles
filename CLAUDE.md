@@ -48,6 +48,8 @@ Fix targeted failures, or report them explicitly at the commit confirmation. Run
 
 When a run reveals failing tests unrelated to the current task, do not fix them mid-task. Finish all planned work first, then report the failing tests and ask the user whether to fix them as a follow-up; do not start that fix before they answer. This is the one exception to the rule above, and it applies only to failures not caused by this task's changes.
 
+Claude Code mod sources (`ai/claude/mods/<mod>/hooks/*.ts[x]`) have no mapped tests: `--paths` on them prints "No mapped tests", and the Python test under `tests/ai/claude/` only checks the folder structure. Run the mod's own tests with `claude plugin test ai/claude/mods/<mod>` in addition. Give mod colors as hex, not names: color names rendered visibly more vivid than the Ghostty theme palette.
+
 Moving or renaming a file needs more than grepping its old path: that finds only references written as one literal string. Also search for the path assembled from parts (a parent directory plus a filename variable, e.g. `REPO_ROOT / "shell/tmux" / name`) and for code resolving siblings relative to itself (`dirname "$0"`, `__file__`, `Path(__file__).parent`) — a file moved away from its neighbours leaves no literal to find. Both kinds hid from a clean grep during the `shell/herdr/` move and surfaced only as 47 failures in the full suite, because the tests that caught them are not selected by the changed paths.
 
 Before adding, moving, or restructuring tests (ownership and naming, new test directories, `tests/dependencies.toml`, shell-function tests, pinned exclusions), read `.claude/skills/repo-tests/SKILL.md` (`.agents/skills/repo-tests/SKILL.md`).

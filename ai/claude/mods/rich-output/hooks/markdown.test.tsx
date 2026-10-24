@@ -45,6 +45,30 @@ test('bold markers inside inline code are not bold', async () => {
   expect(kinds('`**x**`')).toEqual(['code:**x**'])
 })
 
+test('backticked file paths are paths, other backticked text stays code', async () => {
+  expect(kinds('`src/a.ts:12` `a.json` `./x/y.sh` `NO_CODE_CHANGE=true` `src/dir` `ls -la`')).toEqual([
+    'path:src/a.ts:12',
+    'text: ',
+    'path:a.json',
+    'text: ',
+    'path:./x/y.sh',
+    'text: ',
+    'code:NO_CODE_CHANGE=true',
+    'text: ',
+    'code:src/dir',
+    'text: ',
+    'code:ls -la',
+  ])
+})
+
+test('file names with several dots are one path', async () => {
+  expect(kinds('`a.test.tsx` see b.config.json')).toEqual([
+    'path:a.test.tsx',
+    'text: see ',
+    'path:b.config.json',
+  ])
+})
+
 test('lines are classified as heading, list or plain', async () => {
   expect(classifyLine('## Title')).toEqual({ kind: 'heading', text: 'Title' })
   expect(classifyLine('  - item')).toEqual({ kind: 'list', indent: '  ', marker: '•', text: 'item' })
