@@ -1,5 +1,9 @@
 return {
   'petertriho/nvim-scrollbar',
+  -- v2移行(issue #121)は11-02のオプション確定後に行う。それまで起動時警告を止める
+  init = function()
+    vim.g.scrollbar_v2_notice = false
+  end,
   opts = {
     handle = {
       color = "#9399b2",
