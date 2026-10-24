@@ -21,6 +21,8 @@ navigate_pane_down = ["j", "ctrl+n"]
 
 # pane/workspace operations; `o` matches tmux next-pane
 cycle_pane_next = "prefix+o"
+# back-and-forth to the previously focused pane across workspaces and tabs (Mac JIS delete key = backspace)
+last_pane = "prefix+backspace"
 next_workspace = "prefix+shift+n"
 previous_workspace = "prefix+shift+p"
 new_workspace = "prefix+shift+c"
