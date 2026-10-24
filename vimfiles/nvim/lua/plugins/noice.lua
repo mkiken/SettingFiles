@@ -1,6 +1,14 @@
 return {
   "folke/noice.nvim",
   event = "VeryLazy",
+  init = function()
+    -- :messages はnoice経由のメッセージを表示しないため、履歴ビューへ置き換える
+    for _, word in ipairs({ "mes", "mess", "messa", "messag", "message", "messages" }) do
+      vim.keymap.set("ca", word, function()
+        return (vim.fn.getcmdtype() == ":" and vim.fn.getcmdline() == word) and "Noice history" or word
+      end, { expr = true })
+    end
+  end,
   opts = {
     lsp = {
       -- override markdown rendering so that **cmp** and other plugins use **Treesitter**
