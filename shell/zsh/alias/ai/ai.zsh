@@ -877,3 +877,67 @@ audit-report() {
     nohup python3 "$HOME/.config/ai-pr/bin/serve_review_report.py" --open "${run_dir}" >/dev/null 2>&1 &
     echo "監査結果を開いています: ${run_dir}"
 }
+
+# Claude / Codex / Gemini の会話履歴を本文で横断検索し、選んだセッションを元のプロジェクトで resume する
+_ais_script() {
+    print -r -- "${SET:-$HOME/Desktop/repository/SettingFiles}/shell/common/ai_session_search.py"
+}
+
+# Gemini の --resume は UUID ではなく index を取るため、cwd の --list-sessions から UUID に対応する index を引く
+_ais_gemini_index() {
+    local cwd="$1" session_id="$2" listing line
+    listing=$(builtin cd -q "$cwd" 2>/dev/null && gm --list-sessions 2>/dev/null) || return 1
+    for line in ${(f)listing}; do
+        if [[ "$line" =~ '^[[:space:]]*([0-9]+)\. .*\[([^]]+)\][[:space:]]*$' && "${match[2]}" == "$session_id" ]]; then
+            print -r -- "${match[1]}"
+            return 0
+        fi
+    done
+    return 1
+}
+
+# resume はセッションを作ったプロジェクトで起動する必要があるため、サブシェルで cwd へ移って実行する
+_ais_resume() {
+    local agent="$1" session_id="$2" cwd="$3" gemini_index
+    if [[ -z "$cwd" || ! -d "$cwd" ]]; then
+        echo "ais: 作業ディレクトリが見つかりません: ${cwd:-<不明>}" >&2
+        return 1
+    fi
+    case "$agent" in
+        claude)
+            ( builtin cd -q "$cwd" && cl --resume "$session_id" )
+            ;;
+        codex)
+            ( builtin cd -q "$cwd" && cx resume "$session_id" )
+            ;;
+        gemini)
+            gemini_index=$(_ais_gemini_index "$cwd" "$session_id") || {
+                echo "ais: Gemini の --list-sessions に見つからず resume できません: $session_id" >&2
+                return 1
+            }
+            ( builtin cd -q "$cwd" && gm --resume "$gemini_index" )
+            ;;
+        *)
+            echo "ais: 未知のエージェント: $agent" >&2
+            return 1
+            ;;
+    esac
+}
+
+ais() {
+    if ! command -v fzf >/dev/null 2>&1; then
+        echo "ais: fzf が見つかりません" >&2
+        return 1
+    fi
+    local script selected
+    local -a fields
+    script=$(_ais_script)
+    selected=$(python3 "$script" search "$*" | fzf --disabled --ansi --reverse \
+        --delimiter=$'\t' --with-nth=5 --query="$*" --prompt='sessions> ' \
+        --bind "change:reload:python3 ${(q)script} search {q} || true" \
+        --preview "python3 ${(q)script} preview {1} {4} {q}" \
+        --preview-window 'right,55%,wrap')
+    [[ -z "$selected" ]] && return 0
+    fields=("${(@ps:\t:)selected}")
+    _ais_resume "${fields[1]}" "${fields[2]}" "${fields[3]}"
+}
