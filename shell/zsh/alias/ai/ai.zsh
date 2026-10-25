@@ -936,7 +936,7 @@ ais() {
         --delimiter=$'\t' --with-nth=5 --query="$*" --prompt='sessions> ' \
         --bind "change:reload:python3 ${(q)script} search {q} || true" \
         --preview "python3 ${(q)script} preview {1} {4} {q}" \
-        --preview-window 'right,55%,wrap')
+        --preview-window 'right,35%,wrap')
     [[ -z "$selected" ]] && return 0
     fields=("${(@ps:\t:)selected}")
     _ais_resume "${fields[1]}" "${fields[2]}" "${fields[3]}"

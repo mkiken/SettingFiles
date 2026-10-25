@@ -9,6 +9,9 @@ from pathlib import Path
 
 from support import REPO_ROOT, sanitized_env
 
+sys.path.insert(0, str(REPO_ROOT / "shell/tmux"))
+import tmux_emoji  # noqa: E402
+
 SCRIPT = REPO_ROOT / "shell/common/ai_session_search.py"
 PROJECT = "/work/proj"
 GEMINI_SID = "11111111-2222-3333-4444-555555555555"
@@ -177,6 +180,76 @@ class AiSessionSearchTest(unittest.TestCase):
         out = self.run_cli("preview", "gemini", path)
         self.assertEqual(out.count("GeminiJsonlPrompt"), 1)
         self.assertEqual(out.count("GeminiJsonlAnswer"), 1)
+
+    def display_for(self, sid):
+        return next(row[4] for row in self.rows("list") if row[1] == sid)
+
+    def test_claude_title_is_last_ai_title_and_not_searchable(self):
+        path = self.home / ".claude/projects/-work-proj/bbbb-titled.jsonl"
+        write_jsonl(path, [
+            {"type": "user", "cwd": PROJECT, "message": {"content": "FirstPromptText"}},
+            {"type": "ai-title", "aiTitle": "OldTitle", "sessionId": "bbbb-titled"},
+            {"type": "ai-title", "aiTitle": "SummaryOnlyWord", "sessionId": "bbbb-titled"},
+        ])
+        display = self.display_for("bbbb-titled")
+        self.assertIn("SummaryOnlyWord", display)
+        self.assertNotIn("OldTitle", display)
+        self.assertNotIn("FirstPromptText", display)
+        # 概要は本文ではないので、概要にしか無い語では検索にヒットさせない
+        self.assertEqual(self.rows("search", "SummaryOnlyWord"), [])
+
+    def test_codex_title_comes_from_session_index_last_row(self):
+        index = self.home / ".codex/session_index.jsonl"
+        write_jsonl(index, [
+            {"id": "cccc-codex", "thread_name": "StaleName"},
+            {"id": "cccc-codex", "thread_name": "CodexThreadName"},
+            {"id": "other-id", "thread_name": "Unrelated"},
+        ])
+        display = self.display_for("cccc-codex")
+        self.assertIn("CodexThreadName", display)
+        self.assertNotIn("StaleName", display)
+
+    def test_codex_title_falls_back_to_first_prompt_without_index_entry(self):
+        write_jsonl(self.home / ".codex/session_index.jsonl", [{"id": "other-id", "thread_name": "Unrelated"}])
+        self.assertIn("CodexUserPrompt", self.display_for("cccc-codex"))
+
+    def test_gemini_title_uses_summary_when_present_and_first_prompt_otherwise(self):
+        legacy = self.home / ".gemini/tmp/proj/chats/session-2026-01-01T00-00-gjson.json"
+        data = json.loads(legacy.read_text())
+        data["summary"] = "GeminiSummaryText"
+        legacy.write_text(json.dumps(data))
+        self.assertIn("GeminiSummaryText", self.display_for("legacy-json"))
+        self.assertIn("GeminiJsonlPrompt", self.display_for(GEMINI_SID))
+
+    def test_gemini_jsonl_summary_from_set_entry(self):
+        path = self.home / ".gemini/tmp/proj/chats/session-2026-10-25T00-00-gjsonl.jsonl"
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps({"$set": {"summary": "JsonlSummaryText"}}) + "\n")
+        self.assertIn("JsonlSummaryText", self.display_for(GEMINI_SID))
+
+    def test_display_shows_agent_icon_from_shared_emoji_definition(self):
+        expected = {
+            "claude": tmux_emoji.EMOJI_ID_CLAUDE,
+            "codex": tmux_emoji.EMOJI_ID_CODEX,
+            "gemini": tmux_emoji.EMOJI_ID_GEMINI,
+        }
+        for row in self.rows("list"):
+            with self.subTest(agent=row[0], sid=row[1]):
+                self.assertIn(f" {expected[row[0]]} ", row[4])
+
+    def test_display_shows_only_directory_name_and_dash_for_unknown_cwd(self):
+        self.assertIn(" proj ", self.display_for("aaaa-claude"))
+        self.assertNotIn("/work", self.display_for("aaaa-claude"))
+        self.assertIn(" - ", self.display_for("legacy-json"))
+
+    def test_long_directory_name_is_truncated(self):
+        long_cwd = "/work/" + "x" * 40
+        write_jsonl(self.home / ".claude/projects/-work-long/dddd-long.jsonl", [
+            {"type": "user", "cwd": long_cwd, "message": {"content": "p"}},
+        ])
+        display = self.display_for("dddd-long")
+        self.assertIn("x" * 15 + "…", display)
+        self.assertNotIn("x" * 16, display)
 
     def test_unknown_command_exits_with_usage(self):
         result = subprocess.run([sys.executable, "-I", str(SCRIPT), "bogus"], capture_output=True, text=True, check=False)

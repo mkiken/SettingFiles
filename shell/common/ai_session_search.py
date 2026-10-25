@@ -9,6 +9,7 @@
 TSV 列: agent, session_id, cwd, file, 表示文字列
 """
 
+import functools
 import hashlib
 import json
 import os
@@ -20,8 +21,17 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
+# AI 種別アイコンは Herdr/tmux と同じ定義（tmux_emoji.conf）を共有する。
+# symlink 経由で起動されても実パスから兄弟ディレクトリを解決する。
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tmux"))
+import tmux_emoji  # noqa: E402
+
 AGENTS = ("claude", "codex", "gemini")
-ICONS = {"claude": "CL", "codex": "CX", "gemini": "GM"}
+ICONS = {
+    "claude": tmux_emoji.EMOJI_ID_CLAUDE,
+    "codex": tmux_emoji.EMOJI_ID_CODEX,
+    "gemini": tmux_emoji.EMOJI_ID_GEMINI,
+}
 
 # harness が user ロールで注入するメッセージ（<environment_context> 等）を本文から除く。
 # 先頭がタグ形式で始まる実ユーザー発話も落ちるが、検索・表示への影響は小さいので許容する。
@@ -167,6 +177,7 @@ def gemini_messages(path):
 MESSAGE_READERS = {"claude": claude_messages, "codex": codex_messages, "gemini": gemini_messages}
 
 
+@functools.lru_cache(maxsize=None)
 def gemini_project_dirs():
     """projectHash（プロジェクト絶対パスの sha256）から cwd を逆引きする表。"""
     gemini_home = os.environ.get("GEMINI_CLI_HOME")
@@ -186,13 +197,50 @@ def _first_user_text(messages):
     return None
 
 
+def _last_field(path, marker, key):
+    """`marker` を含む行だけを JSON として読み、最後に現れた `key` の文字列値を返す。"""
+    value = ""
+    try:
+        with open(path, encoding="utf-8", errors="replace") as handle:
+            for line in handle:
+                if marker not in line:
+                    continue
+                try:
+                    obj = json.loads(line)
+                except ValueError:
+                    continue
+                if not isinstance(obj, dict):
+                    continue
+                # Gemini の jsonl は更新を `{"$set": {...}}` 行で書く
+                updates = obj.get("$set")
+                found = obj.get(key)
+                if found is None and isinstance(updates, dict):
+                    found = updates.get(key)
+                if isinstance(found, str) and found:
+                    value = found
+    except OSError:
+        pass
+    return value
+
+
 def _claude_session(path):
     cwd = ""
     for obj in _jsonl(path):
         if isinstance(obj.get("cwd"), str):
             cwd = obj["cwd"]
             break
-    return path.stem, cwd, _first_user_text(claude_messages(path))
+    summary = _last_field(path, '"ai-title"', "aiTitle")
+    return path.stem, cwd, summary, _first_user_text(claude_messages(path))
+
+
+@functools.lru_cache(maxsize=None)
+def codex_thread_names():
+    """Codex の概要はトランスクリプトに無く、session_index.jsonl の thread_name にある（id ごとに最後の行）。"""
+    names = {}
+    for obj in _jsonl(_env_root("CODEX_HOME", ".codex") / "session_index.jsonl"):
+        if isinstance(obj.get("id"), str) and isinstance(obj.get("thread_name"), str) and obj["thread_name"]:
+            names[obj["id"]] = obj["thread_name"]
+    return names
 
 
 def _codex_session(path):
@@ -201,10 +249,10 @@ def _codex_session(path):
         if obj.get("type") == "session_meta" and isinstance(obj.get("payload"), dict):
             sid, cwd = obj["payload"].get("id", ""), obj["payload"].get("cwd", "")
         break
-    return sid, cwd, _first_user_text(codex_messages(path))
+    return sid, cwd, codex_thread_names().get(sid, ""), _first_user_text(codex_messages(path))
 
 
-def _gemini_session(path, project_dirs):
+def _gemini_session(path):
     meta = {}
     if path.suffix == ".json":
         try:
@@ -216,41 +264,53 @@ def _gemini_session(path, project_dirs):
         meta = next(_jsonl(path), {})
     sid = meta.get("sessionId", "")
     if sid == _GEMINI_A2A_SESSION_ID:
-        return "", "", None
-    cwd = project_dirs.get(meta.get("projectHash", ""), "")
-    return sid, cwd, _first_user_text(gemini_messages(path))
+        return "", "", "", None
+    cwd = gemini_project_dirs().get(meta.get("projectHash", ""), "")
+    if path.suffix == ".json":
+        summary = meta.get("summary") if isinstance(meta.get("summary"), str) else ""
+    else:
+        summary = _last_field(path, '"summary"', "summary")
+    return sid, cwd, summary, _first_user_text(gemini_messages(path))
 
 
-def load_session(agent, path, project_dirs=None):
-    """user 発話を持たない・ID を持たないファイルは None（resume 対象外）。"""
+def load_session(agent, path):
+    """user 発話を持たない・ID を持たないファイルは None（resume 対象外）。
+
+    タイトルは概要（Claude の ai-title・Codex の thread_name・Gemini の summary）を優先し、
+    無ければ最初のユーザー発話を使う。概要は検索対象の本文には含めない。
+    """
     try:
         mtime = path.stat().st_mtime
     except OSError:
         return None
     if agent == "claude":
-        sid, cwd, title = _claude_session(path)
+        sid, cwd, summary, first_prompt = _claude_session(path)
     elif agent == "codex":
-        sid, cwd, title = _codex_session(path)
+        sid, cwd, summary, first_prompt = _codex_session(path)
     else:
-        sid, cwd, title = _gemini_session(path, gemini_project_dirs() if project_dirs is None else project_dirs)
-    if not sid or title is None:
+        sid, cwd, summary, first_prompt = _gemini_session(path)
+    if not sid or first_prompt is None:
         return None
-    return Session(agent, sid, cwd, path, mtime, " ".join(title.split()))
+    return Session(agent, sid, cwd, path, mtime, " ".join((summary or first_prompt).split()))
 
 
-def _short_cwd(cwd):
-    home = str(Path.home())
-    if cwd == home:
+_DIR_LABEL_WIDTH = 16
+
+
+def _dir_label(cwd):
+    """一覧の列幅を節約するため、ディレクトリは末尾の名前だけを出す。"""
+    if not cwd:
+        return "-"
+    if cwd == str(Path.home()):
         return "~"
-    if cwd.startswith(home + "/"):
-        cwd = "~" + cwd[len(home):]
-    return cwd if len(cwd) <= 32 else "…" + cwd[-31:]
+    name = Path(cwd).name or cwd
+    return name if len(name) <= _DIR_LABEL_WIDTH else name[: _DIR_LABEL_WIDTH - 1] + "…"
 
 
 def format_row(session, extra=""):
-    stamp = datetime.fromtimestamp(session.mtime).strftime("%Y-%m-%d %H:%M")
-    title = session.title[:100]
-    display = f"{stamp}  {ICONS[session.agent]}  {_short_cwd(session.cwd):<32}  {title}{extra}"
+    stamp = datetime.fromtimestamp(session.mtime).strftime("%y-%m-%d %H:%M")
+    title = session.title[:200]
+    display = f"{stamp} {ICONS[session.agent]} {_dir_label(session.cwd):<{_DIR_LABEL_WIDTH}} {title}{extra}"
     fields = (session.agent, session.sid, session.cwd, str(session.path), display)
     return "\t".join(field.replace("\t", " ").replace("\n", " ") for field in fields)
 
@@ -260,8 +320,7 @@ def all_paths():
 
 
 def list_sessions(paths=None):
-    project_dirs = gemini_project_dirs()
-    sessions = (load_session(agent, path, project_dirs) for agent, path in (paths or all_paths()))
+    sessions = (load_session(agent, path) for agent, path in (paths or all_paths()))
     return sorted((s for s in sessions if s), key=lambda s: s.mtime, reverse=True)
 
 
@@ -302,10 +361,9 @@ def search(query):
     terms = query.split()
     if not terms:
         return [format_row(s) for s in list_sessions()]
-    project_dirs = gemini_project_dirs()
     found = []
     for agent, path in prefilter(terms):
-        session = load_session(agent, path, project_dirs)
+        session = load_session(agent, path)
         if session is None:
             continue
         texts = [text for _, text in MESSAGE_READERS[agent](path)]
