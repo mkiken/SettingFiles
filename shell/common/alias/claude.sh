@@ -164,16 +164,4 @@ cl-pr-create() {
     return $ai_exit
 }
 
-cclog() {
-     claude-code-log "$@"
-}
-
-cclogt() {
-     cclog --tui "$@"
-}
-
-cclogb() {
-     cclog --open-browser "$@"
-}
-
 alias cl-update='claude update'

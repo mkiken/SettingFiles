@@ -4,8 +4,6 @@
 export NOTIFY_COMMAND_EXCLUDE=(
   ais
   ccexp
-  cclog
-  cclogt
   ccresume
   cc-search
   ccusage
