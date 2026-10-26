@@ -1,3 +1,4 @@
+import re
 import unittest
 
 
@@ -36,6 +37,19 @@ class MacUpdateStepWiringTest(unittest.TestCase):
     def test_tmux_plugin_update_is_not_wired(self):
         self.assertNotIn("_update_step_tmux_plugins", self.text)
         self.assertNotIn("update_plugins", self.text)
+
+    def test_step_functions_do_not_resolve_paths_from_dollar_zero(self):
+        # 関数内の $0 は関数名になり dirname が "." を返すため、source が相対パスで失敗する
+        function_bodies = re.findall(r"^function _update_step_\w+\(\) \{\n(.*?)^\}", self.text, re.S | re.M)
+
+        self.assertTrue(function_bodies)
+        for body in function_bodies:
+            self.assertNotIn('"$0"', body)
+
+    def test_ai_and_herdr_steps_source_from_script_dir(self):
+        for name in ("claude", "gemini", "codex", "herdr"):
+            with self.subTest(script=name):
+                self.assertIn(f'source "${{_update_script_dir}}/updates/{name}.sh"', self.text)
 
     def test_summary_is_called_after_all_steps(self):
         last_step_index = self.text.rindex("_settingfiles_run_step")

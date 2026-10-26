@@ -4,7 +4,10 @@ REPO="${HOME}/Desktop/repository/"
 SET="${REPO}SettingFiles/"
 SUBMODULE_DIR="${SET}submodules/"
 
-source "$(dirname "$0")/scripts/common.sh"
+# 関数内の $0 は関数名になるため、スクリプトのディレクトリはトップレベルで確定しておく
+_update_script_dir="$(dirname "$0")"
+
+source "${_update_script_dir}/scripts/common.sh"
 
 parse_settingfiles_common_args "mac/update" "$@"
 _args_status=$?
@@ -58,15 +61,15 @@ function _update_step_pipx() {
 
 function _update_step_ai_tools() {
   echo "start AI tools update."
-  source "$(dirname "$0")/updates/claude.sh" || return 1
-  source "$(dirname "$0")/updates/gemini.sh" || return 1
-  source "$(dirname "$0")/updates/codex.sh" || return 1
+  source "${_update_script_dir}/updates/claude.sh" || return 1
+  source "${_update_script_dir}/updates/gemini.sh" || return 1
+  source "${_update_script_dir}/updates/codex.sh" || return 1
   echo "end AI tools update."
 }
 
 function _update_step_herdr() {
   echo "start Herdr integration update."
-  source "$(dirname "$0")/updates/herdr.sh" || return 1
+  source "${_update_script_dir}/updates/herdr.sh" || return 1
   echo "end Herdr integration update."
 }
 
