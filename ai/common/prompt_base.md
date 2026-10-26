@@ -54,6 +54,15 @@ Before working on files in a repository other than the session's project — edi
 
 If a workflow or tool resolves a write target outside the session project, display the exact target and obtain confirmation before mutating it, unless the user explicitly named that external target.
 
+# Instruction File vs. Code Drift
+
+When a project instruction file (CLAUDE.md, AGENTS.md, GEMINI.md, skill docs) disagrees with the current code:
+
+- Descriptive claims (paths, names, file layout, commands, current behavior): trust the code.
+- Normative rules (must / never / do not): still apply even where existing code violates them; treat violating code as legacy, not precedent.
+
+Either way, list every mismatch found in the final reply.
+
 # Configuration Change Scope
 
 For narrow fixes, prefer the smallest owned integration point. Do not disable broader native features or product-level settings unless the user explicitly asks or that feature is the target; if considering one, explain the side effect before editing.
