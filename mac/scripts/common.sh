@@ -176,6 +176,125 @@ function untap_stale_homebrew_taps() {
   done
 }
 
+# 「不要」と答えた VSCode 拡張 ID の記録先（untracked な state 領域）。
+function _vscode_extension_sync_ignore_file() {
+  print -r -- "${SETTINGFILES_VSCODE_EXTENSION_IGNORE_FILE:-${XDG_STATE_HOME:-$HOME/.local/state}/SettingFiles/vscode-extension-ignored.txt}"
+}
+
+# 引数2以降の拡張 ID を小文字化して ignore ファイルへ追記する（既記載は重複させない）。
+function _vscode_extension_sync_record_ignored() {
+  local ignored_file="$1"
+  shift
+
+  /bin/mkdir -p "${ignored_file:h}" || return 1
+  [[ -f "$ignored_file" ]] || : >| "$ignored_file" || return 1
+
+  local extension_id
+  for extension_id in "$@"; do
+    extension_id="${extension_id:l}"
+    /usr/bin/grep -Fxq -- "$extension_id" "$ignored_file" || print -r -- "$extension_id" >> "$ignored_file"
+  done
+}
+
+# モード plan: Brewfile 未記載の有効拡張 ID を1行1件で stdout に出す（集計は stderr）。
+# モード apply: 引数7以降の採用 ID だけを Brewfile 内の vscode 行へソート挿入した結果を candidate に書く。
+# 引数: mode brewfile candidate installed_file disabled_file ignored_file reprompt(0|1) [accepted_id...]
+function _vscode_extension_sync_node() {
+  node - "$@" <<'NODE'
+const fs = require("fs");
+
+const [mode, brewfile, candidate, installedFile, disabledFile, ignoredFile, reprompt, ...acceptedArgs] =
+  process.argv.slice(2);
+const content = fs.readFileSync(brewfile, "utf8");
+
+const normalize = (value) => String(value).trim().toLowerCase();
+const unique = (values) => [...new Set(values.filter(Boolean))];
+const readLines = (file) => {
+  try {
+    return fs.readFileSync(file, "utf8").split(/\r?\n/);
+  } catch {
+    return [];
+  }
+};
+
+const hasFinalNewline = content.endsWith("\n");
+const lines = hasFinalNewline ? content.slice(0, -1).split("\n") : content.split("\n");
+const vscodePattern = /^vscode\s+"([^"]+)"/;
+const existing = [];
+const vscodeIndexes = [];
+
+lines.forEach((line, index) => {
+  const match = line.match(vscodePattern);
+  if (!match) return;
+  existing.push(match[1]);
+  vscodeIndexes.push(index);
+});
+
+const existingLower = new Set(existing.map(normalize));
+
+if (mode === "plan") {
+  const installed = unique(readLines(installedFile).map(normalize));
+
+  const disabled = new Set();
+  for (const raw of readLines(disabledFile)) {
+    if (!raw.trim()) continue;
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        for (const item of parsed) {
+          if (item && item.id) disabled.add(normalize(item.id));
+        }
+      }
+    } catch {
+      // Ignore unknown state rows; only the disabled extension JSON arrays matter.
+    }
+  }
+
+  // 再確認モード(reprompt=1)では「不要」記録を無視して全候補を聞き直す。
+  const ignored = reprompt === "1" ? new Set() : new Set(readLines(ignoredFile).map(normalize).filter(Boolean));
+
+  const additions = installed
+    .filter((id) => !disabled.has(id) && !existingLower.has(id) && !ignored.has(id))
+    .sort((a, b) => a.localeCompare(b));
+
+  console.error(`Installed VSCode extensions: ${installed.length}`);
+  console.error(`Globally disabled VSCode extensions: ${[...disabled].sort().join(", ") || "none"}`);
+  console.error(`Ignored VSCode extensions: ${ignored.size}`);
+  for (const id of additions) console.log(id);
+} else if (mode === "apply") {
+  const additions = unique(acceptedArgs.map(normalize))
+    .filter((id) => !existingLower.has(id))
+    .sort((a, b) => a.localeCompare(b));
+
+  let outputLines = lines;
+  if (additions.length > 0) {
+    const vscodeLines = [...existing, ...additions]
+      .sort((a, b) => normalize(a).localeCompare(normalize(b)))
+      .map((id) => `vscode "${id}"`);
+
+    if (vscodeIndexes.length > 0) {
+      const firstVscodeIndex = vscodeIndexes[0];
+      outputLines = [];
+      lines.forEach((line, index) => {
+        if (index === firstVscodeIndex) outputLines.push(...vscodeLines);
+        if (!vscodePattern.test(line)) outputLines.push(line);
+      });
+    } else {
+      const masIndex = lines.findIndex((line) => /^mas\s+"/.test(line));
+      const insertIndex = masIndex === -1 ? lines.length : masIndex;
+      outputLines = [...lines];
+      outputLines.splice(insertIndex, 0, ...vscodeLines, "");
+    }
+  }
+
+  fs.writeFileSync(candidate, outputLines.join("\n") + (hasFinalNewline ? "\n" : ""));
+} else {
+  console.error(`unknown mode: ${mode}`);
+  process.exit(2);
+}
+NODE
+}
+
 function sync_enabled_vscode_extensions_to_brewfile() {
   local brewfile="${1:-${Repo}mac/Brewfile}"
   local state_db="${HOME}/Library/Application Support/Code/User/globalStorage/state.vscdb"
@@ -234,147 +353,94 @@ function sync_enabled_vscode_extensions_to_brewfile() {
     return 0
   fi
 
-  local summary additions_count
-  summary="$(
-    node - "$brewfile" "$candidate" "$installed_file" "$disabled_file" <<'NODE'
-const fs = require("fs");
+  local ignored_file reprompt=0
+  ignored_file="$(_vscode_extension_sync_ignore_file)"
+  _diff_review_reprompt_enabled && reprompt=1
 
-const [brewfile, candidate, installedFile, disabledFile] = process.argv.slice(2);
-const content = fs.readFileSync(brewfile, "utf8");
-
-const normalize = (value) => String(value).trim().toLowerCase();
-const unique = (values) => [...new Set(values.filter(Boolean))];
-
-const installed = unique(
-  fs.readFileSync(installedFile, "utf8")
-    .split(/\r?\n/)
-    .map(normalize)
-);
-
-const disabled = new Set();
-for (const raw of fs.readFileSync(disabledFile, "utf8").split(/\r?\n/)) {
-  if (!raw.trim()) continue;
-  try {
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      for (const item of parsed) {
-        if (item && item.id) disabled.add(normalize(item.id));
-      }
-    }
-  } catch {
-    // Ignore unknown state rows; only the disabled extension JSON arrays matter.
-  }
-}
-
-const hasFinalNewline = content.endsWith("\n");
-const lines = hasFinalNewline ? content.slice(0, -1).split("\n") : content.split("\n");
-const vscodePattern = /^vscode\s+"([^"]+)"/;
-const existing = [];
-const vscodeIndexes = [];
-
-lines.forEach((line, index) => {
-  const match = line.match(vscodePattern);
-  if (!match) return;
-  existing.push(match[1]);
-  vscodeIndexes.push(index);
-});
-
-const existingLower = new Set(existing.map(normalize));
-const additions = installed
-  .filter((id) => !disabled.has(id) && !existingLower.has(id))
-  .sort((a, b) => a.localeCompare(b));
-
-let outputLines = lines;
-if (additions.length > 0) {
-  const vscodeLines = [...existing, ...additions]
-    .sort((a, b) => normalize(a).localeCompare(normalize(b)))
-    .map((id) => `vscode "${id}"`);
-
-  if (vscodeIndexes.length > 0) {
-    const firstVscodeIndex = vscodeIndexes[0];
-    outputLines = [];
-    lines.forEach((line, index) => {
-      if (index === firstVscodeIndex) outputLines.push(...vscodeLines);
-      if (!vscodePattern.test(line)) outputLines.push(line);
-    });
-  } else {
-    const masIndex = lines.findIndex((line) => /^mas\s+"/.test(line));
-    const insertIndex = masIndex === -1 ? lines.length : masIndex;
-    outputLines = [...lines];
-    outputLines.splice(insertIndex, 0, ...vscodeLines, "");
-  }
-}
-
-fs.writeFileSync(candidate, outputLines.join("\n") + (hasFinalNewline ? "\n" : ""));
-
-console.log(`Installed VSCode extensions: ${installed.length}`);
-console.log(`Globally disabled VSCode extensions: ${[...disabled].sort().join(", ") || "none"}`);
-console.log(`ADDED_COUNT=${additions.length}`);
-if (additions.length > 0) {
-  console.log("Additions:");
-  for (const id of additions) console.log(`  ${id}`);
-}
-NODE
-  )" || {
+  local plan_output
+  plan_output="$(_vscode_extension_sync_node plan "$brewfile" "$candidate" "$installed_file" "$disabled_file" "$ignored_file" "$reprompt")" || {
     echo "Warning: failed to build VSCode extension sync candidate, skipping." >&2
     /bin/rm -f "$candidate" "$installed_file" "$disabled_file"
     return 0
   }
+  /bin/rm -f "$installed_file" "$disabled_file"
 
-  print -r -- "$summary"
-  additions_count="$(print -r -- "$summary" | /usr/bin/awk -F= '$1 == "ADDED_COUNT" { print $2; exit }')"
-
-  if [[ -z "$additions_count" || "$additions_count" -eq 0 ]]; then
+  local -a candidates=(${(f)plan_output})
+  if (( ${#candidates} == 0 )); then
     echo "✓ Brewfile already contains all enabled VSCode extensions."
-    /bin/rm -f "$candidate" "$installed_file" "$disabled_file"
+    /bin/rm -f "$candidate"
     return 0
   fi
 
-  local review_signature=""
-  local last_reviewed_at=""
-  local repeated_action=""
-  local candidate_label="VSCode extension sync candidate for $brewfile"
-
-  review_signature=$(_diff_review_file_signature "vscode_extension_sync" "$candidate" "$brewfile" "$candidate_label" "$brewfile" 2>/dev/null || true)
-  if [[ -n "$review_signature" ]] && ! _diff_review_smart_merge_auto_enabled; then
-    last_reviewed_at=$(_diff_review_last_reviewed_at "$review_signature" 2>/dev/null || true)
-    if [[ -n "$last_reviewed_at" ]]; then
-      repeated_action=$(_diff_review_prompt_repeated_copy "$review_signature" "$last_reviewed_at" "VSCode extension Brewfile sync action required: $brewfile")
-      case "$repeated_action" in
-        overwrite)
-          echo "/bin/cp \"$candidate\" \"$brewfile\""
-          /bin/cp "$candidate" "$brewfile"
-          /bin/rm -f "$candidate" "$installed_file" "$disabled_file"
-          return $?
-          ;;
-        skip)
-          echo "Skipped: $brewfile"
-          /bin/rm -f "$candidate" "$installed_file" "$disabled_file"
-          return 0
-          ;;
-        view)
-          ;;
-      esac
-    fi
+  local green="" red="" reset=""
+  if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
+    green=$'\e[32m'
+    red=$'\e[31m'
+    reset=$'\e[0m'
   fi
 
+  # 1件ずつ採否を聞く。入力が尽きた（EOF）場合は q 扱いで何も追加しない。
+  local -a accepted=() rejected=()
+  local candidate_id reply bulk_action=""
+  local total=${#candidates} index=0
   echo ""
-  echo "=== VSCode extensions Brewfile sync candidate ==="
-  show_file_diff "$candidate" "$brewfile" "$candidate_label" "$brewfile"
-  echo "================================================="
+  echo "=== VSCode拡張のBrewfile追加確認 (${total}件) ==="
+  _start_prompt_wait_notification "VSCode拡張のBrewfile追加確認 (${total}件)" "confirm-prompt"
+  for candidate_id in "${candidates[@]}"; do
+    index=$(( index + 1 ))
+    case "$bulk_action" in
+      add) accepted+=("$candidate_id"); continue ;;
+      skip) continue ;;
+    esac
+    while true; do
+      print -r -- "[${index}/${total}] ${green}+ vscode \"${candidate_id}\"${reset}"
+      print -rn -- "  [y]追加 [n]不要(次回から聞かない) [s]今回スキップ [a]残り全部追加 [q]残り全部スキップ > "
+      if ! read -u 0 -k 1 -r reply; then
+        reply=q
+      fi
+      echo ""
+      case "${reply:l}" in
+        y) accepted+=("$candidate_id"); break ;;
+        n) rejected+=("$candidate_id"); break ;;
+        s) break ;;
+        a) accepted+=("$candidate_id"); bulk_action=add; break ;;
+        q) bulk_action=skip; break ;;
+        *) echo "  y / n / s / a / q のいずれかを入力してください" ;;
+      esac
+    done
+  done
+  _finish_prompt_wait_notification
 
-  if [[ -n "$review_signature" ]] && ! _diff_review_smart_merge_auto_enabled; then
-    _diff_review_record "$review_signature"
+  local accepted_id rejected_id
+  echo "--- 結果 ---"
+  for accepted_id in "${accepted[@]}"; do
+    print -r -- "${green}+ vscode \"${accepted_id}\"${reset}"
+  done
+  for rejected_id in "${rejected[@]}"; do
+    print -r -- "${red}- vscode \"${rejected_id}\" (不要として記録)${reset}"
+  done
+
+  if (( ${#rejected} > 0 )); then
+    _vscode_extension_sync_record_ignored "$ignored_file" "${rejected[@]}"
   fi
 
-  if confirm "VSCodeの有効拡張同期候補で ${brewfile} を上書きしますか？" --no-cancel-msg; then
-    echo "/bin/cp \"$candidate\" \"$brewfile\""
-    /bin/cp "$candidate" "$brewfile"
-  else
+  if (( ${#accepted} == 0 )); then
     echo "Skipped: $brewfile"
+    /bin/rm -f "$candidate"
+    return 0
   fi
 
-  /bin/rm -f "$candidate" "$installed_file" "$disabled_file"
+  if ! _vscode_extension_sync_node apply "$brewfile" "$candidate" "$installed_file" "$disabled_file" "$ignored_file" "$reprompt" "${accepted[@]}" >/dev/null; then
+    echo "Warning: failed to apply VSCode extension selection, Brewfile unchanged." >&2
+    /bin/rm -f "$candidate"
+    return 0
+  fi
+
+  echo "/bin/cp \"$candidate\" \"$brewfile\""
+  /bin/cp "$candidate" "$brewfile"
+  local copy_status=$?
+  /bin/rm -f "$candidate"
+  return $copy_status
 }
 
 # herdr の公式 SKILL.md (AI がherdrのCLIを操作するためのスキル)を upstream から取り込む。
