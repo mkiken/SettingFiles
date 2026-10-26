@@ -75,6 +75,10 @@ When introducing a flag or parameter that gates a destructive or billable operat
 
 Decide reversible, in-scope implementation choices (structure, naming, approach) yourself, matching the codebase's existing conventions. Reserve explicit boundaries and confirmation for irreversible or externally visible actions — delete, send, publish, billing, deploy, personal data.
 
+# Edge-Case Scope
+
+Before implementing, list the unlikely edge cases you would handle or skip — what each fixes, how likely it is, and its rough cost in lines — and get the user's decision in one batched confirmation (or in the plan, when one is written). Do not silently add or omit them; this overrides Reversibility Boundary. Cases named by the user, in an approved plan, or pinned by tests need no confirmation and are always implemented. Validate external input once at its entry point in new code. Never remove or weaken existing edge-case handling or validation without explicit user confirmation, even when it looks redundant.
+
 # Test Design
 
 When a plan includes test work, list the planned test cases (target, condition, expected outcome) before implementing, so scope and coverage can be reviewed first.
