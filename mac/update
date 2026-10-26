@@ -46,12 +46,6 @@ function _update_step_brew() {
   echo "end brew update."
 }
 
-function _update_step_tmux_plugins() {
-  echo "start tmux plugin update."
-  ~/.tmux/plugins/tpm/bin/update_plugins all || return 1
-  echo "end tmux plugin update."
-}
-
 function _update_step_npm_global() {
   npm install -g npm@latest || return 1
   # semver範囲外を含む全アウトデートパッケージを最新版に更新
@@ -103,7 +97,6 @@ function _update_step_zcompile() {
 _settingfiles_run_step "$_update_results_file" "エディタ設定同期" _update_step_editor_configs
 _settingfiles_run_step "$_update_results_file" "git submodule 更新" _update_step_git_submodules
 _settingfiles_run_step "$_update_results_file" "Homebrew 更新" _update_step_brew
-_settingfiles_run_step "$_update_results_file" "tmux プラグイン更新" _update_step_tmux_plugins
 _settingfiles_run_step "$_update_results_file" "npm グローバルパッケージ更新" _update_step_npm_global
 _settingfiles_run_step "$_update_results_file" "pipx 更新" _update_step_pipx
 _settingfiles_run_step "$_update_results_file" "AI tools 更新" _update_step_ai_tools

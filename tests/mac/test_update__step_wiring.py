@@ -7,7 +7,6 @@ EXPECTED_STEP_NAMES = (
     "エディタ設定同期",
     "git submodule 更新",
     "Homebrew 更新",
-    "tmux プラグイン更新",
     "npm グローバルパッケージ更新",
     "pipx 更新",
     "AI tools 更新",
@@ -33,6 +32,10 @@ class MacUpdateStepWiringTest(unittest.TestCase):
         for step_name in EXPECTED_STEP_NAMES:
             with self.subTest(step=step_name):
                 self.assertIn(f'_settingfiles_run_step "$_update_results_file" "{step_name}"', self.text)
+
+    def test_tmux_plugin_update_is_not_wired(self):
+        self.assertNotIn("_update_step_tmux_plugins", self.text)
+        self.assertNotIn("update_plugins", self.text)
 
     def test_summary_is_called_after_all_steps(self):
         last_step_index = self.text.rindex("_settingfiles_run_step")
