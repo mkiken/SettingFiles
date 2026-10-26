@@ -66,6 +66,71 @@ class CommonArgsWiringTest(unittest.TestCase):
                 self.assertNotIn("start git submodule setting.", output)
                 self.assertNotIn("Starting macOS initialization...", output)
 
+    def test_update_aborts_on_unknown_skip_step_without_side_effects(self):
+        result = subprocess.run(
+            [str(REPO_ROOT / "mac/update"), "--skip", "bogus"],
+            cwd=REPO_ROOT,
+            env={
+                "HOME": str(REPO_ROOT),
+                "PATH": SYSTEM_PATH,
+                "LANG": "en_US.UTF-8",
+            },
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        output = result.stdout + result.stderr
+
+        self.assertEqual(result.returncode, 2, output)
+        self.assertIn("Unknown step: bogus", result.stderr)
+        # 有効なキーの一覧を案内する
+        self.assertIn("brew", result.stderr)
+        self.assertNotIn("start brew update.", output)
+        self.assertNotIn("start git submodule setting.", output)
+
+    def test_update_aborts_when_any_skip_step_is_unknown(self):
+        result = subprocess.run(
+            [str(REPO_ROOT / "mac/update"), "--skip", "brew,bogus"],
+            cwd=REPO_ROOT,
+            env={
+                "HOME": str(REPO_ROOT),
+                "PATH": SYSTEM_PATH,
+                "LANG": "en_US.UTF-8",
+            },
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        output = result.stdout + result.stderr
+
+        self.assertEqual(result.returncode, 2, output)
+        self.assertIn("Unknown step: bogus", result.stderr)
+        self.assertNotIn("mac/update 完了", output)
+
+    def test_update_with_every_step_skipped_runs_nothing_and_succeeds(self):
+        # 全ステップをスキップすれば副作用なしで正常系の通し実行を検証できる。
+        keys = (
+            "editor_configs,git_submodules,brew,npm_global,pipx,ai_tools,"
+            "herdr,mdv,nvim_plugins,znap,gh_extensions,zcompile"
+        )
+        result = subprocess.run(
+            [str(REPO_ROOT / "mac/update"), "--skip", keys],
+            cwd=REPO_ROOT,
+            env={
+                "HOME": str(REPO_ROOT),
+                "PATH": SYSTEM_PATH,
+                "LANG": "en_US.UTF-8",
+            },
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        output = result.stdout + result.stderr
+
+        self.assertEqual(result.returncode, 0, output)
+        self.assertIn("0 成功 / 0 失敗 / 12 スキップ", output)
+        self.assertNotIn("start brew update.", output)
+
     def test_entry_scripts_print_usage_for_help(self):
         for script_path in ("mac/update", "mac/initialize"):
             with self.subTest(script=script_path):

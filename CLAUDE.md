@@ -84,7 +84,7 @@ Initialize scripts symlink repository files to system locations; core utility fu
 - `smart_copy` - Diff-aware file copy with interactive overwrite prompt
 - `smart_merge_json` - Deep-merge JSON files with conflict resolution (supports overwrite, keep, merge-with-priority)
 
-A diff you reviewed once is auto-skipped on later runs (diff-review state, `${XDG_STATE_HOME:-$HOME/.local/state}/SettingFiles/diff-reviews`); `--reprompt-reviewed` restores the prompt. CLI options shared by `mac/initialize` and `mac/update` are parsed by `parse_settingfiles_common_args` in `mac/scripts/common.sh`, which both entries call before their first side effect and which exits 2 on an unknown option — add new entry-script flags there rather than writing a second parser.
+A diff you reviewed once is auto-skipped on later runs (diff-review state, `${XDG_STATE_HOME:-$HOME/.local/state}/SettingFiles/diff-reviews`); `--reprompt-reviewed` restores the prompt. CLI options shared by `mac/initialize` and `mac/update` are parsed by `parse_settingfiles_common_args` in `mac/scripts/common.sh`, which both entries call before their first side effect and which exits 2 on an unknown option — add new entry-script flags there rather than writing a second parser. `--skip <step>[,<step>]` lives in that shared parser but only `mac/update` acts on it (keys are the `_update_step_<key>` function names, validated before any side effect); `mac/initialize` has no step mechanism and silently ignores it.
 
 When adding a managed symlink, apply it to the live environment and verify it with `readlink`; if the target exists unexpectedly, stop and report it instead of overwriting it.
 

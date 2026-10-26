@@ -110,6 +110,42 @@ class SettingfilesStepRunnerTest(unittest.TestCase):
         # スペースで分割されて複数レコードになっていないこと
         self.assertEqual(output.count("FAIL\t"), 1)
 
+    def test_skipped_step_is_counted_separately_and_not_a_failure(self):
+        result = run_steps(
+            "_settingfiles_step_init \"$results_file\"; "
+            "_settingfiles_run_step \"$results_file\" \"ran step\" true; "
+            "_settingfiles_record_skip \"$results_file\" \"skipped step\"; "
+            "_settingfiles_step_summary \"$results_file\""
+        )
+        output = result.stdout + result.stderr
+
+        self.assertIn("SUMMARY_STATUS=0", output)
+        self.assertIn("1 成功 / 0 失敗 / 1 スキップ", output)
+        self.assertIn("SKIP\tskipped step", output)
+        self.assertIn("- skipped step (スキップ)", output)
+
+    def test_summary_omits_skip_count_when_nothing_skipped(self):
+        result = run_steps(
+            "_settingfiles_step_init \"$results_file\"; "
+            "_settingfiles_run_step \"$results_file\" \"ran step\" true; "
+            "_settingfiles_step_summary \"$results_file\""
+        )
+        output = result.stdout + result.stderr
+
+        self.assertNotIn("スキップ", output)
+
+    def test_failure_still_returns_nonzero_when_other_steps_are_skipped(self):
+        result = run_steps(
+            "_settingfiles_step_init \"$results_file\"; "
+            "_settingfiles_record_skip \"$results_file\" \"skipped step\"; "
+            "_settingfiles_run_step \"$results_file\" \"bad step\" false; "
+            "_settingfiles_step_summary \"$results_file\""
+        )
+        output = result.stdout + result.stderr
+
+        self.assertNotIn("SUMMARY_STATUS=0", output)
+        self.assertIn("0 成功 / 1 失敗 / 1 スキップ", output)
+
 
 if __name__ == "__main__":
     unittest.main()

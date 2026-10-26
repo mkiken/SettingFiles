@@ -26,6 +26,8 @@ Options:
   --reprompt-reviewed     前回確認済みと同じ差分でも、毎回確認プロンプトを表示する
                           (環境変数 SETTINGFILES_DIFF_REVIEW_REPROMPT=1 と等価)
   --no-reprompt-reviewed  前回確認済みと同じ差分は自動スキップする (デフォルト)
+  --skip <step>[,<step>]  指定した更新ステップを飛ばす (mac/update のみ有効、繰り返し指定可)
+                          例: --skip brew,npm_global / --skip brew --skip pipx
   -h, --help              このヘルプを表示して終了する
 EOF
 }
@@ -40,8 +42,25 @@ function parse_settingfiles_common_args() {
   local script_name="${1:-SettingFiles}"
   shift
 
+  # 親シェルに残った同名の環境変数で、--skip なしにステップが飛ばされないよう毎回空にする
+  export SETTINGFILES_SKIP_STEPS=""
+
+  local skip_value skip_key
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --skip)
+        skip_value="${2:-}"
+        if [[ -z "$skip_value" || "$skip_value" == -* ]]; then
+          echo "❌ --skip requires a step name (e.g. --skip brew,pipx)" >&2
+          _settingfiles_common_args_usage "$script_name" >&2
+          return 2
+        fi
+        for skip_key in "${(@s:,:)skip_value}"; do
+          [[ -n "$skip_key" ]] && SETTINGFILES_SKIP_STEPS="${SETTINGFILES_SKIP_STEPS:+${SETTINGFILES_SKIP_STEPS} }${skip_key}"
+        done
+        export SETTINGFILES_SKIP_STEPS
+        shift
+        ;;
       --reprompt-reviewed)
         export SETTINGFILES_DIFF_REVIEW_REPROMPT=1
         ;;
@@ -79,6 +98,14 @@ function parse_settingfiles_common_args() {
 function _settingfiles_step_init() {
   local results_file="$1"
   : >| "$results_file"
+}
+
+# --skip で飛ばしたステップを results ファイルへ "SKIP<TAB>ステップ名" として追記する。
+function _settingfiles_record_skip() {
+  local results_file="$1"
+  local step_name="$2"
+
+  print -r -- "SKIP	${step_name}" >> "$results_file"
 }
 
 # 名前付きステップを実行し、成否を results ファイルへ1行追記する。
@@ -134,21 +161,36 @@ function _settingfiles_step_summary() {
 
   local pass_count=0
   local -a fail_lines=()
+  local -a skip_lines=()
   local line line_status line_name line_reason
 
   while IFS=$'\t' read -r line_status line_name line_reason; do
     [[ -z "$line_status" ]] && continue
     if [[ "$line_status" == "PASS" ]]; then
       (( pass_count++ ))
+    elif [[ "$line_status" == "SKIP" ]]; then
+      skip_lines+=("$line_name")
     else
       fail_lines+=("${line_name}: ${line_reason}")
     fi
   done < "$results_file"
 
   local fail_count=${#fail_lines[@]}
+  local skip_count=${#skip_lines[@]}
 
   echo "=================================================="
-  echo " mac/update 完了: ${pass_count} 成功 / ${fail_count} 失敗"
+  if (( skip_count > 0 )); then
+    echo " mac/update 完了: ${pass_count} 成功 / ${fail_count} 失敗 / ${skip_count} スキップ"
+  else
+    echo " mac/update 完了: ${pass_count} 成功 / ${fail_count} 失敗"
+  fi
+  if (( skip_count > 0 )); then
+    echo "--------------------------------------------------"
+    local skip_line
+    for skip_line in "${skip_lines[@]}"; do
+      echo " - ${skip_line} (スキップ)"
+    done
+  fi
   if (( fail_count > 0 )); then
     echo "--------------------------------------------------"
     local fail_line

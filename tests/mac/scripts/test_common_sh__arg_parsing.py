@@ -7,7 +7,7 @@ from support import REPO_ROOT
 SYSTEM_PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
 
-def run_parser(*args: str) -> subprocess.CompletedProcess[str]:
+def run_parser(*args: str, extra_env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
     """common.sh を source して parse_settingfiles_common_args を直接呼ぶ。
 
     戻り値を print し、フラグの反映結果も同時に出力させることで、
@@ -19,12 +19,13 @@ def run_parser(*args: str) -> subprocess.CompletedProcess[str]:
         f"parse_settingfiles_common_args mac/update {quoted}; "
         'parse_status=$?; '
         'print -r -- "STATUS=$parse_status"; '
-        'print -r -- "REPROMPT=${SETTINGFILES_DIFF_REVIEW_REPROMPT:-<unset>}"'
+        'print -r -- "REPROMPT=${SETTINGFILES_DIFF_REVIEW_REPROMPT:-<unset>}"; '
+        'print -r -- "SKIP=[${SETTINGFILES_SKIP_STEPS-<unset>}]"'
     )
     return subprocess.run(
         ["zsh", "-fc", script],
         cwd=REPO_ROOT,
-        env={"HOME": str(REPO_ROOT), "PATH": SYSTEM_PATH, "LANG": "en_US.UTF-8"},
+        env={"HOME": str(REPO_ROOT), "PATH": SYSTEM_PATH, "LANG": "en_US.UTF-8", **(extra_env or {})},
         text=True,
         capture_output=True,
         check=False,
@@ -75,6 +76,54 @@ class ParseSettingfilesCommonArgsTest(unittest.TestCase):
         self.assertIn("STATUS=10", result.stdout)
         self.assertIn("--reprompt-reviewed", result.stdout)
         self.assertIn("--no-reprompt-reviewed", result.stdout)
+        self.assertIn("--skip", result.stdout)
+
+    def test_skip_single_step(self):
+        result = run_parser("--skip", "brew")
+
+        self.assertIn("STATUS=0", result.stdout)
+        self.assertIn("SKIP=[brew]", result.stdout)
+
+    def test_skip_comma_separated_steps(self):
+        result = run_parser("--skip", "brew,pipx")
+
+        self.assertIn("STATUS=0", result.stdout)
+        self.assertIn("SKIP=[brew pipx]", result.stdout)
+
+    def test_skip_repeated_option_accumulates(self):
+        result = run_parser("--skip", "brew", "--skip", "pipx,mdv")
+
+        self.assertIn("STATUS=0", result.stdout)
+        self.assertIn("SKIP=[brew pipx mdv]", result.stdout)
+
+    def test_skip_ignores_empty_comma_segments(self):
+        result = run_parser("--skip", ",brew,,pipx,")
+
+        self.assertIn("SKIP=[brew pipx]", result.stdout)
+
+    def test_skip_without_value_returns_error_status(self):
+        result = run_parser("--skip")
+
+        self.assertIn("STATUS=2", result.stdout)
+        self.assertIn("--skip requires a step name", result.stderr)
+
+    def test_skip_followed_by_another_option_does_not_swallow_it(self):
+        result = run_parser("--skip", "--reprompt-reviewed")
+
+        self.assertIn("STATUS=2", result.stdout)
+        self.assertIn("--skip requires a step name", result.stderr)
+        self.assertIn("REPROMPT=<unset>", result.stdout)
+
+    def test_skip_does_not_inherit_environment_variable(self):
+        result = run_parser(extra_env={"SETTINGFILES_SKIP_STEPS": "brew"})
+
+        self.assertIn("STATUS=0", result.stdout)
+        self.assertIn("SKIP=[]", result.stdout)
+
+    def test_skip_environment_variable_is_replaced_not_merged(self):
+        result = run_parser("--skip", "pipx", extra_env={"SETTINGFILES_SKIP_STEPS": "brew"})
+
+        self.assertIn("SKIP=[pipx]", result.stdout)
 
 
 if __name__ == "__main__":
