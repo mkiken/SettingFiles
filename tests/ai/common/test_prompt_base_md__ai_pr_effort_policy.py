@@ -206,10 +206,10 @@ class CodexModelSelectionTest(unittest.TestCase):
             ("cxr --last", ["resume", "--last"]),
             ("cxs task", ["--model", "gpt-6.1-sol", "task"]),
             ("cxa task", ["--model", "gpt-6-astra", "task"]),
-            ("cxt task", ["--model", "gpt-5.6-terra", "task"]),
+            ("cxt task", ["--model", "gpt-6.1-terra", "task"]),
             (
                 "cxteh task",
-                ["--model", "gpt-5.6-terra", "-c", 'model_reasoning_effort="high"', "task"],
+                ["--model", "gpt-6.1-terra", "-c", 'model_reasoning_effort="high"', "task"],
             ),
             ("cxl task", ["--model", "gpt-6-luna", "task"]),
             (
@@ -225,8 +225,10 @@ class CodexModelSelectionTest(unittest.TestCase):
         for command, expected in cases:
             with self.subTest(command=command):
                 captured = run_codex_command(command)
-                self.assertEqual(captured[:2], ["homebrew_run", "codex"])
-                self.assertEqual(captured[2:], expected)
+                self.assertEqual(
+                    captured[:3], ["homebrew_run", "codex", "--dangerously-bypass-hook-trust"]
+                )
+                self.assertEqual(captured[3:], expected)
 
 
 class ClaudeModelSelectionTest(unittest.TestCase):

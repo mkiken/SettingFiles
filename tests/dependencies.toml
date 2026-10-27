@@ -1,5 +1,11 @@
 # Add only dependencies proven by a wider test run after targeted testing missed them.
 [extra_tests]
+# Codex selector contracts also live with the shared AI workflow policy tests.
+# Alias-only selection previously missed stale Terra and hook-trust expectations.
+"shell/zsh/alias/ai/codex.zsh" = [
+  "tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py",
+]
+
 # herdr_wait_shell_ready.sh は ai.zsh と herdr-split-snapshot-pane.sh から source される
 # 共有関数で、テストはその両呼び出し元側にある。helper 単体をパスに渡すと
 # tests/shell/herdr/test_herdr_wait_shell_ready_sh.py を探して0件になるため明示する。
