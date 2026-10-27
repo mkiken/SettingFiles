@@ -2,7 +2,7 @@
 description: >
   Audit all Claude Code configuration files for redundancy, conflicts, ambiguity,
   and unnecessary rules.
-model: fable
+model: opus
 argument-hint: "[scope: all|claude-md|skills|agents|hooks|settings|global|project]"
 allowed-tools: Bash(/bin/cat:*), Bash(readlink:*), Bash(bash:*), Bash(python3:*), Bash(nohup:*), Bash(curl:*), Bash(open:*), Read, Glob, Grep, Write
 ---
