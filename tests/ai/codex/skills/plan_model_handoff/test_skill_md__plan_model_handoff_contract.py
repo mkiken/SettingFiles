@@ -1,3 +1,4 @@
+import re
 import tomllib
 import unittest
 
@@ -65,10 +66,11 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
             with self.subTest(excluded=excluded):
                 self.assertNotIn(excluded, self.skill)
 
-    def test_choice_flow_offers_sol_terra_and_luna_delegation(self):
+    def test_choice_flow_recommends_terra_and_offers_parent_execution_second(self):
         for required in (
-            "`Use Sol subagent (Recommended)`",
-            "`Use Terra subagent`",
+            "`Use Terra subagent (Recommended)`",
+            "`Continue with current model`",
+            "`Use Sol subagent`",
             "`Use Luna subagent`",
             "parent session remains on the detected model",
             "exactly one Sol `worker` subagent owns the entire accepted-plan execution.",
@@ -81,13 +83,20 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
             with self.subTest(required=required):
                 self.assertIn(required, self.normalized_skill)
 
-        choices = [line for line in self.skill.splitlines() if "subagent` —" in line or "subagent (Recommended)` —" in line]
-        self.assertEqual(len(choices), 3)
-        for choice, tier in zip(choices, ("Sol", "Terra", "Luna")):
-            self.assertIn(f"Use {tier} subagent", choice)
+        choices = re.findall(r"^\d+\. `([^`]+)` —", self.skill, re.MULTILINE)
+        self.assertEqual(choices, [
+            "Use Terra subagent (Recommended)",
+            "Continue with current model",
+            "Use Sol subagent",
+            "Use Luna subagent",
+        ])
+        for label in choices:
+            with self.subTest(label=label):
+                self.assertEqual(self.skill.count(f"`{label}`"), 1)
 
-        # Excluding old labels preserves delegation wording and the Sol recommendation.
+        # Excluding old labels preserves delegation wording and the Terra recommendation.
         for excluded in (
+            "`Use Sol subagent (Recommended)`",
             "`Continue with Sol (Recommended)`",
             "`Delegate to Terra`",
             "`Delegate to Luna`",
@@ -95,6 +104,27 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
         ):
             with self.subTest(excluded=excluded):
                 self.assertNotIn(excluded, self.skill)
+
+    def test_current_model_route_skips_worker_setup_and_preserves_specialists(self):
+        for required in (
+            "no implementation subagent is launched",
+            "the parent session keeps the detected model and owns the entire accepted-plan execution",
+            "For the current-model route, skip delegation-model availability checks and worker creation",
+            "then begin the accepted task workflow in the parent session",
+            "Specialist subagents required by that workflow remain allowed.",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.normalized_skill)
+
+    def test_confirmation_ui_preserves_all_four_choices_in_one_question(self):
+        for required in (
+            "Use a permitted confirmation UI that can present all four authored choices in one question",
+            "use `request_user_input_async` when `request_user_input` cannot",
+            "If no permitted UI supports all four, show the same four choices as a numbered list",
+            "never split them across questions",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.normalized_skill)
 
     def test_other_routes_model_names_without_assuming_a_parent_switch(self):
         for required in (

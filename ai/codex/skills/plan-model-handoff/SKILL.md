@@ -37,14 +37,24 @@ If the result is empty, report `Implementation-model check skipped: active model
 When the detected model is `gpt-6-astra` or matches `*-sol`, follow the always-on
 `# User Confirmation` rules with these authored choices in this order:
 
-1. `Use Sol subagent (Recommended)` — the parent session remains on the detected model; exactly one Sol `worker` subagent owns the entire accepted-plan execution.
-2. `Use Terra subagent` — the parent session remains on the detected model; exactly one Terra `worker` subagent owns the entire accepted-plan execution.
-3. `Use Luna subagent` — the parent session remains on the detected model; exactly one Luna `worker` subagent owns the entire accepted-plan execution.
+1. `Use Terra subagent (Recommended)` — the parent session remains on the detected model; exactly one Terra `worker` subagent owns the entire accepted-plan execution.
+2. `Continue with current model` — no implementation subagent is launched; the parent session keeps the detected model and owns the entire accepted-plan execution.
+3. `Use Sol subagent` — the parent session remains on the detected model; exactly one Sol `worker` subagent owns the entire accepted-plan execution.
+4. `Use Luna subagent` — the parent session remains on the detected model; exactly one Luna `worker` subagent owns the entire accepted-plan execution.
+
+Use a permitted confirmation UI that can present all four authored choices in
+one question; use `request_user_input_async` when `request_user_input` cannot.
+If no permitted UI supports all four, show the same four choices as a numbered
+list; never split them across questions.
 
 Pass each label exactly once and do not count the client's auto-provided free-form
 `Other` as an authored option. In the question text, say that `Other` can specify
 "continue with the current model" or "switch the parent
 model manually". Include the same routes and examples in the numbered fallback.
+
+For the current-model route, skip delegation-model availability checks and
+worker creation, then begin the accepted task workflow in the parent session.
+Specialist subagents required by that workflow remain allowed.
 
 Resolve Sol, Terra, and Luna only from callable runtime metadata, never local
 configuration. If the selected tier is unavailable, make no implementation
