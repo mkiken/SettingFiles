@@ -35,7 +35,7 @@ cxa() {
 
 # `t` selects Terra.
 cxt() {
-    cx --model gpt-5.6-terra "$@"
+    cx --model gpt-6.1-terra "$@"
 }
 
 cxteh() {

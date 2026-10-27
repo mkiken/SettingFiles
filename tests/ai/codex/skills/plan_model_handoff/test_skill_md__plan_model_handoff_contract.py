@@ -65,14 +65,16 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
             with self.subTest(excluded=excluded):
                 self.assertNotIn(excluded, self.skill)
 
-    def test_choice_flow_offers_sol_and_luna_delegation(self):
+    def test_choice_flow_offers_sol_terra_and_luna_delegation(self):
         for required in (
             "`Use Sol subagent (Recommended)`",
+            "`Use Terra subagent`",
             "`Use Luna subagent`",
             "parent session remains on the detected model",
             "exactly one Sol `worker` subagent owns the entire accepted-plan execution.",
+            "exactly one Terra `worker` subagent owns the entire accepted-plan execution.",
             "exactly one Luna `worker` subagent owns the entire accepted-plan execution.",
-            "Resolve Sol and Luna only from callable runtime metadata",
+            "Resolve Sol, Terra, and Luna only from callable runtime metadata",
             "If the selected tier is unavailable, make no implementation change",
             "do not count the client's auto-provided free-form `Other` as an authored option",
         ):
@@ -80,12 +82,9 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
                 self.assertIn(required, self.normalized_skill)
 
         choices = [line for line in self.skill.splitlines() if "subagent` —" in line or "subagent (Recommended)` —" in line]
-        self.assertEqual(len(choices), 2)
-        for choice, tier in zip(choices, ("Sol", "Luna")):
+        self.assertEqual(len(choices), 3)
+        for choice, tier in zip(choices, ("Sol", "Terra", "Luna")):
             self.assertIn(f"Use {tier} subagent", choice)
-
-        # Terra remains a manual shell selector, not an offered execution route.
-        self.assertNotIn("Terra", self.skill)
 
         # Excluding old labels preserves delegation wording and the Sol recommendation.
         for excluded in (
@@ -111,7 +110,7 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
     def test_other_preserves_current_luna_and_explicit_parent_switch_routes(self):
         for required in (
             "A request to continue with the current model keeps execution in the parent session.",
-            "A Luna request delegates the full lifecycle to exactly one Luna `worker` subagent.",
+            "A Terra or Luna request delegates the full lifecycle to exactly one `worker` subagent of the selected tier.",
             "Only an explicit request to switch the parent-session model starts the manual-switch flow.",
             "Make no implementation change while waiting for that switch.",
             "wait until the user confirms the switch",

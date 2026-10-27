@@ -38,7 +38,8 @@ When the detected model is `gpt-6-astra` or matches `*-sol`, use
 `request_user_input` when available with these authored choices in this order:
 
 1. `Use Sol subagent (Recommended)` — the parent session remains on the detected model; exactly one Sol `worker` subagent owns the entire accepted-plan execution.
-2. `Use Luna subagent` — the parent session remains on the detected model; exactly one Luna `worker` subagent owns the entire accepted-plan execution.
+2. `Use Terra subagent` — the parent session remains on the detected model; exactly one Terra `worker` subagent owns the entire accepted-plan execution.
+3. `Use Luna subagent` — the parent session remains on the detected model; exactly one Luna `worker` subagent owns the entire accepted-plan execution.
 
 Pass each label exactly once and do not count the client's auto-provided free-form
 `Other` as an authored option. In the question text, say that `Other` can specify
@@ -46,7 +47,7 @@ Pass each label exactly once and do not count the client's auto-provided free-fo
 model manually". If `request_user_input` is unavailable, ask one plain-text
 free-form question that includes the same routes and examples.
 
-Resolve Sol and Luna only from callable runtime metadata, never local
+Resolve Sol, Terra, and Luna only from callable runtime metadata, never local
 configuration. If the selected tier is unavailable, make no implementation
 change, report the unavailable tier, and offer the choice again.
 
@@ -56,8 +57,8 @@ Interpret a free-form answer by its stated route:
   that model's `worker`, including free-form answers such as `I want to use Sol`.
 - A request to continue with the current model keeps execution in the parent
   session.
-- A Luna request delegates the full lifecycle to exactly one Luna `worker`
-  subagent.
+- A Terra or Luna request delegates the full lifecycle to exactly one `worker`
+  subagent of the selected tier.
 - Only an explicit request to switch the parent-session model starts the
   manual-switch flow. Make no implementation change while waiting for that
   switch. Ask the user to switch the parent session model manually, wait until
@@ -72,7 +73,7 @@ Apply the selected execution route to the current task without rewriting the acc
 
 ## Delegate the full execution lifecycle
 
-For Sol or Luna, spawn exactly one `worker` with the selected runtime model
+For Sol, Terra, or Luna, spawn exactly one `worker` with the selected runtime model
 override and `fork_turns="none"`. Give it a self-contained prompt containing:
 
 - The accepted plan verbatim, the original task request, and every accepted user decision.

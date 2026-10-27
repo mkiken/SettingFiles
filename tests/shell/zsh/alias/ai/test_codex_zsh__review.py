@@ -12,7 +12,9 @@ class CodexReviewAliasTest(unittest.TestCase):
             ("cx 'two words'", ["two words"]),
             ("cxs 'two words'", ["--model", "gpt-6.1-sol", "two words"]),
             ("cxa 'two words'", ["--model", "gpt-6-astra", "two words"]),
-            ("cxt 'two words'", ["--model", "gpt-5.6-terra", "two words"]),
+            ("cxt 'two words'", ["--model", "gpt-6.1-terra", "two words"]),
+            ("cxteh 'two words'", ["--model", "gpt-6.1-terra", "-c", 'model_reasoning_effort="high"', "two words"]),
+            ("cxmx 'two words'", ["--model", "gpt-6-astra", "-c", 'model_reasoning_effort="high"', "two words"]),
             ("cxl 'two words'", ["--model", "gpt-6-luna", "two words"]),
             ("cxr 'session id'", ["resume", "session id"]),
         ):
