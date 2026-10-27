@@ -2,6 +2,10 @@
 
 The plugin's runtime environment and the debug/reload loop: `plugin-env.md`. The plugin also rebuilds tab labels on every focus/status event, which stomps shell-set glyphs; the ✋ ownership-marker contract it must honor is in `status-icon.md`.
 
+## Sidebar token boundaries
+
+Herdr 0.9.5 inserts ` · ` between separate text tokens, including custom tokens; token styles cannot add a text prefix. Keep an icon and its value inside one reported token when they must be adjacent. If wrapping another plugin's changing value, refresh its producer synchronously before copying it; separate hooks run concurrently.
+
 ## macOS delivery
 
 Notify-rich sends through `HERDR_BIN_PATH notification show`, which honors `[ui.toast] delivery = "system"` and gives macOS a stable Herdr notification identity. Homebrew `terminal-notifier` 2.0.0 is unsigned and can return exit 0 while modern macOS suppresses it; keep it only as an API-failure fallback. Map done to Herdr's `done` sound and blocked/error to `request`. Verification requires both a successful plugin log and user-visible receipt: first trigger a dedicated status transition, then send `herdr notification show` directly to separate plugin logic from OS delivery.
