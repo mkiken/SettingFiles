@@ -167,11 +167,22 @@ for line in sys.stdin:
                 self.assertEqual(pid, group)
                 self.assertNotEqual(group, os.getpgrp())
         report = self.run_hook()
-        self.assertIn("monthly_credit=📅100%", report)
+        self.assertIn("monthly_credit=📅0%", report)
         self.assertIn("context_compact=💬34%", report)
         self.assertFalse(any(arg.startswith("context=") for arg in report))
         requests = [json.loads(line)["method"] for line in (self.root / "requests").read_text().splitlines()]
         self.assertEqual(requests[:3], ["initialize", "initialized", "account/rateLimits/read"])
+
+    def test_monthly_usage_from_fresh_and_cached_remaining_credit(self):
+        for remaining, expected in ((100, "0"), (0, "100"), (41, "59"), (41.5, "58.5")):
+            with self.subTest(remaining=remaining):
+                self.write_scenario(percent=remaining)
+                if self.fetch_count():
+                    self.cache_path().write_text("broken")
+                before = self.fetch_count()
+                for _ in range(2):
+                    self.assertIn("monthly_credit=📅{}%".format(expected), self.run_hook())
+                self.assertEqual(self.fetch_count(), before + 1)
 
     def test_invalid_missing_and_api_error_clear_only_owned_token(self):
         scenarios = [{"percent": value} for value in (True, False, -1, 101, "41", None, float("nan"))]
@@ -252,7 +263,7 @@ for line in sys.stdin:
                          {"pane.agent_status_changed", "pane.agent_detected", "pane.focused"})
         self.assertEqual(len(hooks), 3)
         for hook, data in zip(hooks, ({"pane_id": "w1:p1"}, {"pane": {"pane_id": "w1:p1"}}, {"pane_id": "w1:p1"})):
-            self.assertIn("monthly_credit=📅41%", self.run_hook(
+            self.assertIn("monthly_credit=📅59%", self.run_hook(
                 HERDR_PANE_ID="", HERDR_PLUGIN_EVENT=hook["on"],
                 HERDR_PLUGIN_EVENT_JSON=json.dumps({"data": data})))
         self.assertEqual(self.fetch_count(), 1)
@@ -279,7 +290,7 @@ for line in sys.stdin:
         report = self.run_hook()
         self.assertIn("context_compact", report)
         self.assertNotIn("context_compact=💬31%", report)
-        self.assertIn("monthly_credit=📅41%", report)
+        self.assertIn("monthly_credit=📅59%", report)
 
     def test_pane_lookup_failure_after_credit_read_clears_both_tokens(self):
         self.write_scenario(second_get_error=True)

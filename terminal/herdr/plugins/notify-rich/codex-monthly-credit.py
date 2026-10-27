@@ -194,7 +194,7 @@ def main():
     if value is None:
         arguments += ["--clear-token", TOKEN]
     else:
-        arguments += ["--agent", "codex", "--token", "{}=📅{:g}%".format(TOKEN, value)]
+        arguments += ["--agent", "codex", "--token", "{}=📅{:g}%".format(TOKEN, 100 - value)]
     run(arguments)
 
 
