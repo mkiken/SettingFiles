@@ -274,6 +274,20 @@ class WorktreeTaskSkillContentTest(unittest.TestCase):
             with self.subTest(required=required):
                 self.assertIn(required, self.content)
 
+    def test_push_targets_same_name_branch_and_repairs_upstream_when_equal(self):
+        for required in (
+            "Stop on detached HEAD",
+            "Stop rather than guessing if no upstream is configured",
+            "Use the current local branch name as the remote branch name",
+            "If that remote branch does not exist, create it with the push below",
+            "Run `git push -u` without force",
+            "retaining the configured upstream remote explicitly when needed",
+            "Push even if the same-name remote branch is already equal",
+            "Verify the configured upstream is that same remote branch",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.content)
+
     def test_non_conflict_wtm_failure_preserves_state_until_retry_is_safe(self):
         normalized_content = " ".join(self.content.split())
         for required in (

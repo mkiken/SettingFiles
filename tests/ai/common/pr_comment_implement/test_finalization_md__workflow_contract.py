@@ -25,7 +25,7 @@ class FinalizationWorkflowContractTest(unittest.TestCase):
         for required in (
             'EXPECTED_PUSH_HEAD=$(git -C "$ORIGINAL_PATH" rev-parse HEAD)',
             'if [ "$CURRENT_PUSH_HEAD" != "$EXPECTED_PUSH_HEAD" ]; then',
-            'git push origin "${HEAD_BRANCH}:${HEAD_BRANCH}"',
+            'git push -u origin "${HEAD_BRANCH}:${HEAD_BRANCH}"',
             'git log "${PRE_COMMIT_HEAD}..${EXPECTED_PUSH_HEAD}"',
         ):
             with self.subTest(required=required):

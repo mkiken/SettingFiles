@@ -217,12 +217,10 @@ Only after both merge and cleanup checks pass, inspect the recorded action. For
 `commit_merge`, report the local branch and merged commit, then stop without
 pushing. Continue with the push steps only for `commit_merge_push`:
 
-1. Re-read the current branch from the recorded invoking worktree. Require it to be attached and equal to the recorded original branch.
-2. Resolve its configured upstream remote and remote branch. Stop rather than guessing if no upstream is configured.
-3. Fetch that remote and compare the fetched remote ref with the local branch.
+1. Re-read the current branch from the recorded invoking worktree. Stop on detached HEAD; require the branch to equal the recorded original branch.
+2. Resolve its configured upstream remote. Stop rather than guessing if no upstream is configured. Use the current local branch name as the remote branch name.
+3. Fetch that remote and compare its same-name remote branch with the local branch. If that remote branch does not exist, create it with the push below.
 4. If the remote is ahead or the histories diverged, stop and report the ahead/behind counts. Never automatically pull, rebase, merge, or force-push.
 5. Immediately before pushing, re-read the invoking worktree's current branch again and require the same original branch.
-6. Push the current `HEAD` to the configured remote branch without force.
-7. Independently query or fetch the remote ref after the push and require its object ID to equal the pushed local commit before reporting success.
-
-If the remote was already equal to the local branch, report that no push was necessary and still verify the remote object ID.
+6. Run `git push -u` without force, retaining the configured upstream remote explicitly when needed. Push even if the same-name remote branch is already equal, so `-u` repairs the upstream.
+7. Independently query or fetch the same-name remote ref after the push and require its object ID to equal the pushed local commit. Verify the configured upstream is that same remote branch before reporting success.

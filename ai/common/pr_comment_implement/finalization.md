@@ -326,7 +326,7 @@ checked-out branch and `HEAD` to match first, and write variables as
 ```bash
 [ "$(git branch --show-current)" = "${HEAD_BRANCH}" ] \
   && [ "$(git rev-parse HEAD)" = "${EXPECTED_PUSH_HEAD}" ] \
-  && git push origin "${HEAD_BRANCH}:${HEAD_BRANCH}"
+  && git push -u origin "${HEAD_BRANCH}:${HEAD_BRANCH}"
 ```
 
 If push fails for a reason other than the race just handled, ask retry/abort;

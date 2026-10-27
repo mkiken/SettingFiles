@@ -11,6 +11,12 @@ class CommitConfirmationContractTest(unittest.TestCase):
         )
         cls.workflow = content.split("# Post-Implementation Workflow\n", 1)[1]
 
+    def test_push_sets_and_verifies_upstream(self):
+        content = (REPO_ROOT / "ai/common/prompt_base.md").read_text(encoding="utf-8")
+        self.assertIn("Immediately before `git push -u`, resolve the current branch", content)
+        self.assertIn("push that branch with `-u`", content)
+        self.assertIn("verify its remote ref and configured upstream match the pushed branch", content)
+
     def test_commit_still_requires_user_choice(self):
         self.assertIn("inspect the working tree, then ask whether", self.workflow)
         self.assertIn(

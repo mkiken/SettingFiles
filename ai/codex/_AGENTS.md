@@ -125,7 +125,7 @@ After any side-effecting operation (git commit/push, API writes, deletes, deploy
 
 Report a tool call's outcome only from the text that call actually returned — never compose, reconstruct, or pre-fill its output (a commit hash, changed-file count, a push's ref-update line); if you have not yet seen the result, say so.
 
-Immediately before `git push`, resolve the current branch, push that branch, and verify its remote ref advanced.
+Immediately before `git push -u`, resolve the current branch, push that branch with `-u`, and verify its remote ref and configured upstream match the pushed branch.
 
 # Destructive-Command Verification Safety
 
