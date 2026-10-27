@@ -232,7 +232,9 @@ When one tool call produces files for later calls, use host-visible storage and 
 
 # User Confirmation
 
-When using `request_user_input` for a skill's authored options, pass each label exactly once and preserve the authored option count. Do not count the client's auto-provided free-form `Other` as an authored option.
+Prefer `request_user_input_async` for confirmations when available and permitted for approval requests. Use `request_user_input` only for purposes permitted by the active runtime; never override its permission restrictions.
+
+For either UI, pass each skill-authored label exactly once and preserve the authored option count. Do not count the client's auto-provided free-form `Other` as an authored option. If no permitted UI is available or the authored options exceed its capacity, use a numbered plain-text list and accept number-only replies. Never treat an unanswered approval request as approval.
 
 # Plan Model Handoff
 
