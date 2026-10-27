@@ -2,6 +2,10 @@
 
 - Do not number comments; instead describe what the code does or why it exists.
 
+# File Creation
+
+Before creating a file, check whether the target exists. If it does, read its contents and edit the existing file without discarding unrelated content.
+
 # File References When Addressing the User
 
 When referencing a file/location to the user (questions, confirmations, findings), use repository-root-relative path + `:line` when known. Bare filenames are ambiguous. (Line numbers are fine here as messages are ephemeral.)
