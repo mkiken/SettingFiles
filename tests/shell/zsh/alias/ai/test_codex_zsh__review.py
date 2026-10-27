@@ -7,6 +7,40 @@ from support import REPO_ROOT, sanitized_env
 
 
 class CodexReviewAliasTest(unittest.TestCase):
+    def test_launch_bypasses_hook_trust_and_preserves_arguments_and_exit_code(self):
+        for command, arguments in (
+            ("cx 'two words'", ["two words"]),
+            ("cxs 'two words'", ["--model", "gpt-6.1-sol", "two words"]),
+            ("cxa 'two words'", ["--model", "gpt-6-astra", "two words"]),
+            ("cxt 'two words'", ["--model", "gpt-5.6-terra", "two words"]),
+            ("cxl 'two words'", ["--model", "gpt-6-luna", "two words"]),
+            ("cxr 'session id'", ["resume", "session id"]),
+        ):
+            for exit_code in (0, 7):
+                with self.subTest(command=command, exit_code=exit_code):
+                    script = f'''
+source {shlex.quote(str(REPO_ROOT / "shell/zsh/alias/ai/codex.zsh"))}
+no_notify() {{ "$@"; }}
+homebrew_run() {{
+    python3 -c 'import json,sys; print(json.dumps(sys.argv[1:]))' "$@"
+    return {exit_code}
+}}
+{command}
+'''
+                    result = subprocess.run(
+                        ["zsh", "-fc", script],
+                        cwd=REPO_ROOT,
+                        env=sanitized_env(),
+                        capture_output=True,
+                        text=True,
+                        check=False,
+                    )
+                    self.assertEqual(result.returncode, exit_code, result.stderr)
+                    self.assertEqual(
+                        json.loads(result.stdout),
+                        ["codex", "--dangerously-bypass-hook-trust", *arguments],
+                    )
+
     def run_command(self, command, exit_code=0):
         script = f'''
 source {shlex.quote(str(REPO_ROOT / "shell/zsh/alias/ai/codex.zsh"))}

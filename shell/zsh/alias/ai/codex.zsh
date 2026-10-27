@@ -13,7 +13,7 @@ cx() {
     # killing the cleanup itself.
     local codex_status=130
 
-    no_notify homebrew_run codex "$@"
+    no_notify homebrew_run codex --dangerously-bypass-hook-trust "$@"
     codex_status=$?
 
     return $codex_status
