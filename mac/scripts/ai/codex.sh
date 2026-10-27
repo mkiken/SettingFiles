@@ -62,6 +62,63 @@ function setup_codex_context_mode() {
   else
     codex plugin add context-mode@context-mode || return 1
   fi
+
+  repair_codex_context_mode_cache
+}
+
+function repair_codex_context_mode_cache() {
+  python3 - <<'PYTHON'
+import json
+import os
+from pathlib import Path
+import stat
+import subprocess
+import sys
+
+try:
+    installed = json.loads(subprocess.check_output(["codex", "plugin", "list", "--json"], text=True))["installed"]
+    versions = [plugin["version"] for plugin in installed
+                if plugin.get("pluginId") == "context-mode@context-mode"
+                or (plugin.get("name") == "context-mode" and plugin.get("marketplaceName") == "context-mode")]
+    if len(versions) != 1 or not isinstance(versions[0], str) or versions[0] in ("", ".", "..") or Path(versions[0]).name != versions[0]:
+        raise ValueError("Cannot identify one installed context-mode version")
+    home = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))).resolve()
+    root = home / "plugins/cache/context-mode/context-mode" / versions[0]
+    if root.resolve(strict=True) != root or not root.is_dir():
+        raise ValueError(f"Unexpected context-mode cache: {root}")
+    links = []
+
+    def fail_walk(error):
+        raise error
+
+    # Codex fingerprints the whole cache; validate everything before changing it.
+    for directory, dirs, files in os.walk(root, onerror=fail_walk):
+        for name in dirs + files:
+            entry = Path(directory) / name
+            mode = entry.lstat().st_mode
+            if stat.S_ISLNK(mode):
+                target = entry.resolve(strict=True)
+                if (entry.parent.name != ".bin" or "node_modules" not in entry.relative_to(root).parts[:-2]
+                        or not target.is_relative_to(root) or not target.is_file()):
+                    raise ValueError(f"Unexpected context-mode symlink: {entry}")
+                links.append(entry)
+            elif not (stat.S_ISREG(mode) or stat.S_ISDIR(mode)):
+                raise ValueError(f"Unexpected context-mode entry: {entry}")
+    npm_get = ["npm", "config", "get", "bin-links", "--location=project"]
+    npmrc = root / ".npmrc"
+    if not npmrc.exists() or "bin-links=false" not in npmrc.read_text().splitlines():
+        subprocess.run(["npm", "config", "set", "bin-links=false", "--location=project"], cwd=root, check=True)
+    if subprocess.check_output(npm_get, cwd=root, text=True).strip() != "false":
+        raise ValueError("Cannot disable context-mode npm bin-links")
+    for entry in links:
+        subprocess.run(["trash", str(entry)], check=True)
+        if entry.is_symlink() or entry.exists():
+            raise ValueError(f"Cannot remove context-mode symlink: {entry}")
+    print(f"✓ Codex context-mode cache repaired ({len(links)} bin links removed).")
+except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as error:
+    print(f"Error: cannot repair Codex context-mode cache: {error}", file=sys.stderr)
+    sys.exit(1)
+PYTHON
 }
 
 function setup_codex_superpowers() {
