@@ -175,6 +175,43 @@ if [ -n "$five_pct" ] || [ -n "$seven_pct" ]; then
   fi
 fi
 
+# 💳 Enterprise 月次usage credits。statusline JSONには来ないので、Claude Code自身が
+# ~/.claude.json にキャッシュした非公開フィールドを読む。欠落・無効時は何も出さない
+credits_json="$HOME/.claude.json"
+if [ -f "$credits_json" ]; then
+  IFS=$'\t' read -r cr_used cr_limit cr_pct cr_cur cr_fetched < <(
+    jq -r '
+      .cachedUsageUtilization as $c
+      | $c.utilization.extra_usage // empty
+      | select(.is_enabled == true
+               and (.monthly_limit | type) == "number"
+               and (.used_credits | type) == "number"
+               and (.utilization | type) == "number")
+      | (.decimal_places // 2) as $d
+      | [(.used_credits / pow(10; $d) | round),
+         (.monthly_limit / pow(10; $d) | round),
+         (.utilization | round),
+         (.currency // "USD"),
+         ($c.fetchedAtMs // 0)]
+      | @tsv' "$credits_json" 2>/dev/null
+  )
+  if [ -n "$cr_used" ]; then
+    cr_color=$(pct_color "$cr_pct")
+    if [ "$cr_cur" = "USD" ]; then cr_sym='$'; else cr_sym="$cr_cur "; fi
+    cr_stale=""
+    if [ "$cr_fetched" -gt 0 ] 2>/dev/null; then
+      cr_age=$(( $(date +%s) - cr_fetched / 1000 ))
+      # キャッシュが1時間超古ければ経過時間を付記（月替わり直後の先月値の誤読防止）
+      if [ "$cr_age" -ge 3600 ]; then
+        cr_stale=" \033[90m·$((cr_age / 3600))h前"
+      fi
+    fi
+    printf ' |'
+    printf " ${cr_color}💳 %s%s/%s%s (%s%%)%b\033[0m" \
+      "$cr_sym" "$cr_used" "$cr_sym" "$cr_limit" "$cr_pct" "$cr_stale"
+  fi
+fi
+
 echo
 
 # --- Line 2: Directory + Branch + Worktree ---
