@@ -175,14 +175,55 @@ if [ -n "$five_pct" ] || [ -n "$seven_pct" ]; then
   fi
 fi
 
-# 💳 Enterprise 月次usage credits。statusline JSONには来ないので、Claude Code自身が
-# ~/.claude.json にキャッシュした非公開フィールドを読む。欠落・無効時は何も出さない
+# 💳 Enterprise 月次usage credits。statusline JSONには来ない。~/.claude.json の
+# cachedUsageUtilization は本体の更新が遅い(数時間)ので、OAuth usage APIを裏で取得して
+# 独自キャッシュ(TTL 5分)に置き、両者のうち fetchedAtMs が新しい方を表示する。
+# 欠落・無効時は何も出さない
 credits_json="$HOME/.claude.json"
-if [ -f "$credits_json" ]; then
+usage_dir="${XDG_CACHE_HOME:-$HOME/.cache}/claude-statusline"
+usage_cache="$usage_dir/usage.json"
+usage_ttl=300
+
+usage_fetched=0
+if [ -f "$usage_cache" ]; then
+  usage_fetched=$(jq -r '(.fetchedAtMs // 0) | floor' "$usage_cache" 2>/dev/null)
+fi
+if [ $(( $(date +%s) - ${usage_fetched:-0} / 1000 )) -ge "$usage_ttl" ]; then
+  # 描画をブロックしないようデタッチ。失敗・トークン無しではロックを残し、
+  # 60秒で期限切れになるまでの間を再試行のバックオフにする(429連打回避)
+  (
+    mkdir -p "$usage_dir" 2>/dev/null
+    if [ -n "$(find "$usage_dir/lock" -maxdepth 0 -mmin +1 2>/dev/null)" ]; then
+      rmdir "$usage_dir/lock" 2>/dev/null
+    fi
+    mkdir "$usage_dir/lock" 2>/dev/null || exit 0
+    token=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null \
+      | jq -r '.claudeAiOauth.accessToken // empty' 2>/dev/null)
+    [ -n "$token" ] || exit 0
+    tmp=$(mktemp "$usage_dir/usage.XXXXXX") || exit 0
+    if curl -sf -m 8 -H "Authorization: Bearer $token" -H "anthropic-beta: oauth-2025-04-20" \
+         https://api.anthropic.com/api/oauth/usage 2>/dev/null \
+       | jq -e --argjson now "$(( $(date +%s) * 1000 ))" \
+           '{fetchedAtMs: $now, utilization: .} | select((.utilization.extra_usage | type) == "object")' \
+           >"$tmp" 2>/dev/null; then
+      mv "$tmp" "$usage_cache" && rmdir "$usage_dir/lock" 2>/dev/null
+    else
+      rm -f "$tmp"
+    fi
+  ) </dev/null >/dev/null 2>&1 &
+fi
+
+credits_files=()
+for credits_src in "$usage_cache" "$credits_json"; do
+  [ -f "$credits_src" ] && credits_files+=("$credits_src")
+done
+if [ ${#credits_files[@]} -gt 0 ]; then
   IFS=$'\t' read -r cr_used cr_limit cr_pct cr_cur cr_fetched < <(
-    jq -r '
-      .cachedUsageUtilization as $c
-      | $c.utilization.extra_usage // empty
+    jq -rs '
+      [.[] | (.cachedUsageUtilization // .)
+           | select(type == "object" and (.utilization.extra_usage | type) == "object")]
+      | (max_by(.fetchedAtMs // 0) // empty) as $c
+      | $c.utilization.extra_usage
       | select(.is_enabled == true
                and (.monthly_limit | type) == "number"
                and (.used_credits | type) == "number"
@@ -193,7 +234,7 @@ if [ -f "$credits_json" ]; then
          (.utilization | round),
          (.currency // "USD"),
          ($c.fetchedAtMs // 0)]
-      | @tsv' "$credits_json" 2>/dev/null
+      | @tsv' "${credits_files[@]}" 2>/dev/null
   )
   if [ -n "$cr_used" ]; then
     cr_color=$(pct_color "$cr_pct")
