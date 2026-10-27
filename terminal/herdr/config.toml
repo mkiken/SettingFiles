@@ -212,7 +212,7 @@ claude = [
 codex = [
   ["workspace", "tab"],
   ["state_icon", "$provider", "$limit", "state_text"],
-  ["$context"],
+  ["$context_compact", "$monthly_credit"],
 ]
 
 [ui.toast]
