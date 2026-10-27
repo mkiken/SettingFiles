@@ -421,36 +421,57 @@ function sync_enabled_vscode_extensions_to_brewfile() {
     reset=$'\e[0m'
   fi
 
-  # 1件ずつ採否を聞く。入力が尽きた（EOF）場合は q 扱いで何も追加しない。
+  # 先に全候補を一覧表示して一括/個別を選ばせ、個別なら1件ずつ採否を聞く。
+  # 入力は行単位（Enter確定）。入力が尽きた（EOF）場合は何も追加しない。
   local -a accepted=() rejected=()
-  local candidate_id reply bulk_action=""
+  local candidate_id reply bulk_action="" mode=""
   local total=${#candidates} index=0
   echo ""
-  echo "=== VSCode拡張のBrewfile追加確認 (${total}件) ==="
-  _start_prompt_wait_notification "VSCode拡張のBrewfile追加確認 (${total}件)" "confirm-prompt"
+  echo "=== VSCode拡張のBrewfile追加候補 (${total}件) ==="
   for candidate_id in "${candidates[@]}"; do
-    index=$(( index + 1 ))
-    case "$bulk_action" in
-      add) accepted+=("$candidate_id"); continue ;;
-      skip) continue ;;
-    esac
-    while true; do
-      print -r -- "[${index}/${total}] ${green}+ vscode \"${candidate_id}\"${reset}"
-      print -rn -- "  [y]追加 [n]不要(次回から聞かない) [s]今回スキップ [a]残り全部追加 [q]残り全部スキップ > "
-      if ! read -u 0 -k 1 -r reply; then
-        reply=q
-      fi
-      echo ""
-      case "${reply:l}" in
-        y) accepted+=("$candidate_id"); break ;;
-        n) rejected+=("$candidate_id"); break ;;
-        s) break ;;
-        a) accepted+=("$candidate_id"); bulk_action=add; break ;;
-        q) bulk_action=skip; break ;;
-        *) echo "  y / n / s / a / q のいずれかを入力してください" ;;
-      esac
-    done
+    print -r -- "${green}+ vscode \"${candidate_id}\"${reset}"
   done
+  echo ""
+  _start_prompt_wait_notification "VSCode拡張のBrewfile追加確認 (${total}件)" "confirm-prompt"
+  while true; do
+    print -rn -- "[a]全部追加 [n]全部不要(次回から聞かない) [s]全部スキップ(今回だけ) [i]個別に確認 > "
+    if ! read -u 0 -r reply; then
+      reply=s
+    fi
+    reply="${reply//[[:space:]]/}"
+    case "${reply:l}" in
+      a) accepted=("${candidates[@]}"); mode=bulk; break ;;
+      n) rejected=("${candidates[@]}"); mode=bulk; break ;;
+      s) mode=bulk; break ;;
+      i) mode=each; break ;;
+      *) echo "  a / n / s / i のいずれかを入力してください" ;;
+    esac
+  done
+  if [[ "$mode" == each ]]; then
+    for candidate_id in "${candidates[@]}"; do
+      index=$(( index + 1 ))
+      case "$bulk_action" in
+        add) accepted+=("$candidate_id"); continue ;;
+        skip) continue ;;
+      esac
+      while true; do
+        print -r -- "[${index}/${total}] ${green}+ vscode \"${candidate_id}\"${reset}"
+        print -rn -- "  [y]追加 [n]不要(次回から聞かない) [s]今回スキップ [a]残り全部追加 [q]残り全部スキップ > "
+        if ! read -u 0 -r reply; then
+          reply=q
+        fi
+        reply="${reply//[[:space:]]/}"
+        case "${reply:l}" in
+          y) accepted+=("$candidate_id"); break ;;
+          n) rejected+=("$candidate_id"); break ;;
+          s) break ;;
+          a) accepted+=("$candidate_id"); bulk_action=add; break ;;
+          q) bulk_action=skip; break ;;
+          *) echo "  y / n / s / a / q のいずれかを入力してください" ;;
+        esac
+      done
+    done
+  fi
   _finish_prompt_wait_notification
 
   local accepted_id rejected_id

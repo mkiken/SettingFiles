@@ -12,7 +12,8 @@ BASE_BREWFILE = 'brew "git"\nvscode "aaa.first"\nvscode "zzz.last"\nmas "Xcode",
 class SyncVscodeExtensionsTest(unittest.TestCase):
     """sync_enabled_vscode_extensions_to_brewfile: 未記載の有効拡張を1件ずつ確認して Brewfile へ反映する。
 
-    各候補に y/n/s/a/q を聞く。n は ignore ファイルに記録して次回以降聞かない。
+    先に全候補を一覧表示し、a/n/s/i で一括選択、i なら各候補に y/n/s/a/q を聞く。
+    n は ignore ファイルに記録して次回以降聞かない。
     入力の不正・EOF では勝手に追加しない(fail-safe)。
     """
 
@@ -84,8 +85,52 @@ class SyncVscodeExtensionsTest(unittest.TestCase):
             return []
         return self.ignore_file.read_text(encoding="utf-8").split()
 
+    def test_candidates_listed_before_first_prompt(self):
+        result = self.run_sync(stdin="s\n", installed=["bbb.second", "ccc.third"])
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        first_prompt = result.stdout.index("[a]全部追加")
+        self.assertLess(result.stdout.index("bbb.second"), first_prompt)
+        self.assertLess(result.stdout.index("ccc.third"), first_prompt)
+        self.assertEqual(self.brewfile_text(), BASE_BREWFILE)
+        self.assertEqual(self.ignored_ids(), [])
+
+    def test_bulk_add_all(self):
+        result = self.run_sync(stdin="a\n", installed=["bbb.second", "ccc.third"])
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('vscode "bbb.second"', self.brewfile_text())
+        self.assertIn('vscode "ccc.third"', self.brewfile_text())
+        self.assertEqual(self.ignored_ids(), [])
+
+    def test_bulk_ignore_all_records_every_candidate(self):
+        result = self.run_sync(stdin="n\n", installed=["bbb.second", "ccc.third"])
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.brewfile_text(), BASE_BREWFILE)
+        self.assertEqual(self.ignored_ids(), ["bbb.second", "ccc.third"])
+
+    def test_bulk_invalid_input_asks_again(self):
+        result = self.run_sync(stdin="\nx\na\n", installed=["bbb.second"])
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("a / n / s / i", result.stdout)
+        self.assertIn('vscode "bbb.second"', self.brewfile_text())
+
+    def test_enter_after_each_answer_does_not_redisplay_candidate(self):
+        # 回帰: 1文字読みだと Enter の改行が次の候補への不正入力になり二重表示されていた。
+        result = self.run_sync(stdin="i\nn\ny\n", installed=["bbb.second", "ccc.third"])
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("y / n / s / a / q", result.stdout)
+        self.assertEqual(result.stdout.count("[1/2]"), 1)
+        self.assertEqual(result.stdout.count("[2/2]"), 1)
+        self.assertEqual(self.ignored_ids(), ["bbb.second"])
+        self.assertIn('vscode "ccc.third"', self.brewfile_text())
+        self.assertNotIn('vscode "bbb.second"', self.brewfile_text())
+
     def test_per_item_choices_add_ignore_and_skip(self):
-        result = self.run_sync(stdin="yns", installed=["bbb.second", "ccc.third", "ddd.fourth"])
+        result = self.run_sync(stdin="i\ny\nn\ns\n", installed=["bbb.second", "ccc.third", "ddd.fourth"])
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(
@@ -103,21 +148,21 @@ class SyncVscodeExtensionsTest(unittest.TestCase):
         self.assertNotIn("bbb.second", result.stdout)
 
     def test_add_all_adds_remaining_candidates(self):
-        result = self.run_sync(stdin="a", installed=["bbb.second", "ccc.third", "ddd.fourth"])
+        result = self.run_sync(stdin="i\na\n", installed=["bbb.second", "ccc.third", "ddd.fourth"])
 
         self.assertEqual(result.returncode, 0, result.stderr)
         for extension in ("bbb.second", "ccc.third", "ddd.fourth"):
             self.assertIn(f'vscode "{extension}"', self.brewfile_text())
 
     def test_quit_skips_remaining_without_recording(self):
-        result = self.run_sync(stdin="q", installed=["bbb.second", "ccc.third"])
+        result = self.run_sync(stdin="i\nq\n", installed=["bbb.second", "ccc.third"])
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.brewfile_text(), BASE_BREWFILE)
         self.assertEqual(self.ignored_ids(), [])
 
     def test_invalid_key_asks_again_then_accepts_valid_key(self):
-        result = self.run_sync(stdin="\ny", installed=["bbb.second"])
+        result = self.run_sync(stdin="i\n\ny\n", installed=["bbb.second"])
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("y / n / s / a / q", result.stdout)
@@ -132,7 +177,7 @@ class SyncVscodeExtensionsTest(unittest.TestCase):
         self.assertEqual(self.ignored_ids(), [])
 
     def test_reprompt_flag_asks_ignored_ids_again(self):
-        result = self.run_sync(stdin="y", installed=["bbb.second"], ignored=["bbb.second"], reprompt=True)
+        result = self.run_sync(stdin="i\ny\n", installed=["bbb.second"], ignored=["bbb.second"], reprompt=True)
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn('vscode "bbb.second"', self.brewfile_text())
@@ -156,7 +201,7 @@ class SyncVscodeExtensionsTest(unittest.TestCase):
         self.assertNotIn("[y]", result.stdout)
 
     def test_output_has_no_ansi_escape_when_not_a_tty(self):
-        result = self.run_sync(stdin="y", installed=["bbb.second"])
+        result = self.run_sync(stdin="a\n", installed=["bbb.second"])
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertNotIn("\x1b[", result.stdout)
