@@ -114,7 +114,7 @@ cx-review-merge() {
         echo "Usage: cx-review-merge <run_dir>" >&2
         return 1
     fi
-    cxmx --dangerously-bypass-approvals-and-sandbox "\$review-merge $run_dir"
+    cxteh --dangerously-bypass-approvals-and-sandbox "\$review-merge $run_dir"
 }
 
 cx-review-post() {

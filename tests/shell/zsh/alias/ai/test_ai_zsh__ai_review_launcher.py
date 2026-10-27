@@ -15,6 +15,49 @@ def run_zsh(snippet):
 
 
 class AiReviewLauncherTest(unittest.TestCase):
+    def test_orchestrator_selection_and_exit_code(self):
+        for setting, expected in (("unset AI_REVIEW_ORCHESTRATOR", "claude"),
+                                  ("AI_REVIEW_ORCHESTRATOR=''", "claude"),
+                                  ("AI_REVIEW_ORCHESTRATOR=claude", "claude"),
+                                  ("AI_REVIEW_ORCHESTRATOR=codex", "codex")):
+            for entry in ("_review_merge_selected 'run with spaces'", "review-merge 123"):
+                with self.subTest(setting=setting, entry=entry):
+                    result = run_zsh(f"""
+{setting}
+_ai_pr_review_resolve_latest_run_dir() {{ _ai_pr_review_assign "$1" 'run with spaces'; }}
+cl-review-merge() {{ printf 'claude:[%s]\\n' "$1"; return 7; }}
+cx-review-merge() {{ printf 'codex:[%s]\\n' "$1"; return 7; }}
+{entry}
+""")
+                    self.assertEqual(result.returncode, 7, result.stderr)
+                    self.assertEqual(result.stdout.strip(), f"{expected}:[run with spaces]")
+
+    def test_invalid_orchestrator_fails_before_side_effects(self):
+        for entry in ("review 123", "review-mx 123", "review-subagents 123",
+                      "review-merge 123", "_review_watch /tmp"):
+            with self.subTest(entry=entry):
+                result = run_zsh(f"""
+AI_REVIEW_ORCHESTRATOR=invalid
+_ai_pr_review_resolve_args() {{ echo SIDE_EFFECT; }}
+_ai_pr_review_resolve_latest_run_dir() {{ echo SIDE_EFFECT; }}
+{entry}
+""")
+                self.assertNotEqual(result.returncode, 0)
+                self.assertNotIn("SIDE_EFFECT", result.stdout)
+                self.assertIn("Invalid AI_REVIEW_ORCHESTRATOR", result.stderr)
+
+    def test_workspace_passes_selected_orchestrator(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            helper = Path(temp_dir) / "shell/herdr/herdr-workspace-reuse.sh"
+            helper.parent.mkdir(parents=True)
+            helper.write_text('#!/bin/sh\nprintf "<%s>\\n" "$@"\n')
+            helper.chmod(0o755)
+            result = run_zsh(f"SET='{temp_dir}'; AI_REVIEW_ORCHESTRATOR=codex; "
+                             "_herdr_create_review_workspace review /tmp 'run with spaces'")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('<AI_REVIEW_ORCHESTRATOR=codex>', result.stdout)
+        self.assertIn('<AI_REVIEW_RUN_DIR=run with spaces>', result.stdout)
+
     def test_env_command_prefixes_output_file(self):
         result = run_zsh(
             "_ai_review_env_command /tmp/run/claude.md cl-pr-review 123 'extra note'"
@@ -365,6 +408,13 @@ print -r -- "rc=$?"
         self.assertIn("tab focus t1", calls)
         self.assertEqual(specs, ["claude.md=t2", "gemini.md=t3", "codex.md=t4"])
 
+    def test_reused_orchestrator_receives_selection(self):
+        result, calls, _, _, _ = self.run_launch(
+            create_watcher=1, reused=True, extra_env="AI_REVIEW_ORCHESTRATOR=codex")
+        self.assertIn("rc=0", result.stdout, result.stderr)
+        orchestrator = next(c for c in calls if c.startswith("newtab "))
+        self.assertIn("AI_REVIEW_ORCHESTRATOR=codex", orchestrator)
+
     def test_reused_no_merge_adds_only_ai_tabs_without_changing_active_tab(self):
         result, calls, _, _, _ = self.run_launch(create_watcher=0, reused=True)
         self.assertIn("rc=0", result.stdout, result.stderr)
@@ -662,6 +712,28 @@ _review_watch "{target}" {specs}
 echo "rc=$?"
 '''
         return run_zsh(snippet), str(run_dir)
+
+    def test_codex_watch_preserves_partial_confirmation_and_exit_status(self):
+        for wait_rc, confirm_rc, expected in ((0, 0, 7), (2, 0, 2), (3, 0, 7), (3, 1, 1)):
+            with self.subTest(wait_rc=wait_rc, confirm_rc=confirm_rc):
+                with tempfile.TemporaryDirectory(prefix="review run ") as temp_dir:
+                    run_dir = Path(temp_dir)
+                    (run_dir / "claude.md").write_text("done")
+                    result = run_zsh(f"""
+AI_REVIEW_ORCHESTRATOR=codex
+bash() {{ return {wait_rc}; }}
+confirm() {{ return {confirm_rc}; }}
+_review_close_ai_tabs() {{ :; }}
+cl-review-merge() {{ echo WRONG; }}
+cx-review-merge() {{ printf 'CODEX:[%s]\\n' "$1"; return 7; }}
+_review_watch '{run_dir}' claude.md=t1 gemini.md=t2
+""")
+                    self.assertEqual(result.returncode, expected, result.stderr)
+                    self.assertNotIn("WRONG", result.stdout)
+                    if expected == 7:
+                        self.assertIn(f"CODEX:[{run_dir}]", result.stdout)
+                    else:
+                        self.assertNotIn("CODEX:", result.stdout)
 
     def test_wait_success_runs_merge_with_liveness_specs(self):
         result, run_dir = self.run_watch(wait_rc=0)

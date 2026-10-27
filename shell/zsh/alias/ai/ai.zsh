@@ -376,7 +376,8 @@ _herdr_create_review_workspace() {
     local ws_json
     ws_json=$("${SET:-$HOME/Desktop/repository/SettingFiles}/shell/herdr/herdr-workspace-reuse.sh" \
         workspace create --label "${variant}-${cwd:t}" --cwd "${cwd}" \
-        --env "AI_REVIEW_RUN_DIR=${run_dir}" --no-focus) || {
+        --env "AI_REVIEW_RUN_DIR=${run_dir}" \
+        --env "AI_REVIEW_ORCHESTRATOR=${AI_REVIEW_ORCHESTRATOR:-claude}" --no-focus) || {
         echo "herdr workspace createに失敗しました" >&2
         return 1
     }
@@ -528,7 +529,8 @@ _review_launch_herdr() {
         if [[ "$(print -r -- "${ws_json}" | jq -r '.result.reused')" == "true" ]]; then
             _herdr_create_tab "${ws_id}" "${review_cwd}" \
                 "${EMOJI_STATUS_REVIEW}orchestrator:${tab_name}" \
-                orch_pane_id orch_tab_id 0 "AI_REVIEW_RUN_DIR=${run_dir}" || return 1
+                orch_pane_id orch_tab_id 0 "AI_REVIEW_RUN_DIR=${run_dir}" \
+                "AI_REVIEW_ORCHESTRATOR=${AI_REVIEW_ORCHESTRATOR:-claude}" || return 1
         fi
     fi
 
@@ -589,7 +591,7 @@ _review_launch_herdr() {
     return 0
 }
 
-# orchestratorタブ内で実行される: 完了待ち→(出揃い時)3AIタブを閉じる→マージ可否判断→cl-review-merge
+# orchestratorタブ内で実行される: 完了待ち→(出揃い時)3AIタブを閉じる→マージ可否判断→review-merge
 # 引数: [run_dir] [<file>[=<tab_id>]...]
 # run_dir省略時は起動側が workspace/tab create の --env で渡した AI_REVIEW_RUN_DIR を使う。
 # 通常経路が環境変数なのは、pane run送信の末尾欠落でパスが別ランのものとして成立する
@@ -598,6 +600,7 @@ _review_launch_herdr() {
 # 引数で受けるとpane run送信の末尾欠落で一部AIが監視から漏れるため、通常経路はファイル渡し。
 # 明示specは手動再実行用に残す
 _review_watch() {
+    _review_merge_launcher >/dev/null || return 1
     local run_dir="${1:-${AI_REVIEW_RUN_DIR:-}}"
     (( $# > 0 )) && shift
 
@@ -648,7 +651,7 @@ _review_watch() {
     fi
 
     _review_handle_wait_status "${wait_status}" "${run_dir}" || return $?
-    cl-review-merge "${run_dir}"
+    _review_merge_selected "${run_dir}"
 }
 
 # レビュー用に開いた3AIタブ（herdr）を確認なしで閉じる。tmux未対応（no-op）
@@ -708,6 +711,21 @@ _review_launch_tmux() {
     update_tmux_window_name "${EMOJI_STATUS_REVIEW}"
 }
 
+# AI_REVIEW_ORCHESTRATOR=codex selects Codex; unset or empty selects Claude.
+_review_merge_launcher() {
+    case "${AI_REVIEW_ORCHESTRATOR:-claude}" in
+        claude) print -r -- cl-review-merge ;;
+        codex) print -r -- cx-review-merge ;;
+        *) echo "Invalid AI_REVIEW_ORCHESTRATOR: ${AI_REVIEW_ORCHESTRATOR}" >&2; return 1 ;;
+    esac
+}
+
+_review_merge_selected() {
+    local launcher
+    launcher=$(_review_merge_launcher) || return 1
+    "${launcher}" "$@"
+}
+
 # レビューの共通フロー: ランディレクトリ作成 → 3AI起動 → 完了待ち → review-merge
 # herdrではレビューごとに専用workspace(review-<ディレクトリ名>)を作り、完了待ち以降を
 # その初期タブ=orchestratorタブ(_review_watch)へ委譲して即return、
@@ -718,6 +736,8 @@ _review_launch_tmux() {
 _review_run() {
     local variant="$1" claude_fn="$2" gemini_fn="$3" codex_fn="$4"
     shift 4
+
+    _review_merge_launcher >/dev/null || return 1
 
     local no_merge=0
     if [[ "${1:-}" == "--no-merge" ]]; then
@@ -774,7 +794,7 @@ _review_run() {
     local wait_status=0
     bash "$HOME/.config/ai-pr/bin/ai_review_wait.sh" "${run_dir}" claude.md gemini.md codex.md || wait_status=$?
     _review_handle_wait_status "${wait_status}" "${run_dir}" || return $?
-    cl-review-merge "${run_dir}"
+    _review_merge_selected "${run_dir}"
 }
 
 # 完了待ちの結果からマージ可否を決める。return 0=マージ続行
@@ -842,9 +862,10 @@ _ai_pr_review_resolve_latest_run_dir() {
 
 # 手動マージ（救済用）: 最新ランディレクトリを解決して review-merge スキルを起動する
 review-merge() {
+    _review_merge_launcher >/dev/null || return 1
     local run_dir
     _ai_pr_review_resolve_latest_run_dir run_dir "$@" || return 1
-    cl-review-merge "${run_dir}"
+    _review_merge_selected "${run_dir}"
 }
 
 # 後日レビュー結果を見返す/判断を再開する: 最新ランディレクトリのreport.htmlを

@@ -61,6 +61,16 @@ cx() {{
             check=False,
         )
 
+    def test_review_merge_uses_terra_high_and_preserves_exit_code(self):
+        for exit_code in (0, 7):
+            with self.subTest(exit_code=exit_code):
+                result = self.run_command("cx-review-merge 'run with spaces'", exit_code)
+                self.assertEqual(result.returncode, exit_code, result.stderr)
+                self.assertEqual(json.loads(result.stdout), [
+                    "--model", "gpt-6.1-terra", "-c", 'model_reasoning_effort="high"',
+                    "--dangerously-bypass-approvals-and-sandbox", "$review-merge run with spaces",
+                ])
+
     def test_review_post_selects_sol_and_passes_skill_arguments(self):
         for arguments, suffix in (
             ("", ""),
