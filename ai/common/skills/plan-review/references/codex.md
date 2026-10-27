@@ -5,9 +5,9 @@ First output the complete decision-complete plan exactly as it would appear
 inside `<proposed_plan>`, without the protocol tags. Do not substitute a
 summary or partial update.
 
-Only after the full preview is visible, present this plain-text Markdown
-ordered list. Do not call `request_user_input`: four authored options exceed
-its runtime limit. A number-only reply selects the corresponding visible item.
+Only after the full preview is visible, ask with these four authored options
+under the always-on `# User Confirmation` rules. Use a choice UI if all four
+fit; otherwise present them together as a numbered list.
 
 1. Both: open the browser and also run the deep-dive.
 2. Deep-dive only: run grilling then dig without opening the browser.

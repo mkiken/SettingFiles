@@ -42,7 +42,7 @@ Start the investigation with the highest-risk assumptions.
 Run iterative rounds of questioning.
 
 - 2-3 questions per round, each with 2-4 concrete options carrying a brief pros/cons.
-- Prefer `request_user_input` when the round's option count fits the tool's limit, passing each authored label exactly once — do not count the client's auto-provided free-form `Other` as an authored option. If a round's options exceed the limit, ask in plain text as a Markdown ordered list starting from `1.`; a number-only reply selects that option.
+- Follow the always-on `# User Confirmation` rules for each question's choice UI or numbered fallback.
 - If pros/cons don't fit the option label, append them to the label as `— Pros: … / Cons: …`.
 - Never ask open-ended questions — always concrete choices.
 - Align options with patterns already present in `AGENTS.md`/`CLAUDE.md` or the codebase.
@@ -120,7 +120,7 @@ When the investigation ends, output:
 
 ## Notes
 
-- Must use `request_user_input` (or its plain-text fallback) — never fold a decision into conversational prose without putting it to the user first.
+- Never fold a decision into conversational prose without putting it to the user first under the always-on `# User Confirmation` rules.
 - Challenge, don't just clarify — question an assumption even when it looks reasonable.
 - Don't ask obvious questions — focus on what the user likely hasn't considered.
 - Know when to stop: evaluate the Phase 5 checklist honestly, and respect the dry-round and user-wrap-up exits.

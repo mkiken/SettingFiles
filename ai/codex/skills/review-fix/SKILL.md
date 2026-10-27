@@ -7,7 +7,7 @@ description: >
 
 Parse the arguments after the skill name: a token containing `/` is <RUN_DIR>; numeric tokens (space/comma separated) are <ITEM_NUMBERS>. If <RUN_DIR> is absent, resolve the current branch's PR via `gh pr view --json number --jq .number` and run `bash ~/.config/ai-pr/bin/ai_review_run_dir.sh --latest <PR_NUMBER>`.
 
-For every user confirmation, ask the user directly and wait for the reply: initial selection, resume-or-discard, each rolling design confirmation (承認 / 修正依頼 / スキップ), each group's four-choice commit/merge confirmation, the two-choice merge-conflict confirmation, and the PR body update confirmation. Present the four- and two-choice sets as numbered lists and treat a number-only reply as that option.
+For every user confirmation, follow the always-on `# User Confirmation` rules and wait for the reply: initial selection, resume-or-discard, each rolling design confirmation (承認 / 修正依頼 / スキップ), each group's four-choice commit/merge confirmation, the two-choice merge-conflict confirmation, and the PR body update confirmation.
 
 <WORKTREE_TASK_DOC> = `~/.codex/skills/worktree-task/SKILL.md`.
 

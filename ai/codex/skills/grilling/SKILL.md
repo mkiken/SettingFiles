@@ -35,7 +35,7 @@ The **decisions** are the user's. Put each to them and wait.
 
 ## Asking a Round
 
-Prefer `request_user_input` when the round's option count fits the tool's limit, passing each authored label exactly once — do not count the client's auto-provided free-form `Other` as an authored option. If a round's options exceed the limit, ask in plain text as a Markdown ordered list starting from `1.`; a number-only reply selects that option.
+Follow the always-on `# User Confirmation` rules for each question's choice UI or numbered fallback.
 
 - Put the question's substance in the question text itself — the mechanism, the trade-off, the consequence of each branch. Option labels are too short to carry it.
 - Mark the recommended option's label with `(推奨)` and lead with it.

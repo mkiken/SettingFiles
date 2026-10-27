@@ -50,7 +50,7 @@ class PlanReviewCriteriaTest(unittest.TestCase):
             "2. Deep-dive only: run grilling then dig without opening the browser.",
             "3. Open the browser now, decide on the deep-dive after reading.",
             "4. Neither.",
-            "Do not call `request_user_input`",
+            "always-on `# User Confirmation` rules",
             "Never offer grilling and dig separately",
         ):
             with self.subTest(required=required):

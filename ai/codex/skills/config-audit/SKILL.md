@@ -18,7 +18,7 @@ description: >
   - Project: `./AGENTS.md`, `./ai/codex/config.toml`, `./ai/codex/codex_base.md`, `./ai/codex/skills/*/skill_head.md`, `./ai/codex/agents/*.toml`, `./ai/codex/hooks.json`, `./ai/codex/rules/*`
   - Never audit runtime/state files under `~/.codex` (auth.json, history.jsonl, sessions/, cache, sqlite, logs).
 - `SOURCE_FILES`: `ai/common/prompt_base.md`, `ai/codex/codex_base.md` (concatenated into the generated `_AGENTS.md` by `generate_codex_agents`; audit the sources, not the generated file)
-- For every user confirmation, prefer `request_user_input` when all required choices fit within the tool's option limit, passing each required label exactly once. If they exceed the limit, ask in plain text with numbered options.
+- For every user confirmation, follow the always-on `# User Confirmation` rules.
 
 ### Spawn
 

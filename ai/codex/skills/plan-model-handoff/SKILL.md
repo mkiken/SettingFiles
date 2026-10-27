@@ -34,8 +34,8 @@ If the result is empty, report `Implementation-model check skipped: active model
 
 ## Choose the implementation route
 
-When the detected model is `gpt-6-astra` or matches `*-sol`, use
-`request_user_input` when available with these authored choices in this order:
+When the detected model is `gpt-6-astra` or matches `*-sol`, follow the always-on
+`# User Confirmation` rules with these authored choices in this order:
 
 1. `Use Sol subagent (Recommended)` — the parent session remains on the detected model; exactly one Sol `worker` subagent owns the entire accepted-plan execution.
 2. `Use Terra subagent` — the parent session remains on the detected model; exactly one Terra `worker` subagent owns the entire accepted-plan execution.
@@ -44,8 +44,7 @@ When the detected model is `gpt-6-astra` or matches `*-sol`, use
 Pass each label exactly once and do not count the client's auto-provided free-form
 `Other` as an authored option. In the question text, say that `Other` can specify
 "continue with the current model" or "switch the parent
-model manually". If `request_user_input` is unavailable, ask one plain-text
-free-form question that includes the same routes and examples.
+model manually". Include the same routes and examples in the numbered fallback.
 
 Resolve Sol, Terra, and Luna only from callable runtime metadata, never local
 configuration. If the selected tier is unavailable, make no implementation

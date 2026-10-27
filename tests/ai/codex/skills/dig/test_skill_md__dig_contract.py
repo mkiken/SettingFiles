@@ -17,11 +17,10 @@ class DigSkillContractTest(unittest.TestCase):
         self.assertEqual(keys, ["name", "description"])
         self.assertIn("name: dig", frontmatter)
 
-    def test_uses_request_user_input_with_a_numbered_fallback(self):
+    def test_uses_the_shared_confirmation_rules(self):
         for required in (
-            "request_user_input",
-            "Markdown ordered list starting from `1.`",
-            "number-only reply selects that option",
+            "always-on `# User Confirmation` rules",
+            "each question's choice UI or numbered fallback",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.skill)

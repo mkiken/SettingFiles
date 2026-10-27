@@ -26,9 +26,15 @@ When one tool call produces files for later calls, use host-visible storage and 
 
 # User Confirmation
 
-Prefer `request_user_input_async` for confirmations when available and permitted for approval requests. Use `request_user_input` only for purposes permitted by the active runtime; never override its permission restrictions.
+For every required user confirmation or decision (approval, clarification with choices, cleanup, commit, or PR workflow), use a choice UI whenever a callable, permitted tool can present all options in one question. Do not replace a usable choice UI with a prose question. This governs presentation, not when confirmation is required; do not reconfirm already-authorized work.
 
-For either UI, pass each skill-authored label exactly once and preserve the authored option count. Do not count the client's auto-provided free-form `Other` as an authored option. If no permitted UI is available or the authored options exceed its capacity, use a numbered plain-text list and accept number-only replies. Never treat an unanswered approval request as approval.
+Choose `request_user_input_async` first if it supports the purpose and all options; otherwise use `request_user_input` if it does. Follow the active runtime's mode and purpose restrictions; never override its permission restrictions.
+
+For either UI, pass each skill-authored label exactly once and preserve its wording, order, and authored option count. Do not count the client's auto-provided free-form `Other` as an authored option. If no permitted UI can present every option in one question, use a numbered plain-text list and accept number-only replies. Never split a choice set into multiple questions or omit/group options to fit a UI.
+
+An async acknowledgement only means the question was accepted; wait for the user's answer before dependent work. Do not duplicate a pending question. Empty responses and missing selections are not approval. Never treat an unanswered approval request as approval.
+
+When the answer inherently needs free-form input (a path, URL, identifier, or explanation), keep it free-form; do not invent choices.
 
 # Plan Model Handoff
 
