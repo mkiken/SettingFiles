@@ -451,6 +451,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         assistant_text: str = "修正しました。テストも追加しています。",
         user_text: str = "通知のバグを修正して",
         include_messages: bool = True,
+        followup_messages: tuple[str, ...] = (),
     ) -> str:
         lines = [json.dumps({"type": "session_meta", "payload": {"id": "session-abc"}})]
         if include_messages:
@@ -467,6 +468,13 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                     }
                 )
             )
+            for text in followup_messages:
+                lines.append(json.dumps({
+                    "type": "response_item", "payload": {
+                        "type": "message", "role": "user",
+                        "content": [{"type": "input_text", "text": text}],
+                    },
+                }))
             lines.append(
                 json.dumps(
                     {
@@ -483,14 +491,17 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         return "\n".join(lines) + "\n"
 
     def test_codex_done_notifies_with_transcript_summary(self):
-        # 完了はtmuxの✅終了と同形式: タスク種別絵文字＋最終ユーザーメッセージ。
+        # 完了はtmuxの✅終了と同形式: タスク種別絵文字＋最初のユーザーメッセージ。
         # 「修正」を含むユーザーメッセージ→💻。統計行は廃止済みのため出ない。
         # tab_label(既定"4")はcodexなので会話概要に置き換わらず場所行にそのまま出る。
         # Herdrのシステム通知音はdone。
         result, events = self.run_plugin(
             agent="codex",
             agent_status="done",
-            codex_transcript=self.codex_transcript_fixture(),
+            codex_transcript=self.codex_transcript_fixture(followup_messages=(
+                "設計を調査して", "Implement the plan.",
+                '<send_user_message_question_reply>[{"answers": ["commit"]}]</send_user_message_question_reply>',
+            )),
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -530,7 +541,8 @@ class HerdrPluginNotifyTest(unittest.TestCase):
             agent="codex",
             agent_status="done",
             codex_transcript=self.codex_transcript_fixture(
-                assistant_text="どちらの方式にしますか？"
+                assistant_text="どちらの方式にしますか？",
+                followup_messages=("Implement the plan.",)
             ),
         )
 
@@ -543,7 +555,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         result, events = self.run_plugin(
             agent="codex",
             agent_status="done",
-            codex_transcript=self.codex_transcript_fixture(user_text="あ" * 100),
+            codex_transcript=self.codex_transcript_fixture(user_text="あ" * 100, followup_messages=("別の依頼です",)),
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -562,18 +574,22 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         )
 
     def test_codex_empty_transcript_falls_back_to_title(self):
-        # メッセージ0件のtranscriptはbuild_session_summaryが空出力（user_count==0）
-        # となり、同じフォールバックに合流する。
-        result, events = self.run_plugin(
-            agent="codex",
-            agent_status="done",
-            codex_transcript=self.codex_transcript_fixture(include_messages=False),
-        )
+        # Empty transcripts and internal-only input both have zero ordinary requests.
+        for include_messages in (False, True):
+            with self.subTest(include_messages=include_messages):
+                result, events = self.run_plugin(
+                    agent="codex",
+                    agent_status="done",
+                    codex_transcript=self.codex_transcript_fixture(
+                        include_messages=include_messages,
+                        user_text="<send_user_message_question_reply>[]</send_user_message_question_reply>",
+                    ),
+                )
 
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn(
-            "message=Herdr通知をカスタマイズしてworkspace情報を表示", events
-        )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn(
+                    "message=Herdr通知をカスタマイズしてworkspace情報を表示", events
+                )
 
     def test_claude_body_is_not_replaced_by_transcript_summary(self):
         # 本文のtranscript概要差し替えはcodex限定。claudeはtitle_text（会話概要として

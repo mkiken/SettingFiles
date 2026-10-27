@@ -119,7 +119,7 @@ def is_system_user_message(message: str) -> bool:
     ):
         return True
     if re.fullmatch(
-        r"\s*<(?P<tag>skill|subagent_notification|turn_aborted|user_shell_command)>"
+        r"\s*<(?P<tag>skill|subagent_notification|turn_aborted|user_shell_command|send_user_message_question_reply)>"
         r"(?:(?!</?(?P=tag)>).)*</(?P=tag)>\s*",
         message,
         flags=re.DOTALL,
@@ -385,6 +385,7 @@ def analyze_hook_input(input_data: dict[str, Any]) -> dict[str, Any]:
     return {
         "is_subagent_session": is_subagent,
         "waiting_for_user_response": assistant_response_needs_user_input(last_assistant_message_for_detection),
+        "first_user_message": user_messages[0] if user_messages else "",
         "last_user_message": user_messages[-1] if user_messages else "",
         "last_assistant_message": last_assistant_message,
         "user_message_count": len(user_messages),
@@ -413,6 +414,7 @@ def format_analysis_for_eval(result: dict[str, Any]) -> str:
         [
             f"IS_SUBAGENT_SESSION={str(bool(result.get('is_subagent_session'))).lower()}",
             f"WAITING_FOR_USER_RESPONSE={str(bool(result.get('waiting_for_user_response'))).lower()}",
+            f"FIRST_USER_MESSAGE={shlex.quote(str(result.get('first_user_message') or ''))}",
             f"LAST_USER_MESSAGE={shlex.quote(str(result.get('last_user_message') or ''))}",
             f"LAST_ASSISTANT_MESSAGE={shlex.quote(str(result.get('last_assistant_message') or ''))}",
             f"USER_MESSAGE_COUNT={int(result.get('user_message_count') or 0)}",

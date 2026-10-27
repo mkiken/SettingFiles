@@ -119,6 +119,7 @@ fi
 eval "${analysis}"
 IS_SUBAGENT_SESSION="${IS_SUBAGENT_SESSION:-false}"
 WAITING_FOR_USER_RESPONSE="${WAITING_FOR_USER_RESPONSE:-false}"
+FIRST_USER_MESSAGE="${FIRST_USER_MESSAGE:-}"
 LAST_USER_MESSAGE="${LAST_USER_MESSAGE:-}"
 LAST_ASSISTANT_MESSAGE="${LAST_ASSISTANT_MESSAGE:-}"
 USER_MESSAGE_COUNT="${USER_MESSAGE_COUNT:-0}"
@@ -149,10 +150,10 @@ debug_log "Last timestamp: ${LAST_TIMESTAMP}"
 debug_log "Session duration: ${SESSION_DURATION_FORMATTED}, completion time (JST): ${COMPLETION_TIME_JST}"
 
 # タスク種別推測
-task_type=$(guess_task_type_emoji "${LAST_USER_MESSAGE}")
+task_type=$(guess_task_type_emoji "${FIRST_USER_MESSAGE}")
 
 # 要約を作成（メッセージなしのセッションでは空になる）
-summary_message="${LAST_USER_MESSAGE}"
+summary_message="${FIRST_USER_MESSAGE}"
 summary_task_type="${task_type}"
 if [[ "${WAITING_FOR_USER_RESPONSE}" == "true" ]]; then
     summary_message="${LAST_ASSISTANT_MESSAGE}"

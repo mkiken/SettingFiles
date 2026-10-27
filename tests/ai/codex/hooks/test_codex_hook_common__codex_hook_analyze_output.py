@@ -5,14 +5,13 @@ eval 1回で取り込む（tests/shell/tmux/test_claude_transcript_analyze.py �
 context-usage サブコマンドの JSON 契約は不変であることも固定する。
 """
 import json
-import os
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 import sys
 
-from support import REPO_ROOT
+from support import REPO_ROOT, sanitized_env
 sys.path.insert(0, str(REPO_ROOT / "ai" / "codex" / "hooks"))
 
 import codex_hook_common as chc
@@ -25,6 +24,7 @@ TS2 = "2026-07-11T12:05:00.000Z"
 EVAL_VAR_NAMES = [
     "IS_SUBAGENT_SESSION",
     "WAITING_FOR_USER_RESPONSE",
+    "FIRST_USER_MESSAGE",
     "LAST_USER_MESSAGE",
     "LAST_ASSISTANT_MESSAGE",
     "USER_MESSAGE_COUNT",
@@ -40,6 +40,7 @@ def analysis_dict(**overrides):
     base = {
         "is_subagent_session": False,
         "waiting_for_user_response": False,
+        "first_user_message": "",
         "last_user_message": "",
         "last_assistant_message": "",
         "user_message_count": 0,
@@ -58,6 +59,7 @@ def eval_roundtrip(eval_lines, var_name):
         capture_output=True,
         text=True,
         check=True,
+        env=sanitized_env(),
     )
     return proc.stdout
 
@@ -80,7 +82,7 @@ def run_module(subcommand, stdin_text, codex_home):
         input=stdin_text,
         capture_output=True,
         text=True,
-        env={**os.environ, "CODEX_HOME": codex_home},
+        env=sanitized_env(CODEX_HOME=codex_home),
     )
 
 
@@ -112,7 +114,8 @@ class TestFormatAnalysisForEval(unittest.TestCase):
         ]
         for desc, message in cases:
             with self.subTest(desc=desc):
-                output = chc.format_analysis_for_eval(analysis_dict(last_user_message=message))
+                output = chc.format_analysis_for_eval(analysis_dict(first_user_message=message, last_user_message=message))
+                self.assertEqual(eval_roundtrip(output, "FIRST_USER_MESSAGE"), message)
                 self.assertEqual(eval_roundtrip(output, "LAST_USER_MESSAGE"), message)
 
     def test_injection_boundary_stays_literal(self):
@@ -131,6 +134,7 @@ class TestFormatAnalysisForEval(unittest.TestCase):
         lines = output.split("\n")
         self.assertEqual(len(lines), len(EVAL_VAR_NAMES))
         self.assertEqual([line.split("=", 1)[0] for line in lines], EVAL_VAR_NAMES)
+        self.assertIn("FIRST_USER_MESSAGE=''", output)
         self.assertIn("LAST_USER_MESSAGE=''", output)
         self.assertIn("USER_MESSAGE_COUNT=0", output)
         self.assertIn("FIRST_TIMESTAMP=''", output)
@@ -183,6 +187,7 @@ class TestMainSubprocess(unittest.TestCase):
         proc = run_module("analyze", json.dumps({"transcript_path": path}), self.codex_home)
         self.assertEqual(proc.returncode, 0)
         evaluated = {name: eval_roundtrip(proc.stdout, name) for name in EVAL_VAR_NAMES}
+        self.assertEqual(evaluated["FIRST_USER_MESSAGE"], user_message)
         self.assertEqual(evaluated["LAST_USER_MESSAGE"], user_message)
         self.assertEqual(evaluated["LAST_ASSISTANT_MESSAGE"], assistant_message)
         self.assertEqual(evaluated["USER_MESSAGE_COUNT"], "1")

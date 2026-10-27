@@ -10,6 +10,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tests"))
+from support import sanitized_env
 
 from codex_hook_common import (
     analyze_hook_input,
@@ -155,6 +157,12 @@ class AssistantResponseNeedsUserInputTest(unittest.TestCase):
 class IsSystemUserMessageTest(unittest.TestCase):
     def test_internal_injections_and_user_message_boundaries(self):
         cases = [
+            # Only standalone closed replies are internal; mentions remain user input.
+            ("standalone reply", ' \n<send_user_message_question_reply>[]</send_user_message_question_reply>\n ', True),
+            ("reply mention", "Explain <send_user_message_question_reply> tags", False),
+            ("unclosed reply", "<send_user_message_question_reply>[]", False),
+            ("mixed reply", "Use <send_user_message_question_reply>[]</send_user_message_question_reply> here", False),
+
             (
                 "path-qualified AGENTS injection",
                 "# AGENTS.md instructions for /repo\n\n<INSTRUCTIONS>rules</INSTRUCTIONS>",
@@ -304,6 +312,34 @@ class AnalyzeHookInputFallbackTest(unittest.TestCase):
 
         self.assertEqual(result["last_user_message"], real_command)
         self.assertEqual(result["user_message_count"], 1)
+
+    def test_first_request_survives_followups_and_internal_replies(self):
+        reply = '<send_user_message_question_reply>[{"answers": ["commit"]}]</send_user_message_question_reply>'
+        first = "通知の'表示'を修正して"
+        for history_only in (False, True):
+            for messages, expected_first, expected_last, expected_count in (
+                ([reply, first, "追加の依頼です", "Implement the plan.", reply], first, "Implement the plan.", 3),
+                ([reply], "", "", 0),
+            ):
+                with self.subTest(history_only=history_only, messages=messages):
+                    with tempfile.TemporaryDirectory() as home:
+                        transcript = Path(home) / "rollout.jsonl"
+                        if history_only:
+                            write_jsonl(Path(home) / "history.jsonl", [
+                                {"session_id": "test", "ts": 1, "text": text} for text in messages
+                            ])
+                        else:
+                            write_jsonl(transcript, [
+                                {"type": "response_item", "payload": {
+                                    "type": "message", "role": "user",
+                                    "content": [{"type": "input_text", "text": text}],
+                                }} for text in messages
+                            ])
+                        with patch.dict(os.environ, {"CODEX_HOME": home}):
+                            result = analyze_hook_input({"session_id": "test", "transcript_path": str(transcript)})
+                    self.assertEqual(result["first_user_message"], expected_first)
+                    self.assertEqual(result["last_user_message"], expected_last)
+                    self.assertEqual(result["user_message_count"], expected_count)
 
     def test_detects_proposed_plan_from_transcript_without_normalizing_detection_text(self):
         session_id = "019ea532-60d3-7c03-a1d5-09e8778c32a5"
@@ -609,6 +645,7 @@ class FormatAnalysisForEvalTimeFieldsTest(unittest.TestCase):
             capture_output=True,
             text=True,
             check=True,
+            env=sanitized_env(),
         )
         self.assertEqual(completed.stdout, '1h23m|10:23:45|it\'s a "test" $var `cmd`')
 
