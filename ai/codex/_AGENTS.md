@@ -234,7 +234,7 @@ When one tool call produces files for later calls, use host-visible storage and 
 
 For every required user confirmation or decision (approval, clarification with choices, cleanup, commit, or PR workflow), use a choice UI whenever a callable, permitted tool can present all options in one question. Do not replace a usable choice UI with a prose question. This governs presentation, not when confirmation is required; do not reconfirm already-authorized work.
 
-Choose `request_user_input_async` first if it supports the purpose and all options; otherwise use `request_user_input` if it does. Follow the active runtime's mode and purpose restrictions; never override its permission restrictions.
+Choose `request_user_input` first if it supports the purpose and all options; otherwise use `request_user_input_async` if it does. Follow the active runtime's mode and purpose restrictions; never override its permission restrictions.
 
 For either UI, pass each skill-authored label exactly once and preserve its wording, order, and authored option count. Do not count the client's auto-provided free-form `Other` as an authored option. If no permitted UI can present every option in one question, use a numbered plain-text list and accept number-only replies. Never split a choice set into multiple questions or omit/group options to fit a UI.
 

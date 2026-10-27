@@ -19,9 +19,9 @@ class UserConfirmationContractTest(unittest.TestCase):
         self.assertIn("Do not replace a usable choice UI with a prose question", self.confirmation)
         self.assertIn("do not reconfirm already-authorized work", self.confirmation)
 
-    def test_confirmation_selects_async_then_sync_when_supported(self):
-        self.assertIn("Choose `request_user_input_async` first if it supports the purpose and all options", self.confirmation)
-        self.assertIn("otherwise use `request_user_input` if it does", self.confirmation)
+    def test_confirmation_selects_sync_then_async_when_supported(self):
+        self.assertIn("Choose `request_user_input` first if it supports the purpose and all options", self.confirmation)
+        self.assertIn("otherwise use `request_user_input_async` if it does", self.confirmation)
         self.assertIn("Follow the active runtime's mode and purpose restrictions", self.confirmation)
 
     def test_choice_ui_preserves_skill_options(self):
