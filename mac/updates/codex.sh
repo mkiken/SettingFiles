@@ -61,7 +61,7 @@ mkdir -p "$agents_dest"
 setup_codex_regular_file_agents || return 1
 for file in "${Repo}ai/codex/agents"/*; do
   case "${file:t}" in
-    config_auditor_(default|conflict|overlap|patch|ambiguity|concise).toml|audit_fix_(designer|implementer).toml) continue ;;
+    config_auditor_(default|conflict|overlap|patch|ambiguity|concise).toml|(audit|review)_fix_(designer|implementer).toml) continue ;;
   esac
   if [[ -f "$file" ]]; then
     make_symlink "$file" "${agents_dest}/$(basename "$file")"

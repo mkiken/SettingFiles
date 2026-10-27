@@ -11,6 +11,7 @@ SCRIPT = REPO_ROOT / "mac/scripts/ai/codex.sh"
 DIMENSIONS = ("default", "conflict", "overlap", "patch", "ambiguity", "concise")
 ROLES = tuple(f"config_auditor_{dimension}" for dimension in DIMENSIONS) + (
     "audit_fix_designer", "audit_fix_implementer",
+    "review_fix_designer", "review_fix_implementer",
 )
 
 
@@ -62,12 +63,12 @@ class CodexRegularFileAgentsTest(unittest.TestCase):
         self.assertEqual(self.install().returncode, 0)
         before = {p.name: p.read_bytes() for p in self.destination.iterdir()}
         (self.source / "config_auditor_default.toml").write_text("name = 'changed'\n")
-        (self.source / "audit_fix_implementer.toml").write_text("invalid = [")
+        (self.source / "review_fix_implementer.toml").write_text("invalid = [")
         self.assertNotEqual(self.install().returncode, 0)
         self.assertEqual({p.name: p.read_bytes() for p in self.destination.iterdir()}, before)
 
     def test_unexpected_destinations_are_preserved(self):
-        destination = self.destination / "audit_fix_implementer.toml"
+        destination = self.destination / "review_fix_implementer.toml"
         for kind in ("file", "link", "directory"):
             with self.subTest(kind=kind):
                 if kind == "file":

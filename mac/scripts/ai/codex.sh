@@ -217,7 +217,7 @@ function setup_codex_hooks_json() {
 }
 
 function setup_codex_regular_file_agents() {
-  # Symlinked config-audit and audit-fix designer startup failed with
+  # Symlinked config-audit, audit-fix, and review-fix designer startup failed with
   # "Too many levels of symbolic links". Keep these families as regular TOML files.
   python3 - "${Repo}ai/codex/agents" "$HOME/.codex/agents" <<'PYTHON'
 import os
@@ -230,6 +230,7 @@ source_dir, dest_dir = map(Path, sys.argv[1:])
 roles = {f"config_auditor_{dimension}": "config_audit"
          for dimension in ("default", "conflict", "overlap", "patch", "ambiguity", "concise")}
 roles.update({f"audit_fix_{role}": "audit_fix" for role in ("designer", "implementer")})
+roles.update({f"review_fix_{role}": "review_fix" for role in ("designer", "implementer")})
 pending = []
 try:
     # Validate every source and destination before replacing any role.
