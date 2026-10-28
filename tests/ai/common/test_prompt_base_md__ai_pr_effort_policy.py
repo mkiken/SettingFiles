@@ -144,7 +144,9 @@ class PrCommentImplementAliasTest(unittest.TestCase):
         ("clmx-pr-comment-implement", "_clmx-pr-comment-implement", "high"),
         ("clmx-pci", "_clmx-pr-comment-implement", "high"),
         ("cx-pr-comment-implement", "_cx-pr-comment-implement", "sol"),
-        ("cx-pci", "_cx-pr-comment-implement", "sol"),
+        ("cx-pci", "_cx-pci", "light"),
+        ("cxeh-pci", "_cxeh-pci", "default-high"),
+        ("cxs-pci", "_cx-pr-comment-implement", "sol"),
         ("cxmx-pr-comment-implement", "_cxmx-pr-comment-implement", "high"),
         ("cxmx-pci", "_cxmx-pr-comment-implement", "high"),
     )
@@ -185,6 +187,9 @@ class PrCommentImplementAliasTest(unittest.TestCase):
                     if tier == "light":
                         self.assertNotIn("--model", captured)
                         self.assertNotIn("-c", captured)
+                    elif tier == "default-high":
+                        self.assertNotIn("--model", captured)
+                        self.assertEqual(captured[:2], ["-c", 'model_reasoning_effort="high"'])
                     elif tier == "sol":
                         self.assertEqual(captured[:2], ["--model", "gpt-6.1-sol"])
                         # Sol workflows inherit the user's reasoning setting.

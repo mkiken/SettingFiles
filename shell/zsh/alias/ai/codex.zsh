@@ -132,7 +132,15 @@ _cx-pr-comment-review() {
 }
 
 alias cx-pr-comment-implement='noglob _ai_pci_route _cx-pr-comment-implement'
-alias cx-pci='noglob _ai_pci_route _cx-pr-comment-implement'
+alias cx-pci='noglob _ai_pci_route _cx-pci'
+alias cxeh-pci='noglob _ai_pci_route _cxeh-pci'
+alias cxs-pci='noglob _ai_pci_route _cx-pr-comment-implement'
+_cx-pci() {
+    cx "\$pr-comment-implement $*"
+}
+_cxeh-pci() {
+    cxeh "\$pr-comment-implement $*"
+}
 _cx-pr-comment-implement() {
     cxs "\$pr-comment-implement $*"
 }
