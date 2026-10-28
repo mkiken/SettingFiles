@@ -424,6 +424,14 @@ qualify; never skip based on file type alone. If even a test count or command
 becomes outdated, ask. If fetching the body or diff fails, or the assessment
 is uncertain, ask rather than assume no update is needed.
 
+Otherwise, before the question, show `### PR bodyへの反映候補` with a concise
+bullet list of completed work worth adding or correcting in the current body
+(purpose, behavior, scope, or validation), stating what each proposed update
+would explain. Derive candidates from verified work and the fetched body/diff;
+omit work already covered accurately. If context fetching failed, list only
+verified candidates and state what remains unconfirmed and why; if none can
+be identified, say so without inventing candidates.
+
 Otherwise ask `今回の変更に合わせてPR bodyを更新しますか？` with exactly
 `PR bodyを更新する` / `更新しない`. On `更新しない`, record it as skipped.
 

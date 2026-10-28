@@ -131,6 +131,8 @@ Before asking, resolve <PR_NUMBER> from the adapter's PR resolution or `gh pr vi
 
 Skip the offer and record the PR body as skipped only when the current body already covers the pushed changes and remains accurate about the PR's purpose, behavior, scope, and validation. Test-only or other supporting changes can qualify; never skip based on file type alone. If even a test count or command becomes outdated, ask. If fetching the body or diff fails, or the assessment is uncertain, ask rather than assume no update is needed.
 
+Otherwise, before the question, show `### PR bodyへの反映候補` with a concise bullet list of completed work worth adding or correcting in the current body (purpose, behavior, scope, or validation), stating what each proposed update would explain. Derive candidates from verified work and the fetched body/diff; omit work already covered accurately. If context fetching failed, list only verified candidates and state what remains unconfirmed and why; if none can be identified, say so without inventing candidates.
+
 Otherwise ask once `今回の変更に合わせてPR bodyを更新しますか？` with exactly `PR bodyを更新する` / `更新しない`.
 
 On `PR bodyを更新する`, retry any failed context fetch before drafting, then read <PR_BODY_DOCS> (adapter-defined) and follow its Drafting Rules and Confirmation Flow in full. Never shorten the flow: show the `--color=always` colored diff, paste the `--no-color` diff verbatim in a ````diff block, list `### 変更点の概要`, check for removed manual content, re-show the diff after any revision, and verify the applied body. Never ask to apply a body from a summary alone. Report the result (更新済み / スキップ / ⚠️ failure) as the last summary line.

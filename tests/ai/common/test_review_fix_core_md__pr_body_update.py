@@ -39,6 +39,25 @@ class ReviewFixPrBodyUpdateTest(unittest.TestCase):
         self.assertLess(content.index("Before asking, resolve"), content.index("Skip the offer"))
         self.assertLess(content.index("Skip the offer"), content.index("Otherwise ask once"))
 
+    def test_offer_lists_worthwhile_updates_before_the_question(self):
+        content = " ".join(CORE_PATH.read_text(encoding="utf-8").split())
+        for required in (
+            "### PR bodyへの反映候補",
+            "bullet list of completed work worth adding or correcting",
+            "purpose, behavior, scope, or validation",
+            "stating what each proposed update would explain",
+            "omit work already covered accurately",
+            "list only verified candidates and state what remains unconfirmed and why",
+            "say so without inventing candidates",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, content)
+        self.assertLess(content.index("Skip the offer"), content.index("### PR bodyへの反映候補"))
+        self.assertLess(
+            content.index("### PR bodyへの反映候補"),
+            content.index("今回の変更に合わせてPR bodyを更新しますか？"),
+        )
+
     def test_platform_adapters_define_pr_body_docs(self):
         adapters = {
             "ai/claude/skills/review-fix/SKILL.md": (
