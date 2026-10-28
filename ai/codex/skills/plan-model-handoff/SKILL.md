@@ -83,7 +83,11 @@ Apply the selected execution route to the current task without rewriting the acc
 ## Delegate the full execution lifecycle
 
 For Sol, Terra, or Luna, spawn exactly one `worker` with the selected runtime model
-override and `fork_turns="none"`. Give it a self-contained prompt containing:
+override and `fork_turns="none"`. Set `reasoning_effort` explicitly: Sol
+`medium`, Terra `high`, Luna `high`. Apply this mapping to both menu and
+free-form selections. If the runtime cannot accept the selected model or effort,
+stop and report it without substituting another value. Give the worker a
+self-contained prompt containing:
 
 - The accepted plan verbatim, the original task request, and every accepted user decision.
 - Every implementation handoff from the plan, including an explicit `$worktree-task ...` entry when present.

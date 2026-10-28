@@ -163,6 +163,16 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
             with self.subTest(required=required):
                 self.assertIn(required, self.normalized_skill)
 
+    def test_worker_effort_is_explicit_for_each_selected_model(self):
+        for required in (
+            'Set `reasoning_effort` explicitly: Sol `medium`, Terra `high`, Luna `high`.',
+            'Apply this mapping to both menu and free-form selections.',
+            'stop and report it without substituting another value.',
+            'For the current-model route, skip delegation-model availability checks and worker creation',
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.normalized_skill)
+
     def test_parent_only_relays_and_never_takes_over(self):
         for required in (
             "send the exact question and authored choices to the parent",
