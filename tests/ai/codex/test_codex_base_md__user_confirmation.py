@@ -28,7 +28,16 @@ class UserConfirmationContractTest(unittest.TestCase):
         self.assertIn("For either UI", self.confirmation)
         self.assertIn("pass each skill-authored label exactly once", self.confirmation)
         self.assertIn("preserve its wording, order, and authored option count", self.confirmation)
-        self.assertIn("Do not count the client's auto-provided free-form `Other`", self.confirmation)
+        self.assertIn("except for the numbering prefix", self.confirmation)
+        self.assertIn("Do not count or modify the client's auto-provided free-form `Other`", self.confirmation)
+
+    def test_choice_labels_are_numbered_per_question(self):
+        self.assertIn("number every authored choice as `1. <label>`, `2. <label>`", self.confirmation)
+        self.assertIn("restarting at 1 for each question", self.confirmation)
+        self.assertIn("Replace an existing numbering prefix rather than adding a second one", self.confirmation)
+
+    def test_number_only_reply_selects_the_displayed_choice(self):
+        self.assertIn("Interpret a number-only reply as the corresponding displayed choice", self.confirmation)
 
     def test_confirmation_does_not_force_a_method_over_runtime_rules(self):
         # Runtime permission restrictions still govern request_user_input;

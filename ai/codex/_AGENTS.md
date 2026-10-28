@@ -242,7 +242,7 @@ For every required user confirmation or decision (approval, clarification with c
 
 Choose `request_user_input` first if it supports the purpose and all options; otherwise use `request_user_input_async` if it does. Follow the active runtime's mode and purpose restrictions; never override its permission restrictions.
 
-For either UI, pass each skill-authored label exactly once and preserve its wording, order, and authored option count. Do not count the client's auto-provided free-form `Other` as an authored option. If no permitted UI can present every option in one question, use a numbered plain-text list and accept number-only replies. Never split a choice set into multiple questions or omit/group options to fit a UI.
+For either UI, pass each skill-authored label exactly once and preserve its wording, order, and authored option count, except for the numbering prefix: number every authored choice as `1. <label>`, `2. <label>`, etc., restarting at 1 for each question. Replace an existing numbering prefix rather than adding a second one. Interpret a number-only reply as the corresponding displayed choice. Do not count or modify the client's auto-provided free-form `Other`. If no permitted UI can present every option in one question, use a numbered plain-text list and accept number-only replies. Never split a choice set into multiple questions or omit/group options to fit a UI.
 
 An async acknowledgement only means the question was accepted; wait for the user's answer before dependent work. Do not duplicate a pending question. Empty responses and missing selections are not approval. Never treat an unanswered approval request as approval.
 
