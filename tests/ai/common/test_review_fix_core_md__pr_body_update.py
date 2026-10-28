@@ -12,7 +12,7 @@ class ReviewFixPrBodyUpdateTest(unittest.TestCase):
         for required in (
             "#### PR body update",
             "at least one group's `merge_action` is `commit_merge_push` and its push succeeded",
-            "In Inline Flow, ask it once only if the session's post-implementation workflow then pushes successfully.",
+            "In Inline Flow, evaluate it only if the session's post-implementation workflow then pushes successfully.",
             "`PR bodyを更新する` / `更新しない`",
             "read <PR_BODY_DOCS> (adapter-defined)",
             "Confirmation Flow in full",
@@ -22,6 +22,22 @@ class ReviewFixPrBodyUpdateTest(unittest.TestCase):
         ):
             with self.subTest(required=required):
                 self.assertIn(required, content)
+
+    def test_offer_requires_an_accurate_existing_body_before_skipping(self):
+        content = " ".join(CORE_PATH.read_text(encoding="utf-8").split())
+        for required in (
+            "already covers the pushed changes and remains accurate",
+            "purpose, behavior, scope, and validation",
+            "Test-only or other supporting changes can qualify",
+            "never skip based on file type alone",
+            "If even a test count or command becomes outdated, ask.",
+            "If fetching the body or diff fails, or the assessment is uncertain, ask",
+            "retry any failed context fetch before drafting",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, content)
+        self.assertLess(content.index("Before asking, resolve"), content.index("Skip the offer"))
+        self.assertLess(content.index("Skip the offer"), content.index("Otherwise ask once"))
 
     def test_platform_adapters_define_pr_body_docs(self):
         adapters = {

@@ -412,13 +412,22 @@ Run only when `NO_CODE_CHANGE=false`, the selected action contains `& push`,
 and the push was verified above — regardless of reply or resolve results.
 Otherwise record the PR body as skipped.
 
-Ask `今回の変更に合わせてPR bodyを更新しますか？` with exactly
-`PR bodyを更新する` / `更新しない`. On `更新しない`, record it as skipped.
-
-On `PR bodyを更新する`, gather context for `PULL_NUMBER`:
+Before asking, gather context for `PULL_NUMBER`:
 `gh pr view "${PULL_NUMBER}" -R "${OWNER}/${REPO}" --json body,url`,
 `gh pr diff "${PULL_NUMBER}" -R "${OWNER}/${REPO}"`, and whether
-`.github/PULL_REQUEST_TEMPLATE.md` exists in `ORIGINAL_PATH`. Then read
+`.github/PULL_REQUEST_TEMPLATE.md` exists in `ORIGINAL_PATH`.
+
+Skip the offer and record the PR body as skipped only when the current body
+already covers the pushed changes and remains accurate about the PR's purpose,
+behavior, scope, and validation. Test-only or other supporting changes can
+qualify; never skip based on file type alone. If even a test count or command
+becomes outdated, ask. If fetching the body or diff fails, or the assessment
+is uncertain, ask rather than assume no update is needed.
+
+Otherwise ask `今回の変更に合わせてPR bodyを更新しますか？` with exactly
+`PR bodyを更新する` / `更新しない`. On `更新しない`, record it as skipped.
+
+On `PR bodyを更新する`, retry any failed context fetch before drafting, then read
 `<PR_BODY_DOCS>` (adapter-defined) and follow its Drafting Rules and its
 Confirmation Flow in full, with `<PR_NUMBER>` = `PULL_NUMBER`. Never shorten
 the flow: show the `--color=always` colored diff, paste the `--no-color` diff

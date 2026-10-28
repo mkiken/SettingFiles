@@ -52,6 +52,22 @@ class FinalizationWorkflowContractTest(unittest.TestCase):
             content.index("### Verify the final reaction state"),
         )
 
+    def test_offer_requires_an_accurate_existing_body_before_skipping(self):
+        content = " ".join(PATH.read_text(encoding="utf-8").split())
+        for required in (
+            "already covers the pushed changes and remains accurate",
+            "purpose, behavior, scope, and validation",
+            "Test-only or other supporting changes can qualify",
+            "never skip based on file type alone",
+            "If even a test count or command becomes outdated, ask.",
+            "If fetching the body or diff fails, or the assessment is uncertain, ask",
+            "retry any failed context fetch before drafting",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, content)
+        self.assertLess(content.index("Before asking, gather"), content.index("Skip the offer"))
+        self.assertLess(content.index("Skip the offer"), content.index("Otherwise ask"))
+
     def test_platform_adapters_define_pr_body_docs(self):
         adapters = {
             "ai/claude/skills/pr-comment-implement/SKILL.md": (
