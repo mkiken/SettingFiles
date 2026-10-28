@@ -15,15 +15,26 @@ remaining read-only analysis through Phase 2 and follow its plan-mode handoff.
 After approval, the implementer posts the deferred reaction, then starts at
 `Create an isolated task worktree` before editing.
 
-Check the working tree state first — this must be clean, since Phase 1
-creates an isolated task worktree rather than editing in place:
+Check and record the invoking worktree's pre-existing changes first,
+including untracked files:
 
 ```bash
 git status --porcelain
 ```
 
-If it lists anything, including untracked files, stop. Do not stash, clean,
-or reset to force a clean state.
+If nonempty, report the changed paths and explain that the task worktree
+starts from the committed PR head, so uncommitted work stays behind in the
+invoking worktree. Before creating any branch or worktree, ask exactly these
+two authored choices through the platform's user-confirmation mechanism:
+
+- `そのまま進める` — preserve the invoking worktree's changes and create the isolated task worktree
+- `中止する` — stop without creating a branch or worktree or changing the invoking worktree
+
+Wait for an explicit answer; continue only for `そのまま進める`. A clean
+invoking worktree needs no creation confirmation. In plan mode, defer this
+confirmation along with worktree creation until mutations are allowed.
+Do not stash, clean, or reset to force a clean state. The clean requirement
+still applies when merging back into the PR head in `finalization.md`.
 
 Parse `PR_URL`, extract `OWNER`, `REPO`, `PULL_NUMBER`, then classify the
 fragment. The result (`REPLY_PATH`, `COMMENT_ID`, `REACTION_TARGET`) is reused

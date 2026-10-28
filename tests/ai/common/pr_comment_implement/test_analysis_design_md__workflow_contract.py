@@ -7,6 +7,32 @@ PATH = REPO_ROOT / "ai/common/pr_comment_implement/analysis-design.md"
 
 
 class AnalysisDesignWorkflowContractTest(unittest.TestCase):
+    def test_dirty_invoking_worktree_requires_creation_consent_and_clean_merge(self):
+        content = PATH.read_text(encoding="utf-8")
+        preflight = content.split("Parse `PR_URL`", 1)[0]
+        normalized = " ".join(preflight.split())
+        for requirement in (
+            "record the invoking worktree's pre-existing changes",
+            "including untracked files",
+            "If nonempty, report the changed paths",
+            "starts from the committed PR head",
+            "uncommitted work stays behind in the invoking worktree",
+            "Before creating any branch or worktree",
+            "ask exactly these two authored choices",
+            "`そのまま進める`",
+            "`中止する` — stop without creating a branch or worktree or changing the invoking worktree",
+            "Wait for an explicit answer; continue only for `そのまま進める`",
+            "A clean invoking worktree needs no creation confirmation",
+            "In plan mode, defer this confirmation along with worktree creation",
+            "Do not stash, clean, or reset to force a clean state",
+            "The clean requirement still applies when merging back into the PR head",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, normalized)
+
+        # The old hard stop prevented the explicit continue choice from being offered.
+        self.assertNotIn("If it lists anything, including untracked files, stop", preflight)
+
     def test_analysis_reaches_one_design_gate_without_implementation(self):
         content = PATH.read_text(encoding="utf-8")
         self.assertIn("### Phase 1: Analysis", content)
