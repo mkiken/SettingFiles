@@ -26,6 +26,21 @@ class AnalysisDesignWorkflowContractTest(unittest.TestCase):
         self.assertIn("`#r(\\d+)`", row)
         self.assertIn("REPLY_PATH=thread", row)
 
+    def test_task_worktree_boundary_allows_only_shared_temporary_data_exception(self):
+        content = PATH.read_text(encoding="utf-8")
+        section = content.split(
+            "#### Constrain project-mandated workflows to the task worktree", 1
+        )[1].split("### Phase 2:", 1)[0]
+        for requirement in (
+            "Every write target must remain inside\n`TASK_PATH`, except task-scoped temporary data",
+            "Cross-Repository Work `/tmp` exception; those writes need no additional\napproval",
+            "The workflow must stay on `TASK_BRANCH` without creating another\nworktree",
+            "that is not covered by\nthat temporary-data exception, stop before that write",
+            "Report the exact external target",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, section)
+
 
 if __name__ == "__main__":
     unittest.main()

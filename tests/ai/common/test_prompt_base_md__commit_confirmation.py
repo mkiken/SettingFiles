@@ -43,6 +43,19 @@ class WorktreeAuthorizationContractTest(unittest.TestCase):
             self.section,
         )
 
+    def test_temporary_data_exception_checks_resolved_location_and_cleanup(self):
+        for requirement in (
+            "Task-scoped temporary data under `/tmp` require no external-write approval",
+            "even when a workflow confines writes to its task worktree",
+            "Resolve symlinks in the target and existing parent directories first",
+            "beneath the resolved `/tmp` root (including `/private/tmp` on macOS)",
+            "A symlink escaping that root retains the existing approval requirements",
+            "Clean up session-created temporary data at completion using the Temp File Cleanup rules",
+            "other workflow gates remain in force",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, self.section)
+
 
 class CommitConfirmationContractTest(unittest.TestCase):
     @classmethod

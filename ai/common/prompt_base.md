@@ -58,6 +58,8 @@ Before working on files in a repository other than the session's project — edi
 
 If a workflow or tool resolves a write target outside the session project, display the exact target and obtain confirmation before mutating it, unless the user explicitly named that external target.
 
+Task-scoped temporary data under `/tmp` require no external-write approval, even when a workflow confines writes to its task worktree. Resolve symlinks in the target and existing parent directories first: the destination must remain beneath the resolved `/tmp` root (including `/private/tmp` on macOS). A symlink escaping that root retains the existing approval requirements. Clean up session-created temporary data at completion using the Temp File Cleanup rules; other workflow gates remain in force.
+
 Creating a worktree for the requested task and performing task-scoped work inside it require no additional permission, regardless of skill use or whether the worktree is outside the session project. Display the resolved path and proceed; normal Git bookkeeping required to create and use the worktree is included. Obtain permission before dangerous operations affecting anything outside that worktree, such as discarding another worktree's changes or rewriting shared branch history. This exception does not authorize other external write targets or bypass existing plan-mode, design-approval, deletion, commit, push, or PR-action gates.
 
 # Instruction File vs. Code Drift

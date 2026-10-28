@@ -290,11 +290,14 @@ At Phase 3, repository instructions may require another project workflow
 before the first implementation write. Invoke it from `TASK_PATH` only, and
 resolve its artifact roots, output paths, branch changes, and worktree changes
 before allowing its first write. Every write target must remain inside
-`TASK_PATH`, and the workflow must stay on `TASK_BRANCH` without creating
-another worktree.
+`TASK_PATH`, except task-scoped temporary data covered by the shared
+Cross-Repository Work `/tmp` exception; those writes need no additional
+approval. The workflow must stay on `TASK_BRANCH` without creating another
+worktree.
 
 If a required workflow resolves any write target outside `TASK_PATH`
-(including a planning directory under `ORIGINAL_PATH`), stop before that write
+(including a planning directory under `ORIGINAL_PATH`) that is not covered by
+that temporary-data exception, stop before that write
 and before implementation. Do not silently skip the required workflow or treat
 read-only initialization as satisfying it. Report the exact external target
 and the conflicting repository/worktree requirements so the user can correct
