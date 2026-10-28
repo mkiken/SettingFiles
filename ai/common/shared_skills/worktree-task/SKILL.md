@@ -42,7 +42,11 @@ Before creating a branch or changing files:
 1. Resolve and record the invoking worktree's top-level path.
 2. Record its current branch and exact `HEAD` object ID.
 3. Require the branch to be attached. Stop if `HEAD` is detached.
-4. Record `git status --porcelain` output, including untracked files, as the invoking worktree's pre-existing changes. A dirty invoking worktree does not block worktree creation or the task itself: `wtc --base <original-branch>` branches from the recorded commit, so uncommitted work stays behind in the invoking worktree. The clean requirement applies later, at `Require a clean invoking worktree before merging`.
+4. Record `git status --porcelain` output, including untracked files, as the invoking worktree's pre-existing changes. If nonempty, report the changed paths and explain that `wtc --base <original-branch>` branches from the recorded commit, so uncommitted work stays behind in the invoking worktree. Before creating any branch or worktree, ask exactly these two authored choices through the platform's user-confirmation mechanism:
+   - `そのまま進める` — preserve the invoking worktree's changes and continue creating the isolated task worktree
+   - `中止する` — stop without creating a branch or worktree or changing the invoking worktree
+
+   Wait for an explicit answer; continue only for `そのまま進める`. A clean invoking worktree needs no creation confirmation. The clean requirement applies later, at `Require a clean invoking worktree before merging`.
 5. Confirm `wtc` and `wtm` are available in the configured interactive Zsh from the original worktree:
 
    ```bash

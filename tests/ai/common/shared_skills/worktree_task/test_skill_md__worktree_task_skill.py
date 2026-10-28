@@ -103,20 +103,30 @@ class WorktreeTaskSkillContentTest(unittest.TestCase):
             with self.subTest(required=required):
                 self.assertIn(required, self.content)
 
-    def test_dirty_invoking_worktree_blocks_merge_rather_than_creation(self):
+    def test_dirty_invoking_worktree_requires_creation_consent_and_clean_merge(self):
         normalized_content = " ".join(self.content.split())
 
         # Creating a worktree from a dirty invoking worktree is safe because the
-        # task branch starts from the recorded commit, so the gate belongs at
-        # merge time instead. A creation-time clean requirement would strand the
-        # common case where another session has work in progress.
+        # task branch starts from the recorded commit. Creation needs consent;
+        # merging still requires a clean invoking worktree.
+        recording = self.content.split("## Record the original state", 1)[1].split(
+            "## Create the task worktree", 1
+        )[0]
+        normalized_recording = " ".join(recording.split())
         for required in (
-            "A dirty invoking worktree does not block worktree creation or the task itself",
+            "including untracked files",
+            "If nonempty, report the changed paths",
             "uncommitted work stays behind in the invoking worktree",
+            "Before creating any branch or worktree",
+            "ask exactly these two authored choices",
+            "`そのまま進める`",
+            "`中止する` — stop without creating a branch or worktree or changing the invoking worktree",
+            "Wait for an explicit answer; continue only for `そのまま進める`",
+            "A clean invoking worktree needs no creation confirmation",
             "The clean requirement applies later, at `Require a clean invoking worktree before merging`",
         ):
             with self.subTest(required=required):
-                self.assertIn(required, normalized_content)
+                self.assertIn(required, normalized_recording)
 
         for required in (
             "## Require a clean invoking worktree before merging",
