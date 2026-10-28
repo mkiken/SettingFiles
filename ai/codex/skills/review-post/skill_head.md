@@ -9,4 +9,4 @@ Parse the arguments after the skill name: a token containing `/` is <RUN_DIR>; n
 
 `{ai_header}` = `🤖 **AI コードレビュー**` — this run merges findings from several AIs, so the header never names the posting AI.
 
-For the final posting confirmation, ask the user directly and wait for the reply.
+When the core's Own-PR Posting Confirmation rule requires final posting confirmation, ask the user directly and wait for the reply.

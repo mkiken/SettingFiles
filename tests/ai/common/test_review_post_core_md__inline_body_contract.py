@@ -51,6 +51,45 @@ class ReviewPostInlineBodyContractTest(unittest.TestCase):
         self.assertIn("review_post_core.md", claude_skill)
         self.assertIn(self.core, codex_skill)
 
+    def test_own_pr_confirmation_requires_verified_target_host_and_identity(self):
+        for required in (
+            "gh pr view <PR_NUMBER> --json author,url",
+            "same target repository as the posting request",
+            "gh api --hostname <PR_HOST> user --jq .login",
+            "both lookups succeed",
+            "non-empty strings that match exactly",
+            "another author's PR, failed lookups, missing or empty logins, or an unknown host, keep the ordinary confirmation",
+            "Do not infer ownership from Git configuration",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.core)
+
+    def test_own_pr_exception_preserves_preview_validation_and_exception_decisions(self):
+        for required in (
+            "overrides only the shared `pr_post_mechanics_core.md` Preview And Confirm section's ordinary confirmation for `review-post`",
+            "Always show the selected-item preview and validate",
+            "exactly the displayed selection without waiting for ordinary confirmation",
+            "Keep the user's decision on already-addressed candidates",
+            "confirmation before submitting an existing PENDING review",
+            "any validation failure, or post-verification",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.core)
+
+    def test_adapters_condition_confirmation_on_shared_ownership_rule(self):
+        for path in (
+            CLAUDE_SKILL_PATH,
+            CODEX_SKILL_PATH,
+            CODEX_SKILL_PATH.with_name("skill_head.md"),
+        ):
+            with self.subTest(path=path):
+                text = path.read_text(encoding="utf-8")
+                self.assertIn("core's Own-PR Posting Confirmation rule", text)
+                self.assertNotIn(
+                    "For the final posting confirmation, ask the user directly and wait for the reply.",
+                    text,
+                )
+
 
 if __name__ == "__main__":
     unittest.main()
