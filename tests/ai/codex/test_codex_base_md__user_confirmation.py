@@ -31,10 +31,8 @@ class UserConfirmationContractTest(unittest.TestCase):
         self.assertIn("except for the numbering prefix", self.confirmation)
         self.assertIn("Do not count or modify the client's auto-provided free-form `Other`", self.confirmation)
 
-    def test_choice_labels_are_numbered_per_question(self):
-        self.assertIn("number every authored choice as `1. <label>`, `2. <label>`", self.confirmation)
-        self.assertIn("restarting at 1 for each question", self.confirmation)
-        self.assertIn("Replace an existing numbering prefix rather than adding a second one", self.confirmation)
+    def test_choice_ui_uses_its_own_numbering(self):
+        self.assertIn("remove an existing numbering prefix from each label because the UI numbers choices", self.confirmation)
 
     def test_number_only_reply_selects_the_displayed_choice(self):
         self.assertIn("Interpret a number-only reply as the corresponding displayed choice", self.confirmation)
