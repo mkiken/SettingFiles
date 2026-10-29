@@ -218,6 +218,9 @@ class ReviewHandler(BaseHTTPRequestHandler):
         except (json.JSONDecodeError, UnicodeDecodeError, ValueError) as error:
             self.send_text(HTTPStatus.BAD_REQUEST, str(error))
             return
+        except OSError as error:
+            self.send_text(HTTPStatus.INTERNAL_SERVER_ERROR, str(error))
+            return
         self.send_response(HTTPStatus.NO_CONTENT)
         self.end_headers()
 

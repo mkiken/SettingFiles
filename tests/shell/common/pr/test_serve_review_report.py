@@ -77,6 +77,14 @@ class ReviewServerTest(unittest.TestCase):
         error.exception.close()
         self.assertFalse((self.run_dir / "state.json").exists())
 
+    def test_write_error_returns_details(self):
+        with mock.patch.object(mod, "write_state", side_effect=PermissionError("permission denied")):
+            with self.assertRaises(HTTPError) as error:
+                self.request("/api/state", "POST", json.dumps(self.valid_state()).encode(), "application/json")
+        self.assertEqual(error.exception.code, 500)
+        self.assertIn("permission denied", error.exception.read().decode())
+        error.exception.close()
+
     def test_schema_version_1_payload_is_rejected(self):
         legacy = {
             "schema_version": 1,
