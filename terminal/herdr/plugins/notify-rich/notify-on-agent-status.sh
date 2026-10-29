@@ -49,8 +49,9 @@ agent_status="$(print -r -- "$event_json" \
 # firing this plugin many times per response (tab renames included). Gemini therefore
 # opts OUT of the notify-rich single-source model entirely (notification AND tab
 # rename) and notifies via its own AfterAgent/Notification tmux hooks
-# (ai/gemini/hooks/notification.sh, HERDR guard relaxed there). Claude/Codex report
-# status accurately via their installers and stay managed by this plugin.
+# (ai/gemini/hooks/notification.sh, HERDR guard relaxed there). Codex's installer
+# reports session identity; Herdr detects its status from the screen and title.
+# Claude/Codex stay managed by this plugin.
 #
 # Conversation-title tab labeling (see title_usable below) is claude-only: codex also
 # sets terminal_title_stripped to a conversation summary, but that summary is far less
@@ -409,7 +410,7 @@ if [[ "$agent" == "claude" ]] && (( editor_title_rc != 1 )); then
   notify_body="${last_auto_label:-(no title)}"
 fi
 if [[ "$agent" == "codex" && -n "$session_id" ]]; then
-  codex_summary="$(
+  codex_notification="$(
     setopt bsd_echo 2>/dev/null
     analysis="$(jq -n --arg sid "$session_id" '{session_id: $sid}' 2>/dev/null \
       | python3 "${REPO_ROOT}/ai/codex/hooks/codex_hook_common.py" analyze 2>/dev/null)"
@@ -419,15 +420,25 @@ if [[ "$agent" == "codex" && -n "$session_id" ]]; then
     # blocked（herdr検知の入力待ち）と、doneでもアシスタントが質問で終えた場合は
     # tmuxの✋応答待ちと同じく最終アシスタントメッセージを出す。それ以外の完了は
     # タスク種別絵文字＋最初のユーザーメッセージ（tmuxの✅終了と同形式）。
-    if [[ "$agent_status" == "blocked" || "${WAITING_FOR_USER_RESPONSE:-}" == "true" ]]; then
+    summary="$(if [[ "$agent_status" == "blocked" || "${WAITING_FOR_USER_RESPONSE:-}" == "true" ]]; then
       build_session_summary "✋" "${LAST_ASSISTANT_MESSAGE:-}" \
         "${USER_MESSAGE_COUNT:-0}" "${SESSION_DURATION_FORMATTED:-}"
     else
       build_session_summary "$(guess_task_type_emoji "${FIRST_USER_MESSAGE:-}")" \
         "${FIRST_USER_MESSAGE:-}" "${USER_MESSAGE_COUNT:-0}" "${SESSION_DURATION_FORMATTED:-}"
-    fi
+    fi)" || exit 0
+    jq -n --arg summary "$summary" \
+      --argjson waiting "${WAITING_FOR_USER_RESPONSE:-false}" \
+      '{summary: $summary, waiting: $waiting}'
   )"
+  codex_summary="$(print -r -- "$codex_notification" | jq -r '.summary // empty' 2>/dev/null)"
   [[ -n "$codex_summary" ]] && notify_body="$codex_summary"
+  if [[ "$agent_status" == "done" ]] \
+     && print -r -- "$codex_notification" | jq -e '.waiting == true' >/dev/null 2>&1; then
+    status_emoji="$EMOJI_STATUS_NOTIFICATION"
+    label_text="応答待ち"
+    sound_event="waiting"
+  fi
 fi
 # APIエラー本文は上記どちらの分岐よりも優先する（エラー種別・内容を確実に伝えるため）
 [[ -n "$api_error_notify_body" ]] && notify_body="$api_error_notify_body"

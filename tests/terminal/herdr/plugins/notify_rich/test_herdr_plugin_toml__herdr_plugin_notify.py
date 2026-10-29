@@ -548,6 +548,24 @@ class HerdrPluginNotifyTest(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("message=✋ どちらの方式にしますか？", events)
+        self.assertTrue(events[0].startswith("title=CODEX_IDWAIT Codex応答待ち "), events)
+        self.assertIn("sound=request", events)
+
+    def test_codex_pending_question_notification_api_failure_uses_waiting_fallback(self):
+        result, events = self.run_plugin(
+            agent="codex",
+            agent_status="done",
+            notification_rc=1,
+            codex_transcript=self.codex_transcript_fixture(
+                assistant_text='"A" と "B"、\nどちらの方式にしますか？',
+                followup_messages=("Implement the plan.",),
+            ),
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(events[0].startswith("title=CODEX_IDWAIT Codex応答待ち "), events)
+        self.assertIn('message=✋ "A" と "B"、 どちらの方式にしますか？', events)
+        self.assertIn("sound=Glass", events)
 
     def test_codex_long_message_truncates_at_character_boundary(self):
         # LANG無しの実herdr環境でも80文字truncateがバイト単位にならず文字境界で
@@ -569,6 +587,8 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         result, events = self.run_plugin(agent="codex", agent_status="done")
 
         self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(events[0].startswith("title=CODEX_IDDONE Codex完了 "), events)
+        self.assertIn("sound=done", events)
         self.assertIn(
             "message=Herdr通知をカスタマイズしてworkspace情報を表示", events
         )
@@ -587,6 +607,8 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                 )
 
                 self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertTrue(events[0].startswith("title=CODEX_IDDONE Codex完了 "), events)
+                self.assertIn("sound=done", events)
                 self.assertIn(
                     "message=Herdr通知をカスタマイズしてworkspace情報を表示", events
                 )
