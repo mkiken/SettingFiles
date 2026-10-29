@@ -84,8 +84,8 @@ class HerdrConfigurationTest(unittest.TestCase):
             agents["rows_by_agent"]["codex"],
             [
                 ["workspace", "tab"],
-                ["state_icon", "$provider", "$limit", "state_text"],
-                ["$codex_last_response", "$context_compact", "$monthly_credit"],
+                ["state_icon", "$provider", "$limit", "state_text", "$context_compact"],
+                ["$codex_last_response", "$monthly_credit"],
             ],
         )
         self.assertEqual(
