@@ -81,6 +81,5 @@ chmod +x ~/.gemini/hooks/notification.sh
 setup_gemini_superpowers
 setup_gemini_context_mode
 setup_gemini_rtk
-setup_gemini_claude_mem
 
 echo 'Gemini setup completed.'

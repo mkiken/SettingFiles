@@ -1,6 +1,5 @@
 #!/bin/zsh
 
-source "${Repo}mac/scripts/ai/claude_mem.sh"
 source "${Repo}mac/scripts/ai/rtk.sh"
 
 function setup_claude_rtk() {
@@ -127,21 +126,6 @@ function setup_claude_example_skills() {
 
   if ! claude plugin list --json | jq -e '.[] | select(.id == "example-skills@anthropic-agent-skills" and .enabled == true)' >/dev/null; then
     claude plugin enable example-skills@anthropic-agent-skills || return 1
-  fi
-}
-
-function setup_claude_mem() {
-  echo "Ensuring Claude claude-mem plugin..."
-
-  require_ai_setup_command claude || return 1
-  require_ai_setup_command jq || return 1
-
-  setup_claude_mem_for_ide claude-code || return 1
-  setup_claude_mem_runtime || return 1
-  claude plugin marketplace update thedotmack || return 1
-
-  if ! claude plugin list --json | jq -e '.[] | select(.id == "claude-mem@thedotmack" and .enabled == true)' >/dev/null; then
-    claude plugin enable claude-mem@thedotmack || return 1
   fi
 }
 

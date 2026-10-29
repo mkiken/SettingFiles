@@ -33,9 +33,3 @@ If `AI_REVIEW_OUTPUT_FILE` is set and recovery failed, write the failure to that
 
 - When asking the user for plan approval, agreement, or feedback (such as invoking `ask_user` or requesting feedback), **you MUST always output the full markdown content of the plan in the same message**.
 - Do not ask for approval or verification without showing the full details of the plan. Output the plan content in its entirety.
-
-<claude-mem-context>
-# Memory Context from Past Sessions
-
-*No context yet. Complete your first session and context will appear here.*
-</claude-mem-context>

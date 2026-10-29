@@ -1,6 +1,5 @@
 #!/bin/zsh
 
-source "${Repo}mac/scripts/ai/claude_mem.sh"
 source "${Repo}mac/scripts/ai/rtk.sh"
 
 function setup_codex_rtk() {
@@ -149,24 +148,6 @@ function setup_codex_superpowers() {
   fi
 }
 
-function setup_codex_claude_mem() {
-  echo "Ensuring Codex claude-mem plugin..."
-
-  require_ai_setup_command codex || return 1
-  require_ai_setup_command jq || return 1
-
-  # 既にインストール済みなら npx install を再実行しない。
-  # claude-mem のインストーラーは再実行のたびに ~/.codex/config.toml に
-  # [plugins.'claude-mem@...'] テーブルを追記するため、二重登録すると不正 TOML になる。
-  if codex plugin list --json | jq -e '.installed[]? | select(.name == "claude-mem" or (.pluginId // "" | test("claude-mem")))' >/dev/null; then
-    echo "✓ Codex claude-mem plugin already installed."
-  else
-    setup_claude_mem_for_ide codex-cli || return 1
-  fi
-
-  setup_claude_mem_runtime || return 1
-}
-
 function setup_codex_ponytail() {
   echo "Ensuring Codex ponytail plugin..."
 
@@ -194,7 +175,7 @@ function setup_codex_ponytail() {
   #
   # ponytail の hook は ~/.codex/config.toml の [hooks.state] に trust 済みで
   # ないと動作しない。trust は `codex` 起動後 `/hooks` での対話操作が必要で、
-  # 既存の context-mode・claude-mem 同様ここでは自動化しない。
+  # 既存の context-mode 同様ここでは自動化しない。
 }
 
 function setup_codex_hooks_json() {
