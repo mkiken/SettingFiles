@@ -12,7 +12,20 @@ gm-update() {
 }
 
 gm() {
-    no_notify homebrew_run gemini --approval-mode yolo "$@"
+    local -a approval_args=()
+    local arg has_approval_mode=0
+    for arg in "$@"; do
+        if [[ "$arg" == "--" ]]; then
+            break
+        elif [[ "$arg" == "--approval-mode" || "$arg" == --approval-mode=* ]]; then
+            has_approval_mode=1
+            break
+        fi
+    done
+    if (( ! has_approval_mode )); then
+        approval_args=(--approval-mode yolo)
+    fi
+    no_notify homebrew_run gemini "${approval_args[@]}" "$@"
 }
 
 _gm_resume_with_picker() {
