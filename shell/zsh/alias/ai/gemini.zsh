@@ -12,7 +12,7 @@ gm-update() {
 }
 
 gm() {
-    no_notify homebrew_run gemini "$@"
+    no_notify homebrew_run gemini --approval-mode yolo "$@"
 }
 
 _gm_resume_with_picker() {
@@ -88,13 +88,13 @@ _ai_gemini_failsafe_note() {
 gm-pr-review() {
     local pr_number review_prompt
     _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
-    gmmx --approval-mode yolo -i "/pr-review $pr_number${review_prompt:+ $review_prompt} $(_ai_gemini_failsafe_note "$pr_number")"
+    gmmx -i "/pr-review $pr_number${review_prompt:+ $review_prompt} $(_ai_gemini_failsafe_note "$pr_number")"
 }
 
 gm-pr-review-subagent() {
     local pr_number review_prompt
     _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
-    gmmx --approval-mode yolo -i "/pr-review-subagents $pr_number${review_prompt:+ $review_prompt} $(_ai_gemini_failsafe_note "$pr_number")"
+    gmmx -i "/pr-review-subagents $pr_number${review_prompt:+ $review_prompt} $(_ai_gemini_failsafe_note "$pr_number")"
 }
 alias gm-pr-review-subagents='gm-pr-review-subagent'
 
@@ -105,7 +105,7 @@ gm-pr-body() {
 alias gm-pr-comment-review='noglob _gm-pr-comment-review'
 alias gm-pcr='noglob _gm-pr-comment-review'
 _gm-pr-comment-review() {
-    gmmx --approval-mode yolo -i "/pr-comment-review $*"
+    gmmx -i "/pr-comment-review $*"
 }
 
 alias gm-pr-comment-implement='noglob _ai_pci_route _gm-pr-comment-implement'
