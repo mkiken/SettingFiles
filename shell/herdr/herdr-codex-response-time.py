@@ -90,7 +90,8 @@ def main():
             hours, rest = divmod(elapsed, 3600)
             minutes, seconds = divmod(rest, 60)
             color = "🟢" if elapsed < 1500 else "🟡" if elapsed < 1800 else "🔴"
-            output = f"📩 {color} " + (f"{hours}:{minutes:02d}:{seconds:02d}" if hours else f"{minutes:02d}:{seconds:02d}")
+            duration = f"{hours}:{minutes:02d}:{seconds:02d}" if hours else f"{minutes:02d}:{seconds:02d}"
+            output = f"{color} 📩{duration}"
     print(output)
 
 

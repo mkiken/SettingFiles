@@ -49,7 +49,7 @@ class ResponseTimeTest(unittest.TestCase):
         output = StringIO()
         with patch.object(MODULE.subprocess, "run", side_effect=run), patch.object(MODULE.time, "time", return_value=1192), patch.object(MODULE, "last_completion", return_value=1000), patch.dict(MODULE.os.environ, {"HERDR_PANE_ID": "b"}), patch("sys.stdout", output):
             MODULE.main()
-        self.assertEqual(output.getvalue().strip(), "📩 🟢 03:12")
+        self.assertEqual(output.getvalue().strip(), "🟢 📩03:12")
         self.assertEqual(sum(args[1:3] == ["pane", "report-metadata"] for args in calls), 2)
 
     def test_session_change_prevents_report(self):
@@ -79,7 +79,7 @@ class ResponseTimeTest(unittest.TestCase):
             fake.chmod(0o755)
             env = sanitized_env(CODEX_HOME=str(root), HERDR_BIN_PATH=str(fake), HERDR_PANE_ID="p", TEST_CALLS=str(calls), TEST_LIST=json.dumps({"result": {"panes": [pane]}}), TEST_GET=json.dumps({"result": {"pane": pane}}))
             result = subprocess.run([sys.executable, str(SPEC.origin)], env=env, capture_output=True, text=True, check=True)
-            self.assertIn(result.stdout.strip(), ("📩 🟢 03:12", "📩 🟢 03:13"))
+            self.assertIn(result.stdout.strip(), ("🟢 📩03:12", "🟢 📩03:13"))
             self.assertIn("codex_last_response=📩", calls.read_text())
 
     def test_color_boundaries_and_hours(self):
@@ -93,7 +93,8 @@ class ResponseTimeTest(unittest.TestCase):
                 output = StringIO()
                 with patch.object(MODULE.subprocess, "run", side_effect=run), patch.object(MODULE.time, "time", return_value=1000 + elapsed), patch.object(MODULE, "last_completion", return_value=1000), patch.dict(MODULE.os.environ, {"HERDR_PANE_ID": "a"}), patch("sys.stdout", output):
                     MODULE.main()
-                self.assertEqual(output.getvalue().strip(), "📩 " + expected)
+                color, duration = expected.split()
+                self.assertEqual(output.getvalue().strip(), f"{color} 📩{duration}")
 
 
 if __name__ == "__main__":
