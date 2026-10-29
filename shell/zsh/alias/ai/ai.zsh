@@ -432,11 +432,11 @@ _herdr_send_watch_verified() {
     _herdr_send_verified "${pane_id}" "${run_dir}/watch_started" "_review_watch" && return 0
 
     echo "完了待ち(_review_watch)の起動を確認できませんでした (pane_id=${pane_id})" >&2
-    echo "3AIのレビュー自体は進行中です。orchestratorタブで手動実行してください: _review_watch ${run_dir}" >&2
+    echo "レビュー自体は進行中です。orchestratorタブで手動実行してください: _review_watch ${run_dir}" >&2
     return 1
 }
 
-# 3AIタブへレビュー起動トークン(_review_run_ai)を投入し、着地をマーカーで検証する。
+# AIタブへレビュー起動トークン(_review_run_ai)を投入し、着地をマーカーで検証する。
 # 失敗時は当該AIの手動復旧手順を案内する（起動ファイルとタブは残っているので手で叩ける）
 # 引数: pane_id run_dir ai(claude/gemini/codex)
 _review_send_ai_launch() {
@@ -451,7 +451,7 @@ _review_send_ai_launch() {
     return 1
 }
 
-# 3AIタブ内で実行される: --env で渡った AI_REVIEW_LAUNCH_FILE からレビュー起動コマンドを読み、
+# AIタブ内で実行される: --env で渡った AI_REVIEW_LAUNCH_FILE からレビュー起動コマンドを読み、
 # マーカーをtouchしてから実行する。
 # 引数なしの固定トークンとして投入されるのは、pane run送信の末尾欠落で
 # 壊れた引数のまま実行される事故を構造的に防ぐため（popups.md参照）。
@@ -483,9 +483,9 @@ _review_run_ai() {
     source "${launch_file}"
 }
 
-# 3AIをレビュー用workspace（<variant>-<ディレクトリ名>）の新規タブで起動する（herdr）
+# 選択したAIをレビュー用workspace（<variant>-<ディレクトリ名>）の新規タブで起動する（herdr）
 # 引数: create_watcher(1なら完了待ち〜マージをorchestratorタブで実行) variant(review/review-subagents) run_dir claude_fn gemini_fn codex_fn review_args...
-# variantはworkspaceラベルにのみ反映する。タブ名（3AI/orchestrator）はworkspace内に
+# variantはworkspaceラベルにのみ反映する。タブ名（AI/orchestrator）はworkspace内に
 # 居れば区別が自明なため、バリアント間で意図的に同一のままにする
 # 呼び出し元タブは拘束しない: 新規spaceでは初期タブ、再利用時は新規タブへ
 # orchestrator（_review_watch実行）を委譲する
@@ -502,18 +502,21 @@ _review_launch_herdr() {
     # 選択worktree基準にする（exportしないため並列実行でも他プロセスへ漏れない）
     local review_cwd="${AI_REVIEW_CWD:-${PWD}}"
 
-    local claude_label gemini_label codex_label
-    local claude_command gemini_command codex_command
-    # タブ名はgh呼出を含むため1回だけ計算し、4タブで使い回す
+    local -a providers=(claude gemini codex)
+    (( ${+review_providers} )) && providers=("${review_providers[@]}")
+    local -A labels commands
+    local ai emoji fn
     local tab_name
     tab_name=$(_review_herdr_tab_name "${review_cwd}" "${review_args[@]}") || return 1
-    # ラベル計算を先に行い、失敗時は無駄なworkspace作成を避ける
-    claude_label=$(_ai_review_herdr_label "${EMOJI_ID_CLAUDE}" "${tab_name}") || return 1
-    gemini_label=$(_ai_review_herdr_label "${EMOJI_ID_GEMINI}" "${tab_name}") || return 1
-    codex_label=$(_ai_review_herdr_label "${EMOJI_ID_CODEX}" "${tab_name}") || return 1
-    claude_command=$(_ai_review_env_command "${run_dir}/claude.md" "${claude_fn}" "${review_args[@]}") || return 1
-    gemini_command=$(_ai_review_env_command "${run_dir}/gemini.md" "${gemini_fn}" "${review_args[@]}") || return 1
-    codex_command=$(_ai_review_env_command "${run_dir}/codex.md" "${codex_fn}" "${review_args[@]}") || return 1
+    for ai in "${providers[@]}"; do
+        case "${ai}" in
+            claude) emoji="${EMOJI_ID_CLAUDE}"; fn="${claude_fn}" ;;
+            gemini) emoji="${EMOJI_ID_GEMINI}"; fn="${gemini_fn}" ;;
+            codex) emoji="${EMOJI_ID_CODEX}"; fn="${codex_fn}" ;;
+        esac
+        labels[$ai]=$(_ai_review_herdr_label "${emoji}" "${tab_name}") || return 1
+        commands[$ai]=$(_ai_review_env_command "${run_dir}/${ai}.md" "${fn}" "${review_args[@]}") || return 1
+    done
 
     local ws_json ws_id orch_tab_id orch_pane_id
     ws_json=$(_herdr_create_review_workspace "${variant}" "${review_cwd}" "${run_dir}") || return 1
@@ -538,35 +541,26 @@ _review_launch_herdr() {
     # （--env）を頼りに固定トークン `_review_run_ai` だけを受け取る。
     # pane runの末尾欠落で長いコマンドが壊れた引数のまま実行された事故（watch_specs事故）が
     # 実測済みのため、送信文字列を最小化してから着地をマーカーで検証する
-    print -r -- "${claude_command}" > "${run_dir}/launch_claude" || return 1
-    print -r -- "${gemini_command}" > "${run_dir}/launch_gemini" || return 1
-    print -r -- "${codex_command}" > "${run_dir}/launch_codex" || return 1
-
-    # Claudeも新規タブで起動し、tab_idを閉鎖検知(--liveness)用に控える
-    local claude_tab="" gemini_tab="" codex_tab=""
-    local claude_pane="" gemini_pane="" codex_pane=""
-    _herdr_create_tab "${ws_id}" "${review_cwd}" "${claude_label}" claude_pane claude_tab 0 \
-        "AI_REVIEW_LAUNCH_FILE=${run_dir}/launch_claude" || return 1
-    _herdr_create_tab "${ws_id}" "${review_cwd}" "${gemini_label}" gemini_pane gemini_tab 0 \
-        "AI_REVIEW_LAUNCH_FILE=${run_dir}/launch_gemini" || return 1
-    _herdr_create_tab "${ws_id}" "${review_cwd}" "${codex_label}" codex_pane codex_tab 0 \
-        "AI_REVIEW_LAUNCH_FILE=${run_dir}/launch_codex" || return 1
-
-    local ai
-    for ai in claude gemini codex; do
-        _review_send_ai_launch "${(P)${:-${ai}_pane}}" "${run_dir}" "${ai}" || return 1
+    local -A tabs panes
+    local review_pane review_tab
+    local -a watch_specs=()
+    for ai in "${providers[@]}"; do
+        print -r -- "${commands[$ai]}" > "${run_dir}/launch_${ai}" || return 1
+    done
+    for ai in "${providers[@]}"; do
+        review_pane=""; review_tab=""
+        _herdr_create_tab "${ws_id}" "${review_cwd}" "${labels[$ai]}" review_pane review_tab 0 \
+            "AI_REVIEW_LAUNCH_FILE=${run_dir}/launch_${ai}" || return 1
+        panes[$ai]="${review_pane}"
+        tabs[$ai]="${review_tab}"
+    done
+    for ai in "${providers[@]}"; do
+        _review_send_ai_launch "${panes[$ai]}" "${run_dir}" "${ai}" || return 1
+        watch_specs+=("${ai}.md${tabs[$ai]:+=${tabs[$ai]}}")
     done
 
-    # spec一覧はコマンド引数ではなくrun_dir内のファイルで受け渡す:
-    # herdr pane runの送信は稀に末尾が欠落し、codex分のspecだけ落ちた2/3監視で
-    # watchが起動した事故があるため。ペイン出力の文字列照合による着地検証は
-    # 履歴共有の誤マッチ（herdr_wait_shell_ready.sh参照）で使えないので、
-    # 送信文字列を最小化し、欠落時はファイル不在エラーとして顕在化させる。
-    # --no-merge時も書いておくと、後から手動で _review_watch <run_dir> を実行できる
-    print -rl -- \
-        "claude.md${claude_tab:+=${claude_tab}}" \
-        "gemini.md${gemini_tab:+=${gemini_tab}}" \
-        "codex.md${codex_tab:+=${codex_tab}}" > "${run_dir}/watch_specs"
+    # ファイル渡しで pane run の末尾欠落による監視対象の欠落を防ぐ。
+    print -rl -- "${watch_specs[@]}" > "${run_dir}/watch_specs" || return 1
 
     if [[ "${create_watcher}" == "1" ]]; then
         if [[ -z "${orch_pane_id}" ]]; then
@@ -591,7 +585,7 @@ _review_launch_herdr() {
     return 0
 }
 
-# orchestratorタブ内で実行される: 完了待ち→(出揃い時)3AIタブを閉じる→マージ可否判断→review-merge
+# orchestratorタブ内で実行される: 完了待ち→(出揃い時)AIタブを閉じる→マージ可否判断→review-merge
 # 引数: [run_dir] [<file>[=<tab_id>]...]
 # run_dir省略時は起動側が workspace/tab create の --env で渡した AI_REVIEW_RUN_DIR を使う。
 # 通常経路が環境変数なのは、pane run送信の末尾欠落でパスが別ランのものとして成立する
@@ -637,7 +631,7 @@ _review_watch() {
     local wait_status=0
     bash "$HOME/.config/ai-pr/bin/ai_review_wait.sh" --liveness herdr "${run_dir}" "${specs[@]}" || wait_status=$?
 
-    # 3AIタブが必要なのは成果物ファイルの生成までなので、出揃った時点（マージ前）で閉じる。
+    # AIタブが必要なのは成果物ファイルの生成までなので、出揃った時点（マージ前）で閉じる。
     # マージはファイルが残っていれば review-merge で再実行できるため、その成否をgateにしない。
     # 不揃い(exit 3)のときは未出力のAIタブを手で確認できるよう残す
     if (( wait_status == 0 )); then
@@ -650,12 +644,12 @@ _review_watch() {
         _review_close_ai_tabs "${tab_ids[@]}"
     fi
 
-    _review_handle_wait_status "${wait_status}" "${run_dir}" || return $?
+    _review_handle_wait_status "${wait_status}" "${run_dir}" "${specs[@]}" || return $?
     _review_merge_selected "${run_dir}"
 }
 
-# レビュー用に開いた3AIタブ（herdr）を確認なしで閉じる。tmux未対応（no-op）
-# 呼び出し元が3AIの成果物ファイル出揃いを確認済みのため、マージは review-merge <run_dir> で
+# レビュー用に開いたAIタブ（herdr）を確認なしで閉じる。tmux未対応（no-op）
+# 呼び出し元が対象AIの成果物ファイル出揃いを確認済みのため、マージは review-merge <run_dir> で
 # 後から再実行できる。よって会話ログ以外は失われない前提で即クローズする
 # 引数: tab_id...（liveness検知用に控えていたもの。空要素は無視する）
 _review_close_ai_tabs() {
@@ -726,7 +720,7 @@ _review_merge_selected() {
     "${launcher}" "$@"
 }
 
-# レビューの共通フロー: ランディレクトリ作成 → 3AI起動 → 完了待ち → review-merge
+# レビューの共通フロー: ランディレクトリ作成 → AI起動 → 完了待ち → review-merge
 # herdrではレビューごとに専用workspace(review-<ディレクトリ名>)を作り、完了待ち以降を
 # その初期タブ=orchestratorタブ(_review_watch)へ委譲して即return、
 # tmuxでは従来どおりカレントウィンドウで完了待ちする
@@ -734,10 +728,27 @@ _review_merge_selected() {
 # $PWD ではなくそのパスを基準にする（worktreeピッカー経由のfreviewが使う）
 # 引数: variant(review/review-subagents。workspaceラベルの前置に使う) claude_fn gemini_fn codex_fn [--no-merge] [pr] [prompt...]
 _review_run() {
+    setopt localoptions extendedglob
     local variant="$1" claude_fn="$2" gemini_fn="$3" codex_fn="$4"
     shift 4
 
     _review_merge_launcher >/dev/null || return 1
+
+    local -a review_providers=(claude gemini codex) raw_providers
+    local provider
+    if (( ${+AI_REVIEW_PROVIDERS} )); then
+        review_providers=()
+        raw_providers=("${(@s:,:)AI_REVIEW_PROVIDERS}")
+        for provider in "${raw_providers[@]}"; do
+            provider="${provider##[[:space:]]#}"
+            provider="${provider%%[[:space:]]#}"
+            case "${provider}" in
+                claude|gemini|codex) ;;
+                *) echo "Invalid AI_REVIEW_PROVIDERS: ${AI_REVIEW_PROVIDERS}" >&2; return 1 ;;
+            esac
+            (( ${review_providers[(Ie)${provider}]} )) || review_providers+=("${provider}")
+        done
+    fi
 
     local no_merge=0
     if [[ "${1:-}" == "--no-merge" ]]; then
@@ -793,7 +804,7 @@ _review_run() {
 
     local wait_status=0
     bash "$HOME/.config/ai-pr/bin/ai_review_wait.sh" "${run_dir}" claude.md gemini.md codex.md || wait_status=$?
-    _review_handle_wait_status "${wait_status}" "${run_dir}" || return $?
+    _review_handle_wait_status "${wait_status}" "${run_dir}" claude.md gemini.md codex.md || return $?
     _review_merge_selected "${run_dir}"
 }
 
@@ -801,12 +812,16 @@ _review_run() {
 # exit 3(閉鎖ありで解決)は自動マージせず、揃った分でのマージ可否をユーザーに確認する
 _review_handle_wait_status() {
     local wait_status="$1" run_dir="$2"
+    shift 2
+    local -a specs=("$@")
+    (( ${#specs[@]} )) || specs=(claude.md gemini.md codex.md)
     case "${wait_status}" in
         0) return 0 ;;
         3)
             local -a arrived=()
-            local f
-            for f in claude.md gemini.md codex.md; do
+            local f spec
+            for spec in "${specs[@]}"; do
+                f="${spec%%=*}"
                 [[ -s "${run_dir}/${f}" ]] && arrived+=("${f}")
             done
             if (( ${#arrived[@]} == 0 )); then
@@ -814,7 +829,7 @@ _review_handle_wait_status() {
                 return 1
             fi
             local arrived_names="${(j:, :)${(@)arrived%.md}}"
-            if confirm "揃った ${#arrived[@]}/3 件（${arrived_names}）のみでマージしますか？" --no-cancel-msg; then
+            if confirm "揃った ${#arrived[@]}/${#specs[@]} 件（${arrived_names}）のみでマージしますか？" --no-cancel-msg; then
                 return 0
             fi
             echo "マージを保留しました。揃った分でマージするには review-merge を実行してください: ${run_dir}"

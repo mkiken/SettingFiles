@@ -46,6 +46,43 @@ _ai_pr_review_resolve_latest_run_dir() {{ echo SIDE_EFFECT; }}
                 self.assertNotIn("SIDE_EFFECT", result.stdout)
                 self.assertIn("Invalid AI_REVIEW_ORCHESTRATOR", result.stderr)
 
+    def test_provider_validation_before_effects_and_normalization(self):
+        for value in ("", "unknown", ",codex", "codex,", "codex,,gemini", " "):
+            with self.subTest(value=value):
+                result = run_zsh(f"""
+AI_REVIEW_PROVIDERS='{value}'
+_ai_pr_review_resolve_args() {{ echo SIDE_EFFECT; }}
+review 123
+""")
+                self.assertNotEqual(result.returncode, 0)
+                self.assertNotIn("SIDE_EFFECT", result.stdout)
+                self.assertIn("Invalid AI_REVIEW_PROVIDERS", result.stderr)
+        for setting, expected in (("unset AI_REVIEW_PROVIDERS", "claude gemini codex"),
+                                  ("AI_REVIEW_PROVIDERS=' codex , gemini,codex '", "codex gemini"),
+                                  ("AI_REVIEW_PROVIDERS=gemini", "gemini")):
+            with self.subTest(setting=setting):
+                result = run_zsh(f"""
+{setting}
+_ai_multiplexer_kind() {{ echo herdr; }}
+_review_launch_herdr() {{ print -r -- "PROVIDERS:${{review_providers[*]}}"; }}
+bash() {{ echo /tmp/run; }}
+review --no-merge 123
+""")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn(f"PROVIDERS:{expected}", result.stdout)
+
+    def test_command_scoped_provider_selection_reaches_each_review_variant(self):
+        for entry in ("review", "review-mx", "review-subagents"):
+            with self.subTest(entry=entry):
+                result = run_zsh(f'''
+_ai_multiplexer_kind() {{ echo herdr; }}
+_review_launch_herdr() {{ print -r -- "PROVIDERS:${{review_providers[*]}}"; }}
+bash() {{ echo /tmp/run; }}
+AI_REVIEW_PROVIDERS=codex,gemini {entry} --no-merge 123
+''')
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn("PROVIDERS:codex gemini", result.stdout)
+
     def test_workspace_passes_selected_orchestrator(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             helper = Path(temp_dir) / "shell/herdr/herdr-workspace-reuse.sh"
@@ -340,6 +377,40 @@ print -r -- "rc=$?"
         # workspace focus後にorchestratorタブ(t0)へフォーカスする
         self.assertIn("workspace focus ws1", calls)
         self.assertIn("tab focus t0", calls)
+
+    def test_selected_providers_create_only_their_files_tabs_and_specs(self):
+        for watcher, reused in ((1, False), (1, True), (0, False)):
+            with self.subTest(watcher=watcher, reused=reused):
+                result, calls, specs, _, files = self.run_launch(
+                    watcher, extra_env="local -a review_providers=(codex gemini)", reused=reused)
+                self.assertIn("rc=0", result.stdout, result.stderr)
+                # Claude is deliberately excluded from this run.
+                self.assertEqual(set(files), {"codex", "gemini"})
+                self.assertEqual([x.split("=")[0] for x in specs], ["codex.md", "gemini.md"])
+                self.assertEqual(sum("AI_REVIEW_LAUNCH_FILE=" in c and c.startswith("newtab ")
+                                     for c in calls), 2)
+
+    def test_launcher_uses_real_tab_helper_output(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            run_dir = Path(temp_dir)
+            result = run_zsh(f'''
+local -a review_providers=(codex)
+_herdr_create_review_workspace() {{ print -r -- '{self.WS_JSON}'; }}
+_review_herdr_tab_name() {{ echo repo; }}
+_herdr_wait_shell_ready() {{ return 0; }}
+herdr() {{
+    if [[ "$1 $2" == "tab create" ]]; then
+        print -r -- '{{"result":{{"root_pane":{{"pane_id":"actual-pane"}},"tab":{{"tab_id":"actual-tab"}}}}}}'
+    fi
+    return 0
+}}
+_review_send_ai_launch() {{ print -r -- "PANE:$1"; }}
+_review_launch_herdr 0 review "{run_dir}" cl gm cx 123
+''')
+            specs = (run_dir / "watch_specs").read_text()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("PANE:actual-pane", result.stdout)
+        self.assertEqual(specs, "codex.md=actual-tab\n")
 
     def test_workspace_label_uses_given_variant(self):
         # reviewとreview-subagentsを取り違えても気づけるよう、workspaceラベルに
@@ -712,6 +783,29 @@ _review_watch "{target}" {specs}
 echo "rc=$?"
 '''
         return run_zsh(snippet), str(run_dir)
+
+    def test_selected_specs_drive_partial_confirmation_and_merge(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            run_dir = Path(temp_dir)
+            (run_dir / "watch_specs").write_text("codex.md=t1\ngemini.md=t2\n")
+            (run_dir / "codex.md").write_text("result")
+            (run_dir / "claude.md").write_text("stale")
+            result = run_zsh(f'''
+bash() {{ return 3; }}
+confirm() {{ print -r -- "CONFIRM:$1"; return 0; }}
+cl-review-merge() {{ print -r -- "MERGED"; }}
+_review_watch "{run_dir}"
+''')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("1/2 件（codex）", result.stdout)
+        self.assertIn("MERGED", result.stdout)
+
+    def test_selected_specs_complete_and_merge(self):
+        for specs in ("codex.md=t1", "codex.md=t1 gemini.md=t2"):
+            with self.subTest(specs=specs):
+                result, _ = self.run_watch(0, specs=specs)
+                self.assertIn("MERGE:", result.stdout)
+                self.assertIn("rc=0", result.stdout)
 
     def test_codex_watch_preserves_partial_confirmation_and_exit_status(self):
         for wait_rc, confirm_rc, expected in ((0, 0, 7), (2, 0, 2), (3, 0, 7), (3, 1, 1)):
