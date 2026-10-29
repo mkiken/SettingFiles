@@ -85,7 +85,7 @@ class HerdrConfigurationTest(unittest.TestCase):
             [
                 ["workspace", "tab"],
                 ["state_icon", "$provider", "$limit", "state_text"],
-                ["$context"],
+                ["$context_compact", "$monthly_credit"],
             ],
         )
         self.assertEqual(
@@ -279,23 +279,21 @@ class HerdrConfigurationTest(unittest.TestCase):
         self.assertEqual(review_subagents["width"], "90%")
         self.assertEqual(review_subagents["height"], "90%")
 
-    def test_brewfile_and_entrypoints_keep_tmux_beside_herdr(self):
+    def test_brewfile_and_entrypoints_install_herdr(self):
         brewfile = read_text("mac/Brewfile")
         initialize = read_text("mac/initialization/initialize")
         update = read_text("mac/update")
 
         self.assertEqual(brewfile.count('brew "herdr"'), 1)
-        self.assertEqual(brewfile.count('brew "tmux"'), 1)
-        self.assertTrue((REPO_ROOT / ".tmux.conf").is_file())
         self.assertEqual(initialize.count('source "${SCRIPT_DIR}/herdr.sh"'), 1)
         self.assertGreater(
             initialize.index('source "${SCRIPT_DIR}/herdr.sh"'),
             initialize.index('source "${SCRIPT_DIR}/ai/codex.sh"'),
         )
-        self.assertEqual(update.count('source "$(dirname "$0")/updates/herdr.sh"'), 1)
+        self.assertEqual(update.count('source "${_update_script_dir}/updates/herdr.sh"'), 1)
         self.assertGreater(
-            update.index('source "$(dirname "$0")/updates/herdr.sh"'),
-            update.index('source "$(dirname "$0")/updates/codex.sh"'),
+            update.index('source "${_update_script_dir}/updates/herdr.sh"'),
+            update.index('source "${_update_script_dir}/updates/codex.sh"'),
         )
 
 

@@ -295,7 +295,7 @@ class GeminiModelSelectionTest(unittest.TestCase):
         for command, model in cases:
             with self.subTest(command=command):
                 captured = run_gemini_command(command)
-                self.assertEqual(captured, ["homebrew_run", "gemini", "--model", model, "task"])
+                self.assertEqual(captured, ["homebrew_run", "gemini", "--approval-mode", "yolo", "--model", model, "task"])
 
 
 class AliasNamingTest(unittest.TestCase):

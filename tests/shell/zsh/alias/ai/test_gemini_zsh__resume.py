@@ -75,7 +75,7 @@ source {shlex.quote(str(GEMINI_ZSH))}
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(
             json.loads(result.stdout),
-            ["gemini", "--resume", "2"],
+            ["gemini", "--approval-mode", "yolo", "--resume", "2"],
         )
 
     def test_gmr_passes_resume_flag_with_arguments(self):
@@ -83,7 +83,7 @@ source {shlex.quote(str(GEMINI_ZSH))}
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(
             json.loads(result.stdout),
-            ["gemini", "--resume", "latest", "explain this"],
+            ["gemini", "--approval-mode", "yolo", "--resume", "latest", "explain this"],
         )
 
     def test_gmpr_selects_session_with_fzf_without_arguments(self):
@@ -91,7 +91,7 @@ source {shlex.quote(str(GEMINI_ZSH))}
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(
             json.loads(result.stdout),
-            ["gemini", "--model", "pro", "--resume", "2"],
+            ["gemini", "--approval-mode", "yolo", "--model", "pro", "--resume", "2"],
         )
 
     def test_gmr_does_nothing_when_fzf_cancelled(self):
@@ -105,7 +105,7 @@ source {shlex.quote(str(GEMINI_ZSH))}
         self.assertIn("fzf が見つかりません", result.stderr)
         self.assertEqual(
             json.loads(result.stdout),
-            ["gemini", "--resume"],
+            ["gemini", "--approval-mode", "yolo", "--resume"],
         )
 
 
