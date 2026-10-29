@@ -12,16 +12,12 @@ PLATFORM_LINK_TARGET = Path("../../common/shared_skills/herdr-tab-label")
 
 class HerdrTabLabelSkillDeploymentTest(unittest.TestCase):
     def test_selective_platform_links_resolve_to_shared_skill(self):
-        for platform in ("claude", "codex"):
+        for platform in ("claude", "codex", "gemini"):
             with self.subTest(platform=platform):
                 link = REPO_ROOT / f"ai/{platform}/skills/herdr-tab-label"
                 self.assertTrue(link.is_symlink())
                 self.assertEqual(Path(os.readlink(link)), PLATFORM_LINK_TARGET)
                 self.assertEqual(link.resolve(), SHARED_SKILL.resolve())
-
-        gemini_link = REPO_ROOT / "ai/gemini/skills/herdr-tab-label"
-        self.assertFalse(gemini_link.exists())
-        self.assertFalse(gemini_link.is_symlink())
 
 
 class HerdrTabLabelSkillContentTest(unittest.TestCase):
@@ -33,7 +29,7 @@ class HerdrTabLabelSkillContentTest(unittest.TestCase):
         for required in (
             "lowercase ASCII letters, digits, and hyphens only",
             "Do not use a generic name made only of words",
-            "If the active collaboration mode forbids side effects",
+            "In plan mode or a read-only sandbox (any mode that forbids side effects)",
             "absolute invoking working directory as `task_path`",
             "zsh -fc 'builtin cd -q -- \"${1}\" && source \"${2}\" && set_herdr_task_tab_label \"${3}\"'",
             "set_herdr_task_tab_label \"${3}\"",

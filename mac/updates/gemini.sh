@@ -33,14 +33,16 @@ generate_config_auditor_agents gemini
 # audit-fix の設計/実装サブエージェント定義を共有フラグメントから生成（編集は ai/common/audit_fix_subagents/ と ai/gemini/agents_src/audit_fix/ へ）
 generate_audit_fix_agents gemini
 
-# agents はファイル単位でシンボリックリンク（生成分の反映）
-mkdir -p ~/.gemini/agents
-for file in "${Repo}ai/gemini/agents"/*; do
-  if [[ "$(basename "$file")" == test_*.py ]]; then
-    continue
-  elif [[ -f "$file" ]]; then
-    make_symlink "$file" ~/.gemini/agents/$(basename "$file")
-  fi
+# agents, commands, hooksなどはファイル単位でシンボリックリンク（生成・追加分の反映）
+for item in agents commands hooks policies; do
+  mkdir -p ~/.gemini/${item}
+  for file in "${Repo}ai/gemini/${item}"/*; do
+    if [[ "$(basename "$file")" == test_*.py ]]; then
+      continue
+    elif [[ -f "$file" ]]; then
+      make_symlink "$file" ~/.gemini/${item}/$(basename "$file")
+    fi
+  done
 done
 
 # 共有コアスキルの SKILL.md を生成（編集はソースの skill_head.md / skill_tail.md / ai/common のコアへ）

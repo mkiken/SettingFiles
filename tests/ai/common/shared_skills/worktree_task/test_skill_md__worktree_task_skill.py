@@ -14,19 +14,13 @@ PLATFORM_LINK_TARGET = Path("../../common/shared_skills/worktree-task")
 
 class WorktreeTaskSkillDeploymentTest(unittest.TestCase):
     def test_selective_platform_links_resolve_to_shared_skill(self):
-        for platform in ("claude", "codex"):
+        for platform in ("claude", "codex", "gemini"):
             with self.subTest(platform=platform):
                 link = REPO_ROOT / f"ai/{platform}/skills/worktree-task"
                 self.assertTrue(link.is_symlink())
                 self.assertEqual(Path(os.readlink(link)), PLATFORM_LINK_TARGET)
                 self.assertEqual(link.resolve(), SHARED_SKILL.resolve())
                 self.assertTrue((link / "SKILL.md").is_file())
-
-        # Gemini is intentionally excluded: worktree-task is the selective
-        # Claude/Codex shared-skill case, not an all-platform common skill.
-        gemini_link = REPO_ROOT / "ai/gemini/skills/worktree-task"
-        self.assertFalse(gemini_link.exists())
-        self.assertFalse(gemini_link.is_symlink())
 
     def test_setup_ai_skills_deploys_regular_and_symlinked_directories(self):
         with tempfile.TemporaryDirectory() as temp_dir:
