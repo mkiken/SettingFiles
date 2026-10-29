@@ -26,16 +26,18 @@ class UserConfirmationContractTest(unittest.TestCase):
 
     def test_choice_ui_preserves_skill_options(self):
         self.assertIn("Preserve every skill-authored choice's wording, order, and meaning", self.confirmation)
-        self.assertIn("keep an existing numbering prefix rather than duplicating it", self.confirmation)
+        self.assertIn("`request_user_input` `options[].label` or `request_user_input_async` `options[]`", self.confirmation)
+        self.assertIn("omit only a leading enumeration prefix such as `1. ` or `1) `", self.confirmation)
+        self.assertIn("preserve numbers in the choice text, including `2FA`", self.confirmation)
         self.assertIn("Do not add a custom free-input choice or count or rename `Other` as an authored choice", self.confirmation)
 
-    def test_choice_ui_always_has_explicit_numbers(self):
-        self.assertIn("Always display explicit numbers starting at 1", self.confirmation)
-        self.assertIn("For two or three choices, present all choices as numbered UI labels", self.confirmation)
+    def test_choice_ui_omits_prefix_but_plain_text_keeps_enumeration(self):
+        self.assertIn("Keep enumeration numbers in question text, ordinary prose, and numbered plain-text choices", self.confirmation)
+        self.assertIn("For two or three choices, pass the choice text without an enumeration prefix in each UI option", self.confirmation)
 
     def test_large_choice_sets_use_other_without_losing_choices(self):
         self.assertIn("For four or more choices, put the complete numbered list in the question text", self.confirmation)
-        self.assertIn("expose only the first two choices as numbered UI labels", self.confirmation)
+        self.assertIn("expose only the first two choices without enumeration prefixes in the UI options", self.confirmation)
         self.assertIn("enter any choice number in the client's auto-provided free-form `Other`", self.confirmation)
         self.assertIn("Never omit a choice from the complete list or split the decision across questions", self.confirmation)
 
