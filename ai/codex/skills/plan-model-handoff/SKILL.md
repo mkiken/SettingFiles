@@ -42,13 +42,9 @@ When the detected model is `gpt-6-astra` or matches `*-sol`, follow the always-o
 3. `Use Sol subagent` — the parent session remains on the detected model; exactly one Sol `worker` subagent owns the entire accepted-plan execution.
 4. `Use Luna subagent` — the parent session remains on the detected model; exactly one Luna `worker` subagent owns the entire accepted-plan execution.
 
-Use a permitted confirmation UI that can present all four authored choices in
-one question; use `request_user_input_async` when `request_user_input` cannot.
-If no permitted UI supports all four, show the same four choices as a numbered
-list; never split them across questions.
-
-Pass each label exactly once and do not count the client's auto-provided free-form
-`Other` as an authored option. In the question text, say that `Other` can specify
+Use the always-on `# User Confirmation` rules for presentation and number-only replies:
+1 = Terra, 2 = current model, 3 = Sol, 4 = Luna.
+In the question text, say that `Other` can specify
 "continue with the current model" or "switch the parent
 model manually". Include the same routes and examples in the numbered fallback.
 

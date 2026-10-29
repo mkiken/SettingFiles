@@ -78,7 +78,7 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
             "exactly one Luna `worker` subagent owns the entire accepted-plan execution.",
             "Resolve Sol, Terra, and Luna only from callable runtime metadata",
             "If the selected tier is unavailable, make no implementation change",
-            "do not count the client's auto-provided free-form `Other` as an authored option",
+            "Use the always-on `# User Confirmation` rules for presentation and number-only replies",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.normalized_skill)
@@ -118,15 +118,14 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
 
     def test_confirmation_ui_preserves_all_four_choices_in_one_question(self):
         for required in (
-            "Use a permitted confirmation UI that can present all four authored choices in one question",
-            "use `request_user_input_async` when `request_user_input` cannot",
-            "If no permitted UI supports all four, show the same four choices as a numbered list",
-            "never split them across questions",
+            "Use the always-on `# User Confirmation` rules for presentation and number-only replies",
+            "1 = Terra, 2 = current model, 3 = Sol, 4 = Luna",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.normalized_skill)
 
     def test_other_routes_model_names_without_assuming_a_parent_switch(self):
+        self.assertNotIn("request_user_input_async", self.skill)
         for required in (
             'In the question text, say that `Other` can specify "continue with the current model" or "switch the parent model manually".',
             "A supported model name without an explicit parent-switch request delegates to that model's `worker`",

@@ -131,7 +131,7 @@ Ask exactly these four authored choices through the platform's user-confirmation
 - `コミットのみ` — create the task commit, preserve the task worktree and branch, and stop without merging or pushing
 - `コミットしない` — preserve the task worktree, branch, and changes without committing, merging, or pushing
 
-Map the four choices, in order, to `commit_merge_push`, `commit_merge`, `commit_only`, and `no_commit`; record the final selection and do not reconfirm push. If the UI cannot present four authored choices, use a plain-text ordered list; number-only replies select the corresponding visible option.
+Map the four choices, in order, to `commit_merge_push`, `commit_merge`, `commit_only`, and `no_commit`; record the final selection and do not reconfirm push. For Codex, follow the always-on `# User Confirmation` rules: show the complete numbered list in the question, expose the first two choices in `request_user_input`, and accept choice numbers through the client's `Other`. For other platforms, if the UI cannot present four authored choices, use a plain-text ordered list. Number-only replies select the corresponding authored option.
 
 For `no_commit`, report the preserved worktree path and branch, then stop. For
 every other action:

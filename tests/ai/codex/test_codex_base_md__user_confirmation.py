@@ -19,23 +19,31 @@ class UserConfirmationContractTest(unittest.TestCase):
         self.assertIn("Do not replace a usable choice UI with a prose question", self.confirmation)
         self.assertIn("do not reconfirm already-authorized work", self.confirmation)
 
-    def test_confirmation_selects_sync_then_async_when_supported(self):
-        self.assertIn("Choose `request_user_input` first if it supports the purpose and all options", self.confirmation)
-        self.assertIn("otherwise use `request_user_input_async` if it does", self.confirmation)
+    def test_confirmation_prefers_sync_without_automatic_async_fallback(self):
+        self.assertIn("Prefer `request_user_input`", self.confirmation)
+        self.assertIn("do not automatically switch to `request_user_input_async`", self.confirmation)
         self.assertIn("Follow the active runtime's mode and purpose restrictions", self.confirmation)
 
     def test_choice_ui_preserves_skill_options(self):
-        self.assertIn("For either UI", self.confirmation)
-        self.assertIn("pass each skill-authored label exactly once", self.confirmation)
-        self.assertIn("preserve its wording, order, and authored option count", self.confirmation)
-        self.assertIn("except for the numbering prefix", self.confirmation)
-        self.assertIn("Do not count or modify the client's auto-provided free-form `Other`", self.confirmation)
+        self.assertIn("Preserve every skill-authored choice's wording, order, and meaning", self.confirmation)
+        self.assertIn("keep an existing numbering prefix rather than duplicating it", self.confirmation)
+        self.assertIn("Do not add a custom free-input choice or count or rename `Other` as an authored choice", self.confirmation)
 
-    def test_choice_ui_uses_its_own_numbering(self):
-        self.assertIn("remove an existing numbering prefix from each label because the UI numbers choices", self.confirmation)
+    def test_choice_ui_always_has_explicit_numbers(self):
+        self.assertIn("Always display explicit numbers starting at 1", self.confirmation)
+        self.assertIn("For two or three choices, present all choices as numbered UI labels", self.confirmation)
+
+    def test_large_choice_sets_use_other_without_losing_choices(self):
+        self.assertIn("For four or more choices, put the complete numbered list in the question text", self.confirmation)
+        self.assertIn("expose only the first two choices as numbered UI labels", self.confirmation)
+        self.assertIn("enter any choice number in the client's auto-provided free-form `Other`", self.confirmation)
+        self.assertIn("Never omit a choice from the complete list or split the decision across questions", self.confirmation)
 
     def test_number_only_reply_selects_the_displayed_choice(self):
-        self.assertIn("Interpret a number-only reply as the corresponding displayed choice", self.confirmation)
+        self.assertIn("Interpret a number-only reply, including text entered in `Other`, against the complete authored list", self.confirmation)
+        self.assertIn("The UI position of `Other` does not select authored choice 3", self.confirmation)
+        self.assertIn("Empty, out-of-range, multiple-number, or ambiguous answers require clarification before action", self.confirmation)
+        self.assertIn("preserve explicit free-form routes defined by the skill", self.confirmation)
 
     def test_confirmation_does_not_force_a_method_over_runtime_rules(self):
         # Runtime permission restrictions still govern request_user_input;
@@ -51,9 +59,8 @@ class UserConfirmationContractTest(unittest.TestCase):
                 self.assertNotIn(removed, self.content)
 
     def test_confirmation_fallback_preserves_explicit_approval(self):
-        self.assertIn("If no permitted UI can present every option in one question", self.confirmation)
+        self.assertIn("If `request_user_input` is unavailable or not permitted for the purpose", self.confirmation)
         self.assertIn("use a numbered plain-text list and accept number-only replies", self.confirmation)
-        self.assertIn("Never split a choice set into multiple questions or omit/group options to fit a UI", self.confirmation)
         self.assertIn("Never treat an unanswered approval request as approval", self.confirmation)
 
     def test_async_acknowledgements_and_empty_answers_do_not_authorize_work(self):
