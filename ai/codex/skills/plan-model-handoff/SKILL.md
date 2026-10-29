@@ -34,16 +34,27 @@ If the result is empty, report `Implementation-model check skipped: active model
 
 ## Choose the implementation route
 
-When the detected model is `gpt-6-astra` or matches `*-sol`, follow the always-on
-`# User Confirmation` rules with these authored choices in this order:
+When the detected model is `gpt-6-astra` or matches `*-sol`, select the
+recommendation from the accepted plan and request, in this user-specified order:
 
-1. `Use Terra subagent (Recommended)` — the parent session remains on the detected model; exactly one Terra `worker` subagent owns the entire accepted-plan execution.
-2. `Continue with current model` — no implementation subagent is launched; the parent session keeps the detected model and owns the entire accepted-plan execution.
-3. `Use Sol subagent` — the parent session remains on the detected model; exactly one Sol `worker` subagent owns the entire accepted-plan execution.
-4. `Use Luna subagent` — the parent session remains on the detected model; exactly one Luna `worker` subagent owns the entire accepted-plan execution.
+- Luna: a simple task requiring only a small code change.
+- Terra: otherwise, the implementation approach is fully decided and no implementation decisions remain.
+- Sol: otherwise, including when classification is uncertain.
 
-Use the always-on `# User Confirmation` rules for presentation and number-only replies:
-1 = Terra, 2 = current model, 3 = Sol, 4 = Luna.
+Give the recommendation's reason in one sentence. Follow the always-on
+`# User Confirmation` rules for presentation and number-only replies. List all
+four choices in the question and expose the first two in the choice UI. Put the
+recommended model first with `(Recommended)`, the current model second, and the
+remaining models in Terra, Sol, Luna order:
+
+- Luna recommended: Luna / current model / Terra / Sol.
+- Terra recommended: Terra / current model / Sol / Luna.
+- Sol recommended: Sol / current model / Terra / Luna.
+
+Label model choices `Use <model> subagent` and the current-model choice
+`Continue with current model`. For each model choice, the parent session remains on the detected model; exactly one Sol `worker` subagent owns the entire accepted-plan execution when Sol is selected, exactly one Terra `worker` subagent owns the entire accepted-plan execution when Terra is selected, and exactly one Luna `worker` subagent owns the entire accepted-plan execution when Luna is selected. For the current-model choice, no implementation subagent is launched; the parent session keeps the detected model and owns the entire accepted-plan execution.
+
+Interpret number-only replies according to the choices displayed for that question.
 In the question text, say that `Other` can specify
 "continue with the current model" or "switch the parent
 model manually". Include the same routes and examples in the numbered fallback.
