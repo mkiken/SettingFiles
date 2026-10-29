@@ -56,6 +56,7 @@ function setup_herdr_scripts() {
   local target_home="${2:-$HOME}"
   local scripts_dir="$target_home/.herdr/scripts"
   local -a herdr_scripts=(
+    herdr-codex-response-time.py
     herdr-create-worktree-tab.sh
     herdr-open-lazygit.sh
     herdr-open-zoxide-picker.sh

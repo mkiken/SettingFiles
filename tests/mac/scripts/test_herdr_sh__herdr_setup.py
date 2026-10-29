@@ -85,7 +85,7 @@ class HerdrConfigurationTest(unittest.TestCase):
             [
                 ["workspace", "tab"],
                 ["state_icon", "$provider", "$limit", "state_text"],
-                ["$context_compact", "$monthly_credit"],
+                ["$codex_last_response", "$context_compact", "$monthly_credit"],
             ],
         )
         self.assertEqual(

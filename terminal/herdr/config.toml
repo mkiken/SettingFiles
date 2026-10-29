@@ -182,6 +182,7 @@ width = "70%"
 height = "60%"
 
 [ui]
+tab_bar_right = [{ type = "command", command = "python3 $HOME/.herdr/scripts/herdr-codex-response-time.py", interval_seconds = 1, timeout_seconds = 2 }]
 mouse_capture = true
 copy_on_select = true
 confirm_close = false
@@ -212,7 +213,7 @@ claude = [
 codex = [
   ["workspace", "tab"],
   ["state_icon", "$provider", "$limit", "state_text"],
-  ["$context_compact", "$monthly_credit"],
+  ["$codex_last_response", "$context_compact", "$monthly_credit"],
 ]
 
 [ui.toast]
