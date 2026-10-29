@@ -1,4 +1,3 @@
-import re
 import tomllib
 import unittest
 
@@ -66,44 +65,39 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
             with self.subTest(excluded=excluded):
                 self.assertNotIn(excluded, self.skill)
 
-    def test_choice_flow_recommends_terra_and_offers_parent_execution_second(self):
+    def test_recommendation_follows_task_conditions_in_priority_order(self):
+        conditions = (
+            "Luna: a simple task requiring only a small code change.",
+            "Terra: otherwise, the implementation approach is fully decided and no implementation decisions remain.",
+            "Sol: otherwise, including when classification is uncertain.",
+        )
+        positions = [self.normalized_skill.index(condition) for condition in conditions]
+        self.assertEqual(positions, sorted(positions))
+        self.assertIn("Give the recommendation's reason in one sentence.", self.normalized_skill)
+
+    def test_choice_order_for_each_recommendation(self):
+        expected = {
+            "Luna": ["Luna", "current model", "Terra", "Sol"],
+            "Terra": ["Terra", "current model", "Sol", "Luna"],
+            "Sol": ["Sol", "current model", "Terra", "Luna"],
+        }
+        for model, choices in expected.items():
+            with self.subTest(model=model):
+                self.assertIn(f"{model} recommended: {' / '.join(choices)}.", self.skill)
+                self.assertEqual(len(set(choices)), 4)
         for required in (
-            "`Use Terra subagent (Recommended)`",
-            "`Continue with current model`",
-            "`Use Sol subagent`",
-            "`Use Luna subagent`",
+            "recommended model first with `(Recommended)`",
+            "current model second",
+            "remaining models in Terra, Sol, Luna order",
             "parent session remains on the detected model",
-            "exactly one Sol `worker` subagent owns the entire accepted-plan execution.",
-            "exactly one Terra `worker` subagent owns the entire accepted-plan execution.",
-            "exactly one Luna `worker` subagent owns the entire accepted-plan execution.",
+            "exactly one Sol `worker` subagent owns the entire accepted-plan execution",
+            "exactly one Terra `worker` subagent owns the entire accepted-plan execution",
+            "exactly one Luna `worker` subagent owns the entire accepted-plan execution",
             "Resolve Sol, Terra, and Luna only from callable runtime metadata",
             "If the selected tier is unavailable, make no implementation change",
-            "Use the always-on `# User Confirmation` rules for presentation and number-only replies",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.normalized_skill)
-
-        choices = re.findall(r"^\d+\. `([^`]+)` —", self.skill, re.MULTILINE)
-        self.assertEqual(choices, [
-            "Use Terra subagent (Recommended)",
-            "Continue with current model",
-            "Use Sol subagent",
-            "Use Luna subagent",
-        ])
-        for label in choices:
-            with self.subTest(label=label):
-                self.assertEqual(self.skill.count(f"`{label}`"), 1)
-
-        # Excluding old labels preserves delegation wording and the Terra recommendation.
-        for excluded in (
-            "`Use Sol subagent (Recommended)`",
-            "`Continue with Sol (Recommended)`",
-            "`Delegate to Terra`",
-            "`Delegate to Luna`",
-            "`Continue with current model (Recommended)`",
-        ):
-            with self.subTest(excluded=excluded):
-                self.assertNotIn(excluded, self.skill)
 
     def test_current_model_route_skips_worker_setup_and_preserves_specialists(self):
         for required in (
@@ -118,11 +112,14 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
 
     def test_confirmation_ui_preserves_all_four_choices_in_one_question(self):
         for required in (
-            "Use the always-on `# User Confirmation` rules for presentation and number-only replies",
-            "1 = Terra, 2 = current model, 3 = Sol, 4 = Luna",
+            "Follow the always-on `# User Confirmation` rules for presentation and number-only replies",
+            "List all four choices in the question and expose the first two in the choice UI.",
+            "Interpret number-only replies according to the choices displayed for that question.",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.normalized_skill)
+
+        self.assertNotIn("1 = Terra, 2 = current model, 3 = Sol, 4 = Luna", self.skill)
 
     def test_other_routes_model_names_without_assuming_a_parent_switch(self):
         self.assertNotIn("request_user_input_async", self.skill)
