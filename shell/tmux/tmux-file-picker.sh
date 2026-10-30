@@ -412,11 +412,11 @@ main() {
 
   if $select_directories; then
     # Directory selection mode
-    fd_flags="${TMUX_FILE_PICKER_FD_FLAGS:--H --follow --type d --exclude .git}"
+    fd_flags="${TMUX_FILE_PICKER_FD_FLAGS:--H --no-ignore --follow --type d --exclude .git}"
     preview_cmd=$(_preview_command directory)
   else
     # File and directory selection mode (default)
-    fd_flags="${TMUX_FILE_PICKER_FD_FLAGS:--H --follow --type f --type d --exclude .git --exclude .DS_Store}"
+    fd_flags="${TMUX_FILE_PICKER_FD_FLAGS:--H --no-ignore --follow --type f --type d --exclude .git --exclude .DS_Store}"
     preview_cmd=$(_preview_command files)
 
     # Grep mode toggle (C-s to switch between file search and content grep)
