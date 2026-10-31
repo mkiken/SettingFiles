@@ -33,10 +33,13 @@ class UserConfirmationContractTest(unittest.TestCase):
 
     def test_choice_ui_omits_prefix_but_plain_text_keeps_enumeration(self):
         self.assertIn("Keep enumeration numbers in question text, ordinary prose, and numbered plain-text choices", self.confirmation)
-        self.assertIn("For two or three choices, pass the choice text without an enumeration prefix in each UI option", self.confirmation)
+        self.assertIn("Always show the complete numbered list in an ordinary assistant message when asking a choice question", self.confirmation)
+        self.assertIn("regardless of choice count or whether a choice UI is used", self.confirmation)
+        self.assertIn("do not rely on UI rendering being confirmed", self.confirmation)
+        self.assertIn("Include the same numbered list in the UI question text", self.confirmation)
 
     def test_large_choice_sets_use_other_without_losing_choices(self):
-        self.assertIn("For four or more choices, put the complete numbered list in the question text", self.confirmation)
+        self.assertIn("For four or more choices, expose only the first two choices", self.confirmation)
         self.assertIn("expose only the first two choices without enumeration prefixes in the UI options", self.confirmation)
         self.assertIn("enter any choice number in the client's auto-provided free-form `Other`", self.confirmation)
         self.assertIn("Never omit a choice from the complete list or split the decision across questions", self.confirmation)
