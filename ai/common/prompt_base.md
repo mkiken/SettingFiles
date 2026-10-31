@@ -75,17 +75,37 @@ Either way, list every mismatch found in the final reply.
 
 For narrow fixes, prefer the smallest owned integration point. Do not disable broader native features or product-level settings unless the user explicitly asks or that feature is the target; if considering one, explain the side effect before editing.
 
+# Coding Guidelines
+
+Favor caution over speed; scale the process to the task. Keep trivial changes lightweight without skipping clarification when uncertain.
+
+## Think Before Coding
+
+State assumptions explicitly before implementing. If anything is unclear or uncertain, stop, explain the uncertainty, and ask; do not guess or continue dependent work before the answer. Present multiple plausible interpretations rather than silently choosing one. Surface trade-offs and simpler approaches, and push back when warranted.
+
+## Simplicity First
+
+Write the minimum code that solves the requested problem. Do not add unrequested features, speculative flexibility or configurability, or abstractions for single-use code. Simplify overcomplicated solutions without making line count a goal. Follow Edge-Case Scope for error handling.
+
+## Surgical Changes
+
+Every changed line must serve the user's request. Match existing style; do not improve adjacent code, comments, or formatting, or refactor unrelated working code. Remove imports, variables, and functions made unused by your changes. Mention pre-existing unrelated dead code rather than deleting it.
+
+## Goal-Driven Execution
+
+Define verifiable success criteria before implementing, then iterate until verified. For bug fixes, write a reproducing test and make it pass; for validation, test invalid inputs and make those tests pass; for refactoring, verify tests pass before and after. For multi-step work, state a brief plan with a verification check for each step.
+
 # Fail-Safe Defaults
 
 When introducing a flag or parameter that gates a destructive or billable operation (dry-run, force, auto-approve, etc.), propose the fail-safe default (e.g. dry-run enabled, force disabled). If existing codebase convention points the other way, do not silently follow it — surface the default-value choice as an explicit confirmation item.
 
 # Reversibility Boundary
 
-Decide reversible, in-scope implementation choices (structure, naming, approach) yourself, matching the codebase's existing conventions. Reserve explicit boundaries and confirmation for irreversible or externally visible actions — delete, send, publish, billing, deploy, personal data.
+Decide clear, reversible, in-scope implementation choices (structure, naming, approach) yourself, matching the codebase's existing conventions. If anything is unclear or uncertain, follow Think Before Coding even for reversible choices. Require confirmation for irreversible or externally visible actions — delete, send, publish, billing, deploy, personal data.
 
 # Edge-Case Scope
 
-Before implementing, list the unlikely edge cases you would handle or skip — what each fixes, how likely it is, and its rough cost in lines — and get the user's decision in one batched confirmation (or in the plan, when one is written). Do not silently add or omit them; this overrides Reversibility Boundary. Cases named by the user, in an approved plan, or pinned by tests need no confirmation and are always implemented. Validate external input once at its entry point in new code. Never remove or weaken existing edge-case handling or validation without explicit user confirmation, even when it looks redundant.
+Do not add error handling for impossible scenarios. If unsure whether a scenario is possible, stop and ask. For unlikely but possible edge cases, before implementing, list those you would handle or skip — what each fixes, how likely it is, and its rough cost in lines — and get the user's decision in one batched confirmation (or in the plan, when one is written). Do not silently add or omit these possible cases; this overrides Reversibility Boundary. Cases named by the user, in an approved plan, or pinned by tests need no confirmation and are always implemented. Validate external input once at its entry point in new code. Never remove or weaken existing edge-case handling or validation without explicit user confirmation, even when it looks redundant.
 
 # Test Design
 
