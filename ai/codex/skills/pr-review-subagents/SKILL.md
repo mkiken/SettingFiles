@@ -87,6 +87,10 @@ Embed the compact existing-comment manifest records in every specialist's task p
 
 If `<ADDITIONAL_INSTRUCTIONS>` is non-empty, ensure every specialist received it and use it to prioritize aggregation. It must not override mandatory duplicate detection, line-number, safety, or output-format rules.
 
+### Practicality of Findings
+
+Require a concrete failure path and impact under current usage conditions. Do not request fixes based only on stacked assumptions about future cases. Present low-frequency, low-impact issues as deferral candidates with a reason, rather than immediate fix requests. Never exclude security issues, data loss, or explicit requirement violations solely because they are rare. Preserve existing priority, confidence, and verification rules; do not create issues automatically.
+
 ### Aggregate
 
 1. Drop "no findings" messages from final findings but count them as zero in the summary.
