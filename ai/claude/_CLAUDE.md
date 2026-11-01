@@ -60,6 +60,8 @@ A manual model switch (`/model opus` or similar) is available through the free-f
 
 A background agent's `task-notification` is its own claim, not proof of work — `status: completed` only means the agent stopped. Before treating a delegated phase as done, verify the claimed artifacts through your own tool calls: read the file it says it wrote, run the tests it says pass, check the commit it says it made. A `completed` notification whose result only describes intent or progress ("re-dispatching", "the fork is still running", "will report when finished") is an unfinished phase — execute it yourself, or re-dispatch via `SendMessage` with an explicit instruction to do the work directly and not delegate onward. Never let a delegated verification step be the sole evidence that verification happened.
 
+When re-dispatching failed work, return only the failed units, each with the reason, the evidence (failing check output or file:line), and the scope ("fix this unit only; do not touch the others") — never re-send the whole batch.
+
 # Settings Changes
 
 Before editing `settings.json` / `settings.local.json` — or its `hooks`, `permissions`, or `env` — in the repository source or the live `~/.claude/` files, invoke the `update-config` skill. Skip it only for trivial mechanical edits (e.g. a verbatim revert) where no configuration-domain judgment is needed, or when the `audit-fix` skill is applying an item already decided ✅ 適用する in a config-audit browser report — that item's configuration-domain judgment was made when the report decision was approved. Anything audit-fix touches beyond those approved items still requires `update-config`.

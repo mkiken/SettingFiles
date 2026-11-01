@@ -93,7 +93,7 @@ Every changed line must serve the user's request. Match existing style; do not i
 
 ## Goal-Driven Execution
 
-Define verifiable success criteria before implementing, then iterate until verified. For bug fixes, write a reproducing test and make it pass; for validation, test invalid inputs and make those tests pass; for refactoring, verify tests pass before and after. For multi-step work, state a brief plan with a verification check for each step.
+Define verifiable success criteria before implementing, then iterate until verified. For bug fixes, write a reproducing test and make it pass; for validation, test invalid inputs and make those tests pass; for refactoring, verify tests pass before and after. For multi-step work, state a brief plan with a verification check for each step. If the same unit fails three correction attempts, stop iterating on it: treat the plan or an assumption as wrong, and report the failure with its evidence instead of trying a fourth fix.
 
 # Fail-Safe Defaults
 
