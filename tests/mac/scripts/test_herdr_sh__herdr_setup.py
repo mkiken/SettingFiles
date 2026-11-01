@@ -76,7 +76,7 @@ class HerdrConfigurationTest(unittest.TestCase):
             [
                 ["workspace", "tab"],
                 ["state_icon", "$provider", "$limit", "state_text"],
-                ["$context"],
+                ["$context", "$claude_cache"],
                 ["terminal_title_stripped"],
             ],
         )

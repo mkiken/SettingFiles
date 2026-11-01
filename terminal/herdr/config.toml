@@ -182,7 +182,7 @@ width = "70%"
 height = "60%"
 
 [ui]
-tab_bar_right = [{ type = "command", command = "python3 $HOME/.herdr/scripts/herdr-codex-response-time.py", interval_seconds = 1, timeout_seconds = 2 }]
+tab_bar_right = [{ type = "command", command = "python3 $HOME/.herdr/scripts/herdr-agent-timers.py", interval_seconds = 60, timeout_seconds = 2 }]
 mouse_capture = true
 copy_on_select = true
 confirm_close = false
@@ -207,7 +207,7 @@ rows = [
 claude = [
   ["workspace", "tab"],
   ["state_icon", "$provider", "$limit", "state_text"],
-  ["$context"],
+  ["$context", "$claude_cache"],
   ["terminal_title_stripped"],
 ]
 codex = [
