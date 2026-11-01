@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Herdrのtab_bar_rightから60秒毎に起動され、各agentペインのサイドバー用トークンを書く。
 #   claude: プロンプトキャッシュの残り時間（claude_cache）
-#   codex : 最後の応答完了からの経過時間（codex_last_response）
+#   codex : 最後の応答完了を起点にした残り時間（codex_last_response）
 # 標準出力は常に空（tab_bar_rightはタイマー代わりにだけ使う）。
 from __future__ import annotations
 
@@ -22,6 +22,8 @@ SOURCE = "agent-timers"
 TOKEN_TTL_MS = 180000
 # shortcut: TTL is fixed at 1h (subscription default); read CLAUDE_CODE_PROMPT_CACHE_TTL etc. if 5m sessions matter
 CACHE_TTL_SECONDS = 3600
+# shortcut: 30min is an assumed Codex cache lifetime (matches the old 25/30min colour steps), verify against Codex's real TTL
+CODEX_CACHE_TTL_SECONDS = 1800
 
 
 def session(pane, agent):
@@ -83,26 +85,20 @@ def minutes(seconds):
     return f"{hours}h{mins:02d}m" if hours else f"{mins}m"
 
 
-def format_codex(now, completed):
-    elapsed = max(0, now - completed)
-    color = "🟢" if elapsed < 1500 else "🟡" if elapsed < 1800 else "🔴"
-    return f"{color}⏳{minutes(elapsed)}"
-
-
-def format_claude(now, last_request):
-    remaining = CACHE_TTL_SECONDS - (now - last_request)
+def format_remaining(now, base_time, ttl_seconds):
+    remaining = ttl_seconds - (now - base_time)
     if remaining <= 0:
         return "🔴⏳失効"
     if remaining < 60:
         return "🔴⏳<1m"
-    color = "🟡" if remaining / CACHE_TTL_SECONDS < 0.25 else "🟢"
+    color = "🟡" if remaining / ttl_seconds < 0.25 else "🟢"
     return f"{color}⏳{minutes(remaining)}"
 
 
-# agent -> (token名, 基準時刻の取得, 表示の整形)
+# agent -> (token名, 基準時刻の取得, キャッシュTTL秒)
 TIMERS = {
-    "claude": ("claude_cache", cache_last_request, format_claude),
-    "codex": ("codex_last_response", last_completion, format_codex),
+    "claude": ("claude_cache", cache_last_request, CACHE_TTL_SECONDS),
+    "codex": ("codex_last_response", last_completion, CODEX_CACHE_TTL_SECONDS),
 }
 
 
@@ -123,7 +119,7 @@ def main():
         sid = session(pane, agent)
         if not sid:
             continue
-        token, base_time, render = TIMERS[agent]
+        token, base_time, ttl = TIMERS[agent]
         at = base_time(sid)
         if at is None and not pane.get("tokens", {}).get(token):
             continue
@@ -134,7 +130,7 @@ def main():
             call("pane", "report-metadata", pane_id, "--source", SOURCE, "--clear-token", token)
         else:
             call("pane", "report-metadata", pane_id, "--source", SOURCE, "--agent", agent,
-                 "--token", f"{token}={render(now, at)}", "--ttl-ms", str(TOKEN_TTL_MS))
+                 "--token", f"{token}={format_remaining(now, at, ttl)}", "--ttl-ms", str(TOKEN_TTL_MS))
     print("")
 
 

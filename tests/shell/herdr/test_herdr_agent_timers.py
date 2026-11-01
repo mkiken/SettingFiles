@@ -43,8 +43,8 @@ def run_main(panes, claude_at=None, codex_at=None, now=0, get_override=None):
     calls = []
     output = StringIO()
     timers = {
-        "claude": (*MODULE.TIMERS["claude"][:1], lambda sid: claude_at, MODULE.format_claude),
-        "codex": (*MODULE.TIMERS["codex"][:1], lambda sid: codex_at, MODULE.format_codex),
+        "claude": (MODULE.TIMERS["claude"][0], lambda sid: claude_at, MODULE.CACHE_TTL_SECONDS),
+        "codex": (MODULE.TIMERS["codex"][0], lambda sid: codex_at, MODULE.CODEX_CACHE_TTL_SECONDS),
     }
     with patch.object(MODULE.subprocess, "run", side_effect=fake_run(panes, calls, get_override)), \
             patch.object(MODULE.time, "time", return_value=now), \
@@ -106,22 +106,28 @@ class CacheLastRequestTest(unittest.TestCase):
 
 
 class FormatTest(unittest.TestCase):
+    def render(self, ttl, remaining):
+        return MODULE.format_remaining(10000, 10000 - (ttl - remaining), ttl)
+
     def test_claude_remaining(self):
         for remaining, expected in [(2520, "🟢⏳42m"), (899, "🟡⏳14m"), (600, "🟡⏳10m"), (60, "🟡⏳1m"),
                                     (45, "🔴⏳<1m"), (0, "🔴⏳失効"), (-30, "🔴⏳失効")]:
             with self.subTest(remaining=remaining):
-                self.assertEqual(MODULE.format_claude(10000, 10000 - (3600 - remaining)), expected)
+                self.assertEqual(self.render(MODULE.CACHE_TTL_SECONDS, remaining), expected)
 
-    def test_claude_color_boundary(self):
+    def test_codex_remaining(self):
+        for remaining, expected in [(1620, "🟢⏳27m"), (450, "🟢⏳7m"), (449, "🟡⏳7m"), (60, "🟡⏳1m"),
+                                    (59, "🔴⏳<1m"), (0, "🔴⏳失効")]:
+            with self.subTest(remaining=remaining):
+                self.assertEqual(self.render(MODULE.CODEX_CACHE_TTL_SECONDS, remaining), expected)
+
+    def test_color_boundary_is_a_quarter_of_the_ttl(self):
         # 残りがTTLのちょうど25%なら警告色にしない（25%"未満"で黄）。
-        self.assertEqual(MODULE.format_claude(1000, 1000 - (3600 - 900)), "🟢⏳15m")
-        self.assertEqual(MODULE.format_claude(1000, 1000 - (3600 - 899)), "🟡⏳14m")
+        self.assertEqual(self.render(MODULE.CACHE_TTL_SECONDS, 900), "🟢⏳15m")
+        self.assertEqual(self.render(MODULE.CACHE_TTL_SECONDS, 899), "🟡⏳14m")
 
-    def test_codex_elapsed_colors_and_hours(self):
-        for elapsed, expected in [(180, "🟢⏳3m"), (1499, "🟢⏳24m"), (1500, "🟡⏳25m"), (1799, "🟡⏳29m"),
-                                  (1800, "🔴⏳30m"), (3900, "🔴⏳1h05m"), (-5, "🟢⏳0m")]:
-            with self.subTest(elapsed=elapsed):
-                self.assertEqual(MODULE.format_codex(1000 + elapsed, 1000), expected)
+    def test_full_ttl_shows_hours(self):
+        self.assertEqual(self.render(MODULE.CACHE_TTL_SECONDS, 3600), "🟢⏳1h00m")
 
 
 class MainTest(unittest.TestCase):
@@ -131,7 +137,7 @@ class MainTest(unittest.TestCase):
         sent = reports(calls)
         self.assertEqual(len(sent), 2)
         self.assertIn("claude_cache=🟢⏳50m", sent[0])
-        self.assertIn("codex_last_response=🟢⏳10m", sent[1])
+        self.assertIn("codex_last_response=🟢⏳20m", sent[1])
         self.assertEqual(sent[0][sent[0].index("--ttl-ms") + 1], "180000")
         self.assertEqual(output.strip(), "")
 
