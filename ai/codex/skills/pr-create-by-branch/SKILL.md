@@ -136,6 +136,14 @@ If `.github/PULL_REQUEST_TEMPLATE.md` exists in the repository root, use its str
 
 <!-- レビュー観点はPR作成者が記入 -->
 
+## テスト
+
+- Verification commands actually run and their results. If not run, say so and why.
+
+## リスクと戻し方
+
+- Blast radius, and how to roll back (plain `git revert`, or manual config/data steps).
+
 ## Breaking Changes
 
 - Breaking changes or migration requirements.

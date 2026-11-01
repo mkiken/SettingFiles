@@ -51,6 +51,8 @@ For the adversarial verification stage in the core below, the verifier sub-agent
 
 !`/bin/cat ~/.claude/common/pr_review_core.md`
 
+!`/bin/cat ~/.claude/common/pr_review_scope.md`
+
 !`/bin/cat ~/.claude/common/pr_review_verify.md`
 
 !`/bin/cat ~/.claude/common/pr_review_finding_format.md`

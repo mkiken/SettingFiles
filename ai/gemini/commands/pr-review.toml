@@ -45,6 +45,8 @@ For the adversarial verification stage in the core below, the verifier agent is 
 
 !{cat ~/.gemini/common/pr_review_core.md}
 
+!{cat ~/.gemini/common/pr_review_scope.md}
+
 !{cat ~/.gemini/common/pr_review_verify.md}
 
 !{cat ~/.gemini/common/pr_review_finding_format.md}
