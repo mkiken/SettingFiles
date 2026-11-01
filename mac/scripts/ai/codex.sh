@@ -178,6 +178,27 @@ function setup_codex_ponytail() {
   # 既存の context-mode 同様ここでは自動化しない。
 }
 
+function setup_codex_i_have_adhd() {
+  echo "Ensuring Codex i-have-adhd plugin..."
+
+  require_ai_setup_command codex || return 1
+  require_ai_setup_command jq || return 1
+
+  if ! codex plugin marketplace list | /usr/bin/grep -Fq "i-have-adhd"; then
+    codex plugin marketplace add ayghri/i-have-adhd --ref main || return 1
+  fi
+
+  codex plugin marketplace upgrade i-have-adhd >/dev/null 2>&1 || true
+
+  # git 解決される marketplace なので .installed[] に現れる。codex plugin add には
+  # 確認スキップフラグが無く、guard を外すと対話プロンプトで停止する。
+  if codex plugin list --json | jq -e '.installed[]? | select(.pluginId == "i-have-adhd@i-have-adhd" or (.name == "i-have-adhd" and .marketplaceName == "i-have-adhd"))' >/dev/null; then
+    echo "✓ Codex i-have-adhd plugin already installed."
+  else
+    codex plugin add i-have-adhd@i-have-adhd || return 1
+  fi
+}
+
 function setup_codex_hooks_json() {
   # Orca 等の外部ツールが live の hooks.json へ追記するため、リポジトリへ
   # 書き戻る symlink ではなく実ファイルにして smart_merge_json で取り込む。

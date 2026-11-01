@@ -78,6 +78,7 @@ setup_codex_superpowers
 setup_codex_context_mode
 setup_codex_rtk
 setup_codex_ponytail
+setup_codex_i_have_adhd
 
 # 共通設定テンプレートを ~/.codex/config.toml にマージ
 smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml

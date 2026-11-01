@@ -56,6 +56,34 @@ function setup_claude_genshijin() {
   fi
 }
 
+function setup_claude_i_have_adhd() {
+  echo "Ensuring Claude i-have-adhd plugin..."
+
+  require_ai_setup_command claude || return 1
+  require_ai_setup_command jq || return 1
+
+  if ! claude plugin marketplace list | /usr/bin/grep -Fq "i-have-adhd"; then
+    claude plugin marketplace add ayghri/i-have-adhd || return 1
+  fi
+
+  claude plugin marketplace update i-have-adhd || return 1
+
+  if claude plugin list --json | jq -e '.[] | select(.id == "i-have-adhd@i-have-adhd")' >/dev/null; then
+    claude plugin update i-have-adhd@i-have-adhd || return 1
+  else
+    claude plugin install i-have-adhd@i-have-adhd || return 1
+  fi
+
+  if ! claude plugin list --json | jq -e '.[] | select(.id == "i-have-adhd@i-have-adhd" and .enabled == true)' >/dev/null; then
+    claude plugin enable i-have-adhd@i-have-adhd || return 1
+  fi
+
+  # プラグインの SessionStart hook はこのフラグがあるときだけ全ルールを注入する（常時ON）。
+  # 常時ONをやめるには、手動で消すのではなくこの行を外す（update で再作成されるため）。
+  local flag_path="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/.i-have-adhd-always"
+  [[ -e "$flag_path" ]] || touch "$flag_path" || return 1
+}
+
 function setup_claude_dig() {
   echo "Ensuring Claude dig plugin..."
 

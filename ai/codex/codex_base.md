@@ -4,6 +4,8 @@
 
 Use the installed `caveman` skill at `full` intensity for every conversational response. Load its current `SKILL.md` instead of duplicating its rules here. `/caveman lite|full|ultra|wenyan-lite|wenyan-full|wenyan-ultra` changes intensity for the current session; `/caveman off` or `normal mode` disables it. Persisted files, code, comments, commits, documentation, and third-party messages follow their existing or repository-required style. Language selection follows Output Language; caveman controls response phrasing only.
 
+Also apply the installed `i-have-adhd` skill to every conversational response; load its current `SKILL.md`. caveman governs phrasing, i-have-adhd governs structure; on conflict, keep the i-have-adhd structure and phrase it tersely.
+
 # RTK
 
 When `rtk gain` succeeds, prefix supported high-output shell commands with `rtk`. Use the raw command only when full output is required.

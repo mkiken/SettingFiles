@@ -61,6 +61,7 @@ class ContextModeSetupTest(unittest.TestCase):
                 "setup_claude_context_mode",
                 "setup_claude_rtk",
                 "setup_claude_genshijin",
+                "setup_claude_i_have_adhd",
                 "setup_claude_superpowers",
 
                 "setup_claude_dig",
@@ -82,6 +83,7 @@ class ContextModeSetupTest(unittest.TestCase):
                 "setup_codex_superpowers",
 
                 "setup_codex_ponytail",
+                "setup_codex_i_have_adhd",
             ),
         }
 
@@ -100,6 +102,7 @@ class ContextModeSetupTest(unittest.TestCase):
                     "setup_claude_context_mode",
                     "setup_claude_rtk",
                     "setup_claude_genshijin",
+                    "setup_claude_i_have_adhd",
                     "setup_claude_dig",
                     "setup_claude_example_skills",
 
@@ -114,6 +117,7 @@ class ContextModeSetupTest(unittest.TestCase):
                     "setup_claude_context_mode",
                     "setup_claude_rtk",
                     "setup_claude_genshijin",
+                    "setup_claude_i_have_adhd",
                     "setup_claude_dig",
                     "setup_claude_example_skills",
 
@@ -131,11 +135,11 @@ class ContextModeSetupTest(unittest.TestCase):
             ),
             "mac/initialization/ai/codex.sh": (
                 'source "${Repo}mac/scripts/ai/codex.sh"',
-                ("setup_codex_superpowers", "setup_codex_context_mode", "setup_codex_rtk", "setup_codex_caveman", "setup_codex_ponytail"),
+                ("setup_codex_superpowers", "setup_codex_context_mode", "setup_codex_rtk", "setup_codex_caveman", "setup_codex_ponytail", "setup_codex_i_have_adhd"),
             ),
             "mac/updates/codex.sh": (
                 'source "${Repo}mac/scripts/ai/codex.sh"',
-                ("setup_codex_superpowers", "setup_codex_context_mode", "setup_codex_rtk", "update_codex_caveman", "setup_codex_ponytail"),
+                ("setup_codex_superpowers", "setup_codex_context_mode", "setup_codex_rtk", "update_codex_caveman", "setup_codex_ponytail", "setup_codex_i_have_adhd"),
             ),
         }
 
@@ -330,6 +334,43 @@ class ContextModeSetupTest(unittest.TestCase):
         # marketplace名(ponytail)がrepo owner(DietrichGebert)と混同され、
         # repo slugをplugin ID/参照に誤用していないことを確認する
         self.assertNotIn("ponytail@DietrichGebert/ponytail", script)
+
+    def test_claude_settings_register_i_have_adhd_plugin(self):
+        settings = json.loads(read_text("ai/claude/settings.json"))
+
+        self.assertTrue(settings["enabledPlugins"]["i-have-adhd@i-have-adhd"])
+        self.assertEqual(
+            settings["extraKnownMarketplaces"]["i-have-adhd"],
+            {
+                "source": {
+                    "repo": "ayghri/i-have-adhd",
+                    "source": "github",
+                }
+            },
+        )
+
+    def test_claude_i_have_adhd_setup_uses_upstream_marketplace_and_always_on_flag(self):
+        script = read_text("mac/scripts/ai/claude.sh")
+
+        self.assertIn("function setup_claude_i_have_adhd()", script)
+        self.assertIn("claude plugin marketplace add ayghri/i-have-adhd", script)
+        self.assertIn("claude plugin marketplace update i-have-adhd", script)
+        self.assertIn("i-have-adhd@i-have-adhd", script)
+        self.assertIn(".i-have-adhd-always", script)
+
+        # marketplace名(i-have-adhd)とrepo slug(ayghri/...)を取り違え、
+        # plugin IDにrepo slugを誤用していないことを確認する
+        self.assertNotIn("i-have-adhd@ayghri/i-have-adhd", script)
+        self.assertNotIn("marketplace update ayghri", script)
+
+    def test_codex_i_have_adhd_setup_uses_installed_guard(self):
+        codex = read_text("mac/scripts/ai/codex.sh")
+
+        self.assertIn("function setup_codex_i_have_adhd()", codex)
+        self.assertIn("codex plugin marketplace add ayghri/i-have-adhd", codex)
+        self.assertIn("codex plugin marketplace upgrade i-have-adhd", codex)
+        self.assertIn("codex plugin add i-have-adhd@i-have-adhd", codex)
+        self.assertNotIn("i-have-adhd@ayghri/i-have-adhd", codex)
 
     def test_claude_settings_register_cache_tools_plugin(self):
         settings = json.loads(read_text("ai/claude/settings.json"))
