@@ -110,21 +110,16 @@ class FormatTest(unittest.TestCase):
         return MODULE.format_remaining(10000, 10000 - (ttl - remaining), ttl)
 
     def test_claude_remaining(self):
-        for remaining, expected in [(2520, "🟢⏳42m"), (899, "🟡⏳14m"), (600, "🟡⏳10m"), (599, "🔴⏳9m"),
-                                    (60, "🔴⏳1m"), (45, "🔴⏳<1m"), (0, "🔴⏳失効"), (-30, "🔴⏳失効")]:
+        for remaining, expected in [(2520, "🟢⏳42m"), (900, "🟢⏳15m"), (899, "🟡⏳14m"), (300, "🟡⏳5m"),
+                                    (299, "🔴⏳4m"), (60, "🔴⏳1m"), (59, "🔴⏳<1m"), (0, "🔴⏳失効"), (-30, "🔴⏳失効")]:
             with self.subTest(remaining=remaining):
                 self.assertEqual(self.render(MODULE.CACHE_TTL_SECONDS, remaining), expected)
 
-    def test_codex_remaining(self):
-        for remaining, expected in [(1620, "🟢⏳27m"), (600, "🟢⏳10m"), (599, "🔴⏳9m"), (60, "🔴⏳1m"),
-                                    (59, "🔴⏳<1m"), (0, "🔴⏳失効")]:
+    def test_codex_uses_the_same_thresholds(self):
+        for remaining, expected in [(1620, "🟢⏳27m"), (900, "🟢⏳15m"), (899, "🟡⏳14m"), (300, "🟡⏳5m"),
+                                    (299, "🔴⏳4m"), (59, "🔴⏳<1m"), (0, "🔴⏳失効")]:
             with self.subTest(remaining=remaining):
                 self.assertEqual(self.render(MODULE.CODEX_CACHE_TTL_SECONDS, remaining), expected)
-
-    def test_color_boundary_is_a_quarter_of_the_ttl(self):
-        # 残りがTTLのちょうど25%なら警告色にしない（25%"未満"で黄）。
-        self.assertEqual(self.render(MODULE.CACHE_TTL_SECONDS, 900), "🟢⏳15m")
-        self.assertEqual(self.render(MODULE.CACHE_TTL_SECONDS, 899), "🟡⏳14m")
 
     def test_full_ttl_shows_hours(self):
         self.assertEqual(self.render(MODULE.CACHE_TTL_SECONDS, 3600), "🟢⏳1h00m")
