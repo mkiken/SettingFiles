@@ -270,7 +270,7 @@ for line in sys.stdin:
 
     def test_sidebar_and_native_statusline_config(self):
         herdr = tomllib.loads((REPO_ROOT / "terminal/herdr/config.toml").read_text())
-        self.assertIn(["$context_compact", "$monthly_credit"], herdr["ui"]["sidebar"]["agents"]["rows_by_agent"]["codex"])
+        self.assertIn(["$codex_last_response", "$monthly_credit"], herdr["ui"]["sidebar"]["agents"]["rows_by_agent"]["codex"])
         codex = tomllib.loads((REPO_ROOT / "ai/codex/config.toml").read_text())
         # Codex 0.164 rejects this item even though /status exposes monthly credit.
         self.assertNotIn("monthly-limit", codex["tui"]["status_line"])

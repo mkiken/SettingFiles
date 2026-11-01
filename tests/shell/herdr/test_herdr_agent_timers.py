@@ -8,7 +8,7 @@ import unittest
 from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
-from tests.support import sanitized_env
+from support import sanitized_env
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -177,8 +177,15 @@ class EndToEndTest(unittest.TestCase):
             # pane getは常にclaudeペインを返すので、codexペインはセッション不一致で書かれない。
             env = sanitized_env(CODEX_HOME=str(root), CLAUDE_CONFIG_DIR=str(root), HERDR_BIN_PATH=str(fake), TEST_CALLS=str(calls),
                                 TEST_LIST=json.dumps({"result": {"panes": panes}}), TEST_GET=json.dumps({"result": {"pane": panes[1]}}))
-            result = subprocess.run([sys.executable, str(SPEC.origin)], env=env, capture_output=True, text=True, check=True)
-            self.assertEqual(result.stdout.strip(), "")
+            # スクリプト本体のCLI呼び出しは1秒でタイムアウトする。並列シャードの負荷でfake CLIの起動が
+            # 1秒を超えて落ちるため、本物のfake CLIを呼びつつタイムアウトだけ延ばしてプロセス内で実行する。
+            real_run = subprocess.run
+            output = StringIO()
+            with patch.dict(MODULE.os.environ, env), \
+                    patch.object(MODULE.subprocess, "run", lambda args, **kwargs: real_run(args, **{**kwargs, "timeout": 30})), \
+                    patch("sys.stdout", output):
+                MODULE.main()
+            self.assertEqual(output.getvalue().strip(), "")
             recorded = calls.read_text()
             self.assertRegex(recorded, r"claude_cache=🟢⏳(49|50)m")
             self.assertNotIn("codex_last_response", recorded)

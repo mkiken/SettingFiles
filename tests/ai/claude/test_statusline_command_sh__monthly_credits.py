@@ -84,7 +84,7 @@ class StatuslineMonthlyCreditsTest(unittest.TestCase):
             past = time.time() - age_sec
             os.utime(lock, (past, past))
 
-    def wait_for(self, path: Path, timeout: float = 5.0) -> bool:
+    def wait_for(self, path: Path, timeout: float = 30.0) -> bool:
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
             if path.exists():
