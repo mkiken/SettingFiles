@@ -36,10 +36,11 @@ In Phase 2, start all six simultaneously with the payload defined there:
 
 This skill audits configuration *content* only. Installation duplicates, unused
 skills/MCP servers/plugins, slow hooks, version currency, and permission posture belong to
-the built-in `doctor` skill. The two use incompatible decision models — `doctor` decides in
-the conversation, this skill decides in the browser report — so never run them in the same
-pass. Apply this skill's decisions with `audit-fix` first; `audit-fix` then offers to run
-`doctor` once its edits are finished. Never run it as part of this run.
+the built-in `doctor` skill; text written for older models belongs to the `claude-api`
+skill's `prompt-audit` subcommand. Both decide in the conversation, this skill decides in
+the browser report — incompatible decision models, so never run them in the same pass.
+Apply this skill's decisions with `audit-fix` first; `audit-fix` then offers to run either
+once its edits are finished. Never run them as part of this run.
 
 ## Core Workflow
 

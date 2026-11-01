@@ -50,7 +50,7 @@ class WorktreeAuthorizationContractTest(unittest.TestCase):
             "Resolve symlinks in the target and existing parent directories first",
             "beneath the resolved `/tmp` root (including `/private/tmp` on macOS)",
             "A symlink escaping that root retains the existing approval requirements",
-            "Clean up session-created temporary data at completion using the Temp File Cleanup rules",
+            "Clean up session-created temporary data at completion using the `task-completion` skill's Temp File Cleanup rules",
             "other workflow gates remain in force",
         ):
             with self.subTest(requirement=requirement):
@@ -60,10 +60,11 @@ class WorktreeAuthorizationContractTest(unittest.TestCase):
 class CommitConfirmationContractTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        content = (REPO_ROOT / "ai/common/prompt_base.md").read_text(
+        content = (REPO_ROOT / "ai/common/skills/task-completion/SKILL.md").read_text(
             encoding="utf-8"
         )
-        cls.workflow = content.split("# Post-Implementation Workflow\n", 1)[1]
+        workflow = content.split("## Post-Implementation Workflow\n", 1)[1]
+        cls.workflow = workflow.split("\n## Opportunistic", 1)[0]
 
     def test_push_sets_and_verifies_upstream(self):
         content = (REPO_ROOT / "ai/common/prompt_base.md").read_text(encoding="utf-8")

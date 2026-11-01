@@ -1,6 +1,6 @@
 ---
 name: prompt-self-improvement
-description: Improve AI prompt configuration with evidence-based diagnosis; also loaded when surfacing Opportunistic Improvement Proposals.
+description: Improve AI prompt configuration with evidence-based diagnosis; also loaded by the `task-completion` skill when surfacing Opportunistic Improvement Proposals.
 ---
 
 # Prompt Self-Improvement
@@ -37,7 +37,7 @@ All paths below are relative to the SettingFiles repository root. When the curre
 7. Prefer the smallest change that fixes the demonstrated failure.
 8. When prompt size or conflicts are the real problem, remove or move noisy instructions instead of adding rules.
 9. Validate with realistic prompts or scripts; for prompt behavior include at least one ordinary case and one failure case that motivated the change.
-10. If triggered by the Opportunistic Improvement Proposals rule rather than an explicit user request, stop at the analysis-only Response format and follow the "Opportunistic Improvement Proposals" section below.
+10. If triggered by the `task-completion` skill's Opportunistic Improvement Proposals rule rather than an explicit user request, stop at the analysis-only Response format and follow the "Opportunistic Improvement Proposals" section below.
 
 ## Guardrails
 
@@ -75,7 +75,7 @@ For implementation work: make the edits, regenerate derived files if needed, run
 
 ## Opportunistic Improvement Proposals
 
-Loaded by the always-on `# Opportunistic Improvement Proposals` rule once at least one candidate qualifies. That rule owns the trigger criteria and timing; this section owns the mechanics.
+Loaded via the `task-completion` skill's `## Opportunistic Improvement Proposals` rule (and the always-on `# Task Completion` plan-handoff pointer) once at least one candidate qualifies. That rule owns the trigger criteria and timing; this section owns the mechanics.
 
 ### Presentation
 

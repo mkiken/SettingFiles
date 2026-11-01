@@ -47,9 +47,9 @@ class AlwaysOnSkillPointerTest(unittest.TestCase):
                 )
 
     def test_prompt_self_improvement_has_oip_anchors(self):
-        # prompt_base.md's Opportunistic Improvement Proposals rule names
+        # The task-completion skill's Opportunistic Improvement Proposals rule names
         # this section and two of its subsections by heading text; if any
-        # of these headings move or get renamed, the always-on pointer
+        # of these headings move or get renamed, the skill's pointer
         # ("follow its 'Opportunistic Improvement Proposals' section") goes
         # stale without any test noticing.
         skill_path = REPO_ROOT / "ai/common/skills/prompt-self-improvement/SKILL.md"
@@ -63,11 +63,11 @@ class AlwaysOnSkillPointerTest(unittest.TestCase):
                 anchor,
                 text,
                 f"ai/common/skills/prompt-self-improvement/SKILL.md is missing "
-                f"the '{anchor}' heading that the always-on OIP rule refers to",
+                f"the '{anchor}' heading that the OIP rule refers to",
             )
 
     def test_oip_corrective_retry_exclusion_is_precisely_bounded(self):
-        text = (REPO_ROOT / "ai/common/prompt_base.md").read_text(encoding="utf-8")
+        text = (REPO_ROOT / "ai/common/skills/task-completion/SKILL.md").read_text(encoding="utf-8")
         exclusion = (
             "Not for a single corrective retry in the same turn, with no additional "
             "user input, after which the original task resumes and completes. This "
