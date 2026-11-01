@@ -22,6 +22,8 @@ SOURCE = "agent-timers"
 TOKEN_TTL_MS = 180000
 # shortcut: TTL is fixed at 1h (subscription default); read CLAUDE_CODE_PROMPT_CACHE_TTL etc. if 5m sessions matter
 CACHE_TTL_SECONDS = 3600
+# 切れる前に気付いて動けるよう、残りがこれを下回ったら赤にする。
+RED_BELOW_SECONDS = 600
 # shortcut: 30min is an assumed Codex cache lifetime (matches the old 25/30min colour steps), verify against Codex's real TTL
 CODEX_CACHE_TTL_SECONDS = 1800
 
@@ -91,6 +93,8 @@ def format_remaining(now, base_time, ttl_seconds):
         return "🔴⏳失効"
     if remaining < 60:
         return "🔴⏳<1m"
+    if remaining < RED_BELOW_SECONDS:
+        return f"🔴⏳{minutes(remaining)}"
     color = "🟡" if remaining / ttl_seconds < 0.25 else "🟢"
     return f"{color}⏳{minutes(remaining)}"
 

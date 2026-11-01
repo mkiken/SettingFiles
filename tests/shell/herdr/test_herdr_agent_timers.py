@@ -110,13 +110,13 @@ class FormatTest(unittest.TestCase):
         return MODULE.format_remaining(10000, 10000 - (ttl - remaining), ttl)
 
     def test_claude_remaining(self):
-        for remaining, expected in [(2520, "🟢⏳42m"), (899, "🟡⏳14m"), (600, "🟡⏳10m"), (60, "🟡⏳1m"),
-                                    (45, "🔴⏳<1m"), (0, "🔴⏳失効"), (-30, "🔴⏳失効")]:
+        for remaining, expected in [(2520, "🟢⏳42m"), (899, "🟡⏳14m"), (600, "🟡⏳10m"), (599, "🔴⏳9m"),
+                                    (60, "🔴⏳1m"), (45, "🔴⏳<1m"), (0, "🔴⏳失効"), (-30, "🔴⏳失効")]:
             with self.subTest(remaining=remaining):
                 self.assertEqual(self.render(MODULE.CACHE_TTL_SECONDS, remaining), expected)
 
     def test_codex_remaining(self):
-        for remaining, expected in [(1620, "🟢⏳27m"), (450, "🟢⏳7m"), (449, "🟡⏳7m"), (60, "🟡⏳1m"),
+        for remaining, expected in [(1620, "🟢⏳27m"), (600, "🟢⏳10m"), (599, "🔴⏳9m"), (60, "🔴⏳1m"),
                                     (59, "🔴⏳<1m"), (0, "🔴⏳失効")]:
             with self.subTest(remaining=remaining):
                 self.assertEqual(self.render(MODULE.CODEX_CACHE_TTL_SECONDS, remaining), expected)
