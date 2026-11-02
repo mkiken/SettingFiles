@@ -121,6 +121,24 @@ class AuditFixContractTest(unittest.TestCase):
         self.assertIn("never substitute `general-purpose`", claude_skill)
         self.assertNotIn("subagent_type: general-purpose", claude_skill)
 
+    def test_claude_adapter_defers_follow_ups_until_after_push(self):
+        claude_skill = CLAUDE_SKILL_PATH.read_text(encoding="utf-8")
+        for token in ("doctor", "prompt-audit", "Never run the built-in `doctor` skill", "commit/push flow has finished"):
+            with self.subTest(token=token):
+                self.assertIn(token, claude_skill)
+        self.assertNotIn("AskUserQuestion (multiSelect)", claude_skill)
+
+    def test_claude_adapter_defers_consider_review_past_plan_mode(self):
+        claude_skill = CLAUDE_SKILL_PATH.read_text(encoding="utf-8")
+        # plan mode の親から起動した considerer は plan mode 固定で consider ファイルを書けない
+        for token in ("In plan mode", "ExitPlanMode", "continue from Consider Review", "spawn no subagent"):
+            with self.subTest(token=token):
+                self.assertIn(token, claude_skill)
+
+    def test_claude_considerer_runs_on_opus(self):
+        agent = (REPO_ROOT / "ai/claude/agents/audit-fix-considerer.md").read_text(encoding="utf-8")
+        self.assertIn("model: opus", agent.split("---")[1])
+
     def test_codex_adapter_names_the_registered_agents_and_depth_limit(self):
         codex_head = CODEX_HEAD_PATH.read_text(encoding="utf-8")
         self.assertIn("audit_fix_designer", codex_head)

@@ -1,7 +1,7 @@
 ---
 name: audit-fix-considerer
 description: Judges whether one audit item should be applied and writes the recommendation to a file.
-model: sonnet
+model: opus
 color: cyan
 effort: high
 # GENERATED FILE - do not edit. Sources: ai/common/audit_fix_subagents/, ai/claude/agents_src/audit_fix/. Regen: mac/updates/claude.sh.
