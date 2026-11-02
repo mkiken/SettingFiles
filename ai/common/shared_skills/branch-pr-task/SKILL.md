@@ -19,7 +19,7 @@ Stop and report instead of working around the problem:
 ## Choose the parent branch and branch name
 
 1. `git fetch origin`.
-2. Collect candidates: the current branch, the default branch (`git symbolic-ref --short refs/remotes/origin/HEAD`), and the most recently committed remote branches (`git branch -r --sort=-committerdate`, top few).
+2. Collect candidates: the current branch, the default branch (`git symbolic-ref --short refs/remotes/origin/HEAD`), and the 2 most recently committed remote branches not already listed (`git branch -r --sort=-committerdate`), for at most 4 candidates.
 3. Pick one recommendation from the request: a branch or feature the request names, else the current branch when it is not the default branch, else the default branch.
 4. Derive `<type>/<kebab-slug>` (`feat`, `fix`, `refactor`, `docs`, `chore`) from the request. If the local or `origin` branch exists, append `-2`, `-3`, and so on.
 5. Ask once through the platform's user-confirmation mechanism: show the recommended parent first, then the other candidates, plus the branch name. The user corrects either through free-form input.
@@ -40,7 +40,7 @@ If the work leaves nothing changed, report that and switch back to the original 
 
 ## Confirm once
 
-Show the changed paths, verification results, the commit message (following the repository's convention), the PR title, and the PR body, fenced with a backtick fence longer than any fence inside the body. Ask exactly these options through the platform's user-confirmation mechanism:
+Show the changed paths, verification results, the commit message (following the repository's convention), the PR title, and the PR body. Ask exactly these options through the platform's user-confirmation mechanism:
 
 1. `はい、作成する`
 2. `titleを修正したい`

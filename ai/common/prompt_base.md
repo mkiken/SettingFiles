@@ -60,7 +60,7 @@ If a workflow or tool resolves a write target outside the session project, displ
 
 Task-scoped temporary data under `/tmp` require no external-write approval, even when a workflow confines writes to its task worktree. Resolve symlinks in the target and existing parent directories first: the destination must remain beneath the resolved `/tmp` root (including `/private/tmp` on macOS). A symlink escaping that root retains the existing approval requirements. Clean up session-created temporary data at completion using the `task-completion` skill's Temp File Cleanup rules; other workflow gates remain in force.
 
-Creating a worktree for the requested task and performing task-scoped work inside it require no additional permission, regardless of skill use or whether the worktree is outside the session project. Display the resolved path and proceed; normal Git bookkeeping required to create and use the worktree is included. Obtain permission before dangerous operations affecting anything outside that worktree, such as discarding another worktree's changes or rewriting shared branch history. This exception does not authorize other external write targets or bypass existing plan-mode, design-approval, deletion, commit, push, or PR-action gates.
+Creating a worktree for the requested task and performing task-scoped work inside it require no additional permission, regardless of skill use or whether the worktree is outside the session project. Display the resolved path and proceed; normal Git bookkeeping required to create and use the worktree is included, as is safely removing (`git worktree remove`, `git branch -d`) a worktree or branch this task created once it is proven unchanged. Obtain permission before dangerous operations affecting anything outside that worktree, such as discarding another worktree's changes or rewriting shared branch history. This exception does not authorize other external write targets or bypass existing plan-mode, design-approval, other deletion, commit, push, or PR-action gates.
 
 # Instruction File vs. Code Drift
 
@@ -137,7 +137,7 @@ Before telling the user a cause or blast radius, verify the claim by measurement
 
 # Analytical Judgments
 
-For analysis and advice, lead with your current recommendation, decision criteria, and decisive evidence. For important judgments, consider the strongest counterargument and state what would change your conclusion. When available information supports an assessment, state your assumptions and give a provisional judgment. A provisional judgment does not authorize implementation or external actions; preserve all required clarifications and confirmations.
+For analysis and advice, lead with your current recommendation, decision criteria, and decisive evidence. When a judgment recommends an irreversible or externally visible action, chooses between design alternatives, or answers an explicit evaluation request (review, "should we…"), consider the strongest counterargument and state what would change your conclusion. When available information supports an assessment, state your assumptions and give a provisional judgment. A provisional judgment does not authorize implementation or external actions; preserve all required clarifications and confirmations.
 
 # Radical Honesty Protocol
 

@@ -13,7 +13,7 @@ At task completion, before the Post-Implementation Workflow even when skipped, c
 
 - Establish provenance before deleting a temp-looking file: use a pre-task baseline or direct evidence that this session created it. Never infer ownership from its name, contents, or timestamps alone; if provenance is uncertain, leave it in place and report it.
 - Before calling `trash`, resolve and validate each target as a non-empty, existing, explicit path; never pass unset or empty variables or rely on the current working directory. If validation fails, leave the target untouched and report it.
-- Delete them all without asking — invoke `trash` directly, never `rm`/`/bin/rm` (non-interactive shells skip the `rm` -> `trash` alias) — and briefly report what was deleted in the completion response. Whether or not any temp files existed, then continue to the Post-Implementation Workflow.
+- Delete them all without asking — invoke `trash` directly — and briefly report what was deleted in the completion response. Whether or not any temp files existed, then continue to the Post-Implementation Workflow.
 
 ## Post-Implementation Workflow
 
@@ -36,13 +36,11 @@ Perform the selected git action, then run the Opportunistic Improvement Proposal
 
 ## Opportunistic Improvement Proposals
 
-While doing the user's task, notice reusable improvements to the AI configuration in this prompt's source repository (SettingFiles). Surface proposals only; never edit persistent prompt/config files silently.
-
 ### When to propose
 
 Propose only with verifiable evidence of at least one:
 
-- A reusable friction or correction appeared, even once.
+- A reusable friction appeared, even once: a tool call or command failed or had to be retried because a prompt, skill, or config gave wrong or missing guidance, or the user had to supply information the configuration should have provided.
 - A reusable workflow the user followed is undocumented.
 - Configuration files conflict, or a rule contradicts observed behavior.
 - A skill, command, or agent should have activated but did not because its trigger failed.
@@ -66,4 +64,3 @@ After implementation, fix, configuration, review, or investigation-delivery task
 
 - Any candidate qualifies (including a `### 自己改善引き継ぎ` record carried in an executed plan): load the `prompt-self-improvement` skill and follow its "Opportunistic Improvement Proposals" section for presentation, ordering, and per-proposal approval.
 - None qualify: include exactly `自己改善チェック: 該当なし` once, do not load the skill, and do not raise a confirmation question.
-- Skip the check entirely in ordinary conversation, clarification-only turns, active progress updates, and pre-completion confirmation questions.

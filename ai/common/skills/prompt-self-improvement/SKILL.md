@@ -23,7 +23,7 @@ All paths below are relative to the SettingFiles repository root. When the curre
 - Tool-specific workflows: `ai/*/skills/`, `ai/*/commands/`, `ai/*/agents/`
 - All-platform shared workflow skills: `ai/common/skills/`
 - Selectively shared workflow skills: canonical sources in `ai/common/shared_skills/`, exposed by relative directory symlinks under only the intended `ai/<platform>/skills/` directories
-- Shared-core generation sources: `ai/common/*_core.md` plus platform adapters (`skill_head.md`/`skill_tail.md`) and `ai/*/agents_src/`; generated outputs (Codex/Gemini generated `SKILL.md`, pr-reviewer agents, `_AGENTS.md`) are never edited directly — regenerate per the "Regenerate AI Prompts" table in the repository `CLAUDE.md`
+- Shared-core generation sources: `ai/common/*_core.md` plus platform adapters (`skill_head.md`/`skill_tail.md`) and `ai/*/agents_src/`; generated outputs (Codex/Gemini generated `SKILL.md`, pr-reviewer agents, `_AGENTS.md`) are never edited directly — regenerate per the table in `.claude/skills/ai-prompt-generation/references/regeneration.md`
 - Sync scripts: `mac/initialization/ai/*.sh` and `mac/updates/*.sh`
 
 ## Improvement workflow
@@ -69,7 +69,7 @@ For analysis-only work, return:
 - Proposed source changes
 - Validation plan
 - Risks
-- Affected assistants (Claude / Gemini / Codex); for changes to generated-output sources, name the required regeneration command (see the "Regenerate AI Prompts" table in the repository `CLAUDE.md`)
+- Affected assistants (Claude / Gemini / Codex); for changes to generated-output sources, name the required regeneration command (see the table in `.claude/skills/ai-prompt-generation/references/regeneration.md`)
 
 For implementation work: make the edits, regenerate derived files if needed, run validation, and report the changed sources plus test results.
 

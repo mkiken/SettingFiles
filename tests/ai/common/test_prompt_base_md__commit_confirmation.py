@@ -20,7 +20,9 @@ class WorktreeAuthorizationContractTest(unittest.TestCase):
         )
         self.assertIn(
             "Display the resolved path and proceed; normal Git bookkeeping required "
-            "to create and use the worktree is included.",
+            "to create and use the worktree is included, as is safely removing "
+            "(`git worktree remove`, `git branch -d`) a worktree or branch this task "
+            "created once it is proven unchanged.",
             self.section,
         )
 
@@ -38,7 +40,7 @@ class WorktreeAuthorizationContractTest(unittest.TestCase):
         )
         self.assertIn(
             "This exception does not authorize other external write targets or bypass "
-            "existing plan-mode, design-approval, deletion, commit, push, or "
+            "existing plan-mode, design-approval, other deletion, commit, push, or "
             "PR-action gates.",
             self.section,
         )

@@ -122,10 +122,6 @@ Omit the commit-message section when `NO_CODE_CHANGE=true`:
 （または「対象外: standalone 経路 / 既に resolved / author が他人」）
 ```
 
-When displaying this preview, use a fence longer than the longest backtick run
-in the embedded content (e.g. ````markdown) — the reply body and commit
-message draft may contain code blocks.
-
 ### Phase 6: Unified Action Selection
 
 Ask one final action question. Build the options dynamically and show only

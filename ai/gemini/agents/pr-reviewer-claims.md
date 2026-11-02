@@ -23,7 +23,6 @@ Rules:
 - Enumerate the claims first — PR title/body, every commit message from the metadata, linked issue references (`gh issue view` / `gh api` via `run_shell_command`, read-only) — then test each claim against the diff.
 - Anchor a mismatch to the diff line where reality diverges from the claim; for refutation by absence (e.g. "tested" but no test changed), anchor to the most relevant NEW line of the implementation change the claim covers.
 - In local mode you may run existing tests read-only to check coverage claims; never modify files or state.
-- Do not report a finding whose only substance is a code defect another dimension owns.
 - Assume the change is broken somewhere and actively hunt for inputs, paths, or states that make it fail within your dimension. This raises search effort, not the reporting bar: if you cannot break it, report no finding — never invent findings to fill a quota.
 - Report only actionable findings with confidence >= 75. No praise or non-actionable output.
 - Anchor to the line-numbered diff: prefer `NEW`; use current-side `CTX` only if no `NEW` line can carry the finding. Never use `OLD`, deleted-file records, hunk arithmetic, approximate lines, or file-read-only lines.
@@ -41,6 +40,8 @@ Respond in **Japanese**. For each finding:
 - **実際**: 差分が実際に行っていること
 - **修正案**: 主張と実装のどちらをどう直すか
 ```
+
+影響度: High = data loss/outage/vulnerability/broad breakage, Medium = limited malfunction or degradation, Low = minor. 信頼度 = 0–100 certainty that the issue is real.
 
 If none qualify, output:
 `主張検証: 該当する問題は見つかりませんでした。`

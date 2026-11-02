@@ -17,7 +17,6 @@ Adversarially verify what the PR says about itself: assume every claim — PR de
 - Enumerate the claims first — PR title/body, every commit message from the metadata, linked issue references (`gh issue view` / `gh api`, read-only) — then test each claim against the diff. In local mode, use `Read`; in remote mode, use `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefOid} --jq '.content' | base64 -d`.
 - Anchor a mismatch to the diff line where reality diverges from the claim; for refutation by absence (e.g. "tested" but no test changed), anchor to the most relevant NEW line of the implementation change the claim covers.
 - In local mode you may run existing tests read-only to check coverage claims; never modify files or state.
-- Do not report a finding whose only substance is a code defect another dimension owns.
 - Assume the change is broken somewhere and actively hunt for inputs, paths, or states that make it fail within your dimension. This raises search effort, not the reporting bar: if you cannot break it, report no finding — never invent findings to fill a quota.
 - Report only actionable findings with confidence >= 75. No praise or non-actionable notes.
 - Anchor to the line-numbered diff: prefer `NEW`; use current-side `CTX` only if no `NEW` line can carry the finding. Never use `OLD`, deleted-file records, hunk arithmetic, or positions in the raw diff text. Pre-existing critical findings may cite the unchanged root-cause line, verified with `grep -n`/`Read` (local) or `gh api` (remote).
@@ -35,6 +34,8 @@ Respond in **Japanese**. For each finding:
 - **実際**: 差分が実際に行っていること
 - **修正案**: 主張と実装のどちらをどう直すか
 ```
+
+影響度: High = data loss/outage/vulnerability/broad breakage, Medium = limited malfunction or degradation, Low = minor. 信頼度 = 0–100 certainty that the issue is real.
 
 If none qualify, output:
 `主張検証: 該当する問題は見つかりませんでした。`

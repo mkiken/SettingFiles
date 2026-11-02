@@ -41,5 +41,7 @@ Respond in **Japanese**. For each finding:
 - **修正案**: テストの追加または改善方法
 ```
 
+影響度: High = data loss/outage/vulnerability/broad breakage, Medium = limited malfunction or degradation, Low = minor. 信頼度 = 0–100 certainty that the issue is real.
+
 If none qualify, output:
 `テスト品質: 該当する問題は見つかりませんでした。`

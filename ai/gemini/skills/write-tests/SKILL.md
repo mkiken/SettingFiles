@@ -87,7 +87,7 @@ Default verdict rules:
 - `PARTIAL` → default NEEDED
 - `NEW` → default NEEDED, except OPTIONAL when the case needs substantial new scaffolding (fixtures, fakes, concurrency control) disproportionate to its risk
 
-Group by category (normal, boundary, error, etc.). Let the user select tests to implement. Use the platform's native multi-select confirmation when available; otherwise present a numbered list of test cases and default verdicts, then accept multiple selections by number or name. Respect skip decisions.
+Group by category (normal, boundary, error, etc.). Let the user select tests to implement. Use the platform's native multi-select confirmation only when it can carry the table and every case as an option; otherwise present a numbered list of test cases and default verdicts in the same message as the table, then accept multiple selections by number or name. Respect skip decisions.
 
 ### Phase 5: Implement Tests
 
@@ -120,7 +120,7 @@ With a one-test-per-case idiom, keep the boundaries grouped together for readabi
 ### Phase 6: Verify
 
 After writing the tests, run them to confirm they pass. If any test fails:
-- Fix test bugs silently; report code bugs to the user
+- Fix test bugs without asking; if the same test still fails after three fix attempts, stop and report it with the failing output. Report code bugs to the user
 
 ### Scope
 

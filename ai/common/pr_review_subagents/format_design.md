@@ -9,5 +9,7 @@ Respond in **Japanese**. For each finding:
 - **修正案**: 具体的な改善方法（簡素化系は簡素化後のスケッチと動作が変わらない理由）
 ```
 
+影響度: High = data loss/outage/vulnerability/broad breakage, Medium = limited malfunction or degradation, Low = minor. 信頼度 = 0–100 certainty that the issue is real.
+
 If none qualify, output:
 `設計品質: 該当する問題は見つかりませんでした。`

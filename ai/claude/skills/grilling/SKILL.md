@@ -1,13 +1,12 @@
 ---
 name: grilling
+# Adapted from Matt Pocock's grilling skill (MIT, github.com/mattpocock/skills)
 description: Resolve a plan's open design decisions in dependency order. Use when the user asks to grill or fully settle a plan before implementation.
 ---
 
 # Grilling
 
 Interview the user relentlessly until you reach a shared understanding. Map the plan as a **design tree**: every decision branches into the decisions that hang off it.
-
-Adapted from Matt Pocock's `grilling` skill (MIT, github.com/mattpocock/skills), rewritten for this environment's confirmation primitive and plan-file workflow.
 
 Run inline in this session — never fork a subagent for the interview itself; a forked agent has no `AskUserQuestion` and its questions never reach the user. Only dispatch a subagent to settle a *fact* (see Facts vs. Decisions below).
 

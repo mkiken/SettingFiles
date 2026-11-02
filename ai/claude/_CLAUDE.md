@@ -46,7 +46,7 @@ jq -r 'select(.type=="assistant" and (.isSidechain//false)==false) | .message.mo
   ~/.claude/projects/<project-slug>/<session-id>.jsonl | tail -1
 ```
 
-If the command fails or the result does not start with `claude-fable-`, proceed straight to implementation — do not block on a detection failure. This check runs separately from the Plan Review Deep-Dive dialog (that one happens before `ExitPlanMode`; this one happens after).
+If the command fails or the result does not start with `claude-fable-`, proceed straight to implementation — do not block on a detection failure. This is separate from the Plan Review Deep-Dive dialog, which precedes `ExitPlanMode`.
 
 If the result starts with `claude-fable-` (e.g. `claude-fable-5-1`), ask an `AskUserQuestion` with these options before writing or running anything:
 

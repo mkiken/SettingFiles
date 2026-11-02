@@ -9,7 +9,7 @@ Domain knowledge for this repository's AI notification hooks (Claude / Gemini / 
 
 ## Required tests
 
-When changing the notification hooks (`ai/*/hooks/*notification*.sh`, `shell/tmux/ai_notification_*.sh`), additionally run the manual smoke test `bash tests/manual/notification_hook_smoke.sh` — it feeds representative hook events to all three hooks; by default it sends real Mac notifications and updates tmux window icons, so it is kept out of unittest discovery. Pass `--silent` to run the same exit-code checks without side effects. AI agents running this smoke test should default to `--silent`; use the no-flag form only when a real-notification/tmux-icon check is explicitly needed.
+When changing the notification hooks (`ai/*/hooks/*notification*.sh`, `shell/tmux/ai_notification_*.sh`), additionally run the manual smoke test `bash tests/manual/notification_hook_smoke.sh` — it feeds representative hook events to all three hooks; by default it sends real Mac notifications and updates tmux window icons, so it is kept out of unittest discovery. Pass `--silent` to run the same exit-code checks without side effects. AI agents running this smoke test should default to `--silent`; use the no-flag form only when the user explicitly asks for a real-notification/tmux-icon check.
 
 The Gemini hook's context-alert e2e test lives outside the main discovery path — when changing the Gemini notification hook or `shell/tmux/gemini_context_usage.py`, also run `python3 -m unittest discover -s ai/gemini/hooks/tests`.
 

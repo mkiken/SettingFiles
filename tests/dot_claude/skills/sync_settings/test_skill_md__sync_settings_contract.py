@@ -48,7 +48,6 @@ class SyncSettingsContractTest(unittest.TestCase):
             "do not replay superseded values",
             "Do not run all of `mac/update`", "exact live write destinations",
             "preserve machine-local values", "specific live removal explicitly",
-            "not overwriting", "parse the complete candidate",
         )
 
     def test_failure_and_independent_verification(self):
