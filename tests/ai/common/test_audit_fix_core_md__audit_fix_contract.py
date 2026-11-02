@@ -187,8 +187,7 @@ class AuditFixContractTest(unittest.TestCase):
         self.assertIn("## Consider Review", self.core)
         self.assertIn("fix/consider-<id>.md", self.core)
         self.assertIn("one considerer subagent per `consider` item", self.core)
-        self.assertIn("unapproved ids are
-not applied", self.core)
+        self.assertIn("unapproved ids are not applied", self.core)
         self.assertIn("consider: not approved", self.core)
         # consider 項目は依存閉包に含まれてもよいが dismiss / null は違反のまま
         self.assertIn('`"dismiss"` or `null`\n   member', self.core)
