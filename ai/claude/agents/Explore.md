@@ -1,6 +1,6 @@
 ---
 name: Explore
-description: Read-only search agent for broad fan-out searches — when answering means sweeping many files, directories, or naming conventions and you only need the conclusion, not the file dumps. Specify thoroughness: "quick", "medium", or "very thorough".
+description: 'Read-only search agent for broad fan-out searches — when answering means sweeping many files, directories, or naming conventions and you only need the conclusion, not the file dumps. Specify thoroughness: "quick", "medium", or "very thorough".'
 model: haiku
 omitClaudeMd: true
 disallowedTools: Agent, Edit, Write, NotebookEdit, Artifact, ExitPlanMode
