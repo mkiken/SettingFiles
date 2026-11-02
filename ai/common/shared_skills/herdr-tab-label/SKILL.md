@@ -30,4 +30,4 @@ zsh -fc 'builtin cd -q -- "${1}" && source "${2}" && set_herdr_task_tab_label "$
 
 Keep the `-c` script literal and pass the path, helper, and slug only as positional arguments. The helper is a no-op outside Herdr and preserves any non-default label. It keeps the jump-key number, AI identifier, status glyph, and context badge, and truncates a long slug to 19 characters plus `…`.
 
-Treat exit zero as success, including intentional preservation of a manual label. If the helper is missing or the rename fails, report a tab-label warning and continue the main task. Do not retry during later ordinary tasks in the same Codex conversation; another workflow may explicitly reuse this procedure with its existing slug.
+Treat exit zero as success, including intentional preservation of a manual label. If the helper is missing or the rename fails, report a tab-label warning and continue the main task. Do not retry during later ordinary tasks in the same conversation; another workflow may explicitly reuse this procedure with its existing slug.

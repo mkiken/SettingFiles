@@ -28,14 +28,14 @@ explicit scope and intended/confusable-request validation.
 ## Workflow
 
 1. Identify which files are runtime-loaded sources vs generated outputs
-   (see CLAUDE.md); edit sources only, never generated files.
+   (see `.claude/skills/ai-prompt-generation/SKILL.md`); edit sources only,
+   never generated files.
 2. Record before-size with `wc -w -c` on every affected file.
 3. Condense prose per the rules above.
-4. Regenerate every affected output with its matching generator when a
-   source changed (`mac/initialization/ai/codex.sh` for concatenated
-   SKILL.md files, `generate_pr_reviewer_agents` in `mac/scripts/common.sh`
-   for reviewer agents — see CLAUDE.md); verify with `git diff` that
-   generated diffs derive only from edited sources.
+4. Regenerate every affected output with the command its row gives in
+   `.claude/skills/ai-prompt-generation/references/regeneration.md`;
+   verify with `git diff` that generated diffs derive only from edited
+   sources.
 5. Self-review: list the operative elements of the original and confirm
    each survives in the shortened version.
 6. Report before/after `wc -w` numbers.

@@ -120,7 +120,7 @@ deletion/fix groups plus conflicts, flattened into one key. `targets` holds ever
 entries for `overlap` (残す ← 重複) and `conflict` (A ↔ B), 1 otherwise; `file` and `section` mirror
 `targets[0]`. `quote` is load-bearing twice — the report locates the surrounding context by searching
 for it, and audit-fix re-checks it before editing — so it must match the file byte for byte. `details`
-carries the same labelled bullets as before, in order (理由 / 重複内容 / 推奨 / 問題点 / 改善案 /
+carries these labelled bullets, in order (理由 / 重複内容 / 推奨 / 問題点 / 改善案 /
 現状 / 短縮案 / 内容A / 内容B). `depends_on` lists item ids that must be applied together and must be
 symmetric. `diff` is that item's own unified diff, or `null` when it has no mechanical edit.
 `estimated_reduction` is the word count saved, `concise` only, `null` otherwise. `platform_key` is the

@@ -32,8 +32,8 @@ Commit bodies, authors, and dates are intentionally omitted. If a headline needs
 
 **If they don't match (remote mode)** — use gh api:
 
-- `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefName} --jq '.content' | base64 -d` — read any file
-- `gh api repos/{owner}/{repo}/git/trees/{headRefName}?recursive=1` — explore file structure
+- `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefOid} --jq '.content' | base64 -d` — read any file
+- `gh api repos/{owner}/{repo}/git/trees/{headRefOid}?recursive=1` — explore file structure
 
 ### Review Workflow
 

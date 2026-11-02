@@ -79,7 +79,7 @@ After the posting mechanics' verification succeeds, `mkdir -p <RUN_DIR>/post` an
   "selected_ids": [2, 6],
   "items": {
     "2": { "status": "posted", "inline": true },
-    "6": { "status": "skipped", "inline": false, "reason": "diffハンク外のため個別コメント不可" }
+    "6": { "status": "posted", "inline": false }
   }
 }
 ```

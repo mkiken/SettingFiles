@@ -174,11 +174,11 @@ Respond entirely in Japanese.
 
 **Priority mapping (影響度 × 信頼度)** — self-assessed per finding. 影響度: High = data loss/outage/vulnerability/broad breakage, Medium = limited malfunction or degradation, Low = minor. 信頼度 = 0–100 certainty that the issue is real. Priority: High = 影響度High & 信頼度>=75; Medium = 影響度Medium & 信頼度>=75, or 影響度High & 信頼度<75 (append 「要検証」 to the detail); Low = 影響度Low (信頼度<75 なら 「要検証」 を付記), or 影響度Medium & 信頼度<75 (append 「要検証」). The mapping is total — every 影響度 × 信頼度 combination has a priority. It decides priority only, never whether a finding is reported — the calling skill's actionability rules decide that.
 
-Each finding MUST use this exact three-part structure:
+Each finding uses this exact three-part structure, because the review-merge parser splits findings on the `---` separator:
 
 - **Header line**: `N. **[file:line]** 領域 (影響度: XX / 信頼度: XX): 短い一行の要約` — path relative to repository root, `[path:line]` for a single line or `[path:startLine-endLine]` for a range; 領域 is a Japanese area label from the calling skill's dimension list. Inside `## 既存コードに関する指摘`, append `（重大カテゴリ）` to the summary.
 - **Detail line**: `   - Full explanation and recommendation (indented sub-bullet)`. Do not cram the explanation into the header line.
-- **Separator line**: `---` after every finding, including the last one — a hard structural requirement that must never be omitted.
+- **Separator line**: `---` after every finding, including the last one.
 
 Number findings sequentially across all sections — never restart numbering per section.
 

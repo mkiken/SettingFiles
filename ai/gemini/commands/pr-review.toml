@@ -20,7 +20,7 @@ printenv AI_REVIEW_OUTPUT_FILE || true
 
 For more detail via `run_shell_command`:
 - PR body and commit headlines (needed for 主張検証): `gh pr view <PR_NUMBER> --json body,commits --jq '{body,commits:[.commits[]|{oid,messageHeadline}]}'`
-- Code changes: `gh pr diff <PR_NUMBER>` (if too large, redirect to a file, e.g. `gh pr diff <PR_NUMBER> > diff.txt`, and read it incrementally)
+- Code changes: `gh pr diff <PR_NUMBER>` (if too large, redirect to a file under the session scratchpad — never inside the reviewed repository — and read it incrementally)
 - Changed files only: `gh pr diff <PR_NUMBER> --name-only`
 
 ### Local vs Remote File Access
@@ -32,8 +32,8 @@ Compare the `git branch --show-current` output with `headRefName` from the PR me
 - `find . -type f -name "*.ts"` or `ls -R src/` — explore file structure
 
 **If they don't match (remote mode)** — use gh api:
-- `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefName} --jq '.content' | base64 -d | grep -n ''` — read any file with stable line numbers
-- `gh api repos/{owner}/{repo}/git/trees/{headRefName}?recursive=1` — explore file structure
+- `gh api repos/{owner}/{repo}/contents/{path}?ref={headRefOid} --jq '.content' | base64 -d | grep -n ''` — read any file with stable line numbers
+- `gh api repos/{owner}/{repo}/git/trees/{headRefOid}?recursive=1` — explore file structure
 
 ### Review Breadth
 
