@@ -54,7 +54,6 @@ remaining models in Terra, Sol, Luna order:
 Label model choices `Use <model> subagent` and the current-model choice
 `Continue with current model`. For each model choice, the parent session remains on the detected model; exactly one Sol `worker` subagent owns the entire accepted-plan execution when Sol is selected, exactly one Terra `worker` subagent owns the entire accepted-plan execution when Terra is selected, and exactly one Luna `worker` subagent owns the entire accepted-plan execution when Luna is selected. For the current-model choice, no implementation subagent is launched; the parent session keeps the detected model and owns the entire accepted-plan execution.
 
-Interpret number-only replies according to the choices displayed for that question.
 In the question text, say that `Other` can specify
 "continue with the current model" or "switch the parent
 model manually". Include the same routes and examples in the numbered fallback.

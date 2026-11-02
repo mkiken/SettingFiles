@@ -114,7 +114,6 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
         for required in (
             "Follow the always-on `# User Confirmation` rules for presentation and number-only replies",
             "List all four choices in the question and expose the first two in the choice UI.",
-            "Interpret number-only replies according to the choices displayed for that question.",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.normalized_skill)

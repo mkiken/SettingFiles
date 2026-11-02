@@ -81,10 +81,7 @@ diff, and a design group when any item lacks one.
 
 ## Order of the two tracks
 
-Run every mechanical group to completion **before** starting the Design Track. Mechanical application
-depends on each item's `quote` matching byte for byte, and a rewrite that touches another part of the
-same file invalidates those anchors. Grouping keeps target files disjoint, but a design's
-`## Files to edit` may add a file a mechanical group also edits, so the ordering is the only guarantee.
+Run every mechanical group to completion **before** starting the Design Track. Mechanical edits require byte-for-byte `quote` matches; rewrites elsewhere in the same file invalidate them. Grouping keeps target files disjoint, but a design's `## Files to edit` may add a mechanically edited file, so only this ordering guarantees intact anchors.
 
 ## apply_state.json
 

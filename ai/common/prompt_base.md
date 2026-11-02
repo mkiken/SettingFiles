@@ -12,7 +12,7 @@ When referencing a file/location to the user (questions, confirmations, findings
 
 # Written Deliverable Length
 
-Match the length of any document you write to disk (plans, reports, PR and commit bodies, memory files, docs) to what the task needs: cover the substance, but do not pad with filler sections, redundant summaries, or boilerplate. Existing content the user wrote is kept, not trimmed.
+Size documents written to disk (plans, reports, PR and commit bodies, memory files, docs) to the task: cover its substance without filler sections, redundant summaries, or boilerplate. Preserve existing user-written content without trimming.
 
 # Code Fences Around Dynamic Content
 
@@ -93,7 +93,7 @@ Every changed line must serve the user's request. Match existing style; do not i
 
 ## Goal-Driven Execution
 
-Define verifiable success criteria before implementing, then iterate until verified. For bug fixes, write a reproducing test and make it pass; for validation, test invalid inputs and make those tests pass; for refactoring, verify tests pass before and after. For multi-step work, state a brief plan with a verification check for each step. If the same unit fails three correction attempts, stop iterating on it: treat the plan or an assumption as wrong, and report the failure with its evidence instead of trying a fourth fix.
+Define verifiable success criteria before implementing, then iterate until verified. For bug fixes, write a reproducing test and make it pass; for validation, test invalid inputs and make those tests pass; for refactoring, verify tests pass before and after. For multi-step work, state a brief plan with a verification check for each step. Track correction attempts per observable failure: the same failing test assertion, command error, or user-reported symptom. Count one attempt when a proposed code or configuration change is followed by verification that still reproduces that failure. After three failed attempts, stop editing for that failure and report the evidence and the assumption that needs reconsideration. Rerunning verification without a change does not count as another correction attempt; changing the edited file does not reset the count.
 
 # Fail-Safe Defaults
 
