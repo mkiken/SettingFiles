@@ -56,5 +56,7 @@ class SyncSettingsContractTest(unittest.TestCase):
             "stop dependent actions", "Reinspect the environment on the next run",
             "independent read", "needs restart/reload",
             "unverified items", "perform no writes",
+            "limited to the checked scope",
+            "older changes were not checked and may remain unapplied",
             "Do not commit or push repository changes",
         )
