@@ -67,6 +67,8 @@ Explore `CONFIG_PATHS` (in parallel where possible) and build a file manifest na
 
 Files installed by third-party plugins or tools (e.g. Tsumiki) stay in the manifest marked 対象外 and are excluded from analysis. Identify them by directory or filename prefix, or by symlinks resolving outside the dotfiles repository.
 
+Write every non-対象外 manifest entry as a resolved absolute path and confirm it exists (`test -f`) before Phase 2; fix any unresolved entry first.
+
 Record the manifest for `audit.json`'s `manifest[]` (fields `file` / `type` / `note`; 対象外 goes in `note`). Do not print it — the report shows it.
 
 ## Phase 2: Dispatch
