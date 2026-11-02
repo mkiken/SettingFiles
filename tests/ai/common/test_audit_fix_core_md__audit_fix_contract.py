@@ -5,13 +5,14 @@ from support import REPO_ROOT
 CORE_PATH = REPO_ROOT / "ai/common/audit_fix_core.md"
 DESIGNER_PATH = REPO_ROOT / "ai/common/audit_fix_subagents/designer_core.md"
 IMPLEMENTER_PATH = REPO_ROOT / "ai/common/audit_fix_subagents/implementer_core.md"
+CONSIDERER_PATH = REPO_ROOT / "ai/common/audit_fix_subagents/considerer_core.md"
 CLAUDE_SKILL_PATH = REPO_ROOT / "ai/claude/skills/audit-fix/SKILL.md"
 CODEX_HEAD_PATH = REPO_ROOT / "ai/codex/skills/audit-fix/skill_head.md"
 CODEX_SKILL_PATH = REPO_ROOT / "ai/codex/skills/audit-fix/SKILL.md"
 GEMINI_COMMAND_PATH = REPO_ROOT / "ai/gemini/commands/audit-fix.toml"
 SERVER_PATH = REPO_ROOT / "shell/common/pr/serve_review_report.py"
 
-DECISIONS = ("apply", "dismiss")
+DECISIONS = ("apply", "consider", "dismiss")
 GROUP_STATUSES = (
     "pending",
     "designing",
@@ -37,6 +38,7 @@ class AuditFixContractTest(unittest.TestCase):
         cls.core = CORE_PATH.read_text(encoding="utf-8")
         cls.designer = DESIGNER_PATH.read_text(encoding="utf-8")
         cls.implementer = IMPLEMENTER_PATH.read_text(encoding="utf-8")
+        cls.considerer = CONSIDERER_PATH.read_text(encoding="utf-8")
         cls.server = SERVER_PATH.read_text(encoding="utf-8")
 
     def test_decision_vocabulary_agrees_with_the_server_audit_profile(self):
@@ -113,7 +115,7 @@ class AuditFixContractTest(unittest.TestCase):
 
     def test_claude_adapter_names_the_generated_agents(self):
         claude_skill = CLAUDE_SKILL_PATH.read_text(encoding="utf-8")
-        self.assertIn("subagent_type `audit-fix-designer` / `audit-fix-implementer`", claude_skill)
+        self.assertIn("subagent_type `audit-fix-considerer` / `audit-fix-designer` / `audit-fix-implementer`", claude_skill)
         # general-purpose は呼び出し元のモデルを継承するため、指定するとロール別
         # モデル固定が消える。アダプタは代用禁止として言及するだけに留める
         self.assertIn("never substitute `general-purpose`", claude_skill)
@@ -123,12 +125,13 @@ class AuditFixContractTest(unittest.TestCase):
         codex_head = CODEX_HEAD_PATH.read_text(encoding="utf-8")
         self.assertIn("audit_fix_designer", codex_head)
         self.assertIn("audit_fix_implementer", codex_head)
+        self.assertIn("audit_fix_considerer", codex_head)
         self.assertIn("`agents.max_depth = 2`", codex_head)
-        self.assertIn("designers and implementers must not spawn further agents", codex_head)
+        self.assertIn("considerers, designers, and implementers must not spawn further agents", codex_head)
 
     def test_gemini_adapter_declares_its_edit_and_confirmation_primitives(self):
         gemini_command = GEMINI_COMMAND_PATH.read_text(encoding="utf-8")
-        for token in ("replace", "write_file", "ask_user", "audit-fix-designer"):
+        for token in ("replace", "write_file", "ask_user", "audit-fix-designer", "audit-fix-considerer"):
             with self.subTest(token=token):
                 self.assertIn(token, gemini_command)
 
@@ -161,9 +164,28 @@ class AuditFixContractTest(unittest.TestCase):
             with self.subTest(placeholder=placeholder):
                 self.assertIn(placeholder, self.designer)
 
+    def test_consider_review_delegates_and_never_applies_without_approval(self):
+        # 項目数に比例してメインのコンテキストを使わない: 根拠はファイル、メインへは1行
+        self.assertIn("## Consider Review", self.core)
+        self.assertIn("fix/consider-<id>.md", self.core)
+        self.assertIn("one considerer subagent per `consider` item", self.core)
+        self.assertIn("unapproved ids are
+not applied", self.core)
+        self.assertIn("consider: not approved", self.core)
+        # consider 項目は依存閉包に含まれてもよいが dismiss / null は違反のまま
+        self.assertIn('`"dismiss"` or `null`\n   member', self.core)
+
+    def test_considerer_is_read_only_and_returns_one_line(self):
+        self.assertIn("you never modify a configuration\nfile", self.considerer)
+        self.assertIn("no apply_state.json, no state.json", self.considerer)
+        self.assertIn("Exactly one Japanese line", self.considerer)
+        for placeholder in ("<RUN_DIR>", "<ITEM_ID>", "<CONSIDER_FILE>", "<NOTE>"):
+            with self.subTest(placeholder=placeholder):
+                self.assertIn(placeholder, self.considerer)
+
     def test_role_cores_stay_safe_for_the_codex_toml_literal(self):
         # 生成器は ''' を検出して失敗するので、ソース側で混入を防ぐ
-        for name, text in (("designer", self.designer), ("implementer", self.implementer)):
+        for name, text in (("designer", self.designer), ("implementer", self.implementer), ("considerer", self.considerer)):
             with self.subTest(role=name):
                 self.assertNotIn("'''", text)
 

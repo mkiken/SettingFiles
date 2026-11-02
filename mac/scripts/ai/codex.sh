@@ -231,7 +231,7 @@ import tomllib
 source_dir, dest_dir = map(Path, sys.argv[1:])
 roles = {f"config_auditor_{dimension}": "config_audit"
          for dimension in ("default", "conflict", "overlap", "patch", "ambiguity", "concise")}
-roles.update({f"audit_fix_{role}": "audit_fix" for role in ("designer", "implementer")})
+roles.update({f"audit_fix_{role}": "audit_fix" for role in ("designer", "implementer", "considerer")})
 roles.update({f"review_fix_{role}": "review_fix" for role in ("designer", "implementer")})
 pending = []
 try:

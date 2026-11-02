@@ -29,7 +29,7 @@ PROFILES = {
     "audit": {
         "manifest": "audit.json",
         "schema_version": 1,
-        "decisions": frozenset({"apply", "dismiss", None}),
+        "decisions": frozenset({"apply", "consider", "dismiss", None}),
     },
 }
 
@@ -66,6 +66,9 @@ def validate_state(payload, item_ids, profile_name):
         if decision not in allowed:
             names = " / ".join(sorted(v for v in allowed if v is not None))
             raise ValueError(f"decision must be one of {names} / null")
+        # note は audit の consider 項目へのユーザー記述。review の state には存在しない。
+        if profile_name == "audit" and not isinstance(entry.get("note", ""), str):
+            raise ValueError("note must be a string")
 
 
 def write_json_atomically(path, payload):

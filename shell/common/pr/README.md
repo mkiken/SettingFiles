@@ -102,7 +102,7 @@ Use these cases when validating that the deduplication logic doesn't over-suppre
 ## generate_audit_report.py
 
 Renders `audit.json` (written by the `config-audit` skill) into a self-contained `report.html`
-where each finding is decided as ✅ 適用する / 🚫 対応しない.
+where each finding is decided as ✅ 適用する / 🤖 AIに検討させる (optional note saved as `note`; `audit-fix` has a considerer subagent recommend, and applies only what the user then approves) / 🚫 対応しない.
 
 ### Usage
 
@@ -118,7 +118,7 @@ finding instead of failing the render.
 
 Items may declare `depends_on`. The report treats those as a symmetric, transitive group: choosing
 適用する on one member prompts to include the rest, and saving stays blocked while any member of an
-applied group is not itself applied.
+applied group is neither applied nor 🤖 AIに検討させる (a consider member is resolved by `audit-fix`).
 
 New audit items explicitly carry `risk`: `null`, or an object with a Japanese `reason` and target
 `evidence`. Risk never removes a candidate or changes its decision. The report shows risky items in a

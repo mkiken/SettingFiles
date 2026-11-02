@@ -71,7 +71,7 @@ Do not print the report body, the manifest table, the complete item list, or the
 the report. Print a Japanese summary: per-category counts, total items, dependency pair count, and the
 follow-up usage. Also print the risk count and only the risky items as `#id summary — reason`; print an
 explicit zero-risk result when none exist. At more than 100 risky items, print the count and a focused
-summary first, then paginate at most 100 rows at a time. Each item is decided as ✅ 適用する / 🚫 対応しない, and the decisions save
+summary first, then paginate at most 100 rows at a time. Each item is decided as ✅ 適用する / 🤖 AIに検討させる (optional note) / 🚫 対応しない, and the decisions save
 directly to `state.json` in <RUN_DIR>; use the save button or accept the confirmation after all items
 are decided, then run the `audit-fix` skill to apply them. To reopen the report later (the report
 server stops after being idle), the user runs the
@@ -132,8 +132,9 @@ Older runs may omit it and are risk未評価, not risk-free.
 
 This skill ends at the report — it never edits a configuration file. Once every item is decided in the
 browser and `state.json` is saved, the user runs the **`audit-fix`** skill (optionally with the run
-directory) to apply the decisions. `audit-fix` selects ids whose `decision` is `"apply"` (✅ 適用する)
-and leaves `"dismiss"` (🚫 対応しない) and `null` (未判断) alone.
+directory) to apply the decisions. `audit-fix` selects ids whose `decision` is `"apply"` (✅ 適用する),
+has subagents judge `"consider"` (🤖 AIに検討させる) items and applies only those the user then
+approves, and leaves `"dismiss"` (🚫 対応しない) and `null` (未判断) alone.
 Never fall back to asking for item numbers in the conversation, never read or write
 `<RUN_DIR>/state.json` here — the browser owns it — and never apply an edit from this skill.
 

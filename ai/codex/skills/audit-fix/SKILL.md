@@ -10,9 +10,9 @@ Parse the arguments after the skill name: a token containing `/` is <RUN_DIR>; `
 
 For every user confirmation, follow the always-on `# User Confirmation` rules and wait for the reply: resume-or-discard, the single selection confirmation, and each rolling design confirmation (承認 / 修正依頼 / スキップ).
 
-Subagent launch: use the registered subagents `audit_fix_designer` and `audit_fix_implementer` — their role instructions and their reasoning effort are baked into their definitions, so pass only the payload each role defines. Designers and implementers alike parallelize up to the child-agent slots available at runtime; if they exceed the slots, use waves. Process each completed design as it returns; if the runtime surfaces results only per wave, degrade to wave-batch order. The session running this skill owns orchestration, overlap checks, workflow state, and user confirmations. It may be the depth-1 lifecycle worker under `agents.max_depth = 2`; its designers and implementers must not spawn further agents. If that worker cannot surface a confirmation, relay the exact question and authored choices through the parent, wait for the user's answer, and resume only with that answer.
+Subagent launch: use the registered subagents `audit_fix_considerer`, `audit_fix_designer`, and `audit_fix_implementer` — their role instructions and their reasoning effort are baked into their definitions, so pass only the payload each role defines. Considerers, designers, and implementers alike parallelize up to the child-agent slots available at runtime; if they exceed the slots, use waves. Process each completed design as it returns; if the runtime surfaces results only per wave, degrade to wave-batch order. The session running this skill owns orchestration, overlap checks, workflow state, and user confirmations. It may be the depth-1 lifecycle worker under `agents.max_depth = 2`; its considerers, designers, and implementers must not spawn further agents. If that worker cannot surface a confirmation, relay the exact question and authored choices through the parent, wait for the user's answer, and resume only with that answer.
 
-Apply the audit items decided ✅ 適用する in an audit run directory. Respond in Japanese.
+Apply the audit items decided ✅ 適用する, and review those decided 🤖 AIに検討させる, in an audit run directory. Respond in Japanese.
 
 ## Inputs
 
@@ -29,12 +29,32 @@ them as arguments. The browser report is the sole decision surface.
    Never fall back to asking for item numbers in the conversation.
 3. Reject a `schema_version` other than 1, reject ids absent from `audit.json`, and require the key set
    to match `audit.json`'s items exactly. Each item's `decision` is `"apply"` (✅ 適用する),
-   `"dismiss"` (🚫 対応しない), or `null` (未判断).
-4. Select ids whose `decision` is `"apply"`. For each, every id in its `depends_on` closure must also be
-   `"apply"`; otherwise stop and report the pair. Never widen the selection yourself — the report
-   already enforces this, so a violation here means a hand-edited state file.
-5. Zero selected → report it and stop without writing anything.
+   `"consider"` (🤖 AIに検討させる, with an optional free-text `note`), `"dismiss"` (🚫 対応しない), or
+   `null` (未判断).
+4. Select ids whose `decision` is `"apply"`. For each, every id in its `depends_on` closure must be
+   `"apply"` or `"consider"` (a consider member is resolved by Consider Review); a `"dismiss"` or `null`
+   member → stop and report the pair. Never widen the selection yourself — the report already enforces
+   this, so a violation here means a hand-edited state file.
+5. Zero `apply` and zero `consider` → report it and stop without writing anything.
 6. Never write `<RUN_DIR>/state.json` — the browser owns it.
+
+## Consider Review
+
+Skip this section when no item is `"consider"`. Judging many items inline would flood the main context
+with target files, so delegate: spawn one considerer subagent per `consider` item, all in parallel (the
+adapter defines the launch primitive and slot limit). Payload per considerer: <RUN_DIR>, item id,
+the item's `note` (omit when empty), output path `<RUN_DIR>/fix/consider-<id>.md`. Create
+`<RUN_DIR>/fix/` if missing. Each returns one line `#<id> 推奨: 適用|見送り — <reason>`; the evidence
+stays in the consider file.
+
+List the returned lines and let the user approve which ids join the selection (`consider-<id>.md` has
+the detail on request). This is a yes/no per item, not item numbers typed from memory. Approved ids are
+added to the selection; unapproved ids are not applied. Then re-run Item Selection 4 on the enlarged
+selection: a pair whose closure member is `dismiss`, `null`, or an unapproved consider is dropped from
+the selection with the reason reported — never widen it. Record each outcome in `apply_state.json`
+as `items[id].consider` = `{"recommendation": "apply|dismiss", "approved": true|false, "file":
+"fix/consider-<id>.md"}`; a `consider` item that is not approved gets item status `skipped` with reason
+`consider: not approved`. Zero ids left in the selection → report and stop.
 
 ## Routing: mechanical vs designed
 
@@ -97,7 +117,9 @@ Durable per-item and per-group outcome record at `<RUN_DIR>/apply_state.json`.
   },
   "items": {
     "1": {"group": "g1", "status": "applied", "reason": null},
-    "4": {"group": "g1", "status": "skipped", "reason": "quote mismatch"}
+    "4": {"group": "g1", "status": "skipped", "reason": "quote mismatch"},
+    "9": {"group": null, "status": "skipped", "reason": "consider: not approved",
+          "consider": {"recommendation": "dismiss", "approved": false, "file": "fix/consider-9.md"}}
   }
 }
 ```
@@ -117,7 +139,7 @@ without asking.
 
 ## Selection Confirmation
 
-Present the selected items grouped by group — `g<N> [files] 機械適用|設計` followed by each
+Present the selected items (including approved consider items) grouped by group — `g<N> [files] 機械適用|設計` followed by each
 `id. [file > section] category | summary`. Before the existing single yes/no confirmation, re-list only
 the selected items whose `risk` is an object as `#id summary — reason`. If a selected item omits `risk`,
 warn that it is risk未評価; never infer that it is safe. This is warning-only: do not dismiss, block, or

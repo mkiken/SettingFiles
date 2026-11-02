@@ -1,0 +1,10 @@
+name = "audit_fix_considerer"
+description = "Item considerer for audit-fix: reads one audit finding and its config files, writes a recommendation file into the run directory."
+model = "gpt-6-astra"
+model_reasoning_effort = "high"
+# The run directory (~/.cache/ai-audit/...) and the audited config files (~/.claude,
+# ~/.codex, ~/.gemini) are all outside the calling workspace, so workspace-write would
+# deny both the consider-file write and the config reads. Matches audit_fix_designer.
+sandbox_mode = "danger-full-access"
+
+developer_instructions = '''

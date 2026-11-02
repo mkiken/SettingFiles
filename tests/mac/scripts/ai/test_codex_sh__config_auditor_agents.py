@@ -10,7 +10,7 @@ from support import REPO_ROOT, sanitized_env
 SCRIPT = REPO_ROOT / "mac/scripts/ai/codex.sh"
 DIMENSIONS = ("default", "conflict", "overlap", "patch", "ambiguity", "concise")
 ROLES = tuple(f"config_auditor_{dimension}" for dimension in DIMENSIONS) + (
-    "audit_fix_designer", "audit_fix_implementer",
+    "audit_fix_designer", "audit_fix_implementer", "audit_fix_considerer",
     "review_fix_designer", "review_fix_implementer",
 )
 

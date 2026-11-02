@@ -11,8 +11,9 @@ prompt = """
 
 Invoke the registered subagents; their role instructions and their models are baked into their definitions, so pass only the payload each role defines:
 
-1. **audit-fix-designer** — diffのない項目のリライト設計（design group ごとに `wait_for_previous=false` で並列起動）
-2. **audit-fix-implementer** — 承認済み設計の適用（重複するファイル集合を持つグループは直列化）
+1. **audit-fix-considerer** — 🤖 AIに検討させる項目の推奨判断（項目ごとに `wait_for_previous=false` で並列起動）
+2. **audit-fix-designer** — diffのない項目のリライト設計（design group ごとに `wait_for_previous=false` で並列起動）
+3. **audit-fix-implementer** — 承認済み設計の適用（重複するファイル集合を持つグループは直列化）
 
 ## Core Workflow
 

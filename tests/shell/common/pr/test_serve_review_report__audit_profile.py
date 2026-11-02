@@ -46,10 +46,25 @@ class ValidateStateProfileTest(unittest.TestCase):
     def state(self, decision, schema_version):
         return {"schema_version": schema_version, "items": {"1": {"decision": decision}}}
 
-    def test_audit_accepts_apply_and_dismiss(self):
-        for decision in ("apply", "dismiss", None):
+    def test_audit_accepts_apply_consider_and_dismiss(self):
+        for decision in ("apply", "consider", "dismiss", None):
             with self.subTest(decision=decision):
                 mod.validate_state(self.state(decision, 1), {"1"}, "audit")
+
+    def test_audit_accepts_a_string_note(self):
+        payload = {"schema_version": 1, "items": {"1": {"decision": "consider", "note": "他ルールとの衝突を確認"}}}
+        mod.validate_state(payload, {"1"}, "audit")
+
+    def test_audit_rejects_a_non_string_note(self):
+        for note in (1, ["x"], {"a": 1}, None):
+            with self.subTest(note=note):
+                payload = {"schema_version": 1, "items": {"1": {"decision": "consider", "note": note}}}
+                with self.assertRaises(ValueError):
+                    mod.validate_state(payload, {"1"}, "audit")
+
+    def test_review_rejects_consider(self):
+        with self.assertRaises(ValueError):
+            mod.validate_state(self.state("consider", 2), {"1"}, "review")
 
     def test_audit_rejects_review_decisions(self):
         # プロファイルが実際に分離されていることの証明: fix は監査側では無効
@@ -122,6 +137,15 @@ class AuditServerTest(unittest.TestCase):
         payload = {
             "schema_version": 1,
             "items": {"1": {"decision": "apply"}, "2": {"decision": "dismiss"}},
+        }
+        self.assertEqual(self.post_state(payload).status, 204)
+        written = json.loads((self.run_dir / "state.json").read_text(encoding="utf-8"))
+        self.assertEqual(written, payload)
+
+    def test_accepts_consider_with_note_and_writes_it(self):
+        payload = {
+            "schema_version": 1,
+            "items": {"1": {"decision": "consider", "note": "観点メモ"}, "2": {"decision": "dismiss"}},
         }
         self.assertEqual(self.post_state(payload).status, 204)
         written = json.loads((self.run_dir / "state.json").read_text(encoding="utf-8"))

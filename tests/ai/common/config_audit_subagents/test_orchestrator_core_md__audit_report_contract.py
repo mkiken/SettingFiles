@@ -10,7 +10,7 @@ RENDERER_PATH = REPO_ROOT / "shell/common/pr/generate_audit_report.py"
 SERVER_PATH = REPO_ROOT / "shell/common/pr/serve_review_report.py"
 
 CATEGORIES = ("default", "overlap", "patch", "ambiguity", "concise", "conflict")
-DECISIONS = ("apply", "dismiss")
+DECISIONS = ("apply", "consider", "dismiss")
 AUDIT_SCHEMA_VERSION = 1
 
 

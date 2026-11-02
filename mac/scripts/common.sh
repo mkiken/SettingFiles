@@ -786,8 +786,8 @@ function generate_config_auditor_agents() {
 }
 
 # audit-fix の設計/実装サブエージェント定義を共有フラグメントから生成する（Claude / Codex / Gemini）
-# 生成物: ai/{claude,gemini}/agents/audit-fix-{designer,implementer}.md,
-#         ai/codex/agents/audit_fix_{designer,implementer}.toml
+# 生成物: ai/{claude,gemini}/agents/audit-fix-{designer,implementer,considerer}.md,
+#         ai/codex/agents/audit_fix_{designer,implementer,considerer}.toml
 # review-fix と違い Claude 側も生成する: モデルをロールごとに固定するのが分離の目的で、
 # 実行時にロールコアを読む方式では呼び出し元のモデルを継承してしまう
 # 編集は ai/common/audit_fix_subagents/ と ai/<platform>/agents_src/audit_fix/ へ（生成物は編集しない）
@@ -798,7 +798,7 @@ function generate_audit_fix_agents() {
   local notice="GENERATED FILE - do not edit. Sources: ai/common/audit_fix_subagents/, ai/${platform}/agents_src/audit_fix/. Regen: mac/updates/${platform}.sh."
   local role out
 
-  for role in designer implementer; do
+  for role in designer implementer considerer; do
     case "$platform" in
       claude | gemini)
         out="${Repo}ai/${platform}/agents/audit-fix-${role}.md"
@@ -1031,10 +1031,13 @@ function verify_audit_fix_agent_generation_idempotency() {
   verify_generator_idempotency generate_audit_fix_agents_all \
     "${Repo}ai/claude/agents/audit-fix-designer.md" \
     "${Repo}ai/claude/agents/audit-fix-implementer.md" \
+    "${Repo}ai/claude/agents/audit-fix-considerer.md" \
     "${Repo}ai/gemini/agents/audit-fix-designer.md" \
     "${Repo}ai/gemini/agents/audit-fix-implementer.md" \
+    "${Repo}ai/gemini/agents/audit-fix-considerer.md" \
     "${Repo}ai/codex/agents/audit_fix_designer.toml" \
-    "${Repo}ai/codex/agents/audit_fix_implementer.toml"
+    "${Repo}ai/codex/agents/audit_fix_implementer.toml" \
+    "${Repo}ai/codex/agents/audit_fix_considerer.toml"
 }
 
 # 全プラットフォームの敵対的検証エージェントを一括生成する（冪等性検証用ラッパー）

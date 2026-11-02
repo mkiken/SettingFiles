@@ -22,7 +22,7 @@ HTML_TEMPLATE = r"""<!doctype html>
 --code-bg:#f6f8fa;--code-line:#1f2328;--code-target:#fff3c4;--diff-add:#1a7f37;--diff-del:#cf222e;
 --hl-keyword:#cf222e;--hl-string:#0a3069;--hl-number:#0550ae;--hl-comment:#6e7781;--hl-title:#8250df;--hl-attr:#116329;--hl-meta:#953800;
 --default:var(--blue);--overlap:var(--medium);--patch:#e8590c;--ambiguity:var(--slate);--concise:var(--low);--conflict:var(--high);
---apply:var(--low);--dismiss:var(--muted);--dep:var(--carry);}
+--apply:var(--low);--consider:var(--blue);--dismiss:var(--muted);--dep:var(--carry);}
 :root[data-theme="dark"]{--bg:#1b1f27;--card:#242935;--surface:#2c3240;--border:#3a4151;--text:#e8ebf1;--muted:#a9b3c4;--link:#8b93ff;--shadow:0 1px 2px #0004;--shadow-hover:0 4px 16px #0006;--carry:#a78bfa;--patch:#fb923c;
 --blue:#60a5fa;--slate:#cbd5e1;--copy:#22d3ee;--inline-code:#f783ac;--on-solid:#0b0d12;
 --code-bg:#1d212b;--code-line:#e6edf3;--code-target:#4b3f14;--diff-add:#7ee787;--diff-del:#ff7b72;
@@ -66,6 +66,7 @@ button:focus-visible,.decision input:focus-visible{outline:2px solid var(--link)
 .card:hover{box-shadow:var(--shadow-hover)}
 .card.completed{opacity:.6}
 .card.completed.decision-apply{border-color:color-mix(in srgb,var(--apply) 40%,var(--border))}
+.card.completed.decision-consider{border-color:color-mix(in srgb,var(--consider) 40%,var(--border))}
 .card.completed.decision-dismiss{border-color:color-mix(in srgb,var(--dismiss) 40%,var(--border))}
 .card.flash{outline:2px solid var(--dep);outline-offset:2px}
 .card-header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 24px;align-items:start;padding:12px 16px 6px}
@@ -76,7 +77,7 @@ button:focus-visible,.decision input:focus-visible{outline:2px solid var(--link)
 .disclosure{width:1.2em;text-align:center;color:var(--muted);flex:none}
 .badge{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:1px 9px;font-size:11px;font-weight:700;white-space:nowrap;--c:var(--muted);color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent)}
 .badge.cat-default{--c:var(--default)}.badge.cat-overlap{--c:var(--overlap)}.badge.cat-patch{--c:var(--patch)}.badge.cat-ambiguity{--c:var(--ambiguity)}.badge.cat-concise{--c:var(--concise)}.badge.cat-conflict{--c:var(--conflict)}
-.badge.decision-apply{--c:var(--apply)}.badge.decision-dismiss{--c:var(--dismiss)}.badge.risk{--c:var(--conflict)}
+.badge.decision-apply{--c:var(--apply)}.badge.decision-consider{--c:var(--consider)}.badge.decision-dismiss{--c:var(--dismiss)}.badge.risk{--c:var(--conflict)}
 .risk-panel{margin-bottom:18px;border:1px solid color-mix(in srgb,var(--conflict) 45%,var(--border));border-radius:12px;background:color-mix(in srgb,var(--conflict) 6%,var(--card));padding:10px 16px}
 .risk-panel h2{font-size:14px;margin:0 0 6px;color:var(--conflict)}
 .risk-list{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
@@ -85,11 +86,15 @@ button:focus-visible,.decision input:focus-visible{outline:2px solid var(--link)
 .dep-badge{--c:var(--dep);color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent);border:0;font-size:11px;font-weight:700;border-radius:999px;padding:1px 9px}
 .dep-badge:hover:not(:disabled){background:color-mix(in srgb,var(--c) 26%,transparent)}
 .locations{display:block;max-width:30rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:rtl;text-align:left;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--muted)}
-.controls{display:flex;gap:8px;padding:6px 16px 14px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;padding:6px 16px 14px}
+.note-wrap{flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:6px;align-items:flex-start}.note-wrap[hidden]{display:none}
+.note-confirm{--c:var(--consider);color:var(--on-solid);background:var(--c);border-color:var(--c);font-weight:600}
+.note{width:100%;min-height:3.2em;resize:vertical;font:inherit;font-size:13px;color:var(--text);background:var(--card);border:1px solid color-mix(in srgb,var(--consider) 40%,var(--border));border-radius:8px;padding:6px 10px}
+.note:focus-visible{outline:2px solid var(--link);outline-offset:2px}
 .decision{border:0;margin:0;padding:0;display:flex;gap:8px;flex-wrap:wrap}
 .decision label{display:inline-flex;align-items:center;gap:6px;cursor:pointer;border:1px solid color-mix(in srgb,var(--c) 40%,var(--border));border-radius:8px;padding:4px 12px;font-size:13px;font-weight:500;color:var(--c);background:color-mix(in srgb,var(--c) 10%,var(--card));transition:background .15s,border-color .15s}
 .decision label:hover{background:color-mix(in srgb,var(--c) 20%,var(--card));border-color:var(--c)}
-.decision .decision-apply{--c:var(--apply)}.decision .decision-dismiss{--c:var(--dismiss)}
+.decision .decision-apply{--c:var(--apply)}.decision .decision-consider{--c:var(--consider)}.decision .decision-dismiss{--c:var(--dismiss)}
 .decision input{accent-color:var(--c)}
 .decision label:has(input:checked){border-color:var(--c);background:var(--c);color:var(--on-solid);font-weight:600}
 .card-body{display:none;border-top:1px solid var(--border);padding:14px 16px 16px}
@@ -124,7 +129,7 @@ footer{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(-
 #save-status{color:var(--muted)}
 #dep-violations{color:var(--conflict);font-weight:700}
 .filter-picker{display:flex;gap:6px;flex-wrap:wrap}
-.filter-picker button[data-filter="pending"]{--c:var(--medium)}.filter-picker button[data-filter="apply"]{--c:var(--low)}.filter-picker button[data-filter="dismiss"]{--c:var(--muted)}.filter-picker button[data-filter="all"]{--c:var(--slate)}
+.filter-picker button[data-filter="pending"]{--c:var(--medium)}.filter-picker button[data-filter="apply"]{--c:var(--low)}.filter-picker button[data-filter="consider"]{--c:var(--consider)}.filter-picker button[data-filter="dismiss"]{--c:var(--muted)}.filter-picker button[data-filter="all"]{--c:var(--slate)}
 #save-state{background:var(--link);border-color:var(--link);color:var(--on-solid);margin-left:auto}
 #save-state:hover:not(:disabled){background:color-mix(in srgb,var(--link) 88%,#000);border-color:transparent}
 #toast{position:fixed;right:20px;bottom:84px;z-index:1;padding:10px 14px;border-radius:10px;background:var(--low);color:#fff;box-shadow:0 8px 24px #0004}
@@ -143,20 +148,21 @@ footer{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(-
 </div>
 <section class="risk-panel" id="risk-panel" hidden><h2 id="risk-title"></h2><div class="risk-list" id="risk-list"></div></section>
 <div id="report"></div>
-<footer><span id="progress"></span><span id="dep-violations"></span><div class="filter-picker" role="group" aria-label="表示する項目"><button data-filter="pending">未処理</button><button data-filter="apply">適用リスト</button><button data-filter="dismiss">対応しないリスト</button><button data-filter="all">すべて</button></div><span id="params"></span><button id="copy-run-dir" disabled>実行ディレクトリをコピー</button><button id="save-state" disabled>状態ファイルを保存</button><span id="save-status" role="status" aria-live="polite">未保存</span></footer>
+<footer><span id="progress"></span><span id="dep-violations"></span><div class="filter-picker" role="group" aria-label="表示する項目"><button data-filter="pending">未処理</button><button data-filter="apply">適用リスト</button><button data-filter="consider">AI検討リスト</button><button data-filter="dismiss">対応しないリスト</button><button data-filter="all">すべて</button></div><span id="params"></span><button id="copy-run-dir" disabled>実行ディレクトリをコピー</button><button id="save-state" disabled>状態ファイルを保存</button><span id="save-status" role="status" aria-live="polite">未保存</span></footer>
 <div id="toast" role="status" aria-live="polite" hidden></div>
 <script>
 const DATA = __AUDIT_DATA__;
 const state = {schema_version: 1, items: {}};
+const drafting = new Set();
 let fileHandle = null, filterMode = "pending", wasComplete = false, completionPrompted = false, toastTimer = null;
 const CAN_SERVER_SAVE = location.protocol === "http:" && location.hostname === "127.0.0.1";
 const CAN_FILE_SAVE = typeof window.showSaveFilePicker === "function";
 const CAN_SAVE_STATE = CAN_SERVER_SAVE || CAN_FILE_SAVE;
 const CATS = [["default","デフォルト動作と重複"],["overlap","ルール間の重複"],["patch","一時的な修正"],["ambiguity","曖昧・解釈が不安定"],["concise","冗長な表現"],["conflict","コンフリクト"]];
 const CAT_LABEL = Object.fromEntries(CATS);
-const DECISIONS = [["apply","✅ 適用する"],["dismiss","🚫 対応しない"]];
+const DECISIONS = [["apply","✅ 適用する"],["consider","🤖 AIに検討させる"],["dismiss","🚫 対応しない"]];
 const DECISION_LABEL = Object.fromEntries(DECISIONS);
-const FILTER_LABEL = {pending:"未処理",apply:"適用リスト",dismiss:"対応しないリスト",all:"すべて"};
+const FILTER_LABEL = {pending:"未処理",apply:"適用リスト",consider:"AI検討リスト",dismiss:"対応しないリスト",all:"すべて"};
 const THEME_KEY = "ai-audit-report-theme";
 // depends_on は片方向しか書かれていなくても両方向で機能させる(対称和)
 const DEPS = new Map();
@@ -182,7 +188,7 @@ if(riskState(item)==="risk")meta.appendChild(el("span","badge risk","⚠️ 要�
 const deps=closure(item.id);if(deps.length){const depButton=el("button","dep-badge","🔗 依存: "+deps.map(d=>"#"+d).join(", "));depButton.type="button";depButton.title="依存する項目へ移動";depButton.addEventListener("click",()=>focusCard(deps[0]));meta.appendChild(depButton);}
 if(item.estimated_reduction)meta.appendChild(el("span","meta","削減見込み 約"+item.estimated_reduction+"語"));
 const loc=locationText(item);const locEl=el("span","locations");locEl.appendChild(el("bdi","",loc));locEl.title=loc;meta.appendChild(locEl);h.appendChild(meta);c.appendChild(h);
-const ctl=el("div","controls");ctl.appendChild(decision(item.id));c.appendChild(ctl);
+const ctl=el("div","controls");ctl.appendChild(decision(item.id));ctl.appendChild(noteBox(item.id));c.appendChild(ctl);
 const body=el("div","card-body");body.id=bodyId;
 if(riskState(item)==="risk"){const box=el("section","risk-box");box.appendChild(el("div","box-head","⚠️ 危険性の理由"));box.appendChild(el("div","text",item.risk.reason||"理由未記載"));for(const evidence of (item.risk.evidence||[]))box.appendChild(el("div","meta",evidence));body.appendChild(box);}
 for(const d of (item.details||[])){const box=el("section","detail");box.appendChild(el("div","detail-head",d.label||""));const content=el("div","text");markdown(content,d.text||"");box.appendChild(content);body.appendChild(box);}
@@ -192,12 +198,17 @@ appendDiff(body,item.diff);
 c.appendChild(body);return c;}
 function focusCard(id){const target=document.querySelector(`.card[data-id="${id}"]`);if(!target)return;if(target.hidden){filterMode="all";refresh();}target.scrollIntoView({behavior:"smooth",block:"center"});target.classList.add("flash");window.setTimeout(()=>target.classList.remove("flash"),1500);}
 function setOpen(card,open){card.classList.toggle("open",open);const button=card.querySelector(".card-toggle");button.setAttribute("aria-expanded",String(open));button.querySelector(".disclosure").textContent=open?"▾":"▸";}
-function decision(id){const group=el("fieldset","decision");group.setAttribute("aria-label","項目の対応方針");for(const [value,label] of DECISIONS){const labelEl=el("label","decision-"+value,label);const input=document.createElement("input");input.type="checkbox";input.value=value;input.addEventListener("change",()=>{applyDecision(id,input.checked?value:null);setOpen(input.closest(".card"),false);refresh();maybeOfferAutoSave();});labelEl.prepend(input);group.appendChild(labelEl);}return group;}
-// apply は依存閉包と連動させる。dismiss は片方だけ却下する判断が成立するので連動しない
-function applyDecision(id,value){const deps=closure(id);const s=itemState(id);if(value==="apply"&&deps.length){const missing=deps.filter(d=>itemState(d).decision!=="apply");if(missing.length){const ok=window.confirm(`項目${id}は${missing.map(d=>"項目"+d).join("・")}と同時適用が必要です。まとめて「適用する」にしますか？`);if(!ok){s.decision=null;return;}for(const d of deps)itemState(d).decision="apply";}}
+function noteBox(id){const wrap=el("div","note-wrap");wrap.hidden=true;const area=document.createElement("textarea");area.className="note";area.rows=2;area.placeholder="AIへの検討観点（任意）。書き終えたら「確定」";area.setAttribute("aria-label","AIへの検討観点");const confirm=el("button","note-confirm","確定");confirm.type="button";confirm.hidden=true;
+function commit(){if(!drafting.has(id))return;const s=itemState(id);drafting.delete(id);s.decision="consider";if(!s.note)delete s.note;setOpen(wrap.closest(".card"),false);refresh();maybeOfferAutoSave();}
+area.addEventListener("input",()=>{const s=itemState(id);if(s.decision==="consider"||drafting.has(id))s.note=area.value;});
+area.addEventListener("keydown",e=>{if((e.metaKey||e.ctrlKey)&&e.key==="Enter"){e.preventDefault();commit();}});
+confirm.addEventListener("click",commit);wrap.appendChild(area);wrap.appendChild(confirm);return wrap;}
+function decision(id){const group=el("fieldset","decision");group.setAttribute("aria-label","項目の対応方針");for(const [value,label] of DECISIONS){const labelEl=el("label","decision-"+value,label);const input=document.createElement("input");input.type="checkbox";input.value=value;input.addEventListener("change",()=>{const card=input.closest(".card");if(value==="consider"&&input.checked){applyDecision(id,null);drafting.add(id);refresh();card.querySelector(".note").focus();return;}drafting.delete(id);applyDecision(id,input.checked?value:null);setOpen(card,false);refresh();maybeOfferAutoSave();maybeOfferAutoSave();});labelEl.prepend(input);group.appendChild(labelEl);}return group;}
+// apply は依存閉包と連動させる(閉包メンバーが consider なら audit-fix の検討で解決するので許容)。dismiss は片方だけ却下する判断が成立するので連動しない
+function applyDecision(id,value){const deps=closure(id);const s=itemState(id);if(value==="apply"&&deps.length){const missing=deps.filter(d=>!["apply","consider"].includes(itemState(d).decision));if(missing.length){const ok=window.confirm(`項目${id}は${missing.map(d=>"項目"+d).join("・")}と同時適用が必要です。まとめて「適用する」にしますか？`);if(!ok){s.decision=null;return;}for(const d of deps)itemState(d).decision="apply";}}
 if(s.decision==="apply"&&value!=="apply"&&deps.length){const paired=deps.filter(d=>itemState(d).decision==="apply");if(paired.length&&window.confirm(`項目${id}は${paired.map(d=>"項目"+d).join("・")}と同時適用が必要です。${paired.map(d=>"項目"+d).join("・")}も「適用する」を外しますか？`)){for(const d of paired)itemState(d).decision=null;}}
-s.decision=value;}
-function depViolations(){const bad=[];for(const item of DATA.items){if(itemState(item.id).decision!=="apply")continue;for(const d of closure(item.id)){if(itemState(d).decision!=="apply"&&item.id<d)bad.push([item.id,d]);else if(itemState(d).decision!=="apply"&&item.id>d)bad.push([d,item.id]);}}
+s.decision=value;if(value!=="consider")delete s.note;}
+function depViolations(){const bad=[];for(const item of DATA.items){if(itemState(item.id).decision!=="apply")continue;for(const d of closure(item.id)){const ok=["apply","consider"].includes(itemState(d).decision);if(!ok&&item.id<d)bad.push([item.id,d]);else if(!ok&&item.id>d)bad.push([d,item.id]);}}
 return [...new Set(bad.map(p=>p.join("-")))];}
 const HL_ALIAS={sh:"bash",zsh:"bash",py:"python",js:"javascript",jsx:"javascript",ts:"typescript",tsx:"typescript",yml:"yaml",md:"markdown",rb:"ruby",rs:"rust",kt:"kotlin",toml:"ini",html:"xml",htm:"xml"};
 function highlightLang(file){if(typeof hljs==="undefined")return null;const name=String(file||"").split("/").pop().toLowerCase();const ext=name.includes(".")?name.split(".").pop():name;const lang=HL_ALIAS[ext]||ext;return hljs.getLanguage(lang)?lang:null;}
@@ -206,13 +217,13 @@ function highlightedLines(context,file){const lines=context.lines;const lang=hig
 function appendContext(parent,context,file){if(!context)return;const box=el("section","code-context");box.appendChild(el("div","box-head","対象箇所(前後3行)"));if(context.error){box.appendChild(el("div","unavailable",context.error));parent.appendChild(box);return;}const pre=el("pre","code-lines");const colored=highlightedLines(context,file);context.lines.forEach((line,i)=>{const row=el("span","code-line"+(line.target?" target":""));row.appendChild(el("span","line-no",String(line.number)));const text=el("span","code-text");if(colored)text.innerHTML=colored[i];else text.textContent=line.text;row.appendChild(text);pre.appendChild(row);});box.appendChild(pre);parent.appendChild(box);}
 function appendDiff(parent,diff){if(!diff)return;const box=el("section","diff-box");box.appendChild(el("div","box-head","適用される差分"));const pre=el("pre","diff-lines");for(const line of String(diff).split("\n")){const cls=line.startsWith("+")?"diff-add":(line.startsWith("-")?"diff-del":"");pre.appendChild(el("div",cls,line));}box.appendChild(pre);parent.appendChild(box);}
 function matchesFilter(s){return filterMode==="all"||(filterMode==="pending"&&s.decision===null)||filterMode===s.decision;}
-function refresh(){const picked={apply:[],dismiss:[]};for(const item of DATA.items){const s=itemState(item.id);if(s.decision)picked[s.decision].push(item.id);const c=document.querySelector(`.card[data-id="${item.id}"]`);if(c){c.classList.toggle("completed",s.decision!==null);for(const [value] of DECISIONS)c.classList.toggle("decision-"+value,s.decision===value);c.hidden=!matchesFilter(s);const status=c.querySelector(".decision-status");status.textContent=s.decision?DECISION_LABEL[s.decision]:"";status.className="decision-status"+(s.decision?" badge decision-"+s.decision:"");for(const input of c.querySelectorAll(".decision input"))input.checked=input.value===s.decision;}}
+function refresh(){const picked={apply:[],consider:[],dismiss:[]};for(const item of DATA.items){const s=itemState(item.id);if(s.decision)picked[s.decision].push(item.id);const c=document.querySelector(`.card[data-id="${item.id}"]`);if(c){c.classList.toggle("completed",s.decision!==null);for(const [value] of DECISIONS)c.classList.toggle("decision-"+value,s.decision===value);c.hidden=!(matchesFilter(s)||drafting.has(item.id));const status=c.querySelector(".decision-status");const draftNow=drafting.has(item.id);status.textContent=s.decision?DECISION_LABEL[s.decision]:(draftNow?"✍️ 検討メモ入力中":"");status.className="decision-status"+(s.decision?" badge decision-"+s.decision:(draftNow?" badge decision-consider":""));for(const input of c.querySelectorAll(".decision input"))input.checked=input.value===s.decision||(input.value==="consider"&&drafting.has(item.id));const drafted=drafting.has(item.id),wrap=c.querySelector(".note-wrap"),note=c.querySelector(".note");wrap.hidden=!(drafted||s.decision==="consider");c.querySelector(".note-confirm").hidden=!drafted;const wanted=s.note||"";if(note.value!==wanted)note.value=wanted;}}
 for(const group of document.querySelectorAll(".cat-group"))group.hidden=![...group.querySelectorAll(".card")].some(c=>!c.hidden);
-const done=picked.apply.length+picked.dismiss.length;const counts={pending:DATA.items.length-done,apply:picked.apply.length,dismiss:picked.dismiss.length,all:DATA.items.length};
+const done=picked.apply.length+picked.consider.length+picked.dismiss.length;const counts={pending:DATA.items.length-done,apply:picked.apply.length,consider:picked.consider.length,dismiss:picked.dismiss.length,all:DATA.items.length};
 const reduction=DATA.items.filter(i=>picked.apply.includes(i.id)).reduce((sum,i)=>sum+(Number(i.estimated_reduction)||0),0);
-document.getElementById("progress").textContent=`未処理 ${counts.pending}/${DATA.items.length}（適用 ${counts.apply} / 対応しない ${counts.dismiss}）` + (reduction?` 短縮見込み 約${reduction}語`:"");
+document.getElementById("progress").textContent=`未処理 ${counts.pending}/${DATA.items.length}（適用 ${counts.apply} / AI検討 ${counts.consider} / 対応しない ${counts.dismiss}）` + (reduction?` 短縮見込み 約${reduction}語`:"");
 const violations=depViolations();document.getElementById("dep-violations").textContent=violations.length?`依存違反 ${violations.length}（${violations.map(v=>"#"+v.replace("-"," と #")).join(", ")}）`:"";
-document.getElementById("params").textContent=picked.apply.length?`適用: ${picked.apply.join(",")}`:"適用: (未選択)";
+document.getElementById("params").textContent=(picked.apply.length?`適用: ${picked.apply.join(",")}`:"適用: (未選択)")+(picked.consider.length?` / AI検討: ${picked.consider.join(",")}`:"");
 for(const button of document.querySelectorAll("[data-filter]")){button.setAttribute("aria-pressed",String(button.dataset.filter===filterMode));button.textContent=`${FILTER_LABEL[button.dataset.filter]} (${counts[button.dataset.filter]})`;}
 document.getElementById("save-state").disabled=!CAN_SAVE_STATE||done!==DATA.items.length||violations.length>0;}
 async function saveToFilePicker(){fileHandle=await window.showSaveFilePicker({suggestedName:"state.json",types:[{description:"JSON",accept:{"application/json":[".json"]}}]});const writer=await fileHandle.createWritable();await writer.write(JSON.stringify(state,null,1));await writer.close();}

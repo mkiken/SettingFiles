@@ -57,6 +57,30 @@ class RenderCategoriesTest(unittest.TestCase):
             with self.subTest(category=category):
                 self.assertIn(f'"{category}"', mod.HTML_TEMPLATE)
 
+    def test_consider_decision_filter_and_note_box_are_wired(self):
+        # 3値目の判断・フィルター・メモ欄が揃っていないと保存した note が UI から入力できない
+        for token in ('["consider","🤖 AIに検討させる"]', 'data-filter="consider"', 'noteBox(item.id)', 'wrap.hidden=true', 'note-confirm'):
+            with self.subTest(token=token):
+                self.assertIn(token, mod.HTML_TEMPLATE)
+
+    def test_consider_is_allowed_as_a_dependency_closure_member(self):
+        # apply の閉包メンバーが consider でも保存を妨げない。dismiss / 未判断だけが違反
+        self.assertIn('["apply","consider"].includes(itemState(d).decision)', mod.HTML_TEMPLATE)
+
+    def test_consider_card_stays_visible_in_the_pending_filter_for_note_entry(self):
+        # 未処理フィルターのままだと選択直後にカードが消え、メモを書けない
+        self.assertIn('drafting.has(item.id)', mod.HTML_TEMPLATE)
+        self.assertIn('.querySelector(".note").focus()', mod.HTML_TEMPLATE)
+
+    def test_consider_is_committed_only_by_the_confirm_button_or_shortcut(self):
+        # 選択だけで decision を確定しない。確定前に保存確認ダイアログが出るのを防ぐ
+        self.assertIn('drafting.add(id);refresh();', mod.HTML_TEMPLATE)
+        self.assertIn('s.decision="consider"', mod.HTML_TEMPLATE)
+        self.assertIn('e.key==="Enter"', mod.HTML_TEMPLATE)
+
+    def test_leaving_consider_drops_the_note(self):
+        self.assertIn('if(value!=="consider")delete s.note;', mod.HTML_TEMPLATE)
+
     def test_render_embeds_each_item_category(self):
         data = audit([item(i + 1, category=c) for i, c in enumerate(CATEGORIES)])
         html = mod.render(data)
