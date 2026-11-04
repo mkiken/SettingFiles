@@ -8,7 +8,7 @@ Before creating a file, check whether the target exists. If it does, read its co
 
 # File References When Addressing the User
 
-When referencing a file/location to the user (questions, confirmations, findings), use repository-root-relative path + `:line` when known. Bare filenames are ambiguous. (Line numbers are fine here as messages are ephemeral.)
+When referencing a file/location to the user (questions, confirmations, findings), use repository-root-relative path + `:line` when known instead of bare filenames.
 
 # Written Deliverable Length
 
@@ -38,8 +38,7 @@ Use an absolute path when standard behavior matters; verify non-obvious paths wi
 When declaring shell variables, avoid zsh special parameters such as `status` and `path`; use task-specific names such as `test_exit`.
 
 - `-i` aliases (`cp`, `mv`) silently fail non-interactively when overwriting; use `/bin/cp` or `/bin/mv`.
-- `rm` and `/bin/rm` always fail permission-denied; always use `trash`.
-- `trash` does not accept rm-style flags (`-r`, `-f`, `-rf` fail); pass files and directories without flags.
+- `rm` and `/bin/rm` fail permission-denied; always use `trash`. `trash` rejects rm-style flags (`-r`, `-f`, `-rf`); pass targets without flags.
 - `eza` does not accept GNU/BSD `ls` flags: it hard-errors on flags like `-t` (its `--time <FIELD>` expects a named value) instead of behaving like `ls`. When a flag's meaning must match traditional `ls`, use `/bin/ls`.
 
 - Prefer `type <name>` to resolve zsh symbols; `typeset -f` misses aliases.
