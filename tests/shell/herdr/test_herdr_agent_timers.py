@@ -39,7 +39,7 @@ def reports(calls):
     return [args for args in calls if args[1:3] == ["pane", "report-metadata"]]
 
 
-def run_main(panes, claude_at=None, codex_at=None, now=0, get_override=None):
+def run_main(panes, claude_at=None, codex_at=None, now=0, get_override=None, pane_id=None):
     calls = []
     output = StringIO()
     timers = {
@@ -50,7 +50,7 @@ def run_main(panes, claude_at=None, codex_at=None, now=0, get_override=None):
             patch.object(MODULE.time, "time", return_value=now), \
             patch.dict(MODULE.TIMERS, timers), \
             patch("sys.stdout", output):
-        MODULE.main()
+        MODULE.main(pane_id)
     return calls, output.getvalue()
 
 
@@ -135,6 +135,37 @@ class MainTest(unittest.TestCase):
         self.assertIn("codex_last_response=🟢⏳20m", sent[1])
         self.assertEqual(sent[0][sent[0].index("--ttl-ms") + 1], "180000")
         self.assertEqual(output.strip(), "")
+
+    def test_working_codex_overrides_completion_age_and_missing_record(self):
+        for completed in (0, 1900, None):
+            with self.subTest(completed=completed):
+                pane = pane_of("x", "codex", "xs")
+                latest = {**pane, "agent_status": "working"}
+                calls, _ = run_main([pane], codex_at=completed, now=2000, get_override={"x": latest})
+                self.assertIn("codex_last_response=▶ 実行中", reports(calls)[0])
+
+    def test_nonworking_codex_uses_completion_timer(self):
+        for state in ("idle", "done", "blocked", "unknown"):
+            with self.subTest(state=state):
+                pane = {**pane_of("x", "codex", "xs"), "agent_status": state}
+                calls, _ = run_main([pane], codex_at=1900, now=2000)
+                self.assertIn("codex_last_response=🟢⏳28m", reports(calls)[0])
+
+    def test_target_pane_only_and_session_change(self):
+        panes = [pane_of("x", "codex", "xs"), pane_of("c", "claude", "cs")]
+        calls, _ = run_main(panes, claude_at=0, codex_at=0, pane_id="x")
+        self.assertEqual(len(reports(calls)), 1)
+        self.assertEqual(reports(calls)[0][3], "x")
+        self.assertFalse(any(args[1:3] == ["pane", "list"] for args in calls))
+        # First lookup is the target; second lookup detects a changed session.
+        sequence = [panes[0], pane_of("x", "codex", "new")]
+        calls = []
+        def run(args, **kwargs):
+            calls.append(args)
+            return type("Result", (), {"stdout": json.dumps({"result": {"pane": sequence.pop(0)}}).encode()})()
+        with patch.object(MODULE.subprocess, "run", side_effect=run), patch.object(MODULE, "last_completion", return_value=0):
+            MODULE.main("x")
+        self.assertEqual(reports(calls), [])
 
     def test_pane_without_agent_session_is_skipped(self):
         panes = [{"pane_id": "c", "agent": "claude", "tokens": {}}]

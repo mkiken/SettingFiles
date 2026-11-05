@@ -63,6 +63,8 @@ class NotifyOnAgentStatusFullTest(unittest.TestCase):
         agent_status: str = "done",
         notification_shown: str = "true",
         toast_delivery: str | None = None,
+        agent: str = "claude",
+        event: str = "pane.agent_status_changed",
     ) -> subprocess.CompletedProcess:
         # toast_delivery指定時だけ $HOME/.config/herdr/config.toml を用意する。
         # 未指定（既定）ではconfigを置かないので、実装のfail-safe（config不在→API試行）
@@ -86,7 +88,7 @@ class NotifyOnAgentStatusFullTest(unittest.TestCase):
                 {
                     "result": {
                         "pane": {
-                            "agent": "claude",
+                            "agent": agent,
                             "pane_id": "pane-1",
                             "tab_id": "tab-1",
                             "terminal_title_stripped": "会話の概要タイトル",
@@ -107,9 +109,9 @@ class NotifyOnAgentStatusFullTest(unittest.TestCase):
 
         event_json = json.dumps(
             {
-                "event": "pane.agent_status_changed",
+                "event": event,
                 "data": {
-                    "agent": "claude",
+                    "agent": agent,
                     "agent_status": agent_status,
                     "pane_id": "pane-1",
                 },
@@ -134,6 +136,24 @@ class NotifyOnAgentStatusFullTest(unittest.TestCase):
         return subprocess.run(
             ["zsh", str(HOOK)], env=env, text=True, capture_output=True, check=False
         )
+
+    def test_codex_events_refresh_target_and_failure_keeps_notification(self):
+        python_stub = self.root / "bin" / "python3"
+        timer_log = self.root / "timer.log"
+        python_stub.write_text(
+            '#!/bin/sh\ncase "$1" in\n'
+            '*herdr-agent-timers.py) printf "%s\n" "$2" "$3" >> "$HOME/timer.log"; exit 1 ;;\n'
+            '*) exec /usr/bin/python3 "$@" ;;\nesac\n', encoding="utf-8"
+        )
+        python_stub.chmod(python_stub.stat().st_mode | stat.S_IXUSR)
+        for event in ("pane.agent_status_changed", "pane.agent_detected", "pane.focused"):
+            with self.subTest(event=event):
+                result = self.run_hook([], agent="codex", event=event)
+                self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(timer_log.read_text().splitlines(), ["--pane", "pane-1"] * 3)
+        self.assertIn("✅", self.notifier_log.read_text())
+        self.run_hook([], agent="claude")
+        self.assertEqual(timer_log.read_text().splitlines(), ["--pane", "pane-1"] * 3)
 
     def test_api_error_done_sends_error_notification(self):
         result = self.run_hook(

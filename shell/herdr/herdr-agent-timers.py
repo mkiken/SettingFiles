@@ -5,6 +5,7 @@
 # 標準出力は常に空（tab_bar_rightはタイマー代わりにだけ使う）。
 from __future__ import annotations
 
+import argparse
 import glob
 import json
 import os
@@ -107,14 +108,14 @@ TIMERS = {
 }
 
 
-def main():
+def main(pane_id=None):
     cli = os.environ.get("HERDR_BIN_PATH") or "herdr"
 
     def call(*args):
         result = subprocess.run([cli, *args], capture_output=True, check=True, timeout=1)
         return json.loads(result.stdout) if result.stdout.strip() else {}
 
-    panes = call("pane", "list")["result"]["panes"]
+    panes = [call("pane", "get", pane_id)["result"]["pane"]] if pane_id else call("pane", "list")["result"]["panes"]
     now = time.time()
     for pane in panes:
         agent = pane.get("agent")
@@ -126,14 +127,18 @@ def main():
             continue
         token, base_time, ttl = TIMERS[agent]
         at = base_time(sid)
-        if at is None and not pane.get("tokens", {}).get(token):
+        if agent != "codex" and at is None and not pane.get("tokens", {}).get(token):
             continue
         # 一覧取得後にペインのセッションが入れ替わっていたら書かない。
-        if session(call("pane", "get", pane_id)["result"]["pane"], agent) != sid:
+        latest = call("pane", "get", pane_id)["result"]["pane"]
+        if session(latest, agent) != sid:
             continue
-        if at is None:
+        if agent == "codex" and latest.get("agent_status") == "working":
+            call("pane", "report-metadata", pane_id, "--source", SOURCE, "--agent", agent,
+                 "--token", f"{token}=▶ 実行中", "--ttl-ms", str(TOKEN_TTL_MS))
+        elif at is None and pane.get("tokens", {}).get(token):
             call("pane", "report-metadata", pane_id, "--source", SOURCE, "--clear-token", token)
-        else:
+        elif at is not None:
             call("pane", "report-metadata", pane_id, "--source", SOURCE, "--agent", agent,
                  "--token", f"{token}={format_remaining(now, at, ttl)}", "--ttl-ms", str(TOKEN_TTL_MS))
     print("")
@@ -141,6 +146,8 @@ def main():
 
 if __name__ == "__main__":
     try:
-        main()
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--pane")
+        main(parser.parse_args().pane)
     except (OSError, ValueError, KeyError, TypeError, AttributeError, subprocess.SubprocessError):
         print("")

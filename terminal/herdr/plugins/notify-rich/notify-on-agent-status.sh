@@ -78,6 +78,10 @@ pane_json="$("$herdr_bin" pane get "$pane_id" 2>/dev/null)"
 [[ -z "$agent" ]] \
   && agent="$(print -r -- "$pane_json" | jq -r '.result.pane.agent // empty' 2>/dev/null)"
 
+if [[ "$agent" == "codex" ]]; then
+  python3 "${REPO_ROOT}/shell/herdr/herdr-agent-timers.py" --pane "$pane_id" >/dev/null 2>&1 || true
+fi
+
 # タブをfocusした＝シェルの完了✅/失敗❌を見たので確認済みとして落とす。
 # gemini guardより前に置くのは意図的: このクリアはシェル所有の状態が対象で、
 # そのタブでどのAIが動いているかとは無関係。geminiがnotify-richの通知/ラベル
