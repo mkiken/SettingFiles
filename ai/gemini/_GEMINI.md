@@ -5,9 +5,7 @@
 
 # User Confirmation
 
-When asking for confirmation, clarification, or any question requiring a user response, always use the `ask_user` tool instead of plain text output.
-
-Plain text questions end the current turn and trigger the AfterAgent hook, sending a "finished" notification indistinguishable from task completion. `ask_user` keeps the turn active and avoids the false completion notification.
+When asking for confirmation, clarification, or any question requiring a user response, always use the `ask_user` tool instead of plain text output. Plain text questions end the turn and trigger the AfterAgent completion hook, sending a false completion notification.
 
 # Language
 
@@ -31,5 +29,4 @@ If `AI_REVIEW_OUTPUT_FILE` is set and recovery failed, write the failure to that
 
 # Planning & Approval
 
-- When asking the user for plan approval, agreement, or feedback (such as invoking `ask_user` or requesting feedback), **you MUST always output the full markdown content of the plan in the same message**.
-- Do not ask for approval or verification without showing the full details of the plan. Output the plan content in its entirety.
+- When asking the user for plan approval, agreement, or feedback (such as invoking `ask_user`), **you MUST always output the full markdown content of the plan in the same message**; never ask without displaying the complete plan.

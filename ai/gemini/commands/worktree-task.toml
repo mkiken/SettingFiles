@@ -6,7 +6,6 @@ prompt = """Run the requested task in an isolated Git worktree.
 - Treat `{{args}}` as the task prompt. If it is empty, ask for the task before changing the repository.
 - Keep the task isolated from the invoking worktree.
 - Note: Dynamic `git` / `zsh` calls will require user confirmation during execution (Gemini CLI limitation).
-- For every user confirmation, use the `ask_user` tool.
 - In Gemini CLI, execute commands with `run_shell_command`.
 
 ## Core Instructions

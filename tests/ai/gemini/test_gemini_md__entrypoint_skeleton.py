@@ -72,7 +72,7 @@ class GeminiEntrypointSkeletonTest(unittest.TestCase):
         # "approve before reading" gap this session fixed for Claude.
         for required in (
             "you MUST always output the full markdown content of the plan in the same message",
-            "Do not ask for approval or verification without showing the full details of the plan",
+            "never ask without displaying the complete plan",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.gemini_md)
