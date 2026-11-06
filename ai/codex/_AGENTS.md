@@ -82,6 +82,10 @@ Favor caution over speed; scale the process to the task. Keep trivial changes li
 
 State assumptions explicitly before implementing. If anything is unclear or uncertain, stop, explain the uncertainty, and ask; do not guess or continue dependent work before the answer. Present multiple plausible interpretations rather than silently choosing one. Surface trade-offs and simpler approaches, and push back when warranted.
 
+## Research Before Implementation
+
+For unfamiliar features, protocols, or integrations, consult existing code and official documentation first. Where design uncertainty remains, compare mature GitHub implementations, tests, and relevant issues; explain their applicable conditions, dependencies, and differences from the current requirements before choosing the smallest suitable implementation. Simple changes do not require unrelated research or additional dependencies.
+
 ## Simplicity First
 
 Write the minimum code that solves the requested problem. Do not add unrequested features, speculative flexibility or configurability, or abstractions for single-use code. Simplify overcomplicated solutions without making line count a goal. Follow Edge-Case Scope for error handling.
