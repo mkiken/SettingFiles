@@ -423,13 +423,13 @@ if [[ "$agent" == "codex" && -n "$session_id" ]]; then
     source "${REPO_ROOT}/shell/tmux/ai_notification_summary.sh" 2>/dev/null || exit 0
     # blocked（herdr検知の入力待ち）と、doneでもアシスタントが質問で終えた場合は
     # tmuxの✋応答待ちと同じく最終アシスタントメッセージを出す。それ以外の完了は
-    # タスク種別絵文字＋最初のユーザーメッセージ（tmuxの✅終了と同形式）。
+    # タスク種別絵文字＋最新の応答（空なら最新の依頼）。
     summary="$(if [[ "$agent_status" == "blocked" || "${WAITING_FOR_USER_RESPONSE:-}" == "true" ]]; then
       build_session_summary "✋" "${LAST_ASSISTANT_MESSAGE:-}" \
         "${USER_MESSAGE_COUNT:-0}" "${SESSION_DURATION_FORMATTED:-}"
     else
       build_session_summary "$(guess_task_type_emoji "${FIRST_USER_MESSAGE:-}")" \
-        "${FIRST_USER_MESSAGE:-}" "${USER_MESSAGE_COUNT:-0}" "${SESSION_DURATION_FORMATTED:-}"
+        "${LAST_ASSISTANT_MESSAGE:-${LAST_USER_MESSAGE:-}}" "${USER_MESSAGE_COUNT:-0}" "${SESSION_DURATION_FORMATTED:-}"
     fi)" || exit 0
     jq -n --arg summary "$summary" \
       --argjson waiting "${WAITING_FOR_USER_RESPONSE:-false}" \

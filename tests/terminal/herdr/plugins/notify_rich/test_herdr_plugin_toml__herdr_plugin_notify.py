@@ -452,6 +452,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         user_text: str = "通知のバグを修正して",
         include_messages: bool = True,
         followup_messages: tuple[str, ...] = (),
+        earlier_assistant_text: str = "以前の応答です。",
     ) -> str:
         lines = [json.dumps({"type": "session_meta", "payload": {"id": "session-abc"}})]
         if include_messages:
@@ -468,6 +469,13 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                     }
                 )
             )
+            if followup_messages:
+                lines.append(json.dumps({
+                    "type": "response_item", "payload": {
+                        "type": "message", "role": "assistant",
+                        "content": [{"type": "output_text", "text": earlier_assistant_text}],
+                    },
+                }))
             for text in followup_messages:
                 lines.append(json.dumps({
                     "type": "response_item", "payload": {
@@ -491,7 +499,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         return "\n".join(lines) + "\n"
 
     def test_codex_done_notifies_with_transcript_summary(self):
-        # 完了はtmuxの✅終了と同形式: タスク種別絵文字＋最初のユーザーメッセージ。
+        # 完了はタスク種別絵文字＋最新のアシスタントメッセージ。
         # 「修正」を含むユーザーメッセージ→💻。統計行は廃止済みのため出ない。
         # tab_label(既定"4")はcodexなので会話概要に置き換わらず場所行にそのまま出る。
         # Herdrのシステム通知音はdone。
@@ -508,11 +516,23 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         self.assertEqual(
             events[1:],
             [
-                "message=💻 通知のバグを修正して",
+                "message=💻 修正しました。テストも追加しています。",
                 "🖥️ [7] ai-work : [2] 4",
                 "sound=done",
             ],
         )
+
+    def test_codex_done_without_assistant_message_uses_latest_user_message(self):
+        result, events = self.run_plugin(
+            agent="codex",
+            agent_status="done",
+            codex_transcript=self.codex_transcript_fixture(
+                assistant_text="", followup_messages=("最新の依頼です",), earlier_assistant_text="",
+            ),
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("message=💻 最新の依頼です", events)
 
     def test_codex_blocked_notifies_with_assistant_message(self):
         # 入力待ちはtmuxの✋応答待ちと同形式: ✋＋最終アシスタントメッセージ。
@@ -573,12 +593,12 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         result, events = self.run_plugin(
             agent="codex",
             agent_status="done",
-            codex_transcript=self.codex_transcript_fixture(user_text="あ" * 100, followup_messages=("別の依頼です",)),
+            codex_transcript=self.codex_transcript_fixture(assistant_text="あ" * 100, followup_messages=("別の依頼です",)),
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
         message_line = next(line for line in events if line.startswith("message="))
-        self.assertEqual(message_line, "message=💬 " + "あ" * 75 + "...")
+        self.assertEqual(message_line, "message=💻 " + "あ" * 75 + "...")
         self.assertNotIn("�", message_line)
 
     def test_codex_missing_transcript_falls_back_to_title(self):
