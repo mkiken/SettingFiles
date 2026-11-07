@@ -58,10 +58,10 @@ agent_status="$(print -r -- "$event_json" \
 # meaningful for codex tabs, so codex keeps only its identifier emoji + status icon
 # (e.g. 🪷🤖1) instead of having the label replaced by the conversation title.
 #
-# The notification BODY is likewise agent-split: claude uses terminal_title_stripped
-# as-is, codex replaces it with a transcript-derived summary (same build_session_summary
-# format as the tmux hooks) resolved via agent_session.value == codex session_id —
-# see the notify_body block below. Codex's choice prompts fire no codex hook, so this
+# The notification BODY is transcript-derived for both: a build_session_summary line
+# (same format as the tmux hooks) resolved via agent_session.value == session_id, falling
+# back to terminal_title_stripped when the transcript cannot be resolved — see the
+# notify_body block below. Codex's choice prompts fire no codex hook, so this
 # plugin must stay codex's single notifier under Herdr; only the body text is enriched.
 
 herdr_bin="${HERDR_BIN_PATH:-herdr}"
@@ -322,7 +322,7 @@ esac
 # 「残り全部を最後の行として読む」行ベースで受け取る（呼び出し側のIFS= read -r ×2 +
 # cat参照）。fail-safe: 途中で失敗すれば空出力に落ち、呼び出し側は全変数が空のまま
 # 従来どおり通常の完了通知にフォールバックする。
-if [[ "$agent" == "claude" && "$agent_status" == "done" ]]; then
+if [[ "$agent" == "claude" ]]; then
   claude_pending="$(
     source "${REPO_ROOT}/shell/tmux/ai_notification_summary.sh" 2>/dev/null || exit 0
     transcript="$(resolve_host_transcript "$session_id")" || exit 0
@@ -332,6 +332,16 @@ if [[ "$agent" == "claude" && "$agent_status" == "done" ]]; then
     print -r -- "${PENDING_BACKGROUND_WORK:-0}"
     print -r -- "${LAST_TURN_API_ERROR:-}"
     print -r -- "${LAST_TURN_API_ERROR_TEXT:-}"
+    # 4行目以降は要約（build_session_summaryは1行出力）。blockedは✋+最新の応答、
+    # doneはタスク種別絵文字+最新の応答（空なら最新の依頼）。codexと同じ形式。
+    if [[ "$agent_status" == "blocked" ]]; then
+      build_session_summary "✋" "${LAST_ASSISTANT_MESSAGE:-}" "${USER_MESSAGE_COUNT:-0}" \
+        "${SESSION_DURATION_FORMATTED:-}"
+    else
+      build_session_summary "$(guess_task_type_emoji "${LAST_USER_MESSAGE:-}")" \
+        "${LAST_ASSISTANT_MESSAGE:-${LAST_USER_MESSAGE:-}}" "${USER_MESSAGE_COUNT:-0}" \
+        "${SESSION_DURATION_FORMATTED:-}"
+    fi
   )"
   # $(...)は末尾改行を除去するため、空行が続くケース（エラーなし等）だと
   # パターンマッチ(%%$'\n'*)が「改行なし=1行しかない」と誤認識し、後続フィールドの
@@ -341,8 +351,9 @@ if [[ "$agent" == "claude" && "$agent_status" == "done" ]]; then
   { IFS= read -r claude_pending_flag
     IFS= read -r claude_api_error
     IFS= read -r claude_api_error_text
+    IFS= read -r claude_summary
   } <<< "$claude_pending"
-  [[ "$claude_pending_flag" == "1" && -z "$claude_api_error" ]] && exit 0
+  [[ "$agent_status" == "done" && "$claude_pending_flag" == "1" && -z "$claude_api_error" ]] && exit 0
 fi
 
 # Workspace display name isn't in the context JSON; resolve it with one `workspace list` call.
@@ -387,7 +398,7 @@ esac
 # 上書きする（tmux経路 stop-send-notification.sh の❌エラー停止分岐と体裁を揃える）。
 # burst抑止も同じ関数を使い、同一セッション・同一エラー種別の短時間再通知を防ぐ。
 api_error_notify_body=""
-if [[ "$agent" == "claude" && -n "${claude_api_error:-}" ]]; then
+if [[ "$agent" == "claude" && "$agent_status" == "done" && -n "${claude_api_error:-}" ]]; then
   if ! api_error_burst_should_suppress "$session_id" "$claude_api_error" "$(date +%s)" 60; then
     status_emoji="$EMOJI_STATUS_ERROR"
     label_text="エラー停止"
@@ -398,8 +409,9 @@ if [[ "$agent" == "claude" && -n "${claude_api_error:-}" ]]; then
   fi
 fi
 
-# 通知本文: claudeはterminal_title_stripped（会話概要として有意味）をそのまま使う。
-# codexはそのタイトルが無意味なため、agent_session.value（codexのsession_id、
+# 通知本文: claude/codexともtranscript由来の概要（build_session_summary）を使い、
+# 取れなければterminal_title_strippedへフォールバックする。claudeは上のtranscript解析
+# ブロックのclaude_summary、codexはそのタイトルが無意味なため、agent_session.value（codexのsession_id、
 # herdr-agent-state.shがSessionStartのhook入力から報告）でtranscriptを解決し、
 # tmuxフックと同じbuild_session_summary形式の概要に差し替える。
 # サブシェルに閉じ込める理由: setopt bsd_echo（zsh builtin echoの\n展開抑止）と、
@@ -413,6 +425,7 @@ notify_body="$title_text"
 if [[ "$agent" == "claude" ]] && (( editor_title_rc != 1 )); then
   notify_body="${last_auto_label:-(no title)}"
 fi
+[[ "$agent" == "claude" && -n "${claude_summary:-}" ]] && notify_body="$claude_summary"
 if [[ "$agent" == "codex" && -n "$session_id" ]]; then
   codex_notification="$(
     setopt bsd_echo 2>/dev/null

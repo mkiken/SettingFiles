@@ -633,10 +633,67 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                     "message=Herdr通知をカスタマイズしてworkspace情報を表示", events
                 )
 
-    def test_claude_body_is_not_replaced_by_transcript_summary(self):
-        # 本文のtranscript概要差し替えはcodex限定。claudeはtitle_text（会話概要として
-        # 有意味）をそのまま本文に使う。
-        result, events = self.run_plugin(agent="claude", agent_status="done")
+    @staticmethod
+    def claude_summary_transcript(assistant_text: str | None = "修正しました。") -> str:
+        lines = [
+            json.dumps(
+                {"message": {"role": "user", "content": "バグを修正して"}},
+                ensure_ascii=False,
+            )
+        ]
+        if assistant_text is not None:
+            lines.append(
+                json.dumps(
+                    {
+                        "message": {
+                            "role": "assistant",
+                            "content": [{"type": "text", "text": assistant_text}],
+                        }
+                    },
+                    ensure_ascii=False,
+                )
+            )
+        return "\n".join(lines) + "\n"
+
+    def test_claude_done_body_uses_transcript_summary(self):
+        # 完了はcodexと同じ「タスク種別絵文字＋最新の応答」。terminal_titleは本文に出ない。
+        result, events = self.run_plugin(
+            agent="claude",
+            agent_status="done",
+            claude_transcript=self.claude_summary_transcript(),
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("message=💻 修正しました。", events)
+        self.assertNotIn(
+            "message=Herdr通知をカスタマイズしてworkspace情報を表示", events
+        )
+
+    def test_claude_done_without_assistant_message_uses_latest_user_message(self):
+        result, events = self.run_plugin(
+            agent="claude",
+            agent_status="done",
+            claude_transcript=self.claude_summary_transcript(assistant_text=None),
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("message=💻 バグを修正して", events)
+
+    def test_claude_blocked_body_uses_wait_summary(self):
+        result, events = self.run_plugin(
+            agent="claude",
+            agent_status="blocked",
+            claude_transcript=self.claude_summary_transcript("どちらにしますか？"),
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("message=✋ どちらにしますか？", events)
+
+    def test_claude_done_missing_transcript_keeps_title_body(self):
+        # transcript未解決はtitle_textへフォールバックする。
+        result, events = self.run_plugin(
+            agent="claude", agent_status="done", claude_transcript=None
+        )
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn(

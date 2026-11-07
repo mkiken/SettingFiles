@@ -263,6 +263,7 @@ def _resolve_pending_background_work(state, last_timestamp):
 def analyze_lines(lines):
     result = {
         "last_user_message": "",
+        "last_assistant_message": "",
         "user_count": 0,
         "assistant_count": 0,
         "first_timestamp": "",
@@ -371,6 +372,7 @@ def analyze_lines(lines):
                 background_state["sync_last_event"] = None
         elif role == "assistant":
             result["assistant_count"] += 1
+            result["last_assistant_message"] = stripped
             result["last_turn_api_error"] = ""
             result["last_turn_api_error_text"] = ""
             background_state["sync_last_event"] = None
@@ -394,6 +396,7 @@ def main(argv):
         result["first_timestamp"], result["last_timestamp"]
     )
     print(f"LAST_USER_MESSAGE={shlex.quote(result['last_user_message'])}")
+    print(f"LAST_ASSISTANT_MESSAGE={shlex.quote(result['last_assistant_message'])}")
     print(f"USER_MESSAGE_COUNT={result['user_count']}")
     print(f"ASSISTANT_MESSAGE_COUNT={result['assistant_count']}")
     print(f"FIRST_TIMESTAMP={shlex.quote(result['first_timestamp'])}")

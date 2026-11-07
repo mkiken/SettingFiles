@@ -125,6 +125,22 @@ class TestApplyCommandTags(unittest.TestCase):
 
 
 class TestAnalyzeLines(unittest.TestCase):
+    def test_last_assistant_message(self):
+        text_block = [{"type": "text", "text": "最終応答です"}]
+        tool_block = [{"type": "tool_use", "id": "t1", "name": "Read", "input": {}}]
+        cases = [
+            ("最後のtext応答", [user_line("依頼です"), assistant_line(text_block)], "最終応答です"),
+            (
+                "tool_useのみの行は直前のtext応答を上書きしない",
+                [user_line("依頼です"), assistant_line(text_block), assistant_line(tool_block)],
+                "最終応答です",
+            ),
+            ("assistant行なし", [user_line("依頼です")], ""),
+        ]
+        for desc, lines, expected in cases:
+            with self.subTest(desc=desc):
+                self.assertEqual(cta.analyze_lines(lines)["last_assistant_message"], expected)
+
     def test_empty_input(self):
         for desc, lines in [("空入力", []), ("空行のみ", ["", "   ", "\n"])]:
             with self.subTest(desc=desc):
