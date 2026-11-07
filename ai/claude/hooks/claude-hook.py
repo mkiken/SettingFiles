@@ -17,6 +17,13 @@ update_tmux_window_name = partial(_twn.update_tmux_window_name, identifier=IDENT
 
 def main():
     if os.environ.get("HERDR_ENV") == "1":
+        try:
+            input_data = json.load(sys.stdin)
+            if input_data.get("hook_event_name") == "UserPromptSubmit" and not input_data.get("agent_id"):
+                from herdr_review_sessions import register
+                register("claude", input_data.get("session_id"), bool(os.environ.get("AI_REVIEW_OUTPUT_FILE")))
+        except (ValueError, AttributeError):
+            pass
         return
 
     input_data = json.load(sys.stdin)

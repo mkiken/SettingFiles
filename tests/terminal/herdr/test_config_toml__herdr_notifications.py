@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 
 
-from support import REPO_ROOT
+from support import REPO_ROOT, sanitized_env
 
 
 class HerdrNotificationTest(unittest.TestCase):
@@ -63,6 +63,55 @@ class HerdrNotificationTest(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 1)
         self.assertIn("invalid hook input JSON", result.stderr)
+
+    def test_review_sessions_are_registered_and_isolated(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            env = sanitized_env()
+            env.update({"HOME": tmp, "HERDR_ENV": "1", "AI_REVIEW_OUTPUT_FILE": "/tmp/review"})
+            def invoke(agent, session, event="UserPromptSubmit", **fields):
+                payload = {"hook_event_name": event, "session_id": session, **fields}
+                result = subprocess.run(
+                    [sys.executable, str(REPO_ROOT / f"ai/{agent}/hooks/{agent}-hook.py")],
+                    input=json.dumps(payload), text=True, capture_output=True, env=env,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+            def matches(agent, session):
+                result = subprocess.run(
+                    [sys.executable, str(REPO_ROOT / "shell/tmux/herdr_review_sessions.py"), agent, session],
+                    env=env, capture_output=True,
+                )
+                return result.returncode == 0
+            invoke("claude", "one")
+            invoke("codex", "two")
+            invoke("claude", "sub", agent_id="child")
+            self.assertTrue(matches("claude", "one"))
+            self.assertTrue(matches("codex", "two"))
+            self.assertFalse(matches("codex", "one"))
+            self.assertFalse(matches("claude", "two"))
+            self.assertFalse(matches("claude", "sub"))
+            invoke("claude", "one", event="SessionEnd")
+            self.assertTrue(matches("claude", "one"))
+            env.pop("AI_REVIEW_OUTPUT_FILE")
+            invoke("claude", "one")
+            self.assertFalse(matches("claude", "one"))
+            self.assertTrue(matches("codex", "two"))
+            invoke("codex", "normal")
+            self.assertFalse(matches("codex", "normal"))
+
+    def test_review_registration_failure_does_not_block_hook(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp) / "home"
+            home.write_text("not a directory")
+            env = sanitized_env()
+            env.update({"HOME": str(home), "HERDR_ENV": "1", "AI_REVIEW_OUTPUT_FILE": "review"})
+            for agent in ("claude", "codex"):
+                with self.subTest(agent=agent):
+                    result = subprocess.run(
+                        [sys.executable, str(REPO_ROOT / f"ai/{agent}/hooks/{agent}-hook.py")],
+                        input=json.dumps({"hook_event_name": "UserPromptSubmit", "session_id": "s"}),
+                        text=True, capture_output=True, env=env,
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_gemini_notifies_and_keeps_context_alert_under_herdr(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
