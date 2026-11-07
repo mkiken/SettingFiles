@@ -32,9 +32,48 @@ class PrVerifyContractTest(unittest.TestCase):
             "Neutralize mention markup",
             "Stop execution, report the reproduction",
             "obtain approval before fixing",
-            "never pushes, merges, or posts to the PR",
+            "Never push to the original\nor PR branch",
             "Commit only on the verification branch",
-            "Never delete the verification branch",
+            "delete the verification branch or its remote ref",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, content)
+
+    def test_publication_requires_approval_and_verified_push(self):
+        content = (SKILL / "SKILL.md").read_text()
+        for requirement in (
+            "Local commit approval does not\n  authorize pushing or updating the PR body",
+            "Wait for explicit publication approval",
+            "GitHub Actions run, Jenkins build/job and Slack notification links",
+            "Do not trigger jobs or send Slack messages",
+            "remaining concerns",
+            "containing the saved verification commit SHA",
+            "destination is the PR's base repository",
+            "inspect push hooks and workflows",
+            "Push that branch with `-u`",
+            "remote ref matches the saved commit",
+            "upstream matches the pushed branch",
+            "Do not update the PR body unless push is verified",
+            "gh pr edit <PR-number> --repo <base-owner/repo> --body-file <approved-body-file>",
+            "Independently re-fetch the body",
+            "stop without automatically retrying or reposting",
+            "Never automatically delete published evidence on failure",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, content)
+
+    def test_body_replacement_preserves_user_content_and_detects_conflicts(self):
+        content = (SKILL / "SKILL.md").read_text()
+        for requirement in (
+            "<!-- pr-verify:start -->",
+            "<!-- pr-verify:end -->",
+            "With no markers, append the section",
+            "with exactly one ordered pair",
+            "Preserve all content outside the managed section",
+            "Stop on incomplete, reversed or duplicate markers",
+            "Re-read the PR body and head immediately before updating",
+            "If either changed",
+            "obtain approval again",
         ):
             with self.subTest(requirement=requirement):
                 self.assertIn(requirement, content)

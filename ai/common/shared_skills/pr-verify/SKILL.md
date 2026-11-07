@@ -114,10 +114,11 @@ The second choice proceeds to reporting and the preservation decision below.
 
 Show the pinned SHA, case results, failures, mock coverage, unverified behavior
 and report location. This workflow replaces ambient commit/push prompts with
-this preservation decision; it never pushes, merges, or posts to the PR.
+the preservation and publication decisions below. Never push to the original
+or PR branch, or merge verification changes into either branch.
 Ask exactly:
 
-1. `検証ブランチにローカルコミットしてworktreeを削除する`
+1. `検証ブランチにローカルコミットして公開準備する`
 2. `worktreeごと保持する`
 
 Both choices retain the verification branch. For the second, report its path,
@@ -133,9 +134,85 @@ branch and uncommitted status and stop. For the first:
   Independently verify the commit, saved files and clean status, including
   untracked files. If saving fails or unexpected changes remain, preserve the
   worktree and stop. Never discard files to make cleanup pass.
-- From the invoking worktree, run `git worktree remove <verification-path>`
-  without force. Verify the worktree is absent and the verification branch
-  still points to the saved commit. Never delete the verification branch.
+- Keep the worktree until publication finishes. Local commit approval does not
+  authorize pushing or updating the PR body.
+
+## Prepare the PR verification section
+
+Read the latest body from the original PR using its explicit repository and
+number. Save it and the proposed complete body under the run directory. Use
+`<!-- pr-verify:start -->` and `<!-- pr-verify:end -->` to delimit the managed
+section. With no markers, append the section; with exactly one ordered pair,
+replace only that section. Preserve all content outside the managed section.
+Stop on incomplete, reversed or duplicate markers rather than guessing repairs.
+
+Include execution time, run ID, PR URL, pinned base/head SHA, environment,
+prerequisites, steps and commands. For each case, show expected and actual
+results and status. Distinguish baseline failures, PR defects and results after
+verification-only fixes. Include mock boundaries, unverified behavior and
+remaining concerns. If the PR head advanced, state that the results apply only
+to the pinned snapshot.
+
+Link the report, verification code and sanitized logs using immutable URLs
+containing the saved verification commit SHA, not branch-relative URLs. Include
+available GitHub Actions run, Jenkins build/job and Slack notification links
+whose relationship to this verification was confirmed. Identify a job-level
+link when no specific build link is available. Mark unavailable evidence as
+unavailable; never invent URLs or treat captured notifications as delivered.
+Do not trigger jobs or send Slack messages to obtain links. Check both evidence
+files and linked content for credentials or real private data before publication.
+
+Show the proposed body and its actual diff, evidence files, destination
+repository and verification branch. The destination is the PR's base repository;
+inspect push hooks and workflows for effects such as CI and show those effects
+before approval. If their safety is uncertain, stop and resolve it first.
+Ask exactly:
+
+1. `検証ブランチをpushしてPR本文を更新する`
+2. `公開内容を修正する`
+3. `公開せずローカル保存で終了する`
+
+Wait for explicit publication approval. For revisions, regenerate the preview
+and ask again. If declined, retain the local commit and worktree and report
+their locations without publishing.
+
+## Publish and verify
+
+Immediately before pushing, resolve the current branch in the verification
+worktree and require it to match the saved verification branch and commit.
+Push that branch with `-u` to the approved base-repository remote without force.
+Independently verify the remote ref matches the saved commit and the configured
+upstream matches the pushed branch. On permission failure, stop rather than
+choosing another repository. Do not update the PR body unless push is verified.
+
+Re-read the PR body and head immediately before updating. If either changed
+since the approved preview, rebuild against the latest body, update any stale
+snapshot notice and obtain approval again. Use the exact approved file:
+
+```bash
+gh pr edit <PR-number> --repo <base-owner/repo> --body-file <approved-body-file>
+```
+
+Independently re-fetch the body and compare it with the approved file, allowing
+only CRLF/LF and trailing-newline differences. A pre-write check cannot prevent
+all concurrent edits; this post-write comparison is also required. On failure
+or mismatch, stop without automatically retrying or reposting. Report which of
+local saving, pushing and body updating succeeded or remain unconfirmed, and
+retain the worktree. Never automatically delete published evidence on failure.
+
+## Finish
+
+After successful publication, ask exactly:
+
+1. `worktreeを削除する`
+2. `worktreeごと保持する`
+
+For deletion, recheck ownership, branch, saved commit and clean status including
+untracked files. From the invoking worktree, run
+`git worktree remove <verification-path>` without force. Verify the worktree is
+absent and the verification branch still points to the saved commit. Never
+delete the verification branch or its remote ref. Preserve any unexpected or
+failed cleanup state; never discard files to make cleanup pass.
 
 Finally, independently recheck the invoking branch, HEAD and changes against the
 recorded state; report differences without overwriting concurrent work. Report
