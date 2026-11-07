@@ -37,7 +37,7 @@ dialog.
 These gates supersede the shared Plan Review Presentation criteria for Claude.
 
 
-# Fable Model Check After Plan Approval
+# Implementation Model Check After Plan Approval
 
 Immediately after `ExitPlanMode` is approved — before any other tool call — determine the current session's active model by extracting the session ID from the scratchpad path present in every system prompt (`/private/tmp/claude-<uid>/<project-slug>/<session-id>/scratchpad`) and running:
 
@@ -46,15 +46,15 @@ jq -r 'select(.type=="assistant" and (.isSidechain//false)==false) | .message.mo
   ~/.claude/projects/<project-slug>/<session-id>.jsonl | tail -1
 ```
 
-If the command fails or the result does not start with `claude-fable-`, proceed straight to implementation — do not block on a detection failure. This is separate from the Plan Review Deep-Dive dialog, which precedes `ExitPlanMode`.
+If the command fails or the result starts with `claude-sonnet-` or `claude-haiku-`, proceed straight to implementation — do not block on a detection failure. This is separate from the Plan Review Deep-Dive dialog, which precedes `ExitPlanMode`.
 
-If the result starts with `claude-fable-` (e.g. `claude-fable-5-1`), ask an `AskUserQuestion` with these options before writing or running anything:
+Otherwise (e.g. `claude-opus-5-5`, `claude-fable-5-1`), ask an `AskUserQuestion` before writing or running anything. Recommend Haiku only when the plan is a simple task needing just a small code change; otherwise (including when unsure) recommend Sonnet. Give the reason in one sentence, put the recommendation first with `(Recommended)`, and offer these three options:
 
-- Implement with Fable as-is.
-- Delegate implementation to the Agent tool with `model: "opus"`, passing the full plan content in the prompt.
+- Delegate implementation to the Agent tool with `model: "haiku"`, passing the full plan content in the prompt.
 - Delegate implementation to the Agent tool with `model: "sonnet"`, passing the full plan content in the prompt.
+- Continue with the current model.
 
-A manual model switch (`/model opus` or similar) is available through the free-form "Other" option — if chosen, wait for the user to confirm the switch before resuming implementation. Proceed once the user picks "as-is" or one of the delegate options. For a delegated implementation, the "Delegated-Work Verification" section below applies to whatever the subagent reports back.
+Free-form "Other" can request Opus delegation (`model: "opus"`) or a manual model switch (`/model sonnet` or similar) — for a switch, wait for the user to confirm before resuming implementation. For a delegated implementation, the "Delegated-Work Verification" section below applies to whatever the subagent reports back.
 
 # Delegated-Work Verification
 
