@@ -51,32 +51,32 @@ class ReviewPostInlineBodyContractTest(unittest.TestCase):
         self.assertIn("review_post_core.md", claude_skill)
         self.assertIn(self.core, codex_skill)
 
-    def test_own_pr_confirmation_requires_verified_target_host_and_identity(self):
+    def test_confirmation_is_asked_only_when_target_looks_unexpected(self):
         for required in (
-            "gh pr view <PR_NUMBER> --json author,url",
-            "same target repository as the posting request",
-            "gh api --hostname <PR_HOST> user --jq .login",
-            "both lookups succeed",
-            "non-empty strings that match exactly",
-            "another author's PR, failed lookups, missing or empty logins, or an unknown host, keep the ordinary confirmation",
-            "Do not infer ownership from Git configuration",
+            "`gh pr view <PR_NUMBER> --json number,url,state` fails",
+            "`number` or `url` differs from `pr_number` or `pr_url` in merged.json",
+            "The target PR `state` is not `OPEN`.",
+            "moved past `head_ref_oid` and the re-anchoring check changed any selected item's line",
+            "Ask for the ordinary confirmation instead, stating the reason in the preview",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.core)
 
-    def test_own_pr_exception_preserves_preview_validation_and_exception_decisions(self):
+    def test_default_skips_confirmation_but_preserves_preview_validation_and_exception_decisions(self):
         for required in (
-            "overrides only the shared `pr_post_mechanics_core.md` Preview And Confirm section's ordinary confirmation for `review-post`",
+            "ordinary confirmation is skipped for `review-post` by default",
             "Always show the selected-item preview and validate",
-            "exactly the displayed selection without waiting for ordinary confirmation",
+            "post exactly the displayed selection without waiting for confirmation",
             "Keep the user's decision on already-addressed candidates",
             "confirmation before submitting an existing PENDING review",
             "any validation failure, or post-verification",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.core)
+        self.assertNotIn("Own-PR", self.core)
+        self.assertNotIn("--json author,url", self.core)
 
-    def test_adapters_condition_confirmation_on_shared_ownership_rule(self):
+    def test_adapters_condition_confirmation_on_shared_confirmation_rule(self):
         for path in (
             CLAUDE_SKILL_PATH,
             CODEX_SKILL_PATH,
@@ -84,7 +84,8 @@ class ReviewPostInlineBodyContractTest(unittest.TestCase):
         ):
             with self.subTest(path=path):
                 text = path.read_text(encoding="utf-8")
-                self.assertIn("core's Own-PR Posting Confirmation rule", text)
+                self.assertIn("core's Final Posting Confirmation rule", text)
+                self.assertNotIn("Own-PR", text)
                 self.assertNotIn(
                     "For the final posting confirmation, ask the user directly and wait for the reply.",
                     text,

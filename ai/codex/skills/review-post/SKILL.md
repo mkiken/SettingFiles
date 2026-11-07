@@ -9,7 +9,7 @@ Parse the arguments after the skill name: a token containing `/` is <RUN_DIR>; n
 
 `{ai_header}` = `🤖 **AI コードレビュー**` — this run merges findings from several AIs, so the header never names the posting AI.
 
-When the core's Own-PR Posting Confirmation rule requires final posting confirmation, ask the user directly and wait for the reply.
+When the core's Final Posting Confirmation rule requires final posting confirmation, ask the user directly and wait for the reply.
 
 Post selected review items from a merge run directory to the PR as review comments. Respond in Japanese.
 
@@ -67,15 +67,19 @@ expected_carryover=$(jq -r --argjson item_id "$item_id" '
    - Retain each selected item id while constructing its comment payload. Before the Review API request, reject the payload unless its item ids have the same count and exact set as the selected ids: each selected id must appear exactly once, with no extras. A zero-length payload for non-empty selection, any duplicate, or any mismatch stops before posting; do not rely on a successful API response to detect a dropped item.
 5. `head_ref_oid` in merged.json is the review-time head commit for the re-anchoring check in the posting mechanics below. Items whose `line_spec` starts with `~` are pre-existing-code anchors and cannot be inline comments (see the fallback rule in the mechanics). That prefix is only one reason an item cannot be inline: a plain line number can also fall outside the diff hunks, so decide inline eligibility with the diff-hunk check in the mechanics rather than the prefix alone.
 
-## Own-PR Posting Confirmation
+## Final Posting Confirmation
 
-Before the posting mechanics' preview, retrieve the target PR's `author.login` and `url` with `gh pr view <PR_NUMBER> --json author,url`. Use the same target repository as the posting request. Extract the hostname from that PR URL and retrieve the authenticated login with `gh api --hostname <PR_HOST> user --jq .login`.
+The items were already selected in the HTML report, so the shared `pr_post_mechanics_core.md` Preview And Confirm section's ordinary confirmation is skipped for `review-post` by default. Always show the selected-item preview and validate its ids, locations, summaries, bodies, and payload before posting, then post exactly the displayed selection without waiting for confirmation.
 
-Skip only the ordinary final posting confirmation when both lookups succeed and both logins are non-empty strings that match exactly. For another author's PR, failed lookups, missing or empty logins, or an unknown host, keep the ordinary confirmation. Do not infer ownership from Git configuration, repository ownership, or saved report metadata.
+Ask for the ordinary confirmation instead, stating the reason in the preview, when any of these signs shows the post may not go where the user expects:
 
-This rule overrides only the shared `pr_post_mechanics_core.md` Preview And Confirm section's ordinary confirmation for `review-post`. Always show the selected-item preview and validate its ids, locations, summaries, bodies, and payload before posting. For a verified own PR, state that ownership matched and proceed with exactly the displayed selection without waiting for ordinary confirmation. Keep the user's decision on already-addressed candidates and the confirmation before submitting an existing PENDING review; ownership never bypasses those decisions, any validation failure, or post-verification.
+- The target PR differs from the run: `gh pr view <PR_NUMBER> --json number,url,state` fails, or its `number` or `url` differs from `pr_number` or `pr_url` in merged.json (e.g. <RUN_DIR> was given explicitly while the current branch belongs to another PR).
+- The target PR `state` is not `OPEN`.
+- The PR head moved past `head_ref_oid` and the re-anchoring check changed any selected item's line (old→new).
 
-Then follow the posting mechanics below with this confirmation exception.
+Keep the user's decision on already-addressed candidates and the confirmation before submitting an existing PENDING review; skipping the ordinary confirmation never bypasses those decisions, any validation failure, or post-verification.
+
+Then follow the posting mechanics below with this confirmation rule.
 
 ## post_state.json
 
