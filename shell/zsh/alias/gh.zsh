@@ -11,7 +11,7 @@ function ghpc() {
 alias -g ghpv='gh pr view --web'
 alias ghpu='gh pr view --json url --jq .url'
 alias -g ghiv='gh issue view --web'
-alias -g ghco='gh co'
+alias -g ghco='gh pr checkout'
 alias gh-dash='no_notify gh dash'
 alias ghd='gh-dash'
 alias ghf='no_notify gh f'

@@ -230,7 +230,7 @@ function _fghco_impl(){
   if [[ -z "$pr_number" ]]; then
     return $EXIT_CODE_SIGINT
   fi
-  gh co "$pr_number"
+  gh pr checkout "$pr_number"
 }
 alias fghco='no_notify _fghco_impl'
 
@@ -240,7 +240,7 @@ function _fghcom_impl(){
   if [[ -z "$pr_number" ]]; then
     return $EXIT_CODE_SIGINT
   fi
-  gh co "$pr_number"
+  gh pr checkout "$pr_number"
 }
 alias fghcom='no_notify _fghcom_impl'
 
