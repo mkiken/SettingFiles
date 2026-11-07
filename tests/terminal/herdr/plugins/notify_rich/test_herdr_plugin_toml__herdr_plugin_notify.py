@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import shutil
@@ -67,6 +68,8 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         notification_rc: int = 0,
         rename_observer: list[str] | None = None,
         break_label_analyzer: bool = False,
+        review_session: bool = False,
+        review_record: str | None = None,
     ) -> tuple[subprocess.CompletedProcess[str], Path]:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -167,6 +170,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
             for relative_path in (
                 "shell/tmux/ai_notification_summary.sh",
                 "shell/tmux/claude_transcript_analyze.py",
+                "shell/tmux/herdr_review_sessions.py",
                 "ai/codex/hooks/codex_hook_common.py",
             ):
                 real_file = REPO_ROOT / relative_path
@@ -256,6 +260,12 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                 )
                 fake_herdr.chmod(0o755)
 
+            if review_session:
+                key = hashlib.sha256(f"{agent}\0{session_id}".encode()).hexdigest()
+                state_file = root / ".cache/herdr-review-sessions" / key
+                state_file.parent.mkdir(parents=True)
+                state_file.write_text(review_record if review_record is not None else json.dumps([agent, session_id]), encoding="utf-8")
+
             env = sanitized_env()
             # 実herdrの[[events]]フック環境にはLANGが無い。プラグイン冒頭の
             # export LANGフォールバックが無いとzshの${#x}/スライスがバイト単位に
@@ -288,6 +298,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                 }
             env.update(
                 {
+                    "HOME": str(root),
                     "HERDR_TEST_EVENTS": str(events),
                     "HERDR_TEST_RENAME_CALLS": str(rename_calls),
                     "CLAUDE_CONFIG_DIR": str(claude_home),
@@ -326,6 +337,32 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                     else []
                 )
             return result, event_lines
+
+    def test_review_completion_is_suppressed(self):
+        for agent in ("claude", "codex"):
+            with self.subTest(agent=agent):
+                kwargs = {f"{agent}_transcript": getattr(self, f"{agent}_transcript_fixture")() if agent == "codex" else self.claude_summary_transcript()}
+                result, events = self.run_plugin(agent=agent, review_session=True, **kwargs)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(events, [])
+
+    def test_review_keeps_waiting_and_failed_analysis_notifications(self):
+        cases = (
+            dict(agent="claude", agent_status="blocked", claude_transcript=self.claude_summary_transcript()),
+            dict(agent="codex", agent_status="blocked", codex_transcript=self.codex_transcript_fixture()),
+            dict(agent="codex", codex_transcript=self.codex_transcript_fixture(assistant_text="どちらにしますか？")),
+            dict(agent="claude", claude_transcript=None),
+            dict(agent="claude", claude_transcript="not json"),
+            dict(agent="codex", codex_transcript="not json"),
+            dict(agent="codex", codex_transcript=None),
+            dict(agent="claude", claude_transcript=self.claude_summary_transcript(), review_record="broken"),
+            dict(agent="claude", claude_transcript=self.claude_summary_transcript(), review_record=json.dumps(["codex", "session-abc"])),
+        )
+        for case in cases:
+            with self.subTest(case=case):
+                result, events = self.run_plugin(review_session=True, **case)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertTrue(events)
 
     def test_done_status_notifies_with_completion_title(self):
         result, events = self.run_plugin(agent="claude", agent_status="done")
@@ -729,6 +766,7 @@ class HerdrPluginNotifyTest(unittest.TestCase):
             agent="claude",
             agent_status="done",
             claude_transcript=api_error_transcript,
+            review_session=True,
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)

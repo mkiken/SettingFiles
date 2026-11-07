@@ -317,7 +317,7 @@ esac
 # transcriptはagent_session.value（claudeのsession_id）から解決する。
 # サブシェル格納の理由はcodex_summaryブロックと同じfail-safe: transcript未解決・
 # 解析失敗は空出力に落ち、従来どおり通知する（通知が完全に死ぬ事故を避ける）。
-# 出力は3行: PENDING_BACKGROUND_WORK / LAST_TURN_API_ERROR / LAST_TURN_API_ERROR_TEXT。
+# 出力は pending / API error / error text / summary / assistant message count。
 # エラー本文（3行目）は改行やコロン等の任意文字を含みうるため、区切り文字方式ではなく
 # 「残り全部を最後の行として読む」行ベースで受け取る（呼び出し側のIFS= read -r ×2 +
 # cat参照）。fail-safe: 途中で失敗すれば空出力に落ち、呼び出し側は全変数が空のまま
@@ -332,7 +332,7 @@ if [[ "$agent" == "claude" ]]; then
     print -r -- "${PENDING_BACKGROUND_WORK:-0}"
     print -r -- "${LAST_TURN_API_ERROR:-}"
     print -r -- "${LAST_TURN_API_ERROR_TEXT:-}"
-    # 4行目以降は要約（build_session_summaryは1行出力）。blockedは✋+最新の応答、
+    # 4行目は要約（build_session_summaryは1行出力）。blockedは✋+最新の応答、
     # doneはタスク種別絵文字+最新の応答（空なら最新の依頼）。codexと同じ形式。
     if [[ "$agent_status" == "blocked" ]]; then
       build_session_summary "✋" "${LAST_ASSISTANT_MESSAGE:-}" "${USER_MESSAGE_COUNT:-0}" \
@@ -342,6 +342,7 @@ if [[ "$agent" == "claude" ]]; then
         "${LAST_ASSISTANT_MESSAGE:-${LAST_USER_MESSAGE:-}}" "${USER_MESSAGE_COUNT:-0}" \
         "${SESSION_DURATION_FORMATTED:-}"
     fi
+    print -r -- "${ASSISTANT_MESSAGE_COUNT:-0}"
   )"
   # $(...)は末尾改行を除去するため、空行が続くケース（エラーなし等）だと
   # パターンマッチ(%%$'\n'*)が「改行なし=1行しかない」と誤認識し、後続フィールドの
@@ -352,6 +353,7 @@ if [[ "$agent" == "claude" ]]; then
     IFS= read -r claude_api_error
     IFS= read -r claude_api_error_text
     IFS= read -r claude_summary
+    IFS= read -r claude_assistant_count
   } <<< "$claude_pending"
   [[ "$agent_status" == "done" && "$claude_pending_flag" == "1" && -z "$claude_api_error" ]] && exit 0
 fi
@@ -446,7 +448,8 @@ if [[ "$agent" == "codex" && -n "$session_id" ]]; then
     fi)" || exit 0
     jq -n --arg summary "$summary" \
       --argjson waiting "${WAITING_FOR_USER_RESPONSE:-false}" \
-      '{summary: $summary, waiting: $waiting}'
+      --argjson analyzed "$([[ ${ASSISTANT_MESSAGE_COUNT:-0} -gt 0 ]] && print true || print false)" \
+      '{summary: $summary, waiting: $waiting, analyzed: $analyzed}'
   )"
   codex_summary="$(print -r -- "$codex_notification" | jq -r '.summary // empty' 2>/dev/null)"
   [[ -n "$codex_summary" ]] && notify_body="$codex_summary"
@@ -456,6 +459,13 @@ if [[ "$agent" == "codex" && -n "$session_id" ]]; then
     label_text="応答待ち"
     sound_event="waiting"
   fi
+fi
+# Only suppress verified normal review completion; analysis failures still notify.
+if [[ "$agent_status" == "done" && "$sound_event" == "completed" ]] \
+   && { [[ "$agent" == "claude" && "${claude_assistant_count:-0}" -gt 0 && -z "$claude_api_error" ]] \
+        || { [[ "$agent" == "codex" ]] && print -r -- "$codex_notification" | jq -e '.analyzed == true' >/dev/null 2>&1; }; } \
+   && python3 "${REPO_ROOT}/shell/tmux/herdr_review_sessions.py" "$agent" "$session_id" 2>/dev/null; then
+  exit 0
 fi
 # APIエラー本文は上記どちらの分岐よりも優先する（エラー種別・内容を確実に伝えるため）
 [[ -n "$api_error_notify_body" ]] && notify_body="$api_error_notify_body"
