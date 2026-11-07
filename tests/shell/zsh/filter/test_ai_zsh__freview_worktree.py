@@ -155,7 +155,7 @@ class FreviewWorktreeFixture:
             "    ;;\n"
             "esac\n",
         )
-        # gh: co(checkout)呼び出しをログへ記録。pr listは_fgh_select_pr_number経由で
+        # gh: pr checkout呼び出しをログへ記録。pr listは_fgh_select_pr_number経由で
         # 呼ばれる想定だがghpl_branchはgh.zshの実装をそのまま使うため、実PR取得は発生しない
         # （filterがヘッダで直接PR行を返すため、gh pr list自体は結果を捨てるだけでよい）。
         # gh.zshのトップレベルで実行される`gh config set editor nvim`はテストの関心事
@@ -167,7 +167,7 @@ class FreviewWorktreeFixture:
             "  exit 0\n"
             "fi\n"
             "printf 'GH %s (pwd=%s)\\n' \"$*\" \"$PWD\" >> \"$FREVIEW_LOG\"\n"
-            "if [ \"$1\" = co ]; then\n"
+            "if [ \"$1\" = pr ] && [ \"$2\" = checkout ]; then\n"
             "  [ \"${FREVIEW_GH_CO_FAIL:-}\" = 1 ] && exit 1\n"
             "  exit 0\n"
             "fi\n"
@@ -258,7 +258,7 @@ class FreviewWorktreeModeTest(FreviewWorktreeFixture, unittest.TestCase):
         self.assertEqual(values["__AI_REVIEW_CWD"], "<unset>", result.stderr)
 
         calls = self.calls()
-        gh_co_calls = [c for c in calls if c.startswith("GH co ")]
+        gh_co_calls = [c for c in calls if c.startswith("GH pr checkout ")]
         self.assertEqual(len(gh_co_calls), 1, calls)
         self.assertIn(f"(pwd={self.worktree})", gh_co_calls[0])
         review_calls = [c for c in calls if c.startswith("REVIEW review ")]
@@ -561,13 +561,13 @@ class FreviewWorktreeModeTest(FreviewWorktreeFixture, unittest.TestCase):
         result, values = self.run_freview(extra_env={"FREVIEW_PR_CANCEL": "1"})
 
         self.assertEqual(values["__STATUS"], "130", result.stderr)
-        self.assertEqual([c for c in self.calls() if c.startswith("GH co")], [])
+        self.assertEqual([c for c in self.calls() if c.startswith("GH pr checkout")], [])
 
     def test_gh_co_failure_aborts_before_review(self):
         result, values = self.run_freview(extra_env={"FREVIEW_GH_CO_FAIL": "1"})
 
         self.assertEqual(values["__STATUS"], "1", result.stderr)
-        self.assertIn("gh co", result.stderr)
+        self.assertIn("gh pr checkout", result.stderr)
         self.assertEqual([c for c in self.calls() if c.startswith("REVIEW ")], [])
 
     def test_rejects_in_tmux_without_herdr(self):
@@ -733,7 +733,7 @@ class FreviewCurrentModeTest(FreviewWorktreeFixture, unittest.TestCase):
         calls = self.calls()
         # repo/worktreeピッカーは呼ばれない: filterはPRピッカー(Numberヘッダ)の1回のみ
         self.assertEqual(len([c for c in calls if c == "FILTER_CALL"]), 1, calls)
-        gh_co_calls = [c for c in calls if c.startswith("GH co ")]
+        gh_co_calls = [c for c in calls if c.startswith("GH pr checkout ")]
         self.assertEqual(len(gh_co_calls), 1, calls)
         self.assertIn(f"(pwd={self.repo})", gh_co_calls[0])
         review_calls = [c for c in calls if c.startswith("REVIEW review ")]

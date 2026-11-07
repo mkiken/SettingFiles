@@ -18,7 +18,7 @@ _fai-pr-review() {
     fi
 
     # checkout
-    gh co "$pr_number"
+    gh pr checkout "$pr_number"
 
     # checkout後は元関数が現在ブランチからPR番号を自動取得する
     "$func_name" "$@"
@@ -231,8 +231,8 @@ _freview_worktree() {
     fi
 
     # checkoutも選択worktree側で行う。失敗をこの場で覚知させるためreviewより前に実行する
-    ( cdq "$worktree_path" && gh co "$pr_number" ) || {
-        echo "gh co ${pr_number} に失敗しました: ${worktree_path}" >&2
+    ( cdq "$worktree_path" && gh pr checkout "$pr_number" ) || {
+        echo "gh pr checkout ${pr_number} に失敗しました: ${worktree_path}" >&2
         return 1
     }
 
@@ -242,7 +242,7 @@ _freview_worktree() {
     AI_REVIEW_CWD="$worktree_path" "$func_name" "${no_merge_flag[@]}" "$pr_number" "$@"
 }
 
-# -c 指定時のみ従来動作（現在地でPR選択→gh co→レビュー）
+# -c 指定時のみ従来動作（現在地でPR選択→gh pr checkout→レビュー）
 # -c は先頭のみ認識し、以降の引数はreviewへそのまま渡す（--no-merge/プロンプトと競合させない）
 # エラー終了時のpopup pauseはここへ集約する。個別のエラー箇所に散らさないことで
 # 将来増えるエラー経路も自動的に可視化される
