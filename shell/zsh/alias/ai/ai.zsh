@@ -887,15 +887,33 @@ review-merge() {
 # サーバー経由で開く（同じrun_dirへの既存サーバーがあれば再利用し、Finderダイアログに落ちる
 # file://直開きを避ける）
 review-report() {
-    local run_dir
-    _ai_pr_review_resolve_latest_run_dir run_dir "$@" || return 1
+    local run_dir pr_ref='' port=''
+    while (( $# )); do
+        case "$1" in
+            --port)
+                if (( $# < 2 )) || [[ ! "$2" =~ '^[0-9]+$' ]] || (( 10#$2 < 1 || 10#$2 > 65535 )); then
+                    echo "--portには1〜65535の整数を指定してください。" >&2
+                    return 1
+                fi
+                port="$2"; shift 2 ;;
+            *)
+                if [[ -n "$pr_ref" ]] || ! _ai_pr_review_arg_is_pr_ref "$1"; then
+                    echo "不正な引数: $1" >&2
+                    return 1
+                fi
+                pr_ref="$1"; shift ;;
+        esac
+    done
+    _ai_pr_review_resolve_latest_run_dir run_dir ${pr_ref:+"$pr_ref"} || return 1
 
     if [[ ! -f "${run_dir}/report.html" ]]; then
         echo "report.htmlが見つかりません（review-merge未実行）: ${run_dir}" >&2
         return 1
     fi
 
-    nohup python3 "$HOME/.config/ai-pr/bin/serve_review_report.py" --open "${run_dir}" >/dev/null 2>&1 &
+    local -a port_args
+    [[ -n "$port" ]] && port_args=(--port "$port")
+    nohup python3 "$HOME/.config/ai-pr/bin/serve_review_report.py" --open "${port_args[@]}" "${run_dir}" >/dev/null &
     echo "レビュー結果を開いています: ${run_dir}"
 }
 

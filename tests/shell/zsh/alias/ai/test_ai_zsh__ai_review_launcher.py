@@ -1095,6 +1095,22 @@ echo "rc=$?"
 class ReviewReportTest(unittest.TestCase):
     """review-report のrun_dir解決とreport.html不在時のエラー処理。"""
 
+    def test_port_forwarded_in_either_order(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            run_dir = Path(temp_dir)
+            (run_dir / "report.html").write_text("report")
+            log = run_dir / "log"
+            snippet = f'''
+_ai_pr_review_resolve_latest_run_dir() {{ _ai_pr_review_assign "$1" "{run_dir}"; }}
+nohup() {{ print -r -- "$*" >> "{log}"; }}
+review-report --port 4321 123
+review-report 123 --port 4321
+wait
+'''
+            result = run_zsh(snippet)
+            self.assertEqual(result.returncode, 0)
+            self.assertEqual(log.read_text().count("--port 4321"), 2)
+
     def test_review_report_opens_server_for_existing_report(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             run_dir = Path(temp_dir)

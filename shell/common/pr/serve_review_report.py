@@ -120,7 +120,7 @@ def probe_reusable_server(server_info_path, run_dir):
 class ReviewServer(ThreadingHTTPServer):
     daemon_threads = True
 
-    def __init__(self, run_dir, idle_timeout, profile_name=None):
+    def __init__(self, run_dir, idle_timeout, profile_name=None, port=0):
         self.run_dir = Path(run_dir).resolve()
         self.report_path = self.run_dir / "report.html"
         self.state_path = self.run_dir / "state.json"
@@ -131,7 +131,7 @@ class ReviewServer(ThreadingHTTPServer):
         self.item_ids = expected_item_ids(self.run_dir, self.profile_name)
         self.idle_timeout = idle_timeout
         self.last_activity = time.monotonic()
-        super().__init__(("127.0.0.1", 0), ReviewHandler)
+        super().__init__(("127.0.0.1", port), ReviewHandler)
 
     @property
     def url(self):
@@ -236,16 +236,16 @@ def stop_after_idle(server):
             return
 
 
-def serve(run_dir, idle_timeout=43200, open_browser=False, profile_name=None):
+def serve(run_dir, idle_timeout=43200, open_browser=False, profile_name=None, port=None):
     run_dir = Path(run_dir).resolve()
     reusable_url = probe_reusable_server(run_dir / ".server.json", run_dir)
-    if reusable_url is not None:
+    if reusable_url is not None and (port is None or urlparse(reusable_url).port == port):
         if open_browser:
             subprocess.run(["open", "-a", "Google Chrome", reusable_url], check=False)
         print(reusable_url, flush=True)
         return
 
-    server = ReviewServer(run_dir, idle_timeout, profile_name)
+    server = ReviewServer(run_dir, idle_timeout, profile_name, port or 0)
     server.write_server_info()
     watchdog = threading.Thread(target=stop_after_idle, args=(server,), daemon=True)
     watchdog.start()
@@ -265,16 +265,19 @@ def main(argv=None):
     parser.add_argument("--open", action="store_true", dest="open_browser")
     parser.add_argument("--idle-timeout", type=int, default=43200)
     parser.add_argument("--profile", choices=sorted(PROFILES), default=None)
+    parser.add_argument("--port", type=int, default=None)
     args = parser.parse_args(argv)
     if args.idle_timeout <= 0:
         parser.error("--idle-timeout must be positive")
+    if args.port is not None and not 1 <= args.port <= 65535:
+        parser.error("--port must be between 1 and 65535")
     profile_name = args.profile or detect_profile(args.run_dir)
     if profile_name is None:
         parser.error("run_dir must contain merged.json or audit.json")
     manifest = PROFILES[profile_name]["manifest"]
     if not (args.run_dir / manifest).is_file() or not (args.run_dir / "report.html").is_file():
         parser.error(f"run_dir must contain {manifest} and report.html")
-    serve(args.run_dir, args.idle_timeout, args.open_browser, profile_name)
+    serve(args.run_dir, args.idle_timeout, args.open_browser, profile_name, args.port)
     return 0
 
 

@@ -19,6 +19,25 @@ spec.loader.exec_module(mod)
 
 
 class ReviewServerTest(unittest.TestCase):
+    def test_requested_port_and_busy_port(self):
+        with self.assertRaises(OSError):
+            mod.ReviewServer(self.run_dir, 60, port=self.server.server_port)
+
+    def test_invalid_port_rejected(self):
+        for port in ("0", "65536", "abc"):
+            with self.subTest(port=port), self.assertRaises(SystemExit):
+                mod.main([str(self.run_dir), "--port", port])
+
+    def test_reuse_respects_requested_port(self):
+        self.server.write_server_info()
+        with mock.patch.object(mod, "ReviewServer", side_effect=OSError("occupied")) as create:
+            with self.assertRaises(OSError):
+                mod.serve(self.run_dir, port=self.server.server_port + 1)
+            create.assert_called_once()
+        with mock.patch.object(mod, "ReviewServer") as create:
+            mod.serve(self.run_dir, port=self.server.server_port)
+            create.assert_not_called()
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
