@@ -82,6 +82,12 @@ Favor caution over speed; scale the process to the task. Keep trivial changes li
 
 State assumptions explicitly before implementing. Follow Honest Answers and Clarification for uncertainty; do not guess or continue dependent work before a required answer arrives. Present multiple plausible interpretations rather than silently choosing one. Surface trade-offs and simpler approaches, and push back when warranted.
 
+## Plan Design Completion
+
+Before requesting plan approval, resolve all material design decisions relevant to the task: scope, behavior, public interfaces, data formats, failure handling, and test conditions with expected outcomes. Investigate what can be learned first and ask the user about unresolved decisions during planning. Record the decisions in the plan so another implementer can proceed without additional material design choices.
+
+After approval, implement and verify the plan; leave behavior-preserving local naming and coding choices to the implementer. If new facts require a design change, stop affected work, confirm only that decision with the user, update the plan, and continue; whole-plan reapproval is not mandatory.
+
 ## Research Before Implementation
 
 For unfamiliar features, protocols, or integrations, consult existing code and official documentation first. Where design uncertainty remains, compare mature GitHub implementations, tests, and relevant issues; explain their applicable conditions, dependencies, and differences from the current requirements before choosing the smallest suitable implementation. Simple changes do not require unrelated research or additional dependencies.
