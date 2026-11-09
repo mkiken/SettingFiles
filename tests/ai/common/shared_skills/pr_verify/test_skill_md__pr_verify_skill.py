@@ -79,33 +79,41 @@ class PrVerifyContractTest(unittest.TestCase):
             with self.subTest(requirement=requirement):
                 self.assertIn(requirement, content)
 
-    def test_independent_reviews_precede_final_approval_and_execution(self):
-        content = (SKILL / "SKILL.md").read_text()
+    def test_overview_and_review_selection_precede_final_plan_and_execution(self):
+        content = " ".join((SKILL / "SKILL.md").read_text().split())
         stages = (
-            "Present a verification design containing:",
+            "Present a short overview",
+            "`この概要で進める`",
+            "After agreement, ask exactly:",
+            "`両方のレビューを実施する`",
+            "`レビューなしで進める`",
+            "Prepare a verification design containing:",
             "## Independently review the design",
-            "obtain permission to launch both reviewers",
             "Give both reviewers the same complete, versioned design",
-            "Require\nboth completed reviews of the same final version",
-            "Show the final design, both review results",
-            "## Approve the reviewed design",
-            "Only after both reviews pass, ask exactly:",
+            "both completed reviews of the same final version",
+            "## Present and approve the final design",
+            "present the final `<proposed_plan>`",
             "`承認して進める`",
             "## Isolate the approved snapshot",
             "git worktree add -b",
-            "## Execute safely",
         )
         positions = [content.index(stage) for stage in stages]
         self.assertEqual(positions, sorted(positions))
         for requirement in (
-            "the AI usage cost",
-            "temporary input/output directory",
+            "present the overview again and repeat the confirmation",
+            "overview does not authorize verification execution",
+            "AI usage cost, and temporary input/output directory in this same confirmation",
             "not verification or worktree creation",
+            "Do not ask for launch permission again",
+            "do not launch either reviewer; mark the choice and `未レビュー`",
+            "Resolve known safety concerns before proceeding even without review",
+            "If findings change the agreed overview, present it again and obtain agreement",
+            "Do not create a worktree or execute PR code until plan mode has ended",
             "no changes outside the approved temporary area",
             "no effects on live services",
         ):
             with self.subTest(requirement=requirement):
-                self.assertIn(requirement, " ".join(content.split()))
+                self.assertIn(requirement, content)
 
     def test_reviewer_models_context_and_read_only_scope(self):
         content = " ".join((SKILL / "SKILL.md").read_text().split())
@@ -153,8 +161,10 @@ class PrVerifyContractTest(unittest.TestCase):
             "if already approved, obtain design approval again",
             "later fix designs and changes during verification",
             "`.pr-verify/<run-id>/`",
-            "design versions, reviewer models and reasoning efforts, both review results and responses to findings",
-            "Transfer these records from the approved temporary area only after design approval",
+            "design versions and the review choice",
+            "models and reasoning efforts, both review results and responses to findings",
+            "the skipped path, record `未レビュー`",
+            "temporary area, transfer them only after design approval",
         ):
             with self.subTest(requirement=requirement):
                 self.assertIn(requirement, content)

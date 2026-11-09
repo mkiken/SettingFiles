@@ -31,7 +31,30 @@ safely isolated GitHub Actions run, not only static checks or local simulation.
 If isolation or execution approval is unavailable, report that behavior as
 unverified; do not run it without approval.
 
-Present a verification design containing:
+Present a short overview of the PR, verification purpose, main cases, isolation,
+external effects and unverified scope. Ask exactly:
+
+1. `この概要で進める`
+2. `概要を修正する`
+3. `中止する`
+
+For revisions, present the overview again and repeat the confirmation. Agreement
+on the overview does not authorize verification execution.
+
+After agreement, ask exactly:
+
+1. `両方のレビューを実施する`
+2. `レビューなしで進める`
+
+For the first choice, show the reviewers' roles, models and reasoning effort,
+AI usage cost, and temporary input/output directory in this same confirmation.
+This choice authorizes only read-only review and those temporary files, not
+verification or worktree creation. Do not ask for launch permission again.
+For the second choice, do not launch either reviewer; mark the choice and
+`未レビュー` in the final design and saved records. Resolve known safety
+concerns before proceeding even without review.
+
+Prepare a verification design containing:
 
 - The PR URL, pinned base/head SHA, scope and expected behavior.
 - Cases with target, input, expected result, command, and proposed test code.
@@ -43,12 +66,9 @@ Present a verification design containing:
 
 ## Independently review the design
 
-After completing the design, obtain permission to launch both reviewers before
-asking for final design approval. Show their roles, models and reasoning effort,
-the AI usage cost, and the temporary input/output directory to be created.
-This launch permission authorizes only read-only review and those temporary
-files, not verification or worktree creation. Here, "no side effects" means no
-changes outside the approved temporary area and no effects on live services.
+If both reviews were selected, complete the design and run both before presenting
+the final plan. Here, "no side effects" means no changes outside the approved
+temporary area and no effects on live services.
 
 Use these two independent reviewers:
 
@@ -61,8 +81,8 @@ Explicitly set model and reasoning effort in the supported launch mechanism,
 including the Claude subagent. Do not inherit conversation history; for Codex
 use `fork_turns="none"`. If the required model or effort cannot be set, stop.
 Use `second-opinion` for the external CLI launch, read-only restrictions,
-brief format, session tracking and failure detection. Use this combined launch
-permission for both reviewers; do not request the same permission twice.
+brief format, session tracking and failure detection. Use the combined selection
+permission for both reviewers.
 
 Give both reviewers the same complete, versioned design, pinned PR base/head
 SHA, related code and configuration at those revisions, and unverified points.
@@ -87,16 +107,25 @@ models or skip a review. Report the blocker and resolve it before proceeding.
 Check findings against their evidence and revise the design as needed. Send
 the same revised version to both fresh, independent reviewers again. Require
 both completed reviews of the same final version with no unresolved side-effect
-concerns or missing information before presenting it for final approval.
+concerns or missing information before presenting the final plan.
 One reviewer's approval or a majority vote cannot satisfy this gate.
-Show the final design, both review results and how findings were addressed.
+If findings change the agreed overview, present it again and obtain agreement.
 If the design or execution conditions change after final review, repeat both
 independent reviews; if already approved, obtain design approval again as well.
-This also applies to later fix designs and changes during verification.
+This also applies to later fix designs and changes during verification when both
+reviews were selected. If review was skipped, resolve known safety concerns and
+obtain renewed design approval for changed scope, safety boundaries or test design.
 
-## Approve the reviewed design
+## Present and approve the final design
 
-Only after both reviews pass, ask exactly:
+After the selected review path is complete, present the final design. If both
+reviews were selected, show both results and how findings were addressed; both
+must have completed on the same final version with no unresolved concerns or
+missing information. If review was skipped, state the choice and `未レビュー`.
+
+In Plan Mode, present the final `<proposed_plan>` only after this process. Do not
+create a worktree or execute PR code until plan mode has ended and the user has
+explicitly approved the design. In normal mode, ask exactly:
 
 1. `承認して進める`
 2. `設計を修正する`
@@ -105,8 +134,8 @@ Only after both reviews pass, ask exactly:
 Wait for explicit approval before creating the worktree, writing verification
 code, installing dependencies or executing the PR. Resolve uncertain decisions
 with the user before dependent work. Changed scope, safety boundaries or test
-design require renewed approval. In plan mode, present the design only; resume
-this workflow after approval and after leaving plan mode.
+design require renewed approval. For Plan Mode, resume this workflow only after
+approval and after leaving plan mode.
 
 ## Isolate the approved snapshot
 
@@ -135,9 +164,10 @@ worktree to make verification possible.
 
 All verification code, fixtures, fixes and generated files belong inside this
 worktree. Save the approved design and results under `.pr-verify/<run-id>/`,
-including design versions, reviewer models and reasoning efforts, both review
-results and responses to findings. Transfer these records from the approved
-temporary area only after design approval. Check for existing files before
+including design versions and the review choice. For both reviews, save reviewer
+models and reasoning efforts, both review results and responses to findings; for
+the skipped path, record `未レビュー`. If review records are in the approved
+temporary area, transfer them only after design approval. Check for existing files before
 writing. Keep credentials and real private
 data out of files, logs and commits. Use synthetic fixtures.
 
