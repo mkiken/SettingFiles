@@ -13,7 +13,12 @@ Use the platform's user-confirmation mechanism for every decision below.
 
 Read the target repository's AI instructions before working there. Record the
 invoking worktree's path, branch (or detached state), exact HEAD, and status,
-including untracked files. Preserve all pre-existing changes.
+including untracked files. Preserve all pre-existing changes. After resolving the
+publication remote, record every existing local branch and every branch on that
+remote with its name and SHA, before any Git mutation.
+Protect all of those branches, including past verification branches: never update
+or delete them. Only the verification branch created by this run may be changed.
+Fetch may update remote-tracking refs, but never fetch into a local branch.
 
 Resolve the PR repository, URL, state, base/head SHA and diff. Inspect changed
 behavior, callers, existing tests, setup commands and external effects. Use
@@ -112,10 +117,11 @@ stop and ask for a safe alternative before fetching or creating the worktree.
 Fetch the recorded PR head and base from the PR's base repository using its PR
 ref when needed (including fork PRs). Verify their object IDs against the recorded
 SHAs; stop on mismatch rather than substituting a newer head. Do not checkout,
-update, commit on, or merge into the original or PR branch.
+update, commit on, or merge into any pre-existing branch.
 
 Choose `verify/pr-<number>-<timestamp>`, appending a numeric suffix if occupied.
-Confirm the branch and destination path do not already exist, then create:
+Check both local branches and the publication remote for each candidate; never
+reuse an existing branch. Confirm the destination path does not exist, then create:
 
 ```bash
 git worktree add -b <verification-branch> <verification-path> <pinned-head-sha>
@@ -202,7 +208,8 @@ branch and uncommitted status and stop. For the first:
 
 - Inspect repository hooks before committing; if they have unsafe effects,
   preserve state and ask for a safe alternative instead of running them.
-- Recheck ownership, branch and changes. Stage explicit task-owned paths only,
+- Recheck that the branch was created by this run, its ownership and changes.
+  Stage explicit task-owned paths only,
   including the design, report and verification code. Inspect ignored artifacts
   for needed evidence; save a sanitized summary rather than committing secrets
   or dependency/build directories. Inspect the complete staged diff.
@@ -258,7 +265,13 @@ their locations without publishing.
 
 Immediately before pushing, resolve the current branch in the verification
 worktree and require it to match the saved verification branch and commit.
-Push that branch with `-u` to the approved base-repository remote without force.
+Confirm the branch was created by this run. Before its first push, require the
+remote branch to be absent and use an empty expected-value lease for its full
+`refs/heads/<verification-branch>` ref, so a concurrent creation rejects the push.
+After an early push, update only this run's remote branch using a lease for its
+last independently verified SHA; stop if it changed or the update is not a
+fast-forward. Push that branch with `-u` to the approved base-repository remote.
+Never use an unconditional force push.
 Independently verify the remote ref matches the saved commit and the configured
 upstream matches the pushed branch. On permission failure, stop rather than
 choosing another repository. Do not update the PR body unless push is verified.
@@ -285,15 +298,18 @@ After successful publication, ask exactly:
 1. `worktreeを削除する`
 2. `worktreeごと保持する`
 
-For deletion, recheck ownership, branch, saved commit and clean status including
-untracked files. From the invoking worktree, run
+For deletion, recheck that the branch was created by this run, ownership, branch,
+saved commit and clean status including untracked files. From the invoking worktree, run
 `git worktree remove <verification-path>` without force. Verify the worktree is
 absent and the verification branch still points to the saved commit. Never
 delete the verification branch or its remote ref. Preserve any unexpected or
 failed cleanup state; never discard files to make cleanup pass.
 
-Finally, independently recheck the invoking branch, HEAD and changes against the
-recorded state; report differences without overwriting concurrent work. Report
-the saved branch/commit, worktree disposition and how to resume with a new
+On every exit, independently compare all recorded local and publication-remote
+branch names and SHAs with their current state, and recheck the invoking branch,
+HEAD and changes. If the remote is unreachable, report that its comparison was
+not verified. Report differences without restoring branches or overwriting
+concurrent work. Report the saved branch/commit, worktree disposition and how to
+resume with a new
 worktree from that branch. Explain that re-verifying an updated PR requires a
 fresh snapshot and design. Leave failed cleanup state intact and report it.

@@ -39,6 +39,23 @@ class PrVerifyContractTest(unittest.TestCase):
             with self.subTest(requirement=requirement):
                 self.assertIn(requirement, content)
 
+    def test_all_existing_branches_are_protected(self):
+        content = " ".join((SKILL / "SKILL.md").read_text().split())
+        for requirement in (
+            "every existing local branch and every branch on that remote with its name and SHA",
+            "never update or delete them",
+            "Only the verification branch created by this run may be changed",
+            "Fetch may update remote-tracking refs, but never fetch into a local branch",
+            "Check both local branches and the publication remote for each candidate",
+            "Before its first push, require the remote branch to be absent",
+            "empty expected-value lease",
+            "last independently verified SHA; stop if it changed",
+            "compare all recorded local and publication-remote branch names and SHAs",
+            "without restoring branches or overwriting concurrent work",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, content)
+
     def test_publication_requires_approval_and_verified_push(self):
         content = (SKILL / "SKILL.md").read_text()
         for requirement in (
@@ -160,6 +177,66 @@ class PrVerifyContractTest(unittest.TestCase):
 
 
 class PrVerifyGitIsolationTest(unittest.TestCase):
+    def test_branch_collisions_publication_and_concurrent_change(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            remote = root / "remote.git"
+            repo = root / "repo"
+            repo.mkdir()
+            env = sanitized_env({
+                "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": os.devnull,
+                "GIT_AUTHOR_NAME": "test", "GIT_AUTHOR_EMAIL": "test@example.invalid",
+                "GIT_COMMITTER_NAME": "test", "GIT_COMMITTER_EMAIL": "test@example.invalid",
+            })
+
+            def git(*args, cwd=repo, check=True):
+                return subprocess.run(
+                    ["git", *args], cwd=cwd, env=env, check=check,
+                    capture_output=True, text=True,
+                )
+
+            git("init", "--bare", str(remote))
+            git("init", "-b", "main")
+            git("commit", "--allow-empty", "-m", "initial")
+            initial = git("rev-parse", "HEAD").stdout.strip()
+            git("remote", "add", "origin", str(remote))
+            git("branch", "verify/pr-123-test")
+            git("push", "origin", "main", "main:refs/heads/verify/pr-123-test-1")
+            local_before = git("for-each-ref", "--format=%(refname) %(objectname)", "refs/heads").stdout
+            remote_before = git("ls-remote", "--heads", "origin").stdout
+            occupied = {line.split()[1].removeprefix("refs/heads/") for line in remote_before.splitlines()}
+            occupied.update(line.split()[0].removeprefix("refs/heads/") for line in local_before.splitlines())
+            base = "verify/pr-123-test"
+            suffix = 0
+            candidate = base
+            while candidate in occupied:
+                suffix += 1
+                candidate = f"{base}-{suffix}"
+            self.assertEqual(candidate, f"{base}-2")
+            worktree = root / "verification"
+            git("worktree", "add", "-b", candidate, str(worktree), initial)
+            git("commit", "--allow-empty", "-m", "evidence", cwd=worktree)
+            saved = git("rev-parse", "HEAD", cwd=worktree).stdout.strip()
+            ref = f"refs/heads/{candidate}"
+            git("push", "-u", f"--force-with-lease={ref}:", "origin", f"HEAD:{ref}", cwd=worktree)
+            git("worktree", "remove", str(worktree))
+            self.assertEqual(git("rev-parse", candidate).stdout.strip(), saved)
+            self.assertEqual(git("rev-parse", "main").stdout.strip(), initial)
+            self.assertEqual(git("rev-parse", base).stdout.strip(), initial)
+            self.assertEqual(git("ls-remote", "--heads", "origin", "main", f"{base}-1").stdout, remote_before)
+
+            # A concurrent creator must not be overwritten by the initial push.
+            race_ref = "refs/heads/verify/pr-123-race"
+            git("push", "origin", f"main:{race_ref}")
+            rejected = git("push", f"--force-with-lease={race_ref}:", "origin", f"{candidate}:{race_ref}", check=False)
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertEqual(git("ls-remote", "origin", race_ref).stdout.split()[0], initial)
+            # Report concurrent changes instead of restoring the recorded SHA.
+            git("commit", "--allow-empty", "-m", "concurrent change")
+            concurrent = git("rev-parse", "main").stdout.strip()
+            self.assertNotEqual(concurrent, initial)
+            self.assertEqual(git("rev-parse", "main").stdout.strip(), concurrent)
+
     def test_dirty_origin_snapshot_collision_and_saved_branch(self):
         # Exercise cleanup only in a disposable repository, never this checkout.
         with tempfile.TemporaryDirectory() as directory:
