@@ -21,12 +21,19 @@ read-only GitHub access if the exact revisions are unavailable locally. Pin
 findings to the recorded revisions rather than unrelated local changes.
 If the PR is no longer open, ask whether to verify that snapshot before proceeding.
 
+When the PR changes GitHub Actions behavior, prefer exercising it in an actual,
+safely isolated GitHub Actions run, not only static checks or local simulation.
+If isolation or execution approval is unavailable, report that behavior as
+unverified; do not run it without approval.
+
 Present a verification design containing:
 
 - The PR URL, pinned base/head SHA, scope and expected behavior.
 - Cases with target, input, expected result, command, and proposed test code.
 - Worktree path, verification branch, fixtures and temporary output locations.
 - External effects, mock/log replacements, notification treatment and limitations.
+- If execution needs an early verification-branch push, its effects and approval
+  point, plus any later evidence push's workflow reruns and alternatives.
 - Any unresolved design decisions, with concrete alternatives and a recommendation.
 
 ## Independently review the design
@@ -128,6 +135,17 @@ temporary area only after design approval. Check for existing files before
 writing. Keep credentials and real private
 data out of files, logs and commits. Use synthetic fixtures.
 
+## Publish early when execution requires it
+
+If the approved design requires a verification-branch push to run Actions,
+prepare the verification code and available records first. Apply the commit
+safeguards and preservation choices in `Report and preserve`, without requiring
+results that do not exist yet. Show the commit, diff and push-triggered effects,
+then obtain separate explicit approval before pushing or triggering the run.
+Use the branch, remote and upstream checks in `Publish and verify`; do not update
+the PR body at this stage. If approval or safe isolation is unavailable, retain
+the local state and report the affected cases as unverified.
+
 ## Execute safely
 
 A worktree isolates files, not external effects. Before executing any setup,
@@ -217,13 +235,15 @@ available GitHub Actions run, Jenkins build/job and Slack notification links
 whose relationship to this verification was confirmed. Identify a job-level
 link when no specific build link is available. Mark unavailable evidence as
 unavailable; never invent URLs or treat captured notifications as delivered.
-Do not trigger jobs or send Slack messages to obtain links. Check both evidence
+Do not trigger jobs or send Slack messages solely to obtain links. Check both evidence
 files and linked content for credentials or real private data before publication.
 
 Show the proposed body and its actual diff, evidence files, destination
 repository and verification branch. The destination is the PR's base repository;
 inspect push hooks and workflows for effects such as CI and show those effects
-before approval. If their safety is uncertain, stop and resolve it first.
+before approval. If evidence publication can rerun workflows, show alternatives;
+do not suppress reruns without explicit approval. If safety is uncertain, stop
+and resolve it first.
 Ask exactly:
 
 1. `検証ブランチをpushしてPR本文を更新する`
