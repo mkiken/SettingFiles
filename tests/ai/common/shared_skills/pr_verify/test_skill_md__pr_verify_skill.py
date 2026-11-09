@@ -62,6 +62,86 @@ class PrVerifyContractTest(unittest.TestCase):
             with self.subTest(requirement=requirement):
                 self.assertIn(requirement, content)
 
+    def test_independent_reviews_precede_final_approval_and_execution(self):
+        content = (SKILL / "SKILL.md").read_text()
+        stages = (
+            "Present a verification design containing:",
+            "## Independently review the design",
+            "obtain permission to launch both reviewers",
+            "Give both reviewers the same complete, versioned design",
+            "Require\nboth completed reviews of the same final version",
+            "Show the final design, both review results",
+            "## Approve the reviewed design",
+            "Only after both reviews pass, ask exactly:",
+            "`承認して進める`",
+            "## Isolate the approved snapshot",
+            "git worktree add -b",
+            "## Execute safely",
+        )
+        positions = [content.index(stage) for stage in stages]
+        self.assertEqual(positions, sorted(positions))
+        for requirement in (
+            "the AI usage cost",
+            "temporary input/output directory",
+            "not verification or worktree creation",
+            "no changes outside the approved temporary area",
+            "no effects on live services",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, " ".join(content.split()))
+
+    def test_reviewer_models_context_and_read_only_scope(self):
+        content = " ".join((SKILL / "SKILL.md").read_text().split())
+        for requirement in (
+            "From Codex: a fresh-context `gpt-6.1-sol` / `high` subagent and external Claude `opus` / `high`",
+            "From Claude: a fresh-context `opus` / `high` subagent and external Codex `gpt-6.1-sol` / `high`",
+            "Explicitly set model and reasoning effort",
+            "including the Claude subagent",
+            'use `fork_turns="none"`',
+            "same complete, versioned design, pinned PR base/head SHA, related code and configuration at those revisions, and unverified points",
+            "Exclude the parent's safety judgments, conversation history and the other reviewer's results",
+            "Use `second-opinion` for the external CLI launch",
+            "read-only inspection of setup, dependency installation and lifecycle scripts",
+            "Git hooks and checkout filters, test child processes",
+            "inherited environment and credentials, shared data, notifications and external writes",
+            "isolation measures reach the actual implementation and its subprocesses",
+            "Do not execute PR code or verification commands during review",
+            "evidence, remaining concerns and unverified points",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, content)
+
+    def test_review_blockers_stop_verification_without_fallback(self):
+        content = " ".join((SKILL / "SKILL.md").read_text().split())
+        for requirement in (
+            "Stop before verification on unresolved side-effect concerns",
+            "missing information needed for judgment",
+            "unavailable CLIs, launch failure or incomplete responses",
+            "required model or effort cannot be set, stop",
+            "non-zero exit, empty answer or missing final `__END_OF_ANSWER__` line means failure",
+            "Do not automatically substitute models or skip a review",
+            "Report the blocker and resolve it before proceeding",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, content)
+
+    def test_changed_design_requires_both_reviews_and_saved_evidence(self):
+        content = " ".join((SKILL / "SKILL.md").read_text().split())
+        for requirement in (
+            "Check findings against their evidence",
+            "same revised version to both fresh, independent reviewers again",
+            "both completed reviews of the same final version with no unresolved side-effect concerns or missing information",
+            "One reviewer's approval or a majority vote cannot satisfy this gate",
+            "design or execution conditions change after final review, repeat both independent reviews",
+            "if already approved, obtain design approval again",
+            "later fix designs and changes during verification",
+            "`.pr-verify/<run-id>/`",
+            "design versions, reviewer models and reasoning efforts, both review results and responses to findings",
+            "Transfer these records from the approved temporary area only after design approval",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, content)
+
     def test_body_replacement_preserves_user_content_and_detects_conflicts(self):
         content = (SKILL / "SKILL.md").read_text()
         for requirement in (

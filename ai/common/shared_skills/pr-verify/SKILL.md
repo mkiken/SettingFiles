@@ -29,7 +29,62 @@ Present a verification design containing:
 - External effects, mock/log replacements, notification treatment and limitations.
 - Any unresolved design decisions, with concrete alternatives and a recommendation.
 
-Ask exactly:
+## Independently review the design
+
+After completing the design, obtain permission to launch both reviewers before
+asking for final design approval. Show their roles, models and reasoning effort,
+the AI usage cost, and the temporary input/output directory to be created.
+This launch permission authorizes only read-only review and those temporary
+files, not verification or worktree creation. Here, "no side effects" means no
+changes outside the approved temporary area and no effects on live services.
+
+Use these two independent reviewers:
+
+- From Codex: a fresh-context `gpt-6.1-sol` / `high` subagent and external
+  Claude `opus` / `high`.
+- From Claude: a fresh-context `opus` / `high` subagent and external
+  Codex `gpt-6.1-sol` / `high`.
+
+Explicitly set model and reasoning effort in the supported launch mechanism,
+including the Claude subagent. Do not inherit conversation history; for Codex
+use `fork_turns="none"`. If the required model or effort cannot be set, stop.
+Use `second-opinion` for the external CLI launch, read-only restrictions,
+brief format, session tracking and failure detection. Use this combined launch
+permission for both reviewers; do not request the same permission twice.
+
+Give both reviewers the same complete, versioned design, pinned PR base/head
+SHA, related code and configuration at those revisions, and unverified points.
+Treat the design as the object of review, not an endorsed safety conclusion.
+Exclude the parent's safety judgments, conversation history and the other
+reviewer's results. Keep each review independent, including subsequent rounds.
+
+Require read-only inspection of setup, dependency installation and lifecycle
+scripts, Git hooks and checkout filters, test child processes, inherited
+environment and credentials, shared data, notifications and external writes.
+Check that the design's isolation measures reach the actual implementation and
+its subprocesses. Do not execute PR code or verification commands during review.
+Each reviewer must return evidence, remaining concerns and unverified points,
+and explicitly assess whether the proposed side-effect boundaries hold.
+
+Stop before verification on unresolved side-effect concerns, missing information
+needed for judgment, unavailable CLIs, launch failure or incomplete responses.
+Apply `second-opinion` failure checks: non-zero exit, empty answer or missing
+final `__END_OF_ANSWER__` line means failure. Do not automatically substitute
+models or skip a review. Report the blocker and resolve it before proceeding.
+
+Check findings against their evidence and revise the design as needed. Send
+the same revised version to both fresh, independent reviewers again. Require
+both completed reviews of the same final version with no unresolved side-effect
+concerns or missing information before presenting it for final approval.
+One reviewer's approval or a majority vote cannot satisfy this gate.
+Show the final design, both review results and how findings were addressed.
+If the design or execution conditions change after final review, repeat both
+independent reviews; if already approved, obtain design approval again as well.
+This also applies to later fix designs and changes during verification.
+
+## Approve the reviewed design
+
+Only after both reviews pass, ask exactly:
 
 1. `承認して進める`
 2. `設計を修正する`
@@ -67,7 +122,10 @@ worktree to make verification possible.
 
 All verification code, fixtures, fixes and generated files belong inside this
 worktree. Save the approved design and results under `.pr-verify/<run-id>/`,
-checking for existing files before writing. Keep credentials and real private
+including design versions, reviewer models and reasoning efforts, both review
+results and responses to findings. Transfer these records from the approved
+temporary area only after design approval. Check for existing files before
+writing. Keep credentials and real private
 data out of files, logs and commits. Use synthetic fixtures.
 
 ## Execute safely
