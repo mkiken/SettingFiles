@@ -176,7 +176,8 @@ data out of files, logs and commits. Use synthetic fixtures.
 If the approved design requires a verification-branch push to run Actions,
 prepare the verification code and available records first. Apply the commit
 safeguards and preservation choices in `Report and preserve`, without requiring
-results that do not exist yet. Show the commit, diff and push-triggered effects,
+results that do not exist yet; do not present the completion offer at this stage.
+Show the commit, diff and push-triggered effects,
 then obtain separate explicit approval before pushing or triggering the run.
 Use the branch, remote and upstream checks in `Publish and verify`; do not update
 the PR body at this stage. If approval or safe isolation is unavailable, retain
@@ -224,17 +225,26 @@ The second choice proceeds to reporting and the preservation decision below.
 
 ## Report and preserve
 
+Always offer recording the results in the original PR body before any
+preservation-only exit. This includes successful verification, failed cases,
+ending without fixing a defect, and interrupted execution or unverified cases
+after execution started. Route these outcomes here after stopping execution.
+This completion offer does not apply to cancellation before execution or an
+early push needed to execute verification.
+
 Show the pinned SHA, case results, failures, mock coverage, unverified behavior
 and report location. This workflow replaces ambient commit/push prompts with
 the preservation and publication decisions below. Never push to the original
 or PR branch, or merge verification changes into either branch.
 Ask exactly:
 
-1. `検証ブランチにローカルコミットして公開準備する`
-2. `worktreeごと保持する`
+1. `PR本文への記載を準備する（検証ブランチにローカルコミット）`
+2. `PR本文には記載せず、worktreeごと保持する`
 
 Both choices retain the verification branch. For the second, report its path,
-branch and uncommitted status and stop. For the first:
+branch and uncommitted status and stop. For the first, continue through local
+commit, the body preview and publication approval below. If preparation cannot
+proceed safely, report the reason and the unfinished stage. For the first:
 
 - Inspect repository hooks before committing; if they have unsafe effects,
   preserve state and ask for a safe alternative instead of running them.

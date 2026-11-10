@@ -56,6 +56,31 @@ class PrVerifyContractTest(unittest.TestCase):
             with self.subTest(requirement=requirement):
                 self.assertIn(requirement, content)
 
+    def test_completion_always_offers_pr_body_recording(self):
+        content = " ".join((SKILL / "SKILL.md").read_text().split())
+        report = content.split("## Report and preserve", 1)[1].split(
+            "## Prepare the PR verification section", 1
+        )[0]
+        for requirement in (
+            "Always offer recording the results in the original PR body before any preservation-only exit",
+            "successful verification, failed cases, ending without fixing a defect, and interrupted execution or unverified cases after execution started",
+            "`PR本文への記載を準備する（検証ブランチにローカルコミット）`",
+            "`PR本文には記載せず、worktreeごと保持する`",
+            "For the second, report its path, branch and uncommitted status and stop",
+            "If preparation cannot proceed safely, report the reason and the unfinished stage",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, report)
+        self.assertLess(report.index("Always offer"), report.index("Ask exactly:"))
+
+    def test_completion_offer_excludes_pre_execution_and_early_push(self):
+        content = " ".join((SKILL / "SKILL.md").read_text().split())
+        self.assertIn("This completion offer does not apply to cancellation before execution or an early push needed to execute verification", content)
+        early = content.split("## Publish early when execution requires it", 1)[1].split(
+            "## Execute safely", 1
+        )[0]
+        self.assertIn("do not present the completion offer at this stage", early)
+
     def test_publication_requires_approval_and_verified_push(self):
         content = (SKILL / "SKILL.md").read_text()
         for requirement in (
