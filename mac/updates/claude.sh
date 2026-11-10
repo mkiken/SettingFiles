@@ -39,10 +39,8 @@ setup_ai_skills ~/.claude/skills "${Repo}ai/common/skills" "${Repo}ai/claude/ski
 
 claude update
 setup_claude_superpowers
-setup_claude_context_mode
 setup_claude_rtk
 setup_claude_genshijin
-setup_claude_i_have_adhd
 setup_claude_dig
 setup_claude_example_skills
 setup_claude_ponytail

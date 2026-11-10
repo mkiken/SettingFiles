@@ -12,7 +12,7 @@ Do not write an implementation-model marker into a newly finalized plan. The use
 
 ## Detect the active model
 
-Run this through the host shell, not context-mode:
+Run this through the host shell:
 
 ```zsh
 codex_session_file=""

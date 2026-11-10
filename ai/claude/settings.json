@@ -10,11 +10,9 @@
   "effortLevel": "medium",
   "enabledPlugins": {
     "cache-tools@claude-code-cache-tools": true,
-    "context-mode@context-mode": true,
     "dig@kuu-marketplace": true,
     "example-skills@anthropic-agent-skills": true,
     "genshijin@genshijin": true,
-    "i-have-adhd@i-have-adhd": true,
     "ponytail@ponytail": true,
     "superpowers@claude-plugins-official": true,
     "tsumiki@tsumiki": true
@@ -38,21 +36,9 @@
         "source": "github"
       }
     },
-    "context-mode": {
-      "source": {
-        "repo": "mksglu/context-mode",
-        "source": "github"
-      }
-    },
     "genshijin": {
       "source": {
         "repo": "InterfaceX-co-jp/genshijin",
-        "source": "github"
-      }
-    },
-    "i-have-adhd": {
-      "source": {
-        "repo": "ayghri/i-have-adhd",
         "source": "github"
       }
     },

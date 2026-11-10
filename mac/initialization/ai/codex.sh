@@ -75,10 +75,8 @@ generate_codex_skills
 setup_ai_skills ~/.codex/skills "${Repo}ai/common/skills" "${Repo}ai/codex/skills"
 
 setup_codex_superpowers
-setup_codex_context_mode
 setup_codex_rtk
 setup_codex_ponytail
-setup_codex_i_have_adhd
 
 npm install -g @nogataka/ccresume-codex
 

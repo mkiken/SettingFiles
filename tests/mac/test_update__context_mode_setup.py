@@ -36,19 +36,10 @@ class ContextModeSetupTest(unittest.TestCase):
     def test_common_setup_does_not_source_assistant_specific_setup_files(self):
         common = read_text("mac/scripts/common.sh")
 
-        for function_name in (
-            "require_context_mode_node",
-            "setup_context_mode_cli",
-        ):
-            self.assertIn(f"function {function_name}()", common)
-
         for assistant_name in ("claude", "gemini", "codex"):
             self.assertNotIn(f"mac/scripts/ai/{assistant_name}.sh", common)
 
         for function_name in (
-            "setup_claude_context_mode",
-            "setup_gemini_context_mode",
-            "setup_codex_context_mode",
             "setup_claude_superpowers",
             "setup_gemini_superpowers",
             "setup_codex_superpowers",
@@ -58,10 +49,8 @@ class ContextModeSetupTest(unittest.TestCase):
     def test_assistant_specific_setup_functions_are_defined_in_own_files(self):
         expected_functions = {
             "mac/scripts/ai/claude.sh": (
-                "setup_claude_context_mode",
                 "setup_claude_rtk",
                 "setup_claude_genshijin",
-                "setup_claude_i_have_adhd",
                 "setup_claude_superpowers",
 
                 "setup_claude_dig",
@@ -70,20 +59,17 @@ class ContextModeSetupTest(unittest.TestCase):
                 "setup_claude_cache_tools",
             ),
             "mac/scripts/ai/gemini.sh": (
-                "setup_gemini_context_mode",
                 "setup_gemini_rtk",
                 "setup_gemini_superpowers",
 
             ),
             "mac/scripts/ai/codex.sh": (
-                "setup_codex_context_mode",
                 "setup_codex_rtk",
                 "setup_codex_caveman",
                 "update_codex_caveman",
                 "setup_codex_superpowers",
 
                 "setup_codex_ponytail",
-                "setup_codex_i_have_adhd",
             ),
         }
 
@@ -99,10 +85,8 @@ class ContextModeSetupTest(unittest.TestCase):
                 'source "${Repo}mac/scripts/ai/claude.sh"',
                 (
                     "setup_claude_superpowers",
-                    "setup_claude_context_mode",
                     "setup_claude_rtk",
                     "setup_claude_genshijin",
-                    "setup_claude_i_have_adhd",
                     "setup_claude_dig",
                     "setup_claude_example_skills",
 
@@ -114,10 +98,8 @@ class ContextModeSetupTest(unittest.TestCase):
                 'source "${Repo}mac/scripts/ai/claude.sh"',
                 (
                     "setup_claude_superpowers",
-                    "setup_claude_context_mode",
                     "setup_claude_rtk",
                     "setup_claude_genshijin",
-                    "setup_claude_i_have_adhd",
                     "setup_claude_dig",
                     "setup_claude_example_skills",
 
@@ -127,19 +109,19 @@ class ContextModeSetupTest(unittest.TestCase):
             ),
             "mac/initialization/ai/gemini.sh": (
                 'source "${Repo}mac/scripts/ai/gemini.sh"',
-                ("setup_gemini_superpowers", "setup_gemini_context_mode", "setup_gemini_rtk"),
+                ("setup_gemini_superpowers", "setup_gemini_rtk"),
             ),
             "mac/updates/gemini.sh": (
                 'source "${Repo}mac/scripts/ai/gemini.sh"',
-                ("setup_gemini_superpowers", "setup_gemini_context_mode", "setup_gemini_rtk"),
+                ("setup_gemini_superpowers", "setup_gemini_rtk"),
             ),
             "mac/initialization/ai/codex.sh": (
                 'source "${Repo}mac/scripts/ai/codex.sh"',
-                ("setup_codex_superpowers", "setup_codex_context_mode", "setup_codex_rtk", "setup_codex_caveman", "setup_codex_ponytail", "setup_codex_i_have_adhd"),
+                ("setup_codex_superpowers", "setup_codex_rtk", "setup_codex_caveman", "setup_codex_ponytail"),
             ),
             "mac/updates/codex.sh": (
                 'source "${Repo}mac/scripts/ai/codex.sh"',
-                ("setup_codex_superpowers", "setup_codex_context_mode", "setup_codex_rtk", "update_codex_caveman", "setup_codex_ponytail", "setup_codex_i_have_adhd"),
+                ("setup_codex_superpowers", "setup_codex_rtk", "update_codex_caveman", "setup_codex_ponytail"),
             ),
         }
 
@@ -179,27 +161,21 @@ class ContextModeSetupTest(unittest.TestCase):
         self.assertNotIn("claude-mem@thedotmack", settings["enabledPlugins"])
         self.assertNotIn("thedotmack", settings["extraKnownMarketplaces"])
 
-    def test_context_mode_functions_apply_local_settings(self):
-        gemini = read_text("mac/scripts/ai/gemini.sh")
-        codex = read_text("mac/scripts/ai/codex.sh")
+    def test_gemini_update_merges_repository_settings_into_live_settings(self):
+        update = read_text("mac/updates/gemini.sh")
+        merge_line = 'smart_merge_json "${Repo}ai/gemini/settings.json" ~/.gemini/settings.json'
 
-        self.assertIn(
-            'smart_merge_json "${Repo}ai/gemini/settings.json" ~/.gemini/settings.json',
-            gemini,
-        )
-        self.assertNotIn(
-            'smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml',
-            codex,
-        )
+        self.assertEqual(update.count(merge_line), 1)
+        self.assertLess(update.index("setup_gemini_superpowers"), update.index(merge_line))
 
     def test_codex_setup_and_update_merge_config_once_after_setup_steps(self):
         merge_line = 'smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml'
         expected_order = {
             "mac/initialization/ai/codex.sh": (
-                "setup_codex_context_mode",
+                "setup_codex_ponytail",
                 "npm install -g @nogataka/ccresume-codex",
             ),
-            "mac/updates/codex.sh": ("setup_codex_context_mode",),
+            "mac/updates/codex.sh": ("setup_codex_ponytail",),
         }
 
         for script_path, earlier_lines in expected_order.items():
@@ -213,47 +189,21 @@ class ContextModeSetupTest(unittest.TestCase):
 
                 self.assertLess(merge_index, script.index("echo \"Codex"))
 
-    def test_gemini_settings_register_context_mode_mcp_and_hooks(self):
-        settings = json.loads(read_text("ai/gemini/settings.json"))
+    def test_removed_context_mode_and_i_have_adhd_stay_unregistered(self):
+        for path in ("ai/claude/settings.json", "ai/gemini/settings.json"):
+            settings_text = read_text(path)
+            with self.subTest(path=path):
+                json.loads(settings_text)
+                self.assertNotIn("context-mode", settings_text)
+                self.assertNotIn("i-have-adhd", settings_text)
 
-        self.assertEqual(
-            settings["mcpServers"]["context-mode"],
-            {"command": "context-mode"},
-        )
-
-        expected_hooks = {
-            "BeforeTool": "context-mode hook gemini-cli beforetool",
-            "AfterTool": "context-mode hook gemini-cli aftertool",
-            "AfterModel": "context-mode hook gemini-cli aftermodel",
-            "PreCompress": "context-mode hook gemini-cli precompress",
-            "SessionStart": "context-mode hook gemini-cli sessionstart",
-        }
-        hooks = settings["hooks"]
-
-        for event_name, command in expected_hooks.items():
-            with self.subTest(event=event_name):
-                event_hooks = hooks[event_name]
-                self.assertTrue(
-                    any(
-                        hook["type"] == "command" and hook["command"] == command
-                        for group in event_hooks
-                        for hook in group["hooks"]
-                    )
-                )
-
-        before_tool_matchers = [
-            group["matcher"]
-            for group in hooks["BeforeTool"]
-            for hook in group["hooks"]
-            if hook["command"] == "context-mode hook gemini-cli beforetool"
-        ]
-        self.assertIn(
-            "run_shell_command|read_file|read_many_files|grep_search|search_file_content|web_fetch|activate_skill|mcp__plugin_context-mode",
-            before_tool_matchers,
-        )
+        for path in ("mac/scripts/ai/claude.sh", "mac/scripts/ai/codex.sh", "mac/scripts/ai/gemini.sh", "mac/scripts/common.sh"):
+            with self.subTest(path=path):
+                self.assertNotIn("context-mode", read_text(path))
+                self.assertNotIn("i-have-adhd", read_text(path))
 
     @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
-    def test_codex_config_enables_context_mode_plugin_hooks(self):
+    def test_codex_config_enables_plugin_hooks(self):
         config = tomllib.loads(read_text("ai/codex/config.toml"))
 
         self.assertTrue(config["features"]["hooks"])
@@ -334,43 +284,6 @@ class ContextModeSetupTest(unittest.TestCase):
         # marketplace名(ponytail)がrepo owner(DietrichGebert)と混同され、
         # repo slugをplugin ID/参照に誤用していないことを確認する
         self.assertNotIn("ponytail@DietrichGebert/ponytail", script)
-
-    def test_claude_settings_register_i_have_adhd_plugin(self):
-        settings = json.loads(read_text("ai/claude/settings.json"))
-
-        self.assertTrue(settings["enabledPlugins"]["i-have-adhd@i-have-adhd"])
-        self.assertEqual(
-            settings["extraKnownMarketplaces"]["i-have-adhd"],
-            {
-                "source": {
-                    "repo": "ayghri/i-have-adhd",
-                    "source": "github",
-                }
-            },
-        )
-
-    def test_claude_i_have_adhd_setup_uses_upstream_marketplace_and_always_on_flag(self):
-        script = read_text("mac/scripts/ai/claude.sh")
-
-        self.assertIn("function setup_claude_i_have_adhd()", script)
-        self.assertIn("claude plugin marketplace add ayghri/i-have-adhd", script)
-        self.assertIn("claude plugin marketplace update i-have-adhd", script)
-        self.assertIn("i-have-adhd@i-have-adhd", script)
-        self.assertIn(".i-have-adhd-always", script)
-
-        # marketplace名(i-have-adhd)とrepo slug(ayghri/...)を取り違え、
-        # plugin IDにrepo slugを誤用していないことを確認する
-        self.assertNotIn("i-have-adhd@ayghri/i-have-adhd", script)
-        self.assertNotIn("marketplace update ayghri", script)
-
-    def test_codex_i_have_adhd_setup_uses_installed_guard(self):
-        codex = read_text("mac/scripts/ai/codex.sh")
-
-        self.assertIn("function setup_codex_i_have_adhd()", codex)
-        self.assertIn("codex plugin marketplace add ayghri/i-have-adhd", codex)
-        self.assertIn("codex plugin marketplace upgrade i-have-adhd", codex)
-        self.assertIn("codex plugin add i-have-adhd@i-have-adhd", codex)
-        self.assertNotIn("i-have-adhd@ayghri/i-have-adhd", codex)
 
     def test_claude_settings_register_cache_tools_plugin(self):
         settings = json.loads(read_text("ai/claude/settings.json"))

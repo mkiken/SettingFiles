@@ -1064,30 +1064,3 @@ function require_ai_setup_command() {
   fi
 }
 
-function require_context_mode_node() {
-  require_ai_setup_command node || return 1
-  require_ai_setup_command npm || return 1
-
-  node -e '
-const [major, minor] = process.versions.node.split(".").map(Number);
-if (major < 22 || (major === 22 && minor < 5)) {
-  console.error(`Error: context-mode requires Node.js >= 22.5.0. Found ${process.versions.node}.`);
-  process.exit(1);
-}
-'
-}
-
-function setup_context_mode_cli() {
-  if [[ "${CONTEXT_MODE_CLI_SETUP_DONE:-}" == "1" ]]; then
-    echo "✓ context-mode CLI already handled for this run."
-    return 0
-  fi
-
-  echo "Ensuring context-mode CLI..."
-
-  require_context_mode_node || return 1
-
-  npm install -g context-mode@latest || return 1
-
-  export CONTEXT_MODE_CLI_SETUP_DONE=1
-}

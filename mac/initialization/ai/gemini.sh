@@ -79,7 +79,6 @@ setup_ai_skills ~/.gemini/skills "${Repo}ai/common/skills" "${Repo}ai/gemini/ski
 chmod +x ~/.gemini/hooks/notification.sh
 
 setup_gemini_superpowers
-setup_gemini_context_mode
 setup_gemini_rtk
 
 echo 'Gemini setup completed.'

@@ -43,82 +43,7 @@ function update_codex_caveman() {
   fi
 }
 
-function setup_codex_context_mode() {
-  echo "Ensuring Codex context-mode plugin..."
 
-  setup_context_mode_cli || return 1
-  require_ai_setup_command codex || return 1
-  require_ai_setup_command jq || return 1
-
-  if ! codex plugin marketplace list | /usr/bin/grep -Fq "context-mode"; then
-    codex plugin marketplace add mksglu/context-mode || return 1
-  fi
-
-  codex plugin marketplace upgrade context-mode >/dev/null 2>&1 || true
-
-  if codex plugin list --json | jq -e '.installed[]? | select(.pluginId == "context-mode@context-mode" or (.name == "context-mode" and .marketplaceName == "context-mode"))' >/dev/null; then
-    echo "✓ Codex context-mode plugin already installed."
-  else
-    codex plugin add context-mode@context-mode || return 1
-  fi
-
-  repair_codex_context_mode_cache
-}
-
-function repair_codex_context_mode_cache() {
-  python3 - <<'PYTHON'
-import json
-import os
-from pathlib import Path
-import stat
-import subprocess
-import sys
-
-try:
-    installed = json.loads(subprocess.check_output(["codex", "plugin", "list", "--json"], text=True))["installed"]
-    versions = [plugin["version"] for plugin in installed
-                if plugin.get("pluginId") == "context-mode@context-mode"
-                or (plugin.get("name") == "context-mode" and plugin.get("marketplaceName") == "context-mode")]
-    if len(versions) != 1 or not isinstance(versions[0], str) or versions[0] in ("", ".", "..") or Path(versions[0]).name != versions[0]:
-        raise ValueError("Cannot identify one installed context-mode version")
-    home = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))).resolve()
-    root = home / "plugins/cache/context-mode/context-mode" / versions[0]
-    if root.resolve(strict=True) != root or not root.is_dir():
-        raise ValueError(f"Unexpected context-mode cache: {root}")
-    links = []
-
-    def fail_walk(error):
-        raise error
-
-    # Codex fingerprints the whole cache; validate everything before changing it.
-    for directory, dirs, files in os.walk(root, onerror=fail_walk):
-        for name in dirs + files:
-            entry = Path(directory) / name
-            mode = entry.lstat().st_mode
-            if stat.S_ISLNK(mode):
-                target = entry.resolve(strict=True)
-                if (entry.parent.name != ".bin" or "node_modules" not in entry.relative_to(root).parts[:-2]
-                        or not target.is_relative_to(root) or not target.is_file()):
-                    raise ValueError(f"Unexpected context-mode symlink: {entry}")
-                links.append(entry)
-            elif not (stat.S_ISREG(mode) or stat.S_ISDIR(mode)):
-                raise ValueError(f"Unexpected context-mode entry: {entry}")
-    npm_get = ["npm", "config", "get", "bin-links", "--location=project"]
-    npmrc = root / ".npmrc"
-    if not npmrc.exists() or "bin-links=false" not in npmrc.read_text().splitlines():
-        subprocess.run(["npm", "config", "set", "bin-links=false", "--location=project"], cwd=root, check=True)
-    if subprocess.check_output(npm_get, cwd=root, text=True).strip() != "false":
-        raise ValueError("Cannot disable context-mode npm bin-links")
-    for entry in links:
-        subprocess.run(["trash", str(entry)], check=True)
-        if entry.is_symlink() or entry.exists():
-            raise ValueError(f"Cannot remove context-mode symlink: {entry}")
-    print(f"✓ Codex context-mode cache repaired ({len(links)} bin links removed).")
-except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as error:
-    print(f"Error: cannot repair Codex context-mode cache: {error}", file=sys.stderr)
-    sys.exit(1)
-PYTHON
-}
 
 function setup_codex_superpowers() {
   echo "Ensuring Codex Superpowers plugin..."
@@ -161,7 +86,7 @@ function setup_codex_ponytail() {
   codex plugin marketplace upgrade ponytail >/dev/null 2>&1 || true
 
   # ponytail は git 解決される marketplace（openai-curated のような bundled
-  # スナップショットではない）なので、context-mode と同様 .installed[] に現れる。
+  # スナップショットではない）なので .installed[] に現れる。
   # codex plugin add には確認スキップフラグが無く、guard を外すと
   # 対話プロンプトで停止するため、この判定を確実にする必要がある。
   if codex plugin list --json | jq -e '.installed[]? | select(.pluginId == "ponytail@ponytail" or (.name == "ponytail" and .marketplaceName == "ponytail"))' >/dev/null; then
@@ -175,29 +100,9 @@ function setup_codex_ponytail() {
   #
   # ponytail の hook は ~/.codex/config.toml の [hooks.state] に trust 済みで
   # ないと動作しない。trust は `codex` 起動後 `/hooks` での対話操作が必要で、
-  # 既存の context-mode 同様ここでは自動化しない。
+  # ここでは自動化しない。
 }
 
-function setup_codex_i_have_adhd() {
-  echo "Ensuring Codex i-have-adhd plugin..."
-
-  require_ai_setup_command codex || return 1
-  require_ai_setup_command jq || return 1
-
-  if ! codex plugin marketplace list | /usr/bin/grep -Fq "i-have-adhd"; then
-    codex plugin marketplace add ayghri/i-have-adhd --ref main || return 1
-  fi
-
-  codex plugin marketplace upgrade i-have-adhd >/dev/null 2>&1 || true
-
-  # git 解決される marketplace なので .installed[] に現れる。codex plugin add には
-  # 確認スキップフラグが無く、guard を外すと対話プロンプトで停止する。
-  if codex plugin list --json | jq -e '.installed[]? | select(.pluginId == "i-have-adhd@i-have-adhd" or (.name == "i-have-adhd" and .marketplaceName == "i-have-adhd"))' >/dev/null; then
-    echo "✓ Codex i-have-adhd plugin already installed."
-  else
-    codex plugin add i-have-adhd@i-have-adhd || return 1
-  fi
-}
 
 function setup_codex_hooks_json() {
   # Orca 等の外部ツールが live の hooks.json へ追記するため、リポジトリへ

@@ -28,7 +28,7 @@ bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <PR_NUMBER>
 
 Local mode = current branch matches `headRefName`, local HEAD matches `headRefOid`, **and** `git cat-file -e '<baseRefOid>^{commit}'` succeeds. Otherwise use remote mode and inspect `headRefOid`, never local files.
 
-Capture the full and line-numbered diffs with context-mode (`ctx_batch_execute`, one command per gather target) — this is the large-output path — using source labels unique to the PR and `headRefOid`. If context-mode is unavailable, redirect each output to a file under the session scratchpad and read bounded slices (`wc -l`, `sed -n`). Count the line-numbered diff before expanding it in the parent context.
+Capture the full and line-numbered diffs by redirecting each output to a file under the session scratchpad, named uniquely for the PR and `headRefOid`, and read bounded slices (`wc -l`, `sed -n`). Count the line-numbered diff before expanding it in the parent context.
 
 Derive a compact manifest for every top-level inline thread (`kind=inline` and `in_reply_to_id=null`) with `id`, `path`, `line`, `start_line`, `is_resolved`, `is_outdated`, `thread_id`, `ai_origin`, and a concise root-cause/fix excerpt. Keep the full NDJSON in the parent for final aggregation.
 
