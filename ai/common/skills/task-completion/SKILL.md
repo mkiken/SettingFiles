@@ -19,7 +19,7 @@ At task completion, before the Post-Implementation Workflow even when skipped, c
 
 Skip this workflow when no commit is needed: read-only work, planning, investigation, review-only work, no repository deliverable changes, only deleted temp files, or explicit "do not commit/use git".
 
-When implementation is complete and a commit is needed, inspect the working tree, then ask whether to commit and push, commit only, or leave changes uncommitted via the platform-specific `# User Confirmation` mechanism. For Claude and Gemini, present exactly:
+When implementation is complete and a commit is needed, inspect the working tree, then ask whether to commit and push, commit only, or leave changes uncommitted via the platform-specific `# User Confirmation` mechanism. Before asking, display the current branch, push remote, and destination branch; mark any unresolved value as unknown instead of guessing. Resolve the destination from the planned push: do not infer the destination branch from the upstream when the planned push uses the current branch name. For Claude and Gemini, present exactly:
 
 1. **コミットしてプッシュ** — コミットを作成し、リモートへプッシュする
 2. **コミットのみ** — コミットを作成するがプッシュはしない

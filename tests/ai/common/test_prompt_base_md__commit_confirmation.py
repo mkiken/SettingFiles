@@ -82,6 +82,16 @@ class CommitConfirmationContractTest(unittest.TestCase):
         )
         self.assertIn("Perform the selected git action", self.workflow)
 
+    def test_commit_choice_displays_resolved_push_destination(self):
+        choice = self.workflow.split("For Claude and Gemini, present exactly:", 1)[0]
+        for requirement in (
+            "Before asking, display the current branch, push remote, and destination branch",
+            "mark any unresolved value as unknown instead of guessing",
+            "do not infer the destination branch from the upstream when the planned push uses the current branch name",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, choice)
+
     def test_fixed_menu_is_limited_to_claude_and_gemini(self):
         # Codex Default mode prohibits a multiple-choice permission question;
         # retain the existing fixed menu only for the other two platforms.
