@@ -60,6 +60,10 @@ If `<RUN_DIR>/consider/consider_state.json` is absent, retain the existing behav
 
 When an approved item has a nonempty `post_body`, use it as the finding body in place of the merged summary and normalized detail. Preserve the exact `expected_carryover` and `expected_attribution` suffixes, existing validation, preview, confirmation rules, re-anchoring, and post verification. Show the resulting full body in the preview.
 
+For a review-consider handoff, explicit item numbers override the HTML consider decisions. Require each selected consideration result to have approved `action: post` and a nonempty exact `post_body`; action-less legacy results require the user's action decision first. Approval of the exact body and post action authorizes posting that selection, subject to all existing exceptional confirmations and validation. Never treat a mere policy approval as posting authorization.
+
+Before posting from that handoff, read any existing post_state and validate its run_dir, PR number, reviewed head and item ids. Exclude previously verified posted ids; do not silently repost them. Preserve previous records and union new selected ids/items when recording verified outcomes. If prior posting may have succeeded without a verified outcome record, investigate the existing GitHub comments using the posting mechanics before retrying; ambiguity stops the handoff. Keep existing review URLs in optional per-item `review_url` when a later posting pass would otherwise replace their provenance. Ordinary fresh-run posting retains the schema below.
+
 ## Final Posting Confirmation
 
 The items were already selected in the HTML report, so the shared `pr_post_mechanics_core.md` Preview And Confirm section's ordinary confirmation is skipped for `review-post` by default. Always show the selected-item preview and validate its ids, locations, summaries, bodies (including any approved replacement), and payload before posting, then post exactly the displayed selection without waiting for confirmation.

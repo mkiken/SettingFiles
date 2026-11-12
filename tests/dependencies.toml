@@ -259,6 +259,7 @@
 ]
 
 "ai/common/review_merge_core.md" = [
+  "tests/ai/common/shared_skills/review_consider/test_skill_md.py",
   "tests/ai/common/test_review_post_core_md__carryover_line.py",
 ]
 
@@ -809,6 +810,25 @@
 "ai/gemini/policies/tools.toml" = [
   "tests/ai/gemini/policies/test_tools_toml.py",
 ]
+
+
+"ai/common/review_fix_core.md" = [
+  "tests/ai/common/shared_skills/review_consider/test_skill_md.py",
+]
+
+"ai/common/shared_skills/review-consider/references/considerer.md" = [
+  "tests/ai/common/shared_skills/review_consider/test_skill_md.py",
+]
+
+".claude/skills/ai-prompt-generation/references/report-servers.md" = [
+  "tests/ai/common/shared_skills/review_consider/test_skill_md.py",
+]
+
+"ai/codex/skills/review-fix/SKILL.md" = [
+  "tests/ai/common/shared_skills/review_consider/test_skill_md.py",
+]
+
+"tests/ai/common/shared_skills/review_consider/__init__.py" = ["tests/test_run_tests.py"]
 
 [untested]
 ".claude/skills/repo-tests/SKILL.md" = "Test authoring guidance has no executable behavioral test."
