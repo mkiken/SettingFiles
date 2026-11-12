@@ -1,4 +1,5 @@
 ---
+name: review-fix
 allowed-tools: Bash(gh:*), Bash(git:*), Bash(zsh:*), Bash(diff:*), Bash(tr:*), Bash(trash:*), Bash(mktemp:*), Bash(/bin/cat:*), Bash(ls:*), Bash(mkdir:*), Bash(bash ~/.config/ai-pr/bin/ai_review_run_dir.sh:*), Read, Edit, Write, Glob, Grep, Task
 description: "Fix review items marked 修正する in a merge run directory, via parallel design subagents and per-group worktree implementations"
 argument-hint: "[runDir] [itemNumbers...]"

@@ -1,4 +1,5 @@
 ---
+name: pr-review
 allowed-tools: Bash(gh:*), Bash(git:*), Bash(/bin/cat:*), Bash(bash ~/.config/ai-pr/bin/fetch_existing_comments.sh:*), Bash(bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh:*), Read, Glob, Task
 description: "Comprehensive PR review using gh command; detects the current branch's PR when no number is given"
 model: opus

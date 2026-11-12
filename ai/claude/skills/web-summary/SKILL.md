@@ -1,4 +1,5 @@
 ---
+name: web-summary
 allowed-tools: WebFetch(domain:*)
 description: "Generate comprehensive web page summary using WebFetch for specified URL"
 argument-hint: [url]

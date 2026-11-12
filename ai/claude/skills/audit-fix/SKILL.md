@@ -1,4 +1,5 @@
 ---
+name: audit-fix
 allowed-tools: Bash(bash ~/.config/ai-pr/bin/ai_audit_run_dir.sh:*), Bash(/bin/cat:*), Bash(ls:*), Bash(mkdir:*), Bash(git diff:*), Read, Edit, Write, Glob, Grep, Task
 description: "Apply the config-audit items decided 適用する in an audit run directory: diffs mechanically, null-diff rewrites through design subagents"
 argument-hint: "[platform: claude|codex|gemini] [runDir]"

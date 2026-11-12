@@ -1,4 +1,5 @@
 ---
+name: pr-review-subagents
 description: "Comprehensive PR review using 7 parallel specialist sub-agents for bugs and error handling, security, design quality, history, tests, performance, and claim verification"
 allowed-tools: Bash(gh:*), Bash(git:*), Bash(/bin/cat:*), Bash(bash ~/.config/ai-pr/bin/fetch_existing_comments.sh:*), Bash(bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh:*), Task
 argument-hint: "[prNumber] [additionalInstructions...]"
