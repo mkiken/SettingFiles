@@ -138,7 +138,7 @@ every other action:
 
 1. Recheck the task worktree and stage only paths changed for this task, using explicit paths rather than `git add .` or `git add -A`.
 2. Verify the staged diff contains only intended hunks and follow the repository's commit-message convention.
-3. Commit in the task worktree. If the commit fails, preserve the worktree and branch, report the failure, and stop.
+3. Commit in the task worktree. If a commit-message validation error is clearly identified, correct the message and retry; do not change the staged content. For any other failure, or if the corrected message is still rejected, preserve the worktree and branch, report the failure, and stop.
 4. Record the task commit object ID and confirm the task worktree is clean.
 
 For `commit_only`, report the preserved task worktree path, branch, and commit,
