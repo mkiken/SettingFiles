@@ -1,4 +1,6 @@
 import json
+import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -9,7 +11,7 @@ except ModuleNotFoundError:  # pragma: no cover
     tomllib = None
 
 
-from support import REPO_ROOT
+from support import REPO_ROOT, sanitized_env
 
 
 def read_text(path: str) -> str:
@@ -177,7 +179,6 @@ class ContextModeSetupTest(unittest.TestCase):
                 "setup_codex_ponytail",
                 "npm install -g @nogataka/ccresume-codex",
             ),
-            "mac/updates/codex.sh": ("setup_codex_ponytail",),
         }
 
         for script_path, earlier_lines in expected_order.items():
@@ -190,6 +191,63 @@ class ContextModeSetupTest(unittest.TestCase):
                     self.assertLess(script.index(earlier_line), merge_index)
 
                 self.assertLess(merge_index, script.index("echo \"Codex"))
+
+        update = read_text("mac/updates/codex.sh")
+        self.assertLess(update.index("setup_codex_ponytail"), update.index("sync_codex_config.py"))
+        # Updates capture live settings; initialization applies repository settings.
+        self.assertNotIn(merge_line, update)
+
+    def test_codex_sync_excludes_local_state_and_preserves_comments(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            live = root / "live.toml"
+            repo = root / "repo.toml"
+            live.write_text('model = "new"\nflag = true\ndates = [2026-11-12]\n[projects."/Users/testuser/project"]\ntrust_level = "trusted"\n'
+                            '[hooks.state."/Users/testuser/hook"]\ntrusted_hash = "hash"\n'
+                            '[tui]\nscreen_reader_detection_done = true\nstarted = 2026-11-12\n'
+                            '[tui.model_availability_nux]\nmodel = 1\n'
+                            '[plugins.example]\nenabled = true\n')
+            repo.write_text('# Keep this comment\nmodel = "old" # Keep this too\nflag = 1\ndates = [2026-11-11]\n'
+                            '[hooks.state."existing"]\ntrusted_hash = "original"\n')
+            result = subprocess.run(
+                ["uv", "run", "--no-project", "--script",
+                 str(REPO_ROOT / "mac/scripts/ai/sync_codex_config.py"), str(live), str(repo),
+                 str(REPO_ROOT / "shell/zsh/alias/utils.zsh")],
+                env=sanitized_env({"HOME": directory, "XDG_STATE_HOME": directory,
+                                   "SMART_MERGE_ACTION": "merge_src"}),
+                capture_output=True, text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+            text = repo.read_text()
+            config = tomllib.loads(text)
+            self.assertEqual(config["model"], "new")
+            self.assertIs(config["flag"], True)
+            self.assertEqual([str(date) for date in config["dates"]], ["2026-11-11", "2026-11-12"])
+            self.assertTrue(all(not isinstance(date, str) for date in config["dates"]))
+            self.assertTrue(config["plugins"]["example"]["enabled"])
+            self.assertFalse(isinstance(config["tui"]["started"], str))
+            self.assertIn("# Keep this comment", text)
+            self.assertIn("# Keep this too", text)
+            # Machine-specific trust and UI state must not enter the repository.
+            self.assertNotIn("projects", config)
+            self.assertEqual(config["hooks"]["state"], {"existing": {"trusted_hash": "original"}})
+            self.assertNotIn("screen_reader_detection_done", config.get("tui", {}))
+            self.assertNotIn("model_availability_nux", config.get("tui", {}))
+
+    def test_codex_sync_rejects_invalid_toml_without_changing_repository(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            live, repo = root / "live.toml", root / "repo.toml"
+            live.write_text('model = [\n')
+            repo.write_text('model = "old"\n')
+            result = subprocess.run(
+                ["uv", "run", "--no-project", "--script",
+                 str(REPO_ROOT / "mac/scripts/ai/sync_codex_config.py"), str(live), str(repo),
+                 str(REPO_ROOT / "shell/zsh/alias/utils.zsh")],
+                env=sanitized_env({"HOME": directory}), capture_output=True, text=True,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertEqual(repo.read_text(), 'model = "old"\n')
 
     def test_removed_context_mode_and_i_have_adhd_stay_unregistered(self):
         for path in ("ai/claude/settings.json", "ai/gemini/settings.json"):
