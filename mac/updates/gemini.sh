@@ -51,7 +51,6 @@ generate_gemini_skills
 setup_ai_skills ~/.gemini/skills "${Repo}ai/common/skills" "${Repo}ai/gemini/skills"
 
 setup_gemini_superpowers
-smart_merge_json "${Repo}ai/gemini/settings.json" ~/.gemini/settings.json
 setup_gemini_rtk
 
 echo "Gemini settings update completed."

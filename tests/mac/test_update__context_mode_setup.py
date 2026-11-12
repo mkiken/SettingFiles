@@ -161,12 +161,14 @@ class ContextModeSetupTest(unittest.TestCase):
         self.assertNotIn("claude-mem@thedotmack", settings["enabledPlugins"])
         self.assertNotIn("thedotmack", settings["extraKnownMarketplaces"])
 
-    def test_gemini_update_merges_repository_settings_into_live_settings(self):
+    def test_gemini_update_merges_live_settings_into_repository_only(self):
         update = read_text("mac/updates/gemini.sh")
-        merge_line = 'smart_merge_json "${Repo}ai/gemini/settings.json" ~/.gemini/settings.json'
+        merge_line = 'smart_merge_json ~/.gemini/settings.json "${Repo}ai/gemini/settings.json"'
+        reverse_line = 'smart_merge_json "${Repo}ai/gemini/settings.json" ~/.gemini/settings.json'
 
         self.assertEqual(update.count(merge_line), 1)
-        self.assertLess(update.index("setup_gemini_superpowers"), update.index(merge_line))
+        # Updates capture live settings; initialization applies repository settings.
+        self.assertNotIn(reverse_line, update)
 
     def test_codex_setup_and_update_merge_config_once_after_setup_steps(self):
         merge_line = 'smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml'
