@@ -249,7 +249,7 @@ class WorktreeTaskSkillContentTest(unittest.TestCase):
             "If the invoking worktree is currently dirty, say so in that summary",
             "record the final selection and do not reconfirm push",
             "For Codex, follow the always-on `# User Confirmation` rules",
-            "show the complete numbered list in the question",
+            "show the complete numbered list in the ordinary assistant message",
             "expose the first two choices in `request_user_input`",
             "accept choice numbers through the client's `Other`",
             "For other platforms, if the UI cannot present four authored choices",
