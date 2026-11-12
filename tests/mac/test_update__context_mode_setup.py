@@ -67,8 +67,6 @@ class ContextModeSetupTest(unittest.TestCase):
             ),
             "mac/scripts/ai/codex.sh": (
                 "setup_codex_rtk",
-                "setup_codex_caveman",
-                "update_codex_caveman",
                 "setup_codex_superpowers",
 
                 "setup_codex_ponytail",
@@ -119,11 +117,11 @@ class ContextModeSetupTest(unittest.TestCase):
             ),
             "mac/initialization/ai/codex.sh": (
                 'source "${Repo}mac/scripts/ai/codex.sh"',
-                ("setup_codex_superpowers", "setup_codex_rtk", "setup_codex_caveman", "setup_codex_ponytail"),
+                ("setup_codex_superpowers", "setup_codex_rtk", "setup_codex_ponytail"),
             ),
             "mac/updates/codex.sh": (
                 'source "${Repo}mac/scripts/ai/codex.sh"',
-                ("setup_codex_superpowers", "setup_codex_rtk", "update_codex_caveman", "setup_codex_ponytail"),
+                ("setup_codex_superpowers", "setup_codex_rtk", "setup_codex_ponytail"),
             ),
         }
 

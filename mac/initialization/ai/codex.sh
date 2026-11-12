@@ -12,7 +12,6 @@ npm install -g @openai/codex
 
 setup_ai_mcp install
 setup_ai_pr_tools
-setup_codex_caveman || exit 1
 
 # 共通プロンプトを連結して _AGENTS.md を生成し、~/.codex/AGENTS.md にシンボリックリンク
 generate_codex_agents
