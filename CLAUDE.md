@@ -12,7 +12,7 @@ For environment-specific work, unless explicitly requested, target only macOS, H
 
 ## Repository Branch Policy
 
-Implementation work may start directly on `main`/`master`; when a workflow or skill requires explicit consent for that, treat this section as standing consent. It covers only starting implementation in place — never skip separately required confirmation flows for destructive or side-effecting operations (commits, pushes, pull requests, deletes, deployments, external API writes).
+For implementation and configuration changes in this repository, use `worktree-task` by default. Read-only investigation and review do not require a worktree. If already working in a worktree dedicated to the task, do not create a nested worktree. An explicitly requested alternative workflow takes precedence. If the task worktree cannot be created, stop and report the reason rather than editing in place. Continue to follow all required confirmations for destructive or side-effecting operations (commits, pushes, pull requests, deletes, deployments, external API writes).
 
 Concurrent sessions may create same-file dependencies (e.g. a function rename and a new caller) that integrate coincidentally or silently break. Immediately before committing, refresh the tracking ref with `git fetch origin "+refs/heads/<branch>:refs/remotes/origin/<branch>"` and compare against `origin/<branch>`; if the remote has commits not yet in the local history, inspect them (`git log`/`git show`) for overlap with files this session touched. If any such commit touches a file this session changed, stop and report the overlapping paths and commit hashes to the user before committing; if none overlap, proceed.
 
