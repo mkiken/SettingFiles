@@ -1,4 +1,5 @@
 ---
+name: pr-body
 allowed-tools: Bash(gh:*), Bash(git:*), Bash(diff:*), Bash(tr:*), Bash(trash:*), Bash(mktemp:*), Bash(/bin/cat:*), Write
 description: "Generate comprehensive PR body content using gh command for specified PR number"
 argument-hint: [prNumber]

@@ -1,4 +1,5 @@
 ---
+name: config-audit
 description: >
   Audit all Claude Code configuration files for redundancy, conflicts, ambiguity,
   and unnecessary rules.
