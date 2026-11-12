@@ -1,5 +1,10 @@
 # Add only dependencies proven by a wider test run after targeted testing missed them.
 [extra_tests]
+# Codex config synchronization is exercised through the update entrypoint tests.
+"mac/scripts/ai/sync_codex_config.py" = [
+  "tests/mac/test_update__context_mode_setup.py",
+]
+
 # Codex selector contracts also live with the shared AI workflow policy tests.
 # Alias-only selection previously missed stale Terra and hook-trust expectations.
 "shell/zsh/alias/ai/codex.zsh" = [

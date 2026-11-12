@@ -78,7 +78,8 @@ setup_codex_superpowers
 setup_codex_rtk
 setup_codex_ponytail
 
-# 共通設定テンプレートを ~/.codex/config.toml にマージ
-smart_merge_toml "${Repo}ai/codex/config.toml" ~/.codex/config.toml
+# ローカル固有の状態を除き、live 設定をリポジトリへ取り込む。
+uv run --no-project --script "${Repo}mac/scripts/ai/sync_codex_config.py" \
+  ~/.codex/config.toml "${Repo}ai/codex/config.toml" "${Repo}shell/zsh/alias/utils.zsh" || return 1
 
 echo "Codex tools update completed."
