@@ -20,6 +20,7 @@ git branch --show-current
 git rev-parse HEAD
 bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <PR_NUMBER>
 printenv AI_REVIEW_OUTPUT_FILE || true
+gh api repos/{owner}/{repo}/pulls/<PR_NUMBER>/reviews --jq '[.[] | select(.user.login == "'$(gh api user --jq .login 2>/dev/null)'") | .commit_id] | last // empty'
 ```
 
 Local mode requires the current branch to match `headRefName`, local HEAD to match `headRefOid`, and `git cat-file -e <baseRefOid>^{commit}` to succeed. Otherwise use remote mode and inspect `headRefOid`, never local files.
@@ -27,6 +28,25 @@ Local mode requires the current branch to match `headRefName`, local HEAD to mat
 Capture the full and line-numbered diffs through the configured large-output path, using source labels unique to the PR and `headRefOid`. Count the line-numbered diff before expanding it in the parent context.
 
 Derive a compact manifest for every top-level inline thread (`kind=inline` and `in_reply_to_id=null`) with `id`, `path`, `line`, `start_line`, `is_resolved`, `is_outdated`, `thread_id`, `ai_origin`, and a concise root-cause/fix excerpt. Keep the full NDJSON in the parent for final aggregation.
+
+### Incremental Re-review Check
+
+The last command above fetches `<PREV_OID>` (the commit ID of your latest previous review on this PR).
+- If `<PREV_OID>` is empty or equals `headRefOid`: proceed to launch agents for the whole PR.
+- If `<PREV_OID>` is non-empty and differs from `headRefOid`: check ancestry:
+  - Local mode: `git merge-base --is-ancestor <PREV_OID> <headRefOid>`
+  - Remote mode: `gh api repos/{owner}/{repo}/compare/<PREV_OID>...<headRefOid> --jq .status` (status is `ahead`)
+  - If `<PREV_OID>` is NOT an ancestor of `headRefOid` (force-push): proceed to launch agents for the whole PR, and state at the top of the output that a force-push was detected.
+  - If `<PREV_OID>` IS an ancestor of `headRefOid`: **STOP and invoke the `ask_user` tool immediately BEFORE launching any sub-agents**:
+    - header: "差分レビュー"
+    - question: "前回のレビューコミット (<PREV_OID>) が見つかりました。レビュー対象の範囲を選択してください。"
+    - options:
+      1. label: "差分のみ", description: "<PREV_OID>..<headRefOid> の変更行のみレビューします"
+      2. label: "PR全体", description: "PR全体の変更を再レビューします"
+    - If the user selects "差分のみ":
+      - Pass `<PREV_OID>..<headRefOid>` to all specialist sub-agents as part of `<ADDITIONAL_INSTRUCTIONS>`: instruct them to report findings ONLY on lines changed in `<PREV_OID>..<headRefOid>` (using `git diff <PREV_OID>...<headRefOid>`), while keeping the full PR line-numbered diff for line anchors and comment deduplication.
+      - State the reviewed range `<PREV_OID>..<headRefOid>` at the top of the output.
+    - If the user selects "PR全体": proceed to launch agents for the whole PR.
 
 ## Launch Agents
 

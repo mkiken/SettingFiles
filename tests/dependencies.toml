@@ -48,3 +48,7 @@
 "mac/initialize" = [
   "tests/mac/test_update__common_args.py",
 ]
+
+"ai/gemini/policies/tools.toml" = [
+  "tests/ai/gemini/policies/test_tools_toml.py",
+]

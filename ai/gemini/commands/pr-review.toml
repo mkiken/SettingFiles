@@ -14,9 +14,28 @@ git branch --show-current
 bash ~/.config/ai-pr/bin/fetch_existing_comments.sh <PR_NUMBER>
 bash ~/.config/ai-pr/bin/format_pr_diff_with_line_numbers.sh <PR_NUMBER>
 printenv AI_REVIEW_OUTPUT_FILE || true
+gh api repos/{owner}/{repo}/pulls/<PR_NUMBER>/reviews --jq '[.[] | select(.user.login == "'$(gh api user --jq .login 2>/dev/null)'") | .commit_id] | last // empty'
 ```
 
 `fetch_existing_comments.sh` above outputs existing PR comments as NDJSON — use it for duplicate detection per the Existing Comment Deduplication rules in the core rules below. `format_pr_diff_with_line_numbers.sh` is the authoritative source for review line numbers (see Line Number Source in the core rules).
+
+### Incremental Re-review Check
+
+The last command above fetches `<PREV_OID>` (the commit ID of your latest previous review on this PR).
+- If `<PREV_OID>` is empty or equals `headRefOid`: proceed to review the whole PR.
+- If `<PREV_OID>` is non-empty and differs from `headRefOid`: check ancestry:
+  - Local mode: `git merge-base --is-ancestor <PREV_OID> <headRefOid>`
+  - Remote mode: `gh api repos/{owner}/{repo}/compare/<PREV_OID>...<headRefOid> --jq .status` (status is `ahead`)
+  - If `<PREV_OID>` is NOT an ancestor of `headRefOid` (force-push): review the whole PR and state at the top of the output that a force-push was detected.
+  - If `<PREV_OID>` IS an ancestor of `headRefOid`: **STOP and invoke the `ask_user` tool immediately** before proceeding with the review:
+    - header: "差分レビュー"
+    - question: "前回のレビューコミット (<PREV_OID>) が見つかりました。レビュー対象の範囲を選択してください。"
+    - options:
+      1. label: "差分のみ", description: "<PREV_OID>..<headRefOid> の変更行のみレビューします"
+      2. label: "PR全体", description: "PR全体の変更を再レビューします"
+    - If the user selects "差分のみ": report findings ONLY on lines changed in `<PREV_OID>..<headRefOid>` (using `git diff <PREV_OID>...<headRefOid>`), while keeping the full PR line-numbered diff for line anchors and comment deduplication. State the reviewed range `<PREV_OID>..<headRefOid>` at the top of the output.
+    - If the user selects "PR全体": review the whole PR.
+
 
 For more detail via `run_shell_command`:
 - PR body and commit headlines (needed for 主張検証): `gh pr view <PR_NUMBER> --json body,commits --jq '{body,commits:[.commits[]|{oid,messageHeadline}]}'`
