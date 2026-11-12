@@ -57,6 +57,13 @@ class RenderTest(unittest.TestCase):
                       html.replace(" ", ""))
         self.assertNotIn("__REVIEW_DATA__", html)
 
+    def test_ownership_classification(self):
+        for author, viewer, expected in [("octocat", "OCTOCAT", "self"), ("octocat", "other", "other"), ("octocat", None, "unknown"), (None, "octocat", "unknown")]:
+            with self.subTest(author=author, viewer=viewer), patch.object(mod, "github_viewer", return_value=viewer):
+                data = merged([])
+                data["pr_author"] = author
+                self.assertEqual(mod.prepare_report_data(data, Path("."))["ownership"], expected)
+
     def test_render_priorities_table_driven(self):
         cases = ["high", "medium", "low"]
         for prio in cases:
@@ -165,7 +172,7 @@ class RenderTest(unittest.TestCase):
         self.assertIn('typeof hljs==="undefined")return null', html)
         self.assertIn("else text.textContent=line.text", html)
         # hljs は defer 読込のため、本体は DOMContentLoaded 後に build する
-        self.assertIn('document.addEventListener("DOMContentLoaded",build)', html)
+        self.assertIn('document.addEventListener("DOMContentLoaded",initialize)', html)
 
     def test_highlight_token_colors_defined_for_light_and_dark(self):
         html = mod.render(merged([item(1)]))
@@ -231,7 +238,7 @@ class RenderTest(unittest.TestCase):
         self.assertIn('<button id="save-state" disabled>', markup)
         self.assertIn(
             'document.getElementById("save-state").disabled='
-            "!CAN_SAVE_STATE||done!==DATA.items.length",
+            "!CAN_SAVE_STATE||!stateReady||done!==DATA.items.length",
             html,
         )
         self.assertIn("function allItemsCompleted()", html)

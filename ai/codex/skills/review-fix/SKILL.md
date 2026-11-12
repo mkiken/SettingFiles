@@ -34,6 +34,12 @@ Group the selected items by their `file` field; items whose `area`/`summary` cle
 
 Present the selected items (`id. [file:line_spec] priority | area: summary`) with their grouping and confirm with the user before editing anything. Then: 1 group → Inline Flow; 2+ groups → Subagent Flow. Exception: when every item is a small, local fix with no open design decision, offer Inline Flow as the recommended choice in that confirmation and let the user pick.
 
+## Consideration results
+
+If `<RUN_DIR>/consider/consider_state.json` is absent, retain the existing behavior. Otherwise read it before acting. Require `schema_version: 1`, its resolved `run_dir` to equal the resolved <RUN_DIR>, and every key in `items` to match an id in merged.json. For each selected item with a result, require `status: approved`, nonempty string `rationale` and `policy`, a null or string `post_body`, and the result file's `head_ref_oid` to equal both merged.json's `head_ref_oid` and the current PR head obtained via `gh pr view <PR_NUMBER> --json headRefOid --jq .headRefOid`. Stop and ask for renewed consideration if any check fails or the current head cannot be obtained. A selected item without a result retains existing behavior. Never change state.json or merged.json.
+
+Apply each approved `policy` as an implementation constraint. Include it in the initial confirmation and in the relevant designer payload `<CONSTRAINTS>`; the inline flow must follow it too. If the policy cannot be followed, stop that item and ask the user rather than silently substituting another approach.
+
 ## fix_state.json
 
 Durable per-item outcome record, read by the next run's review-merge for carryover; keep outcomes and reasons accurate. Subagent Flow updates it immediately at every status transition and re-reads it before every transition and after any interruption or context compaction — never trust memory. Inline Flow writes it once at the end, with terminal statuses only.

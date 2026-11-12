@@ -24,7 +24,7 @@ PROFILES = {
     "review": {
         "manifest": "merged.json",
         "schema_version": 2,
-        "decisions": frozenset({"fix", "post", "dismiss", None}),
+        "decisions": frozenset({"fix", "post", "consider", "dismiss", None}),
     },
     "audit": {
         "manifest": "audit.json",
@@ -63,11 +63,10 @@ def validate_state(payload, item_ids, profile_name):
         decision = entry.get("decision")
         # None は「未判断」。保存ボタンはHTML側で全項目確定まで非活性なので通常は届かないが、
         # 部分保存自体はサーバー側で拒否しない。
-        if decision not in allowed:
+        if decision is not None and not isinstance(decision, str) or decision not in allowed:
             names = " / ".join(sorted(v for v in allowed if v is not None))
             raise ValueError(f"decision must be one of {names} / null")
-        # note は audit の consider 項目へのユーザー記述。review の state には存在しない。
-        if profile_name == "audit" and not isinstance(entry.get("note", ""), str):
+        if not isinstance(entry.get("note", ""), str):
             raise ValueError("note must be a string")
 
 
@@ -180,6 +179,18 @@ class ReviewHandler(BaseHTTPRequestHandler):
             )
             return
         self.server.touch()
+        if path == "/api/state" and self.server.profile_name == "review":
+            try:
+                payload = json.loads(self.server.state_path.read_text(encoding="utf-8"))
+                validate_state(payload, self.server.item_ids, self.server.profile_name)
+            except FileNotFoundError:
+                self.send_text(HTTPStatus.NO_CONTENT)
+                return
+            except (OSError, ValueError, UnicodeDecodeError) as error:
+                self.send_text(HTTPStatus.INTERNAL_SERVER_ERROR, str(error))
+                return
+            self.send_text(HTTPStatus.OK, json.dumps(payload), "application/json")
+            return
         if path not in ("/", "/report.html"):
             self.send_error(HTTPStatus.NOT_FOUND)
             return

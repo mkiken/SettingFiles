@@ -62,9 +62,8 @@ class ValidateStateProfileTest(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     mod.validate_state(payload, {"1"}, "audit")
 
-    def test_review_rejects_consider(self):
-        with self.assertRaises(ValueError):
-            mod.validate_state(self.state("consider", 2), {"1"}, "review")
+    def test_review_accepts_consider(self):
+        mod.validate_state(self.state("consider", 2), {"1"}, "review")
 
     def test_audit_rejects_review_decisions(self):
         # プロファイルが実際に分離されていることの証明: fix は監査側では無効

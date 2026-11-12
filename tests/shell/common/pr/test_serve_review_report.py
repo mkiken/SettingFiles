@@ -96,6 +96,26 @@ class ReviewServerTest(unittest.TestCase):
         error.exception.close()
         self.assertFalse((self.run_dir / "state.json").exists())
 
+    def test_consider_note_roundtrip_and_invalid_state(self):
+        with self.request("/api/state") as missing:
+            self.assertEqual(missing.status, 204)
+        state = self.valid_state()
+        state["items"]["1"] = {"decision": "consider", "note": "inspect"}
+        with self.request("/api/state", "POST", json.dumps(state).encode(), "application/json"):
+            pass
+        with self.request("/api/state") as response:
+            self.assertEqual(json.load(response), state)
+        state["items"]["1"]["note"] = 1
+        with self.assertRaises(HTTPError) as invalid:
+            self.request("/api/state", "POST", json.dumps(state).encode(), "application/json")
+        self.assertEqual(invalid.exception.code, 400)
+        invalid.exception.close()
+        (self.run_dir / "state.json").write_text("{broken", encoding="utf-8")
+        with self.assertRaises(HTTPError) as broken:
+            self.request("/api/state")
+        self.assertEqual(broken.exception.code, 500)
+        broken.exception.close()
+
     def test_write_error_returns_details(self):
         with mock.patch.object(mod, "write_state", side_effect=PermissionError("permission denied")):
             with self.assertRaises(HTTPError) as error:
