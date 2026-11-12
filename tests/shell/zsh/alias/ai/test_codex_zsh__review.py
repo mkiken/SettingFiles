@@ -142,3 +142,13 @@ cx() {{
     def test_review_fix_preserves_codex_exit_code(self):
         result = self.run_command("cx-review-fix", exit_code=7)
         self.assertEqual(result.returncode, 7)
+
+    def test_review_consider_arguments_and_exit_code(self):
+        for arguments, suffix in (("", ""), ("'run with spaces'", "run with spaces")):
+            for exit_code in (0, 7):
+                with self.subTest(arguments=arguments, exit_code=exit_code):
+                    result = self.run_command(f"cx-review-consider {arguments}", exit_code)
+                    self.assertEqual(result.returncode, exit_code)
+                    self.assertEqual(json.loads(result.stdout), [
+                        "--model", "gpt-6.1-sol", f"$review-consider {suffix}",
+                    ])

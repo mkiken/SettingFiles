@@ -108,6 +108,13 @@ class ClPrBodyPlanModeTest(unittest.TestCase):
 
 
 class ClReviewPostFixAliasTest(unittest.TestCase):
+    def test_cl_review_consider_uses_sonnet(self):
+        for argument in ("", "'run with spaces'"):
+            captured = run_claude_alias(f"cl-review-consider {argument}")
+            self.assertEqual(captured[captured.index("--model") + 1], "sonnet")
+            self.assertNotIn("--dangerously-skip-permissions", captured)
+            self.assertEqual(captured[-1], f"/review-consider {argument.strip(chr(39))}")
+
     def test_cl_review_post_uses_sonnet(self):
         captured = run_claude_alias("cl-review-post RUN")
 

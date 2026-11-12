@@ -125,6 +125,10 @@ cx-review-fix() {
     cxs "\$review-fix $*"
 }
 
+cx-review-consider() {
+    cxs "\$review-consider $*"
+}
+
 alias cx-pr-comment-review='noglob _cx-pr-comment-review'
 alias cx-pcr='noglob _cx-pr-comment-review'
 _cx-pr-comment-review() {

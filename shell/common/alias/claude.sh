@@ -111,6 +111,10 @@ cl-review-fix() {
     clp "/review-fix $*"
 }
 
+cl-review-consider() {
+    cls "/review-consider $*"
+}
+
 _cl-pr-comment-review() {
     clo --effort high --dangerously-skip-permissions "/pr-comment-review $*"
 }
