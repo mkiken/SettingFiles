@@ -67,13 +67,20 @@ def parse_args(argv=None):
         default=default_job_count(os.cpu_count()),
         help="number of parallel test processes (default: min(8, CPU count))",
     )
-    parser.add_argument(
+    selection = parser.add_mutually_exclusive_group()
+    selection.add_argument(
         "--paths",
         nargs="+",
         metavar="PATH",
         help="repo-relative changed paths; runs only convention-mapped tests",
     )
-    return parser.parse_args(argv)
+    selection.add_argument("--changed", action="store_true", help="select Git changes")
+    parser.add_argument("--base", help="include changes since this commit (requires --changed)")
+    parser.add_argument("--list-details", action="store_true", help="show all selection details")
+    args = parser.parse_args(argv)
+    if args.base and not args.changed:
+        parser.error("--base requires --changed")
+    return args
 
 
 def iter_tests(suite):
@@ -85,12 +92,38 @@ def iter_tests(suite):
 
 
 def discover_test_ids(test_dir=TEST_DIR):
-    suite = unittest.defaultTestLoader.discover(
+    loader = unittest.TestLoader()
+    suite = loader.discover(
         start_dir=str(test_dir),
         pattern="test_*.py",
         top_level_dir=str(test_dir),
     )
-    return sorted(test.id() for test in iter_tests(suite))
+    tests = list(iter_tests(suite))
+    modules = {test.__class__.__module__ for test in tests}
+    missing = sorted(test_module_name(path, test_dir) for path in test_dir.rglob("test_*.py")
+                     if test_module_name(path, test_dir) not in modules)
+    if loader.errors or missing:
+        raise ValueError("Test discovery failed: " + "; ".join(loader.errors + missing))
+    return sorted(test.id() for test in tests)
+
+
+def changed_paths(base=None, root=REPO_ROOT):
+    def git(*args):
+        try:
+            return subprocess.run(["git", *args], cwd=root, check=True, stdout=subprocess.PIPE,
+                                  stderr=subprocess.PIPE).stdout
+        except (OSError, subprocess.CalledProcessError) as error:
+            raise ValueError(f"Git change detection failed: {error}") from error
+    diff = git("diff", "--name-status", "-z", "--no-renames", base or "HEAD", "--").split(b"\0")
+    entries = list(zip(diff[0::2], diff[1::2]))
+    paths = {os.fsdecode(name) for status, name in entries if status and name}
+    paths.update(os.fsdecode(name) for name in git("ls-files", "--others", "--exclude-standard", "-z").split(b"\0") if name)
+    return sorted(paths), any(status == b"D" for status, name in entries)
+
+
+def requires_full_suite(paths, deleted=False):
+    return deleted or any(path in {"tests/run_tests.py", "tests/support.py", "tests/dependencies.toml"}
+                          or (path.startswith("tests/") and path.endswith("/__init__.py")) for path in paths)
 
 
 def normalize_name(value):
@@ -113,7 +146,7 @@ def normalize_directory(value):
 
 
 def normalize_repo_path(value):
-    path = PurePosixPath(value.replace("\\", "/"))
+    path = PurePosixPath(value)
     if path.is_absolute() or ".." in path.parts or str(path) in {"", "."}:
         raise ValueError(f"path must be repo-relative: {value}")
     return path
@@ -135,12 +168,13 @@ def test_module_name(test_path, test_dir=TEST_DIR):
     return ".".join(test_path.relative_to(test_dir).with_suffix("").parts)
 
 
-def load_dependency_map(map_path=DEPENDENCY_MAP_PATH):
-    if not map_path.exists():
-        return {}
+def load_dependency_map(map_path=DEPENDENCY_MAP_PATH, root=REPO_ROOT, test_ids=None):
     with map_path.open("rb") as map_file:
         data = tomllib.load(map_file)
+    if set(data) - {"extra_tests", "untested"}:
+        raise ValueError("dependencies.toml has unknown tables")
     entries = data.get("extra_tests", {})
+    untested = data.get("untested", {})
     if not isinstance(entries, dict):
         raise ValueError("dependencies.toml [extra_tests] must be a table")
     if any(
@@ -150,11 +184,37 @@ def load_dependency_map(map_path=DEPENDENCY_MAP_PATH):
         for source, test_paths in entries.items()
     ):
         raise ValueError("dependencies.toml entries must map paths to string lists")
-    return entries
+    if not isinstance(untested, dict) or any(not isinstance(reason, str) or not reason.strip() for reason in untested.values()):
+        raise ValueError("dependencies.toml [untested] must map paths to nonempty reasons")
+    for source in list(entries) + list(untested):
+        if str(normalize_repo_path(source)) != source:
+            raise ValueError(f"invalid dependency path: {source}")
+        if (root / source).is_dir():
+            raise ValueError(f"dependency path must name a file: {source}")
+    if set(entries) & set(untested):
+        raise ValueError("dependencies.toml entries overlap exclusions")
+    for source in untested:
+        selected, _ = selected_test_paths([source], root / "tests", {})
+        if selected:
+            raise ValueError(f"exclusion overlaps tests: {source}")
+    modules = {test_id.rsplit(".", 2)[0] for test_id in test_ids} if test_ids is not None else None
+    for source, targets in entries.items():
+        if not targets or len(targets) != len(set(targets)):
+            raise ValueError(f"invalid dependency targets: {source}")
+        for target in targets:
+            normalized = normalize_repo_path(target)
+            test_path = root / normalized
+            if (str(normalized) != target or not target.startswith("tests/")
+                    or not test_path.name.startswith("test_") or test_path.suffix != ".py"
+                    or not test_path.is_file()):
+                raise ValueError(f"dependencies.toml references missing tests: {target}")
+            if modules is not None and test_module_name(test_path, root / "tests") not in modules:
+                raise ValueError(f"dependencies.toml references uncollected test: {target}")
+    return entries, untested
 
 
 def selected_test_paths(source_paths, test_dir=TEST_DIR, dependency_map=None):
-    dependency_map = dependency_map if dependency_map is not None else load_dependency_map()
+    dependency_map = dependency_map if dependency_map is not None else load_dependency_map()[0]
     selected = set()
     unmatched = []
     for source_value in source_paths:
@@ -318,21 +378,50 @@ def main(argv=None):
     # テストの PATH スタブは HERDR_BIN_PATH 優先の実装を迂回できないため
     # ここで一度だけ落とす。
     purge_multiplexer_env()
-    test_ids = discover_test_ids()
-    if args.paths:
-        try:
-            test_ids, selected_paths, unmatched = select_test_ids(args.paths, test_ids)
-        except ValueError as error:
-            print(error, file=sys.stderr)
-            return 2
-        print(
-            f"Selected {len(test_ids)} tests from {len(selected_paths)} test modules",
-            flush=True,
-        )
-        if unmatched:
-            print(f"No mapped tests: {', '.join(unmatched)}", file=sys.stderr)
-        if not test_ids:
-            return 0
+    try:
+        test_ids = discover_test_ids()
+        dependencies, untested = load_dependency_map(test_ids=test_ids)
+        paths, deleted = changed_paths(args.base) if args.changed else (args.paths, False)
+        if paths is not None:
+            if not paths:
+                print("No changed paths; no tests run")
+                return 0
+            selected, selected_paths, unmatched = select_test_ids(paths, test_ids, dependency_map=dependencies)
+            excluded = {path: untested[path] for path in unmatched if path in untested}
+            unmatched = [path for path in unmatched if path not in excluded]
+            details = []
+            for path in paths:
+                if path in excluded:
+                    details.append(f"{path!r}: excluded: {excluded[path]!r}")
+                elif path in unmatched:
+                    details.append(f"{path!r}: no mapped tests")
+                else:
+                    mapped, _ = selected_test_paths([path], dependency_map=dependencies)
+                    reasons = []
+                    if selected_test_paths([path], dependency_map={})[0]:
+                        reasons.append("naming convention")
+                    if path in dependencies:
+                        reasons.append("extra dependency")
+                    reason = " and ".join(reasons)
+                    details.append(f"{path!r}: {reason}: " + ", ".join(str(p.relative_to(REPO_ROOT)) for p in mapped))
+            print(f"Paths: {len(paths)}; selected modules: {len(selected_paths)}; tests: {len(selected)}; excluded: {len(excluded)}; unmapped: {len(unmatched)}")
+            if args.list_details or (len(details) <= 100 and sum(len(line) for line in details) <= 8192 and all(len(line) <= 1000 for line in details)):
+                for line in details:
+                    print(line)
+            else:
+                print("Use --list-details to show selection details")
+            if unmatched:
+                return 2
+            if requires_full_suite(paths, deleted or any(not (REPO_ROOT / path).exists() for path in paths)):
+                print("Running full suite: shared test infrastructure or deletion")
+            else:
+                test_ids = selected
+                if not test_ids:
+                    print("No tests selected; no tests run")
+                    return 0
+    except (ValueError, OSError, tomllib.TOMLDecodeError) as error:
+        print(error, file=sys.stderr)
+        return 2
     if not test_ids:
         print("No tests discovered", file=sys.stderr)
         return 1

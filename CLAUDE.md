@@ -40,11 +40,11 @@ When a change intentionally alters behavior a test pins, update that test in the
 ```bash
 python3 tests/run_tests.py
 ```
-For every change not covered by the full-suite conditions below — code, prompt sources, generated outputs, and configuration alike — run only the tests owned by the files changed in the task:
+For work in progress, select tests for all tracked and untracked changes automatically:
 ```bash
-python3 tests/run_tests.py --paths <repo-relative changed paths>
+python3 tests/run_tests.py --changed
 ```
-Fix targeted failures, or report them explicitly at the commit confirmation. Run the full suite only when changing the runner, test layout, `tests/support.py`, `tests/dependencies.toml`, when moving or renaming files, or when explicitly requested. Never leave a suite that was run red without either fixing it or reporting each failure explicitly (including a unit stopped after three failed correction attempts).
+At worktree completion, include committed changes since its creation with `python3 tests/run_tests.py --changed --base <creation-commit>`. Use `--paths <repo-relative paths>` for manual investigation and `--list-details` for the complete selection. Unmapped paths stop the run; add a verified dependency, a test, or an exact `[untested]` entry with a reason. The runner selects the full suite for test infrastructure changes and deletions, including renames. Run it without arguments when a full suite is explicitly requested. Fix targeted failures, or report them explicitly at the commit confirmation. Never leave a suite that was run red without either fixing it or reporting each failure explicitly (including a unit stopped after three failed correction attempts).
 
 When a run reveals failing tests unrelated to the current task, do not fix them mid-task. Finish all planned work first, then report the failing tests and ask the user whether to fix them as a follow-up; do not start that fix before they answer. This is an exception to the rule above, and it applies only to failures not caused by this task's changes.
 

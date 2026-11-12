@@ -13,11 +13,11 @@ Main-suite tests mirror their primary implementation owner: `tests/<normalized s
 
 ## New test directories
 
-A new test directory needs an `__init__.py`. Without one the runner reports `Selected 0 tests from 1 test modules` and still exits successfully, so a new test file silently never runs — confirm the expected test count after adding the first file in a directory.
+A new test directory needs an `__init__.py`. The runner rejects uncollected files; confirm the expected test count after adding the first file in a directory.
 
 ## `tests/dependencies.toml`
 
-It is for proven exceptional dependencies only. When a wider run reveals a failing test omitted by targeted selection, first confirm that a changed source caused the failure, then propose an exact source-to-test entry. After approval, add it and verify that `--paths <source>` selects the test. Do not record unrelated or pre-existing failures. If a valid changed path has no mapped test, the runner reports it and exits successfully; state that omission in the handoff.
+Record exceptional dependencies supported by an observed wider-run failure or by inspecting the implementation and test. Pin selection with a test and verify `--paths <source>` selects it. Use `[untested]` only for an exact path with a nonempty reason when no executable test applies. Unmapped paths stop the runner.
 
 ## Shell-function tests
 
