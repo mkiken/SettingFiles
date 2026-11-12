@@ -1,5 +1,21 @@
-# Add only dependencies proven by a wider test run after targeted testing missed them.
+# Record exceptional dependencies supported by the implementation and tests.
 [extra_tests]
+# Herdr setup tests source these shell startup components directly.
+"shell/zsh/auto_multiplexer.zsh" = ["tests/mac/scripts/test_herdr_sh__herdr_setup.py"]
+"shell/zsh/filter/base.zsh" = ["tests/mac/scripts/test_herdr_sh__herdr_setup.py"]
+"shell/zsh/plugin.zsh" = ["tests/mac/scripts/test_herdr_sh__herdr_setup.py"]
+# These tests source the real notification helpers in their shell commands.
+"shell/tmux/tmux_notification_title.sh" = [
+  "tests/shell/tmux/test_ai_notification_summary_sh.py",
+  "tests/shell/tmux/test_claude_transcript_analyze.py",
+  "tests/shell/tmux/test_gemini_transcript_summary_jq.py",
+]
+# Herdr status tests source the live script and its shared tmux modules.
+"shell/tmux/tmux_emoji.conf" = ["tests/shell/herdr/test_herdr_status_icon_sh.py"]
+"shell/tmux/tmux_window_name.py" = ["tests/shell/herdr/test_herdr_status_icon_sh.py"]
+"tests/dependencies.toml" = ["tests/test_run_tests.py"]
+"tests/ai/common/shared_skills/herdr_tab_label/__init__.py" = ["tests/test_run_tests.py"]
+"tests/ai/gemini/skills/__init__.py" = ["tests/test_run_tests.py"]
 # Codex config synchronization is exercised through the update entrypoint tests.
 "mac/scripts/ai/sync_codex_config.py" = [
   "tests/mac/test_update__context_mode_setup.py",
@@ -22,20 +38,30 @@
 # config-audit のアダプタ3種は orchestrator_core.md との契約テストで検証される
 # (RUN_DIR / platform_key / allowed-tools / scratchpad例外の撤去)。
 # アダプタ側の命名では test_..._sh.py 相当が存在せず0件になるため明示する。
+# The Codex dispatch contract also reads the shared core and both adapters.
+"ai/common/config_audit_subagents/orchestrator_core.md" = [
+  "tests/ai/codex/skills/config_audit/test_skill_head_md__dispatch_contract.py",
+]
 "ai/claude/skills/config-audit/SKILL.md" = [
   "tests/ai/common/config_audit_subagents/test_orchestrator_core_md__audit_report_contract.py",
+  "tests/ai/codex/skills/config_audit/test_skill_head_md__dispatch_contract.py",
 ]
 "ai/codex/skills/config-audit/skill_head.md" = [
+  "tests/ai/codex/test_codex_base_md__user_confirmation.py",
   "tests/ai/common/config_audit_subagents/test_orchestrator_core_md__audit_report_contract.py",
 ]
 "ai/gemini/commands/config-audit.toml" = [
   "tests/ai/common/config_audit_subagents/test_orchestrator_core_md__audit_report_contract.py",
+  "tests/ai/codex/skills/config_audit/test_skill_head_md__dispatch_contract.py",
 ]
 
 # _gh_compare_url_build は gh.zsh にあるが、テストはエントリポイントの fgh-compare
 # (github.zsh) 側にまとめている。gh.zsh 単独変更では
 # tests/shell/zsh/alias/test_gh_zsh.py を探して0件になるため明示する。
 "shell/zsh/alias/gh.zsh" = [
+  "tests/shell/zsh/filter/test_ai_zsh__freview_worktree.py",
+  "tests/shell/zsh/filter/test_github_zsh__pr_picker_label.py",
+  "tests/shell/zsh/filter/test_github_zsh__pr_reviewer_reminder.py",
   "tests/shell/zsh/filter/test_github_zsh__compare_url_picker.py",
 ]
 
@@ -43,12 +69,746 @@
 # 3ファイル横断の1テストで検証する。テストは mac/update 側に置いているため、
 # 他2ファイル単独の変更では 0 件になる。
 "mac/initialization/initialize" = [
+  "tests/mac/scripts/test_herdr_sh__herdr_setup.py",
   "tests/mac/test_update__common_args.py",
 ]
 "mac/initialize" = [
   "tests/mac/test_update__common_args.py",
 ]
 
+"ai/common/skills/plan-review/references/claude.md" = [
+  "tests/ai/claude/test_claude_md__plan_review_body_output.py",
+]
+
+".gitignore" = [
+  "tests/ai/claude/test_settings_json__slash_anywhere_mod.py",
+]
+
+"ai/codex/config.toml" = [
+  "tests/mac/test_update__context_mode_setup.py",
+  "tests/ai/codex/skills/plan_model_handoff/test_skill_md__plan_model_handoff_contract.py",
+  "tests/shell/zsh/alias/test_notification_zsh__notification_suppression.py",
+  "tests/terminal/herdr/plugins/notify_rich/test_codex_monthly_credit.py",
+]
+
+"ai/codex/_AGENTS.md" = [
+  "tests/mac/scripts/test_dev_tools_sh__mdv_install.py",
+  "tests/mac/scripts/ai/test_rtk_sh__rtk_setup.py",
+  "tests/mac/scripts/test_common_sh__codex_agents_sync.py",
+  "tests/ai/codex/test_codex_base_md__detailed_explanation_override.py",
+  "tests/ai/codex/test_codex_base_md__plan_review_criteria.py",
+]
+
+"ai/common/skills/plan-review/references/codex.md" = [
+  "tests/ai/codex/test_codex_base_md__user_confirmation.py",
+  "tests/ai/codex/test_codex_base_md__plan_review_criteria.py",
+]
+
+"ai/codex/skills/config-audit/SKILL.md" = [
+  "tests/ai/common/config_audit_subagents/test_orchestrator_core_md__audit_report_contract.py",
+]
+
+"shell/common/pr/generate_audit_report.py" = [
+  "tests/ai/common/config_audit_subagents/test_orchestrator_core_md__audit_report_contract.py",
+]
+
+"shell/common/pr/serve_review_report.py" = [
+  "tests/ai/common/config_audit_subagents/test_orchestrator_core_md__audit_report_contract.py",
+  "tests/ai/common/test_audit_fix_core_md__audit_fix_contract.py",
+]
+
+"ai/common/pr_review_subagents/verifier_core.md" = [
+  "tests/ai/common/pr_review_subagents/test_orchestrator_core_md__adversarial_verification.py",
+]
+
+"ai/common/pr_review_verify.md" = [
+  "tests/ai/common/pr_review_subagents/test_orchestrator_core_md__adversarial_verification.py",
+]
+
+"ai/codex/codex_base.md" = [
+  "tests/mac/scripts/test_dev_tools_sh__mdv_install.py",
+  "tests/ai/common/test_prompt_base_md__always_on_skill_pointers.py",
+  "tests/mac/scripts/ai/test_rtk_sh__rtk_setup.py",
+  "tests/ai/common/shared_skills/herdr_tab_label/test_skill_md__herdr_tab_label_skill.py",
+  "tests/mac/scripts/test_common_sh__codex_agents_sync.py",
+]
+
+"ai/common/shared_skills/worktree-task/SKILL.md" = [
+  "tests/ai/common/skills/test_skill_description_scope.py",
+  "tests/ai/common/shared_skills/herdr_tab_label/test_skill_md__herdr_tab_label_skill.py",
+]
+
+"ai/common/prompt_base.md" = [
+  "tests/mac/scripts/test_dev_tools_sh__mdv_install.py",
+  "tests/ai/common/skills/plan_review/test_skill_md__progressive_disclosure.py",
+  "tests/mac/scripts/test_common_sh__codex_agents_sync.py",
+]
+
+"ai/claude/agents/audit-fix-considerer.md" = [
+  "tests/ai/common/test_audit_fix_core_md__audit_fix_contract.py",
+]
+
+"ai/claude/skills/audit-fix/SKILL.md" = [
+  "tests/ai/common/test_audit_fix_core_md__audit_fix_contract.py",
+]
+
+"ai/codex/skills/audit-fix/SKILL.md" = [
+  "tests/ai/common/test_audit_fix_core_md__audit_fix_contract.py",
+]
+
+"ai/codex/skills/audit-fix/skill_head.md" = [
+  "tests/ai/codex/test_codex_base_md__user_confirmation.py",
+  "tests/ai/common/test_audit_fix_core_md__audit_fix_contract.py",
+]
+
+"ai/common/audit_fix_subagents/considerer_core.md" = [
+  "tests/ai/common/test_audit_fix_core_md__audit_fix_contract.py",
+]
+
+"ai/common/audit_fix_subagents/designer_core.md" = [
+  "tests/ai/common/test_audit_fix_core_md__audit_fix_contract.py",
+]
+
+"ai/common/audit_fix_subagents/implementer_core.md" = [
+  "tests/ai/common/test_audit_fix_core_md__audit_fix_contract.py",
+]
+
+"ai/gemini/commands/audit-fix.toml" = [
+  "tests/ai/common/test_audit_fix_core_md__audit_fix_contract.py",
+]
+
+"ai/codex/skills/pr-body/SKILL.md" = [
+  "tests/ai/codex/skills/pr_body/test_skill_head_md__description_scope.py",
+  "tests/ai/common/test_pr_body_format_md__readability_rules.py",
+  "tests/ai/common/test_pr_body_core_md__change_summary.py",
+]
+
+"ai/codex/skills/pr-comment-post/SKILL.md" = [
+  "tests/ai/common/test_pr_post_mechanics_core_md__out_of_range_always_individual.py",
+]
+
+"ai/codex/skills/review-post/SKILL.md" = [
+  "tests/ai/common/test_pr_post_mechanics_core_md__out_of_range_always_individual.py",
+  "tests/ai/common/test_review_post_core_md__carryover_line.py",
+  "tests/ai/common/test_review_post_core_md__inline_body_contract.py",
+]
+
+"ai/common/review_post_core.md" = [
+  "tests/ai/common/test_pr_post_mechanics_core_md__out_of_range_always_individual.py",
+]
+
+"ai/common/pr_review_subagents/orchestrator_core.md" = [
+  "tests/ai/common/test_pr_review_core_md__perspectives.py",
+]
+
+"ai/common/pr_body_format.md" = [
+  "tests/ai/common/test_pr_review_scope_md__review_guide_and_incremental.py",
+]
+
+"ai/claude/skills/pr-review-subagents/SKILL.md" = [
+  "tests/ai/common/test_pr_review_scope_md__review_guide_and_incremental.py",
+  "tests/ai/common/test_pr_review_verify_md__adapters.py",
+  "tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py",
+]
+
+"ai/claude/skills/pr-review/SKILL.md" = [
+  "tests/ai/common/test_pr_review_scope_md__review_guide_and_incremental.py",
+  "tests/ai/common/test_pr_review_verify_md__adapters.py",
+]
+
+"ai/gemini/commands/pr-review-subagents.toml" = [
+  "tests/ai/common/test_pr_review_scope_md__review_guide_and_incremental.py",
+  "tests/ai/common/test_pr_review_verify_md__adapters.py",
+]
+
+"ai/gemini/commands/pr-review.toml" = [
+  "tests/ai/common/test_pr_review_scope_md__review_guide_and_incremental.py",
+  "tests/ai/common/test_pr_review_verify_md__adapters.py",
+]
+
+"shell/zsh/alias/ai/claude.zsh" = [
+  "tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py",
+]
+
+"ai/common/skills/prompt-self-improvement/SKILL.md" = [
+  "tests/ai/common/shared_skills/worktree_task/test_skill_md__worktree_task_skill.py",
+  "tests/ai/common/test_prompt_base_md__always_on_skill_pointers.py",
+]
+
+"ai/claude/skills/review-merge/SKILL.md" = [
+  "tests/ai/common/test_review_merge_core_md__carryover_values.py",
+]
+
+"ai/codex/skills/review-merge/SKILL.md" = [
+  "tests/ai/common/test_review_merge_core_md__carryover_values.py",
+]
+
+"shell/common/pr/generate_review_report.py" = [
+  "tests/ai/common/test_review_merge_core_md__carryover_values.py",
+  "tests/ai/common/test_review_post_core_md__carryover_line.py",
+]
+
+"ai/claude/skills/review-post/SKILL.md" = [
+  "tests/ai/common/test_review_post_core_md__carryover_line.py",
+  "tests/ai/common/test_review_post_core_md__inline_body_contract.py",
+]
+
+"ai/common/pr_post_mechanics_core.md" = [
+  "tests/ai/common/test_review_post_core_md__carryover_line.py",
+  "tests/ai/common/test_review_post_core_md__inline_body_contract.py",
+]
+
+"ai/common/review_merge_core.md" = [
+  "tests/ai/common/test_review_post_core_md__carryover_line.py",
+]
+
+"shell/zsh/managed.zsh" = [
+  "tests/mac/scripts/test_herdr_sh__herdr_setup.py",
+  "tests/shell/zsh/alias/test_utils_zsh__shell_loader_setup.py",
+  "tests/mac/initialization/test_git_setup_sh__worktrunk_setup.py",
+  "tests/mac/scripts/test_dev_tools_sh__mdv_install.py",
+]
+
+"ai/claude/settings.json" = [
+  "tests/mac/test_update__context_mode_setup.py",
+  "tests/mac/scripts/test_dev_tools_sh__mdv_install.py",
+  "tests/mac/scripts/test_herdr_sh__herdr_integrations.py",
+  "tests/shell/zsh/alias/test_notification_zsh__notification_suppression.py",
+]
+
+"mac/initialization/dev_tools.sh" = [
+  "tests/mac/scripts/test_dev_tools_sh__mdv_install.py",
+]
+
+"mac/update" = [
+  "tests/mac/scripts/test_herdr_sh__herdr_setup.py",
+  "tests/mac/scripts/test_dev_tools_sh__mdv_install.py",
+]
+
+"ai/codex/hooks.json" = [
+  "tests/mac/scripts/test_herdr_sh__herdr_integrations.py",
+]
+
+"terminal/herdr/config.toml" = [
+  "tests/mac/scripts/test_herdr_sh__herdr_setup.py",
+  "tests/shell/herdr/test_herdr_open_zoxide_picker_sh.py",
+  "tests/terminal/herdr/plugins/notify_rich/test_codex_monthly_credit.py",
+]
+
+"ai/gemini/settings.json" = [
+  "tests/shell/zsh/alias/ai/test_gemini_zsh__cli_version_pin.py",
+  "tests/shell/zsh/alias/test_notification_zsh__notification_suppression.py",
+]
+
+"ai/claude/agents_src/rules_common.md" = [
+  "tests/ai/codex/agents_src/test_rules_common_md__confidence.py",
+]
+
+"ai/gemini/agents_src/rules_common.md" = [
+  "tests/ai/codex/agents_src/test_rules_common_md__confidence.py",
+]
+
+"ai/codex/skills/pr-comment-review/SKILL.md" = [
+  "tests/ai/codex/skills/pr_comment_review/test_skill_head_md__description_scope.py",
+]
+
+"mac/scripts/common.sh" = [
+  "tests/mac/updates/test_herdr_sh__sourced_failure_does_not_kill_parent.py",
+  "tests/mac/updates/test_codex_sh__sourced_failure_does_not_kill_parent.py",
+  "tests/ai/common/test_genshijin_activate_md__genshijin_prompt_integration.py",
+  "tests/mac/test_update__context_mode_setup.py",
+  "tests/ai/common/audit_fix_subagents/test_designer_core_md__audit_fix_agent_generation.py",
+  "tests/ai/common/pr_review_subagents/test_orchestrator_core_md__adversarial_verification.py",
+  "tests/ai/common/review_fix_subagents/test_designer_core_md__review_fix_agent_generation.py",
+  "tests/ai/common/shared_skills/worktree_task/test_skill_md__worktree_task_skill.py",
+]
+
+"CLAUDE.md" = [
+  "tests/ai/common/shared_skills/worktree_task/test_skill_md__worktree_task_skill.py",
+]
+
+"ai/claude/skills/grilling/SKILL.md" = [
+  "tests/ai/common/skills/test_skill_description_scope.py",
+]
+
+"ai/codex/skills/dig/SKILL.md" = [
+  "tests/ai/codex/test_codex_base_md__user_confirmation.py",
+  "tests/ai/common/skills/test_skill_description_scope.py",
+]
+
+"ai/codex/skills/grilling/SKILL.md" = [
+  "tests/ai/codex/test_codex_base_md__user_confirmation.py",
+  "tests/ai/common/skills/test_skill_description_scope.py",
+]
+
+"ai/codex/skills/pr-body/skill_head.md" = [
+  "tests/ai/common/skills/test_skill_description_scope.py",
+]
+
+"ai/codex/skills/pr-comment-review/skill_head.md" = [
+  "tests/ai/common/skills/test_skill_description_scope.py",
+]
+
+"ai/common/shared_skills/branch-pr-task/SKILL.md" = [
+  "tests/ai/common/skills/test_skill_description_scope.py",
+]
+
+"ai/common/skills/fact-based/SKILL.md" = [
+  "tests/ai/common/skills/test_skill_description_scope.py",
+]
+
+"ai/common/skills/second-opinion/SKILL.md" = [
+  "tests/ai/common/skills/test_skill_description_scope.py",
+]
+
+"ai/gemini/skills/fact-based/skill_head.md" = [
+  "tests/ai/common/skills/test_skill_description_scope.py",
+]
+
+"ai/codex/skills/pr-create-by-branch/SKILL.md" = [
+  "tests/ai/common/test_pr_body_format_md__readability_rules.py",
+  "tests/ai/common/test_pr_create_by_branch_core_md__reviewer_reminder.py",
+]
+
+"ai/common/pr_comment_implement/analysis-design.md" = [
+  "tests/ai/common/test_pr_comment_implement_core_md__progressive_disclosure.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__comment_disposition.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__final_action_selection.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__project_workflow_isolation.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__reaction_state_verification.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__standalone_reply_header.py",
+]
+
+"ai/common/pr_comment_implement/finalization.md" = [
+  "tests/ai/common/test_pr_comment_implement_core_md__progressive_disclosure.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__comment_disposition.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__final_action_selection.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__project_workflow_isolation.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__reaction_state_verification.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__standalone_reply_header.py",
+]
+
+"ai/common/pr_comment_implement/implementation.md" = [
+  "tests/ai/common/test_pr_comment_implement_core_md__progressive_disclosure.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__comment_disposition.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__final_action_selection.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__project_workflow_isolation.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__reaction_state_verification.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__standalone_reply_header.py",
+]
+
+"ai/claude/skills/pr-comment-implement/SKILL.md" = [
+  "tests/ai/common/pr_comment_implement/test_finalization_md__workflow_contract.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__final_action_selection.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__progressive_disclosure.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__standalone_reply_header.py",
+]
+
+"ai/codex/skills/pr-comment-implement/SKILL.md" = [
+  "tests/ai/common/test_pr_comment_implement_core_md__final_action_selection.py",
+]
+
+"ai/gemini/commands/pr-comment-implement.toml" = [
+  "tests/ai/common/pr_comment_implement/test_finalization_md__workflow_contract.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__final_action_selection.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__progressive_disclosure.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__standalone_reply_header.py",
+]
+
+"ai/codex/skills/pr-comment-implement/skill_head.md" = [
+  "tests/ai/common/pr_comment_implement/test_finalization_md__workflow_contract.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__progressive_disclosure.py",
+]
+
+"ai/claude/skills/pr-create-by-branch/SKILL.md" = [
+  "tests/ai/common/test_pr_create_by_branch_core_md__reviewer_reminder.py",
+]
+
+"ai/claude/agents/pr-review-verifier.md" = [
+  "tests/ai/common/test_pr_review_verify_md__adapters.py",
+  "tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py",
+]
+
+"ai/codex/agents/pr_review_verifier.toml" = [
+  "tests/ai/common/test_pr_review_verify_md__adapters.py",
+  "tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py",
+]
+
+"ai/codex/skills/pr-review-subagents/SKILL.md" = [
+  "tests/ai/common/test_pr_review_scope_md__review_guide_and_incremental.py",
+  "tests/ai/common/test_pr_review_verify_md__adapters.py",
+]
+
+"ai/codex/skills/pr-review/SKILL.md" = [
+  "tests/ai/common/test_pr_review_scope_md__review_guide_and_incremental.py",
+  "tests/ai/common/test_pr_review_verify_md__adapters.py",
+]
+
+"ai/gemini/agents/pr-review-verifier.md" = [
+  "tests/ai/common/test_pr_review_verify_md__adapters.py",
+]
+
+"ai/claude/agents_src/pr_review_verify/head_verifier.md" = [
+  "tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py",
+]
+
+"ai/codex/agents_src/pr_review_verify/head_verifier.toml" = [
+  "tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py",
+]
+
+"shell/common/alias/claude.sh" = [
+  "tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py",
+  "tests/shell/zsh/filter/test_github_zsh__pr_reviewer_reminder.py",
+]
+
+"shell/zsh/alias/ai/ai.zsh" = [
+  "tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py",
+  "tests/shell/zsh/alias/ai/test_gemini_zsh__pr_review_natural_language.py",
+  "tests/shell/zsh/alias/test_git_zsh__repository_worktree_navigation.py",
+  "tests/shell/zsh/filter/test_ai_zsh__freview_worktree.py",
+  "tests/shell/zsh/filter/test_git_zsh__fgwt_worktree_navigation.py",
+]
+
+"shell/zsh/alias/ai/gemini.zsh" = [
+  "tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py",
+]
+
+"ai/claude/_CLAUDE.md" = [
+  "tests/ai/common/test_genshijin_activate_md__genshijin_prompt_integration.py",
+  "tests/mac/scripts/test_dev_tools_sh__mdv_install.py",
+  "tests/ai/common/test_prompt_base_md__always_on_skill_pointers.py",
+]
+
+"ai/common/skills/task-completion/SKILL.md" = [
+  "tests/ai/common/test_prompt_base_md__always_on_skill_pointers.py",
+  "tests/ai/common/test_prompt_base_md__commit_confirmation.py",
+]
+
+"ai/gemini/_GEMINI.md" = [
+  "tests/ai/common/test_genshijin_activate_md__genshijin_prompt_integration.py",
+  "tests/ai/common/test_prompt_base_md__always_on_skill_pointers.py",
+]
+
+"ai/gemini/skills/fact-based/SKILL.md" = [
+  "tests/ai/gemini/skills/fact_based/test_skill_head_md__description_scope.py",
+]
+
+"mac/Brewfile" = [
+  "tests/mac/scripts/test_herdr_sh__herdr_setup.py",
+  "tests/mac/initialization/test_git_setup_sh__worktrunk_setup.py",
+  "tests/mac/scripts/ai/test_rtk_sh__rtk_setup.py",
+]
+
+"shell/zsh/alias/git.zsh" = [
+  "tests/mac/initialization/test_git_setup_sh__worktrunk_setup.py",
+]
+
+"shell/zsh/alias/utils.zsh" = [
+  "tests/mac/scripts/ai/test_codex_sh__hooks_json_setup.py",
+  "tests/mac/test_update__context_mode_setup.py",
+]
+
+"terminal/mdv/mdv-plans.css" = [
+  "tests/mac/scripts/test_dev_tools_sh__mdv_install.py",
+]
+
+"shell/herdr/herdr_worktree_context.sh" = [
+  "tests/shell/herdr/test_herdr_open_lazygit_sh.py",
+]
+
+"shell/herdr/herdr-popup-run.sh" = [
+  "tests/shell/herdr/test_herdr_open_zoxide_picker_sh.py",
+]
+
+"shell/zsh/filter/ai.zsh" = [
+  "tests/shell/tmux/test_rename_window_git_sh__review_window_git_name.py",
+  "tests/shell/zsh/alias/test_git_zsh__repository_worktree_navigation.py",
+]
+
+"mac/initialization/ai/gemini.sh" = [
+  "tests/shell/zsh/alias/test_notification_zsh__notification_suppression.py",
+  "tests/shell/zsh/alias/ai/test_gemini_zsh__cli_version_pin.py",
+]
+
+"mac/updates/gemini.sh" = [
+  "tests/ai/common/test_genshijin_activate_md__genshijin_prompt_integration.py",
+  "tests/mac/test_update__context_mode_setup.py",
+  "tests/shell/zsh/alias/test_notification_zsh__notification_suppression.py",
+  "tests/shell/zsh/alias/ai/test_gemini_zsh__cli_version_pin.py",
+]
+
+"shell/zsh/alias/tmux.zsh" = [
+  "tests/shell/zsh/alias/test_git_zsh__repository_worktree_navigation.py",
+]
+
+"shell/zsh/filter/git.zsh" = [
+  "tests/shell/zsh/alias/test_git_zsh__repository_worktree_navigation.py",
+  "tests/shell/zsh/filter/test_ai_zsh__freview_worktree.py",
+  "tests/shell/zsh/filter/test_github_zsh__compare_url_picker.py",
+]
+
+"ai/gemini/.env" = [
+  "tests/shell/zsh/alias/test_notification_zsh__notification_suppression.py",
+]
+
+"shell/tmux/ai_notification_hook_common.sh" = [
+  "tests/ai/gemini/hooks/test_notification_sh__gemini_herdr_notification.py",
+  "tests/terminal/herdr/test_config_toml__herdr_notifications.py",
+  "tests/shell/zsh/alias/test_notification_zsh__notification_suppression.py",
+]
+
+"shell/bash/managed.bash" = [
+  "tests/shell/zsh/alias/test_utils_zsh__shell_loader_setup.py",
+]
+
+"shell/zsh/alias/other.zsh" = [
+  "tests/shell/zsh/filter/test_ai_zsh__freview_worktree.py",
+]
+
+"shell/zsh/filter/github.zsh" = [
+  "tests/shell/zsh/filter/test_ai_zsh__freview_worktree.py",
+]
+
+"shell/herdr/herdr_status_icon.sh" = [
+  "tests/terminal/herdr/plugins/notify_rich/test_herdr_plugin_toml__herdr_plugin_notify.py",
+]
+
+"terminal/herdr/plugins/notify-rich/notify-on-agent-status.sh" = [
+  "tests/terminal/herdr/plugins/notify_rich/test_herdr_plugin_toml__herdr_plugin_notify.py",
+]
+
+"ai/claude/hooks/claude-hook.py" = [
+  "tests/terminal/herdr/test_config_toml__herdr_notifications.py",
+]
+
+"ai/claude/hooks/stop-send-notification.sh" = [
+  "tests/shell/zsh/alias/test_notification_zsh__notification_suppression.py",
+  "tests/terminal/herdr/test_config_toml__herdr_notifications.py",
+]
+
+"ai/codex/hooks/codex-hook.py" = [
+  "tests/terminal/herdr/test_config_toml__herdr_notifications.py",
+]
+
+"ai/codex/hooks/codex-stop-notification.sh" = [
+  "tests/shell/zsh/alias/test_notification_zsh__notification_suppression.py",
+  "tests/terminal/herdr/test_config_toml__herdr_notifications.py",
+]
+
+"ai/gemini/hooks/gemini-hook.py" = [
+  "tests/terminal/herdr/test_config_toml__herdr_notifications.py",
+]
+
+"ai/gemini/hooks/notification.sh" = [
+  "tests/shell/zsh/alias/test_notification_zsh__notification_suppression.py",
+  "tests/terminal/herdr/test_config_toml__herdr_notifications.py",
+]
+
+"shell/tmux/herdr_review_sessions.py" = [
+  "tests/terminal/herdr/plugins/notify_rich/test_herdr_plugin_toml__herdr_plugin_notify.py",
+  "tests/terminal/herdr/test_config_toml__herdr_notifications.py",
+]
+
+"ai/codex/skills/pr-comment-implement/references/analysis-design.md" = [
+  "tests/ai/common/test_pr_comment_implement_core_md__comment_disposition.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__project_workflow_isolation.py",
+]
+
+"ai/codex/skills/pr-comment-implement/references/finalization.md" = [
+  "tests/ai/common/test_pr_comment_implement_core_md__final_action_selection.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__reaction_state_verification.py",
+  "tests/ai/common/test_pr_comment_implement_core_md__standalone_reply_header.py",
+]
+
+"shell/tmux/tmux_window_name.sh" = [
+  "tests/shell/tmux/test_tmux_window_name.py",
+  "tests/shell/zsh/alias/test_notification_zsh__notification_silent_mode.py",
+]
+
+"ai/codex/skills/plan-model-handoff/SKILL.md" = [
+  "tests/ai/codex/test_codex_base_md__user_confirmation.py",
+]
+
+"ai/codex/skills/pr-create-by-branch/skill_head.md" = [
+  "tests/ai/codex/test_codex_base_md__user_confirmation.py",
+]
+
+"ai/codex/skills/review-fix/skill_head.md" = [
+  "tests/ai/codex/test_codex_base_md__user_confirmation.py",
+  "tests/ai/common/test_review_fix_core_md__pr_body_update.py",
+]
+
+"ai/common/genshijin-file-policy.md" = [
+  "tests/ai/common/test_genshijin_activate_md__genshijin_prompt_integration.py",
+]
+
+"mac/updates/codex.sh" = [
+  "tests/ai/common/test_genshijin_activate_md__genshijin_prompt_integration.py",
+  "tests/mac/scripts/ai/test_codex_sh__config_auditor_agents.py",
+  "tests/mac/scripts/ai/test_codex_sh__hooks_json_setup.py",
+  "tests/mac/test_update__context_mode_setup.py",
+]
+
+"ai/claude/skills/review-fix/SKILL.md" = [
+  "tests/ai/common/test_review_fix_core_md__pr_body_update.py",
+]
+
+"shell/tmux/ai_notification_sound.sh" = [
+  "tests/ai/gemini/hooks/test_notification_sh__gemini_herdr_notification.py",
+  "tests/terminal/herdr/test_config_toml__herdr_notifications.py",
+]
+
+"shell/tmux/ai_notification_summary.sh" = [
+  "tests/shell/tmux/test_claude_transcript_analyze.py",
+  "tests/shell/tmux/test_gemini_transcript_summary_jq.py",
+  "tests/ai/gemini/hooks/test_notification_sh__gemini_herdr_notification.py",
+  "tests/terminal/herdr/plugins/notify_rich/test_herdr_plugin_toml__herdr_plugin_notify.py",
+  "tests/terminal/herdr/test_config_toml__herdr_notifications.py",
+]
+
+"shell/tmux/gemini_context_usage.py" = [
+  "tests/ai/gemini/hooks/test_notification_sh__gemini_herdr_notification.py",
+  "tests/terminal/herdr/test_config_toml__herdr_notifications.py",
+]
+
+"shell/tmux/gemini_transcript_summary.jq" = [
+  "tests/ai/gemini/hooks/test_notification_sh__gemini_herdr_notification.py",
+  "tests/terminal/herdr/test_config_toml__herdr_notifications.py",
+]
+
+"mac/initialization/ai/codex.sh" = [
+  "tests/mac/scripts/ai/test_codex_sh__config_auditor_agents.py",
+  "tests/mac/scripts/ai/test_codex_sh__hooks_json_setup.py",
+]
+
+"mac/updates/claude.sh" = [
+  "tests/mac/scripts/test_common_sh__herdr_skill_sync.py",
+]
+
+"mac/initialization/NOTES.md" = [
+  "tests/mac/scripts/test_dev_tools_sh__mdv_install.py",
+]
+
+"mac/initialization/herdr.sh" = [
+  "tests/mac/scripts/test_herdr_sh__herdr_setup.py",
+]
+
+"mac/initialization/tmux.sh" = [
+  "tests/mac/scripts/test_herdr_sh__herdr_setup.py",
+]
+
+"mac/updates/herdr.sh" = [
+  "tests/mac/scripts/test_herdr_sh__herdr_setup.py",
+]
+
+"mac/scripts/ai/claude.sh" = [
+  "tests/mac/test_update__context_mode_setup.py",
+]
+
+"mac/scripts/ai/codex.sh" = [
+  "tests/mac/updates/test_codex_sh__sourced_failure_does_not_kill_parent.py",
+  "tests/mac/test_update__context_mode_setup.py",
+]
+
+"mac/scripts/ai/gemini.sh" = [
+  "tests/mac/test_update__context_mode_setup.py",
+]
+
+"ai/codex/hooks/codex_hook_common.py" = [
+  "tests/terminal/herdr/plugins/notify_rich/test_herdr_plugin_toml__herdr_plugin_notify.py",
+]
+
+"shell/tmux/claude_transcript_analyze.py" = [
+  "tests/terminal/herdr/plugins/notify_rich/test_herdr_plugin_toml__herdr_plugin_notify.py",
+]
+
+"ai/claude/mods/rich-output/.claude-plugin/plugin.json" = [
+  "tests/ai/claude/test_settings_json__rich_output_mod.py",
+]
+
+"ai/claude/mods/rich-output/hooks/hooks.json" = [
+  "tests/ai/claude/test_settings_json__rich_output_mod.py",
+]
+
+"ai/claude/mods/rich-output/hooks/register.tsx" = [
+  "tests/ai/claude/test_settings_json__rich_output_mod.py",
+]
+
+"ai/claude/mods/slash-anywhere/hooks/register.ts" = [
+  "tests/ai/claude/test_settings_json__slash_anywhere_mod.py",
+]
+
+"ai/common/shared_skills/branch-pr-task/agents/openai.yaml" = [
+  "tests/ai/common/shared_skills/branch_pr_task/test_skill_md__branch_pr_task_skill.py",
+]
+
+"ai/common/shared_skills/herdr-tab-label/agents/openai.yaml" = [
+  "tests/ai/common/shared_skills/herdr_tab_label/test_skill_md__herdr_tab_label_skill.py",
+]
+
+"ai/common/shared_skills/pr-verify/agents/openai.yaml" = [
+  "tests/ai/common/shared_skills/pr_verify/test_skill_md__pr_verify_skill.py",
+]
+
+"ai/common/shared_skills/worktree-task/agents/openai.yaml" = [
+  "tests/ai/common/shared_skills/worktree_task/test_skill_md__worktree_task_skill.py",
+]
+
+"ai/common/skills/plan-review/references/browser.md" = [
+  "tests/ai/common/skills/plan_review/test_skill_md__progressive_disclosure.py",
+]
+
+"ai/codex/agents/config_auditor_default.toml" = [
+  "tests/mac/scripts/ai/test_codex_sh__config_auditor_agents.py",
+]
+
+"ai/codex/agents/config_auditor_conflict.toml" = [
+  "tests/mac/scripts/ai/test_codex_sh__config_auditor_agents.py",
+]
+
+"ai/codex/agents/config_auditor_overlap.toml" = [
+  "tests/mac/scripts/ai/test_codex_sh__config_auditor_agents.py",
+]
+
+"ai/codex/agents/config_auditor_patch.toml" = [
+  "tests/mac/scripts/ai/test_codex_sh__config_auditor_agents.py",
+]
+
+"ai/codex/agents/config_auditor_ambiguity.toml" = [
+  "tests/mac/scripts/ai/test_codex_sh__config_auditor_agents.py",
+]
+
+"ai/codex/agents/config_auditor_concise.toml" = [
+  "tests/mac/scripts/ai/test_codex_sh__config_auditor_agents.py",
+]
+
+"ai/codex/agents/audit_fix_designer.toml" = [
+  "tests/mac/scripts/ai/test_codex_sh__config_auditor_agents.py",
+]
+
+"ai/codex/agents/audit_fix_implementer.toml" = [
+  "tests/mac/scripts/ai/test_codex_sh__config_auditor_agents.py",
+]
+
+"ai/codex/agents/audit_fix_considerer.toml" = [
+  "tests/mac/scripts/ai/test_codex_sh__config_auditor_agents.py",
+]
+
+"ai/codex/agents/review_fix_designer.toml" = [
+  "tests/mac/scripts/ai/test_codex_sh__config_auditor_agents.py",
+]
+
+"ai/codex/agents/review_fix_implementer.toml" = [
+  "tests/mac/scripts/ai/test_codex_sh__config_auditor_agents.py",
+]
+
+"mac/scripts/herdr.sh" = [
+  "tests/mac/updates/test_herdr_sh__sourced_failure_does_not_kill_parent.py",
+]
+
 "ai/gemini/policies/tools.toml" = [
   "tests/ai/gemini/policies/test_tools_toml.py",
 ]
+
+[untested]
+".claude/skills/repo-tests/SKILL.md" = "Test authoring guidance has no executable behavioral test."
