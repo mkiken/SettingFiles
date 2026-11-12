@@ -8,7 +8,7 @@ from pathlib import Path
 from support import REPO_ROOT
 COMMON_SCRIPT = REPO_ROOT / "mac/scripts/common.sh"
 
-ROLES = ("designer", "implementer")
+ROLES = ("designer", "implementer", "considerer")
 MARKDOWN_PLATFORMS = ("claude", "gemini")
 
 
@@ -73,6 +73,7 @@ Repo="{self.fixture_root}/"
         expected = {
             "designer": ("model: opus", "effort: high"),
             "implementer": ("model: sonnet", "effort: low"),
+            "considerer": ("model: opus", "effort: high"),
         }
         for role in ROLES:
             with self.subTest(role=role):
@@ -130,7 +131,7 @@ Repo="{self.fixture_root}/"
 
         self.assertEqual(result.returncode, 0, result.stderr)
         # Codex はリポジトリ内でモデル値が1種類しかないため effort が唯一の分離軸
-        expected_effort = {"designer": "high", "implementer": "low"}
+        expected_effort = {"designer": "high", "implementer": "low", "considerer": "high"}
         for role in ROLES:
             with self.subTest(role=role):
                 out = self.codex_path(role)
@@ -161,7 +162,7 @@ Repo="{self.fixture_root}/"
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn(
-            "Verified idempotent generation for 6 output(s).", result.stdout
+            "Verified idempotent generation for 9 output(s).", result.stdout
         )
 
     def test_triple_quote_in_fragment_fails_codex_generation(self):

@@ -216,7 +216,8 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
                     for required in (
                         "The session running this skill owns orchestration, overlap checks, workflow state, and user confirmations",
                         "depth-1 lifecycle worker under `agents.max_depth = 2`",
-                        "designers and implementers must not spawn further agents",
+                        ("considerers, designers, and implementers must not spawn further agents"
+                         if name == "audit-fix" else "designers and implementers must not spawn further agents"),
                         "relay the exact question and authored choices through the parent",
                         "resume only with that answer",
                     ):

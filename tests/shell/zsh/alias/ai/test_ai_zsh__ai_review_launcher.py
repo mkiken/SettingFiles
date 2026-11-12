@@ -10,7 +10,7 @@ AI_ZSH = REPO_ROOT / "shell" / "zsh" / "alias" / "ai" / "ai.zsh"
 def run_zsh(snippet):
     return subprocess.run(
         ["zsh", "-c", f'SET="{REPO_ROOT}"; source "{AI_ZSH}"; {snippet}'],
-        capture_output=True, text=True, env=sanitized_env(),
+        capture_output=True, text=True, env=sanitized_env(AI_REVIEW_ORCHESTRATOR="claude"),
     )
 
 
