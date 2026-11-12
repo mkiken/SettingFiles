@@ -133,7 +133,6 @@ class RunTestsTest(unittest.TestCase):
             ('ai/codex/config.toml', 'tests/ai/codex/skills/plan_model_handoff/test_skill_md__plan_model_handoff_contract.py'),
             ('ai/codex/config.toml', 'tests/shell/zsh/alias/test_notification_zsh__notification_suppression.py'),
             ('ai/codex/config.toml', 'tests/terminal/herdr/plugins/notify_rich/test_codex_monthly_credit.py'),
-            ('ai/codex/_AGENTS.md', 'tests/ai/codex/test_codex_base_md__detailed_explanation_override.py'),
             ('ai/codex/_AGENTS.md', 'tests/ai/codex/test_codex_base_md__plan_review_criteria.py'),
             ('ai/common/skills/plan-review/references/codex.md', 'tests/ai/codex/test_codex_base_md__plan_review_criteria.py'),
             ('ai/codex/skills/config-audit/SKILL.md', 'tests/ai/common/config_audit_subagents/test_orchestrator_core_md__audit_report_contract.py'),

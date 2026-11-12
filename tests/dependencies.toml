@@ -95,7 +95,6 @@
   "tests/mac/scripts/test_dev_tools_sh__mdv_install.py",
   "tests/mac/scripts/ai/test_rtk_sh__rtk_setup.py",
   "tests/mac/scripts/test_common_sh__codex_agents_sync.py",
-  "tests/ai/codex/test_codex_base_md__detailed_explanation_override.py",
   "tests/ai/codex/test_codex_base_md__plan_review_criteria.py",
 ]
 

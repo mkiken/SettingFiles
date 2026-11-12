@@ -12,9 +12,6 @@ npm i -g @openai/codex@latest
 
 setup_ai_mcp update
 setup_ai_pr_tools
-# mac/update から source される前提。exit すると呼び出し元(mac/update)ごと
-# 終了してしまうため、return で自分自身の残り処理だけを打ち切る。
-update_codex_caveman || return 1
 
 generate_codex_agents
 
@@ -29,6 +26,8 @@ for file in "${Repo}ai/codex/hooks"/*; do
 done
 
 # hooks.json は実ファイルへマージ（Orca 等の外部追記をリポジトリへ漏らさない）
+# mac/update から source される前提。exit すると呼び出し元(mac/update)ごと
+# 終了してしまうため、return で自分自身の残り処理だけを打ち切る。
 setup_codex_hooks_json || return 1
 
 chmod +x ~/.codex/hooks/codex-stop-notification.sh
