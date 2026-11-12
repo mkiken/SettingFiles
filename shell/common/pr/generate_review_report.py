@@ -77,7 +77,10 @@ button:focus-visible,.decision input:focus-visible{outline:2px solid var(--link)
 .ai-icon{width:12px;height:12px;fill:currentColor;stroke:currentColor;stroke-width:1.6}
 .confidence{color:var(--muted);font-size:12px;white-space:nowrap}
 .file-links{display:flex;gap:12px;min-width:0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;flex-wrap:wrap}
-.file-path{display:block;max-width:30rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:rtl;text-align:left}.controls{display:flex;gap:8px;padding:6px 16px 14px}
+.file-path{display:block;max-width:30rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:rtl;text-align:left}.controls{display:flex;align-items:flex-start;gap:8px;padding:6px 16px 14px}
+.consider-note{box-sizing:border-box;min-width:0;max-width:100%;height:34px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font:inherit;font-size:13px;transition:border-color .15s,box-shadow .15s}
+.consider-note::placeholder{color:var(--muted)}
+.consider-note:focus{outline:none;border-color:var(--link);box-shadow:0 0 0 3px color-mix(in srgb,var(--link) 20%,transparent)}
 .decision{border:0;margin:0;padding:0;display:flex;gap:8px;flex-wrap:wrap}
 .decision label{display:inline-flex;align-items:center;gap:6px;cursor:pointer;border:1px solid color-mix(in srgb,var(--c) 40%,var(--border));border-radius:8px;padding:4px 12px;font-size:13px;font-weight:500;color:var(--c);background:color-mix(in srgb,var(--c) 10%,var(--card));transition:background .15s,border-color .15s}
 .decision label:hover{background:color-mix(in srgb,var(--c) 20%,var(--card));border-color:var(--c)}
@@ -121,7 +124,7 @@ footer{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(-
 #toast{position:fixed;right:20px;bottom:84px;z-index:1;padding:10px 14px;border-radius:10px;background:var(--low);color:#fff;box-shadow:0 8px 24px #0004}
 #toast[data-kind="error"]{background:var(--high)}
 @media(max-width:900px){.card-header{grid-template-columns:minmax(0,1fr)}.card-meta{justify-content:flex-start;padding-left:26px;flex-wrap:wrap}.file-path{max-width:100%}}
-@media(max-width:640px){body{padding:16px 12px 150px}.report-header h1{font-size:20px}.theme-picker{margin-left:0}#save-state{margin-left:0}}
+@media(max-width:640px){body{padding:16px 12px 150px}.report-header h1{font-size:20px}.theme-picker{margin-left:0}#save-state{margin-left:0}.controls{flex-wrap:wrap}.consider-note{width:100%}}
 </style>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.2/highlight.min.js" integrity="sha512-VSPLUv/n1Bmn+4zoxBNwpuFAO3//79I0Aax/qHDx24R47vylPcc9PrHDCqlePwHnh3joiM7/YTQhcXyQAAxvPQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
