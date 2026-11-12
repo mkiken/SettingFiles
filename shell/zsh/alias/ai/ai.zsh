@@ -839,6 +839,16 @@ _review_handle_wait_status() {
     esac
 }
 
+# Editing reviews run one provider in the current terminal.
+self-review() {
+    local launcher
+    launcher=$(_review_merge_launcher) || return 1
+    case "$launcher" in
+        cl-review-merge) clo "/pr-self-review${*:+ $*}" ;;
+        cx-review-merge) cxs "\$pr-self-review${*:+ $*}" ;;
+    esac
+}
+
 review() {
     _review_run review cl-pr-review gm-pr-review cx-pr-review "$@"
 }

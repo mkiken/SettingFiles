@@ -15,6 +15,31 @@ def run_zsh(snippet):
 
 
 class AiReviewLauncherTest(unittest.TestCase):
+    def test_self_review_runs_one_provider_in_current_terminal(self):
+        for setting, expected in (("unset AI_REVIEW_ORCHESTRATOR", "claude:/pr-self-review"),
+                                  ("AI_REVIEW_ORCHESTRATOR=codex", "codex:$pr-self-review")):
+            with self.subTest(setting=setting):
+                result = run_zsh(f"""
+{setting}
+clo() {{ printf 'claude:%s\\n' "$1"; return 7; }}
+cxs() {{ printf 'codex:%s\\n' "$1"; return 7; }}
+_review_run() {{ echo UNEXPECTED_PARALLEL_LAUNCH; }}
+self-review 'focus on errors'
+""")
+                self.assertEqual(result.returncode, 7, result.stderr)
+                self.assertEqual(result.stdout.strip(), expected + " focus on errors")
+
+    def test_self_review_rejects_invalid_provider_before_launch(self):
+        result = run_zsh("""
+AI_REVIEW_ORCHESTRATOR=invalid
+clo() { echo UNEXPECTED; }
+cxs() { echo UNEXPECTED; }
+self-review
+""")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("UNEXPECTED", result.stdout)
+        self.assertIn("Invalid AI_REVIEW_ORCHESTRATOR", result.stderr)
+
     def test_orchestrator_selection_and_exit_code(self):
         for setting, expected in (("unset AI_REVIEW_ORCHESTRATOR", "claude"),
                                   ("AI_REVIEW_ORCHESTRATOR=''", "claude"),
