@@ -239,6 +239,17 @@ for (const owner of ['other', 'self', 'unknown']) {
 """.replace("DECISION_SOURCE", decisions).replace("DECISION_FUNCTION", decision_fn)
         subprocess.run(["node", "-e", script], check=True, env=sanitized_env(), capture_output=True, text=True)
 
+    def test_reconnect_hint_uses_current_port_and_quotes_run_directory(self):
+        data = merged([item(1)])
+        data["run_dir"] = "/tmp/review's run"
+        html = mod.render(data)
+        hint = html.split("function reconnectHint(reload)", 1)[1].split("\n", 1)[0]
+        script = "const DATA = " + json.dumps(data) + "; const location={port:'4567'}; function reconnectHint(reload)" + hint + "\n" + "console.log(reconnectHint(false)); console.log(reconnectHint(true));"
+        result = subprocess.run(["node", "-e", script], check=True, env=sanitized_env(), capture_output=True, text=True)
+        self.assertIn("--port 4567 '/tmp/review'\\''s run'", result.stdout)
+        self.assertIn("再読み込みせず", result.stdout)
+        self.assertIn("再読み込みしてください", result.stdout)
+
     def test_embedded_state_is_schema_v2(self):
         html = mod.render(merged([item(1)]))
         self.assertIn("const state = {schema_version: 2, items: {}}", html)
