@@ -1,11 +1,12 @@
 import importlib.util
 import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from support import REPO_ROOT
+from support import REPO_ROOT, sanitized_env
 SCRIPT = REPO_ROOT / "shell" / "common" / "pr" / "generate_review_report.py"
 
 spec = importlib.util.spec_from_file_location("generate_review_report", SCRIPT)
@@ -207,6 +208,36 @@ class RenderTest(unittest.TestCase):
         self.assertIn("s.decision=input.checked?value:null", html)
         self.assertIn("input.checked=input.value===s.decision", html)
         self.assertIn("const counts={pending:DATA.items.length-done", html)
+
+    def test_other_pr_fix_confirmation_and_order(self):
+        html = mod.render(merged([item(1)]))
+        decisions = html.split("const DECISIONS = ", 1)[1].split("const DECISION_LABEL", 1)[0]
+        decision_fn = "function decision(id)" + html.split("function decision(id)", 1)[1].split("const HL_ALIAS", 1)[0]
+        script = r"""
+const assert = require('assert');
+for (const owner of ['other', 'self', 'unknown']) {
+  const DATA = {ownership: owner};
+  const DECISIONS = DECISION_SOURCE
+  let current = {decision: 'post'}, accepted = false, calls = 0;
+  const window = {confirm: () => { calls++; return accepted; }};
+  const el = () => ({children: [], setAttribute(){}, prepend(x){this.input=x;}, appendChild(x){this.children.push(x);}});
+  const document = {createElement: () => ({addEventListener(_, fn){this.change=fn;}, closest(){return {};}})};
+  const itemState = () => current;
+  const refresh = () => { for (const label of group.children) label.input.checked = label.input.value === current.decision; };
+  const setOpen = () => {}, maybeOfferAutoSave = () => {};
+  DECISION_FUNCTION
+  const group = decision(1), inputs = group.children.map(x => x.input);
+  assert.deepStrictEqual(inputs.map(x => x.value), owner === 'other' ? ['post','consider','dismiss','fix'] : ['fix','post','consider','dismiss']);
+  const fix = inputs.find(x => x.value === 'fix');
+  fix.checked = true; fix.change();
+  assert.strictEqual(current.decision, owner === 'other' ? 'post' : 'fix');
+  assert.strictEqual(calls, owner === 'other' ? 1 : 0);
+  if (owner === 'other') { accepted = true; fix.checked = true; fix.change(); assert.strictEqual(current.decision, 'fix'); }
+  fix.checked = false; fix.change(); assert.strictEqual(current.decision, null);
+  assert.strictEqual(calls, owner === 'other' ? 2 : 0);
+}
+""".replace("DECISION_SOURCE", decisions).replace("DECISION_FUNCTION", decision_fn)
+        subprocess.run(["node", "-e", script], check=True, env=sanitized_env(), capture_output=True, text=True)
 
     def test_embedded_state_is_schema_v2(self):
         html = mod.render(merged([item(1)]))
