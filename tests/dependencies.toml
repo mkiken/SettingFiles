@@ -831,3 +831,4 @@
 
 [untested]
 ".claude/skills/repo-tests/SKILL.md" = "Test authoring guidance has no executable behavioral test."
+"gitfiles/lazygit/config.yml" = "Lazygit UI layout is verified by launching lazygit with this configuration."

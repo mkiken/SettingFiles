@@ -2,6 +2,13 @@ gui:
   nerdFontsVersion: "3"
   sidePanelWidth: 0.15
   showCommandLog: false
+  sidePanels:
+    - [status]
+    - [files, submodules]
+    - [worktrees]
+    - [branches, remotes, tags]
+    - [commits, reflog]
+    - [stash]
 git:
   diffRenderers:
     - colorArg: always
