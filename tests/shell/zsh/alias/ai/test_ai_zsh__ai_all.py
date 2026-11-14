@@ -151,6 +151,7 @@ class AiAllHerdrTest(unittest.TestCase):
         )
         clmx_idx = next(i for i, c in enumerate(calls) if c.startswith("clmx-called"))
         self.assertEqual(calls[rename_idx], "herdr tab rename t1 ✴️repo")
+        self.assertEqual(calls[clmx_idx], "clmx-called: hello")
         self.assertLess(rename_idx, clmx_idx)
 
     def test_current_tab_id_resolved_via_pane_get_when_herdr_tab_id_unset(self):
@@ -205,7 +206,7 @@ class AiAllHerdrTest(unittest.TestCase):
 
 class AiHerdrCommandTest(unittest.TestCase):
     CASES = [
-        ("gemini", "hello", "gmmx --approval-mode plan -i hello"),
+        ("gemini", "hello", "gmmx -i hello"),
         ("codex", "hello", "cxmx hello"),
     ]
 
@@ -227,7 +228,7 @@ class AiHerdrCommandTest(unittest.TestCase):
             "_ai_herdr_command gemini \"it's a test; rm -rf /\""
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        prefix = "gmmx --approval-mode plan -i "
+        prefix = "gmmx -i "
         self.assertTrue(result.stdout.startswith(prefix), result.stdout)
         quoted_prompt = result.stdout[len(prefix):].rstrip("\n")
         # クォート済みの結果を再度shellに通しても1トークンとして安全に復元できること

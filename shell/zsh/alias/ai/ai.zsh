@@ -256,7 +256,7 @@ _ai_herdr_command() {
     # tmux版と違い "; zsh" のようなシェル残存サフィックスは不要
     case "${ai}" in
         gemini)
-            print -r -- "gmmx --approval-mode plan -i ${prompt_quoted}"
+            print -r -- "gmmx -i ${prompt_quoted}"
             ;;
         codex)
             print -r -- "cxmx ${prompt_quoted}"
@@ -299,7 +299,7 @@ _ai_all_herdr() {
     local tab_id
     tab_id=$(_ai_herdr_current_tab_id)
     [[ -n "${tab_id}" ]] && herdr tab rename "${tab_id}" "${EMOJI_ID_CLAUDE}${base_name}" >/dev/null 2>&1
-    clmx --permission-mode plan "${prompt}"
+    clmx "${prompt}"
 }
 
 ai-all() {
