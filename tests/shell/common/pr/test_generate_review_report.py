@@ -150,7 +150,10 @@ class RenderTest(unittest.TestCase):
             self.assertIn("decision-" + value, html)
         self.assertIn("#expand-all", html)
         self.assertIn("#save-state", html)
-        self.assertIn('id="copy-run-dir"', html)
+        self.assertIn('data-copy="fix"', html)
+        self.assertIn('data-copy="post"', html)
+        self.assertIn('data-copy="consider"', html)
+        self.assertIn('id="copy-provider"', html)
         self.assertIn(".card-toggle:hover{background:transparent;text-decoration:none;color:var(--link)}", html)
         for mode in ("pending", "fix", "post", "dismiss", "all"):
             self.assertIn(f'data-filter="{mode}"', html)
@@ -201,7 +204,7 @@ class RenderTest(unittest.TestCase):
         for theme in ("auto", "light", "dark"):
             self.assertIn(f'.theme-picker button[data-theme="{theme}"]{{--c:', html)
         self.assertIn("#expand-all{--c:", html)
-        self.assertIn("#copy-run-dir{--c:", html)
+        self.assertIn("[data-copy]{--c:", html)
 
     def test_decision_controls_are_mutually_exclusive_and_clearable(self):
         html = mod.render(merged([item(1)]))
@@ -304,9 +307,9 @@ for (const owner of ['other', 'self', 'unknown']) {
             "function maybeOfferAutoSave", 1
         )[0]
         self.assertIn("window.confirm", save_state_body)
-        self.assertIn("saveToFilePicker()", save_state_body)
+        self.assertIn("saveToFilePicker(snapshot)", save_state_body)
         confirm_index = save_state_body.index("window.confirm")
-        file_picker_index = save_state_body.index("saveToFilePicker()")
+        file_picker_index = save_state_body.index("saveToFilePicker(snapshot)")
         self.assertLess(confirm_index, file_picker_index)
         self.assertIn("review-report", save_state_body)
 
@@ -336,10 +339,10 @@ for (const owner of ['other', 'self', 'unknown']) {
         self.assertIn('id="toast"', html)
         self.assertIn('role="status" aria-live="polite"', html)
         self.assertIn("state.json を保存しました", html)
-        self.assertIn("実行ディレクトリをコピー", html)
-        self.assertIn("navigator.clipboard.writeText(runDir)", html)
+        self.assertIn("修正コマンドをコピー", html)
+        self.assertIn("navigator.clipboard.writeText(command)", html)
         self.assertIn('document.execCommand("copy")', html)
-        self.assertIn('typeof DATA.run_dir==="string"&&DATA.run_dir', html)
+        self.assertIn("savedSnapshot!==JSON.stringify(state)", html)
 
     def test_schema_v1_remains_renderable(self):
         legacy = merged([item(1)])
