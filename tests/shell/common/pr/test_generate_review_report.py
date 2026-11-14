@@ -164,6 +164,54 @@ class RenderTest(unittest.TestCase):
         self.assertNotIn("対応するリスト", html)
         self.assertNotIn("toggle-completed", html)
 
+    def test_provider_toggle_updates_copy_commands(self):
+        html = mod.render(merged([item(1)]))
+        from html.parser import HTMLParser
+
+        class Buttons(HTMLParser):
+            provider = None
+
+            def handle_starttag(self, tag, attrs):
+                attrs = dict(attrs)
+                if tag == "button" and attrs.get("id") == "copy-provider":
+                    self.provider = attrs
+
+        parser = Buttons()
+        parser.feed(html)
+        self.assertEqual(parser.provider["value"], "cx")
+        self.assertIn("Codex", parser.provider["aria-label"])
+        self.assertIn('addEventListener("click",toggleCopyProvider)', html)
+        toggle = "function toggleCopyProvider()" + html.split("function toggleCopyProvider()", 1)[1].split("\n", 1)[0]
+        copy = "async function copyCommand(kind)" + html.split("async function copyCommand(kind)", 1)[1].split("\n", 1)[0]
+        script = r"""
+const assert = require("assert");
+const label = {textContent:"Codex"};
+const button = {value:"cx", attrs:{}, querySelector:()=>label,
+  setAttribute(k,v){this.attrs[k]=v;}};
+const document = {getElementById:()=>button};
+const DATA = {run_dir:"/tmp/review's run"}, state = {}, savedSnapshot = "{}";
+let copied;
+const navigator = {clipboard:{writeText:async value=>{copied=value;}}};
+const window = {isSecureContext:true};
+const showToast = ()=>{};
+FUNCTIONS
+(async()=>{
+  for(const [provider,name,next] of [["cx","Codex","Claude"],["cl","Claude","Codex"],["cx","Codex","Claude"]]){
+    assert.strictEqual(button.value,provider);
+    assert.strictEqual(label.textContent,name);
+    for(const kind of ["fix","post","consider"]){
+      await copyCommand(kind);
+      assert.strictEqual(copied,provider+"-review-"+kind+" '/tmp/review'\\''s run'");
+    }
+    toggleCopyProvider();
+    assert.ok(button.attrs["aria-label"].includes(next));
+    assert.strictEqual(button.title,name+"に切り替え");
+  }
+})().catch(e=>{console.error(e);process.exit(1);});
+""".replace("FUNCTIONS", toggle + "\n" + copy)
+        subprocess.run(["node", "-e", script], check=True, env=sanitized_env(),
+                       capture_output=True, text=True)
+
     def test_syntax_highlight_script_is_pinned_with_sri(self):
         html = mod.render(merged([item(1)]))
         self.assertIn("cdnjs.cloudflare.com/ajax/libs/highlight.js/", html)
