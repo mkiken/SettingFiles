@@ -24,6 +24,12 @@ case "$1 $2" in
     [ -f "$FAKE/read_fail" ] && exit 1
     cat "$FAKE/screen"
     ;;
+  "workspace list")
+    [ -f "$FAKE/no_workspace" ] || echo '{"result":{"workspaces":[{"workspace_id":"w1","number":1,"label":"space"}]}}'
+    ;;
+  "tab get")
+    [ -f "$FAKE/no_tab" ] || echo '{"result":{"tab":{"number":2,"label":"tab"}}}'
+    ;;
   "pane get")
     agent=null
     [ -s "$FAKE/agent" ] && agent="\\"$(cat "$FAKE/agent")\\""
@@ -50,6 +56,7 @@ remove_herdr_idle_status_icon() { print -r -- "remove_idle" >> "$CALL_LOG"; }
 remove_herdr_status_icon() { print -r -- "remove_herdr" >> "$CALL_LOG"; }
 remove_tmux_window_icon() { :; }
 _herdr_resolve_tab_id() { print -r -- "w1:t1"; }
+_herdr_resolve_workspace_id() { print -r -- "w1"; }
 _herdr_shell_status_marker_read() { [[ -f "$FAKE/marker" ]] && command cat "$FAKE/marker"; return 0; }
 
 pidfile="$XDG_CACHE_HOME/herdr-idle-watch/w1_p1"
@@ -187,9 +194,24 @@ class HerdrIdleWatchNotifyTest(HerdrIdleWatchTestBase):
         self.assertEqual(out["flag_after"], "no")
         title_lines = [c for c in calls if c.startswith("notify:--tmux-icon ⏸️")]
         self.assertIn("make build", title_lines[0])
+        self.assertIn("🖥️ [1] space : [2] tab", calls)
         # fake herdrはPATH解決で呼ばれる。HERDR_BIN_PATHに置いたPATH外のtrapが
         # 呼ばれたら、実装がPATH以外の経路（環境変数）でherdrを引いている。
         self.assertFalse(trapped, "trap herdr was invoked outside PATH")
+
+    def test_missing_location_still_notifies(self):
+        for files, expected in [({"no_workspace": "1"}, "🖥️ [2] tab"),
+                                ({"no_tab": "1"}, "🖥️ [1] space"),
+                                ({"no_workspace": "1", "no_tab": "1"}, None)]:
+            with self.subTest(files=files):
+                _, calls, _ = self.run_script(
+                    "_notification_preexec 'make build'\n"
+                    "wait_for_count 'notify:--tmux-icon ⏸️' 1 || exit 1\n"
+                    "_notification_precmd\n", files=files)
+                if expected:
+                    self.assertIn(expected, calls)
+                else:
+                    self.assertFalse(any("🖥️" in call for call in calls))
 
     def test_screen_change_clears_icon_and_next_stall_notifies_again(self):
         out, calls, _ = self.run_script(

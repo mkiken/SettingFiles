@@ -70,7 +70,7 @@ function _herdr_idle_watch() {
   local self_pid="${sysparams[pid]:-}"
   # ループ内でlocalを宣言しない（zshのlocalは再宣言で現在値を出力するため）
   local owner="" screen="" sum="" last_sum="" info="" fields="" agent="" focused=""
-  local shown="" notified="" tab_id=""
+  local shown="" notified="" tab_id="" workspace_id="" ws_row="" tab_row="" ws_part="" tab_part="" location="" body=""
   local same_since=$SECONDS
 
   while true; do
@@ -119,7 +119,18 @@ function _herdr_idle_watch() {
     : > "${pidfile}.shown"
     shown=1
     if [[ -z "$notified" ]]; then
-      notify --tmux-icon "${EMOJI_STATUS_IDLE}" "${EMOJI_STATUS_IDLE} 画面停止" "${cmd_line} (${threshold}s 画面変化なし)" || true
+      workspace_id="$(_herdr_resolve_workspace_id)"
+      ws_row="$(herdr workspace list 2>/dev/null | jq -r --arg w "$workspace_id" '.result.workspaces[]? | select(.workspace_id == $w) | [(.number // ""), (.label // "")] | @tsv' 2>/dev/null)"
+      tab_row="$(herdr tab get "$tab_id" 2>/dev/null | jq -r '[.result.tab.number // "", .result.tab.label // ""] | @tsv' 2>/dev/null)"
+      ws_part="${ws_row#*$'\t'}"
+      tab_part="${tab_row#*$'\t'}"
+      [[ "$ws_part" == \[[1-9]\]\ * ]] && ws_part="${ws_part[5,-1]}"
+      [[ -n "$ws_part" && -n "${ws_row%%$'\t'*}" ]] && ws_part="[${ws_row%%$'\t'*}] $ws_part"
+      [[ -n "$tab_part" && -n "${tab_row%%$'\t'*}" ]] && tab_part="[${tab_row%%$'\t'*}] $tab_part"
+      location="${ws_part}${ws_part:+${tab_part:+ : }}${tab_part}"
+      body="${cmd_line} (${threshold}s 画面変化なし)"
+      [[ -n "$location" ]] && body+=$'\n'"🖥️ ${location}"
+      notify --tmux-icon "${EMOJI_STATUS_IDLE}" "${EMOJI_STATUS_IDLE} 画面停止" "$body" || true
       notified=1
     else
       update_herdr_status_icon "${EMOJI_STATUS_IDLE}" || true
