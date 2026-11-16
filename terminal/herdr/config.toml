@@ -194,7 +194,10 @@ agent_panel_sort = "priority"
 [ui.sidebar.spaces]
 # $shell_status: herdr_status_icon.shが書くシェル状態（入力待ち✋・完了✅・失敗❌）。
 # AI状態はAgents sidebarだけに表示する。
-rows = [["$shell_status", "workspace"], ["git_status", "branch"]]
+rows = [
+  ["$shell_status", { token = "workspace", fg = "#7dcfff", bold = true }],
+  [{ token = "git_status", fg = "#9ece6a" }, { token = "branch", fg = "#e0af68" }],
+]
 
 [ui.sidebar.agents]
 row_gap = 0
