@@ -92,7 +92,7 @@ def minutes(seconds):
 def format_remaining(now, base_time, ttl_seconds):
     remaining = ttl_seconds - (now - base_time)
     if remaining <= 0:
-        return "🔴⏳失効"
+        return "⚫⏳失効"
     if remaining < 60:
         return "🔴⏳<1m"
     if remaining < RED_BELOW_SECONDS:

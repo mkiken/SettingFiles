@@ -111,13 +111,13 @@ class FormatTest(unittest.TestCase):
 
     def test_claude_remaining(self):
         for remaining, expected in [(2520, "🟢⏳42m"), (900, "🟢⏳15m"), (899, "🟡⏳14m"), (300, "🟡⏳5m"),
-                                    (299, "🔴⏳4m"), (60, "🔴⏳1m"), (59, "🔴⏳<1m"), (0, "🔴⏳失効"), (-30, "🔴⏳失効")]:
+                                    (299, "🔴⏳4m"), (60, "🔴⏳1m"), (59, "🔴⏳<1m"), (0, "⚫⏳失効"), (-30, "⚫⏳失効")]:
             with self.subTest(remaining=remaining):
                 self.assertEqual(self.render(MODULE.CACHE_TTL_SECONDS, remaining), expected)
 
     def test_codex_uses_the_same_thresholds(self):
         for remaining, expected in [(1620, "🟢⏳27m"), (900, "🟢⏳15m"), (899, "🟡⏳14m"), (300, "🟡⏳5m"),
-                                    (299, "🔴⏳4m"), (59, "🔴⏳<1m"), (0, "🔴⏳失効")]:
+                                    (299, "🔴⏳4m"), (59, "🔴⏳<1m"), (0, "⚫⏳失効")]:
             with self.subTest(remaining=remaining):
                 self.assertEqual(self.render(MODULE.CODEX_CACHE_TTL_SECONDS, remaining), expected)
 
