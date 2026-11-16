@@ -246,13 +246,13 @@ for line in sys.stdin:
         self.assertEqual(self.fetch_count(), 1)
         self.assertEqual(len(self.reports()), 3)
 
-    def test_current_agent_wins_over_event_and_clears_non_codex(self):
-        self.write_scenario(agent="claude")
+    def test_current_agent_wins_over_event_and_clears_non_target(self):
+        self.write_scenario(agent="gemini")
         self.assert_cleared(self.run_hook(HERDR_PLUGIN_EVENT_JSON='{"data":{"agent":"codex"}}'), codex=False)
         self.assertEqual(self.fetch_count(), 0)
 
     def test_pane_changes_agent_during_read(self):
-        self.write_scenario(second_agent="claude")
+        self.write_scenario(second_agent="gemini")
         self.assert_cleared(self.run_hook(), codex=False)
         self.assertEqual(self.fetch_count(), 1)
 
@@ -270,7 +270,9 @@ for line in sys.stdin:
 
     def test_sidebar_and_native_statusline_config(self):
         herdr = tomllib.loads((REPO_ROOT / "terminal/herdr/config.toml").read_text())
-        self.assertIn(["$codex_last_response", "$monthly_credit"], herdr["ui"]["sidebar"]["agents"]["rows_by_agent"]["codex"])
+        rows = herdr["ui"]["sidebar"]["agents"]["rows_by_agent"]
+        self.assertIn(["$codex_last_response", "$monthly_credit"], rows["codex"])
+        self.assertIn(["$claude_cache", "$monthly_credit"], rows["claude"])
         codex = tomllib.loads((REPO_ROOT / "ai/codex/config.toml").read_text())
         # Codex 0.164 rejects this item even though /status exposes monthly credit.
         self.assertNotIn("monthly-limit", codex["tui"]["status_line"])
@@ -295,3 +297,47 @@ for line in sys.stdin:
     def test_pane_lookup_failure_after_credit_read_clears_both_tokens(self):
         self.write_scenario(second_get_error=True)
         self.assert_cleared(self.run_hook(), codex=False)
+
+    def write_claude_usage(self, path, fetched, **extra):
+        extra = dict({"is_enabled": True, "monthly_limit": 80000, "used_credits": 26523,
+                      "utilization": 33.15}, **extra)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps({"fetchedAtMs": fetched, "utilization": {"extra_usage": extra}}))
+
+    def claude_files(self):
+        return (self.root / "cache/claude-statusline/usage.json", self.root / ".claude.json")
+
+    def test_claude_pane_reports_monthly_usage_without_codex_call(self):
+        self.write_scenario(agent="claude")
+        cache, _ = self.claude_files()
+        self.write_claude_usage(cache, 2000)
+        report = self.run_hook()
+        self.assertEqual(report[:5], ["pane", "report-metadata", "w1:p1", "--source", "codex-monthly-credit"])
+        self.assertEqual(report[report.index("--agent") + 1], "claude")
+        self.assertIn("monthly_credit=📅33%", report)
+        self.assertIn("context_compact=💬34%", report)
+        self.assertEqual(self.fetch_count(), 0)
+
+    def test_claude_freshest_source_wins(self):
+        self.write_scenario(agent="claude")
+        cache, config = self.claude_files()
+        self.write_claude_usage(cache, 1000, utilization=10)
+        config.write_text(json.dumps({"cachedUsageUtilization": {"fetchedAtMs": 2000, "utilization": {
+            "extra_usage": {"is_enabled": True, "monthly_limit": 1, "used_credits": 1, "utilization": 77.5}}}}))
+        self.assertIn("monthly_credit=📅78%", self.run_hook())
+        self.write_claude_usage(cache, 3000, utilization=10)
+        self.assertIn("monthly_credit=📅10%", self.run_hook())
+
+    def test_claude_unusable_usage_clears_only_monthly_credit(self):
+        self.write_scenario(agent="claude")
+        cache, _ = self.claude_files()
+        for label, setup in (("missing", lambda: None),
+                             ("disabled", lambda: self.write_claude_usage(cache, 1, is_enabled=False)),
+                             ("non-numeric", lambda: self.write_claude_usage(cache, 1, utilization="33")),
+                             ("broken", lambda: (cache.parent.mkdir(parents=True, exist_ok=True), cache.write_text("{")))):
+            with self.subTest(label):
+                cache.unlink(missing_ok=True)
+                setup()
+                report = self.run_hook()
+                self.assertEqual(report[-2:], ["--clear-token", "monthly_credit"])
+                self.assertIn("context_compact=💬34%", report)

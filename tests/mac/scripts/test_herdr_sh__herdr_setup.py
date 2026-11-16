@@ -75,9 +75,9 @@ class HerdrConfigurationTest(unittest.TestCase):
             agents["rows_by_agent"]["claude"],
             [
                 ["workspace", "tab"],
-                ["state_icon", "$provider", "$limit", "state_text"],
-                ["$context", "$claude_cache"],
-                ["terminal_title_stripped"],
+                ["state_icon", "$provider", "$limit", "state_text", "$context_compact"],
+                ["$claude_cache", "$monthly_credit"],
+                [{"token": "terminal_title_stripped", "fg": "#a78bfa"}],
             ],
         )
         self.assertEqual(

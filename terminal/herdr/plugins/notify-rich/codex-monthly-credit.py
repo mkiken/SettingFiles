@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Publish Codex monthly credit on Herdr pane events, without model requests."""
+"""Publish Codex/Claude monthly usage on Herdr pane events, without model requests."""
 
 import fcntl
 import hashlib
@@ -18,6 +18,7 @@ SOURCE = "codex-monthly-credit"
 TOKEN = "monthly_credit"
 TIMEOUT = 8
 CACHE_SECONDS = 60
+AGENTS = ("codex", "claude")
 
 
 def number(value):
@@ -129,6 +130,32 @@ def cached_credit(env):
         return value
 
 
+def claude_usage(env):
+    # Same sources and validity rules as ai/claude/statusline-command.sh: the freshest of
+    # the statusline's own cache and ~/.claude.json wins. Read-only; fetching is the statusline's job.
+    home = Path(env.get("HOME") or Path.home())
+    cache = Path(env.get("XDG_CACHE_HOME") or home / ".cache")
+    latest, latest_fetched = None, None
+    for path in (cache / "claude-statusline" / "usage.json", home / ".claude.json"):
+        try:
+            data = json.loads(path.read_text())
+            data = data.get("cachedUsageUtilization", data)
+            extra = data["utilization"]["extra_usage"]
+            fetched = data.get("fetchedAtMs")
+        except (OSError, ValueError, KeyError, TypeError, AttributeError):
+            continue
+        if not isinstance(extra, dict):
+            continue
+        fetched = fetched if number(fetched) else 0
+        if latest is None or fetched > latest_fetched:
+            latest, latest_fetched = extra, fetched
+    if (latest is None or latest.get("is_enabled") is not True
+            or not number(latest.get("monthly_limit")) or not number(latest.get("used_credits"))):
+        return None
+    used = latest.get("utilization")
+    return math.floor(used + 0.5) if number(used) and used >= 0 else None
+
+
 def refresh_usagebar(run, env, pane_id):
     plugins = json.loads(run(["plugin", "list", "--plugin", "usagebar", "--json"]).stdout)
     plugin = next(p for p in plugins["result"]["plugins"] if p["plugin_id"] == "usagebar" and p["enabled"])
@@ -162,14 +189,18 @@ def main():
         return subprocess.run([herdr] + arguments, env=env, capture_output=True,
                               check=True, timeout=TIMEOUT)
 
-    value = None
+    used = None
     context = None
-    is_codex = False
+    agent = None
     try:
         pane = json.loads(run(["pane", "get", pane_id]).stdout)["result"]["pane"]
-        is_codex = pane.get("agent") == "codex"
-        if is_codex:
-            value = cached_credit(env)
+        agent = pane.get("agent")
+        if agent in AGENTS:
+            if agent == "codex":
+                remaining = cached_credit(env)
+                used = None if remaining is None else 100 - remaining
+            else:
+                used = claude_usage(env)
             refreshed = False
             try:
                 refresh_usagebar(run, env, pane_id)
@@ -178,23 +209,22 @@ def main():
                 pass
             # A slow read may finish after the pane changed occupants.
             pane = json.loads(run(["pane", "get", pane_id]).stdout)["result"]["pane"]
-            is_codex = pane.get("agent") == "codex"
-            if not is_codex:
-                value = None
+            if pane.get("agent") != agent:
+                used = None
             elif refreshed:
                 context = pane.get("tokens", {}).get("context")
     except (OSError, ValueError, KeyError, TypeError, AttributeError, subprocess.SubprocessError):
-        value, context = None, None
+        used, context = None, None
     arguments = ["pane", "report-metadata", pane_id, "--source", SOURCE]
     arguments += ["--clear-token", "context_icon"]
     if isinstance(context, str) and context:
         arguments += ["--token", "context_compact=💬" + context]
     else:
         arguments += ["--clear-token", "context_compact"]
-    if value is None:
+    if used is None:
         arguments += ["--clear-token", TOKEN]
     else:
-        arguments += ["--agent", "codex", "--token", "{}=📅{:g}%".format(TOKEN, 100 - value)]
+        arguments += ["--agent", agent, "--token", "{}=📅{:g}%".format(TOKEN, used)]
     run(arguments)
 
 
