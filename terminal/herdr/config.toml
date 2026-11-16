@@ -202,20 +202,20 @@ rows = [
 [ui.sidebar.agents]
 row_gap = 0
 rows = [
-  ["workspace", "tab"],
+  [{ token = "workspace", fg = "#7dcfff", bold = true }, "tab"],
   ["state_icon", "agent", "state_text"],
 ]
 
 [ui.sidebar.agents.rows_by_agent]
 claude = [
-  ["workspace", "tab"],
+  [{ token = "workspace", fg = "#7dcfff", bold = true }, "tab"],
   ["state_icon", "$provider", "$limit", "state_text", "$context_compact"],
   ["$claude_cache", "$monthly_credit"],
   # 状態アイコン(緑/黄/赤/青)と被らない紫でタイトル行を区別する
   [{ token = "terminal_title_stripped", fg = "#a78bfa" }],
 ]
 codex = [
-  ["workspace", "tab"],
+  [{ token = "workspace", fg = "#7dcfff", bold = true }, "tab"],
   ["state_icon", "$provider", "$limit", "state_text", "$context_compact"],
   ["$codex_last_response", "$monthly_credit"],
 ]

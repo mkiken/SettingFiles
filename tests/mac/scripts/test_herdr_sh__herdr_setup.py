@@ -15,6 +15,7 @@ except ModuleNotFoundError:  # pragma: no cover
 
 from support import REPO_ROOT
 SYSTEM_PATH = "/usr/bin:/bin:/usr/sbin:/sbin"
+WORKSPACE = {"token": "workspace", "fg": "#7dcfff", "bold": True}
 
 
 def read_text(path: str) -> str:
@@ -74,7 +75,7 @@ class HerdrConfigurationTest(unittest.TestCase):
         self.assertEqual(
             agents["rows_by_agent"]["claude"],
             [
-                ["workspace", "tab"],
+                [WORKSPACE, "tab"],
                 ["state_icon", "$provider", "$limit", "state_text", "$context_compact"],
                 ["$claude_cache", "$monthly_credit"],
                 [{"token": "terminal_title_stripped", "fg": "#a78bfa"}],
@@ -83,14 +84,14 @@ class HerdrConfigurationTest(unittest.TestCase):
         self.assertEqual(
             agents["rows_by_agent"]["codex"],
             [
-                ["workspace", "tab"],
+                [WORKSPACE, "tab"],
                 ["state_icon", "$provider", "$limit", "state_text", "$context_compact"],
                 ["$codex_last_response", "$monthly_credit"],
             ],
         )
         self.assertEqual(
             agents["rows"],
-            [["workspace", "tab"], ["state_icon", "agent", "state_text"]],
+            [[WORKSPACE, "tab"], ["state_icon", "agent", "state_text"]],
         )
 
     @unittest.skipIf(tomllib is None, "tomllib requires Python 3.11+")
