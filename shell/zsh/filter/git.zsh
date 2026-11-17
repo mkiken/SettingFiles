@@ -8,7 +8,7 @@ function _git_branch_preview_command() {
 }
 
 
-alias fgmg='filter_git_command git merge'
+alias fgmg='filter_git_command git merge --no-edit'
 alias fgmgs='fgmg --squash'
 alias fgpl='filter_git_command_fmt git pull origin'
 alias fgps='filter_git_command_fmt git push origin'
