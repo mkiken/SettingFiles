@@ -854,6 +854,7 @@
 
 "tests/ai/common/shared_skills/review_consider/__init__.py" = ["tests/test_run_tests.py"]
 "tests/ai/common/shared_skills/pr_self_review_subagents/__init__.py" = ["tests/test_run_tests.py"]
+"tests/ai/common/shared_skills/pr_comment_implement_batch/__init__.py" = ["tests/test_run_tests.py"]
 
 [untested]
 ".claude/skills/repo-tests/SKILL.md" = "Test authoring guidance has no executable behavioral test."

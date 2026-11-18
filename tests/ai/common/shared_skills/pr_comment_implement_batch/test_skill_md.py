@@ -1,0 +1,40 @@
+import re
+import unittest
+
+from support import REPO_ROOT
+
+SKILL = REPO_ROOT / "ai/common/shared_skills/pr-comment-implement-batch"
+ANALYSIS = REPO_ROOT / "ai/common/pr_comment_implement/analysis-design.md"
+FINALIZATION = REPO_ROOT / "ai/common/pr_comment_implement/finalization.md"
+
+
+class PrCommentImplementBatchContractTest(unittest.TestCase):
+    def test_shared_deployment(self):
+        for platform in ("claude", "codex"):
+            link = REPO_ROOT / f"ai/{platform}/skills/pr-comment-implement-batch"
+            self.assertTrue(link.is_symlink())
+            self.assertEqual(link.resolve(), SKILL.resolve())
+        self.assertFalse((REPO_ROOT / "ai/gemini/skills/pr-comment-implement-batch").exists())
+
+    def test_frontmatter_is_name_and_description_only(self):
+        frontmatter = (SKILL / "SKILL.md").read_text().split("---", 2)[1]
+        keys = re.findall(r"(?m)^([a-z-]+):", frontmatter)
+        self.assertEqual(keys, ["name", "description"])
+
+    def test_workflow_contracts(self):
+        text = (SKILL / "SKILL.md").read_text()
+        for contract in (
+            "isResolved", "reviewThreads", "Skip selection", "/replies",
+            "resolveReviewThread", "bot/self threads whose reply succeeded",
+            "Inline", "read-only subagent", "Never force-push",
+            "analysis-design.md", "Offer a PR body update",
+        ):
+            self.assertIn(contract, text)
+
+    def test_referenced_sections_still_exist(self):
+        self.assertIn("Decide whether the comment should be acted on", ANALYSIS.read_text())
+        self.assertIn("Offer a PR body update", FINALIZATION.read_text())
+
+
+if __name__ == "__main__":
+    unittest.main()

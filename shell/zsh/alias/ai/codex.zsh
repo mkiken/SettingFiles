@@ -117,6 +117,12 @@ cx-self-review-subagents() {
     cxt -c 'model_reasoning_effort="high"' "\$pr-self-review-subagents${*:+ $*}"
 }
 
+# コメントごとの承認フローがあるため権限バイパスは付けない
+cx-pr-comment-implement-batch() {
+    cxs "\$pr-comment-implement-batch${*:+ $*}"
+}
+alias cx-pcib='cx-pr-comment-implement-batch'
+
 cx-review-merge() {
     local run_dir="$1"
     if [[ -z "$run_dir" ]]; then
