@@ -21,19 +21,44 @@ class AiReviewLauncherTest(unittest.TestCase):
             with self.subTest(setting=setting):
                 result = run_zsh(f"""
 {setting}
-clo() {{ printf 'claude:%s\\n' "$1"; return 7; }}
-cxs() {{ printf 'codex:%s\\n' "$1"; return 7; }}
+cl-self-review() {{ printf 'claude:/pr-self-review %s\\n' "$*"; return 7; }}
+cx-self-review() {{ printf 'codex:$pr-self-review %s\\n' "$*"; return 7; }}
 _review_run() {{ echo UNEXPECTED_PARALLEL_LAUNCH; }}
 self-review 'focus on errors'
 """)
                 self.assertEqual(result.returncode, 7, result.stderr)
                 self.assertEqual(result.stdout.strip(), expected + " focus on errors")
 
+    def test_self_review_subagents_runs_one_provider_in_current_terminal(self):
+        for setting, expected in (("unset AI_REVIEW_ORCHESTRATOR", "claude:/pr-self-review-subagents"),
+                                  ("AI_REVIEW_ORCHESTRATOR=codex", "codex:$pr-self-review-subagents")):
+            with self.subTest(setting=setting):
+                result = run_zsh(f"""
+{setting}
+cl-self-review-subagents() {{ printf 'claude:/pr-self-review-subagents %s\\n' "$*"; return 7; }}
+cx-self-review-subagents() {{ printf 'codex:$pr-self-review-subagents %s\\n' "$*"; return 7; }}
+_review_run() {{ echo UNEXPECTED_PARALLEL_LAUNCH; }}
+self-review-subagents 'focus on errors'
+""")
+                self.assertEqual(result.returncode, 7, result.stderr)
+                self.assertEqual(result.stdout.strip(), expected + " focus on errors")
+
+    def test_self_review_subagents_rejects_invalid_provider_before_launch(self):
+        result = run_zsh("""
+AI_REVIEW_ORCHESTRATOR=invalid
+cl-self-review-subagents() { echo UNEXPECTED; }
+cx-self-review-subagents() { echo UNEXPECTED; }
+self-review-subagents
+""")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("UNEXPECTED", result.stdout)
+        self.assertIn("Invalid AI_REVIEW_ORCHESTRATOR", result.stderr)
+
     def test_self_review_rejects_invalid_provider_before_launch(self):
         result = run_zsh("""
 AI_REVIEW_ORCHESTRATOR=invalid
-clo() { echo UNEXPECTED; }
-cxs() { echo UNEXPECTED; }
+cl-self-review() { echo UNEXPECTED; }
+cx-self-review() { echo UNEXPECTED; }
 self-review
 """)
         self.assertNotEqual(result.returncode, 0)

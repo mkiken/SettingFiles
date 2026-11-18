@@ -94,6 +94,15 @@ cl-pr-review-subagents() {
     _cl-pr-review-run clseh pr-review-subagents "$@"
 }
 
+# 修正承認フローがあるため権限バイパスは付けない
+cl-self-review() {
+    clo "/pr-self-review${*:+ $*}"
+}
+
+cl-self-review-subagents() {
+    clseh "/pr-self-review-subagents${*:+ $*}"
+}
+
 cl-review-merge() {
     local run_dir="$1"
     if [[ -z "$run_dir" ]]; then

@@ -378,6 +378,42 @@ class ReviewEntrypointEffortPolicyTest(unittest.TestCase):
                 self.assertEqual(captured[-1], prompt)
 
 
+class SelfReviewAliasTest(unittest.TestCase):
+    def test_claude_self_review_aliases(self):
+        # 修正承認フローがあるため権限バイパスは付けない。
+        cases = (
+            ("cl-self-review focus", "opus", None, "/pr-self-review focus"),
+            ("cl-self-review", "opus", None, "/pr-self-review"),
+            ("cl-self-review-subagents focus", "sonnet", "high", "/pr-self-review-subagents focus"),
+        )
+        for command, model, effort, prompt in cases:
+            with self.subTest(command=command):
+                captured = run_claude_alias(command)
+                self.assertEqual(captured[captured.index("--model") + 1], model)
+                if effort is None:
+                    self.assertNotIn("--effort", captured)
+                else:
+                    self.assertEqual(captured[captured.index("--effort") + 1], effort)
+                self.assertNotIn("--dangerously-skip-permissions", captured)
+                self.assertEqual(captured[-1], prompt)
+
+    def test_codex_self_review_aliases(self):
+        cases = (
+            ("cx-self-review focus", "gpt-6.2-sol", None, "$pr-self-review focus"),
+            ("cx-self-review-subagents focus", "gpt-6.1-terra", "high", "$pr-self-review-subagents focus"),
+        )
+        for command, model, effort, prompt in cases:
+            with self.subTest(command=command):
+                captured = run_codex_alias(command)
+                self.assertEqual(captured[:2], ["--model", model])
+                if effort is None:
+                    self.assertNotIn("-c", captured)
+                else:
+                    self.assertEqual(captured[2:4], ["-c", f'model_reasoning_effort="{effort}"'])
+                self.assertNotIn("--dangerously-bypass-approvals-and-sandbox", captured)
+                self.assertEqual(captured[-1], prompt)
+
+
 class ReviewerAgentEffortPolicyTest(unittest.TestCase):
     DIMENSIONS = (
         "bugs",

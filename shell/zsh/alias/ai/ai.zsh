@@ -844,8 +844,17 @@ self-review() {
     local launcher
     launcher=$(_review_merge_launcher) || return 1
     case "$launcher" in
-        cl-review-merge) clo "/pr-self-review${*:+ $*}" ;;
-        cx-review-merge) cxs "\$pr-self-review${*:+ $*}" ;;
+        cl-review-merge) cl-self-review "$@" ;;
+        cx-review-merge) cx-self-review "$@" ;;
+    esac
+}
+
+self-review-subagents() {
+    local launcher
+    launcher=$(_review_merge_launcher) || return 1
+    case "$launcher" in
+        cl-review-merge) cl-self-review-subagents "$@" ;;
+        cx-review-merge) cx-self-review-subagents "$@" ;;
     esac
 }
 
