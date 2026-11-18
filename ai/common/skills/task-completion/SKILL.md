@@ -5,7 +5,7 @@ description: End-of-task procedure — temp file cleanup, commit/push confirmati
 
 # Task Completion
 
-Run in this order when finishing a task: Temp File Cleanup, then the Post-Implementation Workflow, then the Opportunistic Improvement Proposals Completion-Time Check.
+Run in this order when finishing a task: Temp File Cleanup, then Worktree Cleanup, then the Post-Implementation Workflow, then the Opportunistic Improvement Proposals Completion-Time Check.
 
 ## Temp File Cleanup
 
@@ -14,6 +14,10 @@ At task completion, before the Post-Implementation Workflow even when skipped, c
 - Establish provenance before deleting a temp-looking file: use a pre-task baseline or direct evidence that this session created it. Never infer ownership from its name, contents, or timestamps alone; if provenance is uncertain, leave it in place and report it.
 - Before calling `trash`, resolve and validate each target as a non-empty, existing, explicit path; never pass unset or empty variables or rely on the current working directory. If validation fails, leave the target untouched and report it.
 - Delete them all without asking — invoke `trash` directly — and briefly report what was deleted in the completion response. Whether or not any temp files existed, then continue to the Post-Implementation Workflow.
+
+## Worktree Cleanup
+
+At task completion, list the worktrees this session created and apply the worktree cleanup rules in the always-on instructions (`Cross-Repository Work`): remove a clean self-initiated temporary worktree and its branch, ask before removing any other, and leave worktrees this session did not create untouched. Briefly report what was removed or kept; skip silently when none exist. Then continue to the Post-Implementation Workflow.
 
 ## Post-Implementation Workflow
 

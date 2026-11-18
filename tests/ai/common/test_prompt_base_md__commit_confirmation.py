@@ -58,6 +58,27 @@ class WorktreeAuthorizationContractTest(unittest.TestCase):
             with self.subTest(requirement=requirement):
                 self.assertIn(requirement, self.section)
 
+    def test_worktree_cleanup_rules_pin_provenance_and_confirmation(self):
+        for requirement in (
+            "only when direct evidence shows this session created it",
+            "treat uncertain provenance as not AI-created",
+            "remove it without asking via `git worktree remove` (no `--force`) and `git branch -d`",
+            "no uncommitted changes and no commits unmerged into the original branch",
+            "If it is not clean, report what remains and ask first",
+            "When the user asked for the worktree, ask before removing it, unless the active skill defines its own automatic cleanup",
+            "a worktree this session did not create to be unneeded, you may ask whether to delete it; never delete it without confirmation",
+            "Never use `--force` or `git branch -D` without explicit confirmation",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, self.section)
+
+    def test_task_completion_skill_runs_worktree_cleanup(self):
+        skill = (REPO_ROOT / "ai/common/skills/task-completion/SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("Temp File Cleanup, then Worktree Cleanup, then", skill)
+        self.assertIn("## Worktree Cleanup\n", skill)
+
 
 class CommitConfirmationContractTest(unittest.TestCase):
     @classmethod

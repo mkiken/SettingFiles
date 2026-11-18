@@ -53,6 +53,8 @@ Task-scoped temporary data under `/tmp` require no external-write approval, even
 
 Creating a worktree for the requested task and performing task-scoped work inside it require no additional permission, regardless of skill use or whether the worktree is outside the session project. Display the resolved path and proceed; normal Git bookkeeping required to create and use the worktree is included, as is safely removing (`git worktree remove`, `git branch -d`) a worktree or branch this task created once it is proven unchanged. Obtain permission before dangerous operations affecting anything outside that worktree, such as discarding another worktree's changes or rewriting shared branch history. This exception does not authorize other external write targets or bypass existing plan-mode, design-approval, other deletion, commit, push, or PR-action gates.
 
+Worktree cleanup: a worktree counts as AI-created only when direct evidence shows this session created it; never infer that from its name, path, or timestamps, and treat uncertain provenance as not AI-created. When you created a temporary worktree on your own initiative (the user did not ask for one) and it is no longer needed, remove it without asking via `git worktree remove` (no `--force`) and `git branch -d`, but only if it is clean: no uncommitted changes and no commits unmerged into the original branch. If it is not clean, report what remains and ask first. When the user asked for the worktree, ask before removing it, unless the active skill defines its own automatic cleanup (e.g. `worktree-task`); then follow that skill without extra confirmation. If you judge a worktree this session did not create to be unneeded, you may ask whether to delete it; never delete it without confirmation. Never use `--force` or `git branch -D` without explicit confirmation.
+
 # Instruction File vs. Code Drift
 
 When a project instruction file (CLAUDE.md, AGENTS.md, GEMINI.md, skill docs) disagrees with the current code:
@@ -181,6 +183,6 @@ stricter gates.
 
 # Task Completion
 
-When finishing an implementation, fix, configuration, review, or investigation-delivery task, or any task that left session-created temp files, load the `task-completion` skill and follow it: temp file cleanup, the commit/push confirmation, and the improvement-proposal check. Skip it in ordinary conversation, clarification-only turns, active progress updates, and pre-completion confirmation questions.
+When finishing an implementation, fix, configuration, review, or investigation-delivery task, or any task that left session-created temp files or worktrees, load the `task-completion` skill and follow it: temp file and worktree cleanup, the commit/push confirmation, and the improvement-proposal check. Skip it in ordinary conversation, clarification-only turns, active progress updates, and pre-completion confirmation questions.
 
 While working, note reusable improvements to this prompt's source repository (SettingFiles), but never edit persistent prompt/config files silently and never propose mid-task. When writing a plan for approval, do not propose — load the `prompt-self-improvement` skill and follow its Plan Handoff rules instead.
