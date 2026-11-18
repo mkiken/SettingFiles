@@ -103,6 +103,12 @@ cl-self-review-subagents() {
     clseh "/pr-self-review-subagents${*:+ $*}"
 }
 
+# コメントごとの承認フローがあるため権限バイパスは付けない
+cl-pr-comment-implement-batch() {
+    clo "/pr-comment-implement-batch${*:+ $*}"
+}
+alias cl-pcib='cl-pr-comment-implement-batch'
+
 cl-review-merge() {
     local run_dir="$1"
     if [[ -z "$run_dir" ]]; then

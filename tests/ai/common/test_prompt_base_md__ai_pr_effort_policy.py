@@ -414,6 +414,31 @@ class SelfReviewAliasTest(unittest.TestCase):
                 self.assertEqual(captured[-1], prompt)
 
 
+class PrCommentImplementBatchAliasTest(unittest.TestCase):
+    def test_claude_batch_aliases(self):
+        cases = (
+            ("cl-pr-comment-implement-batch focus", "/pr-comment-implement-batch focus"),
+            ("cl-pcib focus", "/pr-comment-implement-batch focus"),
+            ("cl-pcib", "/pr-comment-implement-batch"),
+        )
+        for command, prompt in cases:
+            with self.subTest(command=command):
+                captured = run_claude_alias(command)
+                self.assertEqual(captured[captured.index("--model") + 1], "opus")
+                self.assertNotIn("--effort", captured)
+                self.assertNotIn("--dangerously-skip-permissions", captured)
+                self.assertEqual(captured[-1], prompt)
+
+    def test_codex_batch_aliases(self):
+        for command in ("cx-pr-comment-implement-batch focus", "cx-pcib focus"):
+            with self.subTest(command=command):
+                captured = run_codex_alias(command)
+                self.assertEqual(captured[:2], ["--model", "gpt-6.2-sol"])
+                self.assertNotIn("-c", captured)
+                self.assertNotIn("--dangerously-bypass-approvals-and-sandbox", captured)
+                self.assertEqual(captured[-1], "$pr-comment-implement-batch focus")
+
+
 class ReviewerAgentEffortPolicyTest(unittest.TestCase):
     DIMENSIONS = (
         "bugs",
