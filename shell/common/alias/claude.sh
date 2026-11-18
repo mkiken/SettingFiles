@@ -109,6 +109,12 @@ cl-pr-comment-implement-batch() {
 }
 alias cl-pcib='cl-pr-comment-implement-batch'
 
+# 承認が必要なスレッドが残るため権限バイパスは付けない
+cl-pr-comment-implement-batch-self() {
+    clo "/pr-comment-implement-batch-self${*:+ $*}"
+}
+alias cl-pcibs='cl-pr-comment-implement-batch-self'
+
 cl-review-merge() {
     local run_dir="$1"
     if [[ -z "$run_dir" ]]; then

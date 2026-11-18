@@ -123,6 +123,12 @@ cx-pr-comment-implement-batch() {
 }
 alias cx-pcib='cx-pr-comment-implement-batch'
 
+# 承認が必要なスレッドが残るため権限バイパスは付けない
+cx-pr-comment-implement-batch-self() {
+    cxs "\$pr-comment-implement-batch-self${*:+ $*}"
+}
+alias cx-pcibs='cx-pr-comment-implement-batch-self'
+
 cx-review-merge() {
     local run_dir="$1"
     if [[ -z "$run_dir" ]]; then
