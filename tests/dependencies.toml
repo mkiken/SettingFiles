@@ -429,6 +429,21 @@
   "tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py",
 ]
 
+"ai/codex/agents_src/head_bugs.toml" = ["tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py"]
+"ai/codex/agents_src/head_claims.toml" = ["tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py"]
+"ai/codex/agents_src/head_design.toml" = ["tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py"]
+"ai/codex/agents_src/head_history.toml" = ["tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py"]
+"ai/codex/agents_src/head_performance.toml" = ["tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py"]
+"ai/codex/agents_src/head_security.toml" = ["tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py"]
+"ai/codex/agents_src/head_tests.toml" = ["tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py"]
+"ai/codex/agents/pr_reviewer_bugs.toml" = ["tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py"]
+"ai/codex/agents/pr_reviewer_claims.toml" = ["tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py"]
+"ai/codex/agents/pr_reviewer_design.toml" = ["tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py"]
+"ai/codex/agents/pr_reviewer_history.toml" = ["tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py"]
+"ai/codex/agents/pr_reviewer_performance.toml" = ["tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py"]
+"ai/codex/agents/pr_reviewer_security.toml" = ["tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py"]
+"ai/codex/agents/pr_reviewer_tests.toml" = ["tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py"]
+
 "ai/codex/agents/pr_review_verifier.toml" = [
   "tests/ai/common/test_pr_review_verify_md__adapters.py",
   "tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py",

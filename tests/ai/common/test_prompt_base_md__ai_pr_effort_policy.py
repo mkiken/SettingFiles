@@ -365,7 +365,7 @@ class ReviewEntrypointEffortPolicyTest(unittest.TestCase):
             # cx-pr-reviewは軽量版（Sol・medium）、cxmx-pr-reviewは従来のAstra・high。
             ("cx-pr-review 123 focus on errors", "gpt-6.1-sol", "medium", "$pr-review PR #123 をレビューして focus on errors"),
             ("cxmx-pr-review 123 focus on errors", "gpt-6-astra", "high", "$pr-review PR #123 をレビューして focus on errors"),
-            ("cx-pr-review-subagent 123 focus on errors", "gpt-6-astra", "high", "$pr-review-subagents PR #123 をレビューして focus on errors"),
+            ("cx-pr-review-subagent 123 focus on errors", "gpt-6.1-sol", "high", "$pr-review-subagents PR #123 をレビューして focus on errors"),
             ("cx-pcr https://github.com/acme/widget/pull/42#discussion_r123 focus", "gpt-6-astra", "high", "$pr-comment-review https://github.com/acme/widget/pull/42#discussion_r123 focus"),
         )
 
@@ -403,8 +403,8 @@ class ReviewerAgentEffortPolicyTest(unittest.TestCase):
             with self.subTest(dimension=dimension):
                 source = REPO_ROOT / f"ai/codex/agents_src/head_{dimension}.toml"
                 generated = REPO_ROOT / f"ai/codex/agents/pr_reviewer_{dimension}.toml"
-                self.assertEqual(toml_header_value(source, "model"), "gpt-6-astra")
-                self.assertEqual(toml_header_value(generated, "model"), "gpt-6-astra")
+                self.assertEqual(toml_header_value(source, "model"), "gpt-6.1-sol")
+                self.assertEqual(toml_header_value(generated, "model"), "gpt-6.1-sol")
                 self.assertEqual(toml_header_value(source, "model_reasoning_effort"), "high")
                 self.assertEqual(toml_header_value(generated, "model_reasoning_effort"), "high")
 
@@ -415,11 +415,11 @@ class ReviewerAgentEffortPolicyTest(unittest.TestCase):
         self.assertEqual(frontmatter_value(generated, "effort"), "high")
         self.assertEqual(frontmatter_value(generated, "model"), frontmatter_value(source, "model"))
 
-    def test_codex_verifier_uses_astra_high(self):
+    def test_codex_verifier_uses_sol_high(self):
         source = REPO_ROOT / "ai/codex/agents_src/pr_review_verify/head_verifier.toml"
         generated = REPO_ROOT / "ai/codex/agents/pr_review_verifier.toml"
-        self.assertEqual(toml_header_value(source, "model"), "gpt-6-astra")
-        self.assertEqual(toml_header_value(generated, "model"), "gpt-6-astra")
+        self.assertEqual(toml_header_value(source, "model"), "gpt-6.1-sol")
+        self.assertEqual(toml_header_value(generated, "model"), "gpt-6.1-sol")
         self.assertEqual(toml_header_value(source, "model_reasoning_effort"), "high")
         self.assertEqual(toml_header_value(generated, "model_reasoning_effort"), "high")
 

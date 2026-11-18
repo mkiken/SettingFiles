@@ -105,7 +105,7 @@ cxmx-pr-review() {
 cx-pr-review-subagent() {
     local pr_number review_prompt
     _ai_pr_review_resolve_args pr_number review_prompt "$@" || return 1
-    cxmx --dangerously-bypass-approvals-and-sandbox "\$pr-review-subagents PR #$pr_number をレビューして${review_prompt:+ $review_prompt}"
+    cxs -c 'model_reasoning_effort="high"' --dangerously-bypass-approvals-and-sandbox "\$pr-review-subagents PR #$pr_number をレビューして${review_prompt:+ $review_prompt}"
 }
 
 cx-review-merge() {
