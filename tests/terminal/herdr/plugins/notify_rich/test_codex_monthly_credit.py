@@ -199,8 +199,20 @@ for line in sys.stdin:
 
     def test_timeout_terminates_launcher_and_child(self):
         self.write_scenario(wait=True, child=True)
-        with patch.object(credit, "TIMEOUT", 2):
+        selector = credit.selectors.DefaultSelector()
+        select = selector.select
+
+        def wait_for_response(timeout):
+            # The fixture acknowledges initialize only after the child is ready.
+            return select(timeout) if readiness.call_count == 1 else []
+
+        with (
+            patch.object(credit.selectors, "DefaultSelector", return_value=selector),
+            patch.object(selector, "select", side_effect=wait_for_response) as readiness,
+            patch.object(credit, "TIMEOUT", 15),
+        ):
             self.assertIsNone(credit.cached_credit(self.env))
+        self.assertEqual(readiness.call_count, 2)
         self.assertTrue((self.root / "child_ready").exists())
         self.assertTrue((self.root / "stopped").exists())
         for _ in range(50):
