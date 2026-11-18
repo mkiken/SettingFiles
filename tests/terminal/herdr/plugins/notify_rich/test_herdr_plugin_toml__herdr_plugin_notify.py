@@ -70,6 +70,8 @@ class HerdrPluginNotifyTest(unittest.TestCase):
         break_label_analyzer: bool = False,
         review_session: bool = False,
         review_record: str | None = None,
+        review_output: str | None = None,
+        review_output_state: str = "fresh",
     ) -> tuple[subprocess.CompletedProcess[str], Path]:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -264,7 +266,16 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                 key = hashlib.sha256(f"{agent}\0{session_id}".encode()).hexdigest()
                 state_file = root / ".cache/herdr-review-sessions" / key
                 state_file.parent.mkdir(parents=True)
-                state_file.write_text(review_record if review_record is not None else json.dumps([agent, session_id]), encoding="utf-8")
+                output = root / "review.md"
+                if review_output is not None:
+                    if review_output_state == "unreadable":
+                        output.mkdir()
+                    elif review_output_state != "missing":
+                        output.write_text(review_output, encoding="utf-8")
+                record = [agent, session_id, str(output)] if review_output is not None else [agent, session_id]
+                state_file.write_text(review_record if review_record is not None else json.dumps(record), encoding="utf-8")
+                if review_output is not None and review_output_state == "fresh":
+                    os.utime(output, ns=(state_file.stat().st_mtime_ns + 1_000_000_000,) * 2)
 
             env = sanitized_env()
             # 実herdrの[[events]]フック環境にはLANGが無い。プラグイン冒頭の
@@ -363,6 +374,28 @@ class HerdrPluginNotifyTest(unittest.TestCase):
                 result, events = self.run_plugin(review_session=True, **case)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertTrue(events)
+
+    def test_codex_review_waiting_output_matches_only_fresh_readable_artifact(self):
+        answer = "レビュー結果です。\n投稿する番号を指定してください。"
+        transcript = self.codex_transcript_fixture(assistant_text=answer)
+        cases = (
+            ("fresh", answer.replace("\n", "  "), "done", True, False),
+            ("missing", answer, "done", True, True),
+            ("old", answer, "done", True, True),
+            ("fresh", "異なる結果", "done", True, True),
+            ("fresh", "", "done", True, True),
+            ("unreadable", answer, "done", True, True),
+            ("fresh", answer, "blocked", True, True),
+            ("fresh", answer, "done", False, True),
+        )
+        for state, output, status, review, should_notify in cases:
+            with self.subTest(state=state, output=output, status=status, review=review):
+                result, events = self.run_plugin(
+                    agent="codex", agent_status=status, codex_transcript=transcript,
+                    review_session=review, review_output=output, review_output_state=state,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(bool(events), should_notify, events)
 
     def test_done_status_notifies_with_completion_title(self):
         result, events = self.run_plugin(agent="claude", agent_status="done")

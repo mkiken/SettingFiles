@@ -78,7 +78,7 @@ def main() -> int:
             input_data = json.load(sys.stdin)
             if input_data.get("hook_event_name") == "UserPromptSubmit":
                 from herdr_review_sessions import register
-                register("codex", input_data.get("session_id"), bool(os.environ.get("AI_REVIEW_OUTPUT_FILE")))
+                register("codex", input_data.get("session_id"), bool(os.environ.get("AI_REVIEW_OUTPUT_FILE")), os.environ.get("AI_REVIEW_OUTPUT_FILE"))
         except (ValueError, AttributeError):
             pass
         return 0

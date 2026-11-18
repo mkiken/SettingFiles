@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import shutil
@@ -86,6 +87,9 @@ class HerdrNotificationTest(unittest.TestCase):
             invoke("claude", "sub", agent_id="child")
             self.assertTrue(matches("claude", "one"))
             self.assertTrue(matches("codex", "two"))
+            key = hashlib.sha256("codex\0two".encode()).hexdigest()
+            record = json.loads((Path(tmp) / ".cache/herdr-review-sessions" / key).read_text())
+            self.assertEqual(record, ["codex", "two", "/tmp/review"])
             self.assertFalse(matches("codex", "one"))
             self.assertFalse(matches("claude", "two"))
             self.assertFalse(matches("claude", "sub"))

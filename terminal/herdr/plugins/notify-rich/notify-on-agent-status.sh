@@ -435,6 +435,10 @@ if [[ "$agent" == "codex" && -n "$session_id" ]]; then
       | python3 "${REPO_ROOT}/ai/codex/hooks/codex_hook_common.py" analyze 2>/dev/null)"
     [[ $? -ne 0 || -z "$analysis" ]] && exit 0
     eval "$analysis"
+    if [[ "$agent_status" == "done" && "${WAITING_FOR_USER_RESPONSE:-}" == "true" ]] \
+       && print -rn -- "${LAST_ASSISTANT_MESSAGE:-}" | python3 "${REPO_ROOT}/shell/tmux/herdr_review_sessions.py" output-matches "$agent" "$session_id" 2>/dev/null; then
+      exit 10
+    fi
     source "${REPO_ROOT}/shell/tmux/ai_notification_summary.sh" 2>/dev/null || exit 0
     # blocked（herdr検知の入力待ち）と、doneでもアシスタントが質問で終えた場合は
     # tmuxの✋応答待ちと同じく最終アシスタントメッセージを出す。それ以外の完了は
@@ -451,6 +455,7 @@ if [[ "$agent" == "codex" && -n "$session_id" ]]; then
       --argjson analyzed "$([[ ${ASSISTANT_MESSAGE_COUNT:-0} -gt 0 ]] && print true || print false)" \
       '{summary: $summary, waiting: $waiting, analyzed: $analyzed}'
   )"
+  [[ $? -eq 10 ]] && exit 0
   codex_summary="$(print -r -- "$codex_notification" | jq -r '.summary // empty' 2>/dev/null)"
   [[ -n "$codex_summary" ]] && notify_body="$codex_summary"
   if [[ "$agent_status" == "done" ]] \
