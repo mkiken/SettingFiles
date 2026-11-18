@@ -598,6 +598,10 @@
   "tests/terminal/herdr/plugins/notify_rich/test_herdr_plugin_toml__herdr_plugin_notify.py",
 ]
 
+".claude/skills/herdr-dev/references/notify-rich.md" = [
+  "tests/terminal/herdr/plugins/notify_rich/test_herdr_plugin_toml__herdr_plugin_notify.py",
+]
+
 "terminal/herdr/plugins/notify-rich/notify-on-agent-status.sh" = [
   "tests/terminal/herdr/plugins/notify_rich/test_herdr_plugin_toml__herdr_plugin_notify.py",
 ]

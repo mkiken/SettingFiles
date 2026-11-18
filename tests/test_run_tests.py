@@ -409,6 +409,7 @@ class RunTestsTest(unittest.TestCase):
             ('shell/tmux/ai_notification_summary.sh', 'tests/terminal/herdr/plugins/notify_rich/test_herdr_plugin_toml__herdr_plugin_notify.py'),
             ('shell/tmux/claude_transcript_analyze.py', 'tests/terminal/herdr/plugins/notify_rich/test_herdr_plugin_toml__herdr_plugin_notify.py'),
             ('shell/tmux/herdr_review_sessions.py', 'tests/terminal/herdr/plugins/notify_rich/test_herdr_plugin_toml__herdr_plugin_notify.py'),
+            ('.claude/skills/herdr-dev/references/notify-rich.md', 'tests/terminal/herdr/plugins/notify_rich/test_herdr_plugin_toml__herdr_plugin_notify.py'),
             ('shell/tmux/ai_notification_hook_common.sh', 'tests/terminal/herdr/test_config_toml__herdr_notifications.py'),
             ('shell/tmux/ai_notification_sound.sh', 'tests/terminal/herdr/test_config_toml__herdr_notifications.py'),
             ('shell/tmux/ai_notification_summary.sh', 'tests/terminal/herdr/test_config_toml__herdr_notifications.py'),
