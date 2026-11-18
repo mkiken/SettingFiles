@@ -10,11 +10,11 @@ class CodexReviewAliasTest(unittest.TestCase):
     def test_launch_bypasses_hook_trust_and_preserves_arguments_and_exit_code(self):
         for command, arguments in (
             ("cx 'two words'", ["two words"]),
-            ("cxs 'two words'", ["--model", "gpt-6.1-sol", "two words"]),
-            ("cxa 'two words'", ["--model", "gpt-6-astra", "two words"]),
+            ("cxs 'two words'", ["--model", "gpt-6.2-sol", "two words"]),
+            ("cxa 'two words'", ["--model", "gpt-6.2-astra", "two words"]),
             ("cxt 'two words'", ["--model", "gpt-6.1-terra", "two words"]),
             ("cxteh 'two words'", ["--model", "gpt-6.1-terra", "-c", 'model_reasoning_effort="high"', "two words"]),
-            ("cxmx 'two words'", ["--model", "gpt-6-astra", "-c", 'model_reasoning_effort="high"', "two words"]),
+            ("cxmx 'two words'", ["--model", "gpt-6.2-astra", "-c", 'model_reasoning_effort="high"', "two words"]),
             ("cxl 'two words'", ["--model", "gpt-6-luna", "two words"]),
             ("cxr 'session id'", ["resume", "session id"]),
         ):
@@ -82,7 +82,7 @@ cx() {{
                 self.assertEqual(
                     json.loads(result.stdout),
                     [
-                        "--model", "gpt-6.1-sol",
+                        "--model", "gpt-6.2-sol",
                         "--dangerously-bypass-approvals-and-sandbox",
                         f"$review-post {suffix}",
                     ],
@@ -111,7 +111,7 @@ cx() {{
             ),
         )
         for command, flags, prompt in cases:
-            for model in ("gpt-6.1-sol", "test-sol"):
+            for model in ("gpt-6.2-sol", "test-sol"):
                 for exit_code in (0, 7):
                     with self.subTest(command=command, model=model, exit_code=exit_code):
                         setup = 'gh() { print -r -- 123; }\n'
@@ -136,7 +136,7 @@ cx() {{
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(
                     json.loads(result.stdout),
-                    ["--model", "gpt-6.1-sol", f"$review-fix {suffix}"],
+                    ["--model", "gpt-6.2-sol", f"$review-fix {suffix}"],
                 )
 
     def test_review_fix_preserves_codex_exit_code(self):
@@ -150,5 +150,5 @@ cx() {{
                     result = self.run_command(f"cx-review-consider {arguments}", exit_code)
                     self.assertEqual(result.returncode, exit_code)
                     self.assertEqual(json.loads(result.stdout), [
-                        "--model", "gpt-6.1-sol", f"$review-consider {suffix}",
+                        "--model", "gpt-6.2-sol", f"$review-consider {suffix}",
                     ])

@@ -198,11 +198,11 @@ class PrCommentImplementAliasTest(unittest.TestCase):
                         self.assertNotIn("--model", captured)
                         self.assertEqual(captured[:2], ["-c", 'model_reasoning_effort="high"'])
                     elif tier == "sol":
-                        self.assertEqual(captured[:2], ["--model", "gpt-6.1-sol"])
+                        self.assertEqual(captured[:2], ["--model", "gpt-6.2-sol"])
                         # Sol workflows inherit the user's reasoning setting.
                         self.assertNotIn("-c", captured)
                     else:
-                        self.assertEqual(captured[:2], ["--model", "gpt-6-astra"])
+                        self.assertEqual(captured[:2], ["--model", "gpt-6.2-astra"])
                         self.assertEqual(captured[2:4], ["-c", 'model_reasoning_effort="high"'])
 
 
@@ -216,8 +216,8 @@ class CodexModelSelectionTest(unittest.TestCase):
             ("cx", []),
             ("cx 'two words'", ["two words"]),
             ("cxr --last", ["resume", "--last"]),
-            ("cxs task", ["--model", "gpt-6.1-sol", "task"]),
-            ("cxa task", ["--model", "gpt-6-astra", "task"]),
+            ("cxs task", ["--model", "gpt-6.2-sol", "task"]),
+            ("cxa task", ["--model", "gpt-6.2-astra", "task"]),
             ("cxt task", ["--model", "gpt-6.1-terra", "task"]),
             (
                 "cxteh task",
@@ -230,7 +230,7 @@ class CodexModelSelectionTest(unittest.TestCase):
             ),
             (
                 "cxmx task",
-                ["--model", "gpt-6-astra", "-c", 'model_reasoning_effort="high"', "task"],
+                ["--model", "gpt-6.2-astra", "-c", 'model_reasoning_effort="high"', "task"],
             ),
         )
 
@@ -363,10 +363,10 @@ class ReviewEntrypointEffortPolicyTest(unittest.TestCase):
     def test_codex_review_roles_use_the_expected_effort(self):
         cases = (
             # cx-pr-reviewは軽量版（Sol・medium）、cxmx-pr-reviewは従来のAstra・high。
-            ("cx-pr-review 123 focus on errors", "gpt-6.1-sol", "medium", "$pr-review PR #123 をレビューして focus on errors"),
-            ("cxmx-pr-review 123 focus on errors", "gpt-6-astra", "high", "$pr-review PR #123 をレビューして focus on errors"),
-            ("cx-pr-review-subagent 123 focus on errors", "gpt-6.1-sol", "high", "$pr-review-subagents PR #123 をレビューして focus on errors"),
-            ("cx-pcr https://github.com/acme/widget/pull/42#discussion_r123 focus", "gpt-6-astra", "high", "$pr-comment-review https://github.com/acme/widget/pull/42#discussion_r123 focus"),
+            ("cx-pr-review 123 focus on errors", "gpt-6.2-sol", "medium", "$pr-review PR #123 をレビューして focus on errors"),
+            ("cxmx-pr-review 123 focus on errors", "gpt-6.2-astra", "high", "$pr-review PR #123 をレビューして focus on errors"),
+            ("cx-pr-review-subagent 123 focus on errors", "gpt-6.2-sol", "high", "$pr-review-subagents PR #123 をレビューして focus on errors"),
+            ("cx-pcr https://github.com/acme/widget/pull/42#discussion_r123 focus", "gpt-6.2-astra", "high", "$pr-comment-review https://github.com/acme/widget/pull/42#discussion_r123 focus"),
         )
 
         for command, model, effort, prompt in cases:
@@ -403,8 +403,8 @@ class ReviewerAgentEffortPolicyTest(unittest.TestCase):
             with self.subTest(dimension=dimension):
                 source = REPO_ROOT / f"ai/codex/agents_src/head_{dimension}.toml"
                 generated = REPO_ROOT / f"ai/codex/agents/pr_reviewer_{dimension}.toml"
-                self.assertEqual(toml_header_value(source, "model"), "gpt-6.1-sol")
-                self.assertEqual(toml_header_value(generated, "model"), "gpt-6.1-sol")
+                self.assertEqual(toml_header_value(source, "model"), "gpt-6.2-sol")
+                self.assertEqual(toml_header_value(generated, "model"), "gpt-6.2-sol")
                 self.assertEqual(toml_header_value(source, "model_reasoning_effort"), "high")
                 self.assertEqual(toml_header_value(generated, "model_reasoning_effort"), "high")
 
@@ -418,23 +418,23 @@ class ReviewerAgentEffortPolicyTest(unittest.TestCase):
     def test_codex_verifier_uses_sol_high(self):
         source = REPO_ROOT / "ai/codex/agents_src/pr_review_verify/head_verifier.toml"
         generated = REPO_ROOT / "ai/codex/agents/pr_review_verifier.toml"
-        self.assertEqual(toml_header_value(source, "model"), "gpt-6.1-sol")
-        self.assertEqual(toml_header_value(generated, "model"), "gpt-6.1-sol")
+        self.assertEqual(toml_header_value(source, "model"), "gpt-6.2-sol")
+        self.assertEqual(toml_header_value(generated, "model"), "gpt-6.2-sol")
         self.assertEqual(toml_header_value(source, "model_reasoning_effort"), "high")
         self.assertEqual(toml_header_value(generated, "model_reasoning_effort"), "high")
 
     def test_codex_config_audit_and_audit_fix_agents_use_astra(self):
         for directory, roles in (
             ("config_audit", ("ambiguity", "concise", "conflict", "default", "overlap", "patch")),
-            ("audit_fix", ("designer", "implementer")),
+            ("audit_fix", ("designer", "implementer", "considerer")),
         ):
             for role in roles:
                 with self.subTest(directory=directory, role=role):
                     source = REPO_ROOT / f"ai/codex/agents_src/{directory}/head_{role}.toml"
                     generated_prefix = "config_auditor" if directory == "config_audit" else "audit_fix"
                     generated = REPO_ROOT / f"ai/codex/agents/{generated_prefix}_{role}.toml"
-                    self.assertEqual(toml_header_value(source, "model"), "gpt-6-astra")
-                    self.assertEqual(toml_header_value(generated, "model"), "gpt-6-astra")
+                    self.assertEqual(toml_header_value(source, "model"), "gpt-6.2-astra")
+                    self.assertEqual(toml_header_value(generated, "model"), "gpt-6.2-astra")
 
     def test_codex_review_fix_agents_inherit_caller_model_and_effort(self):
         for role in ("designer", "implementer"):

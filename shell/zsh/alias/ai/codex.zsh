@@ -25,12 +25,12 @@ cxeh() {
 
 # `s` selects Sol.
 cxs() {
-    cx --model gpt-6.1-sol "$@"
+    cx --model gpt-6.2-sol "$@"
 }
 
 # `a` selects Astra.
 cxa() {
-    cx --model gpt-6-astra "$@"
+    cx --model gpt-6.2-astra "$@"
 }
 
 # `t` selects Terra.

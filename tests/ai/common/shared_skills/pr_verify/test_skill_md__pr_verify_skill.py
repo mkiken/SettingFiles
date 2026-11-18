@@ -143,8 +143,8 @@ class PrVerifyContractTest(unittest.TestCase):
     def test_reviewer_models_context_and_read_only_scope(self):
         content = " ".join((SKILL / "SKILL.md").read_text().split())
         for requirement in (
-            "From Codex: a fresh-context `gpt-6.1-sol` / `high` subagent and external Claude `opus` / `high`",
-            "From Claude: a fresh-context `opus` / `high` subagent and external Codex `gpt-6.1-sol` / `high`",
+            "From Codex: a fresh-context `gpt-6.2-sol` / `high` subagent and external Claude `opus` / `high`",
+            "From Claude: a fresh-context `opus` / `high` subagent and external Codex `gpt-6.2-sol` / `high`",
             "Explicitly set model and reasoning effort",
             "including the Claude subagent",
             'use `fork_turns="none"`',

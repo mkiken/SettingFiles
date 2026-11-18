@@ -444,6 +444,15 @@ class RunTestsTest(unittest.TestCase):
 
     def test_dynamic_source_dependencies_select_the_reader(self):
         cases = (
+            ('ai/codex/agents_src/config_audit/head_ambiguity.toml', 'tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py'),
+            ('ai/codex/agents_src/config_audit/head_concise.toml', 'tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py'),
+            ('ai/codex/agents_src/config_audit/head_conflict.toml', 'tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py'),
+            ('ai/codex/agents_src/config_audit/head_default.toml', 'tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py'),
+            ('ai/codex/agents_src/config_audit/head_overlap.toml', 'tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py'),
+            ('ai/codex/agents_src/config_audit/head_patch.toml', 'tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py'),
+            ('ai/codex/agents_src/audit_fix/head_designer.toml', 'tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py'),
+            ('ai/codex/agents_src/audit_fix/head_implementer.toml', 'tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py'),
+            ('ai/codex/agents_src/audit_fix/head_considerer.toml', 'tests/ai/common/test_prompt_base_md__ai_pr_effort_policy.py'),
             ('ai/codex/agents/config_auditor_default.toml', 'tests/mac/scripts/ai/test_codex_sh__config_auditor_agents.py'),
             ('ai/codex/agents/config_auditor_conflict.toml', 'tests/mac/scripts/ai/test_codex_sh__config_auditor_agents.py'),
             ('ai/codex/agents/config_auditor_overlap.toml', 'tests/mac/scripts/ai/test_codex_sh__config_auditor_agents.py'),

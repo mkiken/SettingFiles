@@ -24,7 +24,7 @@ class SecondOpinionModelsTest(unittest.TestCase):
         self.assertIn("Gemini is unverified", self.text)
 
     def test_difficulty_defaults_name_a_model_and_effort_per_target(self):
-        for required in ("`gpt-6.1-sol` + `medium`", "`opus` + `high`", "`flash`", "`pro`"):
+        for required in ("`gpt-6.2-sol` + `medium`", "`opus` + `high`", "`flash`", "`pro`"):
             with self.subTest(required=required):
                 self.assertIn(required, self.text)
 

@@ -1,7 +1,7 @@
 # GENERATED FILE - do not edit. Sources: ai/common/pr_review_subagents/, ai/codex/agents_src/. Regen: mac/updates/codex.sh.
 name = "pr_reviewer_claims"
 description = "Read-only PR reviewer verifying PR claims against the actual diff."
-model = "gpt-6.1-sol"
+model = "gpt-6.2-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 

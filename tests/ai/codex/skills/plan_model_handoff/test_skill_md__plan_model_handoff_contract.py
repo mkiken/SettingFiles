@@ -28,7 +28,7 @@ class PlanModelHandoffSkillContractTest(unittest.TestCase):
             '.type == "world_state"',
             ".payload.model // .payload.state.model // empty",
             "tail -1",
-            "is `gpt-6-astra`",
+            "is `gpt-6-astra` or `gpt-6.2-astra`",
             'match `*-sol`',
         ):
             with self.subTest(required=required):

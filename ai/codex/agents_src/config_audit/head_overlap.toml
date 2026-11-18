@@ -1,6 +1,6 @@
 name = "config_auditor_overlap"
 description = "Read-only config auditor for rule-to-rule duplication."
-model = "gpt-6-astra"
+model = "gpt-6.2-astra"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 

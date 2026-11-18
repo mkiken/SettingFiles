@@ -72,10 +72,10 @@ temporary area and no effects on live services.
 
 Use these two independent reviewers:
 
-- From Codex: a fresh-context `gpt-6.1-sol` / `high` subagent and external
+- From Codex: a fresh-context `gpt-6.2-sol` / `high` subagent and external
   Claude `opus` / `high`.
 - From Claude: a fresh-context `opus` / `high` subagent and external
-  Codex `gpt-6.1-sol` / `high`.
+  Codex `gpt-6.2-sol` / `high`.
 
 Explicitly set model and reasoning effort in the supported launch mechanism,
 including the Claude subagent. Do not inherit conversation history; for Codex

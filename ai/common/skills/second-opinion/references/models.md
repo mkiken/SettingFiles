@@ -4,7 +4,7 @@ Always pass an explicit model and effort. These are proposals for the confirmati
 
 | target | model candidates | effort |
 |---|---|---|
-| codex | `gpt-6.1-sol`, `gpt-6-astra`, `gpt-6.1-terra`, `gpt-6-luna` | `none`, `minimal`, `low`, `medium`, `high`, `xhigh` |
+| codex | `gpt-6.2-sol`, `gpt-6.2-astra`, `gpt-6.1-terra`, `gpt-6-luna` | `none`, `minimal`, `low`, `medium`, `high`, `xhigh` |
 | claude | `opus`, `sonnet`, `fable`, `haiku` | `low`, `medium`, `high`, `xhigh`, `max` |
 | gemini | `pro`, `flash` | not settable (no CLI flag found) |
 
@@ -16,8 +16,8 @@ The codex effort values come from a third-party README; only `low` has been run.
 
 | difficulty | proposal |
 |---|---|
-| routine check, quick view | codex `gpt-6.1-sol` + `medium`; claude `sonnet` + `medium`; gemini `flash` |
-| hard bug, design judgment, review before shipping | codex `gpt-6.1-sol` + `high`; claude `opus` + `high`; gemini `pro` |
+| routine check, quick view | codex `gpt-6.2-sol` + `medium`; claude `sonnet` + `medium`; gemini `flash` |
+| hard bug, design judgment, review before shipping | codex `gpt-6.2-sol` + `high`; claude `opus` + `high`; gemini `pro` |
 | highest stakes only | add `xhigh`; mention that cost and time rise sharply |
 
 Say in the confirmation which difficulty you assumed and why.

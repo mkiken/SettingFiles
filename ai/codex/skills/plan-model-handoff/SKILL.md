@@ -30,11 +30,11 @@ fi
 print -r -- "$codex_active_model"
 ```
 
-If the result is empty, report `Implementation-model check skipped: active model detection failed.` and continue without asking. If the result is not `gpt-6-astra` and does not match `*-sol`, continue silently without asking.
+If the result is empty, report `Implementation-model check skipped: active model detection failed.` and continue without asking. If the result is neither `gpt-6-astra` nor `gpt-6.2-astra` and does not match `*-sol`, continue silently without asking.
 
 ## Choose the implementation route
 
-When the detected model is `gpt-6-astra` or matches `*-sol`, select the
+When the detected model is `gpt-6-astra` or `gpt-6.2-astra`, or matches `*-sol`, select the
 recommendation from the accepted plan and request, in this user-specified order:
 
 - Luna: a simple task requiring only a small code change.
