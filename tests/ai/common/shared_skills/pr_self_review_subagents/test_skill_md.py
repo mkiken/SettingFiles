@@ -20,7 +20,7 @@ class SelfReviewSubagentsContractTest(unittest.TestCase):
         self.assertEqual(keys, ["name", "description"])
 
     def test_reuses_self_review_and_subagent_review(self):
-        text = (SKILL / "SKILL.md").read_text()
+        text = " ".join((SKILL / "SKILL.md").read_text().split())
         for contract in (
             "../pr-self-review/SKILL.md", "Establish the target", "Repair findings",
             "Hand off to the existing review workflow", "pr-review-subagents",
