@@ -846,6 +846,13 @@ function confirm() {
         _start_prompt_wait_notification "$message" "confirm-prompt"
     fi
 
+    # 前段の --single-key プロンプトで押した Enter や処理中の先行入力を回答として誤読しないよう、
+    # 端末に溜まった入力を捨てる（パイプ stdin は呼び出し側が流し込んだ回答なので捨てない）
+    if [[ -t 0 ]]; then
+        local _discard
+        while read -rs -t 0 -k 1 _discard; do :; done
+    fi
+
     local reply
     if $single_key; then
         read -k 1 -r "reply?${message} ${prompt_hint} "
