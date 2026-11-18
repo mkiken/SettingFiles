@@ -10,8 +10,9 @@ specialist subagents instead of one inline reviewer.
 
 Resolve this skill directory's real path and read its sibling
 `../pr-self-review/SKILL.md`. Follow its "Establish the target", "Repair
-findings" and "Hand off to the existing review workflow" sections unchanged,
-including its approval, verification and uncommitted-changes rules.
+findings", "Confirm commit and push" and "Hand off to the existing review
+workflow" sections unchanged, including its approval, verification and
+commit/push confirmation rules.
 
 ## Review stage
 

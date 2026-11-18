@@ -28,6 +28,7 @@ class PrCommentImplementBatchSelfContractTest(unittest.TestCase):
             "Repair findings", "`auto`", "`approval`", "not skip candidates",
             "demote it to `approval`", "commit that thread alone",
             "Never commit unverified work", "never force-push",
+            "Finalize confirmation is mandatory",
         ):
             self.assertIn(contract, text)
 

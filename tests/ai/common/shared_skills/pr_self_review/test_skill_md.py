@@ -22,7 +22,9 @@ class SelfReviewContractTest(unittest.TestCase):
             "For EVERY behavior change", "BEFORE editing",
             "If behavior preservation is uncertain",
             "Never mark a failed or unverified repair complete",
-            "changes remain uncommitted and unpushed",
+            "## Confirm commit and push", "Post-Implementation Workflow",
+            "Never skip it as \"review-only work\"",
+            "without the user's choice",
         ):
             self.assertIn(contract, text)
 

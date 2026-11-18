@@ -63,19 +63,36 @@ that appear during the run; do not reset or restore files to discard them.
 
 In the conversation, list each repair's repository-relative file:line, change,
 evidence and verification result. Distinguish automatic repairs from approved
-behavior changes. State that changes remain uncommitted and unpushed. Do not
-put completed repairs into the HTML findings or a separate fix-state database.
+behavior changes. Do not put completed repairs into the HTML findings or a
+separate fix-state database.
+
+## Confirm commit and push
+
+When the repairs left any uncommitted change, run this before the handoff; with
+no repair, skip it. Never skip it as "review-only work": the repairs are
+deliverable changes. Run task-completion's Post-Implementation Workflow
+(commit and push / commit only / leave uncommitted, with its staging and
+hunk-check rules): show the repaired files, a commit message following the
+repository convention, the branch, push remote and destination. Stage only this
+run's repaired paths explicitly, commit once, never force-push. For a push,
+fetch first and stop with the ahead/behind counts if the remote is ahead; after
+pushing, require the PR headRefOid to equal the local HEAD. Never commit or push
+without the user's choice.
 
 ## Hand off to the existing review workflow
 
-Re-read the PR head and local branch/HEAD before handoff. If they differ from
-the recorded values, stop and report the drift rather than handing off stale
-findings. Confirm each remaining finding still exists after the local repairs.
-Anchor findings to the recorded PR head using the original line-numbered diff;
-map moved lines back to that revision. If a location cannot be mapped honestly,
-report it in the conversation as needing verification instead of inventing an
-HTML anchor. Explain in the conversation that HTML code excerpts are the
-published PR snapshot, while repairs are still local.
+Re-read the PR head and local branch/HEAD before handoff. Expect the recorded
+values, or the commit made in "Confirm commit and push" as local HEAD (and as PR
+head after a push). Anything else is drift: stop and report it rather than
+handing off stale findings. Confirm each remaining finding still exists after
+the local repairs. Anchor findings to the PR head at handoff: after a push,
+regenerate the line-numbered diff for the new head and map findings onto it; with
+no push, keep the recorded PR head and its original line-numbered diff, because
+a commit absent from GitHub cannot back links, excerpts or review-post anchors.
+If a location cannot be mapped honestly, report it in the conversation as
+needing verification instead of inventing an HTML anchor. Without a push,
+explain in the conversation that HTML code excerpts are the published PR
+snapshot, while the repairs are still local.
 
 Use the existing `ai_review_run_dir.sh <PR_NUMBER>` helper to create a run.
 Its resolved run directory is the authorized output target for this invocation.
@@ -91,5 +108,5 @@ those procedures here or create merged.json or browser-owned state.json yourself
 Use the existing review-consider, review-fix and review-post skills for subsequent
 HTML decisions; do not add a self-review-specific continuation or state format.
 If handoff fails, report the preserved run path and failure without claiming the
-HTML opened. Follow the enclosing task-completion/commit approval workflow;
-never commit or push implicitly to make the local repairs match GitHub.
+HTML opened. Never commit or push implicitly to make the local repairs match
+GitHub; only "Confirm commit and push" may do so.

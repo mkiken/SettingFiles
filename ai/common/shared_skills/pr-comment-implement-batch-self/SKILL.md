@@ -43,4 +43,6 @@ section "Repair findings". Follow the batch skill's "Establish the target",
      (承認 / 修正依頼 / スキップ). Never commit unverified work.
 6. Finalize as the batch skill does (single confirmation for push, reply and
    resolve; never force-push). The final per-thread table also shows whether
-   each commit was `auto` or `approved`.
+   each commit was `auto` or `approved`. Finalize confirmation is mandatory:
+   with any commit made, including `auto` only, ask it before ending and never
+   finish with unpushed commits unreported.
