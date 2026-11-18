@@ -25,7 +25,7 @@ class PlanReviewCriteriaTest(unittest.TestCase):
             "spans 3+ files or subsystem/module boundaries",
             "Treat ambiguity as",
             "Gate 2 — size",
-            "at least 200 lines",
+            "at least 60 lines",
             "with no review dialog",
         ):
             with self.subTest(required=required):
@@ -72,7 +72,7 @@ class PlanReviewCriteriaTest(unittest.TestCase):
         for required in (
             "load the `plan-review` skill only when",
             "both gates hold",
-            "at least 200 lines",
+            "at least 60 lines",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.agents)

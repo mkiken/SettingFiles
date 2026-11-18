@@ -23,7 +23,7 @@ class PlanReviewBodyOutputTest(unittest.TestCase):
             "spans 3+ files or subsystem/module boundaries",
             "Treat ambiguity as",
             "Gate 2 — size",
-            "at least 200 lines",
+            "at least 60 lines",
             "proceed directly to `ExitPlanMode`",
         ):
             with self.subTest(required=required):

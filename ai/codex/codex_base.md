@@ -59,7 +59,7 @@ dialog.
   deployment, or a breaking live-configuration change. Treat ambiguity as
   unmet.
 - **Gate 2 — size:** the complete decision-ready plan body that would appear
-  inside `<proposed_plan>` is at least 200 lines, counted rather than
+  inside `<proposed_plan>` is at least 60 lines, counted rather than
   estimated.
 
 These gates supersede the shared Plan Review Presentation criteria for Codex.

@@ -31,7 +31,7 @@ dialog.
   externally visible action such as deletion, push, external API writes,
   deployment, or a breaking live-configuration change. Treat ambiguity as
   unmet.
-- **Gate 2 — size:** the plan file is at least 200 lines by `wc -l`, not an
+- **Gate 2 — size:** the plan file is at least 60 lines by `wc -l`, not an
   estimate.
 
 These gates supersede the shared Plan Review Presentation criteria for Claude.
