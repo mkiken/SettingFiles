@@ -26,6 +26,16 @@ class ImplementationModelCheckTest(unittest.TestCase):
             self.section,
         )
 
+    def test_stated_model_wins_over_the_stale_transcript(self):
+        # opusplan 切替直後は transcript の最終 assistant が Opus のまま。通知の明記を優先する
+        for required in (
+            "A model named in a system prompt or notice",
+            "wins over the transcript",
+            "the stated model is Sonnet or Haiku",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.section)
+
     def test_other_models_get_a_recommended_delegation_choice(self):
         for required in (
             '`model: "haiku"`',

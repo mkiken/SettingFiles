@@ -39,14 +39,14 @@ These gates supersede the shared Plan Review Presentation criteria for Claude.
 
 # Implementation Model Check After Plan Approval
 
-Immediately after `ExitPlanMode` is approved — before any other tool call — determine the current session's active model by extracting the session ID from the scratchpad path present in every system prompt (`/private/tmp/claude-<uid>/<project-slug>/<session-id>/scratchpad`) and running:
+Immediately after `ExitPlanMode` is approved — before any other tool call — determine the current session's active model. A model named in a system prompt or notice (e.g. after an `opusplan` switch to Sonnet) wins over the transcript, whose last assistant message predates the switch. Without one, extract the session ID from the scratchpad path present in every system prompt (`/private/tmp/claude-<uid>/<project-slug>/<session-id>/scratchpad`) and run:
 
 ```bash
 jq -r 'select(.type=="assistant" and (.isSidechain//false)==false) | .message.model' \
   ~/.claude/projects/<project-slug>/<session-id>.jsonl | tail -1
 ```
 
-If the command fails or the result starts with `claude-sonnet-` or `claude-haiku-`, proceed straight to implementation — do not block on a detection failure. This is separate from the Plan Review Deep-Dive dialog, which precedes `ExitPlanMode`.
+If the command fails, the stated model is Sonnet or Haiku, or the result starts with `claude-sonnet-` or `claude-haiku-`, proceed straight to implementation — do not block on a detection failure. This is separate from the Plan Review Deep-Dive dialog, which precedes `ExitPlanMode`.
 
 Otherwise (e.g. `claude-opus-5-5`, `claude-fable-5-1`), ask an `AskUserQuestion` before writing or running anything. Recommend Haiku only when the plan is a simple task needing just a small code change; otherwise (including when unsure) recommend Sonnet. Give the reason in one sentence, put the recommendation first with `(Recommended)`, and offer these three options:
 
