@@ -183,6 +183,7 @@ class RenderTest(unittest.TestCase):
         self.assertIn('addEventListener("click",toggleCopyProvider)', html)
         toggle = "function toggleCopyProvider()" + html.split("function toggleCopyProvider()", 1)[1].split("\n", 1)[0]
         copy = "async function copyCommand(kind)" + html.split("async function copyCommand(kind)", 1)[1].split("\n", 1)[0]
+        copy_text = "async function copyText(text)" + html.split("async function copyText(text)", 1)[1].split("\n", 1)[0]
         script = r"""
 const assert = require("assert");
 const label = {textContent:"Codex"};
@@ -208,7 +209,7 @@ FUNCTIONS
     assert.strictEqual(button.title,name+"に切り替え");
   }
 })().catch(e=>{console.error(e);process.exit(1);});
-""".replace("FUNCTIONS", toggle + "\n" + copy)
+""".replace("FUNCTIONS", toggle + "\n" + copy_text + "\n" + copy)
         subprocess.run(["node", "-e", script], check=True, env=sanitized_env(),
                        capture_output=True, text=True)
 
@@ -294,12 +295,35 @@ for (const owner of ['other', 'self', 'unknown']) {
         data = merged([item(1)])
         data["run_dir"] = "/tmp/review's run"
         html = mod.render(data)
+        command = html.split("function reconnectCommand()", 1)[1].split("\n", 1)[0]
         hint = html.split("function reconnectHint(reload)", 1)[1].split("\n", 1)[0]
-        script = "const DATA = " + json.dumps(data) + "; const location={port:'4567'}; function reconnectHint(reload)" + hint + "\n" + "console.log(reconnectHint(false)); console.log(reconnectHint(true));"
+        script = (
+            "const DATA = " + json.dumps(data) + "; const location={port:'4567'};"
+            " function reconnectCommand()" + command + "\n function reconnectHint(reload)" + hint + "\n"
+            "console.log(reconnectCommand()); console.log(reconnectHint(false)); console.log(reconnectHint(true));"
+        )
         result = subprocess.run(["node", "-e", script], check=True, env=sanitized_env(), capture_output=True, text=True)
         self.assertIn("--port 4567 '/tmp/review'\\''s run'", result.stdout)
         self.assertIn("再読み込みせず", result.stdout)
         self.assertIn("再読み込みしてください", result.stdout)
+        # コピー対象は説明文を含まないコマンド単体であること
+        self.assertEqual(
+            result.stdout.splitlines()[0],
+            "nohup python3 ~/.config/ai-pr/bin/serve_review_report.py --port 4567 '/tmp/review'\\''s run' >/dev/null 2>&1 &",
+        )
+
+    def test_reconnect_copy_button_shows_only_on_connection_failure(self):
+        html = mod.render(merged([item(1)]))
+        self.assertIn('<button id="copy-reconnect" type="button" hidden>', html)
+        save_body = html.split("async function saveState()", 1)[1].split("function maybeOfferAutoSave", 1)[0]
+        init_body = html.split("async function initialize()", 1)[1].split("\n", 1)[0]
+        # 接続失敗(offline印)のときだけ表示し、HTTPエラーでは出さない。保存成功で隠す
+        self.assertIn("offline.offline=true", save_body)
+        self.assertIn("showReconnect(!!e?.offline)", save_body)
+        self.assertIn("showReconnect(false)", save_body)
+        self.assertIn("offline.offline=true", init_body)
+        self.assertIn("showReconnect(!!e.offline)", init_body)
+        self.assertIn('getElementById("copy-reconnect").addEventListener("click",copyReconnect)', html)
 
     def test_embedded_state_is_schema_v2(self):
         html = mod.render(merged([item(1)]))
@@ -388,7 +412,8 @@ for (const owner of ['other', 'self', 'unknown']) {
         self.assertIn('role="status" aria-live="polite"', html)
         self.assertIn("state.json を保存しました", html)
         self.assertIn("修正コマンドをコピー", html)
-        self.assertIn("navigator.clipboard.writeText(command)", html)
+        self.assertIn("navigator.clipboard.writeText(text)", html)
+        self.assertIn("await copyText(command)", html)
         self.assertIn('document.execCommand("copy")', html)
         self.assertIn("savedSnapshot!==JSON.stringify(state)", html)
 

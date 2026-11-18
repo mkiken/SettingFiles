@@ -1,10 +1,11 @@
 import importlib.util
 import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 
-from support import REPO_ROOT
+from support import REPO_ROOT, sanitized_env
 
 SCRIPT = REPO_ROOT / "shell" / "common" / "pr" / "generate_audit_report.py"
 
@@ -92,6 +93,57 @@ class RenderCategoriesTest(unittest.TestCase):
         html = mod.render(data)
         self.assertNotIn("</script> を含む要約", html)
         self.assertIn("<\\/script>", html)
+
+
+class ReconnectAndCopyTest(unittest.TestCase):
+    def test_reconnect_command_is_copyable_and_quotes_run_directory(self):
+        html = mod.render(audit([item(1)], run_dir="/tmp/audit's run"))
+        command = html.split("function reconnectCommand()", 1)[1].split("\n", 1)[0]
+        hint = html.split("function reconnectHint(reload)", 1)[1].split("\n", 1)[0]
+        script = (
+            "const DATA = " + json.dumps({"run_dir": "/tmp/audit's run"}) + "; const location={port:'4567'};"
+            " function reconnectCommand()" + command + "\n function reconnectHint(reload)" + hint + "\n"
+            "console.log(reconnectCommand()); console.log(reconnectHint(false)); console.log(reconnectHint(true));"
+        )
+        out = subprocess.run(["node", "-e", script], check=True, env=sanitized_env(), capture_output=True, text=True).stdout
+        self.assertEqual(
+            out.splitlines()[0],
+            "nohup python3 ~/.config/ai-pr/bin/serve_review_report.py --port 4567 '/tmp/audit'\\''s run' >/dev/null 2>&1 &",
+        )
+        self.assertIn("再読み込みせず", out)
+        self.assertIn("再読み込みしてください", out)
+
+    def test_reconnect_button_shows_only_on_connection_failure(self):
+        html = mod.render(audit([item(1)]))
+        self.assertIn('<button id="copy-reconnect" type="button" hidden>', html)
+        save_body = html.split("async function saveState()", 1)[1].split("function maybeOfferAutoSave", 1)[0]
+        init_body = html.split("async function initialize()", 1)[1].split("\n", 1)[0]
+        self.assertIn("offline.offline=true", save_body)
+        self.assertIn("showReconnect(!!e?.offline)", save_body)
+        self.assertIn("showReconnect(false)", save_body)
+        self.assertIn('"HTTP "+response.status', save_body)
+        self.assertIn("offline.offline=true", init_body)
+        self.assertIn("showReconnect(!!e.offline)", init_body)
+
+    def test_saved_state_is_loaded_before_first_render(self):
+        html = mod.render(audit([item(1)]))
+        init_body = html.split("async function initialize()", 1)[1].split("\n", 1)[0]
+        self.assertIn('fetch("/api/state")', init_body)
+        self.assertIn("Object.assign(state,saved)", init_body)
+        self.assertLess(init_body.index("Object.assign(state,saved)"), init_body.index("build()"))
+        self.assertIn('addEventListener("DOMContentLoaded",initialize)', html)
+        self.assertNotIn('addEventListener("DOMContentLoaded",build)', html)
+
+    def test_post_save_command_copy_is_wired_with_provider_toggle(self):
+        html = mod.render(audit([item(1)]))
+        self.assertIn('id="copy-provider"', html)
+        self.assertIn('<button data-copy="fix" hidden>', html)
+        copy_body = html.split("async function copyCommand(kind)", 1)[1].split("\n", 1)[0]
+        self.assertIn('+"-audit-"+kind+', copy_body)
+        # 保存済みスナップショットと一致しない間はコピーさせない
+        self.assertIn("savedSnapshot!==JSON.stringify(state)", copy_body)
+        refresh_body = html.split("function refresh()", 1)[1].split("async function saveToFilePicker", 1)[0]
+        self.assertIn("picked.apply.length+picked.consider.length", refresh_body)
 
 
 class RiskRenderingTest(unittest.TestCase):
@@ -197,7 +249,9 @@ class ModernLayoutTest(unittest.TestCase):
         self.assertIn("appendContext(body,item.code_context,item.file)", html)
 
     def test_build_waits_for_deferred_highlighter(self):
-        self.assertIn('document.addEventListener("DOMContentLoaded",build)', mod.HTML_TEMPLATE)
+        # build は DOMContentLoaded 後の initialize 内（保存済み state 読込の後）で呼ぶ
+        self.assertIn('document.addEventListener("DOMContentLoaded",initialize)', mod.HTML_TEMPLATE)
+        self.assertIn("build();wasComplete=allItemsCompleted();}", mod.HTML_TEMPLATE)
 
     def test_card_header_uses_meta_column_and_category_labels_have_no_emoji(self):
         html = mod.HTML_TEMPLATE

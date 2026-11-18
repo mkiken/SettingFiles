@@ -17,7 +17,7 @@ HTML_TEMPLATE = r"""<!doctype html>
 <title>設定監査レポート</title>
 <style>
 :root{--bg:#f4f5f8;--card:#fff;--surface:#f7f8fa;--border:#e3e6ec;--text:#1b1f27;--muted:#667085;--link:#4f46e5;--shadow:0 1px 2px #1018280d,0 1px 3px #1018280f;--shadow-hover:0 4px 14px #1018281a;
---high:#e5484d;--medium:#d9930d;--low:#2fa66a;--carry:#7c5cf0;
+--high:#e5484d;--medium:#d9930d;--low:#2fa66a;--carry:#7c5cf0;--claude:#d97757;--codex:#10a37f;
 --blue:#2563eb;--slate:#475467;--copy:#0891b2;--inline-code:#d6336c;--on-solid:#fff;
 --code-bg:#f6f8fa;--code-line:#1f2328;--code-target:#fff3c4;--diff-add:#1a7f37;--diff-del:#cf222e;
 --hl-keyword:#cf222e;--hl-string:#0a3069;--hl-number:#0550ae;--hl-comment:#6e7781;--hl-title:#8250df;--hl-attr:#116329;--hl-meta:#953800;
@@ -44,9 +44,9 @@ button:focus-visible,.decision input:focus-visible{outline:2px solid var(--link)
 .report-header h1{font-size:24px;line-height:1.35;letter-spacing:-.01em;margin:6px 0 4px}
 .report-header .meta{margin:0}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:22px}
-#expand-all{--c:var(--blue)}#collapse-all{--c:var(--carry)}#copy-run-dir{--c:var(--copy)}
-#expand-all,#collapse-all,#copy-run-dir,.theme-picker button,.filter-picker button{color:var(--c);background:color-mix(in srgb,var(--c) 12%,var(--card));border-color:color-mix(in srgb,var(--c) 40%,var(--border))}
-#expand-all:hover:not(:disabled),#collapse-all:hover:not(:disabled),#copy-run-dir:hover:not(:disabled),.theme-picker button:hover,.filter-picker button:hover{background:color-mix(in srgb,var(--c) 22%,var(--card));border-color:var(--c)}
+#expand-all{--c:var(--blue)}#collapse-all{--c:var(--carry)}#copy-run-dir,[data-copy],#copy-reconnect{--c:var(--copy)}
+#expand-all,#collapse-all,#copy-run-dir,[data-copy],#copy-reconnect,.theme-picker button,.filter-picker button{color:var(--c);background:color-mix(in srgb,var(--c) 12%,var(--card));border-color:color-mix(in srgb,var(--c) 40%,var(--border))}
+#expand-all:hover:not(:disabled),#collapse-all:hover:not(:disabled),#copy-run-dir:hover:not(:disabled),[data-copy]:hover:not(:disabled),#copy-reconnect:hover:not(:disabled),.theme-picker button:hover,.filter-picker button:hover{background:color-mix(in srgb,var(--c) 22%,var(--card));border-color:var(--c)}
 .theme-picker button[aria-pressed="true"],.filter-picker button[aria-pressed="true"]{background:var(--c);border-color:var(--c);color:var(--on-solid);font-weight:600}
 .theme-picker{display:flex;margin-left:auto;gap:6px}
 .theme-picker button[data-theme="auto"]{--c:var(--blue)}.theme-picker button[data-theme="light"]{--c:var(--medium)}.theme-picker button[data-theme="dark"]{--c:var(--link)}
@@ -126,7 +126,11 @@ button:focus-visible,.decision input:focus-visible{outline:2px solid var(--link)
 .unavailable{color:var(--muted);font-size:13px;padding:10px 14px}
 footer{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--card) 82%,transparent);-webkit-backdrop-filter:blur(14px) saturate(160%);backdrop-filter:blur(14px) saturate(160%);border-top:1px solid var(--border);padding:10px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:13px}
 #params{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);font-size:12px}
-#save-status{color:var(--muted)}
+#save-status{color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere;width:100%}
+#copy-provider{display:inline-flex;align-items:center;gap:8px;border-radius:999px;--c:var(--codex);color:var(--c);background:color-mix(in srgb,var(--c) 12%,var(--card));border-color:color-mix(in srgb,var(--c) 40%,var(--border))}
+#copy-provider[value="cl"]{--c:var(--claude)}
+#copy-provider:hover{background:color-mix(in srgb,var(--c) 22%,var(--card));border-color:var(--c)}
+.provider-name{min-width:6ch;text-align:center}
 #dep-violations{color:var(--conflict);font-weight:700}
 .filter-picker{display:flex;gap:6px;flex-wrap:wrap}
 .filter-picker button[data-filter="pending"]{--c:var(--medium)}.filter-picker button[data-filter="apply"]{--c:var(--low)}.filter-picker button[data-filter="consider"]{--c:var(--consider)}.filter-picker button[data-filter="dismiss"]{--c:var(--muted)}.filter-picker button[data-filter="all"]{--c:var(--slate)}
@@ -148,12 +152,13 @@ footer{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(-
 </div>
 <section class="risk-panel" id="risk-panel" hidden><h2 id="risk-title"></h2><div class="risk-list" id="risk-list"></div></section>
 <div id="report"></div>
-<footer><span id="progress"></span><span id="dep-violations"></span><div class="filter-picker" role="group" aria-label="表示する項目"><button data-filter="pending">未処理</button><button data-filter="apply">適用リスト</button><button data-filter="consider">AI検討リスト</button><button data-filter="dismiss">対応しないリスト</button><button data-filter="all">すべて</button></div><span id="params"></span><button id="copy-run-dir" disabled>実行ディレクトリをコピー</button><button id="save-state" disabled>状態ファイルを保存</button><span id="save-status" role="status" aria-live="polite">未保存</span></footer>
+<footer><span id="progress"></span><span id="dep-violations"></span><div class="filter-picker" role="group" aria-label="表示する項目"><button data-filter="pending">未処理</button><button data-filter="apply">適用リスト</button><button data-filter="consider">AI検討リスト</button><button data-filter="dismiss">対応しないリスト</button><button data-filter="all">すべて</button></div><span id="params"></span><span>起動:</span><button id="copy-provider" type="button" value="cx" aria-label="起動先: Codex。クリックでClaudeに切り替え" title="Claudeに切り替え"><span class="provider-name">Codex</span><span aria-hidden="true">⇄</span></button><button data-copy="fix" hidden>適用コマンドをコピー</button><button id="copy-run-dir" disabled>実行ディレクトリをコピー</button><button id="save-state" disabled>状態ファイルを保存</button><button id="copy-reconnect" type="button" hidden>復旧コマンドをコピー</button><span id="save-status" role="status" aria-live="polite">未保存</span></footer>
 <div id="toast" role="status" aria-live="polite" hidden></div>
 <script>
 const DATA = __AUDIT_DATA__;
 const state = {schema_version: 1, items: {}};
 const drafting = new Set();
+let stateReady = false, savedSnapshot = null;
 let fileHandle = null, filterMode = "pending", wasComplete = false, completionPrompted = false, toastTimer = null;
 const CAN_SERVER_SAVE = location.protocol === "http:" && location.hostname === "127.0.0.1";
 const CAN_FILE_SAVE = typeof window.showSaveFilePicker === "function";
@@ -174,7 +179,14 @@ function itemState(id){const key=String(id);if(!state.items[key])state.items[key
 function syncStateItems(){for(const item of DATA.items)itemState(item.id);}
 function allItemsCompleted(){return DATA.items.every(item=>itemState(item.id).decision!==null);}
 function showToast(message,kind="success"){const toast=document.getElementById("toast");clearTimeout(toastTimer);toast.textContent=message;toast.dataset.kind=kind;toast.hidden=false;toastTimer=window.setTimeout(()=>{toast.hidden=true;},4000);}
-async function copyRunDir(){const runDir=typeof DATA.run_dir==="string"?DATA.run_dir:"";if(!runDir)return;try{if(navigator.clipboard&&window.isSecureContext){try{await navigator.clipboard.writeText(runDir);showToast("✅ 実行ディレクトリをコピーしました");return;}catch(e){}}const input=document.createElement("textarea");input.value=runDir;input.setAttribute("readonly","");input.style.position="fixed";input.style.opacity="0";document.body.appendChild(input);try{input.select();if(!document.execCommand("copy"))throw new Error("copy failed");}finally{input.remove();}showToast("✅ 実行ディレクトリをコピーしました");}catch(e){showToast("実行ディレクトリをコピーできませんでした","error");}}
+async function copyText(text){if(navigator.clipboard&&window.isSecureContext){try{await navigator.clipboard.writeText(text);return;}catch(e){}}const input=document.createElement("textarea");input.value=text;input.setAttribute("readonly","");input.style.position="fixed";input.style.opacity="0";document.body.appendChild(input);try{input.select();if(!document.execCommand("copy"))throw new Error("copy failed");}finally{input.remove();}}
+async function copyRunDir(){const runDir=typeof DATA.run_dir==="string"?DATA.run_dir:"";if(!runDir)return;try{await copyText(runDir);showToast("✅ 実行ディレクトリをコピーしました");}catch(e){showToast("実行ディレクトリをコピーできませんでした","error");}}
+function toggleCopyProvider(){const button=document.getElementById("copy-provider");button.value=button.value==="cx"?"cl":"cx";const name=button.value==="cx"?"Codex":"Claude",next=button.value==="cx"?"Claude":"Codex";button.querySelector(".provider-name").textContent=name;button.setAttribute("aria-label","起動先: "+name+"。クリックで"+next+"に切り替え");button.title=next+"に切り替え";}
+async function copyCommand(kind){const runDir=typeof DATA.run_dir==="string"?DATA.run_dir:"";if(!runDir||savedSnapshot!==JSON.stringify(state))return;const command=document.getElementById("copy-provider").value+"-audit-"+kind+" "+"'"+runDir.replaceAll("'", "'\\''")+"'";try{await copyText(command);showToast("✅ コマンドをコピーしました");}catch(e){showToast("コマンドをコピーできませんでした", "error");}}
+function reconnectCommand(){const dir=DATA.run_dir;if(typeof dir!=="string"||!dir||!location.port)return "";return "nohup python3 ~/.config/ai-pr/bin/serve_review_report.py --port "+location.port+" '"+dir.replaceAll("'", "'\\''")+"' >/dev/null 2>&1 &";}
+function showReconnect(show){document.getElementById("copy-reconnect").hidden=!(show&&reconnectCommand());}
+async function copyReconnect(){try{await copyText(reconnectCommand());showToast("✅ 復旧コマンドをコピーしました");}catch(e){showToast("復旧コマンドをコピーできませんでした", "error");}}
+function reconnectHint(reload){const command=reconnectCommand();if(!command)return "サーバーを確認してください。";return "サーバーに接続できません。停止している場合は端末で実行してください:\n"+command+"\n"+(reload?"起動後、このページを再読み込みしてください。":"起動後、再読み込みせずにこのページで保存を再試行してください。");}
 function appendInline(parent,text){const re=/(\*\*[^*\n]+\*\*|`[^`\n]+`)/g;let pos=0;for(const match of text.matchAll(re)){parent.appendChild(document.createTextNode(text.slice(pos,match.index)));const token=match[0];if(token.startsWith("**")){parent.appendChild(el("strong","",token.slice(2,-2)));}else{parent.appendChild(el("code","markdown-code",token.slice(1,-1)));}pos=match.index+token.length;}parent.appendChild(document.createTextNode(text.slice(pos)));}
 function markdown(parent,text){let inCode=false,code=[];for(const line of String(text||"").split("\n")){if(line.startsWith("```")){if(inCode){parent.appendChild(el("pre","markdown-block",code.join("\n")));code=[];}inCode=!inCode;continue;}if(inCode){code.push(line);continue;}const p=el("div","markdown-line");appendInline(p,line);parent.appendChild(p);}if(inCode)parent.appendChild(el("pre","markdown-block",code.join("\n")));}
 function buildHeader(){const h=document.getElementById("report-header");const title=(DATA.platform||"")+" 設定監査レポート";h.appendChild(el("h1","",title));const bits=[];if(DATA.scope)bits.push("スコープ: "+DATA.scope);if(DATA.source_file_mode)bits.push("ソースファイルモード");if(DATA.generated_at)bits.push(DATA.generated_at);h.appendChild(el("p","meta",bits.join(" · ")));document.title=title;}
@@ -225,21 +237,25 @@ document.getElementById("progress").textContent=`未処理 ${counts.pending}/${D
 const violations=depViolations();document.getElementById("dep-violations").textContent=violations.length?`依存違反 ${violations.length}（${violations.map(v=>"#"+v.replace("-"," と #")).join(", ")}）`:"";
 document.getElementById("params").textContent=(picked.apply.length?`適用: ${picked.apply.join(",")}`:"適用: (未選択)")+(picked.consider.length?` / AI検討: ${picked.consider.join(",")}`:"");
 for(const button of document.querySelectorAll("[data-filter]")){button.setAttribute("aria-pressed",String(button.dataset.filter===filterMode));button.textContent=`${FILTER_LABEL[button.dataset.filter]} (${counts[button.dataset.filter]})`;}
-document.getElementById("save-state").disabled=!CAN_SAVE_STATE||done!==DATA.items.length||violations.length>0;}
+for(const button of document.querySelectorAll("[data-copy]")){button.hidden=!(picked.apply.length+picked.consider.length);button.disabled=!stateReady||!DATA.run_dir||savedSnapshot!==JSON.stringify(state);}document.getElementById("save-state").disabled=!CAN_SAVE_STATE||!stateReady||done!==DATA.items.length||violations.length>0;}
 async function saveToFilePicker(){fileHandle=await window.showSaveFilePicker({suggestedName:"state.json",types:[{description:"JSON",accept:{"application/json":[".json"]}}]});const writer=await fileHandle.createWritable();await writer.write(JSON.stringify(state,null,1));await writer.close();}
-async function saveState(){if(!CAN_SAVE_STATE||!allItemsCompleted()||depViolations().length)return;syncStateItems();const status=document.getElementById("save-status");if(!CAN_SERVER_SAVE){const reopenHint="サーバー経由で開き直すと自動保存されます:\n  audit-report "+(DATA.platform_key||"")+"\n\nそれでもこのファイルに保存しますか？";if(!window.confirm(reopenHint)){status.textContent="保存を取り消しました（audit-report で開き直してください）";return;}}status.textContent="保存中…";try{if(CAN_SERVER_SAVE){const response=await fetch("/api/state",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(state)});if(!response.ok)throw new Error(await response.text());}else{await saveToFilePicker();}status.textContent="✅ 保存済み "+new Date().toLocaleTimeString();showToast("✅ state.json を保存しました");}catch(e){if(e&&e.name==="AbortError"){status.textContent="保存を取り消しました";return;}status.textContent="保存に失敗しました。";showToast("state.json の保存に失敗しました","error");}}
+async function saveState(){if(!CAN_SAVE_STATE||!stateReady||!allItemsCompleted()||depViolations().length)return;syncStateItems();const snapshot=JSON.stringify(state);const status=document.getElementById("save-status");if(!CAN_SERVER_SAVE){const reopenHint="サーバー経由で開き直すと自動保存されます:\n  audit-report "+(DATA.platform_key||"")+"\n\nそれでもこのファイルに保存しますか？";if(!window.confirm(reopenHint)){status.textContent="保存を取り消しました（audit-report で開き直してください）";return;}}status.textContent="保存中…";try{if(CAN_SERVER_SAVE){let response;try{response=await fetch("/api/state",{method:"POST",headers:{"Content-Type":"application/json"},body:snapshot});}catch(e){const offline=new Error((e?.message||"通信エラー")+"\n"+reconnectHint(false));offline.offline=true;throw offline;}if(!response.ok)throw new Error("HTTP "+response.status+": "+(await response.text()||"詳細なし"));}else{await saveToFilePicker();}savedSnapshot=snapshot;showReconnect(false);refresh();status.textContent="✅ 保存済み "+new Date().toLocaleTimeString();showToast("✅ state.json を保存しました");}catch(e){if(e&&e.name==="AbortError"){status.textContent="保存を取り消しました";return;}showReconnect(!!e?.offline);status.textContent="保存に失敗しました: "+(e?.message||String(e)||"詳細なし");showToast("state.json の保存に失敗しました: "+(e?.message||String(e)||"詳細なし"),"error");}}
 function maybeOfferAutoSave(){const complete=allItemsCompleted()&&!depViolations().length;if(complete&&!wasComplete&&CAN_SERVER_SAVE&&!completionPrompted){completionPrompted=true;if(window.confirm("すべての項目を判断しました。state.json に保存しますか？"))saveState();}if(!complete)completionPrompted=false;wasComplete=complete;}
 function setTheme(theme){if(theme==="auto")delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=theme;for(const b of document.querySelectorAll("[data-theme]")){b.setAttribute("aria-pressed",String(b.dataset.theme===theme));}try{localStorage.setItem(THEME_KEY,theme);}catch(e){}}
 function heartbeat(){if(CAN_SERVER_SAVE)fetch("/api/heartbeat",{method:"POST",keepalive:true}).catch(()=>{});}
 document.getElementById("expand-all").addEventListener("click",()=>document.querySelectorAll(".card").forEach(c=>setOpen(c,true)));
 document.getElementById("collapse-all").addEventListener("click",()=>document.querySelectorAll(".card").forEach(c=>setOpen(c,false)));
 document.getElementById("save-state").addEventListener("click",saveState);
+document.getElementById("copy-reconnect").addEventListener("click",copyReconnect);
+document.getElementById("copy-provider").addEventListener("click",toggleCopyProvider);
+document.querySelectorAll("[data-copy]").forEach(button=>button.addEventListener("click",()=>copyCommand(button.dataset.copy)));
 const copyButton=document.getElementById("copy-run-dir");copyButton.disabled=!(typeof DATA.run_dir==="string"&&DATA.run_dir);copyButton.addEventListener("click",copyRunDir);
 document.querySelectorAll("[data-filter]").forEach(b=>b.addEventListener("click",()=>{filterMode=b.dataset.filter;refresh();}));
 document.querySelectorAll(".theme-picker button").forEach(b=>b.addEventListener("click",()=>setTheme(b.dataset.theme)));
 let savedTheme="auto";try{savedTheme=localStorage.getItem(THEME_KEY)||"auto";}catch(e){}setTheme(savedTheme);
 if(!CAN_SAVE_STATE){document.getElementById("save-status").textContent="進捗保存に非対応です。audit-report から開き直してください。";}else if(!CAN_SERVER_SAVE){document.getElementById("save-status").textContent="サーバー経由ではありません（audit-report "+(DATA.platform_key||"")+" で開き直すと自動保存されます）。";}
-document.addEventListener("DOMContentLoaded",build);heartbeat();if(CAN_SERVER_SAVE)window.setInterval(heartbeat,60000);
+async function initialize(){if(CAN_SERVER_SAVE){try{let response;try{response=await fetch("/api/state");}catch(e){const offline=new Error((e?.message||"通信エラー")+"\n"+reconnectHint(true));offline.offline=true;throw offline;}if(!response.ok)throw new Error("HTTP "+response.status+": "+await response.text());if(response.status!==204){const saved=await response.json();Object.assign(state,saved);syncStateItems();savedSnapshot=JSON.stringify(state);}stateReady=true;}catch(e){showReconnect(!!e.offline);document.getElementById("save-status").textContent="保存状態の読み込みに失敗しました。保存は無効です: "+e.message;}}else stateReady=true;build();wasComplete=allItemsCompleted();}
+document.addEventListener("DOMContentLoaded",initialize);heartbeat();if(CAN_SERVER_SAVE)window.setInterval(heartbeat,60000);
 </script>
 </body>
 </html>

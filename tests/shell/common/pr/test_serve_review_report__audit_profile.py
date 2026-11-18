@@ -150,6 +150,22 @@ class AuditServerTest(unittest.TestCase):
         written = json.loads((self.run_dir / "state.json").read_text(encoding="utf-8"))
         self.assertEqual(written, payload)
 
+    def test_get_state_returns_204_then_saved_state_then_500_when_broken(self):
+        with self.request("/api/state") as missing:
+            self.assertEqual(missing.status, 204)
+        payload = {
+            "schema_version": 1,
+            "items": {"1": {"decision": "consider", "note": "観点メモ"}, "2": {"decision": "apply"}},
+        }
+        self.post_state(payload).close()
+        with self.request("/api/state") as saved:
+            self.assertEqual(json.load(saved), payload)
+        (self.run_dir / "state.json").write_text("{broken", encoding="utf-8")
+        with self.assertRaises(HTTPError) as broken:
+            self.request("/api/state")
+        self.assertEqual(broken.exception.code, 500)
+        broken.exception.close()
+
     def test_rejects_review_decision(self):
         payload = {"schema_version": 1, "items": {"1": {"decision": "fix"}, "2": {"decision": "dismiss"}}}
         with self.assertRaises(HTTPError) as caught:

@@ -150,6 +150,10 @@ cx-review-consider() {
     cxs "\$review-consider $*"
 }
 
+cx-audit-fix() {
+    cxs "\$audit-fix $*"
+}
+
 alias cx-pr-comment-review='noglob _cx-pr-comment-review'
 alias cx-pcr='noglob _cx-pr-comment-review'
 _cx-pr-comment-review() {

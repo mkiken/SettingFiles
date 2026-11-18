@@ -179,7 +179,7 @@ class ReviewHandler(BaseHTTPRequestHandler):
             )
             return
         self.server.touch()
-        if path == "/api/state" and self.server.profile_name == "review":
+        if path == "/api/state":
             try:
                 payload = json.loads(self.server.state_path.read_text(encoding="utf-8"))
                 validate_state(payload, self.server.item_ids, self.server.profile_name)

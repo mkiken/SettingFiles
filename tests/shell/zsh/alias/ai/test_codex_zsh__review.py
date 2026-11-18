@@ -143,6 +143,16 @@ cx() {{
         result = self.run_command("cx-review-fix", exit_code=7)
         self.assertEqual(result.returncode, 7)
 
+    def test_audit_fix_selects_sol_and_passes_skill_arguments(self):
+        for arguments, suffix in (("", ""), ("'run with spaces'", "run with spaces")):
+            with self.subTest(arguments=arguments):
+                result = self.run_command(f"cx-audit-fix {arguments}")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(
+                    json.loads(result.stdout),
+                    ["--model", "gpt-6.2-sol", f"$audit-fix {suffix}"],
+                )
+
     def test_review_consider_arguments_and_exit_code(self):
         for arguments, suffix in (("", ""), ("'run with spaces'", "run with spaces")):
             for exit_code in (0, 7):

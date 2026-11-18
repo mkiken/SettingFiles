@@ -140,6 +140,14 @@ class ClReviewPostFixAliasTest(unittest.TestCase):
         self.assertNotIn("--dangerously-skip-permissions", captured)
         self.assertEqual(captured[-1], "/review-fix RUN")
 
+    def test_cl_audit_fix_starts_in_plan_mode(self):
+        captured = run_claude_alias("cl-audit-fix RUN")
+
+        self.assertNotIn("--model", captured)
+        self.assertEqual(captured[captured.index("--permission-mode") + 1], "plan")
+        self.assertNotIn("--dangerously-skip-permissions", captured)
+        self.assertEqual(captured[-1], "/audit-fix RUN")
+
 
 class PrCommentImplementAliasTest(unittest.TestCase):
     URL = "https://github.com/acme/widget/pull/42#discussion_r123"
