@@ -347,6 +347,21 @@ for (const owner of ['other', 'self', 'unknown']) {
             html,
         )
 
+    def test_footer_groups_controls_into_two_rows_with_status_before_save(self):
+        html = mod.render(merged([item(1)]))
+        footer = html.split("<footer>", 1)[1].split("</footer>", 1)[0]
+        self.assertEqual(footer.count('<div class="footer-row">'), 2)
+        first, second = footer.split('<div class="footer-row">')[1:]
+        self.assertIn('class="filter-picker"', first)
+        self.assertNotIn('id="save-state"', first)
+        self.assertIn('id="save-state"', second)
+        self.assertLess(second.index('id="save-status"'), second.index('id="save-state"'))
+
+    def test_body_bottom_padding_follows_measured_footer_height(self):
+        html = mod.render(merged([item(1)]))
+        self.assertIn("new ResizeObserver(", html)
+        self.assertIn("document.body.style.paddingBottom=(footerEl.offsetHeight+24)", html)
+
     def test_state_save_is_in_footer_and_requires_all_items_completed(self):
         html = mod.render(merged([item(1)]))
         markup = html.split("<script>", 1)[0]

@@ -124,9 +124,10 @@ button:focus-visible,.decision input:focus-visible{outline:2px solid var(--link)
 .hljs-meta,.hljs-params,.hljs-subst{color:var(--hl-meta)}
 .hljs-emphasis{font-style:italic}.hljs-strong{font-weight:700}
 .unavailable{color:var(--muted);font-size:13px;padding:10px 14px}
-footer{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--card) 82%,transparent);-webkit-backdrop-filter:blur(14px) saturate(160%);backdrop-filter:blur(14px) saturate(160%);border-top:1px solid var(--border);padding:10px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:13px}
+footer{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--card) 82%,transparent);-webkit-backdrop-filter:blur(14px) saturate(160%);backdrop-filter:blur(14px) saturate(160%);border-top:1px solid var(--border);padding:10px 20px;display:flex;flex-direction:column;gap:8px;font-size:13px}
+.footer-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
 #params{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);font-size:12px}
-#save-status{color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere;width:100%}
+#save-status{color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere;margin-left:auto;text-align:right}
 #copy-provider{display:inline-flex;align-items:center;gap:8px;border-radius:999px;--c:var(--codex);color:var(--c);background:color-mix(in srgb,var(--c) 12%,var(--card));border-color:color-mix(in srgb,var(--c) 40%,var(--border))}
 #copy-provider[value="cl"]{--c:var(--claude)}
 #copy-provider:hover{background:color-mix(in srgb,var(--c) 22%,var(--card));border-color:var(--c)}
@@ -134,12 +135,12 @@ footer{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(-
 #dep-violations{color:var(--conflict);font-weight:700}
 .filter-picker{display:flex;gap:6px;flex-wrap:wrap}
 .filter-picker button[data-filter="pending"]{--c:var(--medium)}.filter-picker button[data-filter="apply"]{--c:var(--low)}.filter-picker button[data-filter="consider"]{--c:var(--consider)}.filter-picker button[data-filter="dismiss"]{--c:var(--muted)}.filter-picker button[data-filter="all"]{--c:var(--slate)}
-#save-state{background:var(--link);border-color:var(--link);color:var(--on-solid);margin-left:auto}
+#save-state{background:var(--link);border-color:var(--link);color:var(--on-solid)}
 #save-state:hover:not(:disabled){background:color-mix(in srgb,var(--link) 88%,#000);border-color:transparent}
 #toast{position:fixed;right:20px;bottom:84px;z-index:1;padding:10px 14px;border-radius:10px;background:var(--low);color:#fff;box-shadow:0 8px 24px #0004}
 #toast[data-kind="error"]{background:var(--high)}
 @media(max-width:900px){.card-header{grid-template-columns:minmax(0,1fr)}.card-meta{justify-content:flex-start;padding-left:26px}.locations{max-width:100%}}
-@media(max-width:640px){body{padding:16px 12px 150px}.report-header h1{font-size:20px}.theme-picker{margin-left:0}#save-state{margin-left:0}}
+@media(max-width:640px){body{padding:16px 12px 150px}.report-header h1{font-size:20px}.theme-picker{margin-left:0}#save-status{margin-left:0;text-align:left}}
 </style>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.2/highlight.min.js" integrity="sha512-VSPLUv/n1Bmn+4zoxBNwpuFAO3//79I0Aax/qHDx24R47vylPcc9PrHDCqlePwHnh3joiM7/YTQhcXyQAAxvPQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
@@ -152,7 +153,7 @@ footer{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(-
 </div>
 <section class="risk-panel" id="risk-panel" hidden><h2 id="risk-title"></h2><div class="risk-list" id="risk-list"></div></section>
 <div id="report"></div>
-<footer><span id="progress"></span><span id="dep-violations"></span><div class="filter-picker" role="group" aria-label="表示する項目"><button data-filter="pending">未処理</button><button data-filter="apply">適用リスト</button><button data-filter="consider">AI検討リスト</button><button data-filter="dismiss">対応しないリスト</button><button data-filter="all">すべて</button></div><span id="params"></span><span>起動:</span><button id="copy-provider" type="button" value="cx" aria-label="起動先: Codex。クリックでClaudeに切り替え" title="Claudeに切り替え"><span class="provider-name">Codex</span><span aria-hidden="true">⇄</span></button><button data-copy="fix" hidden>適用コマンドをコピー</button><button id="copy-run-dir" disabled>実行ディレクトリをコピー</button><button id="save-state" disabled>状態ファイルを保存</button><button id="copy-reconnect" type="button" hidden>復旧コマンドをコピー</button><span id="save-status" role="status" aria-live="polite">未保存</span></footer>
+<footer><div class="footer-row"><span id="progress"></span><span id="dep-violations"></span><div class="filter-picker" role="group" aria-label="表示する項目"><button data-filter="pending">未処理</button><button data-filter="apply">適用リスト</button><button data-filter="consider">AI検討リスト</button><button data-filter="dismiss">対応しないリスト</button><button data-filter="all">すべて</button></div></div><div class="footer-row"><span id="params"></span><span>起動:</span><button id="copy-provider" type="button" value="cx" aria-label="起動先: Codex。クリックでClaudeに切り替え" title="Claudeに切り替え"><span class="provider-name">Codex</span><span aria-hidden="true">⇄</span></button><button data-copy="fix" hidden>適用コマンドをコピー</button><button id="copy-run-dir" disabled>実行ディレクトリをコピー</button><span id="save-status" role="status" aria-live="polite">未保存</span><button id="save-state" disabled>状態ファイルを保存</button><button id="copy-reconnect" type="button" hidden>復旧コマンドをコピー</button></div></footer>
 <div id="toast" role="status" aria-live="polite" hidden></div>
 <script>
 const DATA = __AUDIT_DATA__;
@@ -254,7 +255,7 @@ document.querySelectorAll("[data-filter]").forEach(b=>b.addEventListener("click"
 document.querySelectorAll(".theme-picker button").forEach(b=>b.addEventListener("click",()=>setTheme(b.dataset.theme)));
 let savedTheme="auto";try{savedTheme=localStorage.getItem(THEME_KEY)||"auto";}catch(e){}setTheme(savedTheme);
 if(!CAN_SAVE_STATE){document.getElementById("save-status").textContent="進捗保存に非対応です。audit-report から開き直してください。";}else if(!CAN_SERVER_SAVE){document.getElementById("save-status").textContent="サーバー経由ではありません（audit-report "+(DATA.platform_key||"")+" で開き直すと自動保存されます）。";}
-async function initialize(){if(CAN_SERVER_SAVE){try{let response;try{response=await fetch("/api/state");}catch(e){const offline=new Error((e?.message||"通信エラー")+"\n"+reconnectHint(true));offline.offline=true;throw offline;}if(!response.ok)throw new Error("HTTP "+response.status+": "+await response.text());if(response.status!==204){const saved=await response.json();Object.assign(state,saved);syncStateItems();savedSnapshot=JSON.stringify(state);}stateReady=true;}catch(e){showReconnect(!!e.offline);document.getElementById("save-status").textContent="保存状態の読み込みに失敗しました。保存は無効です: "+e.message;}}else stateReady=true;build();wasComplete=allItemsCompleted();}
+const footerEl=document.querySelector("footer");new ResizeObserver(()=>{document.body.style.paddingBottom=(footerEl.offsetHeight+24)+"px";}).observe(footerEl);async function initialize(){if(CAN_SERVER_SAVE){try{let response;try{response=await fetch("/api/state");}catch(e){const offline=new Error((e?.message||"通信エラー")+"\n"+reconnectHint(true));offline.offline=true;throw offline;}if(!response.ok)throw new Error("HTTP "+response.status+": "+await response.text());if(response.status!==204){const saved=await response.json();Object.assign(state,saved);syncStateItems();savedSnapshot=JSON.stringify(state);}stateReady=true;}catch(e){showReconnect(!!e.offline);document.getElementById("save-status").textContent="保存状態の読み込みに失敗しました。保存は無効です: "+e.message;}}else stateReady=true;build();wasComplete=allItemsCompleted();}
 document.addEventListener("DOMContentLoaded",initialize);heartbeat();if(CAN_SERVER_SAVE)window.setInterval(heartbeat,60000);
 </script>
 </body>

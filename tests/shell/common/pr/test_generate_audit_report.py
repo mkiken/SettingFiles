@@ -113,6 +113,21 @@ class ReconnectAndCopyTest(unittest.TestCase):
         self.assertIn("再読み込みせず", out)
         self.assertIn("再読み込みしてください", out)
 
+    def test_footer_groups_controls_into_two_rows_with_status_before_save(self):
+        html = mod.render(audit([item(1)]))
+        footer = html.split("<footer>", 1)[1].split("</footer>", 1)[0]
+        self.assertEqual(footer.count('<div class="footer-row">'), 2)
+        first, second = footer.split('<div class="footer-row">')[1:]
+        self.assertIn('class="filter-picker"', first)
+        self.assertNotIn('id="save-state"', first)
+        self.assertIn('id="save-state"', second)
+        self.assertLess(second.index('id="save-status"'), second.index('id="save-state"'))
+
+    def test_body_bottom_padding_follows_measured_footer_height(self):
+        html = mod.render(audit([item(1)]))
+        self.assertIn("new ResizeObserver(", html)
+        self.assertIn("document.body.style.paddingBottom=(footerEl.offsetHeight+24)", html)
+
     def test_reconnect_button_shows_only_on_connection_failure(self):
         html = mod.render(audit([item(1)]))
         self.assertIn('<button id="copy-reconnect" type="button" hidden>', html)
