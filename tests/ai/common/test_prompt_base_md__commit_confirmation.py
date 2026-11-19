@@ -153,6 +153,12 @@ class PrFindingsHandoffTest(unittest.TestCase):
             with self.subTest(requirement=requirement):
                 self.assertIn(requirement, self.section)
 
+    def test_section_skips_review_without_findings(self):
+        self.assertIn(
+            "the results are a review (any review skill or ad-hoc review) with no findings to act on",
+            self.section,
+        )
+
     def test_prompt_base_loads_task_completion_for_pr_results(self):
         content = (REPO_ROOT / "ai/common/prompt_base.md").read_text(encoding="utf-8")
         section = content.split("# Task Completion\n", 1)[1]
