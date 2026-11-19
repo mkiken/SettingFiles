@@ -44,8 +44,12 @@ class SyncVscodeExtensionsTest(unittest.TestCase):
         ignored: list[str] | None = None,
         reprompt: bool = False,
     ) -> subprocess.CompletedProcess[str]:
-        node = shutil.which("node")
-        self.assertIsNotNone(node, "node is required for this test")
+        shim = shutil.which("node")
+        self.assertIsNotNone(shim, "node is required for this test")
+        # mise/asdf shim は偽 HOME では実行できないため、実バイナリのパスを使う
+        node = subprocess.run(
+            [shim, "-p", "process.execPath"], capture_output=True, text=True, check=True
+        ).stdout.strip()
         self.brewfile.write_text(brewfile, encoding="utf-8")
         if ignored is not None:
             self.ignore_file.parent.mkdir(parents=True, exist_ok=True)
