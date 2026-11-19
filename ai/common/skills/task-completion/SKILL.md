@@ -5,7 +5,7 @@ description: End-of-task procedure — temp file cleanup, commit/push confirmati
 
 # Task Completion
 
-Run in this order when finishing a task: Temp File Cleanup, then Worktree Cleanup, then the Post-Implementation Workflow, then the Opportunistic Improvement Proposals Completion-Time Check.
+Run in this order when finishing a task: Temp File Cleanup, then Worktree Cleanup, then the Post-Implementation Workflow, then PR Findings Handoff, then the Opportunistic Improvement Proposals Completion-Time Check.
 
 ## Temp File Cleanup
 
@@ -36,7 +36,19 @@ Stage only the paths this session changed or created — explicit `git add <path
 - Re-check `git diff --cached --name-only`: if it lists paths you did not stage, unstage them (`git restore --staged <paths>` — note this touches a parallel session's staging) and commit with no pathspec; a pathspec-scoped commit captures working-tree content — including another session's unstaged edits and a rebuilt index blob — bypassing the partial index.
 - Skim `git diff --cached` hunk by hunk for any file touched elsewhere this session and confirm this session authored every hunk. A path check alone misses this: a parallel session's commit captures the whole working tree, including this session's unsaved edits to that file.
 
-Perform the selected git action, then run the Opportunistic Improvement Proposals Completion-Time Check.
+Perform the selected git action, then continue to PR Findings Handoff.
+
+## PR Findings Handoff
+
+Run when this session verified or investigated a specific GitHub PR and produced results worth sharing, even if the Post-Implementation Workflow was skipped, and even if a PR skill already asked about posting or editing. Skip when no PR is identified or there are no results.
+
+1. Determine ownership: compare `gh pr view <PR> --repo <owner/repo> --json author --jq .author.login` with `gh api user --jq .login`. If either value is unavailable, ask the user once whether it is their own PR.
+2. Draft the findings: conclusion, steps or commands run, results, and unverified items. Exclude secrets and real private data.
+3. Ask via the platform's `# User Confirmation` mechanism, with the full draft inside the question. For Claude and Gemini, present exactly: own PR — `PR本文に追記する` / `修正する` / `記載しない`; others' PR — `コメント投稿する` / `修正する` / `投稿しない`. Codex follows its `# User Confirmation` rules instead of this fixed menu. On `修正する`, revise the draft and ask again.
+4. Own PR: re-read the latest body immediately before writing, append a `## 検証結果 (YYYY-MM-DD)` section after the existing body, update with `gh pr edit <PR> --repo <owner/repo> --body-file <file>`, then re-fetch the body and confirm it matches. Others' PR: `gh pr comment <PR> --repo <owner/repo> --body-file <file>`, then confirm the comment via `gh pr view --json comments`.
+5. On failure, do not retry automatically; report what is unconfirmed.
+
+Then run the Opportunistic Improvement Proposals Completion-Time Check.
 
 ## Opportunistic Improvement Proposals
 

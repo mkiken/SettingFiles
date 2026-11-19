@@ -124,5 +124,44 @@ class CommitConfirmationContractTest(unittest.TestCase):
             self.assertIn(label, menu)
 
 
+class PrFindingsHandoffTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.skill = (REPO_ROOT / "ai/common/skills/task-completion/SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        cls.section = cls.skill.split("## PR Findings Handoff\n", 1)[1].split(
+            "\n## Opportunistic", 1
+        )[0]
+
+    def test_runs_between_post_implementation_and_improvement_check(self):
+        self.assertIn(
+            "the Post-Implementation Workflow, then PR Findings Handoff, then the Opportunistic",
+            self.skill,
+        )
+
+    def test_section_pins_ownership_check_and_write_paths(self):
+        for requirement in (
+            "gh api user --jq .login",
+            "gh pr edit",
+            "gh pr comment",
+            "`PR本文に追記する` / `修正する` / `記載しない`",
+            "`コメント投稿する` / `修正する` / `投稿しない`",
+            "Codex follows its `# User Confirmation` rules",
+            "even if a PR skill already asked",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, self.section)
+
+    def test_prompt_base_loads_task_completion_for_pr_results(self):
+        content = (REPO_ROOT / "ai/common/prompt_base.md").read_text(encoding="utf-8")
+        section = content.split("# Task Completion\n", 1)[1]
+        self.assertIn("the PR findings handoff", section)
+        self.assertIn(
+            "any turn that delivers verification or investigation results for a specific GitHub PR",
+            section,
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
