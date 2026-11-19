@@ -15,55 +15,101 @@ def run_zsh(snippet):
 
 
 class AiReviewLauncherTest(unittest.TestCase):
-    def test_self_review_runs_one_provider_in_current_terminal(self):
-        for setting, expected in (("unset AI_REVIEW_ORCHESTRATOR", "claude:/pr-self-review"),
-                                  ("AI_REVIEW_ORCHESTRATOR=codex", "codex:$pr-self-review")):
-            with self.subTest(setting=setting):
+    def test_self_review_variants_dispatch_to_three_ai_functions(self):
+        for entry, variant, fns in (
+            ("self-review", "self-review", "cl-pr-review gm-pr-review cx-pr-review"),
+            ("self-review-subagents", "self-review-subagents",
+             "cl-pr-review-subagents gm-pr-review-subagent cx-pr-review-subagent"),
+        ):
+            with self.subTest(entry=entry):
                 result = run_zsh(f"""
-{setting}
-cl-self-review() {{ printf 'claude:/pr-self-review %s\\n' "$*"; return 7; }}
-cx-self-review() {{ printf 'codex:$pr-self-review %s\\n' "$*"; return 7; }}
-_review_run() {{ echo UNEXPECTED_PARALLEL_LAUNCH; }}
-self-review 'focus on errors'
+_review_run() {{ print -r -- "RUN:$*"; }}
+{entry} 123 'focus on errors'
 """)
-                self.assertEqual(result.returncode, 7, result.stderr)
-                self.assertEqual(result.stdout.strip(), expected + " focus on errors")
-
-    def test_self_review_subagents_runs_one_provider_in_current_terminal(self):
-        for setting, expected in (("unset AI_REVIEW_ORCHESTRATOR", "claude:/pr-self-review-subagents"),
-                                  ("AI_REVIEW_ORCHESTRATOR=codex", "codex:$pr-self-review-subagents")):
-            with self.subTest(setting=setting):
-                result = run_zsh(f"""
-{setting}
-cl-self-review-subagents() {{ printf 'claude:/pr-self-review-subagents %s\\n' "$*"; return 7; }}
-cx-self-review-subagents() {{ printf 'codex:$pr-self-review-subagents %s\\n' "$*"; return 7; }}
-_review_run() {{ echo UNEXPECTED_PARALLEL_LAUNCH; }}
-self-review-subagents 'focus on errors'
-""")
-                self.assertEqual(result.returncode, 7, result.stderr)
-                self.assertEqual(result.stdout.strip(), expected + " focus on errors")
-
-    def test_self_review_subagents_rejects_invalid_provider_before_launch(self):
-        result = run_zsh("""
-AI_REVIEW_ORCHESTRATOR=invalid
-cl-self-review-subagents() { echo UNEXPECTED; }
-cx-self-review-subagents() { echo UNEXPECTED; }
-self-review-subagents
-""")
-        self.assertNotEqual(result.returncode, 0)
-        self.assertNotIn("UNEXPECTED", result.stdout)
-        self.assertIn("Invalid AI_REVIEW_ORCHESTRATOR", result.stderr)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout.strip(),
+                                 f"RUN:{variant} {fns} 123 focus on errors")
 
     def test_self_review_rejects_invalid_provider_before_launch(self):
-        result = run_zsh("""
+        for entry in ("self-review", "self-review-subagents"):
+            with self.subTest(entry=entry):
+                result = run_zsh(f"""
 AI_REVIEW_ORCHESTRATOR=invalid
-cl-self-review() { echo UNEXPECTED; }
-cx-self-review() { echo UNEXPECTED; }
-self-review
+_ai_pr_review_resolve_args() {{ echo SIDE_EFFECT; }}
+{entry}
 """)
-        self.assertNotEqual(result.returncode, 0)
-        self.assertNotIn("UNEXPECTED", result.stdout)
-        self.assertIn("Invalid AI_REVIEW_ORCHESTRATOR", result.stderr)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertNotIn("SIDE_EFFECT", result.stdout)
+                self.assertIn("Invalid AI_REVIEW_ORCHESTRATOR", result.stderr)
+
+    def test_self_review_records_head_oid_marker_and_review_does_not(self):
+        for entry, expect_marker in (("self-review 123", True), ("self-review-subagents 123", True),
+                                     ("review 123", False)):
+            with self.subTest(entry=entry), tempfile.TemporaryDirectory() as run_dir:
+                result = run_zsh(f"""
+_ai_multiplexer_kind() {{ echo herdr; }}
+_review_launch_herdr() {{ :; }}
+bash() {{ echo '{run_dir}'; }}
+gh() {{ print -r -- abc123; }}
+{entry}
+""")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                marker = Path(run_dir) / "self_fix"
+                self.assertEqual(marker.exists(), expect_marker)
+                if expect_marker:
+                    self.assertEqual(marker.read_text().strip(), "abc123")
+
+    def test_self_review_head_oid_failure_stops_before_launch(self):
+        with tempfile.TemporaryDirectory() as run_dir:
+            result = run_zsh(f"""
+_ai_multiplexer_kind() {{ echo herdr; }}
+_review_launch_herdr() {{ echo LAUNCHED; }}
+bash() {{ echo '{run_dir}'; }}
+gh() {{ return 1; }}
+self-review 123
+""")
+            self.assertNotEqual(result.returncode, 0)
+            self.assertNotIn("LAUNCHED", result.stdout)
+            self.assertFalse((Path(run_dir) / "self_fix").exists())
+
+    def test_self_review_no_merge_skips_marker_and_gh(self):
+        with tempfile.TemporaryDirectory() as run_dir:
+            result = run_zsh(f"""
+_ai_multiplexer_kind() {{ echo herdr; }}
+_review_launch_herdr() {{ :; }}
+bash() {{ echo '{run_dir}'; }}
+gh() {{ echo UNEXPECTED_GH; return 1; }}
+self-review --no-merge 123
+""")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertNotIn("UNEXPECTED_GH", result.stdout)
+            self.assertFalse((Path(run_dir) / "self_fix").exists())
+
+    def test_finalize_routes_self_fix_runs_to_orchestrator_self_review(self):
+        for setting, expected in (("unset AI_REVIEW_ORCHESTRATOR", "claude"),
+                                  ("AI_REVIEW_ORCHESTRATOR=codex", "codex")):
+            with self.subTest(setting=setting), tempfile.TemporaryDirectory() as run_dir:
+                (Path(run_dir) / "self_fix").write_text("abc123\n")
+                result = run_zsh(f"""
+{setting}
+cl-self-review() {{ printf 'claude:[%s][%s]\\n' "$1" "$2"; }}
+cx-self-review() {{ printf 'codex:[%s][%s]\\n' "$1" "$2"; }}
+cl-review-merge() {{ echo WRONG_MERGE; }}
+cx-review-merge() {{ echo WRONG_MERGE; }}
+_review_finalize '{run_dir}'
+""")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout.strip(), f"{expected}:[--from-run][{run_dir}]")
+
+    def test_finalize_without_marker_merges(self):
+        with tempfile.TemporaryDirectory() as run_dir:
+            result = run_zsh(f"""
+cl-review-merge() {{ printf 'MERGE:%s\\n' "$1"; }}
+cl-self-review() {{ echo WRONG_SELF; }}
+_review_finalize '{run_dir}'
+""")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(result.stdout.strip(), f"MERGE:{run_dir}")
 
     def test_orchestrator_selection_and_exit_code(self):
         for setting, expected in (("unset AI_REVIEW_ORCHESTRATOR", "claude"),
@@ -849,6 +895,20 @@ _review_watch "{run_dir}"
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("1/2 件（codex）", result.stdout)
         self.assertIn("MERGED", result.stdout)
+
+    def test_watch_with_self_fix_marker_hands_run_to_self_review(self):
+        with tempfile.TemporaryDirectory() as run_dir:
+            (Path(run_dir) / "self_fix").write_text("abc123\n")
+            result = run_zsh(f'''
+bash() {{ return 0; }}
+_review_close_ai_tabs() {{ :; }}
+cl-self-review() {{ print -r -- "SELF:$1"; }}
+cl-review-merge() {{ print -r -- "WRONG_MERGE"; }}
+_review_watch "{run_dir}" claude.md=t1
+''')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("SELF:--from-run", result.stdout)
+        self.assertNotIn("WRONG_MERGE", result.stdout)
 
     def test_selected_specs_complete_and_merge(self):
         for specs in ("codex.md=t1", "codex.md=t1 gemini.md=t2"):

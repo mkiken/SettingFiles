@@ -39,3 +39,12 @@ class SelfReviewContractTest(unittest.TestCase):
             self.assertIn(contract, text)
         # State and HTML lifecycle stay owned by review-merge and its consumers.
         self.assertNotIn("schema_version:", text)
+
+    def test_multi_ai_run_mode_contract(self):
+        text = (SKILL / "SKILL.md").read_text()
+        for contract in (
+            "--from-run <RUN_DIR>", "<RUN_DIR>/self_fix",
+            "stop on a mismatch", "only completed repairs leave the remaining set",
+            "Leave the original RUN_DIR unchanged",
+        ):
+            self.assertIn(contract, text)

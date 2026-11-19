@@ -645,7 +645,7 @@ _review_watch() {
     fi
 
     _review_handle_wait_status "${wait_status}" "${run_dir}" "${specs[@]}" || return $?
-    _review_merge_selected "${run_dir}"
+    _review_finalize "${run_dir}"
 }
 
 # レビュー用に開いたAIタブ（herdr）を確認なしで閉じる。tmux未対応（no-op）
@@ -720,6 +720,24 @@ _review_merge_selected() {
     "${launcher}" "$@"
 }
 
+# self-reviewのrun_dirには起動時のPR headRefOidを入れた self_fix を置く。
+# 3AIの指摘を検証・修正する対話セッション（pr-self-review --from-run）へ最終段を切り替える目印で、
+# 通常のreviewはこれが無いためreview-mergeへ進む。ファイルで渡すのは watch_specs と同様、
+# pane run送信の欠落でrun_dirや種別が壊れないようにするため
+_review_finalize() {
+    local run_dir="$1"
+    if [[ -f "${run_dir}/self_fix" ]]; then
+        local launcher
+        launcher=$(_review_merge_launcher) || return 1
+        case "${launcher}" in
+            cl-review-merge) cl-self-review --from-run "${run_dir}" ;;
+            cx-review-merge) cx-self-review --from-run "${run_dir}" ;;
+        esac
+    else
+        _review_merge_selected "${run_dir}"
+    fi
+}
+
 # レビューの共通フロー: ランディレクトリ作成 → AI起動 → 完了待ち → review-merge
 # herdrではレビューごとに専用workspace(review-<ディレクトリ名>)を作り、完了待ち以降を
 # その初期タブ=orchestratorタブ(_review_watch)へ委譲して即return、
@@ -774,6 +792,20 @@ _review_run() {
         bash "$HOME/.config/ai-pr/bin/ai_review_run_dir.sh" "${pr_number}"
     ) || return 1
 
+    # self-review系は修正段で「レビュー後にPR headが動いていない」ことを照合するため、
+    # 起動時点のheadRefOidを記録する。取得できなければAIを起動する前に失敗させる
+    if (( ! no_merge )) && [[ "${variant}" == self-review* ]]; then
+        local head_oid
+        head_oid=$(
+            builtin cd -q "${AI_REVIEW_CWD:-${PWD}}" 2>/dev/null &&
+                gh pr view "${pr_number}" --json headRefOid --jq .headRefOid
+        ) && [[ -n "${head_oid}" ]] || {
+            echo "PRのheadRefOidを取得できません: ${pr_number}" >&2
+            return 1
+        }
+        print -r -- "${head_oid}" > "${run_dir}/self_fix" || return 1
+    fi
+
     case "$(_ai_multiplexer_kind)" in
         herdr)
             # 完了待ち〜マージはreview workspaceのorchestratorタブへ委譲し、呼び出し元タブは即解放する
@@ -805,7 +837,7 @@ _review_run() {
     local wait_status=0
     bash "$HOME/.config/ai-pr/bin/ai_review_wait.sh" "${run_dir}" claude.md gemini.md codex.md || wait_status=$?
     _review_handle_wait_status "${wait_status}" "${run_dir}" claude.md gemini.md codex.md || return $?
-    _review_merge_selected "${run_dir}"
+    _review_finalize "${run_dir}"
 }
 
 # 完了待ちの結果からマージ可否を決める。return 0=マージ続行
@@ -839,23 +871,13 @@ _review_handle_wait_status() {
     esac
 }
 
-# Editing reviews run one provider in the current terminal.
+# 3AIでレビューした後、orchestratorが明らかに直してよい指摘を修正する（_review_finalize参照）
 self-review() {
-    local launcher
-    launcher=$(_review_merge_launcher) || return 1
-    case "$launcher" in
-        cl-review-merge) cl-self-review "$@" ;;
-        cx-review-merge) cx-self-review "$@" ;;
-    esac
+    _review_run self-review cl-pr-review gm-pr-review cx-pr-review "$@"
 }
 
 self-review-subagents() {
-    local launcher
-    launcher=$(_review_merge_launcher) || return 1
-    case "$launcher" in
-        cl-review-merge) cl-self-review-subagents "$@" ;;
-        cx-review-merge) cx-self-review-subagents "$@" ;;
-    esac
+    _review_run self-review-subagents cl-pr-review-subagents gm-pr-review-subagent cx-pr-review-subagent "$@"
 }
 
 review() {

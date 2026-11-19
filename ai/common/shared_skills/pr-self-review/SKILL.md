@@ -5,9 +5,11 @@ description: Review the current branch's PR, fix clear behavior-preserving issue
 
 # PR Self Review
 
-Run once in the current terminal, using one reviewer. Additional request text
-is review emphasis, not permission to select another PR or bypass approval.
-Calling this skill authorizes only the behavior-preserving repairs below.
+Run once in the current terminal, using one reviewer, unless the arguments
+start with `--from-run <RUN_DIR>` (see "Findings from a multi-AI run").
+Additional request text is review emphasis, not permission to select another PR
+or bypass approval. Calling this skill authorizes only the behavior-preserving
+repairs below.
 
 ## Establish the target
 
@@ -35,6 +37,18 @@ Review all seven perspectives once. Skeptically verify each candidate against
 primary code and tests inline; do not launch specialist or verifier agents.
 Do not manufacture findings. Existing comments suppress duplicate reporting,
 not repair of an actual unresolved defect.
+
+## Findings from a multi-AI run
+
+With `--from-run <RUN_DIR>`, three AIs already reviewed the PR into RUN_DIR
+(`claude.md`, `gemini.md`, `codex.md`, whichever exist and are non-empty). Run
+"Establish the target" as written, then require `<RUN_DIR>/self_fix` to hold the
+recorded headRefOid; stop on a mismatch because the findings are stale. Do not
+review yourself and skip the one-reviewer review stage above. Read each result
+file, merge duplicates across AIs, and skeptically verify every finding against
+primary code and tests inline before repairing. A finding you judge false stays
+a remaining finding; only completed repairs leave the remaining set.
+Continue with "Repair findings" and "Confirm commit and push" unchanged.
 
 ## Repair findings
 
@@ -100,6 +114,12 @@ Save only the remaining findings in the shared result format as `claude.md`
 when running Claude or `codex.md` when running Codex. Write the no-findings
 result even when every issue was repaired or no issue was found. Do not include
 repair logs or extra commentary in this review result file.
+
+With `--from-run`, write into the new run directory one file per source file
+that existed in the original RUN_DIR, under the same name, holding that AI's
+findings minus the completed repairs (renumber sequentially, keep the skipped
+existing-comment section, write the no-findings result when none remain).
+Leave the original RUN_DIR unchanged.
 
 Invoke the existing `review-merge` skill with that exact run directory. This is
 aggregation, not a second review. It alone owns merging, HTML rendering, server
