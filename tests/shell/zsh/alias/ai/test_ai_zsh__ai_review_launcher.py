@@ -20,6 +20,7 @@ class AiReviewLauncherTest(unittest.TestCase):
             ("self-review", "self-review", "cl-pr-review gm-pr-review cx-pr-review"),
             ("self-review-subagents", "self-review-subagents",
              "cl-pr-review-subagents gm-pr-review-subagent cx-pr-review-subagent"),
+            ("self-review-mx", "self-review-mx", "clmx-pr-review gm-pr-review cxmx-pr-review"),
         ):
             with self.subTest(entry=entry):
                 result = run_zsh(f"""
@@ -44,7 +45,7 @@ _ai_pr_review_resolve_args() {{ echo SIDE_EFFECT; }}
 
     def test_self_review_records_head_oid_marker_and_review_does_not(self):
         for entry, expect_marker in (("self-review 123", True), ("self-review-subagents 123", True),
-                                     ("review 123", False)):
+                                     ("self-review-mx 123", True), ("review 123", False)):
             with self.subTest(entry=entry), tempfile.TemporaryDirectory() as run_dir:
                 result = run_zsh(f"""
 _ai_multiplexer_kind() {{ echo herdr; }}

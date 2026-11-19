@@ -880,6 +880,10 @@ self-review-subagents() {
     _review_run self-review-subagents cl-pr-review-subagents gm-pr-review-subagent cx-pr-review-subagent "$@"
 }
 
+self-review-mx() {
+    _review_run self-review-mx clmx-pr-review gm-pr-review cxmx-pr-review "$@"
+}
+
 review() {
     _review_run review cl-pr-review gm-pr-review cx-pr-review "$@"
 }

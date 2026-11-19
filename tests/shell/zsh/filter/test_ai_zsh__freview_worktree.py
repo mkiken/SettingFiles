@@ -175,6 +175,15 @@ class FreviewWorktreeFixture:
             "  printf '[]'\n"
             "  exit 0\n"
             "fi\n"
+            "if [ \"$1\" = pr ] && [ \"$2\" = view ]; then\n"
+            "  [ \"${FREVIEW_GH_AUTHOR_FAIL:-}\" = 1 ] && exit 1\n"
+            "  printf '%s\\n' \"${FREVIEW_PR_AUTHOR:-someone-else}\"\n"
+            "  exit 0\n"
+            "fi\n"
+            "if [ \"$1\" = api ] && [ \"$2\" = user ]; then\n"
+            "  printf '%s\\n' \"${FREVIEW_ME:-me}\"\n"
+            "  exit 0\n"
+            "fi\n"
             "exit 0\n",
         )
 
@@ -209,6 +218,9 @@ class FreviewWorktreeFixture:
             review() {{ printf 'REVIEW review %s (AI_REVIEW_CWD=%s)\\n' "$*" "$AI_REVIEW_CWD" >> "$FREVIEW_LOG"; }}
             review-mx() {{ printf 'REVIEW review-mx %s (AI_REVIEW_CWD=%s)\\n' "$*" "$AI_REVIEW_CWD" >> "$FREVIEW_LOG"; }}
             review-subagents() {{ printf 'REVIEW review-subagents %s (AI_REVIEW_CWD=%s)\\n' "$*" "$AI_REVIEW_CWD" >> "$FREVIEW_LOG"; }}
+            self-review() {{ printf 'REVIEW self-review %s (AI_REVIEW_CWD=%s)\\n' "$*" "$AI_REVIEW_CWD" >> "$FREVIEW_LOG"; }}
+            self-review-mx() {{ printf 'REVIEW self-review-mx %s (AI_REVIEW_CWD=%s)\\n' "$*" "$AI_REVIEW_CWD" >> "$FREVIEW_LOG"; }}
+            self-review-subagents() {{ printf 'REVIEW self-review-subagents %s (AI_REVIEW_CWD=%s)\\n' "$*" "$AI_REVIEW_CWD" >> "$FREVIEW_LOG"; }}
             # confirmはutils.zshに実装があるが対話待ちになるため差し替える。
             # 呼び出し引数を記録し、FREVIEW_CONFIRM_ANSWERで応答を切り替える。
             # dirty confirmは_freview_prompt_dirty_actionへ移行済みで、誤って
@@ -312,6 +324,76 @@ class FreviewWorktreeModeTest(FreviewWorktreeFixture, unittest.TestCase):
         self.assertEqual(len(filter_args), 3, calls)
         for args in filter_args:
             self.assertIn("--prompt review-subagents ", args, calls)
+
+    def review_calls(self, name):
+        return [c for c in self.calls() if c.startswith(f"REVIEW {name} ")]
+
+    def test_own_pr_launches_self_review_instead_of_review(self):
+        result, _ = self.run_freview(extra_env={"FREVIEW_PR_AUTHOR": "me", "FREVIEW_ME": "me"})
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self_calls = self.review_calls("self-review")
+        self.assertEqual(len(self_calls), 1, self.calls())
+        self.assertIn("42", self_calls[0])
+        self.assertIn(f"AI_REVIEW_CWD={self.worktree}", self_calls[0])
+        self.assertEqual(self.review_calls("review"), [], self.calls())
+        self.assertFalse([c for c in self.calls() if c.startswith("CONFIRM ")], self.calls())
+
+    def test_others_pr_launches_review_without_confirm(self):
+        result, _ = self.run_freview(extra_env={"FREVIEW_PR_AUTHOR": "someone-else", "FREVIEW_ME": "me"})
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(len(self.review_calls("review")), 1, self.calls())
+        self.assertEqual(self.review_calls("self-review"), [], self.calls())
+        self.assertFalse([c for c in self.calls() if c.startswith("CONFIRM ")], self.calls())
+
+    def test_own_pr_with_subagents_launches_self_review_subagents(self):
+        result, _ = self.run_freview(
+            command="freview-subagents", extra_env={"FREVIEW_PR_AUTHOR": "me", "FREVIEW_ME": "me"}
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(len(self.review_calls("self-review-subagents")), 1, self.calls())
+        self.assertEqual(self.review_calls("review-subagents"), [], self.calls())
+
+    def test_own_pr_with_mx_launches_self_review_mx(self):
+        result, _ = self.run_freview(
+            command="freview-mx", extra_env={"FREVIEW_PR_AUTHOR": "me", "FREVIEW_ME": "me"}
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(len(self.review_calls("self-review-mx")), 1, self.calls())
+        self.assertEqual(self.review_calls("review-mx"), [], self.calls())
+
+    def test_own_pr_keeps_no_merge_before_pr_number(self):
+        result, _ = self.run_freview(
+            args="--no-merge", extra_env={"FREVIEW_PR_AUTHOR": "me", "FREVIEW_ME": "me"}
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self_calls = self.review_calls("self-review")
+        self.assertEqual(len(self_calls), 1, self.calls())
+        self.assertIn("self-review --no-merge 42 ", self_calls[0])
+
+    def test_author_lookup_failure_confirms_and_yes_launches_self_review(self):
+        result, _ = self.run_freview(
+            extra_env={"FREVIEW_GH_AUTHOR_FAIL": "1", "FREVIEW_CONFIRM_ANSWER": "yes"}
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(len([c for c in self.calls() if c.startswith("CONFIRM ")]), 1, self.calls())
+        self.assertEqual(len(self.review_calls("self-review")), 1, self.calls())
+        self.assertEqual(self.review_calls("review"), [], self.calls())
+
+    def test_author_lookup_failure_confirms_and_no_launches_review(self):
+        result, _ = self.run_freview(
+            extra_env={"FREVIEW_GH_AUTHOR_FAIL": "1", "FREVIEW_CONFIRM_ANSWER": "no"}
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(len([c for c in self.calls() if c.startswith("CONFIRM ")]), 1, self.calls())
+        self.assertEqual(len(self.review_calls("review")), 1, self.calls())
+        self.assertEqual(self.review_calls("self-review"), [], self.calls())
 
     def test_pr_picker_runs_with_selected_worktree_as_cwd(self):
         result, values = self.run_freview()

@@ -188,6 +188,37 @@ _freview_resolve_dirty_state() {
     esac
 }
 
+# 選択PRの作者がgh認証ユーザー本人ならself-review系、他人ならそのまま元の関数名を返す（stdout）。
+# self-reviewはAIがコード修正まで行うため、判定できない場合（gh失敗・空応答）は
+# 勝手に決めずユーザーへ確認する。confirmはプロンプトをstdoutへ出すため>&2へ逃がし、
+# stdoutは関数名のみにする（呼び出し側がコマンド置換で受ける）
+# 引数: worktree_path, pr_number, 元関数名(review/review-mx/review-subagents)
+_freview_resolve_self_variant() {
+    local worktree_path="$1" pr_number="$2" func_name="$3"
+    local self_func="self-${func_name}"
+
+    local pr_author me
+    pr_author=$(builtin cd -q "$worktree_path" 2>/dev/null && gh pr view "$pr_number" --json author --jq .author.login 2>/dev/null)
+    me=$(builtin cd -q "$worktree_path" 2>/dev/null && gh api user --jq .login 2>/dev/null)
+
+    if [[ -z "$pr_author" || -z "$me" ]]; then
+        echo "PR作者またはログインユーザーを判定できません" >&2
+        if confirm "${self_func} で起動しますか？（No なら ${func_name}）" --no-cancel-msg >&2; then
+            print -r -- "$self_func"
+        else
+            print -r -- "$func_name"
+        fi
+        return 0
+    fi
+
+    if [[ "$pr_author" == "$me" ]]; then
+        echo "自分のPRのため ${self_func} で起動します" >&2
+        print -r -- "$self_func"
+    else
+        print -r -- "$func_name"
+    fi
+}
+
 # リポジトリ→worktree→PRを選択し、選択worktreeでcheckoutしてAIレビューを起動する
 # 現ペインはcdしない。Herdr専用: reviewが作るworkspace(review-<worktree名>)を唯一の
 # 新規workspaceにするため中継ペインを置かず、AI_REVIEW_CWDで対象worktreeをreviewへ伝える
@@ -239,7 +270,12 @@ _freview_worktree() {
     # freviewのシェル自体はcdしない（現ペインは元のリポジトリのまま）ため、
     # reviewが「現在のブランチから自動解決」を試みても選択worktreeとは無関係になる。
     # そのためPR番号は明示的に渡す（_fai-pr-review の自動解決前提は使えない）
-    AI_REVIEW_CWD="$worktree_path" "$func_name" "${no_merge_flag[@]}" "$pr_number" "$@"
+    # 自分のPRならself-review系へ切り替える（結果をlaunch_funcへ受ける）
+    local launch_func
+    launch_func=$(_freview_resolve_self_variant "$worktree_path" "$pr_number" "$func_name")
+    [[ -n "$launch_func" ]] || launch_func="$func_name"
+
+    AI_REVIEW_CWD="$worktree_path" "$launch_func" "${no_merge_flag[@]}" "$pr_number" "$@"
 }
 
 # -c 指定時のみ従来動作（現在地でPR選択→gh pr checkout→レビュー）
