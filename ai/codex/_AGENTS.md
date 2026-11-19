@@ -166,6 +166,10 @@ Report a tool call's outcome only from the text that call actually returned — 
 
 Immediately before `git push -u`, resolve the current branch, push that branch with `-u`, and verify its remote ref and configured upstream match the pushed branch.
 
+# Git Action Summary
+
+When a turn created commits or pushed, end its final response with a summary listing each commit (branch, short hash, full subject line) and each push (remote and branch). Take values from actual command output (e.g. `git log --oneline`), not memory. Place it after deliverables and before the `task-completion` improvement-check line.
+
 # Destructive-Command Verification Safety
 
 When verifying newly written code or shell functions that invoke destructive commands (`git restore`, `git clean`, `rm`, force-overwrite, etc.), never run that verification against a real project repository — set up a disposable throwaway repo/directory (e.g. `mktemp -d` + `git init`) and exercise the code there instead. When mocking a confirmation gate (e.g. a `confirm` function) to test the flow, also mock or stub out the destructive commands gated behind it — mocking only the gate while leaving real destructive commands live is not a safe test.
