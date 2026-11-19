@@ -1,23 +1,24 @@
 ---
 name: pr-comment-implement-batch-self
-description: Handle all unresolved review threads of the current branch's PR like pr-comment-implement-batch, but auto-fix and commit clear behavior-preserving threads without approval. Use for an explicit self batch PR-comment request.
+description: Handle all unresolved review threads, review bodies and human issue comments of the current branch's PR like pr-comment-implement-batch, but auto-fix and commit clear behavior-preserving items without approval. Use for an explicit self batch PR-comment request.
 ---
 
 # PR Comment Implement (Batch, Self)
 
 Same workflow as `pr-comment-implement-batch`, with these changes: clear
-behavior-preserving threads are fixed and committed without per-thread
+behavior-preserving items (a thread, review body or issue comment; "thread"
+below means any of them) are fixed and committed without per-thread
 approval, and the opening confirmations are reduced.
 
 Resolve this skill directory's real path and read its sibling
 `../pr-comment-implement-batch/SKILL.md`, plus `../pr-self-review/SKILL.md`
 section "Repair findings". Follow the batch skill's "Establish the target",
-"Collect threads", "Analyst brief" and "Finalize" unchanged, and its
-"Per-thread loop" for every `approval` thread. Stop if either file cannot be read.
+"Collect items", "Analyst brief" and "Finalize" unchanged, and its
+"Per-item loop" for every `approval` thread. Stop if either file cannot be read.
 
 ## Changed flow
 
-1. Establish the target and collect threads as the batch skill does.
+1. Establish the target and collect items as the batch skill does.
 2. Do not ask for the flow. Use the batch skill's "Choose flow" recommendation
    (Inline when every thread is a small local fix, else Subagents).
 3. Analyze every thread first with the Analyst brief and classify it:
@@ -32,7 +33,7 @@ section "Repair findings". Follow the batch skill's "Establish the target",
    ones as "auto-fix planned". `auto` threads are not skip candidates. Ask which
    `approval` threads to skip (none / numbers). Skip the question when there are
    none.
-5. Per-thread loop, strictly serial in list order:
+5. Per-item loop, strictly serial in list order:
    - `auto`: no approval. Implement, pin the change with a test when behavior is
      observable, run the repository's targeted checks and `git diff --check`,
      stage explicit paths only, commit that thread alone following the

@@ -17,9 +17,12 @@ gh api repos/{owner}/{repo}/pulls/{pull_number}/comments --paginate
 - Before judging a Review Comment's technical validity, read the referenced
   code: `path` and `diff_hunk` from the API response, plus the current file
   content when the repository is available locally.
-- Pull Request Review: analyze the single inline comment if there is one
-  (reading its full thread as above before concluding); the review as a group
-  if multiple; the summary if none.
+- Pull Request Review: run the `.../reviews/{review_id}` body fetch and the
+  inline-comments fetch. When the review body is non-empty after removing HTML
+  comments (`<!-- ... -->`), analyze it together with the inline comments
+  (reading each inline comment's full thread as above before concluding).
+  Otherwise analyze the single inline comment if there is one; the review as a
+  group if multiple; the summary if none.
 - Issue Comment: treat as standalone.
 - Analyze the URL target first, using related comments as context; fold
   same-thread corrections, constraints, or implementation intent into the

@@ -210,6 +210,10 @@
   "tests/ai/common/test_pr_review_core_md__perspectives.py",
 ]
 
+"ai/common/pr_comment_review_core.md" = [
+  "tests/ai/common/test_pr_comment_review_core_md__review_body.py",
+]
+
 "ai/common/pr_body_format.md" = [
   "tests/ai/common/test_pr_review_scope_md__review_guide_and_incremental.py",
 ]

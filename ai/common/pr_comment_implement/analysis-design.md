@@ -64,32 +64,39 @@ COMMENT_AUTHOR=$(echo "$ISSUE_COMMENT_JSON" | jq -r '.login')
 COMMENT_AUTHOR_TYPE=$(echo "$ISSUE_COMMENT_JSON" | jq -r '.type')
 ```
 
-For `#pullrequestreview-{review_id}`, fetch inline comments:
+For `#pullrequestreview-{review_id}`, fetch inline comments and the review
+body:
 
 ```bash
 gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/comments \
   --jq '[.[] | {id: .id, path: .path, body: (.body | .[0:80])}]'
+gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id} \
+  --jq '{html_url: .html_url, body: .body, login: .user.login, type: .user.type}'
 ```
 
-- 1 comment: use it as `COMMENT_ID`, `REPLY_PATH=thread`,
+The review body counts as a target only when it is non-empty after removing
+HTML comments (`<!-- ... -->`) and trimming. Then:
+
+- 1 inline comment, empty body: use it as `COMMENT_ID`, `REPLY_PATH=thread`,
   `REACTION_TARGET=repos/${OWNER}/${REPO}/pulls/comments/${COMMENT_ID}`.
-- Multiple: ask the user to select the target; then set `REPLY_PATH=thread`
-  and `REACTION_TARGET` as above for the selected comment.
-- 0: treat the review as standalone (`REPLY_PATH=standalone`). No single
-  comment identifies the review itself, so leave `REACTION_TARGET` unset and
-  skip the reaction steps below, reporting why. Fetch the review itself
-  (`gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id} --jq
-  '{html_url: .html_url, body: .body, login: .user.login, type: .user.type}'`)
-  and set `REPLY_REF_URL` to its `html_url`, `COMMENT_AUTHOR` /
+- 1 inline comment, non-empty body: do not auto-pick; ask which to target
+  (the inline comment or the review body).
+- Multiple inline comments: ask the user to select the target, including the
+  review body among the choices when it is non-empty.
+- Selected inline comment: `REPLY_PATH=thread` and `REACTION_TARGET` as above.
+- 0 inline comments: treat the review as standalone (the review body is the
+  target).
+- Review body selected (or the 0-comment case): `REPLY_PATH=standalone`. No
+  single comment identifies the review itself, so leave `REACTION_TARGET`
+  unset and skip the reaction steps below, reporting why. Set `REPLY_REF_URL`
+  to the fetched review's `html_url` and `COMMENT_AUTHOR` /
   `COMMENT_AUTHOR_TYPE` to its author; leave `REPLY_REF_LOCATION` unset (the
   whole review is the target, no finer locator applies).
 
 Regardless of the inline-comment count, when `PROMPT` identifies a finding
 that matches no inline comment — e.g. one listed only in the review **body**
-(such as a "diff 範囲外のため行コメント不可" section) — fetch the review body
-(`gh api repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id} --jq
-'{html_url: .html_url, body: .body, login: .user.login, type: .user.type}'`)
-to locate it, skip the target-selection question, and treat it like the
+(such as a "diff 範囲外のため行コメント不可" section) — use the review body
+fetched above to locate it, skip the target-selection question, and treat it like the
 0-comment case: `REPLY_PATH=standalone`, `REACTION_TARGET` unset, reaction and
 resolve reported as not applicable. Set `REPLY_REF_URL` / `COMMENT_AUTHOR` /
 `COMMENT_AUTHOR_TYPE` from this same fetch, and set `REPLY_REF_LOCATION` to a

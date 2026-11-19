@@ -46,6 +46,25 @@ class AnalysisDesignWorkflowContractTest(unittest.TestCase):
         self.assertIn("re-present Phase 2 and wait for approval", content)
         self.assertNotIn("### Phase 3: Implementation", content)
 
+    def test_review_body_is_a_selectable_target_for_pullrequestreview_url(self):
+        content = PATH.read_text(encoding="utf-8")
+        section = content.split("For `#pullrequestreview-{review_id}`", 1)[1].split(
+            "Regardless of the inline-comment count", 1
+        )[0]
+        normalized = " ".join(section.split())
+        for requirement in (
+            "pulls/{pull_number}/reviews/{review_id} \\",
+            "non-empty after removing HTML comments",
+            "1 inline comment, non-empty body: do not auto-pick; ask which to target",
+            "including the review body among the choices",
+            "0 inline comments: treat the review as standalone",
+            "Review body selected",
+            "`REPLY_PATH=standalone`",
+            "leave `REACTION_TARGET` unset",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, normalized)
+
     def test_changes_view_review_comment_fragment_is_classified_as_thread(self):
         content = PATH.read_text(encoding="utf-8")
         row = next(line for line in content.splitlines() if line.startswith("| `#discussion_r(\\d+)`"))

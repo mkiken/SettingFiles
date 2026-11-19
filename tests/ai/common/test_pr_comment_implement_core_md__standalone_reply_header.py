@@ -48,7 +48,7 @@ class PrCommentImplementStandaloneReplyHeaderTest(unittest.TestCase):
         self.assertIn("REPLY_REF_URL=", self.content[fetch_snippet:fetch_snippet + 400])
 
     def test_review_branches_set_reply_ref_url(self):
-        zero_comment_branch = self.content.index("0: treat the review as standalone")
+        zero_comment_branch = self.content.index("0 inline comments: treat the review as standalone")
         finding_branch = self.content.index(
             "when `PROMPT` identifies a finding"
         )

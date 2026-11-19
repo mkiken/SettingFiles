@@ -31,9 +31,26 @@ class PrCommentImplementBatchContractTest(unittest.TestCase):
         ):
             self.assertIn(contract, text)
 
+    def test_review_bodies_and_issue_comments_are_handled(self):
+        text = " ".join((SKILL / "SKILL.md").read_text().split())
+        for contract in (
+            "reviews(first:100)", "removing HTML comments",
+            "issues/{n}/comments --paginate", "Keep only ROLE `other`",
+            "already-replied-by-me", "contains the item's `html_url`",
+            "[thread|review-body|issue-comment]",
+            "standalone reply reference header", "pr_comment_implement/finalization.md",
+            "not applicable",
+        ):
+            with self.subTest(contract=contract):
+                self.assertIn(contract, text)
+        self.assertNotIn("out of scope", text)
+
     def test_referenced_sections_still_exist(self):
         self.assertIn("Decide whether the comment should be acted on", ANALYSIS.read_text())
-        self.assertIn("Offer a PR body update", FINALIZATION.read_text())
+        finalization = FINALIZATION.read_text()
+        self.assertIn("Offer a PR body update", finalization)
+        self.assertIn("> 返信対象: [{one-line paraphrase}]({REPLY_REF_URL})", finalization)
+        self.assertIn("`REPLY_PATH=standalone`", finalization)
 
 
 if __name__ == "__main__":

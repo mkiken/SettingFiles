@@ -34,8 +34,8 @@ class PrCommentImplementBatchSelfContractTest(unittest.TestCase):
 
     def test_referenced_sections_still_exist(self):
         batch = BATCH.read_text()
-        for section in ("Establish the target", "Collect threads", "Choose flow",
-                        "Analyst brief", "Per-thread loop", "Finalize"):
+        for section in ("Establish the target", "Collect items", "Choose flow",
+                        "Analyst brief", "Per-item loop", "Finalize"):
             self.assertIn(f"## {section}", batch)
         self.assertIn("## Repair findings", SELF_REVIEW.read_text())
 
