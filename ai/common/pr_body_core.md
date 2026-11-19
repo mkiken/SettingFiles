@@ -3,7 +3,7 @@
 - Generate the body per the **PR Body Format** section below; it is displayed in the Confirmation Flow.
 - Preserve meaningful existing-body content (manually written TODOs, FIXME notes, free-form notes, incomplete checklists, HTML comments, review requests, useful background) even when it falls outside the generated structure — keep it in the closest matching section, or in **Additional Notes** when none fits. Template-only content (placeholders, empty sections) can be discarded.
 - If the diff is too large to read at once, redirect it to a file under the session temp/scratchpad directory (the same `<tmpdir>` used in the Confirmation Flow) and read it incrementally.
-- **Review Focus Points** — overrides the PR Body Format default: if the existing body has non-default content here (anything other than "特になし" or empty), preserve it exactly; use the format's default only for a new PR body or an empty/default section.
+- **Review Focus Points** — overrides the PR Body Format default: if the existing body has non-default content here (anything other than "特になし" or empty), preserve it exactly; for a new PR body or an empty/default section, fill it as defined by the Review Focus Points section of the PR Body Format.
 
 ## Confirmation Flow
 

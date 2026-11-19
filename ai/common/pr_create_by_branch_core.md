@@ -48,7 +48,9 @@ refactor: extract payment processing into dedicated service
 
 Generate the body following the **PR Body Format** section below. When a template exists, fill it with concrete generated content and remove unused placeholder text.
 
-If the PR is task-based, add the task link line to Summary as defined by the global instructions' Task-Based Pull Requests rule.
+If the PR is task-based, add the task link line to Summary as defined by the Task-Based Pull Requests section of the PR Body Format.
+
+Fill **Review Focus Points** as defined by the Review Focus Points section of the PR Body Format, before the Confirm step.
 
 ## Confirm
 
@@ -88,7 +90,7 @@ On success:
 - Display the PR URL.
 - Display 「必要に応じて **Review Focus Points** を編集してください」.
 - Always display 「リマインド: PRのレビュワー設定を忘れないでください。」 — do not check whether reviewers are already assigned, and do not offer to set them.
-- If the PR is task-based, ask whether to comment on the task per the global instructions' Task-Based Pull Requests rule.
+- If the PR is task-based, ask whether to comment on the task per the Task-Based Pull Requests section of the PR Body Format.
 
 On failure:
 

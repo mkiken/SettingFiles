@@ -2,20 +2,19 @@ import unittest
 
 from support import REPO_ROOT
 
-BASE = REPO_ROOT / "ai/common/prompt_base.md"
+FORMAT = REPO_ROOT / "ai/common/pr_body_format.md"
 CORE = REPO_ROOT / "ai/common/pr_create_by_branch_core.md"
 BRANCH_PR_TASK = REPO_ROOT / "ai/common/shared_skills/branch-pr-task/SKILL.md"
-CODEX_AGENTS = REPO_ROOT / "ai/codex/_AGENTS.md"
 CODEX_PR_CREATE = REPO_ROOT / "ai/codex/skills/pr-create-by-branch/SKILL.md"
 
-HEADING = "# Task-Based Pull Requests"
-REFERENCE = "Task-Based Pull Requests rule"
+HEADING = "### Task-Based Pull Requests"
+REFERENCE = "Task-Based Pull Requests section"
 
 
 def rule_section():
-    content = BASE.read_text(encoding="utf-8")
+    content = FORMAT.read_text(encoding="utf-8")
     start = content.index(HEADING)
-    end = content.index("\n# ", start + 1)
+    end = content.index("\n### ", start + 1)
     return content[start:end]
 
 
@@ -41,11 +40,13 @@ class TaskBasedPrRuleTest(unittest.TestCase):
             self.assertNotIn(name, section)
 
     def test_pr_creation_paths_reference_rule(self):
-        for path in (CORE, BRANCH_PR_TASK, CODEX_PR_CREATE):
+        for path in (CORE, CODEX_PR_CREATE):
             self.assertIn(REFERENCE, path.read_text(encoding="utf-8"), path.name)
 
-    def test_codex_agents_carries_rule(self):
-        self.assertIn(HEADING, CODEX_AGENTS.read_text(encoding="utf-8"))
+    def test_branch_pr_task_delegates_to_pr_create_by_branch(self):
+        content = BRANCH_PR_TASK.read_text(encoding="utf-8")
+        self.assertIn("`pr-create-by-branch` skill", content)
+        self.assertIn("Task-Based Pull Requests", content)
 
 
 if __name__ == "__main__":

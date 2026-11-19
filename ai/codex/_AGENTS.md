@@ -170,12 +170,9 @@ Immediately before `git push -u`, resolve the current branch, push that branch w
 
 When a turn created commits or pushed, end its final response with a summary listing each commit (branch, short hash, full subject line) and each push (remote and branch). Take values from actual command output (e.g. `git log --oneline`), not memory. Place it after deliverables and before the `task-completion` improvement-check line.
 
-# Task-Based Pull Requests
+# Pull Requests
 
-A PR is task-based when the request or conversation explicitly references a task in a task-management tool (issue, ticket, task) by URL or ID. Never infer it from a branch name.
-
-- Body: add one line at the end of Summary (or the top of the body if the template has no Summary): `- 関連タスク: [<task title>](<task URL>)`, comma-separated for several tasks. It does not count toward Summary's 3-line limit. Fetch an unknown title with an available tool; ask the user if it cannot be fetched.
-- After the PR is created and verified, ask the user per task whether to comment that the PR was created. The comment holds the PR title and URL as a link in the tool's link syntax. Post it with an available tool; if none exists, report that and show the text for pasting. Verify the posted comment per Side-Effect Verification.
+When creating a PR or rewriting its body, use the `pr-create-by-branch` skill or the `pr-body` skill/command; they carry the PR rules.
 
 # Destructive-Command Verification Safety
 

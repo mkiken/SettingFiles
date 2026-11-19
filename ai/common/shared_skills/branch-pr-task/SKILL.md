@@ -49,31 +49,9 @@ Show the changed paths, verification results, the commit message (following the 
 
 On a modification choice, collect the correction, re-display, and ask again. On `キャンセル`, leave all changes uncommitted on the new branch, report its name, and stop. Commit, push, and PR creation happen only after `はい、作成する`.
 
-### PR body
+### PR title and body
 
-Describe the final state at HEAD only; never trial and error. Keep it brief and lead with the conclusion. If `.github/PULL_REQUEST_TEMPLATE.md` exists, use its structure instead. If the PR is task-based, add the task link line to Summary as defined by the global instructions' Task-Based Pull Requests rule.
-
-````markdown
-## Summary
-
-- What this PR does and why, in 3 lines or fewer.
-
-## 背景・目的
-
-- Why this work was started, only when the request or conversation states a motive or history. Omit the whole section otherwise.
-
-## 実装内容
-
-- One bullet per logical change, by intent and effect. No per-file listing, no line counts.
-
-## Review Focus Points
-
-特になし
-
-<!-- レビュー観点はPR作成者が記入 -->
-````
-
-PR title: within 70 characters, conventional prefix when it fits, describing what changed and why.
+Write the title and body per the `pr-create-by-branch` skill's Determine Title and Generate Body sections, including its PR Body Format, Task-Based Pull Requests, and Review Focus Points rules. Take the content from this task's changes (not a branch comparison), and finish the Review Focus Points check before `Confirm once`.
 
 ## Commit, push, and create the PR
 
@@ -92,4 +70,4 @@ Verify independently: `git log -1`, `git ls-remote origin <branch>` equals the l
 
 ## Report
 
-Display the PR URL, then always display 「リマインド: PRのレビュワー設定を忘れないでください。」 Do not check whether reviewers are already assigned and do not offer to set them. If the PR is task-based, then ask whether to comment on the task per the global instructions' Task-Based Pull Requests rule.
+Display the PR URL, then always display 「リマインド: PRのレビュワー設定を忘れないでください。」 Do not check whether reviewers are already assigned and do not offer to set them. If the PR is task-based, then ask whether to comment on the task per the Task-Based Pull Requests section of the `pr-create-by-branch` skill's PR Body Format.

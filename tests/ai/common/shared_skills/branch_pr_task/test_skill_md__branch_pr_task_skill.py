@@ -92,10 +92,12 @@ class BranchPrTaskContentTest(unittest.TestCase):
         # same "always remind, never check or assign" decision here.
         self.assertNotIn("reviewRequests", self.content)
 
-    def test_pr_body_background_is_conditional_and_focus_points_kept(self):
-        self.assertIn("## 背景・目的", self.content)
-        self.assertIn("Omit the whole section otherwise", self.content)
-        self.assertIn("## Review Focus Points", self.content)
+    def test_pr_title_and_body_follow_pr_create_by_branch(self):
+        self.assertIn("### PR title and body", self.content)
+        self.assertIn("`pr-create-by-branch` skill", self.content)
+        self.assertIn("Review Focus Points", self.content)
+        # The duplicated body template was removed so PR rules live in one place.
+        self.assertNotIn("## 背景・目的", self.content)
 
 
 if __name__ == "__main__":
