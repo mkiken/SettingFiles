@@ -3,7 +3,7 @@
 
 # User Confirmation
 
-When asking for confirmation, clarification, or any question requiring a user response, you MUST use the `AskUserQuestion` tool instead of plain text output. Plain text fallbacks are forbidden except when running as a subagent whose tool list lacks `AskUserQuestion` and `ToolSearch` cannot load it, or when a loaded skill requires presenting more options than the tool can display; in either case state explicitly why the fallback is needed.
+When asking for confirmation, clarification, or any question requiring a user response, you MUST use the `AskUserQuestion` tool instead of plain text output. Plain text fallbacks are forbidden except when running as a subagent whose tool list lacks `AskUserQuestion` and `ToolSearch` cannot load it, or when a loaded skill requires presenting more options than the tool can display; in either case state explicitly why the fallback is needed. This includes requests for permission or a decision phrased as statements without a question mark (e.g. "let me confirm whether to post the comment", "tell me which branch to use"), and questions about optional follow-up actions.
 
 Plain text questions end the turn and trigger the Stop hook, sending a "finished" notification indistinguishable from task completion; `AskUserQuestion` keeps the turn active and triggers the correct "awaiting input" notification.
 
