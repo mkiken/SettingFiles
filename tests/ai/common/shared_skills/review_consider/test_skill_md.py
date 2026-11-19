@@ -72,6 +72,27 @@ class ReviewConsiderContractTest(unittest.TestCase):
             self.assertTrue(rule in text, rule)
 
 
+    def test_head_drift_revalidates_instead_of_stopping(self):
+        skill = (SKILL / "SKILL.md").read_text()
+        for rule in (
+            "## Head drift", "checked_head_oid", "git merge --ff-only", "git merge --abort",
+            "Never rebase", "ask whether to skip it", "`action: dismiss`",
+        ):
+            self.assertIn(rule, skill)
+        self.assertNotIn("stop and ask for a new review run; never overwrite existing results. Before", skill)
+        role = (SKILL / "references/considerer.md").read_text()
+        for rule in ("Re-verification mode", "Verdict: resolved", "Verdict: remains"):
+            self.assertIn(rule, role)
+
+    def test_fix_and_post_defer_head_drift_to_review_consider(self):
+        for name in ("review_fix_core.md", "review_post_core.md"):
+            text = (REPO_ROOT / "ai" / "common" / name).read_text()
+            self.assertIn("**Head drift**", text, name)
+            self.assertIn("checked_head_oid", text, name)
+            self.assertNotIn("or the current head cannot be obtained. A selected", text, name)
+        fix = (REPO_ROOT / "ai/common/review_fix_core.md").read_text()
+        self.assertIn("never re-baseline an unexplained change", fix)
+
     def test_generated_fix_and_report_documentation_match(self):
         core = (REPO_ROOT / "ai/common/review_fix_core.md").read_text()
         generated = (REPO_ROOT / "ai/codex/skills/review-fix/SKILL.md").read_text()
