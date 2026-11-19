@@ -22,7 +22,11 @@ Stop and report instead of working around the problem:
 2. Collect candidates: the current branch, the default branch (`git symbolic-ref --short refs/remotes/origin/HEAD`), and the 2 most recently committed remote branches not already listed (`git branch -r --sort=-committerdate`), for at most 4 candidates.
 3. Pick one recommendation from the request: a branch or feature the request names, else the current branch when it is not the default branch, else the default branch.
 4. Derive `<type>/<kebab-slug>` (`feat`, `fix`, `refactor`, `docs`, `chore`) from the request. If the local or `origin` branch exists, append `-2`, `-3`, and so on.
-5. Ask once through the platform's user-confirmation mechanism: show the recommended parent first, then the other candidates, plus the branch name. The user corrects either through free-form input.
+5. Ask through the platform's user-confirmation mechanism in one call with two separate questions:
+   - Parent branch: the recommended parent first, then the other candidates.
+   - Branch name: the derived name first, plus one alternative derived name (e.g. a different type or shorter slug).
+
+   The user corrects either through that question's free-form input.
 
 Create the branch from the confirmed parent, not from the current `HEAD`:
 

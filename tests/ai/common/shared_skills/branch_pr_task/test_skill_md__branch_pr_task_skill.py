@@ -56,6 +56,15 @@ class BranchPrTaskContentTest(unittest.TestCase):
             self.content.index("git switch -c"),
         )
 
+    def test_parent_and_branch_name_are_asked_as_separate_questions(self):
+        section = self.content[
+            self.content.index("## Choose the parent branch") : self.content.index("git switch -c")
+        ]
+        for required in ("two separate questions", "- Parent branch:", "- Branch name:"):
+            with self.subTest(required=required):
+                self.assertIn(required, section)
+        self.assertNotIn("Ask once through", section)
+
     def test_confirmation_precedes_commit_push_and_pr(self):
         confirm_pos = self.content.index("## Confirm once")
         for step in ("git push -u origin", "gh pr create"):
