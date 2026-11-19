@@ -51,7 +51,7 @@ On a modification choice, collect the correction, re-display, and ask again. On 
 
 ### PR body
 
-Describe the final state at HEAD only; never trial and error. Keep it brief and lead with the conclusion. If `.github/PULL_REQUEST_TEMPLATE.md` exists, use its structure instead.
+Describe the final state at HEAD only; never trial and error. Keep it brief and lead with the conclusion. If `.github/PULL_REQUEST_TEMPLATE.md` exists, use its structure instead. If the PR is task-based, add the task link line to Summary as defined by the global instructions' Task-Based Pull Requests rule.
 
 ````markdown
 ## Summary
@@ -92,4 +92,4 @@ Verify independently: `git log -1`, `git ls-remote origin <branch>` equals the l
 
 ## Report
 
-Display the PR URL, then always display 「リマインド: PRのレビュワー設定を忘れないでください。」 Do not check whether reviewers are already assigned and do not offer to set them.
+Display the PR URL, then always display 「リマインド: PRのレビュワー設定を忘れないでください。」 Do not check whether reviewers are already assigned and do not offer to set them. If the PR is task-based, then ask whether to comment on the task per the global instructions' Task-Based Pull Requests rule.
