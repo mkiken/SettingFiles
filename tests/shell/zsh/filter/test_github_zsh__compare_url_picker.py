@@ -144,11 +144,11 @@ class GhCompareUrlBuildTest(unittest.TestCase):
         self.assertIn("OPEN https://github.com/owner/repo/compare/A...B", result.stderr)
 
 
-class FghCompareTest(unittest.TestCase):
-    """fgh-compare の3段選択・base以降絞り・キャンセル経路を検証する。"""
+class FghCompareBranchHashTest(unittest.TestCase):
+    """fgh-compare-branch-hash の3段選択・base以降絞り・キャンセル経路を検証する。"""
 
     def test_all_stages_selected_opens_compare_url(self):
-        result = run_zsh(f"{FAKE_PICKERS}\nfgh-compare")
+        result = run_zsh(f"{FAKE_PICKERS}\nfgh-compare-branch-hash")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn(
             "OPEN https://github.com/owner/repo/compare/aaa1111...bbb2222", result.stderr
@@ -157,7 +157,7 @@ class FghCompareTest(unittest.TestCase):
     def test_compare_stage_receives_base_range_scoped_to_branch(self):
         # compare候補を「同じブランチかつbaseより後」に絞る実装をピン留めする。
         # range引数が "<base>..<branch>" でなくなるとbase以前のコミットも候補に混ざる
-        result = run_zsh(f"{FAKE_PICKERS}\nfgh-compare")
+        result = run_zsh(f"{FAKE_PICKERS}\nfgh-compare-branch-hash")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("SELECT_COMMIT header=compare元", result.stderr)
         self.assertIn("rev=main", result.stderr)
@@ -169,35 +169,123 @@ class FghCompareTest(unittest.TestCase):
         # --verifyは単一revision専用でA..B形式が必ず失敗する。
         # compare段をそちらへ戻すとレンジ絞り込みが常に「ブランチが見つかりません」で死ぬため、
         # レンジ用の別ピッカーを使い続けることを固定する
-        result = run_zsh(f"{FAKE_PICKERS}\nfgh-compare")
+        result = run_zsh(f"{FAKE_PICKERS}\nfgh-compare-branch-hash")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertNotIn("rev=aaa1111..main", result.stderr)
 
     def test_branch_cancel_skips_commit_selection_and_open(self):
-        result = run_zsh(f"{FAKE_PICKERS}\nfgh-compare", extra_env={"FAKE_BRANCH": ""})
+        result = run_zsh(f"{FAKE_PICKERS}\nfgh-compare-branch-hash", extra_env={"FAKE_BRANCH": ""})
         self.assertEqual(result.returncode, 130)
         self.assertNotIn("SELECT_COMMIT", result.stderr)
         self.assertNotIn("OPEN", result.stderr)
 
     def test_base_cancel_skips_open(self):
         result = run_zsh(
-            f"{FAKE_PICKERS}\nfgh-compare", extra_env={"FAKE_BASE_HASH": ""}
+            f"{FAKE_PICKERS}\nfgh-compare-branch-hash", extra_env={"FAKE_BASE_HASH": ""}
         )
         self.assertEqual(result.returncode, 130)
         self.assertNotIn("OPEN", result.stderr)
 
     def test_compare_cancel_skips_open(self):
         result = run_zsh(
-            f"{FAKE_PICKERS}\nfgh-compare", extra_env={"FAKE_COMPARE_HASH": ""}
+            f"{FAKE_PICKERS}\nfgh-compare-branch-hash", extra_env={"FAKE_COMPARE_HASH": ""}
         )
         self.assertEqual(result.returncode, 130)
         self.assertNotIn("OPEN", result.stderr)
 
     def test_outside_git_repository_fails_before_pickers(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            result = run_zsh(f"{FAKE_PICKERS}\nfgh-compare", cwd=tmpdir)
+            result = run_zsh(f"{FAKE_PICKERS}\nfgh-compare-branch-hash", cwd=tmpdir)
         self.assertNotEqual(result.returncode, 0)
         self.assertNotIn("BR_ORG", result.stderr)
+        self.assertNotIn("OPEN", result.stderr)
+
+
+class FghCompareHashTest(unittest.TestCase):
+    """fgh-compare-hash がブランチを選ばずHEADの履歴から2段選択することを検証する。"""
+
+    def test_all_stages_selected_opens_compare_url(self):
+        result = run_zsh(f"{FAKE_PICKERS}\nfgh-compare-hash")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(
+            "OPEN https://github.com/owner/repo/compare/aaa1111...bbb2222", result.stderr
+        )
+
+    def test_pickers_are_scoped_to_head(self):
+        result = run_zsh(f"{FAKE_PICKERS}\nfgh-compare-hash")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("SELECT_COMMIT header=compare元", result.stderr)
+        self.assertIn("rev=HEAD", result.stderr)
+        self.assertIn("range=aaa1111..HEAD", result.stderr)
+
+    def test_does_not_ask_for_branch(self):
+        result = run_zsh(f"{FAKE_PICKERS}\nfgh-compare-hash")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("BR_ORG", result.stderr)
+
+    def test_base_cancel_skips_open(self):
+        result = run_zsh(
+            f"{FAKE_PICKERS}\nfgh-compare-hash", extra_env={"FAKE_BASE_HASH": ""}
+        )
+        self.assertEqual(result.returncode, 130)
+        self.assertNotIn("SELECT_RANGE", result.stderr)
+        self.assertNotIn("OPEN", result.stderr)
+
+    def test_compare_cancel_skips_open(self):
+        result = run_zsh(
+            f"{FAKE_PICKERS}\nfgh-compare-hash", extra_env={"FAKE_COMPARE_HASH": ""}
+        )
+        self.assertEqual(result.returncode, 130)
+        self.assertNotIn("OPEN", result.stderr)
+
+    def test_outside_git_repository_fails_before_pickers(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            result = run_zsh(f"{FAKE_PICKERS}\nfgh-compare-hash", cwd=tmpdir)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("SELECT_COMMIT", result.stderr)
+        self.assertNotIn("OPEN", result.stderr)
+
+
+class FghCompareBranchTest(unittest.TestCase):
+    """fgh-compare-branch がブランチ2つを選んでcompare urlを開くことを検証する。"""
+
+    # fgh-compare-branchはbr_fmtをコマンド置換（サブシェル）で呼ぶため、
+    # 呼び出し回数はシェル変数ではなくファイルで数え、base-br、cmp-brの順で返すfakeにする
+    FAKE_BR_FMT = '''
+EXIT_CODE_SIGINT=130
+br_fmt() {
+    local calls=$(( $(cat "$FAKE_BR_COUNTER" 2>/dev/null || echo 0) + 1 ))
+    echo "$calls" > "$FAKE_BR_COUNTER"
+    [[ -n "$FAKE_BR_CANCEL_AT" && "$calls" -eq "$FAKE_BR_CANCEL_AT" ]] && return 1
+    [[ "$calls" -eq 1 ]] && printf 'base-br' || printf 'cmp-br'
+}
+'''
+
+    def _run(self, cancel_at=None):
+        with tempfile.TemporaryDirectory() as counter_dir:
+            extra_env = {"FAKE_BR_COUNTER": os.path.join(counter_dir, "calls")}
+            if cancel_at is not None:
+                extra_env["FAKE_BR_CANCEL_AT"] = str(cancel_at)
+            return run_zsh(
+                f"{FAKE_PICKERS}\n{self.FAKE_BR_FMT}\nfgh-compare-branch",
+                extra_env=extra_env,
+            )
+
+    def test_opens_compare_url_between_two_branches(self):
+        result = self._run()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(
+            "OPEN https://github.com/owner/repo/compare/base-br...cmp-br", result.stderr
+        )
+
+    def test_first_cancel_skips_open(self):
+        result = self._run(cancel_at=1)
+        self.assertEqual(result.returncode, 130)
+        self.assertNotIn("OPEN", result.stderr)
+
+    def test_second_cancel_skips_open(self):
+        result = self._run(cancel_at=2)
+        self.assertEqual(result.returncode, 130)
         self.assertNotIn("OPEN", result.stderr)
 
 

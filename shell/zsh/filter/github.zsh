@@ -1,13 +1,15 @@
 #!/bin/zsh
 
-# ブランチを指定してGitHubのcompare urlを開く
-function fgh_compare_url(){
-  local base=`br_fmt`
+# ブランチ同士を選んでGitHubのcompare urlを開く
+function fgh-compare-branch(){
+  # `local x=$(cmd)` は $? が localの終了コード(常に0)になりキャンセルを検出できないため、宣言と代入を分ける
+  local base compare
+  base=`br_fmt`
 	if test $? -ne 0
 	then
 		return $EXIT_CODE_SIGINT
 	fi
-  local compare=`br_fmt`
+  compare=`br_fmt`
 	if test $? -ne 0
 	then
 		return $EXIT_CODE_SIGINT
@@ -52,11 +54,37 @@ function _select_commit_hash_in_range() {
   _extract_commit_hash "$selected_commit"
 }
 
+# 指定revisionの履歴からbase -> compareの順にコミットをfilterで選び、GitHubのcompare urlを開く
+# 引数1: コミット候補を取るrevision（ブランチ名やHEAD）
+# compare候補は「同じrevisionかつbaseより後」のコミットのみ（git logのA..Bレンジで絞る）
+function _fgh_compare_commits() {
+  local rev="$1"
+
+  local base_hash
+  base_hash=$(_select_commit_hash "compare元(base)のコミットを選択してください" 200 "$rev")
+  local base_status=$?
+  if [[ $base_status -ne 0 ]] || [[ -z "$base_hash" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  # baseは A..B レンジに含まれないため、compare == base の無意味な比較は候補から自然に外れる
+  local compare_hash
+  compare_hash=$(_select_commit_hash_in_range "compare先のコミットを選択してください" "${base_hash}..${rev}" 200)
+  local compare_status=$?
+  if [[ $compare_status -ne 0 ]] || [[ -z "$compare_hash" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  local url
+  url=$(_gh_compare_url_build "$base_hash" "$compare_hash") || return $?
+
+  save_history open "$url"
+}
+
 # ブランチとコミットをfilterで選び、GitHubのcompare urlをブラウザで開く
 # 選択は3段: ブランチ -> base コミット -> compare コミット
-# compare候補は「同じブランチかつbaseより後」のコミットのみ（git logのA..Bレンジで絞る）
-# 異ブランチ間の比較はfgh_compare_url（ブランチ同士の比較）を使う
-function fgh-compare() {
+# 現在のHEADの履歴から選ぶ場合はfgh-compare-hash、ブランチ同士の比較はfgh-compare-branchを使う
+function fgh-compare-branch-hash() {
   if ! git rev-parse --git-dir > /dev/null 2>&1; then
     echo "エラー: 現在のディレクトリはgitリポジトリではありません" >&2
     return 1
@@ -68,27 +96,19 @@ function fgh-compare() {
     return $EXIT_CODE_SIGINT
   fi
 
-  local base_hash
-  base_hash=$(_select_commit_hash "compare元(base)のコミットを選択してください" 200 "$branch")
-  local base_status=$?
-  if [[ $base_status -ne 0 ]] || [[ -z "$base_hash" ]]; then
-    return $EXIT_CODE_SIGINT
-  fi
-
-  # baseは A..B レンジに含まれないため、compare == base の無意味な比較は候補から自然に外れる
-  local compare_hash
-  compare_hash=$(_select_commit_hash_in_range "compare先のコミットを選択してください" "${base_hash}..${branch}" 200)
-  local compare_status=$?
-  if [[ $compare_status -ne 0 ]] || [[ -z "$compare_hash" ]]; then
-    return $EXIT_CODE_SIGINT
-  fi
-
-  local url
-  url=$(_gh_compare_url_build "$base_hash" "$compare_hash") || return $?
-
-  save_history open "$url"
+  _fgh_compare_commits "$branch"
 }
-alias fghcmp='fgh-compare'
+
+# 現在のHEADの履歴からコミットをfilterで選び、GitHubのcompare urlをブラウザで開く
+# 選択は2段: base コミット -> compare コミット（ブランチは選ばない）
+function fgh-compare-hash() {
+  if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    echo "エラー: 現在のディレクトリはgitリポジトリではありません" >&2
+    return 1
+  fi
+
+  _fgh_compare_commits HEAD
+}
 
 # マージ先のブランチ名を表示するPR一覧
 # 先頭の --label-prefix <文字列> はここで剥がしてfilterのpromptへ渡し、

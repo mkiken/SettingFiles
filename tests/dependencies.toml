@@ -65,7 +65,7 @@
   "tests/ai/codex/skills/config_audit/test_skill_head_md__dispatch_contract.py",
 ]
 
-# _gh_compare_url_build は gh.zsh にあるが、テストはエントリポイントの fgh-compare
+# _gh_compare_url_build は gh.zsh にあるが、テストはエントリポイントの fgh-compare-*
 # (github.zsh) 側にまとめている。gh.zsh 単独変更では
 # tests/shell/zsh/alias/test_gh_zsh.py を探して0件になるため明示する。
 "shell/zsh/alias/gh.zsh" = [
