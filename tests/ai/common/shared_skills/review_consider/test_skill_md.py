@@ -100,6 +100,16 @@ class ReviewConsiderContractTest(unittest.TestCase):
         doc = (REPO_ROOT / ".claude/skills/ai-prompt-generation/references/report-servers.md").read_text()
         self.assertTrue("review-consider" in doc and "action" in doc)
 
+    def test_others_pr_excludes_fix_by_default(self):
+        skill = (SKILL / "SKILL.md").read_text()
+        for rule in (
+            "`pr_author`", "gh api user --jq .login", "ask the user once whether this is their own PR",
+            "never recommend or offer `fix`", "only when the user explicitly asks for a fix",
+        ):
+            self.assertIn(rule, skill)
+        role = (SKILL / "references/considerer.md").read_text()
+        self.assertIn("Ownership `others`: recommend only `post` or `dismiss`", role)
+
 
 if __name__ == "__main__":
     unittest.main()
