@@ -84,7 +84,7 @@ _gh_compare_url_build() {
 # 引数の2リビジョンを比較するGitHubのcompare urlを開く
 gh_compare_url() {
   if [ $# -ne 2 ]; then
-    echo "Usage: git_compare_url BASE COMPARE"
+    echo "Usage: gh_compare_url BASE COMPARE"
     return 1
   fi
 
