@@ -45,6 +45,15 @@ class PrCommentImplementBatchContractTest(unittest.TestCase):
                 self.assertIn(contract, text)
         self.assertNotIn("out of scope", text)
 
+    def test_bot_review_body_without_finding_is_dropped(self):
+        text = " ".join((SKILL / "SKILL.md").read_text().split())
+        for contract in (
+            "carries no finding of its own", "Keep it when unsure",
+            "除外: bot通知本文",
+        ):
+            with self.subTest(contract=contract):
+                self.assertIn(contract, text)
+
     def test_referenced_sections_still_exist(self):
         self.assertIn("Decide whether the comment should be acted on", ANALYSIS.read_text())
         finalization = FINALIZATION.read_text()

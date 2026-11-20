@@ -35,7 +35,11 @@ say the list is truncated and handle what was fetched.
 Review bodies: query GraphQL `reviews(first:100){nodes{author{login
 __typename} body submittedAt url}}`. Keep those whose body, after removing HTML
 comments (`<!-- ... -->`) and trimming, is non-empty and whose ROLE is not
-`self`.
+`self`. Also drop a ROLE `bot` review body that carries no finding of its own:
+a review notice, change summary, usage or configuration tips, a pointer to its
+inline comments, or only findings repeated in that review's inline threads.
+Keep it when unsure. Do not number dropped bodies; after the list, print one
+line `除外: bot通知本文 N件（@login, ...）`.
 
 Issue comments: `gh api repos/{owner}/{repo}/issues/{n}/comments --paginate`.
 Keep only ROLE `other` (exclude `bot` and `self`).
