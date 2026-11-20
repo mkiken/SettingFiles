@@ -153,9 +153,9 @@ class PrFindingsHandoffTest(unittest.TestCase):
             with self.subTest(requirement=requirement):
                 self.assertIn(requirement, self.section)
 
-    def test_section_skips_review_without_findings(self):
+    def test_section_skips_reviews(self):
         self.assertIn(
-            "the results are a review (any review skill or ad-hoc review) with no findings to act on",
+            "the results are a review (any review skill or ad-hoc review), with or without findings",
             self.section,
         )
 

@@ -40,7 +40,7 @@ Perform the selected git action, then continue to PR Findings Handoff.
 
 ## PR Findings Handoff
 
-Run when this session verified or investigated a specific GitHub PR and produced results worth sharing, even if the Post-Implementation Workflow was skipped, and even if a PR skill already asked about posting or editing. Skip when no PR is identified, there are no results, or the results are a review (any review skill or ad-hoc review) with no findings to act on.
+Run when this session verified or investigated a specific GitHub PR and produced results worth sharing, even if the Post-Implementation Workflow was skipped, and even if a PR skill already asked about posting or editing. Skip when no PR is identified, there are no results, or the results are a review (any review skill or ad-hoc review), with or without findings.
 
 1. Determine ownership: compare `gh pr view <PR> --repo <owner/repo> --json author --jq .author.login` with `gh api user --jq .login`. If either value is unavailable, ask the user once whether it is their own PR.
 2. Draft the findings: conclusion, steps or commands run, results, and unverified items. Exclude secrets and real private data.
