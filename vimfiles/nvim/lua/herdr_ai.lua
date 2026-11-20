@@ -4,6 +4,14 @@ local M = {}
 
 local AI_AGENTS = { claude = true, codex = true, gemini = true }
 
+-- 同タブに AI ペインが無いときの起動候補。新ペインの対話 zsh でそのまま実行されるため、
+-- エイリアスに引数を足してモデルや effort を固定した行も書ける。
+M.launch_commands = {
+  "clo", "cls", "clf", "clh", "cloeh", "clseh", "cleh", "clmx",
+  "cxs", "cxa", "cxt", "cxl", "cxeh", "cxteh", "cxmx",
+  "gmf", "gmp", "gmmx",
+}
+
 local function herdr_bin()
   return vim.env.HERDR_BIN_PATH or "herdr"
 end
@@ -51,12 +59,7 @@ local function display_path(abs_path, pane_cwd)
   return abs_path
 end
 
-local function send(pane, line_spec)
-  local abs_path = vim.api.nvim_buf_get_name(0)
-  if abs_path == "" then
-    err("ファイルに保存されていないバッファです")
-    return
-  end
+local function send(pane, line_spec, abs_path)
   local text = display_path(abs_path, pane.cwd) .. (line_spec or "") .. " "
   -- send-text は <pane_id> <text> の2引数固定で `--` を解釈しない。Enter は送らない。
   local out = vim.system({ herdr_bin(), "pane", "send-text", pane.pane_id, text }, { text = true }):wait()
@@ -65,20 +68,51 @@ local function send(pane, line_spec)
   end
 end
 
+local function launch_script()
+  local base = vim.env.SET or (vim.env.HOME .. "/Desktop/repository/SettingFiles")
+  return vim.fs.joinpath(base, "shell/herdr/herdr-ai-launch.sh")
+end
+
+-- 右ペインで cmd を起動して入力待ちになるまで待ち、そのペインへ参照を送る。
+-- 最大 ~85s かかるため非同期で実行し、nvim の操作を止めない。
+local function launch_and_send(cmd, cwd, line_spec, abs_path)
+  vim.notify("herdr_ai: 起動中: " .. cmd)
+  vim.system({ launch_script(), vim.env.HERDR_PANE_ID, cwd, cmd }, { text = true }, function(out)
+    vim.schedule(function()
+      if out.code ~= 0 then
+        local msg = vim.trim(out.stderr or "")
+        err(msg ~= "" and msg or ("AI ペインの起動に失敗しました: " .. cmd))
+        return
+      end
+      send({ pane_id = vim.trim(out.stdout), cwd = cwd }, line_spec, abs_path)
+    end)
+  end)
+end
+
 local function with_target_pane(line_spec_fn)
   local panes, e = find_ai_panes()
   if not panes then
     err(e)
     return
   end
-  if #panes == 0 then
-    err("同じタブに AI ペイン (claude/codex/gemini) がありません")
+  -- 選択範囲とバッファは選択ダイアログ表示前に確定させる (ダイアログがモードや現在バッファを変えるため)。
+  local abs_path = vim.api.nvim_buf_get_name(0)
+  if abs_path == "" then
+    err("ファイルに保存されていないバッファです")
     return
   end
-  -- 選択範囲は選択ダイアログ表示前に確定させる (ダイアログがモードを変えるため)。
   local line_spec = line_spec_fn()
+  if #panes == 0 then
+    local cwd = vim.fn.getcwd()
+    vim.ui.select(M.launch_commands, { prompt = "AI ペインが無いため起動する CLI" }, function(cmd)
+      if cmd then
+        launch_and_send(cmd, cwd, line_spec, abs_path)
+      end
+    end)
+    return
+  end
   if #panes == 1 then
-    send(panes[1], line_spec)
+    send(panes[1], line_spec, abs_path)
     return
   end
   vim.ui.select(panes, {
@@ -88,7 +122,7 @@ local function with_target_pane(line_spec_fn)
     end,
   }, function(choice)
     if choice then
-      send(choice, line_spec)
+      send(choice, line_spec, abs_path)
     end
   end)
 end
