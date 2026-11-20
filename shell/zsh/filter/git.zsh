@@ -1079,19 +1079,71 @@ function _herdr_active_pane_repo_root() {
   print -r -- "$repo_root"
 }
 
-# Usage: _herdr_pick_worktree_target [--current-repo]
+# 選択worktreeでPRを選び、そのheadブランチをcheckoutして、開くべきworktreeパスをstdoutへ返す
+# headブランチが選択worktree以外で既にcheckout済みなら、checkoutせずそのworktreeを返す
+# （git は同一ブランチの複数worktreeを許さず gh pr checkout が失敗するため）
+# 失敗時のメッセージはstderr、キャンセルは $EXIT_CODE_SIGINT
+# 引数: worktree_path
+function _herdr_checkout_pr_in_worktree() {
+  local worktree_path="$1"
+
+  local pr_number
+  pr_number=$(cdq "$worktree_path" && _fgh_select_pr_number --label-prefix checkout)
+  if [[ $? -ne 0 ]] || [[ -z "$pr_number" ]]; then
+    return $EXIT_CODE_SIGINT
+  fi
+
+  local head_branch
+  head_branch=$(cdq "$worktree_path" && gh pr view "$pr_number" --json headRefName -q .headRefName)
+  if [[ $? -ne 0 ]] || [[ -z "$head_branch" ]]; then
+    echo "PR #${pr_number} のheadブランチを取得できませんでした" >&2
+    return 1
+  fi
+
+  local line cur_wt holder=""
+  while IFS= read -r line; do
+    case "$line" in
+      "worktree "*) cur_wt="${line#worktree }" ;;
+      "branch refs/heads/${head_branch}") holder="$cur_wt"; break ;;
+    esac
+  done < <(git -C "$worktree_path" worktree list --porcelain 2>/dev/null)
+
+  if [[ -n "$holder" ]] && [[ "${holder:A}" != "${worktree_path:A}" ]]; then
+    echo "${head_branch} は ${holder} でcheckout済みのため、そのworktreeを開きます" >&2
+    print -r -- "$holder"
+    return 0
+  fi
+
+  _freview_resolve_dirty_state "$worktree_path" >&2 || return $?
+
+  ( cdq "$worktree_path" && gh pr checkout "$pr_number" >&2 ) || {
+    echo "gh pr checkout ${pr_number} に失敗しました: ${worktree_path}" >&2
+    return 1
+  }
+  print -r -- "$worktree_path"
+}
+
+# Usage: _herdr_pick_worktree_target [--current-repo] [--pr]
 # 引数なし: zoxide履歴からリポジトリ→worktreeの2段階選択（prefix+shift+f）
 # --current-repo: popupの発火元pane（HERDR_ACTIVE_PANE_CWD）が属するリポジトリの
 #   worktreeだけを対象にする（prefix+ctrl+f）。発火元がgitリポジトリ外なら
 #   zoxide経由の2段階選択にフォールバックする。
+# --pr: worktree選択後にPRを選び、そのブランチをcheckoutしてから開く（prefix+ctrl+shift+f）。
+#   PRのheadブランチが選択worktree以外で既にcheckout済みなら、checkoutせずそのworktreeを開く。
 function _herdr_pick_worktree_target() {
   local current_repo=false
-  if [[ "${1:-}" == "--current-repo" ]]; then
-    current_repo=true
-  elif [[ $# -gt 0 ]]; then
-    echo "Usage: _herdr_pick_worktree_target [--current-repo]" >&2
-    return 2
-  fi
+  local pr_mode=false
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --current-repo) current_repo=true ;;
+      --pr) pr_mode=true ;;
+      *)
+        echo "Usage: _herdr_pick_worktree_target [--current-repo] [--pr]" >&2
+        return 2
+        ;;
+    esac
+    shift
+  done
 
   if [[ "$(_ai_multiplexer_kind)" != "herdr" ]]; then
     echo "Herdr popup内で実行してください" >&2
@@ -1119,6 +1171,10 @@ function _herdr_pick_worktree_target() {
   local worktree_path="${selection#*$'\t'}"
   if [[ -z "$worktree_path" ]] || [[ "$worktree_path" == "$selection" ]]; then
     return $EXIT_CODE_SIGINT
+  fi
+
+  if $pr_mode; then
+    worktree_path=$(_herdr_checkout_pr_in_worktree "$worktree_path") || return $?
   fi
 
   case "$action" in

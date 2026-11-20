@@ -93,6 +93,14 @@ width = "90%"
 height = "90%"
 
 [[keys.command]]
+key = "prefix+ctrl+shift+f"
+type = "popup"
+command = "$HOME/.herdr/scripts/herdr-popup-run.sh zsh -ilc \"_herdr_pick_worktree_target --current-repo --pr\""
+description = "current repo worktree -> PR checkout: Enter workspace, Ctrl-O tab, C-s down split, C-v right split"
+width = "90%"
+height = "90%"
+
+[[keys.command]]
 key = "prefix+ctrl+r"
 type = "popup"
 command = "$HOME/.herdr/scripts/herdr-popup-run.sh zsh -ilc \"freview\""

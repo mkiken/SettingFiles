@@ -30,6 +30,7 @@ class RepositoryWorktreeTest(unittest.TestCase):
         self.tmux_log = self.root / "tmux.log"
         self.herdr_log = self.root / "herdr.log"
         self.filter_args_log = self.root / "filter-args.log"
+        self.gh_log = self.root / "gh.log"
         self._write_fake_commands()
 
     def tearDown(self):
@@ -53,6 +54,9 @@ class RepositoryWorktreeTest(unittest.TestCase):
             "  [ \"${FWT_NOT_A_REPO:-}\" = 1 ] && exit 128\n"
             "  printf '%s\\n' \"$FWT_REPO\"\n"
             "  exit 0\n"
+            "fi\n"
+            "if [ \"$1\" = -C ] && [ \"$3\" = worktree ] && [ \"$4\" = list ]; then\n"
+            "  shift 2\n"
             "fi\n"
             "if [ \"$1\" = worktree ] && [ \"$2\" = list ]; then\n"
             "  [ \"${FWT_NO_WORKTREE_OUTPUT:-}\" = 1 ] && exit 0\n"
@@ -101,6 +105,19 @@ class RepositoryWorktreeTest(unittest.TestCase):
             "fi\n",
         )
         self._write_executable(
+            "gh",
+            "#!/bin/sh\n"
+            "printf '%s|%s\\n' \"$PWD\" \"$*\" >> \"$FWT_GH_LOG\"\n"
+            "if [ \"$1 $2\" = 'pr view' ]; then\n"
+            "  printf '%s\\n' \"${FWT_PR_HEAD:-feature}\"\n"
+            "  exit 0\n"
+            "fi\n"
+            "if [ \"$1 $2\" = 'pr checkout' ]; then\n"
+            "  exit \"${FWT_GH_CHECKOUT_RC:-0}\"\n"
+            "fi\n"
+            "exit 0\n",
+        )
+        self._write_executable(
             "tmux",
             "#!/bin/sh\nprintf '%s\\n' \"$@\" >> \"$FWT_TMUX_LOG\"\n"
             "if [ \"$1\" = new-session ]; then\n"
@@ -146,9 +163,13 @@ class RepositoryWorktreeTest(unittest.TestCase):
         return trap
 
     def run_repository_worktree(
-        self, command="repository-worktree", *args, tmux=False, herdr=False, extra_env=None
+        self, command="repository-worktree", *args, tmux=False, herdr=False, extra_env=None,
+        prelude="",
     ):
-        for path in (self.root / "filter-count", self.filter_args_log, self.tmux_log, self.herdr_log):
+        for path in (
+            self.root / "filter-count", self.filter_args_log, self.tmux_log, self.herdr_log,
+            self.gh_log,
+        ):
             if path.exists():
                 path.unlink()
         env = sanitized_env({
@@ -161,6 +182,7 @@ class RepositoryWorktreeTest(unittest.TestCase):
             "FWT_FILTER_ARGS": str(self.filter_args_log),
             "FWT_TMUX_LOG": str(self.tmux_log),
             "FWT_HERDR_LOG": str(self.herdr_log),
+            "FWT_GH_LOG": str(self.gh_log),
             "TMUX": "",
             "HERDR_ENV": "",
             **({"TMUX": "test-client"} if tmux else {}),
@@ -181,6 +203,7 @@ class RepositoryWorktreeTest(unittest.TestCase):
             }}
             chpwd() {{ [[ -z "$_CDQ_QUIET" ]] && _chpwd_noise; }}
             save_history() {{ "$@"; }}
+            {prelude}
             eval {command_line!r}
             exit_code=$?
             print -r -- "__STATUS=$exit_code"
@@ -205,6 +228,9 @@ class RepositoryWorktreeTest(unittest.TestCase):
 
     def herdr_calls(self):
         return self.herdr_log.read_text().splitlines() if self.herdr_log.exists() else []
+
+    def gh_calls(self):
+        return self.gh_log.read_text().splitlines() if self.gh_log.exists() else []
 
     def filter_args(self):
         return self.filter_args_log.read_text().splitlines() if self.filter_args_log.exists() else []
@@ -504,6 +530,77 @@ class RepositoryWorktreeTest(unittest.TestCase):
         calls = self.herdr_calls()
         self.assertEqual(len(calls), 1, calls)
         self.assertIn("tab create", calls[0])
+
+    # --pr: PR選択 -> checkout -> 開く。PRピッカーとdirty判定はスタブし、ghはPATH上のfakeで記録する
+    PR_PRELUDE = (
+        '_fgh_select_pr_number() { [[ -n "$FWT_PR_CANCEL" ]] && return 0; print -r -- 42; }\n'
+        "_freview_resolve_dirty_state() { return 0; }"
+    )
+
+    def run_pr_picker(self, command="_herdr_pick_worktree_target --current-repo --pr", extra_env=None):
+        return self.run_repository_worktree(
+            command, herdr=True, prelude=self.PR_PRELUDE,
+            extra_env={"FWT_FILTER_EXPECT_KEY": "ctrl-o", "FWT_PR_CANCEL": "", **(extra_env or {})},
+        )
+
+    def test_pr_mode_checks_out_the_pr_in_the_selected_worktree_then_opens_it(self):
+        result, values = self.run_pr_picker()
+
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        checkouts = [c for c in self.gh_calls() if "pr checkout" in c]
+        self.assertEqual(len(checkouts), 1, self.gh_calls())
+        self.assertTrue(checkouts[0].endswith("|pr checkout 42"), checkouts)
+        self.assertEqual(Path(checkouts[0].split("|")[0]).resolve(), self.worktree.resolve())
+        calls = self.herdr_calls()
+        self.assertEqual(len(calls), 1, calls)
+        self.assertIn("tab create", calls[0])
+        self.assertIn(f"--cwd {self.worktree}", calls[0])
+
+    def test_pr_mode_opens_the_worktree_already_holding_the_head_branch_without_checkout(self):
+        result, values = self.run_pr_picker(extra_env={"FWT_PR_HEAD": "main"})
+
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        self.assertEqual([c for c in self.gh_calls() if "pr checkout" in c], [])
+        calls = self.herdr_calls()
+        self.assertEqual(len(calls), 1, calls)
+        self.assertIn(f"--cwd {self.repo}", calls[0])
+        self.assertIn("checkout済み", result.stderr)
+
+    def test_pr_mode_checks_out_when_the_selected_worktree_already_holds_the_head_branch(self):
+        result, values = self.run_pr_picker(extra_env={"FWT_PR_HEAD": "feature"})
+
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        self.assertEqual(len([c for c in self.gh_calls() if "pr checkout" in c]), 1)
+        self.assertIn(f"--cwd {self.worktree}", self.herdr_calls()[0])
+
+    def test_pr_mode_cancelled_pr_picker_neither_checks_out_nor_opens(self):
+        result, values = self.run_pr_picker(extra_env={"FWT_PR_CANCEL": "1"})
+
+        self.assertEqual(values["__STATUS"], "130", result.stderr)
+        self.assertEqual([c for c in self.gh_calls() if "pr checkout" in c], [])
+        self.assertEqual(self.herdr_calls(), [])
+
+    def test_pr_mode_failed_checkout_does_not_open_the_worktree(self):
+        result, values = self.run_pr_picker(extra_env={"FWT_GH_CHECKOUT_RC": "1"})
+
+        self.assertEqual(values["__STATUS"], "1", result.stderr)
+        self.assertIn("gh pr checkout 42 に失敗しました", result.stderr)
+        self.assertEqual(self.herdr_calls(), [])
+
+    def test_pr_mode_accepts_flags_in_any_order(self):
+        result, values = self.run_pr_picker("_herdr_pick_worktree_target --pr --current-repo")
+
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        self.assertEqual(len([c for c in self.gh_calls() if "pr checkout" in c]), 1)
+
+    def test_without_pr_flag_gh_is_never_called(self):
+        result, values = self.run_repository_worktree(
+            "_herdr_pick_worktree_target --current-repo", herdr=True,
+            extra_env={"FWT_FILTER_EXPECT_KEY": "ctrl-o"},
+        )
+
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        self.assertEqual(self.gh_calls(), [])
 
     def test_popup_picker_rejects_unknown_arguments(self):
         result, values = self.run_repository_worktree(
