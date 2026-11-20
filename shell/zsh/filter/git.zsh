@@ -816,6 +816,27 @@ function _filter_truncate_middle() {
   print -r -- "${head_part}…${tail_part}"
 }
 
+# worktree picker用: 候補行へPR番号を差し込むshスクリプト本文をstdoutへ出す
+# 環境変数 _WT_PR_LIST（候補行をタブ区切りで改行連結したもの）を読み、
+# 第4列(ブランチ)がopen PRのheadブランチと一致する行の表示列末尾へ「  #番号」を付けて全行を出力する
+# gh失敗・PR0件でもawkは元の行をそのまま出力する（stdinが空でも壊れない）
+# fzfの `reload-sync(...)` 内では括弧が解釈されうるため、本文は環境変数に載せて eval で実行する
+function _filter_worktree_pr_reload_script() {
+  cat <<'EOF'
+gh pr list --state open --limit 200 --json number,headRefName --jq '.[] | "\(.headRefName)\t\(.number)"' 2>/dev/null |
+awk -F'\t' '
+  { pr[$1] = $2 }
+  END {
+    n = split(ENVIRON["_WT_PR_LIST"], rows, "\n")
+    for (i = 1; i <= n; i++) {
+      split(rows[i], f, "\t")
+      if (f[4] != "" && (f[4] in pr)) print f[1] "  #" pr[f[4]] substr(rows[i], length(f[1]) + 1)
+      else print rows[i]
+    }
+  }'
+EOF
+}
+
 # `git worktree list --porcelain` からworktree（メインリポジトリ含む）をfilterで選択する内部関数
 # Gitのworktree情報だけで完結する
 # 表示は「ディレクトリ名 + ブランチ名」の2列（detachedの場合は短縮SHA）、フルパスはタブ区切りで保持する
@@ -909,8 +930,16 @@ function _filter_git_worktree_path() {
   local worktrees
   worktrees=${(F)lines}
 
+  # target-picker時のみ、即表示した後にgh pr listの結果でPR番号付きの一覧へ差し替える
+  # （unbind(load)で初回ロード完了時の1回だけ実行。取得中も初期リストで選択できる）
   local -a filter_args=()
-  $target_picker && filter_args=(--expect=ctrl-o,ctrl-s,ctrl-v)
+  local -x _WT_PR_LIST="" _WT_PR_SCRIPT=""
+  if $target_picker; then
+    _WT_PR_LIST="$worktrees"
+    _WT_PR_SCRIPT=$(_filter_worktree_pr_reload_script)
+    filter_args=(--expect=ctrl-o,ctrl-s,ctrl-v \
+      --bind 'load:reload-sync(eval "$_WT_PR_SCRIPT")+unbind(load)')
+  fi
 
   local selected
   selected=$(print -r -- "$worktrees" | filter \
