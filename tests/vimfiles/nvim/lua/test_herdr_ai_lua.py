@@ -212,7 +212,7 @@ class HerdrAiTest(unittest.TestCase):
             calls[0], f"pane split --pane {SELF_PANE} --direction right --ratio 0.5 --focus --cwd {self.project}"
         )
         self.assertIn("pane run wX3:p9 cxs", calls)
-        self.assertEqual(calls[-1], "agent wait wX3:p9 --until idle --timeout 60000")
+        self.assertEqual(calls[-1], "agent wait wX3:p9 --until idle --until done --timeout 60000")
         self.assertEqual(self.sent(), ["wX3:p9|sub/file.lua:12 "])
 
     def test_no_ai_pane_launch_keeps_selection_made_before_the_dialog(self):

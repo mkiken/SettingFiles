@@ -28,10 +28,25 @@ _herdr_wait_shell_ready "$new" || exit 1
 
 herdr pane run "$new" "$command" >/dev/null
 
-# pane runの末尾欠落でCLIが起動しなかった場合もここで検出する
-if ! herdr agent wait "$new" --until idle --timeout 60000 >/dev/null 2>&1; then
-  echo "herdr ai launch: ${command} の入力待ちを確認できませんでした (pane_id=${new})" >&2
-  exit 1
-fi
+# CLIがAIとして検出される前の agent wait は agent_not_found で即失敗する。
+# 検出されるまで再試行し、検出後の入力待ちは herdr 側のタイムアウトに任せる。
+# pane runの末尾欠落でCLIが起動しなかった場合も、検出されないままここで失敗する。
+# blocked（起動時の確認ダイアログ等）は待ち条件に含めず、そこへは送信しない。
+# 待ち時間の環境変数はテストが待ちを潰すための上書き用（既定は本番値）。
+poll_interval="${HERDR_AI_LAUNCH_POLL_INTERVAL:-0.3}"
+detect_seconds="${HERDR_AI_LAUNCH_DETECT_SECONDS:-30}"
+detect_start=$SECONDS
+while true; do
+  if wait_out=$(herdr agent wait "$new" --until idle --until done --timeout 60000 2>&1); then
+    break
+  fi
+  code=$(jq -r '.error.code // empty' <<<"$wait_out" 2>/dev/null || true)
+  if [[ "$code" != "agent_not_found" ]] || (( SECONDS - detect_start >= detect_seconds )); then
+    detail=$(jq -r '(.error // {}) | "\(.code // "unknown"): \(.message // "")"' <<<"$wait_out" 2>/dev/null || echo "$wait_out")
+    echo "herdr ai launch: ${command} の入力待ちを確認できませんでした (pane_id=${new}): ${detail}" >&2
+    exit 1
+  fi
+  sleep "$poll_interval"
+done
 
 echo "$new"
