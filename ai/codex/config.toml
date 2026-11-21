@@ -3,6 +3,7 @@ approval_policy = 'on-request'
 sandbox_mode = 'danger-full-access'
 plan_mode_reasoning_effort = 'high'
 suppress_unstable_features_warning = true
+model_reasoning_effort = "medium"
 
 [shell_environment_policy]
 # Codex-spawned shell commands inherit this so notify() suppresses macOS notifications during AI runs.
@@ -31,3 +32,20 @@ status_line_use_colors = true
 
 [tui.model_availability_nux]
 'gpt-5.5' = 4
+
+[hooks]
+
+[marketplaces]
+
+[marketplaces.ponytail]
+source_type = "git"
+source = "https://github.com/DietrichGebert/ponytail.git"
+
+[plugins]
+
+[plugins.'superpowers@openai-curated']
+enabled = true
+
+[plugins."ponytail@ponytail"]
+enabled = true
+
