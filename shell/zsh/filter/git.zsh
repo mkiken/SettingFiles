@@ -818,7 +818,8 @@ function _filter_truncate_middle() {
 
 # worktree picker用: 候補行へPR番号を差し込むshスクリプト本文をstdoutへ出す
 # 環境変数 _WT_PR_LIST（候補行をタブ区切りで改行連結したもの）を読み、
-# 第4列(ブランチ)がopen PRのheadブランチと一致する行の表示列末尾へ「  #番号」を付けて全行を出力する
+# 第4列(ブランチ)がopen PRのheadブランチと一致する行は、表示列のブランチ名の直前へ「#番号 」を挿入して全行を出力する
+# （末尾だと長いブランチ名のfzf切り詰めで番号が隠れるため）
 # gh失敗・PR0件でもawkは元の行をそのまま出力する（stdinが空でも壊れない）
 # fzfの `reload-sync(...)` 内では括弧が解釈されうるため、本文は環境変数に載せて eval で実行する
 function _filter_worktree_pr_reload_script() {
@@ -830,7 +831,7 @@ awk -F'\t' '
     n = split(ENVIRON["_WT_PR_LIST"], rows, "\n")
     for (i = 1; i <= n; i++) {
       split(rows[i], f, "\t")
-      if (f[4] != "" && (f[4] in pr)) print f[1] "  #" pr[f[4]] substr(rows[i], length(f[1]) + 1)
+      if (f[4] != "" && (f[4] in pr)) print substr(f[1], 1, length(f[1]) - length(f[4])) "#" pr[f[4]] " " f[4] substr(rows[i], length(f[1]) + 1)
       else print rows[i]
     }
   }'
@@ -896,10 +897,10 @@ function _filter_git_worktree_path() {
       END { flush() }')
 
   # 端末幅からリスト側に使える幅を見積もる
-  # プレビューが右50%を占め、fzfのポインタ/マーカーで約4桁消費する前提
+  # プレビューが右35%を占め、fzfのポインタ/マーカーで約4桁消費する前提
   local term_cols list_cols name_col_max
   term_cols=$(_filter_terminal_columns)
-  list_cols=$(( term_cols / 2 - 4 ))
+  list_cols=$(( term_cols * 65 / 100 - 4 ))
   (( list_cols < 24 )) && list_cols=24
   # ディレクトリ名(左列)はリスト幅の35%を上限とし、残りをブランチ列に確保する
   name_col_max=$(( list_cols * 35 / 100 ))
@@ -949,7 +950,7 @@ function _filter_git_worktree_path() {
     --delimiter $'\t' \
     --with-nth 1 \
     --preview 'printf "worktree: %s\nブランチ: %s\nパス: %s\n\n" {3} {4} {2}; git -C {2} log --oneline --color=always -10 2>/dev/null || echo "プレビュー取得失敗"' \
-    --preview-window=right:50%:wrap \
+    --preview-window=right:35%:wrap \
     "${filter_args[@]}")
 
   if [[ -z "$selected" ]]; then

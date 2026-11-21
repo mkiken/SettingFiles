@@ -355,7 +355,7 @@ class FilterArgsTest(unittest.TestCase):
             + "_filter_git_worktree_path --target-picker"
         )
         result = run_zsh(snippet, columns=120)
-        self.assertIn("--preview-window=right:50%:wrap", result.stderr)
+        self.assertIn("--preview-window=right:35%:wrap", result.stderr)
 
     def test_e3_existing_options_unchanged(self):
         snippet = (

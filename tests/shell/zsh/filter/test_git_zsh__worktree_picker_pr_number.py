@@ -82,7 +82,7 @@ class WorktreePickerPrNumberTest(unittest.TestCase):
             [
                 "worktree  ブランチ\t\t\t",
                 "repo  main\t/repo\trepo\tmain",
-                "wt-a  feat/a  #12\t/repo.wt-a\twt-a\tfeat/a",
+                "wt-a  #12 feat/a\t/repo.wt-a\twt-a\tfeat/a",
                 "wt-d  abcdef1\t/repo.wt-d\twt-d\tabcdef1",
             ],
         )
