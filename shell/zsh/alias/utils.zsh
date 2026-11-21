@@ -236,7 +236,7 @@ function show_file_diff() {
     fi
 }
 
-# Show JSON file differences with sorted (semantic) and original (raw) diffs
+# Show JSON file differences after key sorting (semantic diff)
 function show_json_diff() {
     local file1="$1"
     local file2="$2"
@@ -264,15 +264,6 @@ function show_json_diff() {
         difft "$sorted2" "$sorted1" || true
     else
         diff -u "$sorted2" "$sorted1" || true
-    fi
-
-    echo ""
-
-    echo "--- Original (including key order differences) ---"
-    if command -v difft &> /dev/null; then
-        difft "$file2" "$file1" || true
-    else
-        diff -u "$file2" "$file1" || true
     fi
 
     /bin/rm -f "$sorted1" "$sorted2"
