@@ -111,6 +111,22 @@ class HerdrWorkspaceClosePickerTest(unittest.TestCase):
         self.assertIn("no herdr workspaces", result.stderr)
         self.assertEqual(self.close_calls(), [])
 
+    def test_others_closes_all_but_current_without_fzf(self):
+        result = self.run_script("--others", stdin="y", TEST_FZF_RC="1")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.close_calls(), ["workspace close w2", "workspace close w3"])
+
+    def test_others_declined_confirmation_closes_nothing(self):
+        result = self.run_script("--others", stdin="n")
+        self.assertEqual(result.returncode, 130)
+        self.assertEqual(self.close_calls(), [])
+
+    def test_others_with_only_current_fails_loudly(self):
+        result = self.run_script("--others", stdin="y", workspaces=WORKSPACES[:1])
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("no other herdr workspaces", result.stderr)
+        self.assertEqual(self.close_calls(), [])
+
     def test_close_failure_continues_and_exits_nonzero(self):
         result = self.run_script(stdin="y", TEST_FZF_PICK="w2 w3", TEST_CLOSE_FAIL="w2")
         self.assertEqual(result.returncode, 1)

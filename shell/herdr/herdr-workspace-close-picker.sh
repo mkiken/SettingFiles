@@ -3,6 +3,7 @@
 # Herdr の workspace を fzf で複数選び、確認のうえ一括で閉じる。
 # 現在の workspace は一覧の末尾に置き、popup の親を巻き込まないよう必ず最後に閉じる。
 # --list は fzf を通さず候補行 (workspace_id, TAB, 表示文字列) を出力する。
+# --others は fzf を通さず、現在の workspace 以外を全て対象にして確認へ進む。
 
 set -euo pipefail
 
@@ -59,17 +60,24 @@ fi
 rows=$(_close_list)
 [[ -n "$rows" ]] || { echo "no herdr workspaces found" >&2; exit 1; }
 
-selected=$(fzf --multi --delimiter $'\t' --with-nth 2.. --no-sort --layout=reverse \
-    --prompt 'close workspace> ' --header 'Tab: 選択/解除 (複数可)  Enter: 確定  Esc: 中止  * は現在のworkspace' <<< "$rows") || exit 130
-[[ -n "$selected" ]] || exit 130
+if [[ "${1:-}" == --others ]]; then
+    # 現在の workspace は表示が "* " で始まる行 (_close_list の仕様)。
+    ordered=$(awk -F'\t' '$2 !~ /^\* /' <<< "$rows")
+    [[ -n "$ordered" ]] || { echo "no other herdr workspaces" >&2; exit 1; }
+    ordered+=$'\n'
+else
+    selected=$(fzf --multi --delimiter $'\t' --with-nth 2.. --no-sort --layout=reverse \
+        --prompt 'close workspace> ' --header 'Tab: 選択/解除 (複数可)  Enter: 確定  Esc: 中止  * は現在のworkspace' <<< "$rows") || exit 130
+    [[ -n "$selected" ]] || exit 130
 
-# fzf の出力は選択順なので、一覧順 (現在の workspace が末尾) に並べ直す。
-ordered=""
-while IFS= read -r row; do
-    if grep -qxF -- "$row" <<< "$selected"; then
-        ordered+="$row"$'\n'
-    fi
-done <<< "$rows"
+    # fzf の出力は選択順なので、一覧順 (現在の workspace が末尾) に並べ直す。
+    ordered=""
+    while IFS= read -r row; do
+        if grep -qxF -- "$row" <<< "$selected"; then
+            ordered+="$row"$'\n'
+        fi
+    done <<< "$rows"
+fi
 
 printf 'close %s workspace(s):\n' "$(grep -c . <<< "$ordered")"
 sed 's/^[^\t]*\t/  /' <<< "$ordered"

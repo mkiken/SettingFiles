@@ -189,6 +189,14 @@ description = "close workspaces (multi-select)"
 width = "70%"
 height = "60%"
 
+[[keys.command]]
+key = "prefix+ctrl+d"
+type = "popup"
+command = "$HOME/.herdr/scripts/herdr-popup-run.sh zsh -ilc '$HOME/.herdr/scripts/herdr-workspace-close-picker.sh --others'"
+description = "close all other workspaces"
+width = "70%"
+height = "60%"
+
 [ui]
 tab_bar_right = [{ type = "command", command = "python3 $HOME/.herdr/scripts/herdr-agent-timers.py", interval_seconds = 60, timeout_seconds = 2 }]
 mouse_capture = true
