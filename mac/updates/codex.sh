@@ -25,11 +25,6 @@ for file in "${Repo}ai/codex/hooks"/*; do
   fi
 done
 
-# hooks.json は実ファイルへマージ（Orca 等の外部追記をリポジトリへ漏らさない）
-# mac/update から source される前提。exit すると呼び出し元(mac/update)ごと
-# 終了してしまうため、return で自分自身の残り処理だけを打ち切る。
-setup_codex_hooks_json || return 1
-
 chmod +x ~/.codex/hooks/codex-stop-notification.sh
 
 # rules はファイル単位でシンボリックリンク

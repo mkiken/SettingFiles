@@ -68,12 +68,17 @@ class CodexHooksJsonSetupTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.commands(self.live), {"repo-stop", "orca-stop"})
 
-    def test_setup_scripts_call_helper_instead_of_symlinking_hooks_json(self):
-        for rel in ("mac/initialization/ai/codex.sh", "mac/updates/codex.sh"):
-            text = (REPO_ROOT / rel).read_text(encoding="utf-8")
-            self.assertIn("setup_codex_hooks_json", text, rel)
-            # symlink だと外部ツールの追記がリポジトリへ書き込まれるため禁止
-            self.assertNotIn('ai/codex/hooks.json" ~/.codex/hooks.json', text, rel)
+    def test_initialization_calls_helper_instead_of_symlinking_hooks_json(self):
+        text = (REPO_ROOT / "mac/initialization/ai/codex.sh").read_text(encoding="utf-8")
+        self.assertIn("setup_codex_hooks_json", text)
+        # symlink だと外部ツールの追記がリポジトリへ書き込まれるため禁止
+        self.assertNotIn('ai/codex/hooks.json" ~/.codex/hooks.json', text)
+
+    def test_update_does_not_sync_hooks_json_from_repo_to_live(self):
+        text = (REPO_ROOT / "mac/updates/codex.sh").read_text(encoding="utf-8")
+        # update では repo→live の反映確認を出さない（hooks.json は initialize のみ）
+        self.assertNotIn("setup_codex_hooks_json", text)
+        self.assertNotIn("ai/codex/hooks.json", text)
 
 
 if __name__ == "__main__":
