@@ -40,7 +40,7 @@ skills/MCP servers/plugins, slow hooks, version currency, and permission posture
 the built-in `doctor` skill; text written for older models belongs to the `claude-api`
 skill's `prompt-audit` subcommand. Both decide in the conversation, this skill decides in
 the browser report — incompatible decision models, so never run them in the same pass.
-Apply this skill's decisions with `audit-fix` first; `audit-fix` then tells the user to run either
+Apply this skill's decisions with `audit-fix` first; `audit-fix` then tells the user to run either, followed by `/insights`,
 after its edits are committed and pushed. Never run them as part of this run.
 
 ## Core Workflow

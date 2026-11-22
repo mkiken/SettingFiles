@@ -123,7 +123,7 @@ class AuditFixContractTest(unittest.TestCase):
 
     def test_claude_adapter_defers_follow_ups_until_after_push(self):
         claude_skill = CLAUDE_SKILL_PATH.read_text(encoding="utf-8")
-        for token in ("doctor", "prompt-audit", "Never run the built-in `doctor` skill", "commit/push flow has finished"):
+        for token in ("doctor", "prompt-audit", "/insights", "Never run the built-in `doctor` skill", "commit/push flow has finished"):
             with self.subTest(token=token):
                 self.assertIn(token, claude_skill)
         self.assertNotIn("AskUserQuestion (multiSelect)", claude_skill)
