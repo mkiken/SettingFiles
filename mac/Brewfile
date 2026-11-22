@@ -1,5 +1,3 @@
-tap "jazzyalex/agent-sessions"
-
 brew "actionlint"
 brew "atuin"
 brew "bat"
@@ -40,7 +38,6 @@ brew "uv"
 brew "yarn"
 brew "zoxide"
 
-cask "jazzyalex/agent-sessions/agent-sessions", trusted: true
 cask "alt-tab"
 cask "calendr"
 cask "claude"
