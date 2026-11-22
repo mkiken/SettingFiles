@@ -1,11 +1,9 @@
 return {
   'kevinhwang91/nvim-hlslens',
   config = function()
-    require("scrollbar.handlers.search").setup({
-      require('hlslens').setup({
-        calm_down = false,
-        nearest_only = true,
-      })
+    require('hlslens').setup({
+      calm_down = false,
+      nearest_only = true,
     })
     vim.keymap.set({'n', 'x'}, '<leader>L', function()
       vim.schedule(function()

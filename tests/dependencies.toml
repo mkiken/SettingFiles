@@ -868,3 +868,6 @@
 [untested]
 ".claude/skills/repo-tests/SKILL.md" = "Test authoring guidance has no executable behavioral test."
 "gitfiles/lazygit/config.yml" = "Lazygit UI layout is verified by launching lazygit with this configuration."
+"vimfiles/nvim/lua/plugins/gitsigns.lua" = "Neovim plugin spec is verified by launching headless nvim and checking for startup errors."
+"vimfiles/nvim/lua/plugins/nvim-hlslens.lua" = "Neovim plugin spec is verified by launching headless nvim and checking for startup errors."
+"vimfiles/nvim/lua/plugins/nvim-scrollbar.lua" = "Neovim plugin spec is verified by launching headless nvim and checking for startup errors."
