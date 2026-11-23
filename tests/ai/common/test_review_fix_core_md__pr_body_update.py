@@ -23,6 +23,23 @@ class ReviewFixPrBodyUpdateTest(unittest.TestCase):
             with self.subTest(required=required):
                 self.assertIn(required, content)
 
+    def test_pr_body_only_findings_use_a_verified_fix_flow(self):
+        text = CORE_PATH.read_text(encoding="utf-8")
+        routing = text.split("## Grouping and Mode Selection", 1)[1].split("## Consideration results", 1)[0]
+        flow = text.split("## PR Body Fix Flow", 1)[1].split("## fix_state.json", 1)[0]
+        self.assertIn("if every selected finding explicitly requests only a PR body correction", routing)
+        self.assertIn("Otherwise: 1 group → Inline Flow; 2+ groups → Subagent Flow.", routing)
+        for required in (
+            "explicit approval before applying",
+            "independent of the code worktree, commit, and push workflow",
+            "If the PR head or body changes after drafting",
+            "show the revised draft and diff for approval before applying",
+            "Mark an item `fixed` only after re-fetching the PR body and verifying the approved correction",
+            "unverified items as `skipped` with the reason",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, flow)
+
     def test_offer_requires_an_accurate_existing_body_before_skipping(self):
         content = " ".join(CORE_PATH.read_text(encoding="utf-8").split())
         for required in (

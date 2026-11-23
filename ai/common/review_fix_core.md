@@ -31,13 +31,21 @@ Return control to review-consider between transitions so it can process new rese
 
 Group the selected items by their `file` field; items whose `area`/`summary` clearly share one root cause may be merged into one group. Number groups `g1..gN` in first-appearance order.
 
-Present the selected items (`id. [file:line_spec] priority | area: summary`) with their grouping and confirm with the user before editing anything. Then: 1 group → Inline Flow; 2+ groups → Subagent Flow. Exception: when every item is a small, local fix with no open design decision, offer Inline Flow as the recommended choice in that confirmation and let the user pick.
+Present the selected items (`id. [file:line_spec] priority | area: summary`) with their grouping and confirm with the user before editing anything. Then, if every selected finding explicitly requests only a PR body correction, use **PR Body Fix Flow**. Otherwise: 1 group → Inline Flow; 2+ groups → Subagent Flow. Exception: when every item is a small, local fix with no open design decision, offer Inline Flow as the recommended choice in that confirmation and let the user pick.
 
 ## Consideration results
 
 If `<RUN_DIR>/consider/consider_state.json` is absent, retain the existing behavior. Otherwise read it before acting. Require `schema_version: 1`, its resolved `run_dir` to equal the resolved <RUN_DIR>, and every key in `items` to match an id in merged.json. For each selected item with a result, require `status: approved`, nonempty string `rationale` and `policy`, a null or string `post_body`, and the file's `head_ref_oid` to equal merged.json's `head_ref_oid`. Obtain the current PR head via `gh pr view <PR_NUMBER> --json headRefOid --jq .headRefOid`; stop if it cannot be obtained. If it differs from `checked_head_oid` (use `head_ref_oid` when absent), do not stop: apply review-consider's **Head drift** procedure to the selected items first, then continue. Stop and ask for renewed consideration if any other check fails. A selected item without a result retains existing behavior. Never change state.json or merged.json.
 
 Apply each approved `policy` as an implementation constraint. Include it in the initial confirmation and in the relevant designer payload `<CONSTRAINTS>`; the inline flow must follow it too. If the policy cannot be followed, stop that item and ask the user rather than silently substituting another approach.
+
+## PR Body Fix Flow
+
+Use the PR identified in `merged.json`. Read its current body and diff, and check the actual code or tests cited by the findings. Apply approved consideration policies. Draft only the corrections the findings support, even within existing Review Focus Points; preserve unrelated text, including the author's verification instructions.
+
+Read <PR_BODY_DOCS> and follow its full Confirmation Flow, including the complete draft, colored and plain diffs, and explicit approval before applying. Run this flow directly, independent of the code worktree, commit, and push workflow. If the PR head or body changes after drafting, refresh the context and show the revised draft and diff for approval before applying.
+
+Record terminal outcomes using Inline Flow's `fix/fix_state.json` format. Mark an item `fixed` only after re-fetching the PR body and verifying the approved correction. Record declined, already addressed, ambiguous, or unverified items as `skipped` with the reason. Preserve existing outcomes for other items and existing group records. Summarize each outcome with the PR link.
 
 ## fix_state.json
 
