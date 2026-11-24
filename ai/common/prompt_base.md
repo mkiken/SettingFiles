@@ -193,4 +193,6 @@ stricter gates.
 
 When finishing an implementation, fix, configuration, review, or investigation-delivery task, or any task that left session-created temp files or worktrees, load the `task-completion` skill and follow it: temp file and worktree cleanup, the commit/push confirmation, the PR findings handoff, and the improvement-proposal check. Also load it for any turn that delivers verification or investigation results for a specific GitHub PR, even a short Q&A. Otherwise skip it in ordinary conversation, clarification-only turns, active progress updates, and pre-completion confirmation questions.
 
+Any turn that modified repository files counts as finishing an implementation task, including small follow-up edits (a comment, a one-line fix) made during Q&A or review. Such a turn must not end by merely reporting that changes are uncommitted; run the skill's commit/push confirmation unless the user said not to commit.
+
 While working, note reusable improvements to this prompt's source repository (SettingFiles), but never edit persistent prompt/config files silently and never propose mid-task. When writing a plan for approval, do not propose — load the `prompt-self-improvement` skill and follow its Plan Handoff rules instead.
