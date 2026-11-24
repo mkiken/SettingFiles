@@ -15,7 +15,7 @@ For every user confirmation, follow the always-on `# User Confirmation` rules an
 
 Subagent launch: use the registered subagents `review_fix_designer` and `review_fix_implementer` — their role instructions are baked into their definitions, so pass only the payload each role defines; the implementer payload includes <WORKTREE_PATH>. Designers and implementers alike parallelize up to the child-agent slots available at runtime; if they exceed the slots, use waves. Process each completed design as it returns; if the runtime surfaces results only per wave, degrade to wave-batch order. Confirm & Merge stays strictly serial regardless. The session running this skill owns orchestration, overlap checks, workflow state, and user confirmations. It may be the depth-1 lifecycle worker under `agents.max_depth = 2`; its designers and implementers must not spawn further agents. If that worker cannot surface a confirmation, relay the exact question and authored choices through the parent, wait for the user's answer, and resume only with that answer.
 
-Fix selected review items from a merge run directory in the current working tree. Respond in Japanese.
+Fix selected review items from a merge run directory in the confirmed working tree. Respond in Japanese.
 
 ## Inputs
 
@@ -48,7 +48,13 @@ Return control to review-consider between transitions so it can process new rese
 
 Group the selected items by their `file` field; items whose `area`/`summary` clearly share one root cause may be merged into one group. Number groups `g1..gN` in first-appearance order.
 
-Present the selected items (`id. [file:line_spec] priority | area: summary`) with their grouping and confirm with the user before editing anything. Then, if every selected finding explicitly requests only a PR body correction, use **PR Body Fix Flow**. Otherwise: 1 group → Inline Flow; 2+ groups → Subagent Flow. Exception: when every item is a small, local fix with no open design decision, offer Inline Flow as the recommended choice in that confirmation and let the user pick.
+First, if every selected finding explicitly requests only a PR body correction, confirm the items and grouping, then use **PR Body Fix Flow** without a code worktree check.
+
+Otherwise: 1 group → Inline Flow; 2+ groups → Subagent Flow. Before the initial confirmation, resolve the target PR from `merged.json` (prefer `pr_url`; otherwise use `repository.name` and `pr_number`). Use `gh pr view` to verify the PR head repository and branch. Compare them with the current worktree's repository and attached branch, using the branch's upstream remote to identify a fork when applicable. If they differ, use `git worktree list --porcelain` to locate and verify an existing worktree for the PR head branch. If the PR or a matching worktree cannot be verified, ask for the correct working tree before proceeding. Never automatically switch branches or create a checkout to resolve a mismatch.
+
+Present the selected items (`id. [file:line_spec] priority | area: summary`) with their grouping and confirm before editing. If the verified target is a different worktree, include its exact path and branch in that same confirmation and ask whether to proceed there or stop. Once approved, use the confirmed worktree as the calling worktree for the entire fix workflow. If the current worktree matches, keep the ordinary confirmation.
+
+When every item is a small, local fix with no open design decision, offer Inline Flow as the recommended choice in the initial confirmation and let the user pick.
 
 ## Consideration results
 
