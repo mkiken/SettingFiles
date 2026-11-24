@@ -22,7 +22,7 @@ class SelfReviewSubagentsContractTest(unittest.TestCase):
     def test_reuses_self_review_and_subagent_review(self):
         text = " ".join((SKILL / "SKILL.md").read_text().split())
         for contract in (
-            "../pr-self-review/SKILL.md", "Establish the target", "Repair findings",
+            "../pr-self-review/SKILL.md", "Establish the target", "Address existing comments first", "Repair findings",
             "Confirm commit and push",
             "Hand off to the existing review workflow", "pr-review-subagents",
             "Result File", "/pr-comment-post", "read-only",

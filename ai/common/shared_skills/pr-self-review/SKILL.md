@@ -40,6 +40,22 @@ primary code and tests inline; do not launch specialist or verifier agents.
 Do not manufacture findings. Existing comments suppress duplicate reporting,
 not repair of an actual unresolved defect.
 
+## Address existing comments first
+
+After establishing the target (and, for `--from-run`, validating and syncing
+its input as described below), invoke `pr-comment-implement-batch-self` for the
+same PR before reviewing. Follow its collection, classification, per-item and
+finalization rules, including confirmations. If there are no eligible items,
+continue without its skip or finalization prompts. Report skipped and unresolved
+items, then continue; do not treat them as new findings merely because they remain.
+
+If any comment repair is uncommitted or not pushed to the PR, stop and report
+it; never review the older published snapshot as if it included the repair.
+After the batch finishes, re-run Establish the target and record the current
+base and head before review. Stop if the PR or branch changed, or the target
+checks fail. For `--from-run`, compare the source SHA with this refreshed head
+and apply the re-verification rules below before repairing imported findings.
+
 ## Findings from a multi-AI run
 
 With `--from-run <RUN_DIR>`, read the single full SHA in `<RUN_DIR>/self_fix`
@@ -60,7 +76,7 @@ clean status match the target and that the PR is still open with the same head.
 Stop on a failed check, a failed Git operation, or a local HEAD that is ahead
 or diverged. Record the verified current base and head for the review.
 
-Skip the one-reviewer review stage. Read each result, merge duplicates across
+After addressing existing comments and refreshing the target, skip the one-reviewer review stage. Read each result, merge duplicates across
 AIs, and verify every imported finding inline before repairing. If the SHA matches
 the PR head, a finding you judge false stays a remaining finding and only completed
 repairs leave the remaining set. If the SHA differs, re-verify every imported

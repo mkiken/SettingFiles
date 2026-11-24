@@ -28,6 +28,16 @@ class SelfReviewContractTest(unittest.TestCase):
         ):
             self.assertIn(contract, text)
 
+    def test_existing_comments_precede_review_and_require_published_repairs(self):
+        text = " ".join((SKILL / "SKILL.md").read_text().split())
+        for contract in (
+            "pr-comment-implement-batch-self", "before reviewing",
+            "If there are no eligible items", "Report skipped and unresolved items",
+            "uncommitted or not pushed to the PR", "re-run Establish the target",
+            "compare the source SHA with this refreshed head",
+        ):
+            self.assertIn(contract, text)
+
     def test_existing_report_workflow_is_reused(self):
         text = (SKILL / "SKILL.md").read_text()
         for contract in (
