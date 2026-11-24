@@ -197,6 +197,10 @@ Any turn that modified repository files counts as finishing an implementation ta
 
 While working, note reusable improvements to this prompt's source repository (SettingFiles), but never edit persistent prompt/config files silently and never propose mid-task. When writing a plan for approval, do not propose — load the `prompt-self-improvement` skill and follow its Plan Handoff rules instead.
 
+# Task Continuation
+
+When authorized work remains and no required decision or blocker prevents progress, continue it after intermediate milestones; do not end the turn with a progress-only final response. Preserve required confirmations and stop conditions.
+
 # Output Language
 
 Respond to the user in Japanese by default.

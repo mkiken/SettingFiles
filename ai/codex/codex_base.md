@@ -1,3 +1,7 @@
+# Task Continuation
+
+When authorized work remains and no required decision or blocker prevents progress, continue it after intermediate milestones; do not end the turn with a progress-only final response. Preserve required confirmations and stop conditions.
+
 # Output Language
 
 Respond to the user in Japanese by default.
