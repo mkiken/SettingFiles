@@ -104,7 +104,7 @@ On success:
 - Display the PR URL.
 - Display 「必要に応じて **Review Focus Points** を編集してください」.
 - Always display 「リマインド: PRのレビュワー設定を忘れないでください。」 — do not check whether reviewers are already assigned, and do not offer to set them.
-- If the PR is task-based, ask whether to comment on the task per the Task-Based Pull Requests section of the PR Body Format.
+- Verify the created PR independently, then follow the full post-creation procedure in the Task-Based Pull Requests section of the PR Body Format for each related task.
 
 On failure:
 
@@ -174,7 +174,8 @@ Rules:
 A PR is task-based when the request or conversation explicitly references a task in a task-management tool (issue, ticket, task) by URL or ID. Never infer it from a branch name.
 
 - Body: add one line at the end of Summary (or the top of the body if the template has no Summary): `- 関連タスク: [<task title>](<task URL>)`, comma-separated for several tasks. It does not count toward Summary's 3-line limit. Fetch an unknown title with an available tool; ask the user if it cannot be fetched.
-- After the PR is created and verified, ask the user per task whether to comment that the PR was created. The comment holds the PR title and URL as a link in the tool's link syntax. Post it with an available tool; if none exists, report that and show the text for pasting. Verify the posted comment per Side-Effect Verification.
+- After the PR is created and verified, check each task's current status and available transitions using the task-management tool. If a transition suitable for the PR review stage is identifiable, propose its actual name with the current status (e.g. `対応中 → レビュー待ち`). If status or transitions are absent or unavailable, the task is already at the candidate, or no suitable transition is identifiable, continue with the comment confirmation alone.
+- Present the comment draft and any status change together, and ask the user per task for separate approval of each operation. The comment holds the PR title and URL as a link in the tool's link syntax. Execute only approved operations; verify each result by independently re-fetching it. If commenting is unavailable, report that and show the text for pasting; if status updates are unavailable, report the proposed destination for manual change. Report each operation's failure separately.
 
 ### Review Focus Points
 

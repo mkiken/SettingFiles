@@ -90,7 +90,7 @@ On success:
 - Display the PR URL.
 - Display 「必要に応じて **Review Focus Points** を編集してください」.
 - Always display 「リマインド: PRのレビュワー設定を忘れないでください。」 — do not check whether reviewers are already assigned, and do not offer to set them.
-- If the PR is task-based, ask whether to comment on the task per the Task-Based Pull Requests section of the PR Body Format.
+- Verify the created PR independently, then follow the full post-creation procedure in the Task-Based Pull Requests section of the PR Body Format for each related task.
 
 On failure:
 

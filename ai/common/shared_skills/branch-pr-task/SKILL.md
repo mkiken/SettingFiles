@@ -74,4 +74,4 @@ Verify independently: `git log -1`, `git ls-remote origin <branch>` equals the l
 
 ## Report
 
-Display the PR URL, then always display 「リマインド: PRのレビュワー設定を忘れないでください。」 Do not check whether reviewers are already assigned and do not offer to set them. If the PR is task-based, then ask whether to comment on the task per the Task-Based Pull Requests section of the `pr-create-by-branch` skill's PR Body Format.
+Display the PR URL, then always display 「リマインド: PRのレビュワー設定を忘れないでください。」 Do not check whether reviewers are already assigned and do not offer to set them. Follow the full post-creation procedure in the Task-Based Pull Requests section of the `pr-create-by-branch` skill's PR Body Format for each related task.
