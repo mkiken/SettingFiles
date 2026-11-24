@@ -104,15 +104,16 @@ class PrVerifyContractTest(unittest.TestCase):
             with self.subTest(requirement=requirement):
                 self.assertIn(requirement, content)
 
-    def test_overview_and_review_selection_precede_final_plan_and_execution(self):
+    def test_design_precedes_review_selection_and_final_plan_and_execution(self):
         content = " ".join((SKILL / "SKILL.md").read_text().split())
         stages = (
             "Present a short overview",
             "`この概要で進める`",
-            "After agreement, ask exactly:",
+            "After agreement, prepare a verification design containing:",
+            "Present the complete design to the user, then ask exactly:",
             "`両方のレビューを実施する`",
             "`レビューなしで進める`",
-            "Prepare a verification design containing:",
+            "3. `設計を修正する`",
             "## Independently review the design",
             "Give both reviewers the same complete, versioned design",
             "both completed reviews of the same final version",
@@ -126,6 +127,7 @@ class PrVerifyContractTest(unittest.TestCase):
         self.assertEqual(positions, sorted(positions))
         for requirement in (
             "present the overview again and repeat the confirmation",
+            "For the third, revise the design, present it again and repeat this confirmation",
             "overview does not authorize verification execution",
             "AI usage cost, and temporary input/output directory in this same confirmation",
             "not verification or worktree creation",

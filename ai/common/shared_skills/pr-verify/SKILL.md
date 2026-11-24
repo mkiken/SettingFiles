@@ -41,20 +41,7 @@ external effects and unverified scope. Ask exactly:
 For revisions, present the overview again and repeat the confirmation. Agreement
 on the overview does not authorize verification execution.
 
-After agreement, ask exactly:
-
-1. `両方のレビューを実施する`
-2. `レビューなしで進める`
-
-For the first choice, show the reviewers' roles, models and reasoning effort,
-AI usage cost, and temporary input/output directory in this same confirmation.
-This choice authorizes only read-only review and those temporary files, not
-verification or worktree creation. Do not ask for launch permission again.
-For the second choice, do not launch either reviewer; mark the choice and
-`未レビュー` in the final design and saved records. Resolve known safety
-concerns before proceeding even without review.
-
-Prepare a verification design containing:
+After agreement, prepare a verification design containing:
 
 - The PR URL, pinned base/head SHA, scope and expected behavior.
 - Cases with target, input, expected result, command, and proposed test code.
@@ -64,9 +51,24 @@ Prepare a verification design containing:
   point, plus any later evidence push's workflow reruns and alternatives.
 - Any unresolved design decisions, with concrete alternatives and a recommendation.
 
+Present the complete design to the user, then ask exactly:
+
+1. `両方のレビューを実施する`
+2. `レビューなしで進める`
+3. `設計を修正する`
+
+For the first choice, show the reviewers' roles, models and reasoning effort,
+AI usage cost, and temporary input/output directory in this same confirmation.
+This choice authorizes only read-only review and those temporary files, not
+verification or worktree creation. Do not ask for launch permission again.
+For the second choice, do not launch either reviewer; mark the choice and
+`未レビュー` in the final design and saved records. Resolve known safety
+concerns before proceeding even without review.
+For the third, revise the design, present it again and repeat this confirmation.
+
 ## Independently review the design
 
-If both reviews were selected, complete the design and run both before presenting
+If both reviews were selected, run both on the presented design before presenting
 the final plan. Here, "no side effects" means no changes outside the approved
 temporary area and no effects on live services.
 
