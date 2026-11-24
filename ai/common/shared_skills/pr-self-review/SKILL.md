@@ -15,9 +15,11 @@ repairs below.
 
 Read the repository instructions before operating on it. Resolve the current
 branch's PR with `gh pr view --json number,url,state,baseRefOid,headRefOid,headRefName`.
-Require an attached branch matching headRefName, HEAD matching headRefOid, an
-OPEN PR, and empty `git status --porcelain` including untracked files. Otherwise
-stop with the failed condition; do not checkout, stash, commit or push to proceed.
+Require an attached branch matching headRefName, an OPEN PR, and empty
+`git status --porcelain` including untracked files. With `--from-run`, validate
+the input and apply the synchronization rule below before requiring HEAD
+matching headRefOid. Otherwise require HEAD matching headRefOid at startup.
+Stop with any failed condition; do not checkout, stash, commit or push to proceed.
 Verify that the exact base commit is available; stop if it cannot be read.
 Record the repository, branch, base and head OIDs for the entire run.
 
@@ -40,15 +42,36 @@ not repair of an actual unresolved defect.
 
 ## Findings from a multi-AI run
 
-With `--from-run <RUN_DIR>`, three AIs already reviewed the PR into RUN_DIR
-(`claude.md`, `gemini.md`, `codex.md`, whichever exist and are non-empty). Run
-"Establish the target" as written, then require `<RUN_DIR>/self_fix` to hold the
-recorded headRefOid; stop on a mismatch because the findings are stale. Do not
-review yourself and skip the one-reviewer review stage above. Read each result
-file, merge duplicates across AIs, and skeptically verify every finding against
-primary code and tests inline before repairing. A finding you judge false stays
-a remaining finding; only completed repairs leave the remaining set.
-Continue with "Repair findings" and "Confirm commit and push" unchanged.
+With `--from-run <RUN_DIR>`, read the single full SHA in `<RUN_DIR>/self_fix`
+and the non-empty results among `claude.md`, `gemini.md`, and `codex.md`.
+Stop before synchronization if the marker is missing or invalid, a result is
+unreadable, or there are no non-empty results. If the SHA differs from the
+current PR head, require the resolved RUN_DIR to be a run under the resolved
+directory returned by the existing `ai_review_pr_dir <PR_NUMBER>` helper from
+`ai_review_run_dir.sh`. This verifies that the run belongs to the current
+repository and PR. Stop if ownership cannot be verified.
+
+If local HEAD differs from the PR head, fetch `refs/pull/<PR_NUMBER>/head` from
+`origin`. Require `FETCH_HEAD` to equal the headRefOid returned by GitHub and
+require that local HEAD is an ancestor of that exact SHA. Immediately before
+`git merge --ff-only <verified-sha>`, confirm the recorded branch, local HEAD,
+and clean status still match. Afterward, re-check that the branch, local HEAD and
+clean status match the target and that the PR is still open with the same head.
+Stop on a failed check, a failed Git operation, or a local HEAD that is ahead
+or diverged. Record the verified current base and head for the review.
+
+Skip the one-reviewer review stage. Read each result, merge duplicates across
+AIs, and verify every imported finding inline before repairing. If the SHA matches
+the PR head, a finding you judge false stays a remaining finding and only completed
+repairs leave the remaining set. If the SHA differs, re-verify every imported
+finding against the recorded head's code, callers, tests and PR diff. Use
+`git diff --no-color <base>...<head>` and render it with the existing diff helper's
+`--stdin` option so locations come from the recorded commits. Feed findings
+that still hold into "Repair findings", report resolved
+findings with evidence, and report unverifiable findings in the conversation.
+Before repairing on the new snapshot, confirm that the local branch and HEAD
+and the published PR head still match the recorded values. Continue with the
+existing repair and commit/push approval rules.
 
 ## Repair findings
 
@@ -108,6 +131,8 @@ needing verification instead of inventing an HTML anchor. Without a push,
 explain in the conversation that HTML code excerpts are the published PR
 snapshot, while the repairs are still local.
 
+For `--from-run`, before creating the new run, raise `AI_REVIEW_KEEP_RUNS` for
+that invocation if the normal pruning would remove the source run.
 Use the existing `ai_review_run_dir.sh <PR_NUMBER>` helper to create a run.
 Its resolved run directory is the authorized output target for this invocation.
 Save only the remaining findings in the shared result format as `claude.md`
@@ -115,11 +140,13 @@ when running Claude or `codex.md` when running Codex. Write the no-findings
 result even when every issue was repaired or no issue was found. Do not include
 repair logs or extra commentary in this review result file.
 
-With `--from-run`, write into the new run directory one file per source file
-that existed in the original RUN_DIR, under the same name, holding that AI's
-findings minus the completed repairs (renumber sequentially, keep the skipped
-existing-comment section, write the no-findings result when none remain).
-Leave the original RUN_DIR unchanged.
+With `--from-run`, write each AI's remaining findings into a file under its
+original name. Omit completed repairs.
+If the reviewed SHA differed, map each remaining finding to the verified path
+and lines of the published PR head at handoff, retaining source attribution.
+Report unmappable findings in the conversation. Renumber retained findings
+sequentially, keep the skipped existing-comment section, and write the
+no-findings result when none remain. Leave the original RUN_DIR unchanged.
 
 Invoke the existing `review-merge` skill with that exact run directory. This is
 aggregation, not a second review. It alone owns merging, HTML rendering, server

@@ -41,10 +41,29 @@ class SelfReviewContractTest(unittest.TestCase):
         self.assertNotIn("schema_version:", text)
 
     def test_multi_ai_run_mode_contract(self):
-        text = (SKILL / "SKILL.md").read_text()
+        text = " ".join((SKILL / "SKILL.md").read_text().split())
         for contract in (
             "--from-run <RUN_DIR>", "<RUN_DIR>/self_fix",
-            "stop on a mismatch", "only completed repairs leave the remaining set",
+            "only completed repairs leave the remaining set",
             "Leave the original RUN_DIR unchanged",
+        ):
+            self.assertIn(contract, text)
+
+    def test_resuming_after_head_update_requires_verified_fast_forward(self):
+        text = " ".join((SKILL / "SKILL.md").read_text().split())
+        for contract in (
+            "belongs to the current repository and PR", "refs/pull/<PR_NUMBER>/head",
+            "FETCH_HEAD", "git merge --ff-only", "local HEAD is an ancestor",
+            "re-check that the branch, local HEAD and clean status",
+        ):
+            self.assertIn(contract, text)
+
+    def test_updated_head_findings_are_reverified_and_reanchored(self):
+        text = " ".join((SKILL / "SKILL.md").read_text().split())
+        for contract in (
+            "If the SHA matches", "If the SHA differs",
+            "re-verify every imported finding", "report resolved findings with evidence",
+            "report unverifiable findings in the conversation",
+            "map each remaining finding to the verified path and lines",
         ):
             self.assertIn(contract, text)
