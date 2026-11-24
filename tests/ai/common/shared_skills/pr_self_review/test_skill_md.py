@@ -38,6 +38,20 @@ class SelfReviewContractTest(unittest.TestCase):
         ):
             self.assertIn(contract, text)
 
+    def test_ci_repairs_precede_review_and_require_published_passing_checks(self):
+        text = " ".join((SKILL / "SKILL.md").read_text().split())
+        for contract in (
+            "After existing comments and target refresh", "recorded head",
+            "If no checks have failed, continue to review",
+            'approval and verification rules in "Repair findings"',
+            "If the repairs are not committed and pushed, stop",
+            "Wait for checks corresponding to the repaired failures",
+            "proceed only when they pass", "compare its source SHA against this new head",
+        ):
+            self.assertIn(contract, text)
+        self.assertLess(text.index("## Fix failing CI before review"),
+                        text.index("## Findings from a multi-AI run"))
+
     def test_existing_report_workflow_is_reused(self):
         text = (SKILL / "SKILL.md").read_text()
         for contract in (

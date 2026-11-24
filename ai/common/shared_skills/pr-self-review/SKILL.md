@@ -56,6 +56,27 @@ base and head before review. Stop if the PR or branch changed, or the target
 checks fail. For `--from-run`, compare the source SHA with this refreshed head
 and apply the re-verification rules below before repairing imported findings.
 
+## Fix failing CI before review
+
+After existing comments and target refresh, inspect the PR checks for the recorded
+head, including failure logs. If checks or relevant logs cannot be retrieved,
+stop and report why. Report pending checks; do not wait for them at this stage.
+If no checks have failed, continue to review.
+
+Diagnose each failed check and repair it under the approval and verification
+rules in "Repair findings". Ask the user when the cause or repair approach is
+unclear. If any failure remains unresolved, verification fails, or required
+approval is declined or unavailable, stop and report the state. Do not fix
+unrelated pre-existing issues merely to clean up the repository.
+
+For CI repairs, run "Confirm commit and push" before review. If the repairs
+are not committed and pushed, stop and report them. Re-establish the target,
+require the same PR and branch, and inspect the new head's checks. Wait for
+checks corresponding to the repaired failures; proceed only when they pass.
+If they fail, cannot be identified, or their status cannot be retrieved, stop
+and report the evidence. For `--from-run`, compare its source SHA against this
+new head and apply the re-verification rules below.
+
 ## Findings from a multi-AI run
 
 With `--from-run <RUN_DIR>`, read the single full SHA in `<RUN_DIR>/self_fix`
