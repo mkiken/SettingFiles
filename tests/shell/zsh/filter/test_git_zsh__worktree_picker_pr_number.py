@@ -69,10 +69,11 @@ class WorktreePickerPrNumberTest(unittest.TestCase):
             'ARG:load:reload-sync(eval "$_WT_PR_SCRIPT")+unbind(load)', result.stderr
         )
 
-    def test_non_target_picker_has_no_bind(self):
+    def test_non_target_picker_passes_load_reload_bind(self):
         result = run_zsh(FAKE_FILTER_ECHO_ARGS + FAKE_GIT + "_filter_git_worktree_path")
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertNotIn("reload-sync", result.stderr)
+        self.assertIn('ARG:load:reload-sync(eval "$_WT_PR_SCRIPT")+unbind(load)', result.stderr)
+        self.assertEqual(result.stdout.strip(), "/repo")
 
     def test_reload_appends_pr_number_to_matching_branch_only(self):
         result = run_reload(r"printf 'feat/a\t12\nother\t99\n'")

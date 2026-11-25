@@ -931,15 +931,13 @@ function _filter_git_worktree_path() {
   local worktrees
   worktrees=${(F)lines}
 
-  # target-picker時のみ、即表示した後にgh pr listの結果でPR番号付きの一覧へ差し替える
+  # 即表示した後にgh pr listの結果でPR番号付きの一覧へ差し替える
   # （unbind(load)で初回ロード完了時の1回だけ実行。取得中も初期リストで選択できる）
-  local -a filter_args=()
-  local -x _WT_PR_LIST="" _WT_PR_SCRIPT=""
+  local -a filter_args=(--bind 'load:reload-sync(eval "$_WT_PR_SCRIPT")+unbind(load)')
+  local -x _WT_PR_LIST="$worktrees" _WT_PR_SCRIPT
+  _WT_PR_SCRIPT=$(_filter_worktree_pr_reload_script)
   if $target_picker; then
-    _WT_PR_LIST="$worktrees"
-    _WT_PR_SCRIPT=$(_filter_worktree_pr_reload_script)
-    filter_args=(--expect=ctrl-o,ctrl-s,ctrl-v \
-      --bind 'load:reload-sync(eval "$_WT_PR_SCRIPT")+unbind(load)')
+    filter_args+=(--expect=ctrl-o,ctrl-s,ctrl-v)
   fi
 
   local selected
