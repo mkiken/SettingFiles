@@ -89,7 +89,12 @@ Ask for the ordinary confirmation instead, stating the reason in the preview, wh
 
 Keep the user's decision on already-addressed candidates and the confirmation before submitting an existing PENDING review; skipping the ordinary confirmation never bypasses those decisions, any validation failure, or post-verification.
 
-Then follow the posting mechanics below with this confirmation rule.
+Then follow the posting mechanics below with this confirmation rule and these recovery steps.
+
+## Recovering a failed inline review
+
+- For a PENDING conflict, fetch the authenticated viewer's pending review, including its body and all comment pages. If its state is `PENDING`, its body is empty, and it has zero comments, also offer `削除して続行` alongside `submit して続行` and `中断`. Require explicit approval to delete that review ID. Immediately before `gh api --method DELETE repos/{owner}/{repo}/pulls/{pr_number}/reviews/{review_id}`, re-fetch and check the same ID, owner, state, empty body, and zero comments. Stop if a check fails. Independently verify the ID is absent from the PR's paginated review list before resuming the batch. If the delete response is unreadable and the review still exists, run the same ownership and emptiness checks again before retrying once via the authenticated REST endpoint. Pass any token through stdin and keep it out of logs and arguments. If deletion remains unverified, stop.
+- If the REST review creation request returns an empty or unreadable response or a server error, check the PR's paginated reviews and inline comments against the submitted body, commit and anchors before any further write. Verify a unique matching review with the normal post-verification steps. If the lookup fails, or finds a partial or ambiguous match, stop and report it. If it confirms absence, recheck the PR head and payload, then try the same batch once with the GraphQL `addPullRequestReview` mutation. Map the PR node ID to `pullRequestId`, the validated commit to `commitOID`, and the inline comments to `threads` (`start_line` → `startLine`, `start_side` → `startSide`). Preserve the review body and `event: COMMENT`. Apply the same post-verification using the returned review `databaseId`. If the GraphQL result is inconclusive, look for the batch again and verify any unique match before considering individual fallback. Stop on uncertainty and reuse any previously verified fallback summary.
 
 ## post_state.json
 

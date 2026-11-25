@@ -76,6 +76,26 @@ class ReviewPostInlineBodyContractTest(unittest.TestCase):
         self.assertNotIn("Own-PR", self.core)
         self.assertNotIn("--json author,url", self.core)
 
+    def test_pending_review_deletion_requires_approval_and_rechecks(self):
+        for required in (
+            "Require explicit approval to delete that review ID",
+            "re-fetch and check the same ID, owner, state, empty body, and zero comments",
+            "Independently verify the ID is absent",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.core)
+
+    def test_graphql_recovery_requires_verified_absence(self):
+        for required in (
+            "paginated reviews and inline comments against the submitted body, commit and anchors before any further write",
+            "finds a partial or ambiguous match, stop",
+            "If it confirms absence, recheck the PR head and payload",
+            "same batch once with the GraphQL `addPullRequestReview` mutation",
+            "Apply the same post-verification",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, self.core)
+
     def test_adapters_condition_confirmation_on_shared_confirmation_rule(self):
         for path in (
             CLAUDE_SKILL_PATH,
