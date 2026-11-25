@@ -331,6 +331,9 @@ eval "$(zoxide init zsh --cmd cd)"
 # 長時間実行コマンドの通知設定
 source_and_zcompile_if_needed "${SET}shell/zsh/notification.zsh" || echo "Warning: Failed to load notification config" >&2
 
+# Herdr SpacesサイドバーへのPR番号表示
+source_and_zcompile_if_needed "${SET}shell/herdr/herdr_space_pr.zsh" || echo "Warning: Failed to load herdr space PR config" >&2
+
 # NVM遅延ロード設定
 export NVM_DIR="$HOME/.nvm"
 if [[ -s "$NVM_DIR/nvm.sh" ]]; then
