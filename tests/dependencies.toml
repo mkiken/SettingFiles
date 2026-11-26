@@ -254,7 +254,18 @@
 
 "ai/codex/skills/review-merge/SKILL.md" = [
   "tests/ai/common/test_review_merge_core_md__carryover_values.py",
+  "tests/ai/codex/skills/review_merge/test_skill_head_md__server_lifecycle.py",
 ]
+
+"ai/codex/skills/review-merge/skill_head.md" = [
+  "tests/ai/codex/skills/review_merge/test_skill_head_md__server_lifecycle.py",
+]
+
+".claude/skills/ai-prompt-generation/references/generation.md" = [
+  "tests/ai/codex/skills/review_merge/test_skill_head_md__server_lifecycle.py",
+]
+
+"tests/ai/codex/skills/review_merge/__init__.py" = ["tests/test_run_tests.py"]
 
 "shell/common/pr/generate_review_report.py" = [
   "tests/ai/common/test_review_merge_core_md__carryover_values.py",
