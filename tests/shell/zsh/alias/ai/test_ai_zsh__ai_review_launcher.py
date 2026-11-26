@@ -1,16 +1,20 @@
+import os
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from support import REPO_ROOT, sanitized_env
 AI_ZSH = REPO_ROOT / "shell" / "zsh" / "alias" / "ai" / "ai.zsh"
 
 
 def run_zsh(snippet):
+    env = sanitized_env(AI_REVIEW_ORCHESTRATOR="claude")
+    env.pop("AI_REVIEW_RUN_DIR", None)
     return subprocess.run(
         ["zsh", "-c", f'SET="{REPO_ROOT}"; source "{AI_ZSH}"; {snippet}'],
-        capture_output=True, text=True, env=sanitized_env(AI_REVIEW_ORCHESTRATOR="claude"),
+        capture_output=True, text=True, env=env,
     )
 
 
@@ -1040,7 +1044,8 @@ echo "rc=$?"
         self.assertNotIn("/nonexistent/env-run-dir", result.stdout)
 
     def test_missing_arg_and_env_fails_loudly(self):
-        result = self.run_watch()
+        with patch.dict(os.environ, {"AI_REVIEW_RUN_DIR": str(self.run_dir)}):
+            result = self.run_watch()
         self.assertIn("rc=1", result.stdout)
         self.assertIn("run_dirが未指定です", result.stderr)
         self.assertNotIn("WAIT:", result.stdout)

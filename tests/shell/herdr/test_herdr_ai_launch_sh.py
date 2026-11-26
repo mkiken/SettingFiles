@@ -20,6 +20,7 @@ case "$1 $2" in
     printf '%s' "$SPLIT_JSON"
     ;;
   "agent wait")
+    if [[ -n "${AGENT_WAIT_DELAY:-}" ]]; then sleep "$AGENT_WAIT_DELAY"; fi
     # AI検出前は agent_not_found で即失敗する実挙動を、最初のN回だけ再現する
     wait_count=$(( $(cat "$AGENT_WAIT_COUNT_FILE" 2>/dev/null || echo 0) + 1 ))
     printf '%s' "$wait_count" > "$AGENT_WAIT_COUNT_FILE"
@@ -47,6 +48,8 @@ def run_launch_script(
     split_json: str = '{"result":{"pane":{"pane_id":"w1:p9"}}}',
     agent_wait_exit: int = 0,
     agent_wait_not_found: int = 0,
+    agent_wait_delay: str = "",
+    detect_seconds: int = 30,
 ) -> tuple[subprocess.CompletedProcess, list[str]]:
     """PATH先頭にスタブherdrを置いてスクリプトを実行し、(結果, herdr呼び出しログ) を返す。"""
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -67,11 +70,12 @@ def run_launch_script(
             "SPLIT_JSON": split_json,
             "AGENT_WAIT_EXIT": str(agent_wait_exit),
             "AGENT_WAIT_NOT_FOUND_COUNT": str(agent_wait_not_found),
+            "AGENT_WAIT_DELAY": agent_wait_delay,
             "AGENT_WAIT_COUNT_FILE": str(wait_count_path),
             "AGENT_WAIT_ERROR": '{"error":{"code":"timeout","message":"timed out waiting for agent status"}}',
             # 待ち時間を潰すための上書き（本番の既定は 0.3 秒 / 30 秒）
             "HERDR_AI_LAUNCH_POLL_INTERVAL": "0.05",
-            "HERDR_AI_LAUNCH_DETECT_SECONDS": "1",
+            "HERDR_AI_LAUNCH_DETECT_SECONDS": str(detect_seconds),
         }
         result = subprocess.run(
             ["bash", str(LAUNCH_SCRIPT), *args],
@@ -120,14 +124,18 @@ class HerdrAiLaunchTest(unittest.TestCase):
 
     def test_agent_wait_retries_until_agent_is_detected(self):
         # pane run 直後は AI 未検出で agent wait が即 agent_not_found になる（実機で再現した不具合）
-        result, calls = run_launch_script(["w1:p1", "/work", "cls"], agent_wait_not_found=2)
+        result, calls = run_launch_script(
+            ["w1:p1", "/work", "cls"], agent_wait_not_found=2, agent_wait_delay="0.6"
+        )
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, "w1:p9\n")
         self.assertEqual(calls.count(AGENT_WAIT_CALL), 3)
 
     def test_agent_never_detected_fails_with_reason_and_prints_nothing(self):
-        result, calls = run_launch_script(["w1:p1", "/work", "cls"], agent_wait_not_found=10_000)
+        result, calls = run_launch_script(
+            ["w1:p1", "/work", "cls"], agent_wait_not_found=10_000, detect_seconds=1
+        )
 
         self.assertEqual(result.returncode, 1)
         self.assertEqual(result.stdout, "")
