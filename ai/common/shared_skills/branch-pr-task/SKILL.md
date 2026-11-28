@@ -7,14 +7,18 @@ description: Implement a request on a new branch cut from a proposed parent bran
 
 Invoke as `$branch-pr-task <implementation request>`. Treat the text after the invocation as the implementation request. If it is empty, ask for it through the platform's user-confirmation mechanism before changing anything.
 
-Work in the current worktree. Defer the ambient post-implementation commit/push confirmation until this workflow finishes; the single confirmation below replaces it.
+Work in a newly created worktree, leaving the invoking worktree unchanged. Defer the ambient post-implementation commit/push confirmation until this workflow finishes; the single confirmation below replaces it.
 
 ## Preconditions
 
-Stop and report instead of working around the problem:
+Stop and report if `git symbolic-ref --short HEAD` fails (detached `HEAD`).
 
-- `git symbolic-ref --short HEAD` fails (detached `HEAD`).
-- `git status --porcelain` is non-empty: list the dirty paths. Never stash, clean, reset, or commit them to proceed.
+Record the invoking worktree path, branch, HEAD, and `git status --porcelain` (including untracked files). If dirty, list the changed paths and ask exactly these choices through the platform's user-confirmation mechanism before creating anything:
+
+1. `そのまま進める`
+2. `中止する`
+
+Continue only on explicit `そのまま進める`. Never stash, clean, reset, or commit the invoking worktree's changes to proceed.
 
 ## Choose the parent branch and branch name
 
@@ -28,19 +32,25 @@ Stop and report instead of working around the problem:
 
    The user corrects either through that question's free-form input.
 
-Create the branch from the confirmed parent, not from the current `HEAD`:
+## Create the worktree
+
+Resolve the main worktree path from `git worktree list --porcelain`. In its parent directory, form the new worktree path from the confirmed branch name, replacing `/` with `-`. Display the resolved path before creation. If the path already exists, preserve it and stop.
+
+Create the branch and worktree from the confirmed parent, not from the invoking `HEAD`:
 
 ```bash
-git switch -c <branch> origin/<parent>
+git worktree add --track -b <branch> <path> origin/<parent>
 ```
 
-On failure, stop and report; do not retry with a different base.
+Record the expected `origin/<parent>` commit before creation. Verify that exactly one registered worktree has the intended path and branch, and that its `HEAD` equals that commit. On path collision, creation failure, or verification mismatch, stop and report the remaining path, branch, and observed state; do not retry with a different base or clean up ambiguous state.
+
+Run implementation, tests, commit, push, and PR creation from the verified worktree.
 
 ## Implement
 
 Apply the request, obeying the repository's instructions (`CLAUDE.md` / `AGENTS.md`). Verify with the repository's documented test command scoped to the changed paths; if none exists, run the narrowest command that exercises the change and say so when nothing is executable. Remove only temporary artifacts created during this run. Do not commit during implementation.
 
-If the work leaves nothing changed, report that and switch back to the original branch, then delete the new branch with `git branch -d`; skip every step below.
+If the worktree is clean and its `HEAD` remains at the recorded starting commit, remove the worktree with `git worktree remove <path>`, then delete the branch with `git branch -d <branch>`. Verify independently that both are absent and report the empty result; skip every step below. If no task changes remain but additional commits exist, preserve the worktree and branch and report them instead.
 
 ## Confirm once
 
@@ -51,7 +61,7 @@ Show the changed paths, verification results, the commit message (following the 
 3. `bodyを修正したい`
 4. `キャンセル`
 
-On a modification choice, collect the correction, re-display, and ask again. On `キャンセル`, leave all changes uncommitted on the new branch, report its name, and stop. Commit, push, and PR creation happen only after `はい、作成する`.
+On a modification choice, collect the correction, re-display, and ask again. On `キャンセル`, leave all changes uncommitted in the new worktree, report its path and branch, and stop. Commit, push, and PR creation happen only after `はい、作成する`.
 
 ### PR title and body
 
@@ -71,6 +81,8 @@ PREOF
 ```
 
 Verify independently: `git log -1`, `git ls-remote origin <branch>` equals the local `HEAD`, and `gh pr view --json url,baseRefName` reports base `<parent>`. Report an unmet check instead of claiming success.
+
+After all checks pass, confirm the worktree is clean and its `HEAD` is the verified pushed commit. Remove only that worktree with `git worktree remove <path>` and independently verify its registered entry is absent and the PR branch still exists. Keep the branch. On cancellation, failure, remaining files, or additional commits, preserve and report the worktree path and branch. Never use force for cleanup.
 
 ## Report
 

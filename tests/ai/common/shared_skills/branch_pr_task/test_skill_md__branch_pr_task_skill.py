@@ -37,33 +37,45 @@ class BranchPrTaskContentTest(unittest.TestCase):
         openai_yaml = (SHARED_SKILL / "agents/openai.yaml").read_text(encoding="utf-8")
         self.assertIn('display_name: "Branch PR Task"', openai_yaml)
         self.assertIn("$branch-pr-task", openai_yaml)
+        self.assertIn("new worktree", openai_yaml)
 
-    def test_dirty_or_detached_worktree_stops_without_workaround(self):
+    def test_dirty_worktree_requires_confirmation_and_detached_stops(self):
         for required in (
-            "detached",
-            "git status --porcelain",
-            "Never stash, clean, reset, or commit",
+            "detached", "git status --porcelain", "そのまま進める", "中止する",
+            "Continue only on explicit", "Never stash, clean, reset, or commit",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, self.content)
+        self.assertLess(self.content.index("そのまま進める"), self.content.index("git worktree add"))
 
-    def test_branch_is_cut_from_confirmed_parent(self):
-        self.assertIn("git switch -c <branch> origin/<parent>", self.content)
+    def test_worktree_is_cut_from_confirmed_parent(self):
+        self.assertIn("git worktree add --track -b <branch> <path> origin/<parent>", self.content)
         self.assertIn("git fetch origin", self.content)
-        # The parent is proposed first, then corrected by the user.
-        self.assertLess(
-            self.content.index("Choose the parent branch"),
-            self.content.index("git switch -c"),
-        )
+        self.assertLess(self.content.index("Choose the parent branch"), self.content.index("git worktree add"))
+        for required in ("replacing `/` with `-`", "Display the resolved path", "path already exists",
+                         "exactly one registered worktree", "verification mismatch"):
+            with self.subTest(required=required):
+                self.assertIn(required, self.content)
 
     def test_parent_and_branch_name_are_asked_as_separate_questions(self):
         section = self.content[
-            self.content.index("## Choose the parent branch") : self.content.index("git switch -c")
+            self.content.index("## Choose the parent branch") : self.content.index("## Create the worktree")
         ]
         for required in ("two separate questions", "- Parent branch:", "- Branch name:"):
             with self.subTest(required=required):
                 self.assertIn(required, section)
-        self.assertNotIn("Ask once through", section)
+
+    def test_cleanup_depends_on_result(self):
+        empty = self.content[self.content.index("If the worktree is clean") : self.content.index("## Confirm once")]
+        for required in ("recorded starting commit", "git worktree remove <path>",
+                         "git branch -d <branch>", "both are absent", "additional commits"):
+            with self.subTest(required=required):
+                self.assertIn(required, empty)
+        success = self.content[self.content.index("After all checks pass") : self.content.index("## Report")]
+        for required in ("git worktree remove <path>", "PR branch still exists", "Keep the branch",
+                         "cancellation, failure, remaining files, or additional commits"):
+            with self.subTest(required=required):
+                self.assertIn(required, success)
 
     def test_confirmation_precedes_commit_push_and_pr(self):
         confirm_pos = self.content.index("## Confirm once")
