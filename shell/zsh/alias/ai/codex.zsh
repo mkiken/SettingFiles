@@ -82,7 +82,7 @@ cx-pr-create() {
         return 1
     }
     local ai_exit
-    cxmx --dangerously-bypass-approvals-and-sandbox "\$pr-body PR #$pr_number のbodyを生成して"
+    cxs -c 'model_reasoning_effort="high"' --dangerously-bypass-approvals-and-sandbox "\$pr-body PR #$pr_number のbodyを生成して"
     ai_exit=$?
     pr_reviewer_reminder
     return $ai_exit
@@ -157,7 +157,7 @@ cx-audit-fix() {
 alias cx-pr-comment-review='noglob _cx-pr-comment-review'
 alias cx-pcr='noglob _cx-pr-comment-review'
 _cx-pr-comment-review() {
-    cxmx --dangerously-bypass-approvals-and-sandbox "\$pr-comment-review $*"
+    cxs -c 'model_reasoning_effort="high"' --dangerously-bypass-approvals-and-sandbox "\$pr-comment-review $*"
 }
 
 alias cx-pr-comment-implement='noglob _ai_pci_route _cx-pr-comment-implement'

@@ -368,13 +368,26 @@ class ReviewEntrypointEffortPolicyTest(unittest.TestCase):
         skill = REPO_ROOT / "ai/claude/skills/pr-review-subagents/SKILL.md"
         self.assertNotRegex(skill.read_text(encoding="utf-8"), r"(?m)^model: ?")
 
+    def test_codex_pr_create_uses_sol_high_for_body(self):
+        captured = run_zsh(
+            f'''source "{CODEX_ALIASES}"
+            cx() {{ printf '<%s>\\n' "$@"; }}
+            br_fmt() {{ print main; }}
+            gh() {{ [[ "$1 $2" == "pr view" ]] && print 123; return 0; }}
+            pr_reviewer_reminder() {{ :; }}
+            cx-pr-create title''',
+            "",
+        )
+        self.assertEqual(captured[:4], ["--model", "gpt-6.2-sol", "-c", 'model_reasoning_effort="high"'])
+        self.assertEqual(captured[-1], "$pr-body PR #123 のbodyを生成して")
+
     def test_codex_review_roles_use_the_expected_effort(self):
         cases = (
             # cx-pr-reviewは軽量版（Sol・medium）、cxmx-pr-reviewは従来のAstra・high。
             ("cx-pr-review 123 focus on errors", "gpt-6.2-sol", "medium", "$pr-review PR #123 をレビューして focus on errors"),
             ("cxmx-pr-review 123 focus on errors", "gpt-6.2-astra", "high", "$pr-review PR #123 をレビューして focus on errors"),
             ("cx-pr-review-subagent 123 focus on errors", "gpt-6.2-sol", "high", "$pr-review-subagents PR #123 をレビューして focus on errors"),
-            ("cx-pcr https://github.com/acme/widget/pull/42#discussion_r123 focus", "gpt-6.2-astra", "high", "$pr-comment-review https://github.com/acme/widget/pull/42#discussion_r123 focus"),
+            ("cx-pcr https://github.com/acme/widget/pull/42#discussion_r123 focus", "gpt-6.2-sol", "high", "$pr-comment-review https://github.com/acme/widget/pull/42#discussion_r123 focus"),
         )
 
         for command, model, effort, prompt in cases:
@@ -517,7 +530,7 @@ class ReviewerAgentEffortPolicyTest(unittest.TestCase):
         self.assertEqual(toml_header_value(source, "model_reasoning_effort"), "high")
         self.assertEqual(toml_header_value(generated, "model_reasoning_effort"), "high")
 
-    def test_codex_config_audit_and_audit_fix_agents_use_astra(self):
+    def test_codex_config_audit_and_audit_fix_agents_use_sol(self):
         for directory, roles in (
             ("config_audit", ("ambiguity", "concise", "conflict", "default", "overlap", "patch")),
             ("audit_fix", ("designer", "implementer", "considerer")),
@@ -527,8 +540,8 @@ class ReviewerAgentEffortPolicyTest(unittest.TestCase):
                     source = REPO_ROOT / f"ai/codex/agents_src/{directory}/head_{role}.toml"
                     generated_prefix = "config_auditor" if directory == "config_audit" else "audit_fix"
                     generated = REPO_ROOT / f"ai/codex/agents/{generated_prefix}_{role}.toml"
-                    self.assertEqual(toml_header_value(source, "model"), "gpt-6.2-astra")
-                    self.assertEqual(toml_header_value(generated, "model"), "gpt-6.2-astra")
+                    self.assertEqual(toml_header_value(source, "model"), "gpt-6.2-sol")
+                    self.assertEqual(toml_header_value(generated, "model"), "gpt-6.2-sol")
 
     def test_codex_review_fix_agents_inherit_caller_model_and_effort(self):
         for role in ("designer", "implementer"):
