@@ -41,8 +41,15 @@ class PrReviewScopeTest(unittest.TestCase):
         self.assertIn("is not an ancestor of `headRefOid`", self.content)
         self.assertIn("review the whole PR and state that at the top of the output", self.content)
 
-    def test_incremental_review_asks_the_user_once(self):
-        self.assertIn("ask the user once", self.content)
+    def test_incremental_review_is_automatic_without_asking(self):
+        self.assertIn("review only `<PREV_OID>..<headRefOid>` without asking", self.content)
+        self.assertNotIn("ask the user", self.content)
+
+    def test_incremental_review_allows_explicit_whole_pr_request(self):
+        self.assertIn("unless `<ADDITIONAL_INSTRUCTIONS>` explicitly requests a whole-PR review", self.content)
+
+    def test_incremental_review_is_reported_at_end_of_response(self):
+        self.assertIn("End the final response by telling the user that only", self.content)
 
     def test_incremental_findings_keep_full_pr_line_anchors(self):
         self.assertIn("keep using the full PR line-numbered diff for line anchors", self.content)

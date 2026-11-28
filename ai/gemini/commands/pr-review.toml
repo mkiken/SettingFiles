@@ -27,14 +27,9 @@ The last command above fetches `<PREV_OID>` (the commit ID of your latest previo
   - Local mode: `git merge-base --is-ancestor <PREV_OID> <headRefOid>`
   - Remote mode: `gh api repos/{owner}/{repo}/compare/<PREV_OID>...<headRefOid> --jq .status` (status is `ahead`)
   - If `<PREV_OID>` is NOT an ancestor of `headRefOid` (force-push): review the whole PR and state at the top of the output that a force-push was detected.
-  - If `<PREV_OID>` IS an ancestor of `headRefOid`: **STOP and invoke the `ask_user` tool immediately** before proceeding with the review:
-    - header: "差分レビュー"
-    - question: "前回のレビューコミット (<PREV_OID>) が見つかりました。レビュー対象の範囲を選択してください。"
-    - options:
-      1. label: "差分のみ", description: "<PREV_OID>..<headRefOid> の変更行のみレビューします"
-      2. label: "PR全体", description: "PR全体の変更を再レビューします"
-    - If the user selects "差分のみ": report findings ONLY on lines changed in `<PREV_OID>..<headRefOid>` (using `git diff <PREV_OID>...<headRefOid>`), while keeping the full PR line-numbered diff for line anchors and comment deduplication. State the reviewed range `<PREV_OID>..<headRefOid>` at the top of the output.
-    - If the user selects "PR全体": review the whole PR.
+  - If `<PREV_OID>` IS an ancestor of `headRefOid`: do NOT ask the user. Review only `<PREV_OID>..<headRefOid>`, unless `<ADDITIONAL_INSTRUCTIONS>` explicitly requests a whole-PR review (then review the whole PR).
+    - Report findings ONLY on lines changed in `<PREV_OID>..<headRefOid>` (using `git diff <PREV_OID>...<headRefOid>`), while keeping the full PR line-numbered diff for line anchors and comment deduplication.
+    - State the reviewed range `<PREV_OID>..<headRefOid>` at the top of the output, and end the final response by telling the user that only this range was reviewed and that a whole-PR review can be requested via additional instructions.
 
 
 For more detail via `run_shell_command`:

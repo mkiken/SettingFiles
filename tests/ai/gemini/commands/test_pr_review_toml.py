@@ -44,13 +44,17 @@ class PrReviewTomlIncrementalTest(unittest.TestCase):
         self.assertIn("pulls/<PR_NUMBER>/reviews", first_commands)
         self.assertIn(".user.login", first_commands)
 
-    def test_instructs_ask_user_for_incremental_re_review(self):
+    def test_check_heading_exists(self):
         self.assertIn("### Incremental Re-review Check", self.pr_review)
-        self.assertIn("ask_user", self.pr_review)
-        self.assertIn("差分のみ", self.pr_review)
-        self.assertIn("PR全体", self.pr_review)
 
-    def test_defines_ancestry_checks_before_asking(self):
+    def test_incremental_review_is_automatic_and_reported(self):
+        self.assertNotIn("ask_user", self.pr_review)
+        self.assertNotIn("PR全体", self.pr_review)
+        self.assertIn("do NOT ask the user", self.pr_review)
+        self.assertIn("explicitly requests a whole-PR review", self.pr_review)
+        self.assertIn("end the final response by telling the user", self.pr_review)
+
+    def test_defines_ancestry_checks_before_incremental_review(self):
         self.assertIn("git merge-base --is-ancestor", self.pr_review)
         self.assertIn("compare/<PREV_OID>...<headRefOid>", self.pr_review)
 

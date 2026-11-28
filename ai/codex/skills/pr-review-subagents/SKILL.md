@@ -128,9 +128,9 @@ Find the previously reviewed commit: `gh api user --jq .login`, then the latest 
 
 - No review by the current user, or `<PREV_OID>` equals `headRefOid`: review the whole PR.
 - `<PREV_OID>` is not an ancestor of `headRefOid` (force-push; local mode: `git merge-base --is-ancestor`, remote mode: `gh api repos/{owner}/{repo}/compare/<PREV_OID>...<headRefOid> --jq .status` is not `ahead`): review the whole PR and state that at the top of the output.
-- Otherwise ask the user once whether to review only `<PREV_OID>..<headRefOid>` or the whole PR.
+- Otherwise review only `<PREV_OID>..<headRefOid>` without asking, unless `<ADDITIONAL_INSTRUCTIONS>` explicitly requests a whole-PR review.
 
-When reviewing the increment only, report findings only on lines changed in `<PREV_OID>..<headRefOid>`; keep using the full PR line-numbered diff for line anchors and the existing-comment deduplication unchanged. State the reviewed range at the top of the output.
+When reviewing the increment only, report findings only on lines changed in `<PREV_OID>..<headRefOid>`; keep using the full PR line-numbered diff for line anchors and the existing-comment deduplication unchanged. State the reviewed range at the top of the output. End the final response by telling the user that only `<PREV_OID>..<headRefOid>` was reviewed and that a whole-PR review can be requested via additional instructions.
 
 ### Verify Findings
 

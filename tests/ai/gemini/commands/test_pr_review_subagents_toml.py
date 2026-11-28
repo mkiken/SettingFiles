@@ -49,12 +49,14 @@ class PrReviewSubagentsTomlIncrementalTest(unittest.TestCase):
         self.assertGreater(launch_pos, -1, "Launch Agents heading must exist")
         self.assertLess(check_pos, launch_pos, "Incremental check must come BEFORE Launch Agents")
 
-    def test_instructs_ask_user_for_incremental_re_review(self):
-        self.assertIn("ask_user", self.pr_review_subagents)
-        self.assertIn("差分のみ", self.pr_review_subagents)
-        self.assertIn("PR全体", self.pr_review_subagents)
+    def test_incremental_review_is_automatic_and_reported(self):
+        self.assertNotIn("ask_user", self.pr_review_subagents)
+        self.assertNotIn("PR全体", self.pr_review_subagents)
+        self.assertIn("do NOT ask the user", self.pr_review_subagents)
+        self.assertIn("explicitly requests a whole-PR review", self.pr_review_subagents)
+        self.assertIn("end the final response by telling the user", self.pr_review_subagents)
 
-    def test_defines_ancestry_checks_before_asking(self):
+    def test_defines_ancestry_checks_before_incremental_review(self):
         self.assertIn("git merge-base --is-ancestor", self.pr_review_subagents)
         self.assertIn("compare/<PREV_OID>...<headRefOid>", self.pr_review_subagents)
 
