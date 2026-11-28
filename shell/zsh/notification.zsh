@@ -169,6 +169,8 @@ function _herdr_idle_watch_start() {
     zsh|bash|sh|fish) return 0 ;;
   esac
   _notification_is_excluded_command "$cmd_line" && return 0
+  # レポートサーバーは待機中に画面が変わらないのが正常（review-mergeのHerdrタブ）
+  [[ "$cmd_line" == *serve_review_report.py* ]] && return 0
 
   [[ -d "$_HERDR_IDLE_WATCH_DIR" ]] || mkdir -p "$_HERDR_IDLE_WATCH_DIR" 2>/dev/null || return 0
   local pidfile="${_HERDR_IDLE_WATCH_DIR}/${HERDR_PANE_ID//[^A-Za-z0-9._-]/_}"

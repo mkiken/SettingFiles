@@ -354,6 +354,7 @@ class HerdrIdleWatchSkipTest(HerdrIdleWatchTestBase):
             ("excluded ssh", "ssh host", {}),
             ("outside herdr", "make build", {"HERDR_PANE_ID": None}),
             ("inside tmux", "make build", {"TMUX": "/tmp/tmux-1/default,1,0"}),
+            ("review report server", "exec python3 ~/.config/ai-pr/bin/serve_review_report.py /tmp/run", {}),
             ("shell launch zsh", "zsh", {}),
             ("shell launch bash by path", "/bin/bash -c true", {}),
             ("disable_notify", "make build", {"DISABLE_NOTIFY": "1"}),
