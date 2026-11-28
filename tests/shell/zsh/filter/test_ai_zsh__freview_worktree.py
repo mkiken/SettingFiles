@@ -18,11 +18,12 @@ ZSH = shutil.which("zsh")
 
 
 class FreviewWorktreeFixture:
-    """freviewのrepo→worktree→PR選択を検証する隔離済みfixture。
+    """freviewのrepo→PR選択とworktree自動決定を検証する隔離済みfixture。
 
-    - zoxide/git worktree listでリポジトリ・worktreeを1件ずつ返す
-    - filterはヘッダ文字列(Number\tTitle...)の有無でPRピッカーかworktreeピッカーかを判別する
-      （_filter_zoxide_git_worktree_pathとPRピッカーが同じ`filter`コマンドを叩くため）
+    - zoxide/git worktree listでリポジトリ・PRのheadブランチ(feature)を持つworktreeを返す
+      （FREVIEW_NO_PR_WORKTREE=1でheadを持つworktreeを無くし、一時worktree作成経路にする）
+    - wt stubはswitch呼び出しを記録し、成功時は作成後のworktree一覧に一時worktreeを加える
+    - filterはヘッダ文字列(Number\tTitle...)の有無でPRピッカーかrepoピッカーかを判別する
     - review/review-subagentsは実行せず、呼び出し引数と環境変数をログへ記録するstubにする
     """
 
@@ -38,6 +39,9 @@ class FreviewWorktreeFixture:
         (self.repo / ".git").mkdir()
         self.worktree = self.root / "feature-worktree"
         self.worktree.mkdir()
+        # wt switch pr:<N> が作る一時worktree（FREVIEW_NO_PR_WORKTREE=1の経路で使う）
+        self.new_worktree = self.root / "review-tmp-worktree"
+        self.new_worktree.mkdir()
         self.log = self.root / "calls.log"
         self._write_fake_commands()
 
@@ -71,15 +75,26 @@ class FreviewWorktreeFixture:
         self._write_executable(
             "git",
             "#!/bin/sh\n"
-            "if [ \"$1\" = worktree ] && [ \"$2\" = list ]; then\n"
-            "  printf 'worktree %s\\nbranch refs/heads/main\\n\\n' \"$FREVIEW_REPO\"\n"
-            "  printf 'worktree %s\\nbranch refs/heads/feature\\n\\n' \"$FREVIEW_WORKTREE\"\n"
-            "  exit 0\n"
-            "fi\n"
             "target=\"$PWD\"\n"
             "if [ \"$1\" = -C ]; then\n"
             "  target=\"$2\"\n"
             "  shift 2\n"
+            "fi\n"
+            # worktree一覧: repo本体 + PRのheadブランチ(feature)を持つworktree。
+            # wt switch後（wt_doneマーカーあり）は一時worktreeも加わる
+            "if [ \"$1\" = worktree ] && [ \"$2\" = list ]; then\n"
+            "  printf 'worktree %s\\nbranch refs/heads/main\\n\\n' \"$FREVIEW_REPO\"\n"
+            "  [ \"${FREVIEW_NO_PR_WORKTREE:-}\" = 1 ] || printf 'worktree %s\\nbranch refs/heads/feature\\n\\n' \"$FREVIEW_WORKTREE\"\n"
+            "  [ -e \"$FREVIEW_LOG.wt_done\" ] && printf 'worktree %s\\nbranch refs/heads/%s\\n\\n' \"$FREVIEW_NEW_WORKTREE\" \"$FREVIEW_NEW_BRANCH\"\n"
+            "  exit 0\n"
+            "fi\n"
+            "if [ \"$1\" = for-each-ref ]; then\n"
+            "  printf '%s\\n' ${FREVIEW_EXISTING_BRANCHES:-main}\n"
+            "  exit 0\n"
+            "fi\n"
+            "if [ \"$1\" = branch ] && [ \"$2\" = --show-current ]; then\n"
+            "  printf '%s\\n' \"$FREVIEW_NEW_BRANCH\"\n"
+            "  exit 0\n"
             "fi\n"
             "is_dirty_target() {\n"
             "  [ \"$target\" = \"${FREVIEW_DIRTY_PATH:-$target}\" ]\n"
@@ -129,9 +144,8 @@ class FreviewWorktreeFixture:
             "fi\n"
             "exec /usr/bin/git \"$@\"\n",
         )
-        # filter: --headerの文言でrepoピッカー/worktreeピッカー/PRピッカーを判別する。
-        # worktreeピッカーはcdq経由でrepoへcdした状態で呼ばれるため($PWD==repo)、
-        # PWDでは区別できず--headerの文言で見分ける必要がある。
+        # filter: --headerの文言でrepoピッカー/PRピッカーを判別する。
+        # どちらもrepoへcdした状態で呼ばれうるため、PWDでは区別できない。
         # --label-prefix由来の--promptは判別に使わず、argv全体をログへ記録するだけにする
         # （headerの文言を変えると判別ロジックが壊れるため、prompt側だけで検証する）
         self._write_executable(
@@ -145,15 +159,21 @@ class FreviewWorktreeFixture:
             "    [ \"${FREVIEW_PR_CANCEL:-}\" = 1 ] && exit 0\n"
             "    printf '%s\\n' \"$FREVIEW_PR_LINE\"\n"
             "    ;;\n"
-            "  *worktree*)\n"
-            "    [ \"${FREVIEW_WORKTREE_CANCEL:-}\" = 1 ] && exit 0\n"
-            "    printf '%s\\n' \"$FREVIEW_WORKTREE\"\n"
-            "    ;;\n"
             "  *)\n"
             "    [ \"${FREVIEW_REPO_CANCEL:-}\" = 1 ] && exit 0\n"
             "    printf '%s\\n' \"$FREVIEW_REPO\"\n"
             "    ;;\n"
             "esac\n",
+        )
+        # wt: switch呼び出しを記録。成功時は一時worktree作成済みマーカーを立てる
+        # （FREVIEW_WT_NOOP=1なら立てない=wtが何も作らなかった場合）
+        self._write_executable(
+            "wt",
+            "#!/bin/sh\n"
+            "printf 'WT %s (pwd=%s)\\n' \"$*\" \"$PWD\" >> \"$FREVIEW_LOG\"\n"
+            "[ \"${FREVIEW_WT_FAIL:-}\" = 1 ] && exit 1\n"
+            "[ \"${FREVIEW_WT_NOOP:-}\" = 1 ] || : > \"$FREVIEW_LOG.wt_done\"\n"
+            "exit 0\n",
         )
         # gh: pr checkout呼び出しをログへ記録。pr listは_fgh_select_pr_number経由で
         # 呼ばれる想定だがghpl_branchはgh.zshの実装をそのまま使うため、実PR取得は発生しない
@@ -195,6 +215,8 @@ class FreviewWorktreeFixture:
             "SET": str(REPO_ROOT),
             "FREVIEW_REPO": str(self.repo),
             "FREVIEW_WORKTREE": str(self.worktree),
+            "FREVIEW_NEW_WORKTREE": str(self.new_worktree),
+            "FREVIEW_NEW_BRANCH": "feature",
             "FREVIEW_LOG": str(self.log),
             "FREVIEW_PR_LINE": "42\tsome title\tauthor\tmain\tfeature",
             "HERDR_ENV": "1",
@@ -215,12 +237,12 @@ class FreviewWorktreeFixture:
                 fi
                 zoxide query --list | filter --height 40% --prompt "${{label_prefix:+$label_prefix }}repo> "
             }}
-            review() {{ printf 'REVIEW review %s (AI_REVIEW_CWD=%s)\\n' "$*" "$AI_REVIEW_CWD" >> "$FREVIEW_LOG"; }}
-            review-mx() {{ printf 'REVIEW review-mx %s (AI_REVIEW_CWD=%s)\\n' "$*" "$AI_REVIEW_CWD" >> "$FREVIEW_LOG"; }}
-            review-subagents() {{ printf 'REVIEW review-subagents %s (AI_REVIEW_CWD=%s)\\n' "$*" "$AI_REVIEW_CWD" >> "$FREVIEW_LOG"; }}
-            self-review() {{ printf 'REVIEW self-review %s (AI_REVIEW_CWD=%s)\\n' "$*" "$AI_REVIEW_CWD" >> "$FREVIEW_LOG"; }}
-            self-review-mx() {{ printf 'REVIEW self-review-mx %s (AI_REVIEW_CWD=%s)\\n' "$*" "$AI_REVIEW_CWD" >> "$FREVIEW_LOG"; }}
-            self-review-subagents() {{ printf 'REVIEW self-review-subagents %s (AI_REVIEW_CWD=%s)\\n' "$*" "$AI_REVIEW_CWD" >> "$FREVIEW_LOG"; }}
+            review() {{ printf 'REVIEW review %s (AI_REVIEW_CWD=%s) [TEMP_WORKTREE=%s TEMP_BRANCH=%s]\\n' "$*" "$AI_REVIEW_CWD" "$AI_REVIEW_TEMP_WORKTREE" "$AI_REVIEW_TEMP_BRANCH" >> "$FREVIEW_LOG"; }}
+            review-mx() {{ printf 'REVIEW review-mx %s (AI_REVIEW_CWD=%s) [TEMP_WORKTREE=%s TEMP_BRANCH=%s]\\n' "$*" "$AI_REVIEW_CWD" "$AI_REVIEW_TEMP_WORKTREE" "$AI_REVIEW_TEMP_BRANCH" >> "$FREVIEW_LOG"; }}
+            review-subagents() {{ printf 'REVIEW review-subagents %s (AI_REVIEW_CWD=%s) [TEMP_WORKTREE=%s TEMP_BRANCH=%s]\\n' "$*" "$AI_REVIEW_CWD" "$AI_REVIEW_TEMP_WORKTREE" "$AI_REVIEW_TEMP_BRANCH" >> "$FREVIEW_LOG"; }}
+            self-review() {{ printf 'REVIEW self-review %s (AI_REVIEW_CWD=%s) [TEMP_WORKTREE=%s TEMP_BRANCH=%s]\\n' "$*" "$AI_REVIEW_CWD" "$AI_REVIEW_TEMP_WORKTREE" "$AI_REVIEW_TEMP_BRANCH" >> "$FREVIEW_LOG"; }}
+            self-review-mx() {{ printf 'REVIEW self-review-mx %s (AI_REVIEW_CWD=%s) [TEMP_WORKTREE=%s TEMP_BRANCH=%s]\\n' "$*" "$AI_REVIEW_CWD" "$AI_REVIEW_TEMP_WORKTREE" "$AI_REVIEW_TEMP_BRANCH" >> "$FREVIEW_LOG"; }}
+            self-review-subagents() {{ printf 'REVIEW self-review-subagents %s (AI_REVIEW_CWD=%s) [TEMP_WORKTREE=%s TEMP_BRANCH=%s]\\n' "$*" "$AI_REVIEW_CWD" "$AI_REVIEW_TEMP_WORKTREE" "$AI_REVIEW_TEMP_BRANCH" >> "$FREVIEW_LOG"; }}
             # confirmはutils.zshに実装があるが対話待ちになるため差し替える。
             # 呼び出し引数を記録し、FREVIEW_CONFIRM_ANSWERで応答を切り替える。
             # dirty confirmは_freview_prompt_dirty_actionへ移行済みで、誤って
@@ -239,6 +261,7 @@ class FreviewWorktreeFixture:
             exit_code=$?
             print -r -- "__STATUS=$exit_code"
             print -r -- "__AI_REVIEW_CWD=${{AI_REVIEW_CWD:-<unset>}}"
+            print -r -- "__AI_REVIEW_TEMP_WORKTREE=${{AI_REVIEW_TEMP_WORKTREE:-<unset>}}"
         '''
         result = subprocess.run(
             [ZSH, "-fc", script],
@@ -259,9 +282,9 @@ class FreviewWorktreeFixture:
 
 
 class FreviewWorktreeModeTest(FreviewWorktreeFixture, unittest.TestCase):
-    """freview（デフォルト）: repo→worktree→PR選択後、選択worktreeでcheckoutしてreviewを起動する。"""
+    """freview（デフォルト）: repo→PR選択後、PRのheadブランチを持つworktreeでcheckoutしてreviewを起動する。"""
 
-    def test_selects_repo_worktree_pr_then_launches_review(self):
+    def test_reuses_existing_worktree_of_pr_head_then_launches_review(self):
         result, values = self.run_freview()
 
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -277,6 +300,9 @@ class FreviewWorktreeModeTest(FreviewWorktreeFixture, unittest.TestCase):
         self.assertEqual(len(review_calls), 1, calls)
         self.assertIn("42", review_calls[0])
         self.assertIn(f"AI_REVIEW_CWD={self.worktree}", review_calls[0])
+        # 既存worktreeを使う経路では一時worktreeを作らず、削除対象も記録しない
+        self.assertEqual([c for c in calls if c.startswith("WT ")], [], calls)
+        self.assertIn("[TEMP_WORKTREE= TEMP_BRANCH=]", review_calls[0])
 
     def test_freview_mx_launches_review_mx_and_labels_the_pickers(self):
         result, values = self.run_freview(command="freview-mx")
@@ -286,9 +312,9 @@ class FreviewWorktreeModeTest(FreviewWorktreeFixture, unittest.TestCase):
         calls = self.calls()
         self.assertEqual(len([c for c in calls if c.startswith("REVIEW review-mx ")]), 1, calls)
         self.assertEqual(len([c for c in calls if c.startswith("REVIEW review ")]), 0, calls)
-        # 軽量版との押し間違いに気づけるよう、3ピッカーすべてのpromptに"review-mx"が付く
+        # 軽量版との押し間違いに気づけるよう、2ピッカー(repo/PR)すべてのpromptに"review-mx"が付く
         filter_args = [c for c in calls if c.startswith("FILTER_ARGS ")]
-        self.assertEqual(len(filter_args), 3, calls)
+        self.assertEqual(len(filter_args), 2, calls)
         for args in filter_args:
             self.assertIn("--prompt review-mx ", args, calls)
 
@@ -302,26 +328,26 @@ class FreviewWorktreeModeTest(FreviewWorktreeFixture, unittest.TestCase):
         self.assertEqual(len([c for c in calls if c.startswith("REVIEW review ")]), 0, calls)
 
     def test_freview_prompts_are_labeled_review_without_subagents(self):
-        # 3ピッカーすべてのpromptに"review"が付き、"subagents"は付かないことを確認する
+        # 2ピッカー(repo/PR)すべてのpromptに"review"が付き、"subagents"は付かないことを確認する
         # （押し間違いに気づけるようにする対策のfreview側の固定）
         result, values = self.run_freview()
 
         self.assertEqual(result.returncode, 0, result.stderr)
         calls = self.calls()
         filter_args = [c for c in calls if c.startswith("FILTER_ARGS ")]
-        self.assertEqual(len(filter_args), 3, calls)
+        self.assertEqual(len(filter_args), 2, calls)
         for args in filter_args:
             self.assertIn("--prompt review ", args, calls)
             self.assertNotIn("subagents", args, calls)
 
     def test_freview_subagents_prompts_are_labeled_with_subagents(self):
-        # freview-subagents実行時は3ピッカーすべてのpromptに"review-subagents"が付く
+        # freview-subagents実行時は2ピッカー(repo/PR)すべてのpromptに"review-subagents"が付く
         result, values = self.run_freview(command="freview-subagents")
 
         self.assertEqual(result.returncode, 0, result.stderr)
         calls = self.calls()
         filter_args = [c for c in calls if c.startswith("FILTER_ARGS ")]
-        self.assertEqual(len(filter_args), 3, calls)
+        self.assertEqual(len(filter_args), 2, calls)
         for args in filter_args:
             self.assertIn("--prompt review-subagents ", args, calls)
 
@@ -395,15 +421,15 @@ class FreviewWorktreeModeTest(FreviewWorktreeFixture, unittest.TestCase):
         self.assertEqual(len(self.review_calls("review")), 1, self.calls())
         self.assertEqual(self.review_calls("self-review"), [], self.calls())
 
-    def test_pr_picker_runs_with_selected_worktree_as_cwd(self):
+    def test_pr_picker_runs_with_selected_repo_as_cwd(self):
         result, values = self.run_freview()
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        # gh pr list (via ghpl_branch) がPRピッカー内で選択worktreeのcwdで呼ばれること
+        # gh pr list (via ghpl_branch) がPRピッカー内で選択リポジトリのcwdで呼ばれること
         calls = self.calls()
         pr_list_calls = [c for c in calls if c.startswith("GH pr list")]
         self.assertEqual(len(pr_list_calls), 1, calls)
-        self.assertIn(f"(pwd={self.worktree})", pr_list_calls[0])
+        self.assertIn(f"(pwd={self.repo})", pr_list_calls[0])
 
     def dirty_env(self, **overrides):
         env = {"FREVIEW_DIRTY": "1", "FREVIEW_DIRTY_PATH": str(self.worktree)}
@@ -415,16 +441,17 @@ class FreviewWorktreeModeTest(FreviewWorktreeFixture, unittest.TestCase):
         env.update(overrides)
         return env
 
-    def test_dirty_tracked_change_aborts_before_pr_picker(self):
+    def test_dirty_tracked_change_aborts_before_checkout(self):
+        # dirty確認はPR選択後（headブランチを持つworktreeが決まってから）に行い、
+        # 中止ならcheckoutもレビュー起動もしない
         result, values = self.run_freview(extra_env=self.dirty_env())
 
         self.assertEqual(values["__STATUS"], "130", result.stderr)
         self.assertIn("がクリーンではありません", result.stderr)
         calls = self.calls()
-        self.assertEqual([c for c in calls if c.startswith("GH ")], [], calls)
-        # filterはrepo picker + worktree pickerの2回のみ呼ばれ、PRピッカーは呼ばれない
-        pr_filter_calls = [c for c in calls if c == "FILTER_CALL"]
-        self.assertEqual(len(pr_filter_calls), 2, calls)
+        self.assertEqual([c for c in calls if c.startswith("GH pr checkout")], [], calls)
+        self.assertEqual([c for c in calls if c.startswith("REVIEW ")], [], calls)
+        self.assertEqual(len([c for c in calls if c == "FILTER_CALL"]), 2, calls)
 
     def test_dirty_tracked_change_does_not_offer_proceed(self):
         # 追跡ファイルの変更はレビュー対象差分に混入しうるため続行を選択肢に出さない
@@ -484,9 +511,8 @@ class FreviewWorktreeModeTest(FreviewWorktreeFixture, unittest.TestCase):
 
         self.assertEqual(values["__STATUS"], "130", result.stderr)
         self.assertEqual(len([c for c in self.calls() if c.startswith("DIRTY_PROMPT ")]), 1, self.calls())
-        self.assertEqual([c for c in self.calls() if c.startswith("GH ")], [])
-        # PRピッカーへ到達しない: filterはrepo + worktreeの2回のみ
-        self.assertEqual(len([c for c in self.calls() if c == "FILTER_CALL"]), 2, self.calls())
+        self.assertEqual([c for c in self.calls() if c.startswith("GH pr checkout")], [])
+        self.assertEqual([c for c in self.calls() if c.startswith("REVIEW ")], [])
 
     def test_dirty_untracked_only_proceeds_when_action_is_proceed(self):
         # 過去のAIレビューが残した一時ファイルでPR一覧に到達できなくなる不具合の回帰テスト
@@ -633,12 +659,6 @@ class FreviewWorktreeModeTest(FreviewWorktreeFixture, unittest.TestCase):
         self.assertEqual(values["__STATUS"], "130", result.stderr)
         self.assertEqual([c for c in self.calls() if c.startswith("GH ")], [])
 
-    def test_worktree_picker_cancelled_returns_sigint(self):
-        result, values = self.run_freview(extra_env={"FREVIEW_WORKTREE_CANCEL": "1"})
-
-        self.assertEqual(values["__STATUS"], "130", result.stderr)
-        self.assertEqual([c for c in self.calls() if c.startswith("GH ")], [])
-
     def test_pr_picker_cancelled_returns_sigint(self):
         result, values = self.run_freview(extra_env={"FREVIEW_PR_CANCEL": "1"})
 
@@ -674,6 +694,84 @@ class FreviewWorktreeModeTest(FreviewWorktreeFixture, unittest.TestCase):
         review_calls = [c for c in self.calls() if c.startswith("REVIEW review ")]
         self.assertEqual(len(review_calls), 1, review_calls)
         self.assertIn("--no-merge 42 観点X", review_calls[0])
+
+
+class FreviewTempWorktreeTest(FreviewWorktreeFixture, unittest.TestCase):
+    """PRのheadブランチを持つworktreeが無いとき、レビュー用の一時worktreeを `wt switch pr:<N>` で作る。"""
+
+    def run_temp(self, **kwargs):
+        extra_env = {"FREVIEW_NO_PR_WORKTREE": "1", **kwargs.pop("extra_env", {})}
+        return self.run_freview(extra_env=extra_env, **kwargs)
+
+    def review_call(self, name="review"):
+        calls = [c for c in self.calls() if c.startswith(f"REVIEW {name} ")]
+        self.assertEqual(len(calls), 1, self.calls())
+        return calls[0]
+
+    def test_creates_temp_worktree_and_reviews_there(self):
+        result, values = self.run_temp()
+
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        calls = self.calls()
+        wt_calls = [c for c in calls if c.startswith("WT ")]
+        self.assertEqual(len(wt_calls), 1, calls)
+        self.assertEqual(wt_calls[0], f"WT switch pr:42 --no-cd (pwd={self.repo})")
+        # wt switch pr:<N> がPRをcheckout済みで作るため、gh pr checkoutは不要
+        self.assertEqual([c for c in calls if c.startswith("GH pr checkout")], [], calls)
+        review = self.review_call()
+        self.assertIn(f"AI_REVIEW_CWD={self.new_worktree})", review)
+        # headブランチは作成前に存在しなかったので「このフローで新規作成」として記録する
+        self.assertIn(f"[TEMP_WORKTREE={self.new_worktree} TEMP_BRANCH=feature]", review)
+
+    def test_preexisting_local_branch_is_not_recorded_as_new(self):
+        # 作成前から存在したローカルブランチはユーザー資産。削除対象にしない
+        result, values = self.run_temp(extra_env={"FREVIEW_EXISTING_BRANCHES": "main feature"})
+
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        self.assertIn(f"[TEMP_WORKTREE={self.new_worktree} TEMP_BRANCH=]", self.review_call())
+
+    def test_own_pr_launches_self_review_with_temp_worktree(self):
+        result, values = self.run_temp(extra_env={"FREVIEW_PR_AUTHOR": "me", "FREVIEW_ME": "me"})
+
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        self.assertIn(f"TEMP_WORKTREE={self.new_worktree} ", self.review_call("self-review"))
+
+    def test_temp_worktree_env_does_not_leak_into_calling_shell(self):
+        result, values = self.run_temp()
+
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        self.assertEqual(values["__AI_REVIEW_TEMP_WORKTREE"], "<unset>", result.stderr)
+
+    def test_skips_dirty_check_for_fresh_worktree(self):
+        # 作ったばかりのworktreeは確認不要。汚れ扱いにしてもプロンプトは出ない
+        result, values = self.run_temp(
+            extra_env={"FREVIEW_DIRTY": "1", "FREVIEW_DIRTY_PATH": str(self.new_worktree)}
+        )
+
+        self.assertEqual(values["__STATUS"], "0", result.stderr)
+        self.assertEqual([c for c in self.calls() if c.startswith("DIRTY_PROMPT")], [], self.calls())
+
+    def test_wt_failure_aborts_without_launching_review(self):
+        result, values = self.run_temp(extra_env={"FREVIEW_WT_FAIL": "1"})
+
+        self.assertEqual(values["__STATUS"], "1", result.stderr)
+        self.assertIn("wt switch pr:42 に失敗しました", result.stderr)
+        self.assertEqual([c for c in self.calls() if c.startswith("REVIEW ")], [], self.calls())
+
+    def test_no_new_worktree_aborts_because_nothing_safe_to_delete(self):
+        # wtが既存worktreeへ切り替えただけ等で新規worktreeを特定できないときは、
+        # 削除対象を決められないためレビューを起動しない
+        result, values = self.run_temp(extra_env={"FREVIEW_WT_NOOP": "1"})
+
+        self.assertEqual(values["__STATUS"], "1", result.stderr)
+        self.assertIn("一時worktreeを特定できませんでした", result.stderr)
+        self.assertEqual([c for c in self.calls() if c.startswith("REVIEW ")], [], self.calls())
+
+    def test_pr_cancel_does_not_create_worktree(self):
+        result, values = self.run_temp(extra_env={"FREVIEW_PR_CANCEL": "1"})
+
+        self.assertEqual(values["__STATUS"], "130", result.stderr)
+        self.assertEqual([c for c in self.calls() if c.startswith("WT ")], [], self.calls())
 
 
 class FreviewPopupPauseTest(FreviewWorktreeFixture, unittest.TestCase):
@@ -839,8 +937,8 @@ class FreviewCurrentModeTest(FreviewWorktreeFixture, unittest.TestCase):
 
         self.assertEqual(values["__STATUS"], "0", result.stderr)
         calls = self.calls()
-        # worktreeモードなのでrepo picker + worktree pickerの2回filterが呼ばれる
-        self.assertEqual(len([c for c in calls if c == "FILTER_CALL"]), 3, calls)  # +PR picker
+        # worktreeモードなのでrepo picker + PR pickerの2回filterが呼ばれる
+        self.assertEqual(len([c for c in calls if c == "FILTER_CALL"]), 2, calls)
         review_calls = [c for c in calls if c.startswith("REVIEW review ")]
         self.assertEqual(len(review_calls), 1, calls)
         self.assertIn("X -c", review_calls[0])

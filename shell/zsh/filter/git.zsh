@@ -1107,6 +1107,19 @@ function _herdr_active_pane_repo_root() {
   print -r -- "$repo_root"
 }
 
+# repoのworktree一覧から、branchをcheckout中のworktreeのパスをstdoutへ返す（無ければ何も出さず1）
+# 引数: repo（任意のworktreeパス）, branch
+function _git_worktree_for_branch() {
+  local repo="$1" branch="$2" line cur_wt
+  while IFS= read -r line; do
+    case "$line" in
+      "worktree "*) cur_wt="${line#worktree }" ;;
+      "branch refs/heads/${branch}") print -r -- "$cur_wt"; return 0 ;;
+    esac
+  done < <(git -C "$repo" worktree list --porcelain 2>/dev/null)
+  return 1
+}
+
 # 選択worktreeでPRを選び、そのheadブランチをcheckoutして、開くべきworktreeパスをstdoutへ返す
 # headブランチが選択worktree以外で既にcheckout済みなら、checkoutせずそのworktreeを返す
 # （git は同一ブランチの複数worktreeを許さず gh pr checkout が失敗するため）
@@ -1128,13 +1141,8 @@ function _herdr_checkout_pr_in_worktree() {
     return 1
   fi
 
-  local line cur_wt holder=""
-  while IFS= read -r line; do
-    case "$line" in
-      "worktree "*) cur_wt="${line#worktree }" ;;
-      "branch refs/heads/${head_branch}") holder="$cur_wt"; break ;;
-    esac
-  done < <(git -C "$worktree_path" worktree list --porcelain 2>/dev/null)
+  local holder
+  holder=$(_git_worktree_for_branch "$worktree_path" "$head_branch")
 
   if [[ -n "$holder" ]] && [[ "${holder:A}" != "${worktree_path:A}" ]]; then
     echo "${head_branch} は ${holder} でcheckout済みのため、そのworktreeを開きます" >&2

@@ -7,14 +7,6 @@ description: >
 
 Parse the arguments after the skill name: the first token, if present, is <RUN_DIR>. If absent, resolve the current branch's PR via `gh pr view --json number --jq .number` and run `bash ~/.config/ai-pr/bin/ai_review_run_dir.sh --latest <PR_NUMBER>` to get <RUN_DIR>.
 
-For the report server, run `serve_review_report.py` without `--open`. In Herdr (`HERDR_ENV=1`), replace the core's `nohup` startup with this procedure:
-
-1. Check `<RUN_DIR>/.server.json` and request `/api/info` on its port. Reuse its URL only if the response identifies the resolved `<RUN_DIR>`; a missing, stale, or mismatched server needs startup.
-2. Start a no-focus Herdr tab in the current workspace, using the tab creation response's pane ID. Run `exec python3 ~/.config/ai-pr/bin/serve_review_report.py <RUN_DIR>` in that pane, shell-quoting the resolved run directory. The foreground server keeps the tab alive and `exec` closes it when the server exits. Do not close a running report tab.
-3. Read the URL from `<RUN_DIR>/.server.json`, verify `/api/info` identifies the resolved run directory and independently fetch the report URL in a later tool call. If startup or verification fails, close only the tab created for this attempt and report the failure; do not open an unverified URL. Open the verified URL once.
-
-Outside Herdr, use the core fallback and independently fetch its returned URL before opening it once in the browser.
-
 Before rendering, compare every `sources[].text` in `merged.json` against its original finding, including all indented detail and proposed fixes through the separator. Confirm each finding appears exactly once; repair any missing or truncated text and repeat the comparison before proceeding.
 
 Merge the per-AI PR review result files in <RUN_DIR> into `merged.json` and generate `report.html`. Respond in Japanese.
@@ -38,14 +30,25 @@ Merge the per-AI PR review result files in <RUN_DIR> into `merged.json` and gene
    - Post outcome lookup: find the previous item's id in post_state.json `items` and use its `status`: `posted` → `"posted_before"`, `skipped` → `"post_skipped_before"`. If post_state.json is missing or unreadable, its `run_dir` is not the previous run, or the id is absent → `"should_be_posted"`.
    No previous run, no state, or no match → `"carryover": null`.
 6. Fetch report metadata before writing JSON: `gh pr view <PR_NUMBER> --json url,title,author,headRefName,headRefOid` and `gh repo view --json nameWithOwner,url`. Store the PR URL/title/author login/head branch/head SHA and repository name/URL in the schema below. The report uses these values for its header, GitHub links, and code-context fallback.
-7. Write `<RUN_DIR>/merged.json`, then render/serve the report. Start a server that survives the command environment, without `--open`; obtain its URL (`url` in `<RUN_DIR>/.server.json`, which already ends in `/report.html`; do not append it again), independently verify that URL, then open it exactly once. On start failure, retry only startup and verification; never open before verification or more than once. Supported fallback:
+7. Write `<RUN_DIR>/merged.json`, then render/serve the report. Start a server that survives the command environment, without `--open`; obtain its URL (`url` in `<RUN_DIR>/.server.json`, which already ends in `/report.html`; do not append it again), independently verify that URL, then open it exactly once. On start failure, retry only startup and verification; never open before verification or more than once. Render the report first:
 
 ```bash
 python3 ~/.config/ai-pr/bin/generate_review_report.py <RUN_DIR>/merged.json <RUN_DIR>/report.html
+```
+
+   In Herdr (`HERDR_ENV=1`), run the server in the foreground of its own tab, so the user can end it explicitly with Ctrl-C or the report's 「レビュー終了」 button (an explicit end also removes a temporary review worktree recorded in `<RUN_DIR>/temp_worktree`; idle shutdown or closing the tab never does):
+
+   1. Check `<RUN_DIR>/.server.json` and request `/api/info` on its port. Reuse its URL only if the response identifies the resolved `<RUN_DIR>`; a missing, stale, or mismatched server needs startup.
+   2. Start a no-focus Herdr tab in the current workspace with `--cwd <RUN_DIR>` (the server must not sit inside a worktree that may be removed), using the tab creation response's pane ID. Run `exec python3 ~/.config/ai-pr/bin/serve_review_report.py <RUN_DIR>` in that pane, shell-quoting the resolved run directory. The foreground server keeps the tab alive and `exec` closes it when the server exits. Do not close a running report tab.
+   3. Read the URL from `<RUN_DIR>/.server.json`, verify `/api/info` identifies the resolved run directory and independently fetch the report URL in a later tool call. If startup or verification fails, close only the tab created for this attempt and report the failure; do not open an unverified URL.
+
+   Outside Herdr, use the fallback below and independently fetch its returned URL before opening it once in the browser:
+
+```bash
 nohup python3 ~/.config/ai-pr/bin/serve_review_report.py <RUN_DIR> >/dev/null 2>&1 &
 ```
 
-8. Print a Japanese summary with per-AI finding counts, merged-item count, duplicate-merge count, carryover counts, and follow-up usage. Decisions are 🔧 修正する / 💬 コメント投稿 / 🤖 AIと方針を検討 / 🚫 対応しない and save to `<RUN_DIR>/state.json`; after all decisions, use the manual save button or accept confirmation. For 検討 items, use `review-consider <RUN_DIR>` for parallel investigation, completion-order discussion, approved worktree fixes and posting in the same conversation; no HTML reselection is needed. It merges locally as fixes complete and asks about one final push. Then the `review-fix` skill with `<RUN_DIR>` auto-selects 修正 items and the `review-post` skill 投稿 items; no item numbers. To reopen after idle shutdown, use zsh function `review-report` or `review-report <PR番号>`, not `report.html`; it is not a skill, so verify with `type review-report`, never skill listing. It reuses or starts this run's server, keeping saves server-backed instead of a file-save dialog. Present it as a shell command, never a skill.
+8. Print a Japanese summary with per-AI finding counts, merged-item count, duplicate-merge count, carryover counts, and follow-up usage. Decisions are 🔧 修正する / 💬 コメント投稿 / 🤖 AIと方針を検討 / 🚫 対応しない and save to `<RUN_DIR>/state.json`; after all decisions, use the manual save button or accept confirmation. For 検討 items, use `review-consider <RUN_DIR>` for parallel investigation, completion-order discussion, approved worktree fixes and posting in the same conversation; no HTML reselection is needed. It merges locally as fixes complete and asks about one final push. Then the `review-fix` skill with `<RUN_DIR>` auto-selects 修正 items and the `review-post` skill 投稿 items; no item numbers. When the user is done, they end the review with the report's 「レビュー終了」 button (or Ctrl-C in the Herdr server tab); that stops the server and removes a temporary review worktree if one was recorded. If the worktree was kept (uncommitted changes or unpushed commits), `review-cleanup <RUN_DIR>` retries after the cause is resolved. To reopen after idle shutdown, use zsh function `review-report` or `review-report <PR番号>`, not `report.html`; it is not a skill, so verify with `type review-report`, never skill listing. It reuses or starts this run's server, keeping saves server-backed instead of a file-save dialog. Present it as a shell command, never a skill.
 
 ## merged.json schema
 

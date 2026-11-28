@@ -180,6 +180,70 @@ class ReviewServerTest(unittest.TestCase):
             body = json.loads(response.read())
         self.assertEqual(body["run_dir"], str(self.run_dir.resolve()))
 
+    def test_shutdown_runs_cleanup_returns_its_message_and_stops_server(self):
+        with mock.patch.object(mod, "cleanup_temp_worktree", return_value="削除しました") as cleanup:
+            with self.request("/api/shutdown", "POST", b"{}", "application/json") as response:
+                self.assertEqual(response.status, 200)
+                self.assertEqual(response.read().decode("utf-8"), "削除しました")
+            self.thread.join(timeout=3)
+        cleanup.assert_called_once_with(self.server.run_dir)
+        self.assertFalse(self.thread.is_alive())
+
+    def test_shutdown_without_json_content_type_is_rejected_and_server_keeps_running(self):
+        # CSRF対策: application/jsonでないPOSTは終了もcleanupもさせない
+        with mock.patch.object(mod, "cleanup_temp_worktree") as cleanup:
+            with self.assertRaises(HTTPError) as error:
+                self.request("/api/shutdown", "POST", b"", "text/plain")
+            self.assertEqual(error.exception.code, 415)
+            error.exception.close()
+        cleanup.assert_not_called()
+        self.assertTrue(self.thread.is_alive())
+
+
+class ExplicitEndCleanupTest(unittest.TestCase):
+    """一時worktreeの削除は明示終了（終了ボタン/Ctrl-C）限定であることを固定する。"""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.run_dir = Path(self.temp.name)
+        (self.run_dir / "merged.json").write_text(json.dumps({"items": [{"id": 1}]}), encoding="utf-8")
+        (self.run_dir / "report.html").write_text("<h1>report</h1>", encoding="utf-8")
+
+    def test_cleanup_is_skipped_without_marker(self):
+        with mock.patch.object(mod.subprocess, "run") as run:
+            self.assertEqual(mod.cleanup_temp_worktree(self.run_dir), "")
+        run.assert_not_called()
+
+    def test_cleanup_runs_script_with_run_dir_when_marker_exists(self):
+        (self.run_dir / "temp_worktree").write_text("/x\nbranch\n", encoding="utf-8")
+        stub = self.run_dir / "stub.sh"
+        stub.write_text('#!/bin/bash\necho "cleanup:$1"\n', encoding="utf-8")
+        with mock.patch.object(mod, "CLEANUP_SCRIPT", stub):
+            message = mod.cleanup_temp_worktree(self.run_dir)
+        self.assertEqual(message, f"cleanup:{self.run_dir}")
+
+    def test_ctrl_c_runs_cleanup_and_logs_result(self):
+        with mock.patch.object(mod.ReviewServer, "serve_forever", side_effect=KeyboardInterrupt), \
+                mock.patch.object(mod, "cleanup_temp_worktree", return_value="一時worktreeを削除しました") as cleanup:
+            mod.serve(self.run_dir, idle_timeout=60)
+        cleanup.assert_called_once_with(self.run_dir.resolve())
+        log = (self.run_dir / "worktree_cleanup.log").read_text(encoding="utf-8")
+        self.assertIn("一時worktreeを削除しました", log)
+        self.assertFalse((self.run_dir / ".server.json").exists())
+
+    def test_idle_shutdown_never_runs_cleanup(self):
+        # アイドル停止は「ユーザーが明示的に終了した」ではないため、worktreeを削除してはならない
+        server = mod.ReviewServer(self.run_dir, idle_timeout=0)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        self.addCleanup(server.server_close)
+        with mock.patch.object(mod, "cleanup_temp_worktree") as cleanup:
+            mod.stop_after_idle(server)
+            thread.join(timeout=3)
+        cleanup.assert_not_called()
+        self.assertFalse(thread.is_alive())
+
 
 class ServerInfoFileTest(unittest.TestCase):
     def setUp(self):

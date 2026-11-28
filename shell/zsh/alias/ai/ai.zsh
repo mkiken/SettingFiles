@@ -644,8 +644,18 @@ _review_watch() {
         _review_close_ai_tabs "${tab_ids[@]}"
     fi
 
-    _review_handle_wait_status "${wait_status}" "${run_dir}" "${specs[@]}" || return $?
-    _review_finalize "${run_dir}"
+    local finalize_status=0
+    _review_handle_wait_status "${wait_status}" "${run_dir}" "${specs[@]}" && _review_finalize "${run_dir}" || finalize_status=$?
+    _review_hint_temp_worktree "${run_dir}"
+    return "${finalize_status}"
+}
+
+# 一時worktreeが残ったままレポートサーバーも動いていない（=明示終了が来ない）ときだけ、
+# 手動で削除するコマンドを案内する。自動削除はサーバーの明示終了（終了ボタン/Ctrl-C）限定
+_review_hint_temp_worktree() {
+    local run_dir="$1"
+    [[ -f "${run_dir}/temp_worktree" && ! -f "${run_dir}/.server.json" ]] || return 0
+    echo "レビュー用の一時worktreeが残っています。不要なら削除: review-cleanup ${run_dir}"
 }
 
 # レビュー用に開いたAIタブ（herdr）を確認なしで閉じる。tmux未対応（no-op）
@@ -806,6 +816,13 @@ _review_run() {
         print -r -- "${head_oid}" > "${run_dir}/self_fix" || return 1
     fi
 
+    # freviewが作った一時worktreeは、レポートサーバーの明示終了時に削除できるようrun_dirへ記録する
+    # （1行目=path, 2行目=このフローで新規作成したブランチ名。既存ブランチなら空行）。
+    # self_fix/watch_specsと同様、サーバーは別プロセスのため環境変数ではなくファイルで渡す
+    if [[ -n "${AI_REVIEW_TEMP_WORKTREE:-}" ]]; then
+        print -r -- "${AI_REVIEW_TEMP_WORKTREE}"$'\n'"${AI_REVIEW_TEMP_BRANCH:-}" > "${run_dir}/temp_worktree" || return 1
+    fi
+
     case "$(_ai_multiplexer_kind)" in
         herdr)
             # 完了待ち〜マージはreview workspaceのorchestratorタブへ委譲し、呼び出し元タブは即解放する
@@ -960,6 +977,18 @@ review-report() {
     [[ -n "$port" ]] && port_args=(--port "$port")
     nohup python3 "$HOME/.config/ai-pr/bin/serve_review_report.py" --open "${port_args[@]}" "${run_dir}" >/dev/null &
     echo "レビュー結果を開いています: ${run_dir}"
+}
+
+# レビュー用の一時worktreeを手動で削除する（レポートの「レビュー終了」と同じ安全確認:
+# 未コミット変更・未pushコミットがあれば残す）。run_dir省略時は最新ラン（PR番号指定可）
+review-cleanup() {
+    local run_dir
+    if [[ $# -gt 0 && -d "$1" ]]; then
+        run_dir="$1"
+    else
+        _ai_pr_review_resolve_latest_run_dir run_dir "$@" || return 1
+    fi
+    bash "$HOME/.config/ai-pr/bin/ai_review_cleanup_worktree.sh" "${run_dir}"
 }
 
 # 後日設定監査の結果を見返す/判断を再開する: 最新ランディレクトリのreport.htmlを

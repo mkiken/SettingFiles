@@ -17,6 +17,9 @@ from urllib.request import Request, urlopen
 
 MAX_STATE_BYTES = 1024 * 1024
 PROBE_TIMEOUT = 0.5
+CLEANUP_TIMEOUT = 60
+# freviewが作った一時worktreeを安全確認つきで削除するスクリプト（同じディレクトリに置く）
+CLEANUP_SCRIPT = Path(__file__).resolve().parent / "ai_review_cleanup_worktree.sh"
 
 
 # PRレビューと設定監査で同じサーバーを使う。run_dir内のマニフェストファイル名でどちらかを判別する。
@@ -116,6 +119,27 @@ def probe_reusable_server(server_info_path, run_dir):
     return url
 
 
+def cleanup_temp_worktree(run_dir):
+    """明示終了時にだけ呼ぶ: run_dirに一時worktreeの記録があれば削除し、結果メッセージを返す。
+
+    アイドル停止・SIGTERM/SIGHUP（タブを閉じる等）では呼ばない。削除は
+    ai_review_cleanup_worktree.sh側で未コミット変更・未pushコミットを確認する。
+    """
+    if not (Path(run_dir) / "temp_worktree").is_file():
+        return ""
+    try:
+        result = subprocess.run(
+            ["bash", str(CLEANUP_SCRIPT), str(run_dir)],
+            capture_output=True,
+            text=True,
+            timeout=CLEANUP_TIMEOUT,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError) as error:
+        return f"一時worktreeの削除を実行できませんでした: {error}"
+    return (result.stdout + result.stderr).strip()
+
+
 class ReviewServer(ThreadingHTTPServer):
     daemon_threads = True
 
@@ -212,11 +236,19 @@ class ReviewHandler(BaseHTTPRequestHandler):
             self.send_response(HTTPStatus.NO_CONTENT)
             self.end_headers()
             return
-        if path != "/api/state":
+        if path not in ("/api/state", "/api/shutdown"):
             self.send_error(HTTPStatus.NOT_FOUND)
             return
+        # 他オリジンのページからのCSRFを防ぐ: application/jsonはCORS preflightを要求し、
+        # このサーバーはpreflightに応答しないため、ブラウザは別オリジンからの送信を止める
         if self.headers.get_content_type() != "application/json":
             self.send_text(HTTPStatus.UNSUPPORTED_MEDIA_TYPE, "application/json is required")
+            return
+        if path == "/api/shutdown":
+            # ユーザーが「レビュー終了」を明示した経路。結果を返してからサーバーを止める
+            message = cleanup_temp_worktree(self.server.run_dir)
+            self.send_text(HTTPStatus.OK, message)
+            threading.Thread(target=self.server.shutdown, daemon=True).start()
             return
         try:
             length = int(self.headers.get("Content-Length", ""))
@@ -265,6 +297,14 @@ def serve(run_dir, idle_timeout=43200, open_browser=False, profile_name=None, po
     print(server.url, flush=True)
     try:
         server.serve_forever(poll_interval=0.5)
+    except KeyboardInterrupt:
+        # 前面実行中のサーバーへのCtrl-Cも明示終了とみなす。タブはexecで即閉じるため
+        # 結果はログファイルにも残す
+        message = cleanup_temp_worktree(run_dir)
+        if message:
+            print(message, flush=True)
+            with open(run_dir / "worktree_cleanup.log", "a", encoding="utf-8") as log:
+                log.write(message + "\n")
     finally:
         server.remove_server_info()
         server.server_close()

@@ -219,10 +219,49 @@ _freview_resolve_self_variant() {
     fi
 }
 
-# リポジトリ→worktree→PRを選択し、選択worktreeでcheckoutしてAIレビューを起動する
+# PRのレビュー用に一時worktreeを `wt switch pr:<N>` で作り、"<path>\t<新規作成したブランチ名|空>" をstdoutへ返す
+# 新規worktreeは作成前後のworktree一覧の差分で特定する（wtの命名規則に依存しない）。
+# 差分が無い（wtが既存worktreeへ切り替えただけ）場合は削除対象を特定できないため失敗にする
+# 引数: repo_path, pr_number
+_freview_create_temp_worktree() {
+    local repo_path="$1" pr_number="$2"
+    local -a before_paths before_branches after_paths
+    local path_entry new_path="" new_branch=""
+
+    before_paths=("${(@f)$(git -C "$repo_path" worktree list --porcelain 2>/dev/null | sed -n 's/^worktree //p')}")
+    before_branches=("${(@f)$(git -C "$repo_path" for-each-ref --format='%(refname:short)' refs/heads 2>/dev/null)}")
+
+    ( builtin cd -q "$repo_path" && wt switch "pr:${pr_number}" --no-cd >&2 ) || {
+        echo "wt switch pr:${pr_number} に失敗しました: ${repo_path}" >&2
+        return 1
+    }
+
+    after_paths=("${(@f)$(git -C "$repo_path" worktree list --porcelain 2>/dev/null | sed -n 's/^worktree //p')}")
+    for path_entry in "${after_paths[@]}"; do
+        [[ -n "$path_entry" ]] || continue
+        (( ${before_paths[(Ie)$path_entry]} )) && continue
+        new_path="$path_entry"
+        break
+    done
+    if [[ -z "$new_path" ]]; then
+        echo "一時worktreeを特定できませんでした（wtが既存worktreeへ切り替えた可能性）: PR #${pr_number}" >&2
+        return 1
+    fi
+
+    new_branch=$(git -C "$new_path" branch --show-current 2>/dev/null)
+    # 作成前から存在したローカルブランチはユーザー資産なので削除対象にしない
+    (( ${before_branches[(Ie)$new_branch]} )) && new_branch=""
+
+    print -r -- "${new_path}"$'\t'"${new_branch}"
+}
+
+# リポジトリ→PRを選択し、PRのheadブランチを持つworktreeがあればそれを、無ければ
+# レビュー用の一時worktreeを作って、AIレビューを起動する
 # 現ペインはcdしない。Herdr専用: reviewが作るworkspace(review-<worktree名>)を唯一の
 # 新規workspaceにするため中継ペインを置かず、AI_REVIEW_CWDで対象worktreeをreviewへ伝える
 # （コマンド前置のためexportされず、並列実行中の他プロセスへは漏れない）
+# 一時worktreeはAI_REVIEW_TEMP_WORKTREE/AI_REVIEW_TEMP_BRANCHで伝え、_review_runがrun_dirへ
+# 記録する（削除はレポートサーバーの明示終了時: ai_review_cleanup_worktree.sh）
 # 引数: 元関数名, [元関数に渡す追加引数...]
 _freview_worktree() {
     local func_name="$1"; shift
@@ -242,30 +281,48 @@ _freview_worktree() {
         shift
     fi
 
-    local worktree_path
-    worktree_path=$(_filter_zoxide_git_worktree_path --label-prefix "$func_name")
-    if [[ $? -ne 0 ]] || [[ -z "$worktree_path" ]]; then
+    local repo_path
+    repo_path=$(_filter_zoxide_git_repo --label-prefix "$func_name")
+    if [[ $? -ne 0 ]] || [[ -z "$repo_path" ]]; then
         return $EXIT_CODE_SIGINT
     fi
 
-    _freview_resolve_dirty_state "$worktree_path" || return $?
-
-    # gh pr list はcwd依存のため、選択worktreeへcdしたサブシェルでPRを選ぶ
+    # gh pr list はcwd依存のため、選択リポジトリへcdしたサブシェルでPRを選ぶ
     # fzfはTUIを/dev/ttyに描くのでコマンド置換内でも動く
-    # （_filter_zoxide_git_worktree_path が cdq + filter で同じことをしている）
     # --label-prefixにfunc_name（review/review-subagents）を渡し、fzfのpromptで
     # どのバリアントを実行中か常に見分けられるようにする
-    local pr_number
-    pr_number=$(cdq "$worktree_path" && _fgh_select_pr_number --label-prefix "$func_name")
-    if [[ $? -ne 0 ]] || [[ -z "$pr_number" ]]; then
+    local selected_pr
+    selected_pr=$(cdq "$repo_path" && _fgh_select_pr --label-prefix "$func_name")
+    if [[ $? -ne 0 ]] || [[ -z "$selected_pr" ]]; then
         return $EXIT_CODE_SIGINT
     fi
 
-    # checkoutも選択worktree側で行う。失敗をこの場で覚知させるためreviewより前に実行する
-    ( cdq "$worktree_path" && gh pr checkout "$pr_number" ) || {
-        echo "gh pr checkout ${pr_number} に失敗しました: ${worktree_path}" >&2
+    # 選択行はTSV: Number Title Author Base Head
+    local pr_number head_branch title_col author_col base_col
+    IFS=$'\t' read -r pr_number title_col author_col base_col head_branch <<< "$selected_pr"
+    if [[ -z "$pr_number" ]] || [[ -z "$head_branch" ]]; then
+        echo "選択したPRの番号またはheadブランチを取得できませんでした: ${selected_pr}" >&2
         return 1
-    }
+    fi
+
+    local worktree_path temp_worktree="" temp_branch=""
+    worktree_path=$(_git_worktree_for_branch "$repo_path" "$head_branch")
+    if [[ -n "$worktree_path" ]]; then
+        _freview_resolve_dirty_state "$worktree_path" || return $?
+
+        # checkoutも既存worktree側で行う。失敗をこの場で覚知させるためreviewより前に実行する
+        ( cdq "$worktree_path" && gh pr checkout "$pr_number" ) || {
+            echo "gh pr checkout ${pr_number} に失敗しました: ${worktree_path}" >&2
+            return 1
+        }
+    else
+        local created
+        created=$(_freview_create_temp_worktree "$repo_path" "$pr_number") || return 1
+        worktree_path="${created%%$'\t'*}"
+        temp_worktree="$worktree_path"
+        temp_branch="${created#*$'\t'}"
+        echo "レビュー用の一時worktreeを作成しました（レポートの「レビュー終了」で削除）: ${temp_worktree}" >&2
+    fi
 
     # freviewのシェル自体はcdしない（現ペインは元のリポジトリのまま）ため、
     # reviewが「現在のブランチから自動解決」を試みても選択worktreeとは無関係になる。
@@ -275,7 +332,8 @@ _freview_worktree() {
     launch_func=$(_freview_resolve_self_variant "$worktree_path" "$pr_number" "$func_name")
     [[ -n "$launch_func" ]] || launch_func="$func_name"
 
-    AI_REVIEW_CWD="$worktree_path" "$launch_func" "${no_merge_flag[@]}" "$pr_number" "$@"
+    AI_REVIEW_CWD="$worktree_path" AI_REVIEW_TEMP_WORKTREE="$temp_worktree" AI_REVIEW_TEMP_BRANCH="$temp_branch" \
+        "$launch_func" "${no_merge_flag[@]}" "$pr_number" "$@"
 }
 
 # -c 指定時のみ従来動作（現在地でPR選択→gh pr checkout→レビュー）

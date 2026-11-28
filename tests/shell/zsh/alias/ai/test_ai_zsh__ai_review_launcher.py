@@ -90,6 +90,81 @@ self-review --no-merge 123
             self.assertNotIn("UNEXPECTED_GH", result.stdout)
             self.assertFalse((Path(run_dir) / "self_fix").exists())
 
+    def test_review_run_records_temp_worktree_for_explicit_end_cleanup(self):
+        # freviewが作った一時worktreeは、レポートサーバー（別プロセス）が削除できるよう
+        # 環境変数ではなくrun_dirのファイルで渡す。新規ブランチ無し（既存ブランチ）は2行目が空
+        for env, expected in (
+            ("AI_REVIEW_TEMP_WORKTREE=/tmp/wt AI_REVIEW_TEMP_BRANCH=feat", "/tmp/wt\nfeat\n"),
+            ("AI_REVIEW_TEMP_WORKTREE=/tmp/wt AI_REVIEW_TEMP_BRANCH=", "/tmp/wt\n\n"),
+        ):
+            with self.subTest(env=env), tempfile.TemporaryDirectory() as run_dir:
+                result = run_zsh(f"""
+_ai_multiplexer_kind() {{ echo herdr; }}
+_review_launch_herdr() {{ :; }}
+bash() {{ echo '{run_dir}'; }}
+{env} review 123
+""")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual((Path(run_dir) / "temp_worktree").read_text(), expected)
+
+    def test_review_run_without_temp_worktree_env_writes_no_marker(self):
+        with tempfile.TemporaryDirectory() as run_dir:
+            result = run_zsh(f"""
+_ai_multiplexer_kind() {{ echo herdr; }}
+_review_launch_herdr() {{ :; }}
+bash() {{ echo '{run_dir}'; }}
+AI_REVIEW_TEMP_WORKTREE= review 123
+""")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertFalse((Path(run_dir) / "temp_worktree").exists())
+
+    def run_watch(self, run_dir, finalize_rc=0):
+        return run_zsh(f"""
+bash() {{ return 0; }}
+_review_close_ai_tabs() {{ :; }}
+_review_handle_wait_status() {{ return 0; }}
+_review_finalize() {{ return {finalize_rc}; }}
+_review_watch '{run_dir}' claude.md
+echo "RC=$?"
+""")
+
+    def test_watch_hints_manual_cleanup_when_temp_worktree_remains_without_server(self):
+        # サーバー（=明示終了の手段）が無いまま終わったときだけ手動削除コマンドを案内する。
+        # 自動削除はしない: 明示終了以外（指摘ゼロ・マージ保留など）で消してはならない
+        with tempfile.TemporaryDirectory() as run_dir:
+            (Path(run_dir) / "temp_worktree").write_text("/tmp/wt\nfeat\n")
+            result = self.run_watch(run_dir)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn(f"review-cleanup {run_dir}", result.stdout)
+            self.assertTrue((Path(run_dir) / "temp_worktree").exists())
+
+    def test_watch_keeps_finalize_exit_code_and_still_hints(self):
+        with tempfile.TemporaryDirectory() as run_dir:
+            (Path(run_dir) / "temp_worktree").write_text("/tmp/wt\n\n")
+            result = self.run_watch(run_dir, finalize_rc=3)
+            self.assertIn("RC=3", result.stdout)
+            self.assertIn("review-cleanup", result.stdout)
+
+    def test_watch_no_hint_while_server_info_exists_or_without_temp_worktree(self):
+        with tempfile.TemporaryDirectory() as run_dir:
+            (Path(run_dir) / "temp_worktree").write_text("/tmp/wt\nfeat\n")
+            (Path(run_dir) / ".server.json").write_text("{}")
+            self.assertNotIn("review-cleanup", self.run_watch(run_dir).stdout)
+        with tempfile.TemporaryDirectory() as run_dir:
+            self.assertNotIn("review-cleanup", self.run_watch(run_dir).stdout)
+
+    def test_review_cleanup_runs_cleanup_script_for_run_dir(self):
+        with tempfile.TemporaryDirectory() as run_dir:
+            result = run_zsh(f"""
+bash() {{ print -r -- "BASH:$*"; }}
+review-cleanup '{run_dir}'
+""")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(
+                result.stdout.strip(),
+                f"BASH:{os.environ['HOME']}/.config/ai-pr/bin/ai_review_cleanup_worktree.sh {run_dir}",
+            )
+
     def test_finalize_routes_self_fix_runs_to_orchestrator_self_review(self):
         for setting, expected in (("unset AI_REVIEW_ORCHESTRATOR", "claude"),
                                   ("AI_REVIEW_ORCHESTRATOR=codex", "codex")):

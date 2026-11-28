@@ -325,6 +325,43 @@ for (const owner of ['other', 'self', 'unknown']) {
         self.assertIn("showReconnect(!!e.offline)", init_body)
         self.assertIn('getElementById("copy-reconnect").addEventListener("click",copyReconnect)', html)
 
+    def test_finish_review_button_is_server_only_and_confirms_before_shutdown(self):
+        html = mod.render(merged([item(1)]))
+        self.assertIn('<button id="finish-review" type="button" hidden>', html)
+        # file://直開きでは終了先のサーバーが無いので、サーバー経由のときだけ表示する
+        self.assertIn('if(CAN_SERVER_SAVE)document.getElementById("finish-review").hidden=false', html)
+        func = "async function finishReview()" + html.split("async function finishReview()", 1)[1].split("\nfunction heartbeat", 1)[0]
+        script = f"""
+const calls = {{fetch: [], toasts: []}};
+let confirmAnswer = false;
+let confirmMessage = "";
+const status = {{textContent: ""}};
+const button = {{disabled: false}};
+const window = {{confirm: (m) => {{ confirmMessage = m; return confirmAnswer; }}}};
+const document = {{getElementById: (id) => id === "finish-review" ? button : status}};
+let savedSnapshot = "a";
+const state = {{}};
+function showToast(m, k) {{ calls.toasts.push([m, k]); }}
+globalThis.fetch = async (url, opts) => {{ calls.fetch.push([url, opts]); return {{ok: true, text: async () => "削除しました"}}; }};
+{func}
+(async () => {{
+  await finishReview();
+  const cancelled = {{fetchCalls: calls.fetch.length, buttonDisabled: button.disabled, unsavedWarned: confirmMessage.includes("保存されていない")}};
+  confirmAnswer = true;
+  await finishReview();
+  console.log(JSON.stringify({{cancelled, fetch: calls.fetch[0], status: status.textContent}}));
+}})();
+"""
+        result = subprocess.run(["node", "-e", script], check=True, env=sanitized_env(), capture_output=True, text=True)
+        out = json.loads(result.stdout)
+        # キャンセル時はサーバーへ何も送らない。未保存の判断があれば確認文で警告する
+        self.assertEqual(out["cancelled"], {"fetchCalls": 0, "buttonDisabled": False, "unsavedWarned": True})
+        url, opts = out["fetch"]
+        self.assertEqual(url, "/api/shutdown")
+        self.assertEqual(opts["method"], "POST")
+        self.assertEqual(opts["headers"], {"Content-Type": "application/json"})
+        self.assertIn("削除しました", out["status"])
+
     def test_embedded_state_is_schema_v2(self):
         html = mod.render(merged([item(1)]))
         self.assertIn("const state = {schema_version: 2, items: {}}", html)

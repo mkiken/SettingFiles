@@ -250,6 +250,7 @@
 
 "ai/claude/skills/review-merge/SKILL.md" = [
   "tests/ai/common/test_review_merge_core_md__carryover_values.py",
+  "tests/ai/codex/skills/review_merge/test_skill_head_md__server_lifecycle.py",
 ]
 
 "ai/codex/skills/review-merge/SKILL.md" = [
@@ -285,6 +286,7 @@
 "ai/common/review_merge_core.md" = [
   "tests/ai/common/shared_skills/review_consider/test_skill_md.py",
   "tests/ai/common/test_review_post_core_md__carryover_line.py",
+  "tests/ai/codex/skills/review_merge/test_skill_head_md__server_lifecycle.py",
 ]
 
 "shell/zsh/managed.zsh" = [
